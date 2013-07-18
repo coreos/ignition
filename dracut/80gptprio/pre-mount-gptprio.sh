@@ -12,7 +12,7 @@ find_root() {
     root_lower=$(echo "${root_upper}" | tr [:upper:] [:lower:])
     cmd_line=$(cat /proc/cmdline)
     mkdir /tmp/boot
-    mount /dev/disk/by-partuuid/${root_lower} /tmp/boot
+    mount -o ro /dev/disk/by-partuuid/${root_lower} /tmp/boot
     kexec --command-line="${cmd_line} root=PARTUUID=${root_upper}" -l /tmp/boot/boot/vmlinuz
     kexec -e
 }
