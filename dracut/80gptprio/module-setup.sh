@@ -8,6 +8,9 @@ depends() {
 
 install() {
     inst /usr/bin/cgpt
+    inst /usr/sbin/kexec
+    inst /usr/bin/old_bins/cgpt
+    inst /usr/bin/tr
     inst_hook cmdline 80 "$moddir/parse-gptprio.sh"
     inst_hook pre-mount 80 "$moddir/pre-mount-gptprio.sh"
 }
