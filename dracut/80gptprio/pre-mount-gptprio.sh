@@ -15,6 +15,10 @@ find_root() {
     mount -o ro /dev/disk/by-partuuid/${root_lower} /tmp/boot
     kexec --command-line="${cmd_line} root=PARTUUID=${root_upper}" -l /tmp/boot/boot/vmlinuz
     kexec -e
+    echo "ERROR: bootengine: kexec -e shouldn't return!"
+    echo "cmd_line was $cmd_line"
+    echo "root_upper was $root_upper"
+    exit 1
 }
 
 if [ -n "$root" -a -z "${root%%gptprio:}" ]; then
