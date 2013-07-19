@@ -11,13 +11,18 @@ find_root() {
     root_upper=$(cgpt next)
     root_lower=$(echo "${root_upper}" | tr [:upper:] [:lower:])
     cmd_line=$(cat /proc/cmdline)
+    info "bootengine: cmd_line was $cmd_line"  > /dev/kmsg
+    echo "bootengine: root_upper was $root_upper" > /dev/kmsg
     mkdir /tmp/boot
+    echo "bootengine: preparing disk mount for /dev/disk/by-partuuid/${root_lower}" > /dev/kmsg
     mount -o ro /dev/disk/by-partuuid/${root_lower} /tmp/boot
-    kexec --command-line="${cmd_line} root=PARTUUID=${root_upper}" -l /tmp/boot/boot/vmlinuz
-    kexec -e
-    echo "ERROR: bootengine: kexec -e shouldn't return!"
-    echo "cmd_line was $cmd_line"
-    echo "root_upper was $root_upper"
+    echo "bootengine: mount returned $?, setting up kexec on kernel $(ls -l /tmp/boot/boot/vmlinuz)" > /dev/kmsg
+    kexec --command-line="${cmd_line} root=PARTUUID=${root_upper}" -l /tmp/boot/boot/vmlinuz 2>&1 > /dev/kmsg
+    echo "bootengine: kexec returned $?" > /dev/kmsg
+    kexec -e 2>&1 > /dev/kmsg
+    echo "ERROR: bootengine: kexec -e shouldn't return!" > /dev/kmsg
+    echo "cmd_line was $cmd_line" > /dev/kmsg
+    echo "root_upper was $root_upper" > /dev/kmsg
     exit 1
 }
 
