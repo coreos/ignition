@@ -5,7 +5,7 @@
 if [ "${root%%:*}" = "gptprio" ]; then
     rootok=1
 
-    info "bootengine: root is gptprio waiting on disk"
+    info "bootengine: waiting on disks with cmd_line: $cmd_line"
 
     # Wait for both root partitions to show up before we move on
     wait_for_dev "/dev/disk/by-partuuid/7130c94a-213a-4e5a-8e26-6cce9662f132"

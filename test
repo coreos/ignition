@@ -1,0 +1,3 @@
+#!/bin/sh
+
+cd dracut/80gptprio/tests && ./run.sh
