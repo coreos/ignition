@@ -76,6 +76,7 @@ do_exec_or_find_root() {
     # to act as the runtime kernel. This is the common case on Xen for now.
     root=block:${BOOTENGINE_ROOT}
     info "bootengine: No kernel found or kexec failed, proceeding with root=$root"
+    umount ${BOOTENGINE_ROOT_DIR}
 }
 
 if [ -n "$root" -a -z "${root%%gptprio:}" ]; then

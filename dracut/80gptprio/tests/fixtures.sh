@@ -24,6 +24,10 @@ mount() {
 	echo "mount $@"
 }
 
+umount() {
+	echo "umount $@"
+}
+
 kexec() {
 	echo "kexec $@"
 }
