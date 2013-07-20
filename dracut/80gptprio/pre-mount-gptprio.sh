@@ -2,7 +2,56 @@
 # -*- mode: shell-script; indent-tabs-mode: nil; sh-basic-offset: 4; -*-
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
-find_root() {
+# Flexible mount directory for testing
+[ -z ${BOOTENGINE_ROOT_DIR} ] && BOOTENGINE_ROOT_DIR=/tmp/boot
+BOOTENGINE_KERNEL_PATH=${BOOTENGINE_ROOT_DIR}/boot/vmlinuz
+
+# mount the BOOTENGINE_ROOT or return non-zero
+mount_root() {
+    info "bootengine: preparing disk mount for $BOOTENGINE_ROOT"
+    mkdir ${BOOTENGINE_ROOT_DIR}
+    mount -o ro ${BOOTENGINE_ROOT} ${BOOTENGINE_ROOT_DIR} > /tmp/bootengine.out 2>&1
+    ret=$?
+    info "bootengine: mount on ${BOOTENGINE_ROOT} returned $ret"
+    return $ret
+}
+
+# If we call this we are in a bad position. The root filesystem that
+# we expected to work out failed to mount. Try our best to get out of
+# this problem by looping over all coreos-rootfs filesystems until we
+# find one that mounts
+root_emergency() {
+    warn "bootengine: Mounting next root failed! Trying to recover."
+    cgpt_next
+    mount_root
+}
+
+find_kernel() {
+    if [ ! -s $BOOTENGINE_KERNEL_PATH ]; then
+      warn "bootengine: No kernel at $BOOTENGINE_KERNEL_PATH"
+      return 1
+    fi
+    return 0
+}
+
+kexec_kernel() {
+    # Attempt to load up the kernel with kexec
+    cmd_line=$(cat /proc/cmdline)
+    kexec --command-line="${cmd_line} root=${BOOTENGINE_ROOT_CMDLINE}" \
+      -l $BOOTENGINE_KERNEL_PATH > /tmp/bootengine.out 2>&1
+    info "bootengine: kexec -l returned $?"
+    vinfo < /tmp/bootengine.out
+
+    kexec -e > /tmp/bootengine.out 2>&1
+    info "bootengine: kexec -e returned $?"
+    vinfo < /tmp/bootengine.out
+    # If we reach here then kexec didn't work. We are the only
+    info "ERROR: bootengine: kexec -e shouldn't return!"
+    info "cmd_line was $cmd_line"
+    info "root_upper was $root_upper"
+}
+
+cgpt_next() {
     # Run cgpt to get the partition uuid that we should boot.
     # cgpt prints out to stdout a uppercase string, which is what the kernel
     # needs as the root partition, but udev creates by-partuuid symlinks in
@@ -10,22 +59,25 @@ find_root() {
     # to be able to handle everything.  Isn't it grand...
     root_upper=$(cgpt next)
     root_lower=$(echo "${root_upper}" | tr [:upper:] [:lower:])
-    cmd_line=$(cat /proc/cmdline)
-    info "bootengine: cmd_line was $cmd_line"  > /dev/kmsg
-    echo "bootengine: root_upper was $root_upper" > /dev/kmsg
-    mkdir /tmp/boot
-    echo "bootengine: preparing disk mount for /dev/disk/by-partuuid/${root_lower}" > /dev/kmsg
-    mount -o ro /dev/disk/by-partuuid/${root_lower} /tmp/boot
-    echo "bootengine: mount returned $?, setting up kexec on kernel $(ls -l /tmp/boot/boot/vmlinuz)" > /dev/kmsg
-    kexec --command-line="${cmd_line} root=PARTUUID=${root_upper}" -l /tmp/boot/boot/vmlinuz 2>&1 > /dev/kmsg
-    echo "bootengine: kexec returned $?" > /dev/kmsg
-    kexec -e 2>&1 > /dev/kmsg
-    echo "ERROR: bootengine: kexec -e shouldn't return!" > /dev/kmsg
-    echo "cmd_line was $cmd_line" > /dev/kmsg
-    echo "root_upper was $root_upper" > /dev/kmsg
-    exit 1
+    info "bootengine: selected PARTUUID $root_upper"
+
+    BOOTENGINE_ROOT="/dev/disk/by-partuuid/${root_lower}"
+    BOOTENGINE_ROOT_CMDLINE="PARTUUID=${root_upper}"
+}
+
+do_exec_or_find_root() {
+    cgpt_next
+    mount_root || root_emergency
+
+    # Find a kernel and kexec it. Fall through on failure of either.
+    find_kernel && kexec_kernel || true
+
+    # If there wasn't a kernel found or the kexec fails this kernel will have
+    # to act as the runtime kernel. This is the common case on Xen for now.
+    root=block:${BOOTENGINE_ROOT}
+    info "bootengine: No kernel found or kexec failed, proceeding with root=$root"
 }
 
 if [ -n "$root" -a -z "${root%%gptprio:}" ]; then
-    find_root
+    do_exec_or_find_root
 fi
