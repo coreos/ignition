@@ -62,7 +62,7 @@ cgpt_next() {
     info "bootengine: selected PARTUUID $root_upper"
 
     BOOTENGINE_ROOT="/dev/disk/by-partuuid/${root_lower}"
-    BOOTENGINE_ROOT_CMDLINE="PARTUUID=${root_upper}"
+    BOOTENGINE_ROOT_CMDLINE="PARTUUID=${root_lower}"
 }
 
 do_exec_or_find_root() {
