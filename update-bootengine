@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# Copyright (c) 2013 The CoreOS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+set -e
+
+USAGE="Usage: $0 [-m] [-c /build/amd64-generic] [-o bootengine.cpio]
+Options:
+    -m          Setup mounts for /dev /proc /sys and /run
+    -c CHROOT   Chroot into the given directory
+    -o OUT.cpio Alternate path to write the initrd
+
+This tool uses dracut to update /usr/share/bootengine/bootengine.cpio
+
+Since dracut assumes it is always run on the target system we need to support
+wrapping it in a way that fools it into using the files from the target image.
+This is all kinds of terrible and only works because the target arch is the
+same as the host arch.
+
+After many terrible experiences from this procedure this script will create a
+new filesystem namespace when operating inside the chroot, that way anything
+bad that happens will be less likely to hurt the host system. But no promises!
+"
+
+DRACUT_ARGS=(--force --no-kernel --nofscks --fstab --no-compress)
+
+SETUP_MOUNTS=
+USE_CHROOT=
+CPIO_PATH="/usr/share/bootengine/bootengine.cpio"
+while getopts "hmc:o:" OPTION
+do
+    case $OPTION in
+        c) USE_CHROOT="$OPTARG";;
+        m) SETUP_MOUNTS=1;;
+        o) CPIO_PATH="$OPTARG";;
+        h) echo "$USAGE"; exit;;
+        *) exit 1;;
+    esac
+done
+
+if [[ -n "$USE_CHROOT" && ! -d "$USE_CHROOT" ]]; then
+    echo "$0: chroot $USE_CHROOT does not exist!" >&2
+    exit 1
+fi
+
+if [[ -z "$USE_CHROOT" && "$SETUP_MOUNTS" -eq 1 ]]; then
+    echo "$0: -c chrootpath option is required with the -m option" >&2
+    exit 1
+fi
+
+if [[ $(id -u) -ne 0 ]]; then
+    echo "$0: this script must be run as root!" >&2
+    exit 1
+fi
+
+# Prints a namespace identifier string like mnt:[4026531840]
+get_mnt_ns() {
+    readlink "/proc/$1/ns/mnt"
+}
+
+# Alternative to mount --make-rprivate /
+# Doing it the ugly way is required because if this is run inside a chroot
+# such as the CoreOS SDK / is unlikely to be a mount point.
+mount_private() {
+    awk '$7 ~ /^shared:/{print $5}' /proc/self/mountinfo \
+        | xargs -r -n1 mount --make-private
+}
+
+if [[ "$SETUP_MOUNTS" -eq 1 ]]; then
+    # To ensure we don't break the rest of the system re-run ourselves in
+    # a new namespace, that way no one else sees our mounts.
+    if [[ "$(get_mnt_ns self)" == "$(get_mnt_ns ${PPID})" ]]
+    then
+        echo "Creating new filesystem namespace"
+        exec unshare --mount -- "$0" "$@"
+        exit 1
+    fi
+
+
+    echo "Mounting virtual filesystems"
+    mount_private
+    mount -n -t proc proc "${USE_CHROOT}/proc"
+    mount -n --bind /dev "${USE_CHROOT}/dev"
+    mount -n --bind /sys "${USE_CHROOT}/sys"
+    mount -n --bind /run "${USE_CHROOT}/run"
+fi
+
+mkdir -p "${USE_CHROOT}$(dirname "$CPIO_PATH")"
+if [[ -n "$USE_CHROOT" ]]; then
+    echo "Running dracut in $USE_CHROOT"
+    chroot "$USE_CHROOT" dracut "${DRACUT_ARGS[@]}" "$CPIO_PATH"
+else
+    echo "Running dracut in root"
+    dracut "${DRACUT_ARGS[@]}" "$CPIO_PATH"
+fi
+chmod 644 "${USE_CHROOT}${CPIO_PATH}"
