@@ -55,11 +55,6 @@ if [[ $(id -u) -ne 0 ]]; then
     exit 1
 fi
 
-# Prints a namespace identifier string like mnt:[4026531840]
-get_mnt_ns() {
-    readlink "/proc/$1/ns/mnt"
-}
-
 # Alternative to mount --make-rprivate /
 # Doing it the ugly way is required because if this is run inside a chroot
 # such as the CoreOS SDK / is unlikely to be a mount point.
@@ -71,8 +66,7 @@ mount_private() {
 if [[ "$SETUP_MOUNTS" -eq 1 ]]; then
     # To ensure we don't break the rest of the system re-run ourselves in
     # a new namespace, that way no one else sees our mounts.
-    if [[ "$(get_mnt_ns self)" == "$(get_mnt_ns ${PPID})" ]]
-    then
+    if cmp -s /proc/self/mountinfo /proc/self/${PPID}/mountinfo; then
         echo "Creating new filesystem namespace"
         exec unshare --mount -- "$0" "$@"
         exit 1
