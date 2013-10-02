@@ -9,7 +9,7 @@ if [ "${root%%:*}" = "squashfs" ]; then
     # TODO: Separate this out into a separate step
     if [ -d /usr/share/oem ]; then
         mkdir -p $NEWROOT/usr/share/oem
-        mount -t tmpfs -o size=128m tmpfs $NEWROOT/usr/share/oem
+        mount -t tmpfs -o size=0,mode=755,uid=0,gid=0 tmpfs $NEWROOT/usr/share/oem
         cp -Ra /usr/share/oem/. $NEWROOT/usr/share/oem
     fi
 fi
