@@ -66,12 +66,16 @@ mount_private() {
 if [[ "$SETUP_MOUNTS" -eq 1 ]]; then
     # To ensure we don't break the rest of the system re-run ourselves in
     # a new namespace, that way no one else sees our mounts.
-    if cmp -s /proc/self/mountinfo /proc/self/${PPID}/mountinfo; then
+    if cmp -s /proc/self/mountinfo /proc/${PPID}/mountinfo; then
         echo "Creating new filesystem namespace"
         exec unshare --mount -- "$0" "$@"
         exit 1
     fi
 
+    if cmp -s /proc/self/mountinfo /proc/${PPID}/mountinfo; then
+        echo "Creating a new filesystem namespace seems to have failed!" >&2
+        exit 1
+    fi
 
     echo "Mounting virtual filesystems"
     mount_private
@@ -84,9 +88,9 @@ fi
 mkdir -p "${USE_CHROOT}$(dirname "$CPIO_PATH")"
 if [[ -n "$USE_CHROOT" ]]; then
     echo "Running dracut in $USE_CHROOT"
-    chroot "$USE_CHROOT" dracut "${DRACUT_ARGS[@]}" "$CPIO_PATH"
+    LC_ALL=C chroot "$USE_CHROOT" dracut "${DRACUT_ARGS[@]}" "$CPIO_PATH"
 else
     echo "Running dracut in root"
-    dracut "${DRACUT_ARGS[@]}" "$CPIO_PATH"
+    LC_ALL=C dracut "${DRACUT_ARGS[@]}" "$CPIO_PATH"
 fi
 chmod 644 "${USE_CHROOT}${CPIO_PATH}"
