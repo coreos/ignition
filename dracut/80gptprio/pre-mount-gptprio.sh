@@ -6,6 +6,14 @@
 [ -z ${BOOTENGINE_ROOT_DIR} ] && BOOTENGINE_ROOT_DIR=/tmp/boot
 BOOTENGINE_KERNEL_PATH=${BOOTENGINE_ROOT_DIR}/boot/vmlinuz
 
+# The current filesystem we are trying to kexec to, set in try_next()
+BOOTENGINE_ROOT=
+BOOTENGINE_ROOT_CMDLINE=
+
+# Record the highest priority filesystem that appears usable.
+# Will be used directly if kexec fails.
+BOOTENGINE_ROOT_FALLBACK=
+
 # Run and log a command
 bootengine_cmd() {
     ret=0
@@ -25,16 +33,6 @@ mount_root() {
     bootengine_cmd mount -o ro ${BOOTENGINE_ROOT} ${BOOTENGINE_ROOT_DIR} || return $?
 }
 
-# If we call this we are in a bad position. The root filesystem that
-# we expected to work out failed to mount. Try our best to get out of
-# this problem by looping over all coreos-rootfs filesystems until we
-# find one that mounts
-root_emergency() {
-    warn "bootengine: Mounting next root failed! Trying to recover."
-    cgpt_next
-    mount_root
-}
-
 load_kernel() {
     if [ ! -s $BOOTENGINE_KERNEL_PATH ]; then
       warn "bootengine: No kernel at $BOOTENGINE_KERNEL_PATH"
@@ -52,26 +50,52 @@ kexec_kernel() {
     bootengine_cmd kexec --exec || return $?
 }
 
-cgpt_next() {
+# Note: This function always returns 0, exiting at all is the failure.
+try_next() {
     root_partuuid=$(cgpt next)
     info "bootengine: selected PARTUUID $root_partuuid"
 
     BOOTENGINE_ROOT="/dev/disk/by-partuuid/${root_partuuid}"
     BOOTENGINE_ROOT_CMDLINE="PARTUUID=${root_partuuid}"
+
+    mount_root || return 0
+
+    if ! usable_root ${BOOTENGINE_ROOT_DIR}; then
+        warn "bootengine: filesystem appears to be invalid."
+        return 0
+    fi
+
+    # This filesystem can be used directly if kexec fails.
+    if [ -z "$BOOTENGINE_ROOT_FALLBACK" ]; then
+        BOOTENGINE_ROOT_FALLBACK=${BOOTENGINE_ROOT}
+    fi
+
+    load_kernel || return 0
+    bootengine_cmd umount ${BOOTENGINE_ROOT_DIR} || return 0
+    kexec_kernel || return 0
 }
 
 do_exec_or_find_root() {
-    cgpt_next
-    mount_root || root_emergency
+    # Try booting the highest priority root filesystem
+    try_next
 
-    # Find a kernel and kexec it. Fall through on failure of either.
-    load_kernel && kexec_kernel || true
+    # Failed, clean up and try again...
+    if ismounted ${BOOTENGINE_ROOT_DIR}; then
+        bootengine_cmd umount ${BOOTENGINE_ROOT_DIR}
+    fi
+    try_next
 
-    # If there wasn't a kernel found or the kexec fails this kernel will have
-    # to act as the runtime kernel. This is the common case on Xen for now.
-    root=block:${BOOTENGINE_ROOT}
-    info "bootengine: No kernel found or kexec failed, proceeding with root=$root"
-    umount ${BOOTENGINE_ROOT_DIR}
+    # Nope, still here. Hopefully there is a way out.
+    if ismounted ${BOOTENGINE_ROOT_DIR}; then
+        bootengine_cmd umount ${BOOTENGINE_ROOT_DIR}
+    fi
+    if [ -n "$BOOTENGINE_ROOT_FALLBACK" ]; then
+        root="block:${BOOTENGINE_ROOT_FALLBACK}"
+        warn "bootengine: giving up on kexec, proceeding with root=${root}"
+    else
+        # Well this is embarrassing...
+        die "bootengine: failed to find a usable root filesystem!"
+    fi
 }
 
 if [ -n "$root" -a -z "${root%%gptprio:}" ]; then

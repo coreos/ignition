@@ -4,7 +4,7 @@
 . ./fixtures.sh
 
 _kexec_exec() {
-	#assert [ $_mounted -eq 0 ]
+	assert [ $_mounted -eq 0 ]
 	assert [ $root = "gptprio:" ]
 	assert [ $BOOTENGINE_ROOT = "/dev/disk/by-partuuid/7130c94a-213a-4e5a-8e26-6cce9662f132" ]
 
