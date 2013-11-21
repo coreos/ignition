@@ -43,10 +43,10 @@ cgpt() {
 	# this command executes in a subshell so we don't have
 	# persistant variables.
 	if [ ! -e ${BOOTENGINE_ROOT_DIR}/.cgpt_next ]; then
-		CGPT_NEXT="7130C94A-213A-4E5A-8E26-6CCE9662F132"
+		CGPT_NEXT="7130c94a-213a-4e5a-8e26-6cce9662f132"
 		touch ${BOOTENGINE_ROOT_DIR}/.cgpt_next
 	else
-		CGPT_NEXT="E03DD35C-7C2D-4A47-B3FE-27F15780A57C"
+		CGPT_NEXT="e03dd35c-7c2d-4a47-b3fe-27f15780a57c"
 	fi
 	echo ${CGPT_NEXT}
 }
