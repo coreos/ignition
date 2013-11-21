@@ -20,16 +20,62 @@ mkdir() {
 	echo "mkdir $@"
 }
 
+_mounted=0
 mount() {
 	echo "mount $@"
+	if [ $_mounted -eq 0 ]; then
+		_mounted=1
+	else
+		fail "XXX already mounted $@"
+		return 1
+	fi
 }
 
 umount() {
 	echo "umount $@"
+	if [ $_mounted -eq 1 ]; then
+		_mounted=0
+	else
+		fail "XXX not mounted $@"
+		return 1
+	fi
 }
 
 kexec() {
 	echo "kexec $@"
+	case "$*" in
+		*-e*|*--exec*) _kexec_exec "$@"; return $? ;;
+		*-l*|*--load*) _kexec_load "$@"; return $? ;;
+	esac
+}
+
+_kexec_exec() {
+	fail "XXX tests should define _kexec_exec, false positives are too easy"
+	return 1
+}
+
+_kexec_load() {
+	return 0
+}
+
+usable_root() {
+	echo "usable_root $@"
+	local d
+	[ $_mounted -eq 1 ] || return 1
+	[ -d $1 ] || return 1
+	for d in "$1/proc" "$1/sys" "$1/dev"; do
+		[ -d "$d" ] || return 1
+	done
+	return 0
+}
+
+ismounted() {
+	echo "ismounted $@"
+	[ $_mounted -eq 1 ] || return 1
+}
+
+die() {
+	fail "$@"
 }
 
 cgpt() {
