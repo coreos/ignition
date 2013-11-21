@@ -74,6 +74,10 @@ ismounted() {
 	[ $_mounted -eq 1 ] || return 1
 }
 
+modprobe() {
+    echo "modprobe $@"
+}
+
 die() {
 	fail "$@"
 }

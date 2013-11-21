@@ -14,6 +14,9 @@ BOOTENGINE_ROOT_CMDLINE=
 # Will be used directly if kexec fails.
 BOOTENGINE_ROOT_FALLBACK=
 
+# A regex of modules to unload before running kexec
+BOOTENGINE_MOD_BLACKLIST="virtio"
+
 # Run and log a command
 bootengine_cmd() {
     ret=0
@@ -46,8 +49,24 @@ load_kernel() {
 }
 
 kexec_kernel() {
+    unload=
+    if [ -n "$BOOTENGINE_MOD_BLACKLIST" ]; then
+        unload=$(awk \
+            "\$1 ~ /$BOOTENGINE_MOD_BLACKLIST/ {print \$1}" \
+            </proc/modules)
+    fi
+    if [ -n "$unload" ]; then
+        bootengine_cmd modprobe -r $unload || \
+            warn "bootengine: failed to remove blacklisted modules"
+    fi
+
     info "bootengine: attempting to exec new kernel!"
-    bootengine_cmd kexec --exec || return $?
+    bootengine_cmd kexec --exec || warn "bootengine: :'("
+
+    if [ -n "$unload" ]; then
+        bootengine_cmd modprobe $unload || \
+            warn "bootengine: failed to re-insert blacklisted modules"
+    fi
 }
 
 # Note: This function always returns 0, exiting at all is the failure.

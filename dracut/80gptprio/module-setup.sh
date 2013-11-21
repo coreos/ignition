@@ -7,6 +7,7 @@ depends() {
 }
 
 install() {
+    dracut_install awk
     dracut_install /usr/bin/cgpt
     dracut_install /usr/sbin/kexec
     dracut_install /usr/bin/old_bins/cgpt
