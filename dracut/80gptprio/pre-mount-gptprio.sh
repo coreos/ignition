@@ -6,14 +6,23 @@
 [ -z ${BOOTENGINE_ROOT_DIR} ] && BOOTENGINE_ROOT_DIR=/tmp/boot
 BOOTENGINE_KERNEL_PATH=${BOOTENGINE_ROOT_DIR}/boot/vmlinuz
 
+# Run and log a command
+bootengine_cmd() {
+    ret=0
+    "$@" >/tmp/bootengine.out 2>&1 || ret=$?
+    vinfo < /tmp/bootengine.out
+    if [ $ret -ne 0 ]; then
+        warn "bootengine: command failed: $*"
+        warn "bootengine: command returned $ret"
+    fi
+    return $ret
+}
+
 # mount the BOOTENGINE_ROOT or return non-zero
 mount_root() {
-    info "bootengine: preparing disk mount for $BOOTENGINE_ROOT"
-    mkdir ${BOOTENGINE_ROOT_DIR}
-    mount -o ro ${BOOTENGINE_ROOT} ${BOOTENGINE_ROOT_DIR} > /tmp/bootengine.out 2>&1
-    ret=$?
-    info "bootengine: mount on ${BOOTENGINE_ROOT} returned $ret"
-    return $ret
+    info "bootengine: mounting ${BOOTENGINE_ROOT} to ${BOOTENGINE_ROOT_DIR}"
+    bootengine_cmd mkdir -p ${BOOTENGINE_ROOT_DIR} || return $?
+    bootengine_cmd mount -o ro ${BOOTENGINE_ROOT} ${BOOTENGINE_ROOT_DIR} || return $?
 }
 
 # If we call this we are in a bad position. The root filesystem that
@@ -26,29 +35,21 @@ root_emergency() {
     mount_root
 }
 
-find_kernel() {
+load_kernel() {
     if [ ! -s $BOOTENGINE_KERNEL_PATH ]; then
       warn "bootengine: No kernel at $BOOTENGINE_KERNEL_PATH"
       return 1
     fi
-    return 0
+
+    info "bootengine: loading kernel from ${BOOTENGINE_KERNEL_PATH}..."
+    bootengine_cmd kexec --reuse-cmdline \
+        --append="root=${BOOTENGINE_ROOT_CMDLINE}" \
+        --load $BOOTENGINE_KERNEL_PATH || return $?
 }
 
 kexec_kernel() {
-    # Attempt to load up the kernel with kexec
-    cmd_line=$(cat /proc/cmdline)
-    kexec --command-line="${cmd_line} root=${BOOTENGINE_ROOT_CMDLINE}" \
-      -l $BOOTENGINE_KERNEL_PATH > /tmp/bootengine.out 2>&1
-    info "bootengine: kexec -l returned $?"
-    vinfo < /tmp/bootengine.out
-
-    kexec -e > /tmp/bootengine.out 2>&1
-    info "bootengine: kexec -e returned $?"
-    vinfo < /tmp/bootengine.out
-    # If we reach here then kexec didn't work. We are the only
-    info "ERROR: bootengine: kexec -e shouldn't return!"
-    info "cmd_line was $cmd_line"
-    info "root_upper was $root_upper"
+    info "bootengine: attempting to exec new kernel!"
+    bootengine_cmd kexec --exec || return $?
 }
 
 cgpt_next() {
@@ -64,7 +65,7 @@ do_exec_or_find_root() {
     mount_root || root_emergency
 
     # Find a kernel and kexec it. Fall through on failure of either.
-    find_kernel && kexec_kernel || true
+    load_kernel && kexec_kernel || true
 
     # If there wasn't a kernel found or the kexec fails this kernel will have
     # to act as the runtime kernel. This is the common case on Xen for now.
