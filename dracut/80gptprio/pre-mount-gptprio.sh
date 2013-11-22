@@ -6,77 +6,115 @@
 [ -z ${BOOTENGINE_ROOT_DIR} ] && BOOTENGINE_ROOT_DIR=/tmp/boot
 BOOTENGINE_KERNEL_PATH=${BOOTENGINE_ROOT_DIR}/boot/vmlinuz
 
-# mount the BOOTENGINE_ROOT or return non-zero
-mount_root() {
-    info "bootengine: preparing disk mount for $BOOTENGINE_ROOT"
-    mkdir ${BOOTENGINE_ROOT_DIR}
-    mount -o ro ${BOOTENGINE_ROOT} ${BOOTENGINE_ROOT_DIR} > /tmp/bootengine.out 2>&1
-    ret=$?
-    info "bootengine: mount on ${BOOTENGINE_ROOT} returned $ret"
+# The current filesystem we are trying to kexec to, set in try_next()
+BOOTENGINE_ROOT=
+BOOTENGINE_ROOT_CMDLINE=
+
+# Record the highest priority filesystem that appears usable.
+# Will be used directly if kexec fails.
+BOOTENGINE_ROOT_FALLBACK=
+
+# A regex of modules to unload before running kexec
+BOOTENGINE_MOD_BLACKLIST="virtio"
+
+# Run and log a command
+bootengine_cmd() {
+    ret=0
+    "$@" >/tmp/bootengine.out 2>&1 || ret=$?
+    vinfo < /tmp/bootengine.out
+    if [ $ret -ne 0 ]; then
+        warn "bootengine: command failed: $*"
+        warn "bootengine: command returned $ret"
+    fi
     return $ret
 }
 
-# If we call this we are in a bad position. The root filesystem that
-# we expected to work out failed to mount. Try our best to get out of
-# this problem by looping over all coreos-rootfs filesystems until we
-# find one that mounts
-root_emergency() {
-    warn "bootengine: Mounting next root failed! Trying to recover."
-    cgpt_next
-    mount_root
+# mount the BOOTENGINE_ROOT or return non-zero
+mount_root() {
+    info "bootengine: mounting ${BOOTENGINE_ROOT} to ${BOOTENGINE_ROOT_DIR}"
+    bootengine_cmd mkdir -p ${BOOTENGINE_ROOT_DIR} || return $?
+    bootengine_cmd mount -o ro ${BOOTENGINE_ROOT} ${BOOTENGINE_ROOT_DIR} || return $?
 }
 
-find_kernel() {
+load_kernel() {
     if [ ! -s $BOOTENGINE_KERNEL_PATH ]; then
       warn "bootengine: No kernel at $BOOTENGINE_KERNEL_PATH"
       return 1
     fi
-    return 0
+
+    info "bootengine: loading kernel from ${BOOTENGINE_KERNEL_PATH}..."
+    bootengine_cmd kexec --reuse-cmdline \
+        --append="root=${BOOTENGINE_ROOT_CMDLINE}" \
+        --load $BOOTENGINE_KERNEL_PATH || return $?
 }
 
 kexec_kernel() {
-    # Attempt to load up the kernel with kexec
-    cmd_line=$(cat /proc/cmdline)
-    kexec --command-line="${cmd_line} root=${BOOTENGINE_ROOT_CMDLINE}" \
-      -l $BOOTENGINE_KERNEL_PATH > /tmp/bootengine.out 2>&1
-    info "bootengine: kexec -l returned $?"
-    vinfo < /tmp/bootengine.out
+    unload=
+    if [ -n "$BOOTENGINE_MOD_BLACKLIST" ]; then
+        unload=$(awk \
+            "\$1 ~ /$BOOTENGINE_MOD_BLACKLIST/ {print \$1}" \
+            </proc/modules)
+    fi
+    if [ -n "$unload" ]; then
+        bootengine_cmd modprobe -r $unload || \
+            warn "bootengine: failed to remove blacklisted modules"
+    fi
 
-    kexec -e > /tmp/bootengine.out 2>&1
-    info "bootengine: kexec -e returned $?"
-    vinfo < /tmp/bootengine.out
-    # If we reach here then kexec didn't work. We are the only
-    info "ERROR: bootengine: kexec -e shouldn't return!"
-    info "cmd_line was $cmd_line"
-    info "root_upper was $root_upper"
+    info "bootengine: attempting to exec new kernel!"
+    bootengine_cmd kexec --exec || warn "bootengine: :'("
+
+    if [ -n "$unload" ]; then
+        bootengine_cmd modprobe $unload || \
+            warn "bootengine: failed to re-insert blacklisted modules"
+    fi
 }
 
-cgpt_next() {
-    # Run cgpt to get the partition uuid that we should boot.
-    # cgpt prints out to stdout a uppercase string, which is what the kernel
-    # needs as the root partition, but udev creates by-partuuid symlinks in
-    # lowercase, so we need both versions of the root partition uuid in order
-    # to be able to handle everything.  Isn't it grand...
-    root_upper=$(cgpt next)
-    root_lower=$(echo "${root_upper}" | tr [:upper:] [:lower:])
-    info "bootengine: selected PARTUUID $root_upper"
+# Note: This function always returns 0, exiting at all is the failure.
+try_next() {
+    root_partuuid=$(cgpt next)
+    info "bootengine: selected PARTUUID $root_partuuid"
 
-    BOOTENGINE_ROOT="/dev/disk/by-partuuid/${root_lower}"
-    BOOTENGINE_ROOT_CMDLINE="PARTUUID=${root_lower}"
+    BOOTENGINE_ROOT="/dev/disk/by-partuuid/${root_partuuid}"
+    BOOTENGINE_ROOT_CMDLINE="PARTUUID=${root_partuuid}"
+
+    mount_root || return 0
+
+    if ! usable_root ${BOOTENGINE_ROOT_DIR}; then
+        warn "bootengine: filesystem appears to be invalid."
+        return 0
+    fi
+
+    # This filesystem can be used directly if kexec fails.
+    if [ -z "$BOOTENGINE_ROOT_FALLBACK" ]; then
+        BOOTENGINE_ROOT_FALLBACK=${BOOTENGINE_ROOT}
+    fi
+
+    load_kernel || return 0
+    bootengine_cmd umount ${BOOTENGINE_ROOT_DIR} || return 0
+    kexec_kernel || return 0
 }
 
 do_exec_or_find_root() {
-    cgpt_next
-    mount_root || root_emergency
+    # Try booting the highest priority root filesystem
+    try_next
 
-    # Find a kernel and kexec it. Fall through on failure of either.
-    find_kernel && kexec_kernel || true
+    # Failed, clean up and try again...
+    if ismounted ${BOOTENGINE_ROOT_DIR}; then
+        bootengine_cmd umount ${BOOTENGINE_ROOT_DIR}
+    fi
+    try_next
 
-    # If there wasn't a kernel found or the kexec fails this kernel will have
-    # to act as the runtime kernel. This is the common case on Xen for now.
-    root=block:${BOOTENGINE_ROOT}
-    info "bootengine: No kernel found or kexec failed, proceeding with root=$root"
-    umount ${BOOTENGINE_ROOT_DIR}
+    # Nope, still here. Hopefully there is a way out.
+    if ismounted ${BOOTENGINE_ROOT_DIR}; then
+        bootengine_cmd umount ${BOOTENGINE_ROOT_DIR}
+    fi
+    if [ -n "$BOOTENGINE_ROOT_FALLBACK" ]; then
+        root="block:${BOOTENGINE_ROOT_FALLBACK}"
+        warn "bootengine: giving up on kexec, proceeding with root=${root}"
+    else
+        # Well this is embarrassing...
+        die "bootengine: failed to find a usable root filesystem!"
+    fi
 }
 
 if [ -n "$root" -a -z "${root%%gptprio:}" ]; then

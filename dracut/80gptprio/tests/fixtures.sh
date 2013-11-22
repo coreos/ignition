@@ -20,16 +20,66 @@ mkdir() {
 	echo "mkdir $@"
 }
 
+_mounted=0
 mount() {
 	echo "mount $@"
+	if [ $_mounted -eq 0 ]; then
+		_mounted=1
+	else
+		fail "XXX already mounted $@"
+		return 1
+	fi
 }
 
 umount() {
 	echo "umount $@"
+	if [ $_mounted -eq 1 ]; then
+		_mounted=0
+	else
+		fail "XXX not mounted $@"
+		return 1
+	fi
 }
 
 kexec() {
 	echo "kexec $@"
+	case "$*" in
+		*-e*|*--exec*) _kexec_exec "$@"; return $? ;;
+		*-l*|*--load*) _kexec_load "$@"; return $? ;;
+	esac
+}
+
+_kexec_exec() {
+	fail "XXX tests should define _kexec_exec, false positives are too easy"
+	return 1
+}
+
+_kexec_load() {
+	return 0
+}
+
+usable_root() {
+	echo "usable_root $@"
+	local d
+	[ $_mounted -eq 1 ] || return 1
+	[ -d $1 ] || return 1
+	for d in "$1/proc" "$1/sys" "$1/dev"; do
+		[ -d "$d" ] || return 1
+	done
+	return 0
+}
+
+ismounted() {
+	echo "ismounted $@"
+	[ $_mounted -eq 1 ] || return 1
+}
+
+modprobe() {
+    echo "modprobe $@"
+}
+
+die() {
+	fail "$@"
 }
 
 cgpt() {
@@ -43,10 +93,10 @@ cgpt() {
 	# this command executes in a subshell so we don't have
 	# persistant variables.
 	if [ ! -e ${BOOTENGINE_ROOT_DIR}/.cgpt_next ]; then
-		CGPT_NEXT="7130C94A-213A-4E5A-8E26-6CCE9662F132"
+		CGPT_NEXT="7130c94a-213a-4e5a-8e26-6cce9662f132"
 		touch ${BOOTENGINE_ROOT_DIR}/.cgpt_next
 	else
-		CGPT_NEXT="E03DD35C-7C2D-4A47-B3FE-27F15780A57C"
+		CGPT_NEXT="e03dd35c-7c2d-4a47-b3fe-27f15780a57c"
 	fi
 	echo ${CGPT_NEXT}
 }
