@@ -21,10 +21,12 @@ mkdir() {
 }
 
 _mounted=0
+_mount_args=""
 mount() {
 	echo "mount $@"
 	if [ $_mounted -eq 0 ]; then
 		_mounted=1
+        _mount_args="$*"
 	else
 		fail "XXX already mounted $@"
 		return 1
@@ -35,6 +37,7 @@ umount() {
 	echo "umount $@"
 	if [ $_mounted -eq 1 ]; then
 		_mounted=0
+        _mount_args=""
 	else
 		fail "XXX not mounted $@"
 		return 1
