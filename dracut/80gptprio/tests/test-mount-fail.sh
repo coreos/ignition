@@ -23,6 +23,6 @@ _kexec_exec() {
 
 create_kernel_file
 . ../parse-gptprio.sh
-. ../pre-mount-gptprio.sh
+. ../mount-gptprio.sh
 fail "didn't kexec"
 cleanup_root

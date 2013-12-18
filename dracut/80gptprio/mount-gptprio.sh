@@ -3,7 +3,7 @@
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
 # Flexible mount directory for testing
-[ -z ${BOOTENGINE_ROOT_DIR} ] && BOOTENGINE_ROOT_DIR=/tmp/boot
+[ -z ${BOOTENGINE_ROOT_DIR} ] && BOOTENGINE_ROOT_DIR=/sysroot
 BOOTENGINE_KERNEL_PATH=${BOOTENGINE_ROOT_DIR}/boot/vmlinuz
 
 # The current filesystem we are trying to kexec to, set in try_next()
@@ -109,8 +109,11 @@ do_exec_or_find_root() {
         bootengine_cmd umount ${BOOTENGINE_ROOT_DIR}
     fi
     if [ -n "$BOOTENGINE_ROOT_FALLBACK" ]; then
-        root="block:${BOOTENGINE_ROOT_FALLBACK}"
-        warn "bootengine: giving up on kexec, proceeding with root=${root}"
+        warn "bootengine: giving up on kexec!!!"
+        warn "bootengine: directly booting ${BOOTENGINE_ROOT_FALLBACK}"
+        bootengine_cmd mount -o ro \
+            ${BOOTENGINE_ROOT_FALLBACK} ${BOOTENGINE_ROOT_DIR} || \
+            die "bootengine: failed to mount ${BOOTENGINE_ROOT_FALLBACK}"
     else
         # Well this is embarrassing...
         die "bootengine: failed to find a usable root filesystem!"

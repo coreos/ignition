@@ -12,6 +12,6 @@ die() {
 
 create_empty_root
 . ../parse-gptprio.sh
-. ../pre-mount-gptprio.sh
+. ../mount-gptprio.sh
 fail "failed to die!"
 cleanup_root
