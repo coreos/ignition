@@ -1,3 +1,10 @@
 #!/bin/sh
 
-cd dracut/80gptprio/tests && ./run.sh
+set -e
+
+for rundir in dracut/80gptprio/tests dracut/80usrgptprio/tests
+do
+    pushd $rundir
+    ./run.sh
+    popd >/dev/null
+done
