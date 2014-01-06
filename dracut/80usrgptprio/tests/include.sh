@@ -17,10 +17,14 @@ create_empty_root() {
 
 create_root() {
     /bin/rm -rf ${BOOTENGINE_ROOT_DIR}
-    /bin/mkdir -p $BOOTENGINE_ROOT_DIR/boot
-    /bin/mkdir -p $BOOTENGINE_ROOT_DIR/dev
-    /bin/mkdir -p $BOOTENGINE_ROOT_DIR/proc
-    /bin/mkdir -p $BOOTENGINE_ROOT_DIR/sys
+    /bin/mkdir -p $BOOTENGINE_ROOT_DIR/boot \
+        $BOOTENGINE_ROOT_DIR/dev \
+        $BOOTENGINE_ROOT_DIR/proc \
+        $BOOTENGINE_ROOT_DIR/sys \
+        $BOOTENGINE_ROOT_DIR/usr/bin \
+        $BOOTENGINE_ROOT_DIR/usr/sbin \
+        $BOOTENGINE_ROOT_DIR/usr/lib64
+    /bin/ln -s lib64 $BOOTENGINE_ROOT_DIR/usr/lib
 }
 
 cleanup_root() {
