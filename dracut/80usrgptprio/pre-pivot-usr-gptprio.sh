@@ -25,6 +25,14 @@ sbin
 lib
 lib64"
 
+# Similarly, /usr must contain the above directories
+usable_usr() {
+    for usrdir in $BOOTENGINE_ROOT_DIRS; do
+        [ -d "$1/$usrdir" ] || return 1
+    done
+    return 0
+}
+
 # Run and log a command
 bootengine_cmd() {
     ret=0
@@ -87,6 +95,11 @@ try_next() {
 
     mount_usr || return 0
 
+    if ! usable_usr ${BOOTENGINE_USR_DIR}; then
+        warn "bootengine: filesystem appears to be invalid."
+        return 0
+    fi
+
     # This filesystem can be used directly if kexec fails.
     if [ -z "$BOOTENGINE_USR_FALLBACK" ]; then
         BOOTENGINE_USR_FALLBACK=${BOOTENGINE_USR}
@@ -133,7 +146,7 @@ setup_root_symlinks() {
 
 do_exec_or_find_usr() {
     if ! ismounted ${BOOTENGINE_ROOT_DIR}; then
-      warn "bootengine: root is not mounted at ${BOOTENGINE_ROOT_DIR}! Failing."
+      die "bootengine: root is not mounted at ${BOOTENGINE_ROOT_DIR}! Failing."
     fi
 
     setup_root_symlinks

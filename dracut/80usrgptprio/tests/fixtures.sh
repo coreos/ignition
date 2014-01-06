@@ -27,6 +27,8 @@ _mounted=0
 _mount_args=""
 mount() {
     echo "mount $@"
+    # no need to record remounts
+    echo "$*" | grep -q remount && return 0
     if [ $_mounted -eq 0 ]; then
         _mounted=1
         _mount_args="$*"
@@ -77,6 +79,8 @@ usable_root() {
 
 ismounted() {
     echo "ismounted $@"
+    # always consider rootfs to be mounted to test /usr
+    [ "$*" = "$BOOTENGINE_ROOT_DIR" ] && return 0
     [ $_mounted -eq 1 ] || return 1
 }
 
