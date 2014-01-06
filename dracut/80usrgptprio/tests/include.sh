@@ -7,7 +7,7 @@ BOOTENGINE_ROOT_DIR="./mnt"
 
 create_kernel_file() {
     create_root
-    echo "THIS IS A KERNEL HONEST" > $BOOTENGINE_ROOT_DIR/boot/vmlinuz
+    echo "THIS IS A KERNEL HONEST" > $BOOTENGINE_ROOT_DIR/usr/boot/vmlinuz
 }
 
 create_empty_root() {
@@ -21,6 +21,7 @@ create_root() {
         $BOOTENGINE_ROOT_DIR/dev \
         $BOOTENGINE_ROOT_DIR/proc \
         $BOOTENGINE_ROOT_DIR/sys \
+        $BOOTENGINE_ROOT_DIR/usr/boot \
         $BOOTENGINE_ROOT_DIR/usr/bin \
         $BOOTENGINE_ROOT_DIR/usr/sbin \
         $BOOTENGINE_ROOT_DIR/usr/lib64
