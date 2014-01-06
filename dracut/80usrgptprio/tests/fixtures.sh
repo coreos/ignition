@@ -21,6 +21,7 @@ warn() {
 
 mkdir() {
     echo "mkdir $@"
+    /bin/mkdir "$@"
 }
 
 _mounted=0

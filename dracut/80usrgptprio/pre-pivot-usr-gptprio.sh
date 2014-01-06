@@ -110,18 +110,27 @@ try_next() {
     kexec_kernel || return 0
 }
 
-backup_dentry() {
-    target=${1}
-    backup=${target}.bak
+setup_usr_link() {
+    path="${BOOTENGINE_ROOT_DIR}/$1"
+    target="usr/$1"
 
-    if [ -e ${target} ]; then
-      # remove old .bak if necessary
-      if [ -e ${backup} ]; then
-        bootengine_cmd rm -Rf ${backup}
-      fi
-      # Try backing up the old content to .bak
-      bootengine_cmd mv ${target} ${backup}
+    if [ -h "$path" -a "$(readlink "$path")" = "$target" ]; then
+        return 0
     fi
+
+    # Find an unused name and backup anything currently existing at $path
+    if [ -e "$path" -o -h "$path" ]; then
+        i=0
+        backup="${path}.bak"
+        while [ -e "$backup" ]; do
+            i=$((i + 1))
+            backup="${path}.bak${i}"
+        done
+
+        bootengine_cmd mv "$path" "$backup"
+    fi
+
+    bootengine_cmd ln -s "$target" "$path"
 }
 
 setup_root_symlinks() {
@@ -129,16 +138,11 @@ setup_root_symlinks() {
     # this logic later.
     bootengine_cmd mount -o remount,rw ${BOOTENGINE_ROOT_DIR} || die "Can't remount root rw"
 
-    backup_dentry ${BOOTENGINE_USR_DIR}
-
     bootengine_cmd mkdir -p ${BOOTENGINE_USR_DIR} || die "Can't create /usr"
 
     # Cleanup all of the directories in root and symlink them to /usr/
-    for i in ${BOOTENGINE_ROOT_DIRS}; do
-      target=${BOOTENGINE_ROOT_DIR}/${i}
-
-      backup_dentry ${target}
-      bootengine_cmd ln -s /usr/$i ${target}
+    for link in ${BOOTENGINE_ROOT_DIRS}; do
+        setup_usr_link "$link"
     done
 
     bootengine_cmd mount -o remount,ro ${BOOTENGINE_ROOT_DIR} || die "Can't remount root ro"
