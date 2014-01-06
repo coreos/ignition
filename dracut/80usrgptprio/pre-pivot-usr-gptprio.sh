@@ -164,6 +164,6 @@ do_exec_or_find_usr() {
     fi
 }
 
-if [ -z "${usr%%gptprio:}" ]; then
+if [ "${usr%%:*}" = "gptprio" ]; then
     do_exec_or_find_usr
 fi
