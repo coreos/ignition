@@ -72,7 +72,7 @@ load_kernel() {
 
     info "bootengine: loading kernel from ${kernel_path}..."
     bootengine_cmd kexec --reuse-cmdline \
-        --append="root=${BOOTENGINE_USR_CMDLINE}" \
+        --append="usr=${BOOTENGINE_USR_CMDLINE}" \
         --load "$kernel_path" || return $?
 }
 

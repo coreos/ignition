@@ -7,7 +7,7 @@
 . ./fixtures.sh
 
 _kexec_load() {
-    assert [ "$*" = "--reuse-cmdline --append=root=PARTUUID=7130c94a-213a-4e5a-8e26-6cce9662f132 --load ./mnt/boot/vmlinuz" ]
+    assert [ "$*" = "--reuse-cmdline --append=usr=PARTUUID=7130c94a-213a-4e5a-8e26-6cce9662f132 --load ./mnt/boot/vmlinuz" ]
 }
 
 _kexec_exec() {
