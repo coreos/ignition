@@ -6,6 +6,9 @@
 [ -z ${BOOTENGINE_ROOT_DIR} ] && BOOTENGINE_ROOT_DIR=/sysroot
 BOOTENGINE_USR_DIR=${BOOTENGINE_ROOT_DIR}/usr
 BOOTENGINE_KERNEL_PATH=${BOOTENGINE_USR_DIR}/boot/vmlinuz
+# TEMPORARY DELETE ME
+BOOTENGINE_OLD_KERNEL_PATH=${BOOTENGINE_ROOT_DIR}/boot/vmlinuz
+# TEMPORARY END
 
 # The current filesystem we are trying to kexec to, set in try_next()
 BOOTENGINE_USR=
@@ -53,15 +56,24 @@ mount_usr() {
 }
 
 load_kernel() {
-    if [ ! -s $BOOTENGINE_KERNEL_PATH ]; then
-      warn "bootengine: No kernel at $BOOTENGINE_KERNEL_PATH"
-      return 1
+    local kernel_path="$BOOTENGINE_KERNEL_PATH"
+    if [ ! -s "$kernel_path" ]; then
+        warn "bootengine: No kernel at $kernel_path"
+        # TEMPORARY DELETE ME
+        kernel_path="$BOOTENGINE_OLD_KERNEL_PATH"
+        if [ -s "$kernel_path" ]; then
+            warn "bootengine: using kernel from root partition instead"
+        else
+            return 1
+        fi
+        # TEMPORARY END
+        #return 1
     fi
 
-    info "bootengine: loading kernel from ${BOOTENGINE_KERNEL_PATH}..."
+    info "bootengine: loading kernel from ${kernel_path}..."
     bootengine_cmd kexec --reuse-cmdline \
         --append="root=${BOOTENGINE_USR_CMDLINE}" \
-        --load $BOOTENGINE_KERNEL_PATH || return $?
+        --load "$kernel_path" || return $?
 }
 
 kexec_kernel() {

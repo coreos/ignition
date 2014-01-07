@@ -7,6 +7,9 @@ BOOTENGINE_ROOT_DIR="./mnt"
 
 create_kernel_file() {
     create_root
+    # TEMPORARY DELETE ME, /usr/boot has priority over /boot
+    echo "THIS IS A KERNEL HONEST" > $BOOTENGINE_ROOT_DIR/boot/vmlinuz
+    # TEMPORARY END
     echo "THIS IS A KERNEL HONEST" > $BOOTENGINE_ROOT_DIR/usr/boot/vmlinuz
 }
 
