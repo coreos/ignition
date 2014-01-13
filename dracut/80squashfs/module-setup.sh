@@ -7,9 +7,10 @@ depends() {
 }
 
 installkernel() {
-    instmods squashfs
+    instmods loop squashfs
 }
 
 install() {
     inst_hook cmdline 80 "$moddir/parse-squashfs.sh"
+    inst_hook mount 80 "$moddir/mount-squashfs.sh"
 }
