@@ -48,7 +48,7 @@ elif [ "${usr%%:*}" = "block" ]; then
 
     # Add basic block devices to the initrd's fstab
     add_mount_point "${usr#block:}" /sysroot/usr \
-        "${usrfstype:-auto}" "${usrflags:-ro}"
+        "${usrfstype:-auto}" "${usrflags:-ro},x-initrd.mount"
 
     info "bootengine: waiting on /usr device ${usr#block:}"
     wait_for_dev "${usr#block:}"
