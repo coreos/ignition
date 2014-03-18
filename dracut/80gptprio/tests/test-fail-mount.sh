@@ -3,6 +3,12 @@
 . ./include.sh
 . ./fixtures.sh
 
+mount() {
+    echo "mount $@"
+	echo "fake mount error"
+    return 1
+}
+
 _rebooted=0
 systemctl() {
     echo "systemctl $@"
@@ -10,9 +16,8 @@ systemctl() {
     _rebooted=1
 }
 
-create_root
+create_empty_root
 . ../parse-gptprio.sh
 . ../pre-mount-gptprio.sh
-assert [ $_mounted -eq 1 ]
-assert [ "$_mount_args" = "-o ro /dev/disk/by-partuuid/7130c94a-213a-4e5a-8e26-6cce9662f132 ./mnt" ]
+assert [ $_rebooted -eq 1 ]
 cleanup_root
