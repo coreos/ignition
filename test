@@ -2,7 +2,7 @@
 
 set -e
 
-for rundir in dracut/80gptprio/tests dracut/80usrgptprio/tests
+for rundir in dracut/80gptprio/tests
 do
     pushd $rundir
     ./run.sh

@@ -4,13 +4,14 @@
 
 depends() {
     echo fs-lib
+    echo systemd
 }
 
 install() {
-    dracut_install awk
+    dracut_install awk tr
     dracut_install /usr/bin/cgpt
     dracut_install /usr/sbin/kexec
     dracut_install /usr/bin/old_bins/cgpt
     inst_hook cmdline 80 "$moddir/parse-gptprio.sh"
-    inst_hook mount 95 "$moddir/mount-gptprio.sh"
+    inst_hook pre-mount 80 "$moddir/pre-mount-gptprio.sh"
 }
