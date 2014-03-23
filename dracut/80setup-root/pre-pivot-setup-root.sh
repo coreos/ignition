@@ -4,11 +4,7 @@
 
 # /etc/machine-id after a new image is created:
 COREOS_BLANK_MACHINE_ID="42000000000000000000000000000042"
-
-# Flexible mount directory for testing
-[ -z ${BOOTENGINE_ROOT_DIR} ] && BOOTENGINE_ROOT_DIR=/sysroot
-BOOTENGINE_USR_DIR=${BOOTENGINE_ROOT_DIR}/usr
-MACHINE_ID_FILE="${BOOTENGINE_ROOT_DIR}/etc/machine-id"
+MACHINE_ID_FILE="/sysroot/etc/machine-id"
 
 # Run and log a command
 bootengine_cmd() {
@@ -23,30 +19,33 @@ bootengine_cmd() {
 }
 
 do_setup_root() {
-    if ! bootengine_cmd mount -o remount,rw "${BOOTENGINE_ROOT_DIR}"; then
+    if ! bootengine_cmd mount -o remount,rw /sysroot; then
         warn "bootengine setup root: Can't remount root rw"
         return 0
     fi
 
     # Initialize base filesystem
-    bootengine_cmd systemd-tmpfiles \
-        --root="${BOOTENGINE_ROOT_DIR}" --create \
+    bootengine_cmd systemd-tmpfiles --root=/sysroot --create \
         baselayout.conf baselayout-etc.conf baselayout-usr.conf
 
     # Check for "initial" /etc/machine-id or a blank / non-existant
     # /etc/machine-id file and create a "real" one instead.
-    if grep -q '^[0-9a-fA-F]{32}$' "${MACHINE_ID_FILE}" && \
+    if grep -qs '^[0-9a-fA-F]{32}$' "${MACHINE_ID_FILE}" && \
         [ "$(cat "${MACHINE_ID_FILE}")" != "${COREOS_BLANK_MACHINE_ID}" ] ; then
         info "bootengine: machine-id is valid"
     else
         info "bootengine: generating new machine-id"
         rm -f "${MACHINE_ID_FILE}"
-        bootengine_cmd systemd-machine-id-setup --root="${BOOTENGINE_ROOT_DIR}"
+        bootengine_cmd systemd-machine-id-setup --root=/sysroot
     fi
 }
 
 # Skip if root and root/usr are not mount points
-if ismounted "${BOOTENGINE_ROOT_DIR}" && \
-   ismounted "${BOOTENGINE_USR_DIR}"; then
+if ismounted /sysroot && ismounted /sysroot/usr; then
     do_setup_root
+fi
+
+# PXE initrds may provide OEM
+if [ -d /usr/share/oem ] && ismounted /sysroot/usr/share/oem; then
+    cp -Ra /usr/share/oem/. /sysroot/usr/share/oem
 fi
