@@ -44,3 +44,8 @@ do_setup_root() {
 if ismounted /sysroot && ismounted /sysroot/usr; then
     do_setup_root
 fi
+
+# PXE initrds may provide OEM
+if [ -d /usr/share/oem ] && ismounted /sysroot/usr/share/oem; then
+    cp -Ra /usr/share/oem/. /sysroot/usr/share/oem
+fi
