@@ -30,7 +30,7 @@ do_setup_root() {
 
     # Check for "initial" /etc/machine-id or a blank / non-existant
     # /etc/machine-id file and create a "real" one instead.
-    if grep -qs '^[0-9a-fA-F]{32}$' "${MACHINE_ID_FILE}" && \
+    if grep -E -qs '^[0-9a-fA-F]{32}$' "${MACHINE_ID_FILE}" && \
         [ "$(cat "${MACHINE_ID_FILE}")" != "${COREOS_BLANK_MACHINE_ID}" ] ; then
         info "bootengine: machine-id is valid"
     else
