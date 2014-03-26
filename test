@@ -2,6 +2,7 @@
 
 set -e
 
+./dracut/10usr-generator/testsuite.sh
 for rundir in dracut/80gptprio/tests
 do
     pushd $rundir
