@@ -46,7 +46,7 @@ Before=initrd-root-fs.target
 
 [Mount]
 What=/foo
-Whare=/sysroot/usr
+Where=/sysroot/usr
 Type=auto
 Options=ro
 EOF
@@ -64,7 +64,7 @@ Before=initrd-root-fs.target
 
 [Mount]
 What=/two
-Whare=/sysroot/usr
+Where=/sysroot/usr
 Type=auto
 Options=ro
 EOF
@@ -82,7 +82,7 @@ Before=initrd-root-fs.target
 
 [Mount]
 What=/foo
-Whare=/sysroot/usr
+Where=/sysroot/usr
 Type=ext4
 Options=rw
 EOF

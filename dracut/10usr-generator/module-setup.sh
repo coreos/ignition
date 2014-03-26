@@ -8,5 +8,6 @@ depends() {
 
 install() {
     dracut_install tr
-    inst_simple "$moddir/usr-generator" "$systemdutildir/usr-generator"
+    inst_simple "$moddir/usr-generator" \
+        "$systemdutildir/system-generators/usr-generator"
 }
