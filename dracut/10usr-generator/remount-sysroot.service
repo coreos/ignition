@@ -1,0 +1,14 @@
+# Once amd64-generic is gone we can replace this with 'rw' in the
+# default kernel options built into out kernel image.
+
+[Unit]
+Description=Remount Root File System
+DefaultDependencies=no
+After=sysroot.mount
+Before=sysroot-usr.mount
+ConditionPathIsReadWrite=!/sysroot
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/mount -o remount,rw /sysroot

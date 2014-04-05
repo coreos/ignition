@@ -63,6 +63,8 @@ cat >"${UNIT_DIR}/sysroot-usr.mount" <<EOF
 [Unit]
 SourcePath=/proc/cmdline
 Before=initrd-root-fs.target
+Wants=remount-sysroot.service
+After=remount-sysroot.service
 
 [Mount]
 What=${usr}

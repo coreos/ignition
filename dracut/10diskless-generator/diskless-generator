@@ -41,6 +41,8 @@ if [[ -z "${usr}" && -f /usr.squashfs ]]; then
 
 [Unit]
 Before=initrd-root-fs.target
+Wants=remount-sysroot.service
+After=remount-sysroot.service
 
 [Mount]
 What=/usr.squashfs
