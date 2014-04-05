@@ -7,6 +7,5 @@ depends() {
 }
 
 install() {
-    dracut_install grep
-    inst_hook cmdline 99 "$moddir/parse-fstab.sh"
+    inst_hook cmdline 99 "$moddir/parse-stub.sh"
 }

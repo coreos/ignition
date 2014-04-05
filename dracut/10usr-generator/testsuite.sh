@@ -43,6 +43,8 @@ test_simple() {
 [Unit]
 SourcePath=/proc/cmdline
 Before=initrd-root-fs.target
+Wants=remount-sysroot.service
+After=remount-sysroot.service
 
 [Mount]
 What=/foo
@@ -61,6 +63,8 @@ test_multiple() {
 [Unit]
 SourcePath=/proc/cmdline
 Before=initrd-root-fs.target
+Wants=remount-sysroot.service
+After=remount-sysroot.service
 
 [Mount]
 What=/two
@@ -79,6 +83,8 @@ test_opts() {
 [Unit]
 SourcePath=/proc/cmdline
 Before=initrd-root-fs.target
+Wants=remount-sysroot.service
+After=remount-sysroot.service
 
 [Mount]
 What=/foo
