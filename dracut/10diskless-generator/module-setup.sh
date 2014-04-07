@@ -4,10 +4,12 @@
 
 depends() {
     echo systemd
+    echo usr-generator
 }
 
 install() {
-    dracut_install tr
+    dracut_install mkfs.btrfs truncate
+    inst_simple "$moddir/diskless-btrfs" "$systemdutildir/diskless-btrfs"
     inst_simple "$moddir/diskless-generator" \
         "$systemdutildir/system-generators/diskless-generator"
 }
