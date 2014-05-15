@@ -24,7 +24,16 @@ new filesystem namespace when operating inside the chroot, that way anything
 bad that happens will be less likely to hurt the host system. But no promises!
 "
 
-DRACUT_ARGS=(--force --no-kernel --fstab --no-compress)
+DRACUT_ARGS=(
+    --force
+    --no-hostonly
+    --no-kernel
+    --no-compress
+    --omit i18n
+    --omit lvm
+    --omit network
+    --omit terminfo
+    )
 
 SETUP_MOUNTS=
 USE_CHROOT=
