@@ -23,10 +23,21 @@ load_kernel() {
     local partname="$1"
     local partuuid="$2"
 
+    info "bootengine: waiting for devices to settle"
+    bootengine_cmd udevadm settle
+
     info "bootengine: mounting PARTUUID=${partuuid} to ${BOOTENGINE_MNT_DIR}"
     bootengine_cmd mkdir -p "${BOOTENGINE_MNT_DIR}" || return $?
-    bootengine_cmd mount -o ro "/dev/disk/by-partuuid/${partuuid}" \
-                               "${BOOTENGINE_MNT_DIR}" || return $?
+    if ! bootengine_cmd mount -o ro \
+        "/dev/disk/by-partuuid/${partuuid}" "${BOOTENGINE_MNT_DIR}"
+    then
+        warn "bootengine: udev may have detected the partition table update"
+        warn "bootengine: and deleted /dev/disk/by-partuuid/${partuuid}"
+        warn "bootengine: waiting for udev to settle and trying again..."
+        bootengine_cmd udevadm settle
+        bootengine_cmd mount -o ro "/dev/disk/by-partuuid/${partuuid}" \
+            "${BOOTENGINE_MNT_DIR}" || return $?
+    fi
 
     if [ ! -s "${BOOTENGINE_KERNEL_PATH}" ]; then
       warn "bootengine: no kernel at ${BOOTENGINE_KERNEL_PATH}"

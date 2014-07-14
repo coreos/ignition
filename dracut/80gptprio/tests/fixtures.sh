@@ -61,6 +61,10 @@ systemctl() {
     fail "$@"
 }
 
+udevadm() {
+    echo "udevadm $@"
+}
+
 cgpt() {
     if [ "$1" != "next" ]; then
         fail "unexpected cgpt call"
