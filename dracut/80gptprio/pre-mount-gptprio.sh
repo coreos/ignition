@@ -5,6 +5,7 @@
 # Flexible mount directory for testing
 [ -z ${BOOTENGINE_MNT_DIR} ] && BOOTENGINE_MNT_DIR=/run/gptprio
 BOOTENGINE_KERNEL_PATH=${BOOTENGINE_MNT_DIR}/boot/vmlinuz
+EFI_SYSTAB_PATH=/sys/firmware/efi/systab
 
 # Run and log a command
 bootengine_cmd() {
@@ -44,9 +45,18 @@ load_kernel() {
       return 1
     fi
 
+    # for efi we need to grab the acpi rsdp address while in the efi-booted
+    # environment and pass it on to the next kernel
+    local acpi_rsdp
+    if [ -e "${EFI_SYSTAB_PATH}" ]; then
+        acpi_rsdp=$(grep -m1 '^ACPI' "${EFI_SYSTAB_PATH}")
+        acpi_rsdp=${acpi_rsdp##*=}
+        acpi_rsdp=${acpi_rsdp:+acpi_rsdp=${acpi_rsdp}}
+    fi
+
     info "bootengine: loading kernel from ${BOOTENGINE_KERNEL_PATH}..."
     bootengine_cmd kexec --reuse-cmdline \
-        --append="${partname}=PARTUUID=${partuuid}" \
+        --append="${partname}=PARTUUID=${partuuid} ${acpi_rsdp}" \
         --load "${BOOTENGINE_KERNEL_PATH}" || return $?
 
     bootengine_cmd umount "${BOOTENGINE_MNT_DIR}" || return $?
