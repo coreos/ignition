@@ -28,15 +28,16 @@ do_setup_root() {
     bootengine_cmd systemd-tmpfiles --root=/sysroot --create \
         baselayout.conf baselayout-etc.conf baselayout-usr.conf
 
-    # Check for "initial" /etc/machine-id or a blank / non-existant
-    # /etc/machine-id file and create a "real" one instead.
-    if grep -E -qs '^[0-9a-fA-F]{32}$' "${MACHINE_ID_FILE}" && \
-        [ "$(cat "${MACHINE_ID_FILE}")" != "${COREOS_BLANK_MACHINE_ID}" ] ; then
-        info "bootengine: machine-id is valid"
-    else
-        info "bootengine: generating new machine-id"
-        rm -f "${MACHINE_ID_FILE}"
-        bootengine_cmd systemd-machine-id-setup --root=/sysroot
+    # Not all images provide this file so check before using it.
+    if [ -e "/sysroot/usr/lib/tmpfiles.d/baselayout-ldso.conf" ]; then
+        bootengine_cmd systemd-tmpfiles --root=/sysroot --create \
+            baselayout-ldso.conf
+        bootengine_cmd ldconfig -X -r /sysroot
+    fi
+
+    # Remove our phony id. systemd will initialize this during boot.
+    if grep -qs "${COREOS_BLANK_MACHINE_ID}" "${MACHINE_ID_FILE}"; then
+        bootengine_cmd rm "${MACHINE_ID_FILE}"
     fi
 }
 

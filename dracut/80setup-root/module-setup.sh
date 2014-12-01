@@ -7,6 +7,6 @@ depends() {
 }
 
 install() {
-    dracut_install grep systemd-machine-id-setup systemd-tmpfiles
+    dracut_install grep ldconfig systemd-tmpfiles
     inst_hook pre-pivot 80 "$moddir/pre-pivot-setup-root.sh"
 }
