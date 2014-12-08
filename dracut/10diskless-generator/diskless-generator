@@ -27,7 +27,8 @@ add_requires() {
 
 # set to 1 to enable copying /usr/share/oem from the initrd
 copy_oem=0
-usr=$(cmdline_arg usr)
+# check both the new mount.usr and our old usr kernel options
+usr=$(cmdline_arg mount.usr "$(cmdline_arg usr)")
 root=$(cmdline_arg root)
 rootfstype=$(cmdline_arg rootfstype tmpfs)
 rootflags=$(cmdline_arg rootflags)
