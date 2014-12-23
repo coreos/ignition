@@ -32,7 +32,6 @@ do_setup_root() {
     if [ -e "/sysroot/usr/lib/tmpfiles.d/baselayout-ldso.conf" ]; then
         bootengine_cmd systemd-tmpfiles --root=/sysroot --create \
             baselayout-ldso.conf
-        bootengine_cmd ldconfig -X -r /sysroot
     fi
 
     # Remove our phony id. systemd will initialize this during boot.
