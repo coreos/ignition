@@ -27,10 +27,12 @@ var version = *semver.Must(semver.NewVersion(versionString))
 
 func main() {
 	flags := struct {
+		root    string
 		version bool
 	}{}
 
-	flag.BoolVar(&flags.version, "version", false, "Print the version and exit")
+	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
+	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
 
 	flag.Parse()
 
