@@ -17,9 +17,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log/syslog"
 	"time"
 
 	"github.com/coreos/ignition/exec"
+	"github.com/coreos/ignition/log"
 	"github.com/coreos/ignition/providers"
 
 	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/coreos/go-semver/semver"
@@ -48,4 +50,21 @@ func main() {
 		fmt.Printf("ignition %s\n", versionString)
 		return
 	}
+
+	var logger log.Logger
+	logger, err := syslog.New(syslog.LOG_DEBUG, "ignition")
+	if err != nil {
+		logger = log.Stdout{}
+		logger.Err(fmt.Sprintf("unable to open syslog: %v", err))
+	}
+	engine := exec.Engine{
+		Root:         flags.root,
+		FetchTimeout: flags.fetchTimeout,
+		Logger:       logger,
+	}
+	for _, name := range flags.providers {
+		engine.AddProvider(providers.Get(name).Create(logger))
+	}
+
+	engine.Run()
 }
