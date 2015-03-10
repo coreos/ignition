@@ -18,6 +18,8 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/coreos/ignition/providers"
+
 	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/coreos/go-semver/semver"
 )
 
@@ -27,10 +29,12 @@ var version = *semver.Must(semver.NewVersion(versionString))
 
 func main() {
 	flags := struct {
-		root    string
-		version bool
+		providers providers.List
+		root      string
+		version   bool
 	}{}
 
+	flag.Var(&flags.providers, "provider", fmt.Sprintf("provider of config. can be specified multiple times. %v", providers.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
 
