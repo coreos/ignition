@@ -17,7 +17,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"time"
 
+	"github.com/coreos/ignition/exec"
 	"github.com/coreos/ignition/providers"
 
 	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/coreos/go-semver/semver"
@@ -29,11 +31,13 @@ var version = *semver.Must(semver.NewVersion(versionString))
 
 func main() {
 	flags := struct {
-		providers providers.List
-		root      string
-		version   bool
+		fetchTimeout time.Duration
+		providers    providers.List
+		root         string
+		version      bool
 	}{}
 
+	flag.DurationVar(&flags.fetchTimeout, "fetchtimeout", exec.DefaultFetchTimeout, "")
 	flag.Var(&flags.providers, "provider", fmt.Sprintf("provider of config. can be specified multiple times. %v", providers.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
