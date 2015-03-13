@@ -23,6 +23,7 @@ import (
 	"github.com/coreos/ignition/exec"
 	"github.com/coreos/ignition/log"
 	"github.com/coreos/ignition/providers"
+	_ "github.com/coreos/ignition/providers/cmdline"
 
 	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/coreos/go-semver/semver"
 )
