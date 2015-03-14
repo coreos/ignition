@@ -23,6 +23,7 @@ import (
 
 	"github.com/coreos/ignition/exec"
 	"github.com/coreos/ignition/exec/stages"
+	_ "github.com/coreos/ignition/exec/stages/prepivot"
 	"github.com/coreos/ignition/log"
 	"github.com/coreos/ignition/providers"
 	_ "github.com/coreos/ignition/providers/cmdline"
