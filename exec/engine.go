@@ -16,11 +16,13 @@ package exec
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/exec/stages"
 	"github.com/coreos/ignition/log"
 	"github.com/coreos/ignition/providers"
 )
@@ -62,8 +64,15 @@ func (e Engine) Providers() []providers.Provider {
 	return providers
 }
 
-func (e Engine) Run() {
-	_, _ = fetchConfig(e.Providers(), e.FetchTimeout)
+func (e Engine) Run(stageName string) {
+	config, err := fetchConfig(e.Providers(), e.FetchTimeout)
+	if err != nil {
+		e.Logger.Crit(fmt.Sprintf("failed to fetch config: %v", err))
+		return
+	}
+	e.Logger.Debug(fmt.Sprintf("fetched config: %+v", config))
+
+	stages.Get(stageName).Create(e.Logger, e.Root).Run(config)
 }
 
 func fetchConfig(providers []providers.Provider, timeout time.Duration) (config.Config, error) {
