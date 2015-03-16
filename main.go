@@ -18,9 +18,11 @@ import (
 	"flag"
 	"fmt"
 	"log/syslog"
+	"os"
 	"time"
 
 	"github.com/coreos/ignition/exec"
+	"github.com/coreos/ignition/exec/stages"
 	"github.com/coreos/ignition/log"
 	"github.com/coreos/ignition/providers"
 	_ "github.com/coreos/ignition/providers/cmdline"
@@ -37,12 +39,14 @@ func main() {
 		fetchTimeout time.Duration
 		providers    providers.List
 		root         string
+		stage        stages.Name
 		version      bool
 	}{}
 
 	flag.DurationVar(&flags.fetchTimeout, "fetchtimeout", exec.DefaultFetchTimeout, "")
 	flag.Var(&flags.providers, "provider", fmt.Sprintf("provider of config. can be specified multiple times. %v", providers.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
+	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
 
 	flag.Parse()
@@ -50,6 +54,11 @@ func main() {
 	if flags.version {
 		fmt.Printf("ignition %s\n", versionString)
 		return
+	}
+
+	if flags.stage == "" {
+		fmt.Fprint(os.Stderr, "'--stage' must be provided\n")
+		os.Exit(2)
 	}
 
 	var logger log.Logger
