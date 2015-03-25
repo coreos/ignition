@@ -19,11 +19,6 @@ bootengine_cmd() {
 }
 
 do_setup_root() {
-    if ! bootengine_cmd mount -o remount,rw /sysroot; then
-        warn "bootengine setup root: Can't remount root rw"
-        return 0
-    fi
-
     # Initialize base filesystem
     bootengine_cmd systemd-tmpfiles --root=/sysroot --create \
         baselayout.conf baselayout-etc.conf baselayout-usr.conf
