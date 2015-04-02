@@ -18,7 +18,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 )
 
 const (
@@ -33,7 +33,7 @@ var (
 func WriteFile(filename, contents string) error {
 	var err error
 
-	dir := path.Dir(filename)
+	dir := filepath.Dir(filename)
 	if err := EnsureDirectoryExists(dir); err != nil {
 		return err
 	}
