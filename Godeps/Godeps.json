@@ -1,0 +1,14 @@
+{
+	"ImportPath": "github.com/coreos/ignition",
+	"GoVersion": "go1.3.3",
+	"Deps": [
+		{
+			"ImportPath": "github.com/coreos/go-semver/semver",
+			"Rev": "568e959cd89871e61434c1143528d9162da89ef2"
+		},
+		{
+			"ImportPath": "github.com/go-yaml/yaml",
+			"Rev": "49c95bdc21843256fb6c4e0d370a05f24a0bf213"
+		}
+	]
+}
