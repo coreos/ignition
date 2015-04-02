@@ -16,7 +16,7 @@ package stages
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/exec/stages"
@@ -69,7 +69,7 @@ func (s stage) writeUnit(unit config.Unit) {
 			continue
 		}
 
-		filename := path.Join(s.root, util.SystemdDropinsPath(string(unit.Name)), string(dropin.Name))
+		filename := filepath.Join(s.root, util.SystemdDropinsPath(string(unit.Name)), string(dropin.Name))
 		s.logger.Info(fmt.Sprintf("writing dropin %q to %s", dropin.Name, filename))
 		if err := util.WriteFile(filename, dropin.Contents); err != nil {
 			s.logger.Err(fmt.Sprintf("failed to write dropin %q: %s", dropin.Name, err))
@@ -80,7 +80,7 @@ func (s stage) writeUnit(unit config.Unit) {
 		return
 	}
 
-	filename := path.Join(s.root, util.SystemdUnitsPath(), string(unit.Name))
+	filename := filepath.Join(s.root, util.SystemdUnitsPath(), string(unit.Name))
 	s.logger.Info(fmt.Sprintf("writing unit %q to %s", unit.Name, filename))
 	if err := util.WriteFile(filename, unit.Contents); err != nil {
 		s.logger.Err(fmt.Sprintf("failed to write unit %q: %s", unit.Name, err))

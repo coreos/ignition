@@ -15,13 +15,13 @@
 package util
 
 import (
-	"path"
+	"path/filepath"
 )
 
 func SystemdUnitsPath() string {
-	return path.Join("etc", "systemd", "system")
+	return filepath.Join("etc", "systemd", "system")
 }
 
 func SystemdDropinsPath(unitName string) string {
-	return path.Join("etc", "systemd", "system", unitName+".d")
+	return filepath.Join("etc", "systemd", "system", unitName+".d")
 }
