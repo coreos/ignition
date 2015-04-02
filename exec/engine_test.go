@@ -22,7 +22,6 @@ import (
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/providers"
-	"github.com/coreos/ignition/providers/test"
 )
 
 func TestAddProvider(t *testing.T) {
@@ -34,8 +33,8 @@ func TestAddProvider(t *testing.T) {
 		providers map[string]providers.Provider
 	}
 
-	a := test.MockProvider{Name_: "a"}
-	b := test.MockProvider{Name_: "b"}
+	a := providers.MockProvider{Name_: "a"}
+	b := providers.MockProvider{Name_: "b"}
 
 	tests := []struct {
 		in  in
@@ -81,8 +80,8 @@ func TestProviders(t *testing.T) {
 		providers []providers.Provider
 	}
 
-	a := test.MockProvider{Name_: "a"}
-	b := test.MockProvider{Name_: "b"}
+	a := providers.MockProvider{Name_: "a"}
+	b := providers.MockProvider{Name_: "b"}
 
 	tests := []struct {
 		in  in
@@ -124,7 +123,7 @@ func TestFetchConfigs(t *testing.T) {
 		err    error
 	}
 
-	online := test.MockProvider{
+	online := providers.MockProvider{
 		Online: true,
 		Err:    errors.New("test error"),
 		Config: config.Config{
@@ -133,7 +132,7 @@ func TestFetchConfigs(t *testing.T) {
 			},
 		},
 	}
-	offline := test.MockProvider{Online: false}
+	offline := providers.MockProvider{Online: false}
 
 	tests := []struct {
 		in  in
@@ -178,9 +177,9 @@ func TestSelectProvider(t *testing.T) {
 		err      error
 	}
 
-	online := test.MockProvider{Online: true}
-	offline := test.MockProvider{Online: false}
-	offlineRetry := test.MockProvider{Online: false, Retry: true}
+	online := providers.MockProvider{Online: true}
+	offline := providers.MockProvider{Online: false}
+	offlineRetry := providers.MockProvider{Online: false, Retry: true}
 
 	tests := []struct {
 		in  in
