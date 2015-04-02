@@ -22,26 +22,24 @@ import (
 )
 
 type MockProvider struct {
-	// Go is a poorly thought-out language, resulting in hacks like 'Name_'
-	// littered throughout the codebase.
-	Name_   string
-	Config  config.Config
-	Err     error
-	Online  bool
-	Retry   bool
-	Backoff time.Duration
+	name    string
+	config  config.Config
+	err     error
+	online  bool
+	retry   bool
+	backoff time.Duration
 }
 
-func (p MockProvider) Name() string                        { return p.Name_ }
-func (p MockProvider) FetchConfig() (config.Config, error) { return p.Config, p.Err }
-func (p MockProvider) IsOnline() bool                      { return p.Online }
-func (p MockProvider) ShouldRetry() bool                   { return p.Retry }
-func (p MockProvider) BackoffDuration() time.Duration      { return p.Backoff }
+func (p MockProvider) Name() string                        { return p.name }
+func (p MockProvider) FetchConfig() (config.Config, error) { return p.config, p.err }
+func (p MockProvider) IsOnline() bool                      { return p.online }
+func (p MockProvider) ShouldRetry() bool                   { return p.retry }
+func (p MockProvider) BackoffDuration() time.Duration      { return p.backoff }
 
 type MockProviderCreator struct {
-	Name_    string
-	Provider Provider
+	name     string
+	provider Provider
 }
 
-func (c MockProviderCreator) Name() string                 { return c.Name_ }
-func (c MockProviderCreator) Create(_ log.Logger) Provider { return c.Provider }
+func (c MockProviderCreator) Name() string                 { return c.name }
+func (c MockProviderCreator) Create(_ log.Logger) Provider { return c.provider }

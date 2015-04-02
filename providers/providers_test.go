@@ -15,8 +15,8 @@
 package providers
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 )
 
 func TestRegister(t *testing.T) {
@@ -27,9 +27,9 @@ func TestRegister(t *testing.T) {
 		providers map[string]ProviderCreator
 	}
 
-	a := MockProviderCreator{Name_: "a"}
-	b := MockProviderCreator{Name_: "b"}
-	c := MockProviderCreator{Name_: "c"}
+	a := MockProviderCreator{name: "a"}
+	b := MockProviderCreator{name: "b"}
+	c := MockProviderCreator{name: "c"}
 
 	tests := []struct {
 		in  in
@@ -47,7 +47,7 @@ func TestRegister(t *testing.T) {
 
 	for i, test := range tests {
 		providers = map[string]ProviderCreator{}
-		for _, p := range test.in.providers{
+		for _, p := range test.in.providers {
 			Register(p)
 		}
 		if !reflect.DeepEqual(test.out.providers, providers) {
@@ -59,15 +59,15 @@ func TestRegister(t *testing.T) {
 func TestGet(t *testing.T) {
 	type in struct {
 		providers map[string]ProviderCreator
-		name string
+		name      string
 	}
 	type out struct {
 		creator ProviderCreator
 	}
 
-	a := MockProviderCreator{Name_: "a"}
-	b := MockProviderCreator{Name_: "b"}
-	c := MockProviderCreator{Name_: "c"}
+	a := MockProviderCreator{name: "a"}
+	b := MockProviderCreator{name: "b"}
+	c := MockProviderCreator{name: "c"}
 
 	tests := []struct {
 		in  in

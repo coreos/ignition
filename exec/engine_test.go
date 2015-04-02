@@ -34,8 +34,8 @@ func TestAddProvider(t *testing.T) {
 		providers map[string]providers.Provider
 	}
 
-	a := test.MockProvider{Name_: "a"}
-	b := test.MockProvider{Name_: "b"}
+	a := test.MockProvider{name: "a"}
+	b := test.MockProvider{name: "b"}
 
 	tests := []struct {
 		in  in
@@ -81,8 +81,8 @@ func TestProviders(t *testing.T) {
 		providers []providers.Provider
 	}
 
-	a := test.MockProvider{Name_: "a"}
-	b := test.MockProvider{Name_: "b"}
+	a := test.MockProvider{name: "a"}
+	b := test.MockProvider{name: "b"}
 
 	tests := []struct {
 		in  in
