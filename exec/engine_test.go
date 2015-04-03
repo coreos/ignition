@@ -24,6 +24,21 @@ import (
 	"github.com/coreos/ignition/providers"
 )
 
+type mockProvider struct {
+	name    string
+	config  config.Config
+	err     error
+	online  bool
+	retry   bool
+	backoff time.Duration
+}
+
+func (p mockProvider) Name() string                        { return p.name }
+func (p mockProvider) FetchConfig() (config.Config, error) { return p.config, p.err }
+func (p mockProvider) IsOnline() bool                      { return p.online }
+func (p mockProvider) ShouldRetry() bool                   { return p.retry }
+func (p mockProvider) BackoffDuration() time.Duration      { return p.backoff }
+
 func TestAddProvider(t *testing.T) {
 	type in struct {
 		engine    Engine
@@ -33,8 +48,8 @@ func TestAddProvider(t *testing.T) {
 		providers map[string]providers.Provider
 	}
 
-	a := providers.MockProvider{Name_: "a"}
-	b := providers.MockProvider{Name_: "b"}
+	a := mockProvider{name: "a"}
+	b := mockProvider{name: "b"}
 
 	tests := []struct {
 		in  in
@@ -80,8 +95,8 @@ func TestProviders(t *testing.T) {
 		providers []providers.Provider
 	}
 
-	a := providers.MockProvider{Name_: "a"}
-	b := providers.MockProvider{Name_: "b"}
+	a := mockProvider{name: "a"}
+	b := mockProvider{name: "b"}
 
 	tests := []struct {
 		in  in
@@ -123,16 +138,16 @@ func TestFetchConfigs(t *testing.T) {
 		err    error
 	}
 
-	online := providers.MockProvider{
-		Online: true,
-		Err:    errors.New("test error"),
-		Config: config.Config{
+	online := mockProvider{
+		online: true,
+		err:    errors.New("test error"),
+		config: config.Config{
 			Systemd: config.Systemd{
 				Units: []config.Unit{},
 			},
 		},
 	}
-	offline := providers.MockProvider{Online: false}
+	offline := mockProvider{online: false}
 
 	tests := []struct {
 		in  in
@@ -144,7 +159,7 @@ func TestFetchConfigs(t *testing.T) {
 		},
 		{
 			in:  in{providers: []providers.Provider{online}, timeout: time.Second},
-			out: out{config: online.Config, err: online.Err},
+			out: out{config: online.config, err: online.err},
 		},
 		{
 			in:  in{providers: []providers.Provider{offline}, timeout: time.Second},
@@ -152,7 +167,7 @@ func TestFetchConfigs(t *testing.T) {
 		},
 		{
 			in:  in{providers: []providers.Provider{online, offline}, timeout: time.Second},
-			out: out{config: online.Config, err: online.Err},
+			out: out{config: online.config, err: online.err},
 		},
 	}
 
@@ -177,9 +192,9 @@ func TestSelectProvider(t *testing.T) {
 		err      error
 	}
 
-	online := providers.MockProvider{Online: true}
-	offline := providers.MockProvider{Online: false}
-	offlineRetry := providers.MockProvider{Online: false, Retry: true}
+	online := mockProvider{online: true}
+	offline := mockProvider{online: false}
+	offlineRetry := mockProvider{online: false, retry: true}
 
 	tests := []struct {
 		in  in

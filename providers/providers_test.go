@@ -17,7 +17,17 @@ package providers
 import (
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/log"
 )
+
+type mockProviderCreator struct {
+	name     string
+	provider Provider
+}
+
+func (c mockProviderCreator) Name() string                 { return c.name }
+func (c mockProviderCreator) Create(_ log.Logger) Provider { return c.provider }
 
 func TestRegister(t *testing.T) {
 	type in struct {
@@ -27,9 +37,9 @@ func TestRegister(t *testing.T) {
 		providers map[string]ProviderCreator
 	}
 
-	a := MockProviderCreator{Name_: "a"}
-	b := MockProviderCreator{Name_: "b"}
-	c := MockProviderCreator{Name_: "c"}
+	a := mockProviderCreator{name: "a"}
+	b := mockProviderCreator{name: "b"}
+	c := mockProviderCreator{name: "c"}
 
 	tests := []struct {
 		in  in
@@ -65,9 +75,9 @@ func TestGet(t *testing.T) {
 		creator ProviderCreator
 	}
 
-	a := MockProviderCreator{Name_: "a"}
-	b := MockProviderCreator{Name_: "b"}
-	c := MockProviderCreator{Name_: "c"}
+	a := mockProviderCreator{name: "a"}
+	b := mockProviderCreator{name: "b"}
+	c := mockProviderCreator{name: "c"}
 
 	tests := []struct {
 		in  in
@@ -121,7 +131,7 @@ func TestNames(t *testing.T) {
 			out: out{names: []string{}},
 		},
 		{
-			in:  in{providers: map[string]ProviderCreator{"a": MockProviderCreator{}, "b": MockProviderCreator{}, "c": MockProviderCreator{}}},
+			in:  in{providers: map[string]ProviderCreator{"a": mockProviderCreator{}, "b": mockProviderCreator{}, "c": mockProviderCreator{}}},
 			out: out{names: []string{"a", "b", "c"}},
 		},
 	}
