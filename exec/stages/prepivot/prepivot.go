@@ -16,7 +16,6 @@ package prepivot
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/exec/stages"
@@ -69,10 +68,10 @@ func (s stage) writeUnit(unit config.Unit) {
 			continue
 		}
 
-		filename := filepath.Join(s.root, util.SystemdDropinsPath(string(unit.Name)), string(dropin.Name))
-		s.logger.Info(fmt.Sprintf("writing dropin %q to %s", dropin.Name, filename))
-		if err := util.WriteFile(filename, dropin.Contents); err != nil {
-			s.logger.Err(fmt.Sprintf("failed to write dropin %q: %s", dropin.Name, err))
+		f := util.FileFromUnitDropin(s.root, unit, dropin)
+		s.logger.Info(fmt.Sprintf("writing dropin %q at %q", dropin.Name, f.Path))
+		if err := util.WriteFile(f); err != nil {
+			s.logger.Err(fmt.Sprintf("failed to write dropin %q: %v", dropin.Name, err))
 		}
 	}
 
@@ -80,9 +79,9 @@ func (s stage) writeUnit(unit config.Unit) {
 		return
 	}
 
-	filename := filepath.Join(s.root, util.SystemdUnitsPath(), string(unit.Name))
-	s.logger.Info(fmt.Sprintf("writing unit %q to %s", unit.Name, filename))
-	if err := util.WriteFile(filename, unit.Contents); err != nil {
-		s.logger.Err(fmt.Sprintf("failed to write unit %q: %s", unit.Name, err))
+	f := util.FileFromUnit(s.root, unit)
+	s.logger.Info(fmt.Sprintf("writing unit %q at %q", unit.Name, f.Path))
+	if err := util.WriteFile(f); err != nil {
+		s.logger.Err(fmt.Sprintf("failed to write unit %q: %v", unit.Name, err))
 	}
 }
