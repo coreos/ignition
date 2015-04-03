@@ -93,7 +93,7 @@ func (p *provider) IsOnline() bool {
 	if resp, err := p.client.Get(p.configUrl); err == nil {
 		defer resp.Body.Close()
 
-		switch (resp.StatusCode) {
+		switch resp.StatusCode {
 		case http.StatusOK, http.StatusNoContent:
 		default:
 			p.logger.Debug(fmt.Sprintf("failed fetching: HTTP status: %s", resp.Status))
