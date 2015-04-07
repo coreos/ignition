@@ -62,4 +62,4 @@ fix:
 	$(Q)go tool fix -diff $(PACKAGES)
 test: | gopath/src/github.com/coreos/ignition
 	@echo " TEST  $(PACKAGES)"
-	$(Q)GOPATH=$$(pwd)/gopath go test $(ABS_PACKAGES)
+	$(Q)GOPATH=$$(pwd)/gopath go test -cover $(ABS_PACKAGES)
