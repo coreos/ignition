@@ -15,12 +15,11 @@
 package providers
 
 import (
-	"fmt"
-	"sort"
 	"time"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/log"
+	"github.com/coreos/ignition/registry"
 )
 
 type Provider interface {
@@ -36,36 +35,20 @@ type ProviderCreator interface {
 	Create(logger log.Logger) Provider
 }
 
-var providers map[string]ProviderCreator
+var providers = registry.Create("providers")
 
 func Register(provider ProviderCreator) {
-	if providers == nil {
-		providers = map[string]ProviderCreator{}
-	}
-	if _, ok := providers[provider.Name()]; ok {
-		panic(fmt.Sprintf("provider %q already registered", provider.Name()))
-	}
-	providers[provider.Name()] = provider
+	providers.Register(provider)
 }
 
 func Get(name string) ProviderCreator {
-	if provider, ok := providers[name]; ok {
-		return provider
+	p := providers.Get(name)
+	if p == nil {
+		return nil
 	}
-
-	return nil
+	return p.(ProviderCreator)
 }
 
 func Names() []string {
-	keys := []string{}
-	for key := range providers {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-
-	names := make([]string, 0, len(providers))
-	for _, name := range keys {
-		names = append(names, name)
-	}
-	return names
+	return providers.Names()
 }

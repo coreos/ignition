@@ -15,10 +15,9 @@
 package stages
 
 import (
-	"fmt"
-
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/log"
+	"github.com/coreos/ignition/registry"
 )
 
 type Stage interface {
@@ -31,29 +30,20 @@ type StageCreator interface {
 	Name() string
 }
 
-var stages map[string]StageCreator
+var stages = registry.Create("stages")
 
 func Register(stage StageCreator) {
-	if stages == nil {
-		stages = map[string]StageCreator{}
-	}
-	if _, ok := stages[stage.Name()]; ok {
-		panic(fmt.Sprintf("stage %q already registered", stage.Name()))
-	}
-	stages[stage.Name()] = stage
+	stages.Register(stage)
 }
 
 func Get(name string) StageCreator {
-	if stage, ok := stages[name]; ok {
-		return stage
+	s := stages.Get(name)
+	if s == nil {
+		return nil
 	}
-
-	return nil
+	return s.(StageCreator)
 }
 
 func Names() (names []string) {
-	for name := range stages {
-		names = append(names, name)
-	}
-	return
+	return stages.Names()
 }

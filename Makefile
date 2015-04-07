@@ -9,6 +9,7 @@ FMT_PACKAGES = \
     providers \
     providers/cmdline \
     providers/util \
+    registry \
 
 FMT_FILES = \
     main.go \
