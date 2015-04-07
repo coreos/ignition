@@ -20,8 +20,8 @@ import (
 
 type Name string
 
-func (s Name) String() string {
-	return string(s)
+func (s *Name) String() string {
+	return string(*s)
 }
 
 func (s *Name) Set(val string) error {

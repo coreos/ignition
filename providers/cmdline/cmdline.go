@@ -64,11 +64,11 @@ type provider struct {
 	rawConfig   []byte
 }
 
-func (provider) Name() string {
+func (*provider) Name() string {
 	return name
 }
 
-func (p provider) FetchConfig() (config.Config, error) {
+func (p *provider) FetchConfig() (config.Config, error) {
 	return config.Parse(p.rawConfig)
 }
 
@@ -113,7 +113,7 @@ func (p *provider) IsOnline() bool {
 	return false
 }
 
-func (p provider) ShouldRetry() bool {
+func (p *provider) ShouldRetry() bool {
 	return p.shouldRetry
 }
 
