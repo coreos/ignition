@@ -50,7 +50,7 @@ func (e *Engine) AddProvider(provider providers.Provider) {
 	e.providers[provider.Name()] = provider
 }
 
-func (e Engine) Providers() []providers.Provider {
+func (e *Engine) Providers() []providers.Provider {
 	keys := []string{}
 	for key := range e.providers {
 		keys = append(keys, key)
@@ -64,7 +64,7 @@ func (e Engine) Providers() []providers.Provider {
 	return providers
 }
 
-func (e Engine) Run(stageName string) {
+func (e *Engine) Run(stageName string) {
 	config, err := fetchConfig(e.Providers(), e.FetchTimeout)
 	if err != nil {
 		e.Logger.Crit(fmt.Sprintf("failed to fetch config: %v", err))

@@ -21,8 +21,8 @@ import (
 
 type List []string
 
-func (s List) String() string {
-	return strings.Join(s, ",")
+func (s *List) String() string {
+	return strings.Join(*s, ",")
 }
 
 func (s *List) Set(val string) error {
