@@ -20,8 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/providers"
+	"github.com/coreos/ignition/pkg/config"
+	"github.com/coreos/ignition/pkg/providers"
 )
 
 type mockProvider struct {

@@ -15,9 +15,9 @@
 package stages
 
 import (
-	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/log"
-	"github.com/coreos/ignition/registry"
+	"github.com/coreos/ignition/pkg/config"
+	"github.com/coreos/ignition/pkg/log"
+	"github.com/coreos/ignition/pkg/registry"
 )
 
 type Stage interface {

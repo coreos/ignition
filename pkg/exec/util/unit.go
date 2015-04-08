@@ -17,7 +17,7 @@ package util
 import (
 	"path/filepath"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/pkg/config"
 )
 
 func FileFromUnit(root string, unit config.Unit) *File {

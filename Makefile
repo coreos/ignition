@@ -1,15 +1,15 @@
 REPO_PATH = github.com/coreos/ignition
 
 FMT_PACKAGES = \
-    config \
-    exec \
-    exec/stages \
-    exec/stages/prepivot \
-    exec/util \
-    providers \
-    providers/cmdline \
-    providers/util \
-    registry \
+    pkg/config \
+    pkg/exec \
+    pkg/exec/stages \
+    pkg/exec/stages/prepivot \
+    pkg/exec/util \
+    pkg/providers \
+    pkg/providers/cmdline \
+    pkg/providers/util \
+    pkg/registry \
 
 FMT_FILES = \
     main.go \

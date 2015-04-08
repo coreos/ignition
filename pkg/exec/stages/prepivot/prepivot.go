@@ -17,10 +17,10 @@ package prepivot
 import (
 	"fmt"
 
-	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/exec/stages"
-	"github.com/coreos/ignition/exec/util"
-	"github.com/coreos/ignition/log"
+	"github.com/coreos/ignition/pkg/config"
+	"github.com/coreos/ignition/pkg/exec/stages"
+	"github.com/coreos/ignition/pkg/exec/util"
+	"github.com/coreos/ignition/pkg/log"
 )
 
 const (
