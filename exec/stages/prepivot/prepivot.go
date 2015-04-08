@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package stages
+package prepivot
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	name = "pre-pivot"
+	name = "prepivot"
 )
 
 func init() {
