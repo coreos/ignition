@@ -21,30 +21,44 @@ GFLAGS = \
 
 ABS_PACKAGES = $(PACKAGES:%=$(REPO_PATH)/%)
 
+# kernel-style V=1 build verbosity
+ifeq ("$(origin V)", "command line")
+	BUILD_VERBOSE = $(V)
+endif
+ifndef BUILD_VERBOSE
+	BUILD_VERBOSE = 0
+endif
+
+ifeq ($(BUILD_VERBOSE),1)
+	Q =
+else
+	Q = @
+endif
+
 .PHONY: all
 all: bin/ignition
 
 .PHONY: bin/ignition
 bin/ignition: | gopath/src/github.com/coreos/ignition
 	@echo " GO    $@"
-	@GOPATH=$$(pwd)/gopath go build $(GFLAGS) -o $@
+	$(Q)GOPATH=$$(pwd)/gopath go build $(GFLAGS) -o $@
 
 gopath/src/github.com/coreos/ignition:
-	@mkdir --parents $$(dirname $@)
-	@ln --symbolic ../../../.. gopath/src/github.com/coreos/ignition
+	$(Q)mkdir --parents $$(dirname $@)
+	$(Q)ln --symbolic ../../../.. gopath/src/github.com/coreos/ignition
 
 .PHONY: verify fmt vet fix test
 verify: fmt vet fix test
 fmt:
 	@echo " FMT   $(FMT_PACKAGES) $(FMT_FILES)"
-	@gofmt -l -e -s $(FMT_PACKAGES) $(FMT_FILES)
-	@test -z "$$(gofmt -e -l -s $(FMT_PACKAGES) $(FMT_FILES))"
+	$(Q)gofmt -l -e -s $(FMT_PACKAGES) $(FMT_FILES)
+	$(Q)test -z "$$(gofmt -e -l -s $(FMT_PACKAGES) $(FMT_FILES))"
 vet: | gopath/src/github.com/coreos/ignition
 	@echo " VET   $(PACKAGES)"
-	@GOPATH=$$(pwd)/gopath go vet $(ABS_PACKAGES)
+	$(Q)GOPATH=$$(pwd)/gopath go vet $(ABS_PACKAGES)
 fix:
 	@echo " FIX   $(PACKAGES)"
-	@go tool fix -diff $(PACKAGES)
+	$(Q)go tool fix -diff $(PACKAGES)
 test: | gopath/src/github.com/coreos/ignition
 	@echo " TEST  $(PACKAGES)"
-	@GOPATH=$$(pwd)/gopath go test $(ABS_PACKAGES)
+	$(Q)GOPATH=$$(pwd)/gopath go test $(ABS_PACKAGES)
