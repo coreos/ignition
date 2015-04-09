@@ -11,14 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package providers
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/log"
+	"github.com/coreos/ignition/registry"
 )
 
 type mockProviderCreator struct {
@@ -26,49 +27,12 @@ type mockProviderCreator struct {
 	provider Provider
 }
 
-func (c mockProviderCreator) Name() string                 { return c.name }
-func (c mockProviderCreator) Create(_ log.Logger) Provider { return c.provider }
-
-func TestRegister(t *testing.T) {
-	type in struct {
-		providers []ProviderCreator
-	}
-	type out struct {
-		providers map[string]ProviderCreator
-	}
-
-	a := mockProviderCreator{name: "a"}
-	b := mockProviderCreator{name: "b"}
-	c := mockProviderCreator{name: "c"}
-
-	tests := []struct {
-		in  in
-		out out
-	}{
-		{
-			in:  in{providers: []ProviderCreator{}},
-			out: out{providers: map[string]ProviderCreator{}},
-		},
-		{
-			in:  in{providers: []ProviderCreator{a, b, c}},
-			out: out{providers: map[string]ProviderCreator{"a": a, "b": b, "c": c}},
-		},
-	}
-
-	for i, test := range tests {
-		providers = map[string]ProviderCreator{}
-		for _, p := range test.in.providers {
-			Register(p)
-		}
-		if !reflect.DeepEqual(test.out.providers, providers) {
-			t.Errorf("#%d: bad providers: want %#v, got %#v", i, test.out.providers, providers)
-		}
-	}
-}
+func (c mockProviderCreator) Name() string               { return c.name }
+func (c mockProviderCreator) Create(log.Logger) Provider { return c.provider }
 
 func TestGet(t *testing.T) {
 	type in struct {
-		providers map[string]ProviderCreator
+		providers []ProviderCreator
 		name      string
 	}
 	type out struct {
@@ -84,39 +48,43 @@ func TestGet(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{providers: nil, name: "a"},
+			in:  in{providers: []ProviderCreator{}, name: "a"},
 			out: out{creator: nil},
 		},
 		{
-			in:  in{providers: map[string]ProviderCreator{}, name: "a"},
-			out: out{creator: nil},
-		},
-		{
-			in:  in{providers: map[string]ProviderCreator{"a": a, "b": b, "c": c}, name: "a"},
+			in:  in{providers: []ProviderCreator{a, b, c}, name: "a"},
 			out: out{creator: a},
 		},
 		{
-			in:  in{providers: map[string]ProviderCreator{"a": a, "b": b, "c": c}, name: "c"},
+			in:  in{providers: []ProviderCreator{a, b, c}, name: "c"},
 			out: out{creator: c},
 		},
 	}
 
 	for i, test := range tests {
-		providers = test.in.providers
-		creator := Get(test.in.name)
-		if !reflect.DeepEqual(test.out.creator, creator) {
-			t.Errorf("#%d: bad creator: want %#v, got %#v", i, test.out.creator, creator)
+		providers = registry.Create(fmt.Sprintf("test %d", i))
+		for _, p := range test.in.providers {
+			providers.Register(p)
+		}
+
+		p := Get(test.in.name)
+		if !reflect.DeepEqual(test.out.creator, p) {
+			t.Errorf("#%d: bad creator: want %#v, got %#v", i, test.out.creator, p)
 		}
 	}
 }
 
 func TestNames(t *testing.T) {
 	type in struct {
-		providers map[string]ProviderCreator
+		providers []ProviderCreator
 	}
 	type out struct {
 		names []string
 	}
+
+	a := mockProviderCreator{name: "a"}
+	b := mockProviderCreator{name: "b"}
+	c := mockProviderCreator{name: "c"}
 
 	tests := []struct {
 		in  in
@@ -127,18 +95,17 @@ func TestNames(t *testing.T) {
 			out: out{names: []string{}},
 		},
 		{
-			in:  in{providers: map[string]ProviderCreator{}},
-			out: out{names: []string{}},
-		},
-		{
-			in:  in{providers: map[string]ProviderCreator{"a": mockProviderCreator{}, "b": mockProviderCreator{}, "c": mockProviderCreator{}}},
+			in:  in{providers: []ProviderCreator{a, b, c}},
 			out: out{names: []string{"a", "b", "c"}},
 		},
 	}
 
 	for i, test := range tests {
-		providers = test.in.providers
-		names := Names()
+		providers = registry.Create(fmt.Sprintf("test %d", i))
+		for _, p := range test.in.providers {
+			providers.Register(p)
+		}
+		names := providers.Names()
 		if !reflect.DeepEqual(test.out.names, names) {
 			t.Errorf("#%d: bad names: want %#v, got %#v", i, test.out.names, names)
 		}
