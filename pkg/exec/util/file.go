@@ -19,7 +19,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/pkg/config"
 )
 
 const (

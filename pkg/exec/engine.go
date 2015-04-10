@@ -21,10 +21,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/exec/stages"
-	"github.com/coreos/ignition/log"
-	"github.com/coreos/ignition/providers"
+	"github.com/coreos/ignition/pkg/config"
+	"github.com/coreos/ignition/pkg/exec/stages"
+	"github.com/coreos/ignition/pkg/log"
+	"github.com/coreos/ignition/pkg/providers"
 )
 
 const (
