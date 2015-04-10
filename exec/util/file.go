@@ -15,26 +15,28 @@
 package util
 
 import (
-	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/coreos/ignition/config"
 )
 
 const (
-	DefaultDirectoryPermissions os.FileMode = 0755
-	DefaultFilePermissions      os.FileMode = 0755
+	DefaultDirectoryPermissions config.FileMode = 0755
+	DefaultFilePermissions      config.FileMode = 0644
 )
 
-var (
-	ErrNotDirectory = errors.New("file is not a directory")
-)
+// in-memory representation of a file
+type File struct {
+	config.File
+}
 
-func WriteFile(filename, contents string) error {
+func WriteFile(f *File) error {
 	var err error
 
-	dir := filepath.Dir(filename)
-	if err := EnsureDirectoryExists(dir); err != nil {
+	dir := filepath.Dir(f.Path)
+	if err := os.MkdirAll(dir, os.FileMode(DefaultDirectoryPermissions)); err != nil {
 		return err
 	}
 
@@ -44,29 +46,31 @@ func WriteFile(filename, contents string) error {
 		return err
 	}
 	tmp.Close()
+	defer func() {
+		if err != nil {
+			os.Remove(tmp.Name())
+		}
+	}()
 
-	if err := ioutil.WriteFile(tmp.Name(), []byte(contents), DefaultFilePermissions); err != nil {
+	if err := ioutil.WriteFile(tmp.Name(), []byte(f.Contents), os.FileMode(f.Mode)); err != nil {
 		return err
 	}
 
-	// Ensure the permissions are as requested (since WriteFile can be affected by sticky bit)
-	if err := os.Chmod(tmp.Name(), DefaultFilePermissions); err != nil {
+	// XXX(vc): Note that we assume to be operating on the file we just wrote, this is only guaranteed
+	// by using syscall.Fchown() and syscall.Fchmod()
+
+	// Ensure the ownership and mode are as requested (since WriteFile can be affected by sticky bit)
+	if err := os.Chown(tmp.Name(), f.Uid, f.Gid); err != nil {
 		return err
 	}
 
-	if err := os.Rename(tmp.Name(), filename); err != nil {
+	if err := os.Chmod(tmp.Name(), os.FileMode(f.Mode)); err != nil {
+		return err
+	}
+
+	if err := os.Rename(tmp.Name(), f.Path); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func EnsureDirectoryExists(dir string) error {
-	if info, err := os.Stat(dir); err == nil {
-		if !info.IsDir() {
-			return ErrNotDirectory
-		}
-		return nil
-	}
-	return os.MkdirAll(dir, DefaultDirectoryPermissions)
 }
