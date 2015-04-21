@@ -20,11 +20,11 @@ import (
 
 type Stdout struct{}
 
-func (Stdout) Emerg(msg string) error   { fmt.Println("EMERGENCY: ", msg); return nil }
-func (Stdout) Alert(msg string) error   { fmt.Println("ALERT    : ", msg); return nil }
-func (Stdout) Crit(msg string) error    { fmt.Println("CRITICAL : ", msg); return nil }
-func (Stdout) Err(msg string) error     { fmt.Println("ERROR    : ", msg); return nil }
-func (Stdout) Warning(msg string) error { fmt.Println("WARNING  : ", msg); return nil }
-func (Stdout) Notice(msg string) error  { fmt.Println("NOTICE   : ", msg); return nil }
-func (Stdout) Info(msg string) error    { fmt.Println("INFO     : ", msg); return nil }
-func (Stdout) Debug(msg string) error   { fmt.Println("DEBUG    : ", msg); return nil }
+func (Stdout) Emerg(msg string) error   { fmt.Println("EMERGENCY:", msg); return nil }
+func (Stdout) Alert(msg string) error   { fmt.Println("ALERT    :", msg); return nil }
+func (Stdout) Crit(msg string) error    { fmt.Println("CRITICAL :", msg); return nil }
+func (Stdout) Err(msg string) error     { fmt.Println("ERROR    :", msg); return nil }
+func (Stdout) Warning(msg string) error { fmt.Println("WARNING  :", msg); return nil }
+func (Stdout) Notice(msg string) error  { fmt.Println("NOTICE   :", msg); return nil }
+func (Stdout) Info(msg string) error    { fmt.Println("INFO     :", msg); return nil }
+func (Stdout) Debug(msg string) error   { fmt.Println("DEBUG    :", msg); return nil }
