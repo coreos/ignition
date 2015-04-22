@@ -57,8 +57,8 @@ func (n *ServiceName) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	*n = ServiceName(name)
 
-	if strings.HasSuffix(string(name), ".service") {
-		return nil
+	if !strings.HasSuffix(string(name), ".service") {
+		return errors.New("invalid systemd service name")
 	}
-	return errors.New("invalid systemd service name")
+	return nil
 }

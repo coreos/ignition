@@ -14,16 +14,6 @@
 
 package config
 
-import (
-	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/go-yaml/yaml"
-)
-
-type Config struct {
-	Storage Storage
-	Systemd Systemd
-}
-
-func Parse(config []byte) (cfg Config, err error) {
-	err = yaml.Unmarshal(config, &cfg)
-	return
+type Storage struct {
+	Filesystems []Filesystem
 }
