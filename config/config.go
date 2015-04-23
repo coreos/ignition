@@ -15,7 +15,7 @@
 package config
 
 import (
-	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/go-yaml/yaml"
+	"encoding/json"
 )
 
 type Config struct {
@@ -24,6 +24,6 @@ type Config struct {
 }
 
 func Parse(config []byte) (cfg Config, err error) {
-	err = yaml.Unmarshal(config, &cfg)
+	err = json.Unmarshal(config, &cfg)
 	return
 }
