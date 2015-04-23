@@ -15,8 +15,9 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
-	"strings"
+	"path/filepath"
 )
 
 type Filesystem struct {
@@ -29,14 +30,33 @@ type Filesystem struct {
 type DevicePath string
 
 func (d *DevicePath) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var device string
-	if err := unmarshal(&device); err != nil {
+	return d.unmarshal(unmarshal)
+}
+
+func (d *DevicePath) UnmarshalJSON(data []byte) error {
+	return d.unmarshal(func(td interface{}) error {
+		return json.Unmarshal(data, td)
+	})
+}
+
+type devicePath DevicePath
+
+func (d *DevicePath) unmarshal(unmarshal func(interface{}) error) error {
+	td := devicePath(*d)
+	if err := unmarshal(&td); err != nil {
 		return err
 	}
-	*d = DevicePath(device)
+	nd := DevicePath(td)
+	if err := nd.assertValid(); err != nil {
+		return err
+	}
+	*d = nd
+	return nil
+}
 
-	if !strings.HasPrefix(string(device), "/dev") {
-		return errors.New("invalid device path")
+func (d DevicePath) assertValid() error {
+	if !filepath.IsAbs(string(d)) {
+		return errors.New("device path not absolute")
 	}
 	return nil
 }
@@ -44,28 +64,66 @@ func (d *DevicePath) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type FilesystemFormat string
 
 func (f *FilesystemFormat) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var format string
-	if err := unmarshal(&format); err != nil {
+	return f.unmarshal(unmarshal)
+}
+
+func (f *FilesystemFormat) UnmarshalJSON(data []byte) error {
+	return f.unmarshal(func(tf interface{}) error {
+		return json.Unmarshal(data, tf)
+	})
+}
+
+type filesystemFormat FilesystemFormat
+
+func (f *FilesystemFormat) unmarshal(unmarshal func(interface{}) error) error {
+	tf := filesystemFormat(*f)
+	if err := unmarshal(&tf); err != nil {
 		return err
 	}
-	*f = FilesystemFormat(format)
-
-	switch format {
-	case "ext4", "btrfs":
-	default:
-		return errors.New("invalid filesystem")
+	nf := FilesystemFormat(tf)
+	if err := nf.assertValid(); err != nil {
+		return err
 	}
+	*f = nf
 	return nil
 }
 
-type MkfsOptions string
+func (f FilesystemFormat) assertValid() error {
+	switch f {
+	case "ext4", "btrfs":
+		return nil
+	default:
+		return errors.New("invalid filesystem")
+	}
+}
+
+type MkfsOptions []string
 
 func (o *MkfsOptions) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var options string
-	if err := unmarshal(&options); err != nil {
+	return o.unmarshal(unmarshal)
+}
+
+func (o *MkfsOptions) UnmarshalJSON(data []byte) error {
+	return o.unmarshal(func(to interface{}) error {
+		return json.Unmarshal(data, to)
+	})
+}
+
+type mkfsOptions MkfsOptions
+
+func (o *MkfsOptions) unmarshal(unmarshal func(interface{}) error) error {
+	to := mkfsOptions(*o)
+	if err := unmarshal(&to); err != nil {
 		return err
 	}
-	*o = MkfsOptions(options)
+	no := MkfsOptions(to)
+	if err := no.assertValid(); err != nil {
+		return err
+	}
+	*o = no
+	return nil
+}
 
+func (o MkfsOptions) assertValid() error {
 	return nil
 }

@@ -15,6 +15,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 )
@@ -39,25 +40,63 @@ type UnitDropIn struct {
 type UnitName string
 
 func (n *UnitName) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var name string
-	if err := unmarshal(&name); err != nil {
+	return n.unmarshal(unmarshal)
+}
+
+func (n *UnitName) UnmarshalJSON(data []byte) error {
+	return n.unmarshal(func(tn interface{}) error {
+		return json.Unmarshal(data, tn)
+	})
+}
+
+type unitName UnitName
+
+func (n *UnitName) unmarshal(unmarshal func(interface{}) error) error {
+	tn := unitName(*n)
+	if err := unmarshal(&tn); err != nil {
 		return err
 	}
-	*n = UnitName(name)
+	nn := UnitName(tn)
+	if err := nn.assertValid(); err != nil {
+		return err
+	}
+	*n = nn
+	return nil
+}
 
+func (n UnitName) assertValid() error {
 	return nil
 }
 
 type ServiceName string
 
 func (n *ServiceName) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var name UnitName
-	if err := unmarshal(&name); err != nil {
+	return n.unmarshal(unmarshal)
+}
+
+func (n *ServiceName) UnmarshalJSON(data []byte) error {
+	return n.unmarshal(func(tn interface{}) error {
+		return json.Unmarshal(data, tn)
+	})
+}
+
+type serviceName ServiceName
+
+func (n *ServiceName) unmarshal(unmarshal func(interface{}) error) error {
+	tn := serviceName(*n)
+	if err := unmarshal(&tn); err != nil {
 		return err
 	}
-	*n = ServiceName(name)
+	nn := ServiceName(tn)
+	if err := nn.assertValid(); err != nil {
+		return err
+	}
+	*n = nn
+	return nil
+}
 
-	if !strings.HasSuffix(string(name), ".service") {
+func (n ServiceName) assertValid() error {
+	if !strings.HasSuffix(string(n), ".service") {
 		return errors.New("invalid systemd service name")
 	}
 	return nil
