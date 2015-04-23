@@ -4,6 +4,7 @@ This is a brain dump of a configuration file.
 storage:
   disks:
     - device: "/dev/sda"
+      wipe-table: true
       partitions:
         - label: "raid.1.1"
           number: 1
@@ -14,10 +15,12 @@ storage:
             guid:
           size: 10GB
     - device: "/dev/sdb"
+      wipe-table: true
       partitions:
         - name: "raid.1.2"
           size: 10GB
     - device: "/dev/sdc"
+      wipe-table: true
       partitions:
         - name: "raid.1.3"
           size: 10GB
