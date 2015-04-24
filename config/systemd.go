@@ -16,8 +16,6 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
-	"strings"
 )
 
 type Systemd struct {
@@ -25,7 +23,7 @@ type Systemd struct {
 }
 
 type Unit struct {
-	Name     ServiceName
+	Name     UnitName
 	Enable   bool
 	Mask     bool
 	Contents string
@@ -65,39 +63,5 @@ func (n *UnitName) unmarshal(unmarshal func(interface{}) error) error {
 }
 
 func (n UnitName) assertValid() error {
-	return nil
-}
-
-type ServiceName string
-
-func (n *ServiceName) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return n.unmarshal(unmarshal)
-}
-
-func (n *ServiceName) UnmarshalJSON(data []byte) error {
-	return n.unmarshal(func(tn interface{}) error {
-		return json.Unmarshal(data, tn)
-	})
-}
-
-type serviceName ServiceName
-
-func (n *ServiceName) unmarshal(unmarshal func(interface{}) error) error {
-	tn := serviceName(*n)
-	if err := unmarshal(&tn); err != nil {
-		return err
-	}
-	nn := ServiceName(tn)
-	if err := nn.assertValid(); err != nil {
-		return err
-	}
-	*n = nn
-	return nil
-}
-
-func (n ServiceName) assertValid() error {
-	if !strings.HasSuffix(string(n), ".service") {
-		return errors.New("invalid systemd service name")
-	}
 	return nil
 }
