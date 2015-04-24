@@ -29,14 +29,17 @@ storage:
     - name: "md0"
       level: stripe
       devices:
-        - name: "/dev/disk/by-label/raid.1.1"
-        - name: "raid.1.2"
+        - "/dev/disk/by-partlabel/raid.1.1"
+        - "/dev/disk/by-partlabel/raid.1.2"
       spares:
-        - name: "raid.1.3"
+        - "/dev/disk/by-partlabel/raid.1.3"
 
   filesystems:
-    - device: "/dev/disk/by-label/ROOT"
+    - device: "/dev/disk/by-partlabel/ROOT" # switch coreos' ext4 root to btrfs
       format: btrfs
+      format-options:
+        - "--force"
+        - "--label=ROOT"
       files:
         - path: "/home/core/bin/find-ip4.sh"
           permissions: 0755
