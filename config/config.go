@@ -19,8 +19,9 @@ import (
 )
 
 type Config struct {
-	Storage Storage
-	Systemd Systemd
+	Storage  Storage
+	Systemd  Systemd
+	Networkd Networkd
 }
 
 func Parse(config []byte) (cfg Config, err error) {

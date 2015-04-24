@@ -14,6 +14,6 @@
 
 package config
 
-type Systemd struct {
+type Networkd struct {
 	Units []Unit
 }

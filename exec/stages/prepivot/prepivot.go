@@ -57,6 +57,9 @@ func (s stage) Run(config config.Config) {
 	for _, unit := range config.Systemd.Units {
 		s.writeUnit(unit)
 	}
+	for _, unit := range config.Networkd.Units {
+		s.writeUnit(unit)
+	}
 }
 
 func (s stage) writeUnit(unit config.Unit) {
