@@ -15,6 +15,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 )
@@ -31,14 +32,33 @@ type File struct {
 }
 
 func (m *FileMode) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var mode int
-	if err := unmarshal(&mode); err != nil {
+	return m.unmarshal(unmarshal)
+}
+
+func (m *FileMode) UnmarshalJSON(data []byte) error {
+	return m.unmarshal(func(tm interface{}) error {
+		return json.Unmarshal(data, tm)
+	})
+}
+
+type fileMode FileMode
+
+func (m *FileMode) unmarshal(unmarshal func(interface{}) error) error {
+	tm := fileMode(*m)
+	if err := unmarshal(&tm); err != nil {
 		return err
 	}
-	if (mode &^ 07777) != 0 {
-		return fmt.Errorf("illegal file mode %#o", mode)
+	nm := FileMode(tm)
+	if err := nm.assertValid(); err != nil {
+		return err
 	}
+	*m = nm
+	return nil
+}
 
-	*m = FileMode(mode)
+func (m FileMode) assertValid() error {
+	if (m &^ 07777) != 0 {
+		return fmt.Errorf("illegal file mode %#o", m)
+	}
 	return nil
 }

@@ -14,16 +14,6 @@
 
 package config
 
-import (
-	"encoding/json"
-)
-
-type Config struct {
-	Storage Storage
-	Systemd Systemd
-}
-
-func Parse(config []byte) (cfg Config, err error) {
-	err = json.Unmarshal(config, &cfg)
-	return
+type Storage struct {
+	Filesystems []Filesystem
 }
