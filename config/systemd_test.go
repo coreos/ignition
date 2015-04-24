@@ -16,7 +16,6 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
 	"reflect"
 	"testing"
 
@@ -89,110 +88,6 @@ func TestUnitNameUnmarshalYAML(t *testing.T) {
 		}
 		if !reflect.DeepEqual(test.out.unit, unit) {
 			t.Errorf("#%d: bad unit: want %#v, got %#v", i, test.out.unit, unit)
-		}
-	}
-}
-
-func TestServiceNameUnmarshalJSON(t *testing.T) {
-	type in struct {
-		data string
-	}
-	type out struct {
-		service ServiceName
-		err     error
-	}
-
-	tests := []struct {
-		in  in
-		out out
-	}{
-		{
-			in:  in{data: `"test.service"`},
-			out: out{service: ServiceName("test.service")},
-		},
-		{
-			in:  in{data: `"lol"`},
-			out: out{err: errors.New("invalid systemd service name")},
-		},
-	}
-
-	for i, test := range tests {
-		var service ServiceName
-		err := json.Unmarshal([]byte(test.in.data), &service)
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
-		}
-		if !reflect.DeepEqual(test.out.service, service) {
-			t.Errorf("#%d: bad service: want %#v, got %#v", i, test.out.service, service)
-		}
-	}
-}
-
-func TestServiceNameUnmarshalYAML(t *testing.T) {
-	type in struct {
-		data string
-	}
-	type out struct {
-		service ServiceName
-		err     error
-	}
-
-	tests := []struct {
-		in  in
-		out out
-	}{
-		{
-			in:  in{data: `"test.service"`},
-			out: out{service: ServiceName("test.service")},
-		},
-		{
-			in:  in{data: `"lol"`},
-			out: out{err: errors.New("invalid systemd service name")},
-		},
-	}
-
-	for i, test := range tests {
-		var service ServiceName
-		err := yaml.Unmarshal([]byte(test.in.data), &service)
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
-		}
-		if !reflect.DeepEqual(test.out.service, service) {
-			t.Errorf("#%d: bad service: want %#v, got %#v", i, test.out.service, service)
-		}
-	}
-}
-
-func TestServiceNameAssertValid(t *testing.T) {
-	type in struct {
-		service ServiceName
-	}
-	type out struct {
-		err error
-	}
-
-	tests := []struct {
-		in  in
-		out out
-	}{
-		{
-			in:  in{service: ServiceName("test.service")},
-			out: out{},
-		},
-		{
-			in:  in{service: ServiceName("test.socket")},
-			out: out{err: errors.New("invalid systemd service name")},
-		},
-		{
-			in:  in{service: ServiceName("")},
-			out: out{err: errors.New("invalid systemd service name")},
-		},
-	}
-
-	for i, test := range tests {
-		err := test.in.service.assertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
 	}
 }
