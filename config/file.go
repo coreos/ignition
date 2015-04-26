@@ -16,8 +16,12 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"os"
+)
+
+var (
+	ErrFileIllegalMode = errors.New("illegal file mode")
 )
 
 type FileMode os.FileMode
@@ -48,17 +52,13 @@ func (m *FileMode) unmarshal(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&tm); err != nil {
 		return err
 	}
-	nm := FileMode(tm)
-	if err := nm.assertValid(); err != nil {
-		return err
-	}
-	*m = nm
-	return nil
+	*m = FileMode(tm)
+	return m.assertValid()
 }
 
 func (m FileMode) assertValid() error {
 	if (m &^ 07777) != 0 {
-		return fmt.Errorf("illegal file mode %#o", m)
+		return ErrFileIllegalMode
 	}
 	return nil
 }

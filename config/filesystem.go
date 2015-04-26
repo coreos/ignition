@@ -20,6 +20,11 @@ import (
 	"path/filepath"
 )
 
+var (
+	ErrFilesystemRelativePath  = errors.New("device path not absolute")
+	ErrFilesystemInvalidFormat = errors.New("invalid filesystem format")
+)
+
 type Filesystem struct {
 	Device  DevicePath
 	Format  FilesystemFormat
@@ -46,17 +51,13 @@ func (d *DevicePath) unmarshal(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&td); err != nil {
 		return err
 	}
-	nd := DevicePath(td)
-	if err := nd.assertValid(); err != nil {
-		return err
-	}
-	*d = nd
-	return nil
+	*d = DevicePath(td)
+	return d.assertValid()
 }
 
 func (d DevicePath) assertValid() error {
 	if !filepath.IsAbs(string(d)) {
-		return errors.New("device path not absolute")
+		return ErrFilesystemRelativePath
 	}
 	return nil
 }
@@ -80,12 +81,8 @@ func (f *FilesystemFormat) unmarshal(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&tf); err != nil {
 		return err
 	}
-	nf := FilesystemFormat(tf)
-	if err := nf.assertValid(); err != nil {
-		return err
-	}
-	*f = nf
-	return nil
+	*f = FilesystemFormat(tf)
+	return f.assertValid()
 }
 
 func (f FilesystemFormat) assertValid() error {
@@ -93,7 +90,7 @@ func (f FilesystemFormat) assertValid() error {
 	case "ext4", "btrfs":
 		return nil
 	default:
-		return errors.New("invalid filesystem")
+		return ErrFilesystemInvalidFormat
 	}
 }
 
@@ -116,12 +113,8 @@ func (o *MkfsOptions) unmarshal(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&to); err != nil {
 		return err
 	}
-	no := MkfsOptions(to)
-	if err := no.assertValid(); err != nil {
-		return err
-	}
-	*o = no
-	return nil
+	*o = MkfsOptions(to)
+	return o.assertValid()
 }
 
 func (o MkfsOptions) assertValid() error {
