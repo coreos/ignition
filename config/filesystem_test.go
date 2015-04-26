@@ -41,8 +41,8 @@ func TestDevicePathUnmarshalJSON(t *testing.T) {
 			out: out{device: DevicePath("/path")},
 		},
 		{
-			in:  in{data: `"lol"`},
-			out: out{err: errors.New("device path not absolute")},
+			in:  in{data: `"bad"`},
+			out: out{device: DevicePath("bad"), err: errors.New("device path not absolute")},
 		},
 	}
 
@@ -76,8 +76,8 @@ func TestDevicePathUnmarshalYAML(t *testing.T) {
 			out: out{device: DevicePath("/path")},
 		},
 		{
-			in:  in{data: `"lol"`},
-			out: out{err: errors.New("device path not absolute")},
+			in:  in{data: `"bad"`},
+			out: out{device: DevicePath("bad"), err: errors.New("device path not absolute")},
 		},
 	}
 
@@ -153,8 +153,8 @@ func TestFilesystemFormatUnmarshalJSON(t *testing.T) {
 			out: out{format: FilesystemFormat("ext4")},
 		},
 		{
-			in:  in{data: `"lol"`},
-			out: out{err: errors.New("invalid filesystem")},
+			in:  in{data: `"bad"`},
+			out: out{format: FilesystemFormat("bad"), err: errors.New("invalid filesystem format")},
 		},
 	}
 
@@ -188,8 +188,8 @@ func TestFilesystemFormatUnmarshalYAML(t *testing.T) {
 			out: out{format: FilesystemFormat("ext4")},
 		},
 		{
-			in:  in{data: `"lol"`},
-			out: out{err: errors.New("invalid filesystem")},
+			in:  in{data: `"bad"`},
+			out: out{format: FilesystemFormat("bad"), err: errors.New("invalid filesystem format")},
 		},
 	}
 
@@ -227,7 +227,7 @@ func TestFilesystemFormatAssertValid(t *testing.T) {
 		},
 		{
 			in:  in{format: FilesystemFormat("")},
-			out: out{err: errors.New("invalid filesystem")},
+			out: out{err: errors.New("invalid filesystem format")},
 		},
 	}
 
