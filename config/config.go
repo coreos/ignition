@@ -16,15 +16,29 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 )
 
 type Config struct {
+	Version  int
 	Storage  Storage
 	Systemd  Systemd
 	Networkd Networkd
 }
 
+const (
+	Version = 1
+)
+
+var (
+	ErrConfigVersion = errors.New("incorrect config version")
+)
+
 func Parse(config []byte) (cfg Config, err error) {
-	err = json.Unmarshal(config, &cfg)
+	if err = json.Unmarshal(config, &cfg); err == nil {
+		if cfg.Version != Version {
+			err = ErrConfigVersion
+		}
+	}
 	return
 }
