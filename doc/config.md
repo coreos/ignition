@@ -1,6 +1,8 @@
 This is a brain dump of a configuration file.
 
 ```yaml
+version: 1
+
 storage:
   disks:
     - device: "/dev/sda"
