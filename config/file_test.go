@@ -16,7 +16,6 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
 	"reflect"
 	"testing"
 
@@ -42,7 +41,7 @@ func TestFileModeUnmarshalJSON(t *testing.T) {
 		},
 		{
 			in:  in{data: `9999`},
-			out: out{err: errors.New("illegal file mode 023417")},
+			out: out{mode: FileMode(9999), err: ErrFileIllegalMode},
 		},
 	}
 
@@ -81,7 +80,7 @@ func TestFileModeUnmarshalYAML(t *testing.T) {
 		},
 		{
 			in:  in{data: `017777`},
-			out: out{err: errors.New("illegal file mode 017777")},
+			out: out{mode: FileMode(017777), err: ErrFileIllegalMode},
 		},
 	}
 
@@ -127,7 +126,7 @@ func TestFileAssertValid(t *testing.T) {
 		},
 		{
 			in:  in{mode: FileMode(010000)},
-			out: out{err: errors.New("illegal file mode 010000")},
+			out: out{err: ErrFileIllegalMode},
 		},
 	}
 

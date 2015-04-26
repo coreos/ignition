@@ -1,6 +1,8 @@
 This is a brain dump of a configuration file.
 
 ```yaml
+version: 1
+
 storage:
   disks:
     - device: "/dev/sda"
@@ -88,4 +90,20 @@ systemd:
 
            [Install]
            WantedBy=multi-user.target
+
+networkd:
+  units:
+    - name: 00-eth0.network
+      content: |
+        [Match]
+        Name=eth0
+
+        [Address]
+        Address=10.0.0.2/24
+
+        [Route]
+        Gateway=10.0.0.1
+
+        [Network]
+        DNS=4.4.4.4
 ```
