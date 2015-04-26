@@ -53,16 +53,21 @@ func (stage) Name() string {
 	return name
 }
 
-func (s stage) Run(config config.Config) {
+func (s stage) Run(config config.Config) bool {
 	for _, unit := range config.Systemd.Units {
-		s.writeUnit(unit)
+		if !s.writeUnit(unit) {
+			return false
+		}
 	}
 	for _, unit := range config.Networkd.Units {
-		s.writeUnit(unit)
+		if !s.writeUnit(unit) {
+			return false
+		}
 	}
+	return true
 }
 
-func (s stage) writeUnit(unit config.Unit) {
+func (s stage) writeUnit(unit config.Unit) bool {
 	s.logger.Info(fmt.Sprintf("writing unit %q", unit.Name))
 	defer s.logger.Info(fmt.Sprintf("done writing unit %q", unit.Name))
 
@@ -75,16 +80,20 @@ func (s stage) writeUnit(unit config.Unit) {
 		s.logger.Info(fmt.Sprintf("writing dropin %q at %q", dropin.Name, f.Path))
 		if err := util.WriteFile(f); err != nil {
 			s.logger.Err(fmt.Sprintf("failed to write dropin %q: %v", dropin.Name, err))
+			return false
 		}
 	}
 
 	if unit.Contents == "" {
-		return
+		return true
 	}
 
 	f := util.FileFromUnit(s.root, unit)
 	s.logger.Info(fmt.Sprintf("writing unit %q at %q", unit.Name, f.Path))
 	if err := util.WriteFile(f); err != nil {
 		s.logger.Err(fmt.Sprintf("failed to write unit %q: %v", unit.Name, err))
+		return false
 	}
+
+	return true
 }
