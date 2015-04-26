@@ -64,15 +64,15 @@ func (e Engine) Providers() []providers.Provider {
 	return providers
 }
 
-func (e Engine) Run(stageName string) {
+func (e Engine) Run(stageName string) bool {
 	config, err := fetchConfig(e.Providers(), e.FetchTimeout)
 	if err != nil {
 		e.Logger.Crit(fmt.Sprintf("failed to fetch config: %v", err))
-		return
+		return false
 	}
 	e.Logger.Debug(fmt.Sprintf("fetched config: %+v", config))
 
-	stages.Get(stageName).Create(e.Logger, e.Root).Run(config)
+	return stages.Get(stageName).Create(e.Logger, e.Root).Run(config)
 }
 
 func fetchConfig(providers []providers.Provider, timeout time.Duration) (config.Config, error) {

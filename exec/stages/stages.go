@@ -21,7 +21,7 @@ import (
 )
 
 type Stage interface {
-	Run(config config.Config)
+	Run(config config.Config) bool
 	Name() string
 }
 

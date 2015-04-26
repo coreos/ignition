@@ -77,5 +77,7 @@ func main() {
 		engine.AddProvider(providers.Get(name).Create(logger))
 	}
 
-	engine.Run(flags.stage.String())
+	if !engine.Run(flags.stage.String()) {
+		os.Exit(1)
+	}
 }
