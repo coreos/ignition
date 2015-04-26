@@ -50,12 +50,8 @@ func (n *UnitName) unmarshal(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&tn); err != nil {
 		return err
 	}
-	nn := UnitName(tn)
-	if err := nn.assertValid(); err != nil {
-		return err
-	}
-	*n = nn
-	return nil
+	*n = UnitName(tn)
+	return n.assertValid()
 }
 
 func (n UnitName) assertValid() error {
