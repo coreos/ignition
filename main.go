@@ -25,6 +25,7 @@ import (
 	"github.com/coreos/ignition/exec/stages"
 	_ "github.com/coreos/ignition/exec/stages/prepivot"
 	"github.com/coreos/ignition/log"
+	"github.com/coreos/ignition/oem"
 	"github.com/coreos/ignition/providers"
 	_ "github.com/coreos/ignition/providers/cmdline"
 
@@ -38,6 +39,7 @@ var version = *semver.Must(semver.NewVersion(versionString))
 func main() {
 	flags := struct {
 		fetchTimeout time.Duration
+		oem          oem.Name
 		providers    providers.List
 		root         string
 		stage        stages.Name
@@ -45,12 +47,19 @@ func main() {
 	}{}
 
 	flag.DurationVar(&flags.fetchTimeout, "fetchtimeout", exec.DefaultFetchTimeout, "")
+	flag.Var(&flags.oem, "oem", fmt.Sprintf("current oem. %v", oem.Names()))
 	flag.Var(&flags.providers, "provider", fmt.Sprintf("provider of config. can be specified multiple times. %v", providers.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
 
 	flag.Parse()
+
+	if config, ok := oem.Get(flags.oem.String()); ok {
+		for k, v := range config.Flags() {
+			flag.Set(k, v)
+		}
+	}
 
 	if flags.version {
 		fmt.Printf("ignition %s\n", versionString)
