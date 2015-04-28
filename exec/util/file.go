@@ -74,6 +74,6 @@ func WriteFile(f *File) error {
 	return nil
 }
 
-func MkdirForFile(filename string) error {
-	return os.MkdirAll(filepath.Dir(filename), os.FileMode(DefaultDirectoryPermissions))
+func MkdirForFile(path string) error {
+	return os.MkdirAll(filepath.Dir(path), os.FileMode(DefaultDirectoryPermissions))
 }

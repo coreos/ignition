@@ -51,11 +51,11 @@ func FileFromUnitDropin(root string, unit config.Unit, dropin config.UnitDropIn)
 }
 
 func MaskUnit(root string, unit config.Unit) error {
-	filename := filepath.Join(root, SystemdUnitsPath(), string(unit.Name))
-	if err := MkdirForFile(filename); err != nil {
+	path := filepath.Join(root, SystemdUnitsPath(), string(unit.Name))
+	if err := MkdirForFile(path); err != nil {
 		return err
 	}
-	return os.Symlink("/dev/null", filename)
+	return os.Symlink("/dev/null", path)
 }
 
 func EnableUnit(root string, unit config.Unit) error {
