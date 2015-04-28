@@ -15,9 +15,15 @@
 package util
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/coreos/ignition/config"
+)
+
+const (
+	presetPath = "/etc/systemd/system-preset/20-ignition.preset"
 )
 
 func FileFromUnit(root string, unit config.Unit) *File {
@@ -42,4 +48,27 @@ func FileFromUnitDropin(root string, unit config.Unit, dropin config.UnitDropIn)
 			Gid:      0,
 		},
 	}
+}
+
+func MaskUnit(root string, unit config.Unit) error {
+	filename := filepath.Join(root, SystemdUnitsPath(), string(unit.Name))
+	if err := MkdirForFile(filename); err != nil {
+		return err
+	}
+	return os.Symlink("/dev/null", filename)
+}
+
+func EnableUnit(root string, unit config.Unit) error {
+	preset := filepath.Join(root, presetPath)
+	if err := MkdirForFile(preset); err != nil {
+		return err
+	}
+	file, err := os.OpenFile(preset, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0444)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(fmt.Sprintf("enable %s\n", unit.Name))
+	return err
 }

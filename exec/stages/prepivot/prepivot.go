@@ -58,6 +58,22 @@ func (s stage) Run(config config.Config) bool {
 		if !s.writeUnit(unit) {
 			return false
 		}
+		if unit.Enable {
+			s.logger.Info(fmt.Sprintf("enabling unit %q", unit.Name))
+			if err := util.EnableUnit(s.root, unit); err != nil {
+				s.logger.Info(fmt.Sprintf("failed to enable unit %q: %v", unit.Name, err))
+				return false
+			}
+			s.logger.Info(fmt.Sprintf("done enabling unit %q", unit.Name))
+		}
+		if unit.Mask {
+			s.logger.Info(fmt.Sprintf("masking unit %q", unit.Name))
+			if err := util.MaskUnit(s.root, unit); err != nil {
+				s.logger.Info(fmt.Sprintf("failed to mask unit %q: %v", unit.Name, err))
+				return false
+			}
+			s.logger.Info(fmt.Sprintf("done masking unit %q", unit.Name))
+		}
 	}
 	for _, unit := range config.Networkd.Units {
 		if !s.writeUnit(unit) {

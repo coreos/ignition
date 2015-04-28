@@ -35,14 +35,13 @@ type File struct {
 func WriteFile(f *File) error {
 	var err error
 
-	dir := filepath.Dir(f.Path)
-	if err := os.MkdirAll(dir, os.FileMode(DefaultDirectoryPermissions)); err != nil {
+	if err := MkdirForFile(f.Path); err != nil {
 		return err
 	}
 
 	// Create a temporary file in the same directory to ensure it's on the same filesystem
 	var tmp *os.File
-	if tmp, err = ioutil.TempFile(dir, "tmp"); err != nil {
+	if tmp, err = ioutil.TempFile(filepath.Dir(f.Path), "tmp"); err != nil {
 		return err
 	}
 	tmp.Close()
@@ -73,4 +72,8 @@ func WriteFile(f *File) error {
 	}
 
 	return nil
+}
+
+func MkdirForFile(filename string) error {
+	return os.MkdirAll(filepath.Dir(filename), os.FileMode(DefaultDirectoryPermissions))
 }
