@@ -63,6 +63,20 @@ storage:
 
             sed -i -e "/^${VARIABLE}=/d" "${FILE}"
             echo "${VARIABLE}=${ip}" >> "${FILE}"
+    - device: "/dev/md0"
+      name: "vms"
+      format: ext4
+      files:
+        - path: "/images/sparse.img"
+          permissions: 0640
+          allocate:
+            - type: sparse
+            - size: 10GB
+    - device: "vms:/images/sparse.img"
+      format: ext4
+      format-options:
+        - "-E"
+        - "lazy_itable_init=0,lazy_journal_init=0"
 
 systemd:
   units:
