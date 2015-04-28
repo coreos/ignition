@@ -26,10 +26,10 @@ const (
 	presetPath = "/etc/systemd/system-preset/20-ignition.preset"
 )
 
-func FileFromUnit(root string, unit config.Unit) *File {
+func FileFromUnit(unit config.Unit) *File {
 	return &File{
 		config.File{
-			Path:     filepath.Join(root, SystemdUnitsPath(), string(unit.Name)),
+			Path:     filepath.Join(SystemdUnitsPath(), string(unit.Name)),
 			Contents: unit.Contents,
 			Mode:     DefaultFilePermissions,
 			Uid:      0,
@@ -38,10 +38,10 @@ func FileFromUnit(root string, unit config.Unit) *File {
 	}
 }
 
-func FileFromUnitDropin(root string, unit config.Unit, dropin config.UnitDropIn) *File {
+func FileFromUnitDropin(unit config.Unit, dropin config.UnitDropIn) *File {
 	return &File{
 		config.File{
-			Path:     filepath.Join(root, SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
+			Path:     filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
 			Contents: dropin.Contents,
 			Mode:     DefaultFilePermissions,
 			Uid:      0,
@@ -50,20 +50,20 @@ func FileFromUnitDropin(root string, unit config.Unit, dropin config.UnitDropIn)
 	}
 }
 
-func MaskUnit(root string, unit config.Unit) error {
-	path := filepath.Join(root, SystemdUnitsPath(), string(unit.Name))
-	if err := MkdirForFile(path); err != nil {
+func (d *DestDir) MaskUnit(unit config.Unit) error {
+	path := d.JoinPath(SystemdUnitsPath(), string(unit.Name))
+	if err := mkdirForFile(path); err != nil {
 		return err
 	}
 	return os.Symlink("/dev/null", path)
 }
 
-func EnableUnit(root string, unit config.Unit) error {
-	preset := filepath.Join(root, presetPath)
-	if err := MkdirForFile(preset); err != nil {
+func (d *DestDir) EnableUnit(unit config.Unit) error {
+	path := d.JoinPath(presetPath)
+	if err := mkdirForFile(path); err != nil {
 		return err
 	}
-	file, err := os.OpenFile(preset, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0444)
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0444)
 	if err != nil {
 		return err
 	}

@@ -35,8 +35,8 @@ type creator struct{}
 
 func (creator) Create(logger log.Logger, root string) stages.Stage {
 	return &stage{
-		root:   root,
-		logger: logger,
+		DestDir: util.DestDir(root),
+		logger:  logger,
 	}
 }
 
@@ -46,7 +46,7 @@ func (creator) Name() string {
 
 type stage struct {
 	logger log.Logger
-	root   string
+	util.DestDir
 }
 
 func (stage) Name() string {
@@ -60,7 +60,7 @@ func (s stage) Run(config config.Config) bool {
 		}
 		if unit.Enable {
 			s.logger.Info(fmt.Sprintf("enabling unit %q", unit.Name))
-			if err := util.EnableUnit(s.root, unit); err != nil {
+			if err := s.EnableUnit(unit); err != nil {
 				s.logger.Info(fmt.Sprintf("failed to enable unit %q: %v", unit.Name, err))
 				return false
 			}
@@ -68,7 +68,7 @@ func (s stage) Run(config config.Config) bool {
 		}
 		if unit.Mask {
 			s.logger.Info(fmt.Sprintf("masking unit %q", unit.Name))
-			if err := util.MaskUnit(s.root, unit); err != nil {
+			if err := s.MaskUnit(unit); err != nil {
 				s.logger.Info(fmt.Sprintf("failed to mask unit %q: %v", unit.Name, err))
 				return false
 			}
@@ -92,9 +92,9 @@ func (s stage) writeUnit(unit config.Unit) bool {
 			continue
 		}
 
-		f := util.FileFromUnitDropin(s.root, unit, dropin)
+		f := util.FileFromUnitDropin(unit, dropin)
 		s.logger.Info(fmt.Sprintf("writing dropin %q at %q", dropin.Name, f.Path))
-		if err := util.WriteFile(f); err != nil {
+		if err := s.WriteFile(f); err != nil {
 			s.logger.Err(fmt.Sprintf("failed to write dropin %q: %v", dropin.Name, err))
 			return false
 		}
@@ -104,9 +104,9 @@ func (s stage) writeUnit(unit config.Unit) bool {
 		return true
 	}
 
-	f := util.FileFromUnit(s.root, unit)
+	f := util.FileFromUnit(unit)
 	s.logger.Info(fmt.Sprintf("writing unit %q at %q", unit.Name, f.Path))
-	if err := util.WriteFile(f); err != nil {
+	if err := s.WriteFile(f); err != nil {
 		s.logger.Err(fmt.Sprintf("failed to write unit %q: %v", unit.Name, err))
 		return false
 	}
