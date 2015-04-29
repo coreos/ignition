@@ -23,7 +23,8 @@ import (
 )
 
 const (
-	presetPath = "/etc/systemd/system-preset/20-ignition.preset"
+	presetPath               string      = "/etc/systemd/system-preset/20-ignition.preset"
+	DefaultPresetPermissions os.FileMode = 0644
 )
 
 func FileFromUnit(unit config.Unit) *config.File {
@@ -59,7 +60,7 @@ func (d *DestDir) EnableUnit(unit config.Unit) error {
 	if err := mkdirForFile(path); err != nil {
 		return err
 	}
-	file, err := os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0444)
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, DefaultPresetPermissions)
 	if err != nil {
 		return err
 	}
