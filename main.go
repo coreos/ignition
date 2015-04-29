@@ -72,8 +72,10 @@ func main() {
 	}
 
 	var logger log.Logger
-	logger, err := syslog.New(syslog.LOG_DEBUG, "ignition")
-	if err != nil {
+	if slogger, err := syslog.New(syslog.LOG_DEBUG, "ignition"); err == nil {
+		defer slogger.Close()
+		logger = slogger
+	} else {
 		logger = log.Stdout{}
 		logger.Err(fmt.Sprintf("unable to open syslog: %v", err))
 	}
