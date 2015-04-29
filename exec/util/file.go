@@ -27,21 +27,19 @@ const (
 	DefaultFilePermissions      config.FileMode = 0644
 )
 
-// in-memory representation of a file
-type File struct {
-	config.File
-}
-
-func WriteFile(f *File) error {
+// WriteFile creates and writes the file described by f using the provided context
+func (d *DestDir) WriteFile(f *config.File) error {
 	var err error
 
-	if err := MkdirForFile(f.Path); err != nil {
+	path := d.JoinPath(f.Path)
+
+	if err := mkdirForFile(path); err != nil {
 		return err
 	}
 
 	// Create a temporary file in the same directory to ensure it's on the same filesystem
 	var tmp *os.File
-	if tmp, err = ioutil.TempFile(filepath.Dir(f.Path), "tmp"); err != nil {
+	if tmp, err = ioutil.TempFile(filepath.Dir(path), "tmp"); err != nil {
 		return err
 	}
 	tmp.Close()
@@ -67,13 +65,14 @@ func WriteFile(f *File) error {
 		return err
 	}
 
-	if err := os.Rename(tmp.Name(), f.Path); err != nil {
+	if err := os.Rename(tmp.Name(), path); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func MkdirForFile(path string) error {
+// mkdirForFile helper creates the directory components of path
+func mkdirForFile(path string) error {
 	return os.MkdirAll(filepath.Dir(path), os.FileMode(DefaultDirectoryPermissions))
 }
