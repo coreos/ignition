@@ -27,13 +27,8 @@ const (
 	DefaultFilePermissions      config.FileMode = 0644
 )
 
-// in-memory representation of a file
-type File struct {
-	config.File
-}
-
 // WriteFile creates and writes the file described by f using the provided context
-func (d *DestDir) WriteFile(f *File) error {
+func (d *DestDir) WriteFile(f *config.File) error {
 	var err error
 
 	path := d.JoinPath(f.Path)

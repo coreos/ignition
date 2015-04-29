@@ -26,27 +26,23 @@ const (
 	presetPath = "/etc/systemd/system-preset/20-ignition.preset"
 )
 
-func FileFromUnit(unit config.Unit) *File {
-	return &File{
-		config.File{
-			Path:     filepath.Join(SystemdUnitsPath(), string(unit.Name)),
-			Contents: unit.Contents,
-			Mode:     DefaultFilePermissions,
-			Uid:      0,
-			Gid:      0,
-		},
+func FileFromUnit(unit config.Unit) *config.File {
+	return &config.File{
+		Path:     filepath.Join(SystemdUnitsPath(), string(unit.Name)),
+		Contents: unit.Contents,
+		Mode:     DefaultFilePermissions,
+		Uid:      0,
+		Gid:      0,
 	}
 }
 
-func FileFromUnitDropin(unit config.Unit, dropin config.UnitDropIn) *File {
-	return &File{
-		config.File{
-			Path:     filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
-			Contents: dropin.Contents,
-			Mode:     DefaultFilePermissions,
-			Uid:      0,
-			Gid:      0,
-		},
+func FileFromUnitDropin(unit config.Unit, dropin config.UnitDropIn) *config.File {
+	return &config.File{
+		Path:     filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
+		Contents: dropin.Contents,
+		Mode:     DefaultFilePermissions,
+		Uid:      0,
+		Gid:      0,
 	}
 }
 
