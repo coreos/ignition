@@ -20,10 +20,10 @@ import (
 )
 
 type Config struct {
-	Version  int
-	Storage  Storage
-	Systemd  Systemd
-	Networkd Networkd
+	Version  int      `json:"version"            yaml:"version"`
+	Storage  Storage  `json:"storage,omitempty"  yaml:"storage"`
+	Systemd  Systemd  `json:"systemd,omitempty"  yaml:"systemd"`
+	Networkd Networkd `json:"networkd,omitempty" yaml:"networkd"`
 }
 
 const (

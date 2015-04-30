@@ -15,5 +15,5 @@
 package config
 
 type Storage struct {
-	Filesystems []Filesystem
+	Filesystems []Filesystem `json:"filesystems,omitempty" yaml:"filesystems"`
 }

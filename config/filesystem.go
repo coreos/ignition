@@ -26,10 +26,10 @@ var (
 )
 
 type Filesystem struct {
-	Device  DevicePath
-	Format  FilesystemFormat
-	Options MkfsOptions
-	Files   []File
+	Device  DevicePath       `json:"device,omitempty"  yaml:"device"`
+	Format  FilesystemFormat `json:"format,omitempty"  yaml:"format"`
+	Options MkfsOptions      `json:"options,omitempty" yaml:"options"`
+	Files   []File           `json:"files,omitempty"   yaml:"files"`
 }
 
 type DevicePath string
