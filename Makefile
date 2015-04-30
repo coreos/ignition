@@ -39,10 +39,14 @@ endif
 .PHONY: all
 all: bin/ignition
 
-.PHONY: bin/ignition
-bin/ignition: | gopath/src/github.com/coreos/ignition
+.PHONY: FORCE
+bin/ignition: FORCE | gopath/src/github.com/coreos/ignition
+
+bin/ignition: REPO=github.com/coreos/ignition
+
+bin/%:
 	@echo " GO    $@"
-	$(Q)GOPATH=$$(pwd)/gopath go build $(GFLAGS) -o $@
+	$(Q)GOPATH=$$(pwd)/gopath go build $(GFLAGS) -o $@ $(REPO)
 
 gopath/src/github.com/coreos/ignition:
 	$(Q)mkdir --parents $$(dirname $@)
