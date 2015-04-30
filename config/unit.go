@@ -19,16 +19,16 @@ import (
 )
 
 type Unit struct {
-	Name     UnitName
-	Enable   bool
-	Mask     bool
-	Contents string
-	DropIns  []UnitDropIn
+	Name     UnitName     `json:"name,omitempty"     yaml:"name"`
+	Enable   bool         `json:"enable,omitempty"   yaml:"enable"`
+	Mask     bool         `json:"mask,omitempty"     yaml:"mask"`
+	Contents string       `json:"contents,omitempty" yaml:"contents"`
+	DropIns  []UnitDropIn `json:"dropIns,omitempty"  yaml:"dropIns"`
 }
 
 type UnitDropIn struct {
-	Name     UnitName
-	Contents string
+	Name     UnitName `json:"name,omitempty"     yaml:"name"`
+	Contents string   `json:"contents,omitempty" yaml:"contents"`
 }
 
 type UnitName string
