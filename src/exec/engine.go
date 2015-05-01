@@ -22,9 +22,9 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/exec/stages"
-	"github.com/coreos/ignition/log"
-	"github.com/coreos/ignition/providers"
+	"github.com/coreos/ignition/src/exec/stages"
+	"github.com/coreos/ignition/src/log"
+	"github.com/coreos/ignition/src/providers"
 )
 
 const (

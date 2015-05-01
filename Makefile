@@ -1,21 +1,21 @@
 REPO_PATH = github.com/coreos/ignition
 
 FMT_PACKAGES = \
-    config \
-    exec \
-    exec/stages \
-    exec/stages/prepivot \
-    exec/util \
-    providers \
-    providers/cmdline \
-    providers/util \
-    registry \
+    src/config \
+    src/exec \
+    src/exec/stages \
+    src/exec/stages/prepivot \
+    src/exec/util \
+    src/providers \
+    src/providers/cmdline \
+    src/providers/util \
+    src/registry \
 
 FMT_FILES = \
-    main.go \
+    src/main.go \
 
 PACKAGES = \
-    . \
+    ./src \
     $(FMT_PACKAGES) \
 
 GFLAGS = \
@@ -46,7 +46,7 @@ bin/ignition: REPO=github.com/coreos/ignition
 
 bin/%:
 	@echo " GO    $@"
-	$(Q)GOPATH=$$(pwd)/gopath go build $(GFLAGS) -o $@ $(REPO)
+	$(Q)GOPATH=$$(pwd)/gopath go build $(GFLAGS) -o $@ $(REPO)/src
 
 gopath/src/github.com/coreos/ignition:
 	$(Q)mkdir --parents $$(dirname $@)

@@ -17,11 +17,11 @@ package oem
 import (
 	"fmt"
 
-	"github.com/coreos/ignition/registry"
+	"github.com/coreos/ignition/src/registry"
 )
 
 type Config struct {
-	name string
+	name  string
 	flags map[string]string
 }
 

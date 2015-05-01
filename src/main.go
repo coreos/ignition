@@ -21,13 +21,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/coreos/ignition/exec"
-	"github.com/coreos/ignition/exec/stages"
-	_ "github.com/coreos/ignition/exec/stages/prepivot"
-	"github.com/coreos/ignition/log"
-	"github.com/coreos/ignition/oem"
-	"github.com/coreos/ignition/providers"
-	_ "github.com/coreos/ignition/providers/cmdline"
+	"github.com/coreos/ignition/src/exec"
+	"github.com/coreos/ignition/src/exec/stages"
+	_ "github.com/coreos/ignition/src/exec/stages/prepivot"
+	"github.com/coreos/ignition/src/log"
+	"github.com/coreos/ignition/src/oem"
+	"github.com/coreos/ignition/src/providers"
+	_ "github.com/coreos/ignition/src/providers/cmdline"
 
 	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/coreos/go-semver/semver"
 )

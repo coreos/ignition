@@ -18,8 +18,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/coreos/ignition/log"
-	"github.com/coreos/ignition/registry"
+	"github.com/coreos/ignition/src/log"
+	"github.com/coreos/ignition/src/registry"
 )
 
 type mockProviderCreator struct {
