@@ -22,6 +22,10 @@ func SystemdUnitsPath() string {
 	return filepath.Join("etc", "systemd", "system")
 }
 
+func NetworkdUnitsPath() string {
+	return filepath.Join("etc", "systemd", "network")
+}
+
 func SystemdDropinsPath(unitName string) string {
 	return filepath.Join("etc", "systemd", "system", unitName+".d")
 }

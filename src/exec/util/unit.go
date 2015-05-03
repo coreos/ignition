@@ -27,9 +27,19 @@ const (
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func FileFromUnit(unit config.Unit) *config.File {
+func FileFromSystemdUnit(unit config.Unit) *config.File {
 	return &config.File{
 		Path:     filepath.Join(SystemdUnitsPath(), string(unit.Name)),
+		Contents: unit.Contents,
+		Mode:     DefaultFilePermissions,
+		Uid:      0,
+		Gid:      0,
+	}
+}
+
+func FileFromNetworkdUnit(unit config.Unit) *config.File {
+	return &config.File{
+		Path:     filepath.Join(NetworkdUnitsPath(), string(unit.Name)),
 		Contents: unit.Contents,
 		Mode:     DefaultFilePermissions,
 		Uid:      0,
