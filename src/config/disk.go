@@ -14,7 +14,8 @@
 
 package config
 
-type Storage struct {
-	Disks       []Disk       `json:"disks,omitempty"       yaml:"disks"`
-	Filesystems []Filesystem `json:"filesystems,omitempty" yaml:"filesystems"`
+type Disk struct {
+	Device     DevicePath  `json:"device,omitempty"       yaml:"device"`
+	WipeTable  bool        `json:"wipe-table,omitempty"   yaml:"wipe-table"`
+	Partitions []Partition `json:"partitions,omitempty"   yaml:"partitions"`
 }
