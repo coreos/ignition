@@ -73,7 +73,19 @@ func (e Engine) Run(stageName string) bool {
 		e.Logger.Crit(fmt.Sprintf("failed to acquire config: %v", err))
 		return false
 	}
-	return stages.Get(stageName).Create(e.Logger, e.Root).Run(config)
+
+	nextStage := stageName
+	var status stages.StageStatus
+	for first := true; first || status == stages.StageRunRequest; first = false {
+		status, nextStage = stages.Get(nextStage).Create(e.Logger, e.Root).Run(config)
+	}
+
+	if status == stages.StageScheduled {
+		// TODO(vc): What to do here? block until the scheduled stage runs or just return success?
+		// TODO(vc): If we choose to block on the scheduled stage, should we return its status as ours?
+	}
+
+	return (status != stages.StageFailed)
 }
 
 func (e Engine) acquireConfig() (cfg config.Config, err error) {

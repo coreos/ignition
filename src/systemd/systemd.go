@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package systemd
 
-type Storage struct {
-	Disks       []Disk       `json:"disks,omitempty"       yaml:"disks"`
-	Arrays      []Raid       `json:"raid,omitempty"        yaml:"raid"`
-	Filesystems []Filesystem `json:"filesystems,omitempty" yaml:"filesystems"`
+func ScheduleStageOnDevices(devs []string, stage string) error {
+	// TODO(vc): inject systemd unit for running ignition predicated on devs
+	// Note the devices must be escaped as systemd-escape --path escapes them,
+	// this was recently added to go-systemd by me, so we'll just import that here.
+	return nil
 }

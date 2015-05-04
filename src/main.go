@@ -23,7 +23,13 @@ import (
 
 	"github.com/coreos/ignition/src/exec"
 	"github.com/coreos/ignition/src/exec/stages"
+	_ "github.com/coreos/ignition/src/exec/stages/disk_partitions"
+	_ "github.com/coreos/ignition/src/exec/stages/disks"
+	_ "github.com/coreos/ignition/src/exec/stages/filesystem_formats"
+	_ "github.com/coreos/ignition/src/exec/stages/filesystems"
 	_ "github.com/coreos/ignition/src/exec/stages/prepivot"
+	_ "github.com/coreos/ignition/src/exec/stages/raid_creates"
+	_ "github.com/coreos/ignition/src/exec/stages/raids"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/oem"
 	"github.com/coreos/ignition/src/providers"
