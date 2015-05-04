@@ -38,6 +38,7 @@ var version = *semver.Must(semver.NewVersion(versionString))
 
 func main() {
 	flags := struct {
+		configCache  string
 		fetchTimeout time.Duration
 		oem          oem.Name
 		providers    providers.List
@@ -46,6 +47,7 @@ func main() {
 		version      bool
 	}{}
 
+	flag.StringVar(&flags.configCache, "config-cache", "/tmp/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.fetchTimeout, "fetchtimeout", exec.DefaultFetchTimeout, "")
 	flag.Var(&flags.oem, "oem", fmt.Sprintf("current oem. %v", oem.Names()))
 	flag.Var(&flags.providers, "provider", fmt.Sprintf("provider of config. can be specified multiple times. %v", providers.Names()))
@@ -83,6 +85,7 @@ func main() {
 		Root:         flags.root,
 		FetchTimeout: flags.fetchTimeout,
 		Logger:       logger,
+		ConfigCache:  flags.configCache,
 	}
 	for _, name := range flags.providers {
 		engine.AddProvider(providers.Get(name).Create(logger))

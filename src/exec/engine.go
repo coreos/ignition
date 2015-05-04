@@ -15,8 +15,10 @@
 package exec
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"sort"
 	"sync"
 	"time"
@@ -37,9 +39,10 @@ var (
 )
 
 type Engine struct {
-	Root         string
+	ConfigCache  string
 	FetchTimeout time.Duration
 	Logger       log.Logger
+	Root         string
 	providers    map[string]providers.Provider
 }
 
@@ -65,14 +68,44 @@ func (e Engine) Providers() []providers.Provider {
 }
 
 func (e Engine) Run(stageName string) bool {
-	config, err := fetchConfig(e.Providers(), e.FetchTimeout)
+	config, err := e.acquireConfig()
 	if err != nil {
-		e.Logger.Crit(fmt.Sprintf("failed to fetch config: %v", err))
+		e.Logger.Crit(fmt.Sprintf("failed to acquire config: %v", err))
 		return false
 	}
-	e.Logger.Debug(fmt.Sprintf("fetched config: %+v", config))
-
 	return stages.Get(stageName).Create(e.Logger, e.Root).Run(config)
+}
+
+func (e Engine) acquireConfig() (cfg config.Config, err error) {
+	// First try read the config @ e.ConfigCache.
+	b, err := ioutil.ReadFile(e.ConfigCache)
+	if err == nil {
+		if err = json.Unmarshal(b, &cfg); err != nil {
+			e.Logger.Crit(fmt.Sprintf("failed to parse cached config: %v", err))
+		}
+		return
+	}
+
+	// (Re)Fetch the config if the cache is unreadable.
+	cfg, err = fetchConfig(e.Providers(), e.FetchTimeout)
+	if err != nil {
+		e.Logger.Crit(fmt.Sprintf("failed to fetch config: %v", err))
+		return
+	}
+	e.Logger.Debug(fmt.Sprintf("fetched config: %+v", cfg))
+
+	// Populate the config cache.
+	b, err = json.Marshal(cfg)
+	if err != nil {
+		e.Logger.Crit(fmt.Sprintf("failed to marshal cached config: %v", err))
+		return
+	}
+	if err = ioutil.WriteFile(e.ConfigCache, b, 0640); err != nil {
+		e.Logger.Crit(fmt.Sprintf("failed to write cached config: %v", err))
+		return
+	}
+
+	return
 }
 
 func fetchConfig(providers []providers.Provider, timeout time.Duration) (config.Config, error) {
