@@ -4,6 +4,12 @@ FMT_PACKAGES = \
     src/config \
     src/exec \
     src/exec/stages \
+    src/exec/stages/disks \
+    src/exec/stages/disk_partitions \
+    src/exec/stages/raids \
+    src/exec/stages/raid_creates \
+    src/exec/stages/filesystems \
+    src/exec/stages/filesystem_formats \
     src/exec/stages/prepivot \
     src/exec/util \
     src/providers \

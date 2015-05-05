@@ -53,16 +53,18 @@ func (stage) Name() string {
 	return name
 }
 
-func (s stage) Run(config config.Config) bool {
+func (s stage) Run(config config.Config) (status stages.StageStatus, next string) {
+	status = stages.StageFailed
+	next = ""
 	for _, unit := range config.Systemd.Units {
 		if !s.writeUnit(unit) {
-			return false
+			return
 		}
 		if unit.Enable {
 			s.logger.Info(fmt.Sprintf("enabling unit %q", unit.Name))
 			if err := s.EnableUnit(unit); err != nil {
 				s.logger.Info(fmt.Sprintf("failed to enable unit %q: %v", unit.Name, err))
-				return false
+				return
 			}
 			s.logger.Info(fmt.Sprintf("done enabling unit %q", unit.Name))
 		}
@@ -70,17 +72,17 @@ func (s stage) Run(config config.Config) bool {
 			s.logger.Info(fmt.Sprintf("masking unit %q", unit.Name))
 			if err := s.MaskUnit(unit); err != nil {
 				s.logger.Info(fmt.Sprintf("failed to mask unit %q: %v", unit.Name, err))
-				return false
+				return
 			}
 			s.logger.Info(fmt.Sprintf("done masking unit %q", unit.Name))
 		}
 	}
 	for _, unit := range config.Networkd.Units {
 		if !s.writeUnit(unit) {
-			return false
+			return
 		}
 	}
-	return true
+	return stages.StageSucceeded, ""
 }
 
 func (s stage) writeUnit(unit config.Unit) bool {

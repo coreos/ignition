@@ -20,8 +20,17 @@ import (
 	"github.com/coreos/ignition/src/registry"
 )
 
+type StageStatus int
+
+const (
+	StageSucceeded  StageStatus = iota // stage ran successfully
+	StageFailed                        // stage failed
+	StageRunRequest                    // stage requests another stage to be run (named in return)
+	StageScheduled                     // stage scheduled another stage to be run on its behalf (named in return)
+)
+
 type Stage interface {
-	Run(config config.Config) bool
+	Run(config config.Config) (StageStatus, string)
 	Name() string
 }
 
