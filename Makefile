@@ -1,6 +1,7 @@
 REPO_PATH = github.com/coreos/ignition
 
-FMT_PACKAGES = \
+PACKAGES = \
+    src \
     src/config \
     src/exec \
     src/exec/stages \
@@ -10,13 +11,6 @@ FMT_PACKAGES = \
     src/providers/cmdline \
     src/providers/util \
     src/registry \
-
-FMT_FILES = \
-    src/main.go \
-
-PACKAGES = \
-    ./src \
-    $(FMT_PACKAGES) \
 
 GFLAGS = \
 
@@ -55,9 +49,9 @@ gopath/src/github.com/coreos/ignition:
 .PHONY: verify fmt vet fix test
 verify: fmt vet fix test
 fmt:
-	@echo " FMT   $(FMT_PACKAGES) $(FMT_FILES)"
-	$(Q)gofmt -l -e -s $(FMT_PACKAGES) $(FMT_FILES)
-	$(Q)test -z "$$(gofmt -e -l -s $(FMT_PACKAGES) $(FMT_FILES))"
+	@echo " FMT   $(PACKAGES)"
+	$(Q)gofmt -l -e -s $(PACKAGES)
+	$(Q)test -z "$$(gofmt -e -l -s $(PACKAGES))"
 vet: | gopath/src/github.com/coreos/ignition
 	@echo " VET   $(PACKAGES)"
 	$(Q)GOPATH=$$(pwd)/gopath go vet $(ABS_PACKAGES)

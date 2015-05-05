@@ -55,7 +55,7 @@ func (stage) Name() string {
 
 func (s stage) Run(config config.Config) bool {
 	for _, unit := range config.Systemd.Units {
-		if !s.writeUnit(unit) {
+		if !s.writeSystemdUnit(unit) {
 			return false
 		}
 		if unit.Enable {
@@ -76,14 +76,22 @@ func (s stage) Run(config config.Config) bool {
 		}
 	}
 	for _, unit := range config.Networkd.Units {
-		if !s.writeUnit(unit) {
+		if !s.writeNetworkdUnit(unit) {
 			return false
 		}
 	}
 	return true
 }
 
-func (s stage) writeUnit(unit config.Unit) bool {
+func (s stage) writeSystemdUnit(unit config.Unit) bool {
+	return s.writeUnit(unit, util.FileFromSystemdUnit)
+}
+
+func (s stage) writeNetworkdUnit(unit config.Unit) bool {
+	return s.writeUnit(unit, util.FileFromNetworkdUnit)
+}
+
+func (s stage) writeUnit(unit config.Unit, fileFromUnit func(unit config.Unit) *config.File) bool {
 	s.logger.Info(fmt.Sprintf("writing unit %q", unit.Name))
 	defer s.logger.Info(fmt.Sprintf("done writing unit %q", unit.Name))
 
@@ -104,7 +112,7 @@ func (s stage) writeUnit(unit config.Unit) bool {
 		return true
 	}
 
-	f := util.FileFromUnit(unit)
+	f := fileFromUnit(unit)
 	s.logger.Info(fmt.Sprintf("writing unit %q at %q", unit.Name, f.Path))
 	if err := s.WriteFile(f); err != nil {
 		s.logger.Err(fmt.Sprintf("failed to write unit %q: %v", unit.Name, err))
