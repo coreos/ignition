@@ -36,7 +36,7 @@ func init() {
 
 type creator struct{}
 
-func (creator) Create(logger log.Logger, root string) stages.Stage {
+func (creator) Create(logger *log.Logger, root string) stages.Stage {
 	return &stage{
 		DestDir: util.DestDir(root),
 		logger:  logger,
@@ -48,9 +48,8 @@ func (creator) Name() string {
 }
 
 type stage struct {
-	logger log.Logger
+	logger *log.Logger
 	util.DestDir
-	subStage string
 }
 
 func (stage) Name() string {
@@ -60,42 +59,52 @@ func (stage) Name() string {
 func (s stage) Run(config config.Config) bool {
 
 	if err := s.createPartitions(config); err != nil {
-		s.logger.Crit(fmt.Sprintf("create partitions failed: %v", err))
+		s.logger.Crit("create partitions failed: %v", err)
 		return false
 	}
 
 	if err := s.createRaids(config); err != nil {
-		s.logger.Crit(fmt.Sprintf("failed to create raids: %v", err))
+		s.logger.Crit("failed to create raids: %v", err)
 		return false
 	}
 
 	if err := s.createFilesystems(config); err != nil {
-		s.logger.Crit(fmt.Sprintf("failed to create filesystems: %v", err))
+		s.logger.Crit("failed to create filesystems: %v", err)
 		return false
 	}
 
 	return true
 }
 
+func (s stage) waitOnDevices(devs []string, ctxt string) error {
+	err := s.logger.LogOp(func() error { return systemd.WaitOnDevices(devs, ctxt) }, "waiting for devices %v", devs)
+	if err != nil {
+		return fmt.Errorf("failed to wait on %s devs: %v", ctxt, err)
+	}
+	return nil
+}
+
 func (s stage) createPartitions(config config.Config) error {
-	if !s.enterSubStage(len(config.Storage.Disks) != 0, "createPartitions") {
+	if len(config.Storage.Disks) == 0 {
 		return nil
 	}
+	s.logger.PushPrefix("createPartitions")
+	defer s.logger.PopPrefix()
 
 	devs := []string{}
 	for _, disk := range config.Storage.Disks {
 		devs = append(devs, string(disk.Device))
 	}
 
-	if err := s.logOp(func() error { return systemd.WaitOnDevices(devs, "disks") }, "waiting for devices %v", devs); err != nil {
-		return fmt.Errorf("failed to wait on disk devs: %v", err)
+	if err := s.waitOnDevices(devs, "disks"); err != nil {
+		return err
 	}
 
 	for _, dev := range config.Storage.Disks {
-		err := s.logOp(func() error {
+		err := s.logger.LogOp(func() error {
 			op := sgdisk.Begin(string(dev.Device))
 			if dev.WipeTable {
-				s.logger.Info(fmt.Sprintf("wiping partition table on %q", dev.Device))
+				s.logger.Info("wiping partition table on %q", dev.Device)
 				op.WipeTable(true)
 			}
 
@@ -125,9 +134,11 @@ func (s stage) createPartitions(config config.Config) error {
 }
 
 func (s stage) createRaids(config config.Config) error {
-	if !s.enterSubStage(len(config.Storage.Arrays) != 0, "createRaids") {
+	if len(config.Storage.Arrays) == 0 {
 		return nil
 	}
+	s.logger.PushPrefix("createRaids")
+	defer s.logger.PopPrefix()
 
 	devs := []string{}
 	for _, array := range config.Storage.Arrays {
@@ -140,8 +151,8 @@ func (s stage) createRaids(config config.Config) error {
 		}
 	}
 
-	if err := s.logOp(func() error { return systemd.WaitOnDevices(devs, "raids") }, "waiting for devices %v", devs); err != nil {
-		return fmt.Errorf("failed to wait on raids: %v", err)
+	if err := s.waitOnDevices(devs, "raids"); err != nil {
+		return err
 	}
 
 	for _, md := range config.Storage.Arrays {
@@ -160,7 +171,8 @@ func (s stage) createRaids(config config.Config) error {
 		}
 
 		cmd := exec.Command("/sbin/mdadm", args...)
-		if err := s.logOp(cmd.Run, "creating %q", md); err != nil {
+		err := s.logger.LogOp(cmd.Run, "creating %q", md)
+		if err != nil {
 			return fmt.Errorf("mdadm failed: %v", err)
 		}
 	}
@@ -169,17 +181,19 @@ func (s stage) createRaids(config config.Config) error {
 }
 
 func (s stage) createFilesystems(config config.Config) error {
-	if !s.enterSubStage(len(config.Storage.Filesystems) != 0, "createFilesystems") {
+	if len(config.Storage.Filesystems) == 0 {
 		return nil
 	}
+	s.logger.PushPrefix("createFilesystems")
+	defer s.logger.PopPrefix()
 
 	devs := []string{}
 	for _, fs := range config.Storage.Filesystems {
 		devs = append(devs, string(fs.Device))
 	}
 
-	if err := s.logOp(func() error { return systemd.WaitOnDevices(devs, "filesystem") }, "waiting for devices %v", devs); err != nil {
-		return fmt.Errorf("failed to wait on filesystem devices: %v", err)
+	if err := s.waitOnDevices(devs, "filesystems"); err != nil {
+		return err
 	}
 
 	for _, fs := range config.Storage.Filesystems {
@@ -199,7 +213,8 @@ func (s stage) createFilesystems(config config.Config) error {
 		args = append(args, string(fs.Device))
 		cmd := exec.Command(mkfs, args...)
 
-		if err := s.logOp(cmd.Run, "creating %q filesystem on %q", fs.Format, string(fs.Device)); err != nil {
+		err := s.logger.LogOp(cmd.Run, "creating %q filesystem on %q", fs.Format, string(fs.Device))
+		if err != nil {
 			return fmt.Errorf("failed to run %q: %v %v", mkfs, err, args)
 		}
 
@@ -207,36 +222,4 @@ func (s stage) createFilesystems(config config.Config) error {
 	}
 
 	return nil
-}
-
-func (s *stage) enterSubStage(ok bool, subStage string) bool {
-	if !ok {
-		return false
-	}
-	s.subStage = subStage
-	return true
-}
-
-// TODO(vc): move these somewhere all of ignition can use, and instead of passing a bare logger interface around make these available.
-// logOp executes and logs the start/finish/failure of an arbitrary function
-func (s stage) logOp(op func() error, format string, a ...interface{}) error {
-	s.logStart(format, a...)
-	if err := op(); err != nil {
-		s.logFail(format, a...)
-		return err
-	}
-	s.logFinish(format, a...)
-	return nil
-}
-
-func (s stage) logStart(format string, a ...interface{}) {
-	s.logger.Info(fmt.Sprintf("%s: [start]  ", s.subStage) + fmt.Sprintf(format, a...))
-}
-
-func (s stage) logFail(format string, a ...interface{}) {
-	s.logger.Crit(fmt.Sprintf("%s: [fail]   ", s.subStage) + fmt.Sprintf(format, a...))
-}
-
-func (s stage) logFinish(format string, a ...interface{}) {
-	s.logger.Info(fmt.Sprintf("%s: [finish] ", s.subStage) + fmt.Sprintf(format, a...))
 }

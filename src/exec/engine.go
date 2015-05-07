@@ -17,7 +17,6 @@ package exec
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"sort"
 	"sync"
@@ -70,10 +69,13 @@ func (e Engine) Providers() []providers.Provider {
 func (e Engine) Run(stageName string) bool {
 	config, err := e.acquireConfig()
 	if err != nil {
-		e.Logger.Crit(fmt.Sprintf("failed to acquire config: %v", err))
+		e.Logger.Crit("failed to acquire config: %v", err)
 		return false
 	}
-	return stages.Get(stageName).Create(e.Logger, e.Root).Run(config)
+
+	e.Logger.PushPrefix(stageName)
+	defer e.Logger.PopPrefix()
+	return stages.Get(stageName).Create(&e.Logger, e.Root).Run(config)
 }
 
 func (e Engine) acquireConfig() (cfg config.Config, err error) {
@@ -81,7 +83,7 @@ func (e Engine) acquireConfig() (cfg config.Config, err error) {
 	b, err := ioutil.ReadFile(e.ConfigCache)
 	if err == nil {
 		if err = json.Unmarshal(b, &cfg); err != nil {
-			e.Logger.Crit(fmt.Sprintf("failed to parse cached config: %v", err))
+			e.Logger.Crit("failed to parse cached config: %v", err)
 		}
 		return
 	}
@@ -89,19 +91,19 @@ func (e Engine) acquireConfig() (cfg config.Config, err error) {
 	// (Re)Fetch the config if the cache is unreadable.
 	cfg, err = fetchConfig(e.Providers(), e.FetchTimeout)
 	if err != nil {
-		e.Logger.Crit(fmt.Sprintf("failed to fetch config: %v", err))
+		e.Logger.Crit("failed to fetch config: %v", err)
 		return
 	}
-	e.Logger.Debug(fmt.Sprintf("fetched config: %+v", cfg))
+	e.Logger.Debug("fetched config: %+v", cfg)
 
 	// Populate the config cache.
 	b, err = json.Marshal(cfg)
 	if err != nil {
-		e.Logger.Crit(fmt.Sprintf("failed to marshal cached config: %v", err))
+		e.Logger.Crit("failed to marshal cached config: %v", err)
 		return
 	}
 	if err = ioutil.WriteFile(e.ConfigCache, b, 0640); err != nil {
-		e.Logger.Crit(fmt.Sprintf("failed to write cached config: %v", err))
+		e.Logger.Crit("failed to write cached config: %v", err)
 		return
 	}
 

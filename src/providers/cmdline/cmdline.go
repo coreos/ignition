@@ -15,7 +15,6 @@
 package cmdline
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -83,7 +82,7 @@ func (p *provider) IsOnline() bool {
 		}
 
 		p.configUrl = parseCmdline(args)
-		p.logger.Debug(fmt.Sprintf("parsed url from cmdline: %q", p.configUrl))
+		p.logger.Debug("parsed url from cmdline: %q", p.configUrl)
 		if p.configUrl == "" {
 			p.shouldRetry = false
 			return false
@@ -96,18 +95,18 @@ func (p *provider) IsOnline() bool {
 		switch resp.StatusCode {
 		case http.StatusOK, http.StatusNoContent:
 		default:
-			p.logger.Debug(fmt.Sprintf("failed fetching: HTTP status: %s", resp.Status))
+			p.logger.Debug("failed fetching: HTTP status: %s", resp.Status)
 			return false
 		}
 
 		p.logger.Debug("successfully fetched")
 		if p.rawConfig, err = ioutil.ReadAll(resp.Body); err != nil {
-			p.logger.Err(fmt.Sprintf("failed to read body: %v", err))
+			p.logger.Err("failed to read body: %v", err)
 			return false
 		}
 		return true
 	} else {
-		p.logger.Warning(fmt.Sprintf("failed fetching: %v", err))
+		p.logger.Warning("failed fetching: %v", err)
 	}
 
 	return false

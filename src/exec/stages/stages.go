@@ -26,7 +26,7 @@ type Stage interface {
 }
 
 type StageCreator interface {
-	Create(logger log.Logger, root string) Stage
+	Create(logger *log.Logger, root string) Stage
 	Name() string
 }
 

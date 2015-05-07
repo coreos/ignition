@@ -15,8 +15,6 @@
 package prepivot
 
 import (
-	"fmt"
-
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/exec/stages"
 	"github.com/coreos/ignition/src/exec/util"
@@ -33,7 +31,7 @@ func init() {
 
 type creator struct{}
 
-func (creator) Create(logger log.Logger, root string) stages.Stage {
+func (creator) Create(logger *log.Logger, root string) stages.Stage {
 	return &stage{
 		DestDir: util.DestDir(root),
 		logger:  logger,
@@ -45,7 +43,7 @@ func (creator) Name() string {
 }
 
 type stage struct {
-	logger log.Logger
+	logger *log.Logger
 	util.DestDir
 }
 
@@ -59,20 +57,16 @@ func (s stage) Run(config config.Config) bool {
 			return false
 		}
 		if unit.Enable {
-			s.logger.Info(fmt.Sprintf("enabling unit %q", unit.Name))
-			if err := s.EnableUnit(unit); err != nil {
-				s.logger.Info(fmt.Sprintf("failed to enable unit %q: %v", unit.Name, err))
+			err := s.logger.LogOp(func() error { return s.EnableUnit(unit) }, "enabling unit %q", unit.Name)
+			if err != nil {
 				return false
 			}
-			s.logger.Info(fmt.Sprintf("done enabling unit %q", unit.Name))
 		}
 		if unit.Mask {
-			s.logger.Info(fmt.Sprintf("masking unit %q", unit.Name))
-			if err := s.MaskUnit(unit); err != nil {
-				s.logger.Info(fmt.Sprintf("failed to mask unit %q: %v", unit.Name, err))
+			err := s.logger.LogOp(func() error { return s.MaskUnit(unit) }, "masking unit %q", unit.Name)
+			if err != nil {
 				return false
 			}
-			s.logger.Info(fmt.Sprintf("done masking unit %q", unit.Name))
 		}
 	}
 	for _, unit := range config.Networkd.Units {
@@ -92,32 +86,31 @@ func (s stage) writeNetworkdUnit(unit config.Unit) bool {
 }
 
 func (s stage) writeUnit(unit config.Unit, fileFromUnit func(unit config.Unit) *config.File) bool {
-	s.logger.Info(fmt.Sprintf("writing unit %q", unit.Name))
-	defer s.logger.Info(fmt.Sprintf("done writing unit %q", unit.Name))
+	err := s.logger.LogOp(func() error {
+		for _, dropin := range unit.DropIns {
+			if dropin.Contents == "" {
+				continue
+			}
 
-	for _, dropin := range unit.DropIns {
-		if dropin.Contents == "" {
-			continue
+			f := util.FileFromUnitDropin(unit, dropin)
+			err := s.logger.LogOp(func() error { return s.WriteFile(f) }, "writing dropin %q at %q", dropin.Name, f.Path)
+			if err != nil {
+				return err
+			}
 		}
 
-		f := util.FileFromUnitDropin(unit, dropin)
-		s.logger.Info(fmt.Sprintf("writing dropin %q at %q", dropin.Name, f.Path))
-		if err := s.WriteFile(f); err != nil {
-			s.logger.Err(fmt.Sprintf("failed to write dropin %q: %v", dropin.Name, err))
-			return false
+		if unit.Contents == "" {
+			return nil
 		}
-	}
 
-	if unit.Contents == "" {
-		return true
-	}
+		f := fileFromUnit(unit)
+		err := s.logger.LogOp(func() error { return s.WriteFile(f) }, "writing unit %q at %q", unit.Name, f.Path)
+		if err != nil {
+			return err
+		}
 
-	f := fileFromUnit(unit)
-	s.logger.Info(fmt.Sprintf("writing unit %q at %q", unit.Name, f.Path))
-	if err := s.WriteFile(f); err != nil {
-		s.logger.Err(fmt.Sprintf("failed to write unit %q: %v", unit.Name, err))
-		return false
-	}
+		return nil
+	}, "writing unit %q", unit.Name)
 
-	return true
+	return err == nil
 }
