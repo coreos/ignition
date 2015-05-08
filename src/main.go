@@ -28,6 +28,7 @@ import (
 	"github.com/coreos/ignition/src/oem"
 	"github.com/coreos/ignition/src/providers"
 	_ "github.com/coreos/ignition/src/providers/cmdline"
+	_ "github.com/coreos/ignition/src/providers/file"
 
 	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/coreos/go-semver/semver"
 )
