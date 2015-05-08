@@ -15,7 +15,6 @@
 package file
 
 import (
-	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -68,7 +67,7 @@ func (p *provider) IsOnline() bool {
 	var err error
 	p.rawConfig, err = ioutil.ReadFile(fileName)
 	if err != nil {
-		p.logger.Err(fmt.Sprintf("couldn't read config %q: %v", fileName, err))
+		p.logger.Err("couldn't read config %q: %v", fileName, err)
 		return false
 	}
 

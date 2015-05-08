@@ -28,3 +28,4 @@ func (Stdout) Warning(msg string) error { fmt.Println("WARNING  :", msg); return
 func (Stdout) Notice(msg string) error  { fmt.Println("NOTICE   :", msg); return nil }
 func (Stdout) Info(msg string) error    { fmt.Println("INFO     :", msg); return nil }
 func (Stdout) Debug(msg string) error   { fmt.Println("DEBUG    :", msg); return nil }
+func (Stdout) Close() error             { return nil }

@@ -17,7 +17,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log/syslog"
 	"os"
 	"time"
 
@@ -77,18 +76,12 @@ func main() {
 		os.Exit(2)
 	}
 
-	var logger log.Logger
-	if slogger, err := syslog.New(syslog.LOG_DEBUG, "ignition"); err == nil {
-		defer slogger.Close()
-		logger = slogger
-	} else {
-		logger = log.Stdout{}
-		logger.Err(fmt.Sprintf("unable to open syslog: %v", err))
-	}
+	logger := log.New()
+	defer logger.Close()
 
 	if flags.clearCache {
 		if err := os.Remove(flags.configCache); err != nil {
-			logger.Err(fmt.Sprintf("unable to clear cache: %v", err))
+			logger.Err("unable to clear cache: %v", err)
 		}
 	}
 
