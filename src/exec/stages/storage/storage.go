@@ -16,7 +16,10 @@ package disks
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
+	"syscall"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/exec/stages"
@@ -218,7 +221,42 @@ func (s stage) createFilesystems(config config.Config) error {
 			return fmt.Errorf("failed to run %q: %v %v", mkfs, err, args)
 		}
 
-		// TODO(vc): apply fs.Files, which requires mounting somewhere...
+		if err := s.createFiles(fs); err != nil {
+			return fmt.Errorf("failed to create files %q: %v", fs.Device, err)
+		}
+	}
+
+	return nil
+}
+
+func (s stage) createFiles(fs config.Filesystem) error {
+	if len(fs.Files) == 0 {
+		return nil
+	}
+	s.logger.PushPrefix("createFiles")
+	defer s.logger.PopPrefix()
+
+	mnt, err := ioutil.TempDir("", "ignition-files")
+	if err != nil {
+		return fmt.Errorf("failed to create temp directory: %v", err)
+	}
+	defer os.Remove(mnt)
+
+	dev := string(fs.Device)
+	format := string(fs.Format)
+
+	err = s.logger.LogOp(func() error { return syscall.Mount(dev, mnt, format, 0, "") }, "mounting %q at %q", dev, mnt)
+	if err != nil {
+		return fmt.Errorf("failed to mount device %q at %q: %v", dev, mnt, err)
+	}
+	defer s.logger.LogOp(func() error { return syscall.Unmount(mnt, 0) }, "unmounting %q at %q", dev, mnt)
+
+	dest := util.DestDir(mnt)
+	for _, f := range fs.Files {
+		err := s.logger.LogOp(func() error { return dest.WriteFile(&f) }, "writing file %q", string(f.Path))
+		if err != nil {
+			return fmt.Errorf("failed to create file %q: %v", f.Path, err)
+		}
 	}
 
 	return nil
