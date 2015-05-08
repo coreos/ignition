@@ -38,6 +38,7 @@ var version = *semver.Must(semver.NewVersion(versionString))
 
 func main() {
 	flags := struct {
+		clearCache   bool
 		configCache  string
 		fetchTimeout time.Duration
 		oem          oem.Name
@@ -47,6 +48,7 @@ func main() {
 		version      bool
 	}{}
 
+	flag.BoolVar(&flags.clearCache, "clear-cache", false, "clear any cached config")
 	flag.StringVar(&flags.configCache, "config-cache", "/tmp/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.fetchTimeout, "fetchtimeout", exec.DefaultFetchTimeout, "")
 	flag.Var(&flags.oem, "oem", fmt.Sprintf("current oem. %v", oem.Names()))
@@ -81,6 +83,13 @@ func main() {
 		logger = log.Stdout{}
 		logger.Err(fmt.Sprintf("unable to open syslog: %v", err))
 	}
+
+	if flags.clearCache {
+		if err := os.Remove(flags.configCache); err != nil {
+			logger.Err(fmt.Sprintf("unable to clear cache: %v", err))
+		}
+	}
+
 	engine := exec.Engine{
 		Root:         flags.root,
 		FetchTimeout: flags.fetchTimeout,
