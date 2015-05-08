@@ -17,7 +17,6 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"path/filepath"
 )
 
 var (
@@ -30,36 +29,6 @@ type Filesystem struct {
 	Format  FilesystemFormat `json:"format,omitempty"  yaml:"format"`
 	Options MkfsOptions      `json:"options,omitempty" yaml:"options"`
 	Files   []File           `json:"files,omitempty"   yaml:"files"`
-}
-
-type DevicePath string
-
-func (d *DevicePath) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return d.unmarshal(unmarshal)
-}
-
-func (d *DevicePath) UnmarshalJSON(data []byte) error {
-	return d.unmarshal(func(td interface{}) error {
-		return json.Unmarshal(data, td)
-	})
-}
-
-type devicePath DevicePath
-
-func (d *DevicePath) unmarshal(unmarshal func(interface{}) error) error {
-	td := devicePath(*d)
-	if err := unmarshal(&td); err != nil {
-		return err
-	}
-	*d = DevicePath(td)
-	return d.assertValid()
-}
-
-func (d DevicePath) assertValid() error {
-	if !filepath.IsAbs(string(d)) {
-		return ErrFilesystemRelativePath
-	}
-	return nil
 }
 
 type FilesystemFormat string

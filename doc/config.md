@@ -19,12 +19,12 @@ storage:
     - device: "/dev/sdb"
       wipe-table: true
       partitions:
-        - name: "raid.1.2"
+        - label: "raid.1.2"
           size: 10GB
     - device: "/dev/sdc"
       wipe-table: true
       partitions:
-        - name: "raid.1.3"
+        - label: "raid.1.3"
           size: 10GB
 
   raid:

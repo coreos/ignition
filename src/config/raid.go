@@ -14,8 +14,9 @@
 
 package config
 
-type Storage struct {
-	Disks       []Disk       `json:"disks,omitempty"       yaml:"disks"`
-	Arrays      []Raid       `json:"raid,omitempty"        yaml:"raid"`
-	Filesystems []Filesystem `json:"filesystems,omitempty" yaml:"filesystems"`
+type Raid struct {
+	Name    string       `json:"name"              yaml:"name"`
+	Level   string       `json:"level"             yaml:"level"`
+	Devices []DevicePath `json:"devices,omitempty" yaml:"devices"`
+	Spares  []DevicePath `json:"spares,omitempty"  yaml:"spares"`
 }
