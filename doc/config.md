@@ -39,6 +39,7 @@ storage:
   filesystems:
     - device: "/dev/disk/by-partlabel/ROOT" # switch coreos' ext4 root to btrfs
       format: btrfs
+      initialize: true
       format-options:
         - "--force"
         - "--label=ROOT"
