@@ -200,25 +200,27 @@ func (s stage) createFilesystems(config config.Config) error {
 	}
 
 	for _, fs := range config.Storage.Filesystems {
-		mkfs := ""
-		args := []string(fs.Options)
-		switch fs.Format {
-		case "btrfs":
-			mkfs = "/sbin/mkfs.btrfs"
-			args = append(args, "--force")
-		case "ext4":
-			mkfs = "/sbin/mkfs.ext4"
-			args = append(args, "-F")
-		default:
-			return fmt.Errorf("unsupported filesystem format: %q", fs.Format)
-		}
+		if fs.Initialize {
+			mkfs := ""
+			args := []string(fs.Options)
+			switch fs.Format {
+			case "btrfs":
+				mkfs = "/sbin/mkfs.btrfs"
+				args = append(args, "--force")
+			case "ext4":
+				mkfs = "/sbin/mkfs.ext4"
+				args = append(args, "-F")
+			default:
+				return fmt.Errorf("unsupported filesystem format: %q", fs.Format)
+			}
 
-		args = append(args, string(fs.Device))
-		cmd := exec.Command(mkfs, args...)
+			args = append(args, string(fs.Device))
+			cmd := exec.Command(mkfs, args...)
 
-		err := s.logger.LogOp(cmd.Run, "creating %q filesystem on %q", fs.Format, string(fs.Device))
-		if err != nil {
-			return fmt.Errorf("failed to run %q: %v %v", mkfs, err, args)
+			err := s.logger.LogOp(cmd.Run, "creating %q filesystem on %q", fs.Format, string(fs.Device))
+			if err != nil {
+				return fmt.Errorf("failed to run %q: %v %v", mkfs, err, args)
+			}
 		}
 
 		if err := s.createFiles(fs); err != nil {
