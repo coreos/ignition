@@ -18,5 +18,5 @@ type Raid struct {
 	Name    string       `json:"name"              yaml:"name"`
 	Level   string       `json:"level"             yaml:"level"`
 	Devices []DevicePath `json:"devices,omitempty" yaml:"devices"`
-	Spares  []DevicePath `json:"spares,omitempty"  yaml:"spares"`
+	Spares  int          `json:"spares,omitempty"  yaml:"spares"`
 }
