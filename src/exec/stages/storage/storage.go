@@ -105,9 +105,9 @@ func (s stage) createPartitions(config config.Config) error {
 
 	for _, dev := range config.Storage.Disks {
 		err := s.logger.LogOp(func() error {
-			op := sgdisk.Begin(string(dev.Device))
+			op := sgdisk.Begin(s.logger, string(dev.Device))
 			if dev.WipeTable {
-				s.logger.Info("wiping partition table on %q", dev.Device)
+				s.logger.Info("wiping partition table requested on %q", dev.Device)
 				op.WipeTable(true)
 			}
 
