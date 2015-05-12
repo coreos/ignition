@@ -17,14 +17,14 @@ package config
 import (
 	"encoding/json"
 
-	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/GoogleCloudPlatform/kubernetes/pkg/api/resource"
+	//	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/GoogleCloudPlatform/kubernetes/pkg/api/resource"
 )
 
 type Partition struct {
-	Label  PartitionLabel    `json:"label,omitempty" yaml:"label"`
-	Number int               `json:"number"          yaml:"number"`
-	Size   resource.Quantity `json:"size"            yaml:"size"`
-	Start  resource.Quantity `json:"start"           yaml:"start"`
+	Label  PartitionLabel     `json:"label,omitempty" yaml:"label"`
+	Number int                `json:"number"          yaml:"number"`
+	Size   PartitionDimension `json:"size"            yaml:"size"`
+	Start  PartitionDimension `json:"start"           yaml:"start"`
 }
 
 type PartitionLabel string
@@ -51,5 +51,36 @@ func (n *PartitionLabel) unmarshal(unmarshal func(interface{}) error) error {
 }
 
 func (n PartitionLabel) assertValid() error {
+	return nil
+}
+
+type PartitionDimension uint64
+
+func (n *PartitionDimension) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// in YAML we may be flexible allowing human-readable dimensions like GiB/TiB etc.
+	// TODO(vc)
+	return n.unmarshal(unmarshal)
+}
+
+func (n *PartitionDimension) UnmarshalJSON(data []byte) error {
+	// in JSON we only want sectors.
+	// TODO(vc)
+	return n.unmarshal(func(tn interface{}) error {
+		return json.Unmarshal(data, tn)
+	})
+}
+
+type partitionDimension PartitionDimension
+
+func (n *PartitionDimension) unmarshal(unmarshal func(interface{}) error) error {
+	tn := partitionDimension(*n)
+	if err := unmarshal(&tn); err != nil {
+		return err
+	}
+	*n = PartitionDimension(tn)
+	return n.assertValid()
+}
+
+func (n PartitionDimension) assertValid() error {
 	return nil
 }
