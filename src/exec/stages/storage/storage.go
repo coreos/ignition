@@ -148,10 +148,6 @@ func (s stage) createRaids(config config.Config) error {
 		for _, dev := range array.Devices {
 			devs = append(devs, string(dev))
 		}
-
-		for _, dev := range array.Spares {
-			devs = append(devs, string(dev))
-		}
 	}
 
 	if err := s.waitOnDevices(devs, "raids"); err != nil {
@@ -166,15 +162,19 @@ func (s stage) createRaids(config config.Config) error {
 			"--force",
 			"--run",
 			"--level", md.Level,
-			"--raid-devices", fmt.Sprintf("%d", len(md.Devices)),
-			// FIXME(vc): md.Spares, this doesn't map well with mdadm's cli, change config.
+			"--raid-devices", fmt.Sprintf("%d", len(md.Devices)-md.Spares),
 		}
+
+		if md.Spares > 0 {
+			args = append(args, "--spare-devices", fmt.Sprintf("%d", md.Spares))
+		}
+
 		for _, dev := range md.Devices {
 			args = append(args, string(dev))
 		}
 
 		cmd := exec.Command("/sbin/mdadm", args...)
-		err := s.logger.LogOp(cmd.Run, "creating %q", md)
+		err := s.logger.LogOp(cmd.Run, "creating %q", md.Name)
 		if err != nil {
 			return fmt.Errorf("mdadm failed: %v", err)
 		}

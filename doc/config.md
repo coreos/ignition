@@ -33,8 +33,8 @@ storage:
       devices:
         - "/dev/disk/by-partlabel/raid.1.1"
         - "/dev/disk/by-partlabel/raid.1.2"
-      spares:
         - "/dev/disk/by-partlabel/raid.1.3"
+      spares: 1
 
   filesystems:
     - device: "/dev/disk/by-partlabel/ROOT" # switch coreos' ext4 root to btrfs
