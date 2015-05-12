@@ -17,14 +17,17 @@ package sgdisk
 import (
 	"fmt"
 	"os/exec"
+
+	"github.com/coreos/ignition/src/log"
 )
 
 const sgdiskPath = "/sbin/sgdisk"
 
 type Operation struct {
-	dev   string
-	wipe  bool
-	parts []Partition
+	logger *log.Logger
+	dev    string
+	wipe   bool
+	parts  []Partition
 }
 
 type Partition struct {
@@ -34,8 +37,8 @@ type Partition struct {
 	Label  string
 }
 
-func Begin(dev string) *Operation {
-	return &Operation{dev: dev}
+func Begin(logger *log.Logger, dev string) *Operation {
+	return &Operation{logger: logger, dev: dev}
 }
 
 // CreatePartition adds the supplied partition to the list of partitions to be created.
@@ -56,7 +59,7 @@ func (op *Operation) WipeTable(wipe bool) {
 func (op *Operation) Commit() error {
 	if op.wipe {
 		cmd := exec.Command(sgdiskPath, "--zap-all", op.dev)
-		if err := cmd.Run(); err != nil {
+		if err := op.logger.LogCmd(cmd, "wiping table on %q", op.dev); err != nil {
 			return fmt.Errorf("wipe failed: %v")
 		}
 	}
@@ -69,7 +72,7 @@ func (op *Operation) Commit() error {
 		}
 		opts = append(opts, op.dev)
 		cmd := exec.Command(sgdiskPath, opts...)
-		if err := cmd.Run(); err != nil {
+		if err := op.logger.LogCmd(cmd, "creating %d partitions on %q", len(op.parts), op.dev); err != nil {
 			return fmt.Errorf("create partitions failed: %v", err)
 		}
 	}
