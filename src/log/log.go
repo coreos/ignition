@@ -17,6 +17,7 @@ package log
 import (
 	"fmt"
 	"log/syslog"
+	"os/exec"
 	"strings"
 )
 
@@ -96,6 +97,18 @@ func (l *Logger) PopPrefix() {
 		return
 	}
 	l.prefixStack = l.prefixStack[:len(l.prefixStack)-1]
+}
+
+func (l *Logger) LogCmd(cmd *exec.Cmd, format string, a ...interface{}) error {
+	f := func() error {
+		if len(cmd.Args) <= 1 {
+			l.Debug("executing: %v", cmd.Path)
+		} else {
+			l.Debug("executing: %v %v", cmd.Path, cmd.Args[1:])
+		}
+		return cmd.Run()
+	}
+	return l.LogOp(f, format, a...)
 }
 
 func (l *Logger) LogOp(op func() error, format string, a ...interface{}) error {

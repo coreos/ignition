@@ -174,7 +174,7 @@ func (s stage) createRaids(config config.Config) error {
 		}
 
 		cmd := exec.Command("/sbin/mdadm", args...)
-		err := s.logger.LogOp(cmd.Run, "creating %q", md.Name)
+		err := s.logger.LogCmd(cmd, "creating %q", md.Name)
 		if err != nil {
 			return fmt.Errorf("mdadm failed: %v", err)
 		}
@@ -217,7 +217,7 @@ func (s stage) createFilesystems(config config.Config) error {
 			args = append(args, string(fs.Device))
 			cmd := exec.Command(mkfs, args...)
 
-			err := s.logger.LogOp(cmd.Run, "creating %q filesystem on %q", fs.Format, string(fs.Device))
+			err := s.logger.LogCmd(cmd, "creating %q filesystem on %q", fs.Format, string(fs.Device))
 			if err != nil {
 				return fmt.Errorf("failed to run %q: %v %v", mkfs, err, args)
 			}
