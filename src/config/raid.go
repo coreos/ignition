@@ -14,9 +14,52 @@
 
 package config
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 type Raid struct {
 	Name    string       `json:"name"              yaml:"name"`
 	Level   string       `json:"level"             yaml:"level"`
 	Devices []DevicePath `json:"devices,omitempty" yaml:"devices"`
 	Spares  int          `json:"spares,omitempty"  yaml:"spares"`
+}
+
+func (n *Raid) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	return n.unmarshal(unmarshal)
+}
+
+func (n *Raid) UnmarshalJSON(data []byte) error {
+	return n.unmarshal(func(tn interface{}) error {
+		return json.Unmarshal(data, tn)
+	})
+}
+
+type raid Raid
+
+func (n *Raid) unmarshal(unmarshal func(interface{}) error) error {
+	tn := raid(*n)
+	if err := unmarshal(&tn); err != nil {
+		return err
+	}
+	*n = Raid(tn)
+	return n.assertValid()
+}
+
+func (n Raid) assertValid() error {
+	switch n.Level {
+	case "linear", "raid0", "0", "stripe":
+		if n.Spares != 0 {
+			return fmt.Errorf("spares unsupported for %q arrays", n.Level)
+		}
+	case "raid1", "1", "mirror":
+	case "raid4", "4":
+	case "raid5", "5":
+	case "raid6", "6":
+	case "raid10", "10":
+	default:
+		return fmt.Errorf("unrecognized raid level: %q", n.Level)
+	}
+	return nil
 }
