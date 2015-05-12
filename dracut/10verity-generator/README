@@ -1,0 +1,8 @@
+When given the correct command line parameters, these generators produce
+systemd services to manage a cryptographically verified, read-only mounting of
+the usr partition.
+
+The expected cmdline parameters are:
+`mount.usr=` which should point /dev/mapper/usr
+`verity.usr=` which indicates the underlying physical device
+`verity.usrhash=` which supplies the dm-verity root hash
