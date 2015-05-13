@@ -15,6 +15,7 @@
 package log
 
 import (
+	"bytes"
 	"fmt"
 	"log/syslog"
 	"os/exec"
@@ -106,7 +107,12 @@ func (l *Logger) LogCmd(cmd *exec.Cmd, format string, a ...interface{}) error {
 		} else {
 			l.Debug("executing: %v %v", cmd.Path, cmd.Args[1:])
 		}
-		return cmd.Run()
+		stderr := &bytes.Buffer{}
+		cmd.Stderr = stderr
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("%v: Stderr: %q", err, stderr.Bytes())
+		}
+		return nil
 	}
 	return l.LogOp(f, format, a...)
 }
