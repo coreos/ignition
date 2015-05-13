@@ -16,6 +16,9 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+
+	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/alecthomas/units"
 )
 
 type Partition struct {
@@ -55,30 +58,36 @@ func (n PartitionLabel) assertValid() error {
 type PartitionDimension uint64
 
 func (n *PartitionDimension) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// in YAML we may be flexible allowing human-readable dimensions like GiB/TiB etc.
-	// TODO(vc)
-	return n.unmarshal(unmarshal)
+	// In YAML we allow human-readable dimensions like GiB/TiB etc.
+	var str string
+	if err := unmarshal(&str); err != nil {
+		return err
+	}
+
+	b2b, err := units.ParseBase2Bytes(str) // TODO(vc): replace the units package
+	if err != nil {
+		return err
+	}
+	if b2b < 0 {
+		return fmt.Errorf("negative value inappropriate: %q", str)
+	}
+
+	// Translate bytes into sectors
+	sectors := (b2b / 512)
+	if b2b%512 != 0 {
+		sectors++
+	}
+	*n = PartitionDimension(uint64(sectors))
+	return nil
 }
 
 func (n *PartitionDimension) UnmarshalJSON(data []byte) error {
-	// in JSON we only want sectors.
-	// TODO(vc)
-	return n.unmarshal(func(tn interface{}) error {
-		return json.Unmarshal(data, tn)
-	})
-}
-
-type partitionDimension PartitionDimension
-
-func (n *PartitionDimension) unmarshal(unmarshal func(interface{}) error) error {
-	tn := partitionDimension(*n)
-	if err := unmarshal(&tn); err != nil {
+	// In JSON we expect plain integral sectors.
+	// The YAML->JSON conversion is responsible for normalizing human units to sectors.
+	var pd uint64
+	if err := json.Unmarshal(data, &pd); err != nil {
 		return err
 	}
-	*n = PartitionDimension(tn)
-	return n.assertValid()
-}
-
-func (n PartitionDimension) assertValid() error {
+	*n = PartitionDimension(pd)
 	return nil
 }
