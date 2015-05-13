@@ -16,8 +16,6 @@ package config
 
 import (
 	"encoding/json"
-
-	//	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/GoogleCloudPlatform/kubernetes/pkg/api/resource"
 )
 
 type Partition struct {
