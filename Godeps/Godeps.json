@@ -24,6 +24,10 @@
 			"ImportPath": "github.com/godbus/dbus",
 			"Comment": "v2-3-g4160802",
 			"Rev": "41608027bdce7bfa8959d653a00b954591220e67"
+		},
+		{
+			"ImportPath": "github.com/alecthomas/units",
+			"Rev": "6b4e7dc5e3143b85ea77909c72caf89416fc2915"
 		}
 	]
 }
