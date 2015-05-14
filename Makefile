@@ -50,9 +50,8 @@ gopath/src/github.com/coreos/ignition:
 .PHONY: verify fmt vet fix test
 verify: fmt vet fix test
 fmt:
-	@echo " FMT   $(PACKAGES)"
-	$(Q)gofmt -l -e -s $(PACKAGES)
-	$(Q)test -z "$$(gofmt -e -l -s $(PACKAGES))"
+	@echo " FMT   src"
+	$(Q)FMTOUT=$$(gofmt -d -e -s src); test -z "$$FMTOUT" || { echo "$$FMTOUT" && exit 1; }
 vet: | gopath/src/github.com/coreos/ignition
 	@echo " VET   $(PACKAGES)"
 	$(Q)GOPATH=$$(pwd)/gopath go vet $(ABS_PACKAGES)
