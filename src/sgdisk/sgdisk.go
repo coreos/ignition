@@ -32,8 +32,8 @@ type Operation struct {
 
 type Partition struct {
 	Number int
-	Offset int64 // sectors
-	Length int64 // sectors
+	Offset uint64 // sectors
+	Length uint64 // sectors
 	Label  string
 }
 

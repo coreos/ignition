@@ -114,8 +114,8 @@ func (s stage) createPartitions(config config.Config) error {
 			for _, part := range dev.Partitions {
 				err := op.CreatePartition(sgdisk.Partition{
 					Number: part.Number,
-					Length: part.Size.Value(), // TODO(vc): normalize units... sectors? do something sane.
-					Offset: part.Start.Value(),
+					Length: uint64(part.Size),
+					Offset: uint64(part.Start),
 					Label:  string(part.Label),
 				})
 				if err != nil {
