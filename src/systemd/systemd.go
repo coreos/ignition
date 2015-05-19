@@ -21,6 +21,7 @@ import (
 	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/coreos/go-systemd/unit"
 )
 
+// WaitOnDevices waits for the devices named in devs to be plugged before returning.
 func WaitOnDevices(devs []string, stage string) error {
 	conn, err := dbus.New()
 	if err != nil {

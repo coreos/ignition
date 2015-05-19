@@ -32,30 +32,28 @@ type Operation struct {
 
 type Partition struct {
 	Number int
-	Offset uint64 // sectors
-	Length uint64 // sectors
+	Offset uint64 // 512-byte sectors
+	Length uint64 // 512-byte sectors
 	Label  string
 }
 
+// Begin begins an sgdisk operation
 func Begin(logger *log.Logger, dev string) *Operation {
 	return &Operation{logger: logger, dev: dev}
 }
 
-// CreatePartition adds the supplied partition to the list of partitions to be created.
-// If Partition overlaps with any already created partitions or has otherwise impossible values an error is returned.
-func (op *Operation) CreatePartition(p Partition) error {
-	// TODO(vc): sanity check p against op.parts
-	// XXX(vc): I don't think sgdisk likes zero-based partition numbers, TODO: verify this! sgdisk _feels_ poorly made when using it, consider alternatives.
+// CreatePartition adds the supplied partition to the list of partitions to be created as part of an operation.
+func (op *Operation) CreatePartition(p Partition) {
+	// XXX(vc): no checking is performed here, since we perform checking at yaml/json parsing, Commit() will just fail on badness.
 	op.parts = append(op.parts, p)
-	return nil
 }
 
-// WipeTable toggles if the table is to be wiped first
+// WipeTable toggles if the table is to be wiped first when commiting this operation.
 func (op *Operation) WipeTable(wipe bool) {
 	op.wipe = wipe
 }
 
-// Commit commits the operation prepared in op
+// Commit commits an partitioning operation.
 func (op *Operation) Commit() error {
 	if op.wipe {
 		cmd := exec.Command(sgdiskPath, "--zap-all", op.dev)

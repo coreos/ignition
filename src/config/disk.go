@@ -74,6 +74,7 @@ func (n Disk) assertValid() error {
 	return nil
 }
 
+// partitionNumbersCollide returns true if partition numbers in n.Partitions are not unique.
 func (n Disk) partitionNumbersCollide() bool {
 	m := map[int][]Partition{}
 	for _, p := range n.Partitions {
@@ -88,6 +89,7 @@ func (n Disk) partitionNumbersCollide() bool {
 	return false
 }
 
+// end returns the last sector of a partition.
 func (p Partition) end() PartitionDimension {
 	if p.Size == 0 {
 		// a size of 0 means "fill available", just return the start as the end for those.

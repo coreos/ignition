@@ -79,6 +79,7 @@ func (s stage) Run(config config.Config) bool {
 	return true
 }
 
+// waitOnDevices waits for the devices enumerated in devs as a logged operation using ctxt for the logging and systemd unit identity.
 func (s stage) waitOnDevices(devs []string, ctxt string) error {
 	err := s.logger.LogOp(func() error { return systemd.WaitOnDevices(devs, ctxt) }, "waiting for devices %v", devs)
 	if err != nil {
@@ -87,6 +88,7 @@ func (s stage) waitOnDevices(devs []string, ctxt string) error {
 	return nil
 }
 
+// createPartitions creates the partitions described in config.Storage.Disks.
 func (s stage) createPartitions(config config.Config) error {
 	if len(config.Storage.Disks) == 0 {
 		return nil
@@ -112,15 +114,12 @@ func (s stage) createPartitions(config config.Config) error {
 			}
 
 			for _, part := range dev.Partitions {
-				err := op.CreatePartition(sgdisk.Partition{
+				op.CreatePartition(sgdisk.Partition{
 					Number: part.Number,
 					Length: uint64(part.Size),
 					Offset: uint64(part.Start),
 					Label:  string(part.Label),
 				})
-				if err != nil {
-					return fmt.Errorf("create failure: %v", err)
-				}
 			}
 
 			if err := op.Commit(); err != nil {
@@ -136,6 +135,7 @@ func (s stage) createPartitions(config config.Config) error {
 	return nil
 }
 
+// createRaids creates the raid arrays described in config.Storage.Arrays.
 func (s stage) createRaids(config config.Config) error {
 	if len(config.Storage.Arrays) == 0 {
 		return nil
@@ -183,6 +183,7 @@ func (s stage) createRaids(config config.Config) error {
 	return nil
 }
 
+// createFilesystems creates the filesystems described in config.Storage.Filesystems.
 func (s stage) createFilesystems(config config.Config) error {
 	if len(config.Storage.Filesystems) == 0 {
 		return nil
@@ -231,6 +232,7 @@ func (s stage) createFilesystems(config config.Config) error {
 	return nil
 }
 
+// createFiles creates any files listed for the filesystem in fs.Files.
 func (s stage) createFiles(fs config.Filesystem) error {
 	if len(fs.Files) == 0 {
 		return nil
