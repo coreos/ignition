@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/src/exec/stages"
+	"github.com/coreos/ignition/src/exec/util"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
 )
@@ -69,18 +69,19 @@ func (e Engine) Providers() []providers.Provider {
 	return providers
 }
 
-// Run executes the stage of the given name. It returns true if the stage
-// successfully ran and false if there were any errors.
-func (e Engine) Run(stageName string) bool {
+// Run executes the configuration given by its providers. It returns true if
+// it successfully ran and false if there were any errors.
+func (e Engine) Run() bool {
 	config, err := e.acquireConfig()
 	if err != nil {
 		e.Logger.Crit("failed to acquire config: %v", err)
 		return false
 	}
 
-	e.Logger.PushPrefix(stageName)
-	defer e.Logger.PopPrefix()
-	return stages.Get(stageName).Create(&e.Logger, e.Root).Run(config)
+	return storage{
+		logger:  &e.Logger,
+		DestDir: util.DestDir(e.Root),
+	}.Run(config)
 }
 
 // acquireConfig returns the configuration, first checking a local cache
