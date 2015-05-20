@@ -15,39 +15,21 @@
 package oem
 
 import (
-	"github.com/coreos/ignition/src/registry"
+	"fmt"
 )
 
-// Config represents a set of command line flags that map to a particular OEM.
-type Config struct {
-	name  string
-	flags map[string]string
+// Name is used to identify an OEM. It must be in the set of registered OEMs.
+type Name string
+
+func (s Name) String() string {
+	return string(s)
 }
 
-func (c Config) Name() string {
-	return c.name
-}
+func (s *Name) Set(val string) error {
+	if _, ok := Get(val); !ok {
+		return fmt.Errorf("%s is not a valid oem", val)
+	}
 
-func (c Config) Flags() map[string]string {
-	return c.flags
-}
-
-var configs = registry.Create("oem configs")
-
-func init() {
-	configs.Register(Config{
-		name: "pxe",
-		flags: map[string]string{
-			"provider": "cmdline",
-		},
-	})
-}
-
-func Get(name string) (config Config, ok bool) {
-	config, ok = configs.Get(name).(Config)
-	return
-}
-
-func Names() (names []string) {
-	return configs.Names()
+	*s = Name(val)
+	return nil
 }
