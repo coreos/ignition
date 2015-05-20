@@ -18,6 +18,9 @@ import (
 	"fmt"
 )
 
+// Name is used to identify a StageCreator (which instantiates the stage of
+// the same name) from the command line. It must be in the set of registered
+// stages.
 type Name string
 
 func (s Name) String() string {
