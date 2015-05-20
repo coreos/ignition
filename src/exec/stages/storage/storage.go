@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package disks
+package storage
 
 import (
 	"fmt"
@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	name = "disks"
+	name = "storage"
 )
 
 func init() {
@@ -73,6 +73,11 @@ func (s stage) Run(config config.Config) bool {
 
 	if err := s.createFilesystems(config); err != nil {
 		s.logger.Crit("failed to create filesystems: %v", err)
+		return false
+	}
+
+	if err := s.createUnits(config); err != nil {
+		s.logger.Crit("failed to create units: %v", err)
 		return false
 	}
 
@@ -264,4 +269,66 @@ func (s stage) createFiles(fs config.Filesystem) error {
 	}
 
 	return nil
+}
+
+func (s stage) createUnits(config config.Config) error {
+	for _, unit := range config.Systemd.Units {
+		if err := s.writeUnit(unit, util.FileFromSystemdUnit); err != nil {
+			return err
+		}
+		if unit.Enable {
+			if err := s.logger.LogOp(
+				func() error { return s.EnableUnit(unit) },
+				"enabling unit %q", unit.Name,
+			); err != nil {
+				return err
+			}
+		}
+		if unit.Mask {
+			if err := s.logger.LogOp(
+				func() error { return s.MaskUnit(unit) },
+				"masking unit %q", unit.Name,
+			); err != nil {
+				return err
+			}
+		}
+	}
+	for _, unit := range config.Networkd.Units {
+		if err := s.writeUnit(unit, util.FileFromNetworkdUnit); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s stage) writeUnit(unit config.Unit, fileFromUnit func(unit config.Unit) *config.File) error {
+	return s.logger.LogOp(func() error {
+		for _, dropin := range unit.DropIns {
+			if dropin.Contents == "" {
+				continue
+			}
+
+			f := util.FileFromUnitDropin(unit, dropin)
+			if err := s.logger.LogOp(
+				func() error { return s.WriteFile(f) },
+				"writing dropin %q at %q", dropin.Name, f.Path,
+			); err != nil {
+				return err
+			}
+		}
+
+		if unit.Contents == "" {
+			return nil
+		}
+
+		f := fileFromUnit(unit)
+		if err := s.logger.LogOp(
+			func() error { return s.WriteFile(f) },
+			"writing unit %q at %q", unit.Name, f.Path,
+		); err != nil {
+			return err
+		}
+
+		return nil
+	}, "writing unit %q", unit.Name)
 }
