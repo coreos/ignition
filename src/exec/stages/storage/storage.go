@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// The storage stage is responsible for partitioning disks, creating RAID
+// arrays, formatting partitions, writing files, writing systemd units, and
+// writing network units.
+
 package storage
 
 import (
@@ -84,10 +88,13 @@ func (s stage) Run(config config.Config) bool {
 	return true
 }
 
-// waitOnDevices waits for the devices enumerated in devs as a logged operation using ctxt for the logging and systemd unit identity.
+// waitOnDevices waits for the devices enumerated in devs as a logged operation
+// using ctxt for the logging and systemd unit identity.
 func (s stage) waitOnDevices(devs []string, ctxt string) error {
-	err := s.logger.LogOp(func() error { return systemd.WaitOnDevices(devs, ctxt) }, "waiting for devices %v", devs)
-	if err != nil {
+	if err := s.logger.LogOp(
+		func() error { return systemd.WaitOnDevices(devs, ctxt) },
+		"waiting for devices %v", devs,
+	); err != nil {
 		return fmt.Errorf("failed to wait on %s devs: %v", ctxt, err)
 	}
 	return nil
@@ -178,9 +185,10 @@ func (s stage) createRaids(config config.Config) error {
 			args = append(args, string(dev))
 		}
 
-		cmd := exec.Command("/sbin/mdadm", args...)
-		err := s.logger.LogCmd(cmd, "creating %q", md.Name)
-		if err != nil {
+		if err := s.logger.LogCmd(
+			exec.Command("/sbin/mdadm", args...),
+			"creating %q", md.Name,
+		); err != nil {
 			return fmt.Errorf("mdadm failed: %v", err)
 		}
 	}
@@ -221,10 +229,11 @@ func (s stage) createFilesystems(config config.Config) error {
 			}
 
 			args = append(args, string(fs.Device))
-			cmd := exec.Command(mkfs, args...)
-
-			err := s.logger.LogCmd(cmd, "creating %q filesystem on %q", fs.Format, string(fs.Device))
-			if err != nil {
+			if err := s.logger.LogCmd(
+				exec.Command(mkfs, args...),
+				"creating %q filesystem on %q",
+				fs.Format, string(fs.Device),
+			); err != nil {
 				return fmt.Errorf("failed to run %q: %v %v", mkfs, err, args)
 			}
 		}
@@ -254,16 +263,23 @@ func (s stage) createFiles(fs config.Filesystem) error {
 	dev := string(fs.Device)
 	format := string(fs.Format)
 
-	err = s.logger.LogOp(func() error { return syscall.Mount(dev, mnt, format, 0, "") }, "mounting %q at %q", dev, mnt)
-	if err != nil {
+	if err := s.logger.LogOp(
+		func() error { return syscall.Mount(dev, mnt, format, 0, "") },
+		"mounting %q at %q", dev, mnt,
+	); err != nil {
 		return fmt.Errorf("failed to mount device %q at %q: %v", dev, mnt, err)
 	}
-	defer s.logger.LogOp(func() error { return syscall.Unmount(mnt, 0) }, "unmounting %q at %q", dev, mnt)
+	defer s.logger.LogOp(
+		func() error { return syscall.Unmount(mnt, 0) },
+		"unmounting %q at %q", dev, mnt,
+	)
 
 	dest := util.DestDir(mnt)
 	for _, f := range fs.Files {
-		err := s.logger.LogOp(func() error { return dest.WriteFile(&f) }, "writing file %q", string(f.Path))
-		if err != nil {
+		if err := s.logger.LogOp(
+			func() error { return dest.WriteFile(&f) },
+			"writing file %q", string(f.Path),
+		); err != nil {
 			return fmt.Errorf("failed to create file %q: %v", f.Path, err)
 		}
 	}
@@ -271,6 +287,7 @@ func (s stage) createFiles(fs config.Filesystem) error {
 	return nil
 }
 
+// createUnits creates the units listed under systemd.units and networkd.units.
 func (s stage) createUnits(config config.Config) error {
 	for _, unit := range config.Systemd.Units {
 		if err := s.writeUnit(unit, util.FileFromSystemdUnit); err != nil {
@@ -301,6 +318,9 @@ func (s stage) createUnits(config config.Config) error {
 	return nil
 }
 
+// writeUnit creates the specified unit and any dropins for that unit. If the
+// contents of the unit or are empty, the unit is not created. The same
+// applies to the unit's dropins.
 func (s stage) writeUnit(unit config.Unit, fileFromUnit func(unit config.Unit) *config.File) error {
 	return s.logger.LogOp(func() error {
 		for _, dropin := range unit.DropIns {
