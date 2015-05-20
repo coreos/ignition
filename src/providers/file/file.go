@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// The file provider reads the configuration from a file in the current
+// working directory by the name "config.json".
+
 package file
 
 import (

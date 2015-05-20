@@ -18,6 +18,8 @@ import (
 	"time"
 )
 
+// ExpBackoff calculates an exponential (power 2) backoff given the last
+// backoff duration and the maximum backoff duration.
 func ExpBackoff(backoff *time.Duration, maxBackoff time.Duration) time.Duration {
 	if *backoff < maxBackoff {
 		*backoff = *backoff * 2

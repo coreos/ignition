@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// The cmdline provider fetches a remote configuration from the URL specified
+// in the kernel boot option "coreos.config.url".
+
 package cmdline
 
 import (
