@@ -37,6 +37,7 @@ var (
 	ErrTimeout     = errors.New("timed out while waiting for a config provider to come online")
 )
 
+// Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
 	ConfigCache  string
 	FetchTimeout time.Duration
@@ -45,6 +46,7 @@ type Engine struct {
 	providers    map[string]providers.Provider
 }
 
+// AddProvider registers a configuration provider with the engine.
 func (e *Engine) AddProvider(provider providers.Provider) {
 	if e.providers == nil {
 		e.providers = map[string]providers.Provider{}
@@ -52,6 +54,7 @@ func (e *Engine) AddProvider(provider providers.Provider) {
 	e.providers[provider.Name()] = provider
 }
 
+// Providers returns a list of the registered providers in alphabetical order.
 func (e Engine) Providers() []providers.Provider {
 	keys := []string{}
 	for key := range e.providers {
@@ -66,6 +69,8 @@ func (e Engine) Providers() []providers.Provider {
 	return providers
 }
 
+// Run executes the stage of the given name. It returns true if the stage
+// successfully ran and false if there were any errors.
 func (e Engine) Run(stageName string) bool {
 	config, err := e.acquireConfig()
 	if err != nil {
@@ -78,6 +83,8 @@ func (e Engine) Run(stageName string) bool {
 	return stages.Get(stageName).Create(&e.Logger, e.Root).Run(config)
 }
 
+// acquireConfig returns the configuration, first checking a local cache
+// before attempting to fetch it from the registered providers.
 func (e Engine) acquireConfig() (cfg config.Config, err error) {
 	// First try read the config @ e.ConfigCache.
 	b, err := ioutil.ReadFile(e.ConfigCache)
@@ -110,6 +117,8 @@ func (e Engine) acquireConfig() (cfg config.Config, err error) {
 	return
 }
 
+// fetchConfig returns the configuration from the first available provider or
+// returns an error if none of the providers are available.
 func fetchConfig(providers []providers.Provider, timeout time.Duration) (config.Config, error) {
 	if provider, err := selectProvider(providers, timeout); err == nil {
 		return provider.FetchConfig()
@@ -118,6 +127,10 @@ func fetchConfig(providers []providers.Provider, timeout time.Duration) (config.
 	}
 }
 
+// selectProvider chooses the first online provider, given a list of providers
+// and a timeout. If none of the providers will ever be online, or if the
+// timeout elapses before any providers are online, this returns an appropriate
+// error.
 func selectProvider(ps []providers.Provider, timeout time.Duration) (providers.Provider, error) {
 	online := make(chan providers.Provider)
 	wg := sync.WaitGroup{}

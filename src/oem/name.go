@@ -12,19 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package oem
 
 import (
-	"time"
+	"fmt"
 )
 
-// ExpBackoff calculates an exponential (power 2) backoff given the last
-// backoff duration and the maximum backoff duration.
-func ExpBackoff(backoff *time.Duration, maxBackoff time.Duration) time.Duration {
-	if *backoff < maxBackoff {
-		*backoff = *backoff * 2
-	} else {
-		*backoff = maxBackoff
+// Name is used to identify an OEM. It must be in the set of registered OEMs.
+type Name string
+
+func (s Name) String() string {
+	return string(s)
+}
+
+func (s *Name) Set(val string) error {
+	if _, ok := Get(val); !ok {
+		return fmt.Errorf("%s is not a valid oem", val)
 	}
-	return *backoff
+
+	*s = Name(val)
+	return nil
 }

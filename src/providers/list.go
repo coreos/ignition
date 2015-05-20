@@ -19,6 +19,7 @@ import (
 	"strings"
 )
 
+// List holds the command-line-provided set of configuration provider names.
 type List []string
 
 func (s List) String() string {

@@ -20,11 +20,14 @@ import (
 	"github.com/coreos/ignition/src/registry"
 )
 
+// Stage is responsible for actually executing a stage of the configuration.
 type Stage interface {
 	Run(config config.Config) bool
 	Name() string
 }
 
+// StageCreator is responsible for instantiating a particular stage given a
+// logger and root path under the root partition.
 type StageCreator interface {
 	Create(logger *log.Logger, root string) Stage
 	Name() string

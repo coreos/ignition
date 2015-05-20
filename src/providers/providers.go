@@ -22,6 +22,10 @@ import (
 	"github.com/coreos/ignition/src/registry"
 )
 
+// Provider represents an external source of configuration. The source can be
+// local to the host system or it may be remote. The provider dictates whether
+// or not the source is online, if the caller should try again when the source
+// is offline, and how long the caller should wait before retries.
 type Provider interface {
 	Name() string
 	FetchConfig() (config.Config, error)

@@ -15,11 +15,10 @@
 package oem
 
 import (
-	"fmt"
-
 	"github.com/coreos/ignition/src/registry"
 )
 
+// Config represents a set of command line flags that map to a particular OEM.
 type Config struct {
 	name  string
 	flags map[string]string
@@ -51,19 +50,4 @@ func Get(name string) (config Config, ok bool) {
 
 func Names() (names []string) {
 	return configs.Names()
-}
-
-type Name string
-
-func (s Name) String() string {
-	return string(s)
-}
-
-func (s *Name) Set(val string) error {
-	if _, ok := Get(val); !ok {
-		return fmt.Errorf("%s is not a valid oem", val)
-	}
-
-	*s = Name(val)
-	return nil
 }
