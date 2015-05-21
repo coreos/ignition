@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The storage stage is responsible for partitioning disks, creating RAID
-// arrays, formatting partitions, writing files, writing systemd units, and
-// writing network units.
+// Storage is responsible for partitioning disks, creating RAID arrays,
+// formatting partitions, writing files, writing systemd units, and writing
+// network units.
 
-package storage
+package exec
 
 import (
 	"fmt"
@@ -26,45 +26,18 @@ import (
 	"syscall"
 
 	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/src/exec/stages"
 	"github.com/coreos/ignition/src/exec/util"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/sgdisk"
 	"github.com/coreos/ignition/src/systemd"
 )
 
-const (
-	name = "storage"
-)
-
-func init() {
-	stages.Register(creator{})
-}
-
-type creator struct{}
-
-func (creator) Create(logger *log.Logger, root string) stages.Stage {
-	return &stage{
-		DestDir: util.DestDir(root),
-		logger:  logger,
-	}
-}
-
-func (creator) Name() string {
-	return name
-}
-
-type stage struct {
+type storage struct {
 	logger *log.Logger
 	util.DestDir
 }
 
-func (stage) Name() string {
-	return name
-}
-
-func (s stage) Run(config config.Config) bool {
-
+func (s storage) Run(config config.Config) bool {
 	if err := s.createPartitions(config); err != nil {
 		s.logger.Crit("create partitions failed: %v", err)
 		return false
@@ -90,7 +63,7 @@ func (s stage) Run(config config.Config) bool {
 
 // waitOnDevices waits for the devices enumerated in devs as a logged operation
 // using ctxt for the logging and systemd unit identity.
-func (s stage) waitOnDevices(devs []string, ctxt string) error {
+func (s storage) waitOnDevices(devs []string, ctxt string) error {
 	if err := s.logger.LogOp(
 		func() error { return systemd.WaitOnDevices(devs, ctxt) },
 		"waiting for devices %v", devs,
@@ -101,7 +74,7 @@ func (s stage) waitOnDevices(devs []string, ctxt string) error {
 }
 
 // createPartitions creates the partitions described in config.Storage.Disks.
-func (s stage) createPartitions(config config.Config) error {
+func (s storage) createPartitions(config config.Config) error {
 	if len(config.Storage.Disks) == 0 {
 		return nil
 	}
@@ -148,7 +121,7 @@ func (s stage) createPartitions(config config.Config) error {
 }
 
 // createRaids creates the raid arrays described in config.Storage.Arrays.
-func (s stage) createRaids(config config.Config) error {
+func (s storage) createRaids(config config.Config) error {
 	if len(config.Storage.Arrays) == 0 {
 		return nil
 	}
@@ -197,7 +170,7 @@ func (s stage) createRaids(config config.Config) error {
 }
 
 // createFilesystems creates the filesystems described in config.Storage.Filesystems.
-func (s stage) createFilesystems(config config.Config) error {
+func (s storage) createFilesystems(config config.Config) error {
 	if len(config.Storage.Filesystems) == 0 {
 		return nil
 	}
@@ -247,7 +220,7 @@ func (s stage) createFilesystems(config config.Config) error {
 }
 
 // createFiles creates any files listed for the filesystem in fs.Files.
-func (s stage) createFiles(fs config.Filesystem) error {
+func (s storage) createFiles(fs config.Filesystem) error {
 	if len(fs.Files) == 0 {
 		return nil
 	}
@@ -288,7 +261,7 @@ func (s stage) createFiles(fs config.Filesystem) error {
 }
 
 // createUnits creates the units listed under systemd.units and networkd.units.
-func (s stage) createUnits(config config.Config) error {
+func (s storage) createUnits(config config.Config) error {
 	for _, unit := range config.Systemd.Units {
 		if err := s.writeUnit(unit, util.FileFromSystemdUnit); err != nil {
 			return err
@@ -321,7 +294,7 @@ func (s stage) createUnits(config config.Config) error {
 // writeUnit creates the specified unit and any dropins for that unit. If the
 // contents of the unit or are empty, the unit is not created. The same
 // applies to the unit's dropins.
-func (s stage) writeUnit(unit config.Unit, fileFromUnit func(unit config.Unit) *config.File) error {
+func (s storage) writeUnit(unit config.Unit, fileFromUnit func(unit config.Unit) *config.File) error {
 	return s.logger.LogOp(func() error {
 		for _, dropin := range unit.DropIns {
 			if dropin.Contents == "" {

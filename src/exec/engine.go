@@ -15,15 +15,13 @@
 package exec
 
 import (
-	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/src/exec/stages"
+	"github.com/coreos/ignition/src/exec/util"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
 )
@@ -39,7 +37,6 @@ var (
 
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
-	ConfigCache  string
 	FetchTimeout time.Duration
 	Logger       log.Logger
 	Root         string
@@ -69,52 +66,19 @@ func (e Engine) Providers() []providers.Provider {
 	return providers
 }
 
-// Run executes the stage of the given name. It returns true if the stage
-// successfully ran and false if there were any errors.
-func (e Engine) Run(stageName string) bool {
-	config, err := e.acquireConfig()
+// Run executes the configuration given by its providers. It returns true if
+// it successfully ran and false if there were any errors.
+func (e Engine) Run() bool {
+	config, err := fetchConfig(e.Providers(), e.FetchTimeout)
 	if err != nil {
 		e.Logger.Crit("failed to acquire config: %v", err)
 		return false
 	}
 
-	e.Logger.PushPrefix(stageName)
-	defer e.Logger.PopPrefix()
-	return stages.Get(stageName).Create(&e.Logger, e.Root).Run(config)
-}
-
-// acquireConfig returns the configuration, first checking a local cache
-// before attempting to fetch it from the registered providers.
-func (e Engine) acquireConfig() (cfg config.Config, err error) {
-	// First try read the config @ e.ConfigCache.
-	b, err := ioutil.ReadFile(e.ConfigCache)
-	if err == nil {
-		if err = json.Unmarshal(b, &cfg); err != nil {
-			e.Logger.Crit("failed to parse cached config: %v", err)
-		}
-		return
-	}
-
-	// (Re)Fetch the config if the cache is unreadable.
-	cfg, err = fetchConfig(e.Providers(), e.FetchTimeout)
-	if err != nil {
-		e.Logger.Crit("failed to fetch config: %v", err)
-		return
-	}
-	e.Logger.Debug("fetched config: %+v", cfg)
-
-	// Populate the config cache.
-	b, err = json.Marshal(cfg)
-	if err != nil {
-		e.Logger.Crit("failed to marshal cached config: %v", err)
-		return
-	}
-	if err = ioutil.WriteFile(e.ConfigCache, b, 0640); err != nil {
-		e.Logger.Crit("failed to write cached config: %v", err)
-		return
-	}
-
-	return
+	return storage{
+		logger:  &e.Logger,
+		DestDir: util.DestDir(e.Root),
+	}.Run(config)
 }
 
 // fetchConfig returns the configuration from the first available provider or
