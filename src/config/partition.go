@@ -17,15 +17,17 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 
 	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/alecthomas/units"
 )
 
 type Partition struct {
-	Label  PartitionLabel     `json:"label,omitempty" yaml:"label"`
-	Number int                `json:"number"          yaml:"number"`
-	Size   PartitionDimension `json:"size"            yaml:"size"`
-	Start  PartitionDimension `json:"start"           yaml:"start"`
+	Label    PartitionLabel     `json:"label,omitempty"     yaml:"label"`
+	Number   int                `json:"number"              yaml:"number"`
+	Size     PartitionDimension `json:"size"                yaml:"size"`
+	Start    PartitionDimension `json:"start"               yaml:"start"`
+	TypeGUID PartitionTypeGUID  `json:"type-guid,omitempty" yaml:"type-guid"`
 }
 
 type PartitionLabel string
@@ -97,5 +99,39 @@ func (n *PartitionDimension) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*n = PartitionDimension(pd)
+	return nil
+}
+
+type PartitionTypeGUID string
+
+func (d *PartitionTypeGUID) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	return d.unmarshal(unmarshal)
+}
+
+func (d *PartitionTypeGUID) UnmarshalJSON(data []byte) error {
+	return d.unmarshal(func(td interface{}) error {
+		return json.Unmarshal(data, td)
+	})
+}
+
+type partitionTypeGUID PartitionTypeGUID
+
+func (d *PartitionTypeGUID) unmarshal(unmarshal func(interface{}) error) error {
+	td := partitionTypeGUID(*d)
+	if err := unmarshal(&td); err != nil {
+		return err
+	}
+	*d = PartitionTypeGUID(td)
+	return d.assertValid()
+}
+
+func (d PartitionTypeGUID) assertValid() error {
+	ok, err := regexp.MatchString("[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}", string(d))
+	if err != nil {
+		return fmt.Errorf("error matching type-guid regexp: %v", err)
+	}
+	if !ok {
+		return fmt.Errorf(`partition type-guid must have the form "01234567-89AB-CDEF-EDCB-A98765432101", got: %q`, string(d))
+	}
 	return nil
 }

@@ -100,10 +100,11 @@ func (s storage) createPartitions(config config.Config) error {
 
 			for _, part := range dev.Partitions {
 				op.CreatePartition(sgdisk.Partition{
-					Number: part.Number,
-					Length: uint64(part.Size),
-					Offset: uint64(part.Start),
-					Label:  string(part.Label),
+					Number:   part.Number,
+					Length:   uint64(part.Size),
+					Offset:   uint64(part.Start),
+					Label:    string(part.Label),
+					TypeGUID: string(part.TypeGUID),
 				})
 			}
 
