@@ -52,6 +52,14 @@ func (n *PartitionLabel) unmarshal(unmarshal func(interface{}) error) error {
 }
 
 func (n PartitionLabel) assertValid() error {
+	// http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_entries:
+	// 56 (0x38) 	72 bytes 	Partition name (36 UTF-16LE code units)
+
+	// XXX(vc): note GPT calls it a name, we're using label for consistency
+	// with udev naming /dev/disk/by-partlabel/*.
+	if len(string(n)) > 36 {
+		return fmt.Errorf("partition labels may not exceed 36 characters")
+	}
 	return nil
 }
 
