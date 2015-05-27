@@ -31,10 +31,11 @@ type Operation struct {
 }
 
 type Partition struct {
-	Number int
-	Offset uint64 // 512-byte sectors
-	Length uint64 // 512-byte sectors
-	Label  string
+	Number   int
+	Offset   uint64 // 512-byte sectors
+	Length   uint64 // 512-byte sectors
+	Label    string
+	TypeGUID string
 }
 
 // Begin begins an sgdisk operation
@@ -67,6 +68,9 @@ func (op *Operation) Commit() error {
 		for _, p := range op.parts {
 			opts = append(opts, fmt.Sprintf("--new=%d:%d:+%d", p.Number, p.Offset, p.Length))
 			opts = append(opts, fmt.Sprintf("--change-name=%d:%s", p.Number, p.Label))
+			if p.TypeGUID != "" {
+				opts = append(opts, fmt.Sprintf("--partition-guid=%d:%s", p.Number, p.TypeGUID))
+			}
 		}
 		opts = append(opts, op.dev)
 		cmd := exec.Command(sgdiskPath, opts...)

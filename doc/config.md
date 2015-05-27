@@ -10,22 +10,21 @@ storage:
       partitions:
         - label: "raid.1.1"
           number: 1
-          first-sector: 1
-          last-sector:
-          type:
-            hex-code:
-            guid:
-          size: 10GB
+          type-guid: "EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"
+          start: 1MiB
+          size: 10GiB
     - device: "/dev/sdb"
       wipe-table: true
       partitions:
         - label: "raid.1.2"
-          size: 10GB
+          number: 1
+          size: 10GiB
     - device: "/dev/sdc"
       wipe-table: true
       partitions:
         - label: "raid.1.3"
-          size: 10GB
+          number: 1
+          size: 10GiB
 
   raid:
     - name: "md0"
