@@ -23,7 +23,7 @@ type Unit struct {
 	Enable   bool         `json:"enable,omitempty"   yaml:"enable"`
 	Mask     bool         `json:"mask,omitempty"     yaml:"mask"`
 	Contents string       `json:"contents,omitempty" yaml:"contents"`
-	DropIns  []UnitDropIn `json:"dropIns,omitempty"  yaml:"dropIns"`
+	DropIns  []UnitDropIn `json:"dropins,omitempty"  yaml:"dropins"`
 }
 
 type UnitDropIn struct {
