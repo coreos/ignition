@@ -30,9 +30,8 @@ type File struct {
 	Path     string   `json:"path,omitempty"     yaml:"path"`
 	Contents string   `json:"contents,omitempty" yaml:"contents"`
 	Mode     FileMode `json:"mode,omitempty"     yaml:"mode"`
-	// FIXME(vc) make these strings and add resolution to WriteFile
-	Uid int `json:"uid,omitempty"                yaml:"uid"`
-	Gid int `json:"gid,omitempty"                yaml:"gid"`
+	Uid      int      `json:"uid,omitempty"      yaml:"uid"`
+	Gid      int      `json:"gid,omitempty"      yaml:"gid"`
 }
 
 func (m *FileMode) UnmarshalYAML(unmarshal func(interface{}) error) error {

@@ -63,6 +63,10 @@ storage:
 
             sed -i -e "/^${VARIABLE}=/d" "${FILE}"
             echo "${VARIABLE}=${ip}" >> "${FILE}"
+         - path: "/home/foouser/stuff"
+           permissions: 0600
+           uid: 4242
+           gid: 4242
 
 systemd:
   units:
@@ -110,19 +114,23 @@ networkd:
 passwd:
  users:
   - name: foouser
-    primary group: foouser
-    groups: foogroup
-    gecos: "Foo Bar"
-    homedir: "/home/abc"
-    shell: "/bin/zsh"
-    no_create_home: false
-    no_user_group: false
-    system: false
-    no_log_init: false
     ssh_authorized_keys:
      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEtomdD5MpmzEvLILIyn6l/TTrVOc2iRkeEgBjNEEFujkCOVMQrP7TFln+E2Ve0m5ngP+sImhYItpMpHOwRlBjUhFCzTZF8QJwUKyg2A59TV2uFEetosms7z4aW8lgQgm4m1ovi3G2R6BG3h01ogm3PC5YaAAkEbr0V0BxVN0rsTrq/dRNs2drLNw4giqJ5mBwzqXmepp7orJifyiKBueDQYsO367V7v9H797p3WmnFlg+T3LYiYfUQCkpxj/X+NYGbQBqsk5EXqAt/mi056HWu4esVJNwcIeiTdAWJ8/naKMAeEYoc8fJzbQ4rzIawRdAUk/QjxhVBbC4BxpGbsxr foouser@host"
+    password_hash: "$6$L5wKa16S$6qwF3RtAmPTlsDu/mVq53zzgL4htS0cw6GhFEDC9V6v6W7ydzxYN.dmJwlwBhMsi6vaNgkGvCRNwYhuFinA2w0"
+    create:
+     uid: 4242
+     primary_group: foouser
+     groups: foogroup
+     gecos: "Foo Bar"
+     homedir: "/home/abc"
+     shell: "/bin/zsh"
+     no_create_home: false
+     no_user_group: false
+     system: false
+     no_log_init: false
 
  groups:
   - name: foogroup
-    password: "$6$L5wKa16S$6qwF3RtAmPTlsDu/mVq53zzgL4htS0cw6GhFEDC9V6v6W7ydzxYN.dmJwlwBhMsi6vaNgkGvCRNwYhuFinA2w0"
+    gid: 4242
+    password_hash: "$6$L5wKa16S$6qwF3RtAmPTlsDu/mVq53zzgL4htS0cw6GhFEDC9V6v6W7ydzxYN.dmJwlwBhMsi6vaNgkGvCRNwYhuFinA2w0"
 ```
