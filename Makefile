@@ -9,6 +9,7 @@ PACKAGES = \
     src/providers/cmdline \
     src/providers/util \
     src/registry \
+    src/ssh_keydir \
 
 GFLAGS = \
 
