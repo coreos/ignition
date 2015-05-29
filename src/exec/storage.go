@@ -264,7 +264,7 @@ func (s storage) createFiles(fs config.Filesystem) error {
 // createUnits creates the units listed under systemd.units and networkd.units.
 func (s storage) createUnits(config config.Config) error {
 	for _, unit := range config.Systemd.Units {
-		if err := s.writeUnit(unit, util.FileFromSystemdUnit); err != nil {
+		if err := s.writeSystemdUnit(unit); err != nil {
 			return err
 		}
 		if unit.Enable {
@@ -285,17 +285,17 @@ func (s storage) createUnits(config config.Config) error {
 		}
 	}
 	for _, unit := range config.Networkd.Units {
-		if err := s.writeUnit(unit, util.FileFromNetworkdUnit); err != nil {
+		if err := s.writeNetworkdUnit(unit); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// writeUnit creates the specified unit and any dropins for that unit. If the
-// contents of the unit or are empty, the unit is not created. The same
+// writeSystemdUnit creates the specified unit and any dropins for that unit.
+// If the contents of the unit or are empty, the unit is not created. The same
 // applies to the unit's dropins.
-func (s storage) writeUnit(unit config.Unit, fileFromUnit func(unit config.Unit) *config.File) error {
+func (s storage) writeSystemdUnit(unit config.SystemdUnit) error {
 	return s.logger.LogOp(func() error {
 		for _, dropin := range unit.DropIns {
 			if dropin.Contents == "" {
@@ -315,7 +315,27 @@ func (s storage) writeUnit(unit config.Unit, fileFromUnit func(unit config.Unit)
 			return nil
 		}
 
-		f := fileFromUnit(unit)
+		f := util.FileFromSystemdUnit(unit)
+		if err := s.logger.LogOp(
+			func() error { return s.WriteFile(f) },
+			"writing unit %q at %q", unit.Name, f.Path,
+		); err != nil {
+			return err
+		}
+
+		return nil
+	}, "writing unit %q", unit.Name)
+}
+
+// writeNetworkdUnit creates the specified unit. If the contents of the unit or
+// are empty, the unit is not created.
+func (s storage) writeNetworkdUnit(unit config.NetworkdUnit) error {
+	return s.logger.LogOp(func() error {
+		if unit.Contents == "" {
+			return nil
+		}
+
+		f := util.FileFromNetworkdUnit(unit)
 		if err := s.logger.LogOp(
 			func() error { return s.WriteFile(f) },
 			"writing unit %q at %q", unit.Name, f.Path,

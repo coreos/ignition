@@ -15,5 +15,5 @@
 package config
 
 type Systemd struct {
-	Units []Unit `json:"units,omitempty" yaml:"units"`
+	Units []SystemdUnit `json:"units,omitempty" yaml:"units"`
 }

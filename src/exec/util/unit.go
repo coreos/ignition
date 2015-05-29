@@ -27,7 +27,7 @@ const (
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func FileFromSystemdUnit(unit config.Unit) *config.File {
+func FileFromSystemdUnit(unit config.SystemdUnit) *config.File {
 	return &config.File{
 		Path:     filepath.Join(SystemdUnitsPath(), string(unit.Name)),
 		Contents: unit.Contents,
@@ -37,7 +37,7 @@ func FileFromSystemdUnit(unit config.Unit) *config.File {
 	}
 }
 
-func FileFromNetworkdUnit(unit config.Unit) *config.File {
+func FileFromNetworkdUnit(unit config.NetworkdUnit) *config.File {
 	return &config.File{
 		Path:     filepath.Join(NetworkdUnitsPath(), string(unit.Name)),
 		Contents: unit.Contents,
@@ -47,7 +47,7 @@ func FileFromNetworkdUnit(unit config.Unit) *config.File {
 	}
 }
 
-func FileFromUnitDropin(unit config.Unit, dropin config.UnitDropIn) *config.File {
+func FileFromUnitDropin(unit config.SystemdUnit, dropin config.SystemdUnitDropIn) *config.File {
 	return &config.File{
 		Path:     filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
 		Contents: dropin.Contents,
@@ -57,7 +57,7 @@ func FileFromUnitDropin(unit config.Unit, dropin config.UnitDropIn) *config.File
 	}
 }
 
-func (d *DestDir) MaskUnit(unit config.Unit) error {
+func (d *DestDir) MaskUnit(unit config.SystemdUnit) error {
 	path := d.JoinPath(SystemdUnitsPath(), string(unit.Name))
 	if err := mkdirForFile(path); err != nil {
 		return err
@@ -65,7 +65,7 @@ func (d *DestDir) MaskUnit(unit config.Unit) error {
 	return os.Symlink("/dev/null", path)
 }
 
-func (d *DestDir) EnableUnit(unit config.Unit) error {
+func (d *DestDir) EnableUnit(unit config.SystemdUnit) error {
 	path := d.JoinPath(presetPath)
 	if err := mkdirForFile(path); err != nil {
 		return err

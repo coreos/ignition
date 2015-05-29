@@ -16,18 +16,19 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/go-yaml/yaml"
 )
 
-func TestUnitNameUnmarshalJSON(t *testing.T) {
+func TestSystemdUnitNameUnmarshalJSON(t *testing.T) {
 	type in struct {
 		data string
 	}
 	type out struct {
-		unit UnitName
+		unit SystemdUnitName
 		err  error
 	}
 
@@ -37,32 +38,40 @@ func TestUnitNameUnmarshalJSON(t *testing.T) {
 	}{
 		{
 			in:  in{data: `"test.service"`},
-			out: out{unit: UnitName("test.service")},
+			out: out{unit: SystemdUnitName("test.service")},
 		},
 		{
 			in:  in{data: `"test.socket"`},
-			out: out{unit: UnitName("test.socket")},
+			out: out{unit: SystemdUnitName("test.socket")},
+		},
+		{
+			in:  in{data: `"test.blah"`},
+			out: out{err: errors.New("invalid systemd unit extension")},
 		},
 	}
 
 	for i, test := range tests {
-		var unit UnitName
+		var unit SystemdUnitName
 		err := json.Unmarshal([]byte(test.in.data), &unit)
 		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
+		if err != nil {
+			continue
+		}
+
 		if !reflect.DeepEqual(test.out.unit, unit) {
 			t.Errorf("#%d: bad unit: want %#v, got %#v", i, test.out.unit, unit)
 		}
 	}
 }
 
-func TestUnitNameUnmarshalYAML(t *testing.T) {
+func TestSystemdUnitNameUnmarshalYAML(t *testing.T) {
 	type in struct {
 		data string
 	}
 	type out struct {
-		unit UnitName
+		unit SystemdUnitName
 		err  error
 	}
 
@@ -72,20 +81,122 @@ func TestUnitNameUnmarshalYAML(t *testing.T) {
 	}{
 		{
 			in:  in{data: `"test.service"`},
-			out: out{unit: UnitName("test.service")},
+			out: out{unit: SystemdUnitName("test.service")},
 		},
 		{
 			in:  in{data: `"test.socket"`},
-			out: out{unit: UnitName("test.socket")},
+			out: out{unit: SystemdUnitName("test.socket")},
+		},
+		{
+			in:  in{data: `"test.blah"`},
+			out: out{err: errors.New("invalid systemd unit extension")},
 		},
 	}
 
 	for i, test := range tests {
-		var unit UnitName
+		var unit SystemdUnitName
 		err := yaml.Unmarshal([]byte(test.in.data), &unit)
 		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
+		if err != nil {
+			continue
+		}
+
+		if !reflect.DeepEqual(test.out.unit, unit) {
+			t.Errorf("#%d: bad unit: want %#v, got %#v", i, test.out.unit, unit)
+		}
+	}
+}
+
+func TestNetworkdUnitNameUnmarshalJSON(t *testing.T) {
+	type in struct {
+		data string
+	}
+	type out struct {
+		unit NetworkdUnitName
+		err  error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{data: `"test.network"`},
+			out: out{unit: NetworkdUnitName("test.network")},
+		},
+		{
+			in:  in{data: `"test.link"`},
+			out: out{unit: NetworkdUnitName("test.link")},
+		},
+		{
+			in:  in{data: `"test.netdev"`},
+			out: out{unit: NetworkdUnitName("test.netdev")},
+		},
+		{
+			in:  in{data: `"test.blah"`},
+			out: out{err: errors.New("invalid networkd unit extension")},
+		},
+	}
+
+	for i, test := range tests {
+		var unit NetworkdUnitName
+		err := json.Unmarshal([]byte(test.in.data), &unit)
+		if !reflect.DeepEqual(test.out.err, err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+		if err != nil {
+			continue
+		}
+
+		if !reflect.DeepEqual(test.out.unit, unit) {
+			t.Errorf("#%d: bad unit: want %#v, got %#v", i, test.out.unit, unit)
+		}
+	}
+}
+
+func TestNetworkdUnitNameUnmarshalYAML(t *testing.T) {
+	type in struct {
+		data string
+	}
+	type out struct {
+		unit NetworkdUnitName
+		err  error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{data: `"test.network"`},
+			out: out{unit: NetworkdUnitName("test.network")},
+		},
+		{
+			in:  in{data: `"test.link"`},
+			out: out{unit: NetworkdUnitName("test.link")},
+		},
+		{
+			in:  in{data: `"test.netdev"`},
+			out: out{unit: NetworkdUnitName("test.netdev")},
+		},
+		{
+			in:  in{data: `"test.blah"`},
+			out: out{err: errors.New("invalid networkd unit extension")},
+		},
+	}
+
+	for i, test := range tests {
+		var unit NetworkdUnitName
+		err := yaml.Unmarshal([]byte(test.in.data), &unit)
+		if !reflect.DeepEqual(test.out.err, err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+		if err != nil {
+			continue
+		}
+
 		if !reflect.DeepEqual(test.out.unit, unit) {
 			t.Errorf("#%d: bad unit: want %#v, got %#v", i, test.out.unit, unit)
 		}
