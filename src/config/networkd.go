@@ -15,5 +15,5 @@
 package config
 
 type Networkd struct {
-	Units []Unit `json:"units,omitempty" yaml:"units"`
+	Units []NetworkdUnit `json:"units,omitempty" yaml:"units"`
 }

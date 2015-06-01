@@ -143,7 +143,7 @@ func TestFetchConfigs(t *testing.T) {
 		err:    errors.New("test error"),
 		config: config.Config{
 			Systemd: config.Systemd{
-				Units: []config.Unit{},
+				Units: []config.SystemdUnit{},
 			},
 		},
 	}
