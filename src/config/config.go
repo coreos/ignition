@@ -31,14 +31,20 @@ const (
 )
 
 var (
-	ErrConfigVersion = errors.New("incorrect config version")
+	ErrVersion     = errors.New("incorrect config version")
+	ErrCloudConfig = errors.New("not a config (found coreos-cloudconfig)")
+	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
 )
 
 func Parse(config []byte) (cfg Config, err error) {
 	if err = json.Unmarshal(config, &cfg); err == nil {
 		if cfg.Version != Version {
-			err = ErrConfigVersion
+			err = ErrVersion
 		}
+	} else if isCloudConfig(config) {
+		err = ErrCloudConfig
+	} else if isScript(config) {
+		err = ErrScript
 	}
 	return
 }
