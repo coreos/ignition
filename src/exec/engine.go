@@ -69,16 +69,20 @@ func (e Engine) Providers() []providers.Provider {
 // Run executes the configuration given by its providers. It returns true if
 // it successfully ran and false if there were any errors.
 func (e Engine) Run() bool {
-	config, err := fetchConfig(e.Providers(), e.FetchTimeout)
-	if err != nil {
+	cfg, err := fetchConfig(e.Providers(), e.FetchTimeout)
+	switch err {
+	case nil:
+		return storage{
+			logger:  &e.Logger,
+			DestDir: util.DestDir(e.Root),
+		}.Run(cfg)
+	case config.ErrCloudConfig, config.ErrScript:
+		e.Logger.Info("%v: ignoring and exiting...", err)
+		return true
+	default:
 		e.Logger.Crit("failed to acquire config: %v", err)
 		return false
 	}
-
-	return storage{
-		logger:  &e.Logger,
-		DestDir: util.DestDir(e.Root),
-	}.Run(config)
 }
 
 // fetchConfig returns the configuration from the first available provider or
