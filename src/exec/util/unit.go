@@ -57,16 +57,16 @@ func FileFromUnitDropin(unit config.SystemdUnit, dropin config.SystemdUnitDropIn
 	}
 }
 
-func (d *DestDir) MaskUnit(unit config.SystemdUnit) error {
-	path := d.JoinPath(SystemdUnitsPath(), string(unit.Name))
+func (u Util) MaskUnit(unit config.SystemdUnit) error {
+	path := u.JoinPath(SystemdUnitsPath(), string(unit.Name))
 	if err := mkdirForFile(path); err != nil {
 		return err
 	}
 	return os.Symlink("/dev/null", path)
 }
 
-func (d *DestDir) EnableUnit(unit config.SystemdUnit) error {
-	path := d.JoinPath(presetPath)
+func (u Util) EnableUnit(unit config.SystemdUnit) error {
+	path := u.JoinPath(presetPath)
 	if err := mkdirForFile(path); err != nil {
 		return err
 	}

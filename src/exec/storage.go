@@ -27,34 +27,32 @@ import (
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/exec/util"
-	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/sgdisk"
 	"github.com/coreos/ignition/src/systemd"
 )
 
 type storage struct {
-	logger *log.Logger
-	util.DestDir
+	util.Util
 }
 
 func (s storage) Run(config config.Config) bool {
 	if err := s.createPartitions(config); err != nil {
-		s.logger.Crit("create partitions failed: %v", err)
+		s.Logger.Crit("create partitions failed: %v", err)
 		return false
 	}
 
 	if err := s.createRaids(config); err != nil {
-		s.logger.Crit("failed to create raids: %v", err)
+		s.Logger.Crit("failed to create raids: %v", err)
 		return false
 	}
 
 	if err := s.createFilesystems(config); err != nil {
-		s.logger.Crit("failed to create filesystems: %v", err)
+		s.Logger.Crit("failed to create filesystems: %v", err)
 		return false
 	}
 
 	if err := s.createUnits(config); err != nil {
-		s.logger.Crit("failed to create units: %v", err)
+		s.Logger.Crit("failed to create units: %v", err)
 		return false
 	}
 
@@ -64,7 +62,7 @@ func (s storage) Run(config config.Config) bool {
 // waitOnDevices waits for the devices enumerated in devs as a logged operation
 // using ctxt for the logging and systemd unit identity.
 func (s storage) waitOnDevices(devs []string, ctxt string) error {
-	if err := s.logger.LogOp(
+	if err := s.Logger.LogOp(
 		func() error { return systemd.WaitOnDevices(devs, ctxt) },
 		"waiting for devices %v", devs,
 	); err != nil {
@@ -78,8 +76,8 @@ func (s storage) createPartitions(config config.Config) error {
 	if len(config.Storage.Disks) == 0 {
 		return nil
 	}
-	s.logger.PushPrefix("createPartitions")
-	defer s.logger.PopPrefix()
+	s.Logger.PushPrefix("createPartitions")
+	defer s.Logger.PopPrefix()
 
 	devs := []string{}
 	for _, disk := range config.Storage.Disks {
@@ -91,10 +89,10 @@ func (s storage) createPartitions(config config.Config) error {
 	}
 
 	for _, dev := range config.Storage.Disks {
-		err := s.logger.LogOp(func() error {
-			op := sgdisk.Begin(s.logger, string(dev.Device))
+		err := s.Logger.LogOp(func() error {
+			op := sgdisk.Begin(s.Logger, string(dev.Device))
 			if dev.WipeTable {
-				s.logger.Info("wiping partition table requested on %q", dev.Device)
+				s.Logger.Info("wiping partition table requested on %q", dev.Device)
 				op.WipeTable(true)
 			}
 
@@ -126,8 +124,8 @@ func (s storage) createRaids(config config.Config) error {
 	if len(config.Storage.Arrays) == 0 {
 		return nil
 	}
-	s.logger.PushPrefix("createRaids")
-	defer s.logger.PopPrefix()
+	s.Logger.PushPrefix("createRaids")
+	defer s.Logger.PopPrefix()
 
 	devs := []string{}
 	for _, array := range config.Storage.Arrays {
@@ -159,7 +157,7 @@ func (s storage) createRaids(config config.Config) error {
 			args = append(args, string(dev))
 		}
 
-		if err := s.logger.LogCmd(
+		if err := s.Logger.LogCmd(
 			exec.Command("/sbin/mdadm", args...),
 			"creating %q", md.Name,
 		); err != nil {
@@ -175,8 +173,8 @@ func (s storage) createFilesystems(config config.Config) error {
 	if len(config.Storage.Filesystems) == 0 {
 		return nil
 	}
-	s.logger.PushPrefix("createFilesystems")
-	defer s.logger.PopPrefix()
+	s.Logger.PushPrefix("createFilesystems")
+	defer s.Logger.PopPrefix()
 
 	devs := []string{}
 	for _, fs := range config.Storage.Filesystems {
@@ -203,7 +201,7 @@ func (s storage) createFilesystems(config config.Config) error {
 			}
 
 			args = append(args, string(fs.Device))
-			if err := s.logger.LogCmd(
+			if err := s.Logger.LogCmd(
 				exec.Command(mkfs, args...),
 				"creating %q filesystem on %q",
 				fs.Format, string(fs.Device),
@@ -225,8 +223,8 @@ func (s storage) createFiles(fs config.Filesystem) error {
 	if len(fs.Files) == 0 {
 		return nil
 	}
-	s.logger.PushPrefix("createFiles")
-	defer s.logger.PopPrefix()
+	s.Logger.PushPrefix("createFiles")
+	defer s.Logger.PopPrefix()
 
 	mnt, err := ioutil.TempDir("", "ignition-files")
 	if err != nil {
@@ -237,21 +235,24 @@ func (s storage) createFiles(fs config.Filesystem) error {
 	dev := string(fs.Device)
 	format := string(fs.Format)
 
-	if err := s.logger.LogOp(
+	if err := s.Logger.LogOp(
 		func() error { return syscall.Mount(dev, mnt, format, 0, "") },
 		"mounting %q at %q", dev, mnt,
 	); err != nil {
 		return fmt.Errorf("failed to mount device %q at %q: %v", dev, mnt, err)
 	}
-	defer s.logger.LogOp(
+	defer s.Logger.LogOp(
 		func() error { return syscall.Unmount(mnt, 0) },
 		"unmounting %q at %q", dev, mnt,
 	)
 
-	dest := util.DestDir(mnt)
+	u := util.Util{
+		Logger:  s.Logger,
+		DestDir: mnt,
+	}
 	for _, f := range fs.Files {
-		if err := s.logger.LogOp(
-			func() error { return dest.WriteFile(&f) },
+		if err := s.Logger.LogOp(
+			func() error { return u.WriteFile(&f) },
 			"writing file %q", string(f.Path),
 		); err != nil {
 			return fmt.Errorf("failed to create file %q: %v", f.Path, err)
@@ -268,7 +269,7 @@ func (s storage) createUnits(config config.Config) error {
 			return err
 		}
 		if unit.Enable {
-			if err := s.logger.LogOp(
+			if err := s.Logger.LogOp(
 				func() error { return s.EnableUnit(unit) },
 				"enabling unit %q", unit.Name,
 			); err != nil {
@@ -276,7 +277,7 @@ func (s storage) createUnits(config config.Config) error {
 			}
 		}
 		if unit.Mask {
-			if err := s.logger.LogOp(
+			if err := s.Logger.LogOp(
 				func() error { return s.MaskUnit(unit) },
 				"masking unit %q", unit.Name,
 			); err != nil {
@@ -296,14 +297,14 @@ func (s storage) createUnits(config config.Config) error {
 // If the contents of the unit or are empty, the unit is not created. The same
 // applies to the unit's dropins.
 func (s storage) writeSystemdUnit(unit config.SystemdUnit) error {
-	return s.logger.LogOp(func() error {
+	return s.Logger.LogOp(func() error {
 		for _, dropin := range unit.DropIns {
 			if dropin.Contents == "" {
 				continue
 			}
 
 			f := util.FileFromUnitDropin(unit, dropin)
-			if err := s.logger.LogOp(
+			if err := s.Logger.LogOp(
 				func() error { return s.WriteFile(f) },
 				"writing dropin %q at %q", dropin.Name, f.Path,
 			); err != nil {
@@ -316,7 +317,7 @@ func (s storage) writeSystemdUnit(unit config.SystemdUnit) error {
 		}
 
 		f := util.FileFromSystemdUnit(unit)
-		if err := s.logger.LogOp(
+		if err := s.Logger.LogOp(
 			func() error { return s.WriteFile(f) },
 			"writing unit %q at %q", unit.Name, f.Path,
 		); err != nil {
@@ -330,13 +331,13 @@ func (s storage) writeSystemdUnit(unit config.SystemdUnit) error {
 // writeNetworkdUnit creates the specified unit. If the contents of the unit or
 // are empty, the unit is not created.
 func (s storage) writeNetworkdUnit(unit config.NetworkdUnit) error {
-	return s.logger.LogOp(func() error {
+	return s.Logger.LogOp(func() error {
 		if unit.Contents == "" {
 			return nil
 		}
 
 		f := util.FileFromNetworkdUnit(unit)
-		if err := s.logger.LogOp(
+		if err := s.Logger.LogOp(
 			func() error { return s.WriteFile(f) },
 			"writing unit %q at %q", unit.Name, f.Path,
 		); err != nil {
