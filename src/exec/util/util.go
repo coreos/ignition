@@ -16,13 +16,17 @@ package util
 
 import (
 	"path/filepath"
+
+	"github.com/coreos/ignition/src/log"
 )
 
-// DestDir is used to influence the creation of files and directories
-// This path is applied at the point of interfacing with the filesystem.
-type DestDir string // directory prefix to use in applying fs paths
+// Util encapsulates logging and destdir indirection for the util methods.
+type Util struct {
+	DestDir string // directory prefix to use in applying fs paths.
+	*log.Logger
+}
 
-// JoinPath returns a path into the context ala filepath.Join(d.root, args)
-func (d *DestDir) JoinPath(path ...string) string {
-	return filepath.Join(string(*d), filepath.Join(path...))
+// JoinPath returns a path into the context ala filepath.Join(d, args)
+func (u Util) JoinPath(path ...string) string {
+	return filepath.Join(u.DestDir, filepath.Join(path...))
 }

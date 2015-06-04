@@ -28,10 +28,10 @@ const (
 )
 
 // WriteFile creates and writes the file described by f using the provided context
-func (d *DestDir) WriteFile(f *config.File) error {
+func (u Util) WriteFile(f *config.File) error {
 	var err error
 
-	path := d.JoinPath(f.Path)
+	path := u.JoinPath(f.Path)
 
 	if err := mkdirForFile(path); err != nil {
 		return err
