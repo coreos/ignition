@@ -33,7 +33,7 @@ func TestParse(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{config: []byte(`{"version": 1}`)},
+			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
 			out: out{config: Config{Version: 1}},
 		},
 		{

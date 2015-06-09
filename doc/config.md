@@ -1,7 +1,7 @@
 This is a brain dump of a configuration file.
 
 ```yaml
-version: 1
+ignition version: 1
 
 storage:
   disks:

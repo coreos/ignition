@@ -37,7 +37,7 @@ following section.
 
 ### Specification ###
 
-- **version** (integer): the version number of the spec. Must be `1`.
+- **ignitionVersion** (integer): the version number of the spec. Must be `1`.
 - **storage** (object): describes the desired state of the system's storage
                         devices.
   - **disks** (list of objects): the list of disks to be configured and their
