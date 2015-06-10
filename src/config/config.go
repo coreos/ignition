@@ -20,7 +20,7 @@ import (
 )
 
 type Config struct {
-	Version  int      `json:"version"            yaml:"version"`
+	Version  int      `json:"ignitionVersion"    yaml:"ignition version"`
 	Storage  Storage  `json:"storage,omitempty"  yaml:"storage"`
 	Systemd  Systemd  `json:"systemd,omitempty"  yaml:"systemd"`
 	Networkd Networkd `json:"networkd,omitempty" yaml:"networkd"`

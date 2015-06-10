@@ -20,9 +20,9 @@ import (
 )
 
 type Disk struct {
-	Device     DevicePath  `json:"device,omitempty"       yaml:"device"`
-	WipeTable  bool        `json:"wipe-table,omitempty"   yaml:"wipe-table"`
-	Partitions []Partition `json:"partitions,omitempty"   yaml:"partitions"`
+	Device     DevicePath  `json:"device,omitempty"     yaml:"device"`
+	WipeTable  bool        `json:"wipeTable,omitempty"  yaml:"wipe table"`
+	Partitions []Partition `json:"partitions,omitempty" yaml:"partitions"`
 }
 
 func (n *Disk) UnmarshalYAML(unmarshal func(interface{}) error) error {
