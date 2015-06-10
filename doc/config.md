@@ -6,21 +6,21 @@ ignition version: 1
 storage:
   disks:
     - device: "/dev/sda"
-      wipe-table: true
+      wipe table: true
       partitions:
         - label: "raid.1.1"
           number: 1
-          type-guid: "EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"
+          type guid: "EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"
           start: 1MiB
           size: 10GiB
     - device: "/dev/sdb"
-      wipe-table: true
+      wipe table: true
       partitions:
         - label: "raid.1.2"
           number: 1
           size: 10GiB
     - device: "/dev/sdc"
-      wipe-table: true
+      wipe table: true
       partitions:
         - label: "raid.1.3"
           number: 1
@@ -110,16 +110,16 @@ networkd:
 passwd:
  users:
   - name: foouser
-    primary_group: foouser
+    primary group: foouser
     groups: foogroup
     gecos: "Foo Bar"
     homedir: "/home/abc"
     shell: "/bin/zsh"
-    no_create_home: false
-    no_user_group: false
+    no create home: false
+    no user group: false
     system: false
-    no_log_init: false
-    ssh_authorized_keys:
+    no log init: false
+    ssh authorized keys:
      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEtomdD5MpmzEvLILIyn6l/TTrVOc2iRkeEgBjNEEFujkCOVMQrP7TFln+E2Ve0m5ngP+sImhYItpMpHOwRlBjUhFCzTZF8QJwUKyg2A59TV2uFEetosms7z4aW8lgQgm4m1ovi3G2R6BG3h01ogm3PC5YaAAkEbr0V0BxVN0rsTrq/dRNs2drLNw4giqJ5mBwzqXmepp7orJifyiKBueDQYsO367V7v9H797p3WmnFlg+T3LYiYfUQCkpxj/X+NYGbQBqsk5EXqAt/mi056HWu4esVJNwcIeiTdAWJ8/naKMAeEYoc8fJzbQ4rzIawRdAUk/QjxhVBbC4BxpGbsxr foouser@host"
 
  groups:

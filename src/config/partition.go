@@ -23,11 +23,11 @@ import (
 )
 
 type Partition struct {
-	Label    PartitionLabel     `json:"label,omitempty"     yaml:"label"`
-	Number   int                `json:"number"              yaml:"number"`
-	Size     PartitionDimension `json:"size"                yaml:"size"`
-	Start    PartitionDimension `json:"start"               yaml:"start"`
-	TypeGUID PartitionTypeGUID  `json:"type-guid,omitempty" yaml:"type-guid"`
+	Label    PartitionLabel     `json:"label,omitempty"    yaml:"label"`
+	Number   int                `json:"number"             yaml:"number"`
+	Size     PartitionDimension `json:"size"               yaml:"size"`
+	Start    PartitionDimension `json:"start"              yaml:"start"`
+	TypeGUID PartitionTypeGUID  `json:"typeGuid,omitempty" yaml:"type guid"`
 }
 
 type PartitionLabel string
