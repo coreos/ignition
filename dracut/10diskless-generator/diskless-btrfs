@@ -11,10 +11,8 @@ else
 fi
 
 SIZE_KB=$(( MEM_KB / 2 ))
-FLAGS="loop,compress=lzo,discard${1:+,$1}"
 
 truncate --size="${SIZE_KB}k" /root.btrfs
 mkfs.btrfs --data single --metadata single --mixed /root.btrfs
-mount -t btrfs -o "$FLAGS" /root.btrfs /sysroot
 # Disable whatever default size limit rootfs has
 mount -o remount,size=0 /
