@@ -1,12 +1,12 @@
 This is a brain dump of a configuration file.
 
 ```yaml
-ignition version: 1
+ignition_version: 1
 
 storage:
   disks:
     - device: "/dev/sda"
-      wipe table: true
+      wipe_table: true
       partitions:
         - label: "raid.1.1"
           number: 1
@@ -14,13 +14,13 @@ storage:
           start: 1MiB
           size: 10GiB
     - device: "/dev/sdb"
-      wipe table: true
+      wipe_table: true
       partitions:
         - label: "raid.1.2"
           number: 1
           size: 10GiB
     - device: "/dev/sdc"
-      wipe table: true
+      wipe_table: true
       partitions:
         - label: "raid.1.3"
           number: 1
@@ -39,7 +39,7 @@ storage:
     - device: "/dev/disk/by-partlabel/ROOT" # switch coreos' ext4 root to btrfs
       format: btrfs
       initialize: true
-      format-options:
+      options:
         - "--force"
         - "--label=ROOT"
       files:
@@ -78,7 +78,7 @@ systemd:
         ExecStart=/home/core/bin/find-ip4.sh enp0s8 /run/environment COREOS_PUBLIC_IPV4
     - name: etcd.service
       enable: true
-      drop-ins:
+      dropins:
         - name: install.conf
           content: |
            [Unit]
@@ -115,11 +115,11 @@ passwd:
     gecos: "Foo Bar"
     homedir: "/home/abc"
     shell: "/bin/zsh"
-    no create home: false
-    no user group: false
+    no_create_home: false
+    no_user_group: false
     system: false
-    no log init: false
-    ssh authorized keys:
+    no_log_init: false
+    ssh_authorized_keys:
      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEtomdD5MpmzEvLILIyn6l/TTrVOc2iRkeEgBjNEEFujkCOVMQrP7TFln+E2Ve0m5ngP+sImhYItpMpHOwRlBjUhFCzTZF8QJwUKyg2A59TV2uFEetosms7z4aW8lgQgm4m1ovi3G2R6BG3h01ogm3PC5YaAAkEbr0V0BxVN0rsTrq/dRNs2drLNw4giqJ5mBwzqXmepp7orJifyiKBueDQYsO367V7v9H797p3WmnFlg+T3LYiYfUQCkpxj/X+NYGbQBqsk5EXqAt/mi056HWu4esVJNwcIeiTdAWJ8/naKMAeEYoc8fJzbQ4rzIawRdAUk/QjxhVBbC4BxpGbsxr foouser@host"
 
  groups:

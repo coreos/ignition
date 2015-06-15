@@ -27,7 +27,7 @@ type Partition struct {
 	Number   int                `json:"number"             yaml:"number"`
 	Size     PartitionDimension `json:"size"               yaml:"size"`
 	Start    PartitionDimension `json:"start"              yaml:"start"`
-	TypeGUID PartitionTypeGUID  `json:"typeGuid,omitempty" yaml:"type guid"`
+	TypeGUID PartitionTypeGUID  `json:"typeGuid,omitempty" yaml:"type_guid"`
 }
 
 type PartitionLabel string
