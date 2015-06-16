@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"sort"
 	"sync"
 	"time"
 
@@ -26,6 +25,7 @@ import (
 	"github.com/coreos/ignition/src/exec/stages"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
+	"github.com/coreos/ignition/src/registry"
 )
 
 const (
@@ -43,28 +43,30 @@ type Engine struct {
 	FetchTimeout time.Duration
 	Logger       log.Logger
 	Root         string
-	providers    map[string]providers.Provider
+	providers    *registry.Registry
+}
+
+func (e Engine) Init() Engine {
+	e.providers = registry.Create("engine.providers")
+	return e
 }
 
 // AddProvider registers a configuration provider with the engine.
 func (e *Engine) AddProvider(provider providers.Provider) {
-	if e.providers == nil {
-		e.providers = map[string]providers.Provider{}
-	}
-	e.providers[provider.Name()] = provider
+	e.providers.Register(provider)
+}
+
+// GetProvider returns the specified provider.
+func (e Engine) GetProvider(name string) providers.Provider {
+	return e.providers.Get(name).(providers.Provider)
 }
 
 // Providers returns a list of the registered providers in alphabetical order.
 func (e Engine) Providers() []providers.Provider {
-	keys := []string{}
-	for key := range e.providers {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-
-	providers := make([]providers.Provider, 0, len(e.providers))
-	for _, key := range keys {
-		providers = append(providers, e.providers[key])
+	names := e.providers.Names()
+	providers := make([]providers.Provider, 0, len(names))
+	for _, name := range names {
+		providers = append(providers, e.GetProvider(name))
 	}
 	return providers
 }

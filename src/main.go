@@ -90,7 +90,7 @@ func main() {
 		FetchTimeout: flags.fetchTimeout,
 		Logger:       logger,
 		ConfigCache:  flags.configCache,
-	}
+	}.Init()
 	for _, name := range flags.providers {
 		engine.AddProvider(providers.Get(name).Create(logger))
 	}

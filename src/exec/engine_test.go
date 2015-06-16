@@ -22,6 +22,7 @@ import (
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/providers"
+	"github.com/coreos/ignition/src/registry"
 )
 
 type mockProvider struct {
@@ -39,13 +40,21 @@ func (p mockProvider) IsOnline() bool                      { return p.online }
 func (p mockProvider) ShouldRetry() bool                   { return p.retry }
 func (p mockProvider) BackoffDuration() time.Duration      { return p.backoff }
 
+func registryFromList(name string, registrants []registry.Registrant) *registry.Registry {
+	registry := registry.Create(name)
+	for _, registrant := range registrants {
+		registry.Register(registrant)
+	}
+	return registry
+}
+
 func TestAddProvider(t *testing.T) {
 	type in struct {
 		engine    Engine
 		providers []providers.Provider
 	}
 	type out struct {
-		providers map[string]providers.Provider
+		providers *registry.Registry
 	}
 
 	a := mockProvider{name: "a"}
@@ -56,24 +65,16 @@ func TestAddProvider(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{engine: Engine{}, providers: nil},
-			out: out{providers: nil},
+			in:  in{engine: Engine{}.Init(), providers: nil},
+			out: out{providers: registryFromList("engine.providers", []registry.Registrant{})},
 		},
 		{
-			in:  in{engine: Engine{}, providers: []providers.Provider{a}},
-			out: out{providers: map[string]providers.Provider{"a": a}},
+			in:  in{engine: Engine{}.Init(), providers: []providers.Provider{a}},
+			out: out{providers: registryFromList("engine.providers", []registry.Registrant{a})},
 		},
 		{
-			in:  in{engine: Engine{}, providers: []providers.Provider{a, b}},
-			out: out{providers: map[string]providers.Provider{"a": a, "b": b}},
-		},
-		{
-			in:  in{engine: Engine{}, providers: []providers.Provider{a, a}},
-			out: out{providers: map[string]providers.Provider{"a": a}},
-		},
-		{
-			in:  in{engine: Engine{}, providers: []providers.Provider{a, b, a}},
-			out: out{providers: map[string]providers.Provider{"a": a, "b": b}},
+			in:  in{engine: Engine{}.Init(), providers: []providers.Provider{a, b}},
+			out: out{providers: registryFromList("engine.providers", []registry.Registrant{a, b})},
 		},
 	}
 
@@ -103,15 +104,21 @@ func TestProviders(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{engine: Engine{}},
+			in: in{engine: Engine{
+				providers: registryFromList("engine.providers", []registry.Registrant{}),
+			}},
 			out: out{providers: []providers.Provider{}},
 		},
 		{
-			in:  in{engine: Engine{providers: map[string]providers.Provider{"a": a}}},
+			in: in{engine: Engine{
+				providers: registryFromList("engine.providers", []registry.Registrant{a}),
+			}},
 			out: out{providers: []providers.Provider{a}},
 		},
 		{
-			in:  in{engine: Engine{providers: map[string]providers.Provider{"a": a, "b": b}}},
+			in: in{engine: Engine{
+				providers: registryFromList("engine.providers", []registry.Registrant{a, b}),
+			}},
 			out: out{providers: []providers.Provider{a, b}},
 		},
 	}
