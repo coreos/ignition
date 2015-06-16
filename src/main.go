@@ -22,6 +22,7 @@ import (
 
 	"github.com/coreos/ignition/src/exec"
 	"github.com/coreos/ignition/src/exec/stages"
+	_ "github.com/coreos/ignition/src/exec/stages/prepivot"
 	_ "github.com/coreos/ignition/src/exec/stages/storage"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/oem"

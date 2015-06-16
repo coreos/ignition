@@ -79,11 +79,6 @@ func (s stage) Run(config config.Config) bool {
 		return false
 	}
 
-	if err := s.createUnits(config); err != nil {
-		s.Logger.Crit("failed to create units: %v", err)
-		return false
-	}
-
 	return true
 }
 
@@ -288,90 +283,4 @@ func (s stage) createFiles(fs config.Filesystem) error {
 	}
 
 	return nil
-}
-
-// createUnits creates the units listed under systemd.units and networkd.units.
-func (s stage) createUnits(config config.Config) error {
-	for _, unit := range config.Systemd.Units {
-		if err := s.writeSystemdUnit(unit); err != nil {
-			return err
-		}
-		if unit.Enable {
-			if err := s.Logger.LogOp(
-				func() error { return s.EnableUnit(unit) },
-				"enabling unit %q", unit.Name,
-			); err != nil {
-				return err
-			}
-		}
-		if unit.Mask {
-			if err := s.Logger.LogOp(
-				func() error { return s.MaskUnit(unit) },
-				"masking unit %q", unit.Name,
-			); err != nil {
-				return err
-			}
-		}
-	}
-	for _, unit := range config.Networkd.Units {
-		if err := s.writeNetworkdUnit(unit); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// writeSystemdUnit creates the specified unit and any dropins for that unit.
-// If the contents of the unit or are empty, the unit is not created. The same
-// applies to the unit's dropins.
-func (s stage) writeSystemdUnit(unit config.SystemdUnit) error {
-	return s.Logger.LogOp(func() error {
-		for _, dropin := range unit.DropIns {
-			if dropin.Contents == "" {
-				continue
-			}
-
-			f := util.FileFromUnitDropin(unit, dropin)
-			if err := s.Logger.LogOp(
-				func() error { return s.WriteFile(f) },
-				"writing dropin %q at %q", dropin.Name, f.Path,
-			); err != nil {
-				return err
-			}
-		}
-
-		if unit.Contents == "" {
-			return nil
-		}
-
-		f := util.FileFromSystemdUnit(unit)
-		if err := s.Logger.LogOp(
-			func() error { return s.WriteFile(f) },
-			"writing unit %q at %q", unit.Name, f.Path,
-		); err != nil {
-			return err
-		}
-
-		return nil
-	}, "writing unit %q", unit.Name)
-}
-
-// writeNetworkdUnit creates the specified unit. If the contents of the unit or
-// are empty, the unit is not created.
-func (s stage) writeNetworkdUnit(unit config.NetworkdUnit) error {
-	return s.Logger.LogOp(func() error {
-		if unit.Contents == "" {
-			return nil
-		}
-
-		f := util.FileFromNetworkdUnit(unit)
-		if err := s.Logger.LogOp(
-			func() error { return s.WriteFile(f) },
-			"writing unit %q at %q", unit.Name, f.Path,
-		); err != nil {
-			return err
-		}
-
-		return nil
-	}, "writing unit %q", unit.Name)
 }
