@@ -21,6 +21,8 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/src/exec"
+	"github.com/coreos/ignition/src/exec/stages"
+	_ "github.com/coreos/ignition/src/exec/stages/storage"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/oem"
 	"github.com/coreos/ignition/src/providers"
@@ -42,6 +44,7 @@ func main() {
 		oem          oem.Name
 		providers    providers.List
 		root         string
+		stage        stages.Name
 		version      bool
 	}{}
 
@@ -51,6 +54,7 @@ func main() {
 	flag.Var(&flags.oem, "oem", fmt.Sprintf("current oem. %v", oem.Names()))
 	flag.Var(&flags.providers, "provider", fmt.Sprintf("provider of config. can be specified multiple times. %v", providers.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
+	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
 
 	flag.Parse()
@@ -64,6 +68,11 @@ func main() {
 	if flags.version {
 		fmt.Printf("ignition %s\n", versionString)
 		return
+	}
+
+	if flags.stage == "" {
+		fmt.Fprint(os.Stderr, "'--stage' must be provided\n")
+		os.Exit(2)
 	}
 
 	logger := log.New()
@@ -85,7 +94,7 @@ func main() {
 		engine.AddProvider(providers.Get(name).Create(logger))
 	}
 
-	if !engine.Run() {
+	if !engine.Run(flags.stage.String()) {
 		os.Exit(1)
 	}
 }

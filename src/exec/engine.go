@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/src/exec/util"
+	"github.com/coreos/ignition/src/exec/stages"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
 )
@@ -69,18 +69,15 @@ func (e Engine) Providers() []providers.Provider {
 	return providers
 }
 
-// Run executes the configuration given by its providers. It returns true if
-// it successfully ran and false if there were any errors.
-func (e Engine) Run() bool {
+// Run executes the stage of the given name. It returns true if the stage
+// successfully ran and false if there were any errors.
+func (e Engine) Run(stageName string) bool {
 	cfg, err := e.acquireConfig()
 	switch err {
 	case nil:
-		return storage{
-			util.Util{
-				Logger:  &e.Logger,
-				DestDir: e.Root,
-			},
-		}.Run(cfg)
+		e.Logger.PushPrefix(stageName)
+		defer e.Logger.PopPrefix()
+		return stages.Get(stageName).Create(&e.Logger, e.Root).Run(cfg)
 	case config.ErrCloudConfig, config.ErrScript:
 		e.Logger.Info("%v: ignoring and exiting...", err)
 		return true
