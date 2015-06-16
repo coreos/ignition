@@ -15,15 +15,17 @@
 package exec
 
 import (
+	"encoding/json"
 	"errors"
-	"sort"
+	"io/ioutil"
 	"sync"
 	"time"
 
 	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/src/exec/util"
+	"github.com/coreos/ignition/src/exec/stages"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
+	"github.com/coreos/ignition/src/registry"
 )
 
 const (
@@ -37,47 +39,47 @@ var (
 
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
+	ConfigCache  string
 	FetchTimeout time.Duration
 	Logger       log.Logger
 	Root         string
-	providers    map[string]providers.Provider
+	providers    *registry.Registry
+}
+
+func (e Engine) Init() Engine {
+	e.providers = registry.Create("engine.providers")
+	return e
 }
 
 // AddProvider registers a configuration provider with the engine.
 func (e *Engine) AddProvider(provider providers.Provider) {
-	if e.providers == nil {
-		e.providers = map[string]providers.Provider{}
-	}
-	e.providers[provider.Name()] = provider
+	e.providers.Register(provider)
+}
+
+// GetProvider returns the specified provider.
+func (e Engine) GetProvider(name string) providers.Provider {
+	return e.providers.Get(name).(providers.Provider)
 }
 
 // Providers returns a list of the registered providers in alphabetical order.
 func (e Engine) Providers() []providers.Provider {
-	keys := []string{}
-	for key := range e.providers {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-
-	providers := make([]providers.Provider, 0, len(e.providers))
-	for _, key := range keys {
-		providers = append(providers, e.providers[key])
+	names := e.providers.Names()
+	providers := make([]providers.Provider, 0, len(names))
+	for _, name := range names {
+		providers = append(providers, e.GetProvider(name))
 	}
 	return providers
 }
 
-// Run executes the configuration given by its providers. It returns true if
-// it successfully ran and false if there were any errors.
-func (e Engine) Run() bool {
-	cfg, err := fetchConfig(e.Providers(), e.FetchTimeout)
+// Run executes the stage of the given name. It returns true if the stage
+// successfully ran and false if there were any errors.
+func (e Engine) Run(stageName string) bool {
+	cfg, err := e.acquireConfig()
 	switch err {
 	case nil:
-		return storage{
-			util.Util{
-				Logger:  &e.Logger,
-				DestDir: e.Root,
-			},
-		}.Run(cfg)
+		e.Logger.PushPrefix(stageName)
+		defer e.Logger.PopPrefix()
+		return stages.Get(stageName).Create(&e.Logger, e.Root).Run(cfg)
 	case config.ErrCloudConfig, config.ErrScript:
 		e.Logger.Info("%v: ignoring and exiting...", err)
 		return true
@@ -85,6 +87,40 @@ func (e Engine) Run() bool {
 		e.Logger.Crit("failed to acquire config: %v", err)
 		return false
 	}
+}
+
+// acquireConfig returns the configuration, first checking a local cache
+// before attempting to fetch it from the registered providers.
+func (e Engine) acquireConfig() (cfg config.Config, err error) {
+	// First try read the config @ e.ConfigCache.
+	b, err := ioutil.ReadFile(e.ConfigCache)
+	if err == nil {
+		if err = json.Unmarshal(b, &cfg); err != nil {
+			e.Logger.Crit("failed to parse cached config: %v", err)
+		}
+		return
+	}
+
+	// (Re)Fetch the config if the cache is unreadable.
+	cfg, err = fetchConfig(e.Providers(), e.FetchTimeout)
+	if err != nil {
+		e.Logger.Crit("failed to fetch config: %v", err)
+		return
+	}
+	e.Logger.Debug("fetched config: %+v", cfg)
+
+	// Populate the config cache.
+	b, err = json.Marshal(cfg)
+	if err != nil {
+		e.Logger.Crit("failed to marshal cached config: %v", err)
+		return
+	}
+	if err = ioutil.WriteFile(e.ConfigCache, b, 0640); err != nil {
+		e.Logger.Crit("failed to write cached config: %v", err)
+		return
+	}
+
+	return
 }
 
 // fetchConfig returns the configuration from the first available provider or

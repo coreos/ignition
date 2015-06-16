@@ -4,6 +4,9 @@ PACKAGES = \
     src \
     src/config \
     src/exec \
+    src/exec/stages \
+    src/exec/stages/prepivot \
+    src/exec/stages/storage \
     src/exec/util \
     src/providers \
     src/providers/cmdline \
