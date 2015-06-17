@@ -30,7 +30,7 @@ import (
 	_ "github.com/coreos/ignition/src/providers/cmdline"
 	_ "github.com/coreos/ignition/src/providers/file"
 
-	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/coreos/go-semver/semver"
+	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
 )
 
 const versionString = "0.0.0+git"
