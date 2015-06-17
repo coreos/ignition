@@ -17,8 +17,8 @@ package systemd
 import (
 	"fmt"
 
-	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/coreos/go-systemd/dbus"
-	"github.com/coreos/ignition/Godeps/_workspace/src/github.com/coreos/go-systemd/unit"
+	"github.com/coreos/ignition/third_party/github.com/coreos/go-systemd/dbus"
+	"github.com/coreos/ignition/third_party/github.com/coreos/go-systemd/unit"
 )
 
 // WaitOnDevices waits for the devices named in devs to be plugged before returning.
