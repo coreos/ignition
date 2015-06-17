@@ -21,6 +21,8 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/config"
+
+	keys "github.com/coreos/ignition/third_party/github.com/coreos/update-ssh-keys/authorized_keys_d"
 )
 
 // CreateUser creates the user as described.
@@ -93,7 +95,28 @@ func (u Util) AuthorizeSSHKeys(c config.User) error {
 		return nil
 	}
 
-	// TODO(vc): add the keys to the user
+	usr, err := u.userLookup(c.Name)
+	if err != nil {
+		return fmt.Errorf("unable to lookup user %q", c.Name)
+	}
+
+	akd, err := keys.Open(usr, true)
+	if err != nil {
+		return err
+	}
+	defer akd.Close()
+
+	// TODO(vc): introduce key names to config?
+	// TODO(vc): validate c.SSHAuthorizedKeys well-formedness.
+	kb := []byte(strings.Join(c.SSHAuthorizedKeys, "\n"))
+	if err := akd.Add("coreos-ignition", kb, true, true); err != nil {
+		return err
+	}
+
+	if err := akd.Sync(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
