@@ -1,0 +1,9 @@
+# If you manipulate the contents of third_party/, amend this accordingly.
+# pkg					version
+github.com/alecthomas/units		6b4e7dc5e3143b85ea77909c72caf89416fc2915
+github.com/coreos/go-semver/semver	568e959cd89871e61434c1143528d9162da89ef2
+github.com/coreos/go-systemd/dbus	2688e91251d9d8e404e86dd8f096e23b2f086958
+github.com/coreos/go-systemd/unit	2688e91251d9d8e404e86dd8f096e23b2f086958
+github.com/godbus/dbus			41608027bdce7bfa8959d653a00b954591220e67
+github.com/go-yaml/yaml			49c95bdc21843256fb6c4e0d370a05f24a0bf213
+speter.net/go/exp/math/dec/inf		42ca6cd68aa922bc3f32f1e056e61b65945d9ad7
