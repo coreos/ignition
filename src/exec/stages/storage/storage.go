@@ -60,7 +60,6 @@ func (stage) Name() string {
 }
 
 func (s stage) Run(config config.Config) bool {
-
 	if err := s.createPartitions(config); err != nil {
 		s.Logger.Crit("create partitions failed: %v", err)
 		return false
