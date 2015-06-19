@@ -15,6 +15,11 @@
 package prepivot
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"syscall"
+
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/exec/stages"
 	"github.com/coreos/ignition/src/exec/util"
@@ -51,6 +56,16 @@ func (stage) Name() string {
 }
 
 func (s stage) Run(config config.Config) bool {
+	if err := s.createPasswd(config); err != nil {
+		s.Logger.Crit("failed to create users/groups: %v", err)
+		return false
+	}
+
+	if err := s.createFilesystemsFiles(config); err != nil {
+		s.Logger.Crit("failed to create files: %v", err)
+		return false
+	}
+
 	if err := s.createUnits(config); err != nil {
 		s.Logger.Crit("failed to create units: %v", err)
 		return false
@@ -142,4 +157,124 @@ func (s stage) writeNetworkdUnit(unit config.NetworkdUnit) error {
 
 		return nil
 	}, "writing unit %q", unit.Name)
+}
+
+// createPasswd creates the users and groups as described in config.Passwd.
+func (s stage) createPasswd(config config.Config) error {
+	if err := s.createGroups(config); err != nil {
+		return fmt.Errorf("failed to create groups: %v", err)
+	}
+
+	if err := s.createUsers(config); err != nil {
+		return fmt.Errorf("failed to create users: %v", err)
+	}
+
+	return nil
+}
+
+// createUsers creates the users as described in config.Passwd.Users.
+func (s stage) createUsers(config config.Config) error {
+	if len(config.Passwd.Users) == 0 {
+		return nil
+	}
+	s.Logger.PushPrefix("createUsers")
+	defer s.Logger.PopPrefix()
+
+	for _, u := range config.Passwd.Users {
+		if err := s.CreateUser(u); err != nil {
+			return fmt.Errorf("failed to create user %q: %v",
+				u.Name, err)
+		}
+
+		if err := s.SetPasswordHash(u); err != nil {
+			return fmt.Errorf("failed to set password for %q: %v",
+				u.Name, err)
+		}
+
+		if err := s.AuthorizeSSHKeys(u); err != nil {
+			return fmt.Errorf("failed to add keys to user %q: %v",
+				u.Name, err)
+		}
+	}
+
+	return nil
+}
+
+// createGroups creates the users as described in config.Passwd.Groups.
+func (s stage) createGroups(config config.Config) error {
+	if len(config.Passwd.Groups) == 0 {
+		return nil
+	}
+	s.Logger.PushPrefix("createGroups")
+	defer s.Logger.PopPrefix()
+
+	for _, g := range config.Passwd.Groups {
+		if err := s.CreateGroup(g); err != nil {
+			return fmt.Errorf("failed to create group %q: %v",
+				g.Name, err)
+		}
+	}
+
+	return nil
+}
+
+// createFilesystemsFiles creates the files described in config.Storage.Filesystems.
+func (s stage) createFilesystemsFiles(config config.Config) error {
+	if len(config.Storage.Filesystems) == 0 {
+		return nil
+	}
+	s.Logger.PushPrefix("createFilesystemsFiles")
+	defer s.Logger.PopPrefix()
+
+	for _, fs := range config.Storage.Filesystems {
+		if err := s.createFiles(fs); err != nil {
+			return fmt.Errorf("failed to create files %q: %v", fs.Device, err)
+		}
+	}
+
+	return nil
+}
+
+// createFiles creates any files listed for the filesystem in fs.Files.
+func (s stage) createFiles(fs config.Filesystem) error {
+	if len(fs.Files) == 0 {
+		return nil
+	}
+	s.Logger.PushPrefix("createFiles")
+	defer s.Logger.PopPrefix()
+
+	mnt, err := ioutil.TempDir("", "ignition-files")
+	if err != nil {
+		return fmt.Errorf("failed to create temp directory: %v", err)
+	}
+	defer os.Remove(mnt)
+
+	dev := string(fs.Device)
+	format := string(fs.Format)
+
+	if err := s.Logger.LogOp(
+		func() error { return syscall.Mount(dev, mnt, format, 0, "") },
+		"mounting %q at %q", dev, mnt,
+	); err != nil {
+		return fmt.Errorf("failed to mount device %q at %q: %v", dev, mnt, err)
+	}
+	defer s.Logger.LogOp(
+		func() error { return syscall.Unmount(mnt, 0) },
+		"unmounting %q at %q", dev, mnt,
+	)
+
+	u := util.Util{
+		Logger:  s.Logger,
+		DestDir: mnt,
+	}
+	for _, f := range fs.Files {
+		if err := s.Logger.LogOp(
+			func() error { return u.WriteFile(&f) },
+			"writing file %q", string(f.Path),
+		); err != nil {
+			return fmt.Errorf("failed to create file %q: %v", f.Path, err)
+		}
+	}
+
+	return nil
 }

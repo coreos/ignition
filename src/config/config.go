@@ -24,6 +24,7 @@ type Config struct {
 	Storage  Storage  `json:"storage,omitempty"  yaml:"storage"`
 	Systemd  Systemd  `json:"systemd,omitempty"  yaml:"systemd"`
 	Networkd Networkd `json:"networkd,omitempty" yaml:"networkd"`
+	Passwd   Passwd   `json:"passwd,omitempty"   yaml:"passwd"`
 }
 
 const (
