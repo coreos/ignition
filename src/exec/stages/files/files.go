@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	name = "prepivot"
+	name = "files"
 )
 
 func init() {

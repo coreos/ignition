@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	name = "storage"
+	name = "disks"
 )
 
 func init() {
