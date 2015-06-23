@@ -25,11 +25,15 @@ var (
 )
 
 type Filesystem struct {
-	Device     DevicePath       `json:"device,omitempty"     yaml:"device"`
-	Initialize bool             `json:"initialize,omitempty" yaml:"initialize"`
-	Format     FilesystemFormat `json:"format,omitempty"     yaml:"format"`
-	Options    MkfsOptions      `json:"options,omitempty"    yaml:"options"`
-	Files      []File           `json:"files,omitempty"      yaml:"files"`
+	Device DevicePath        `json:"device,omitempty" yaml:"device"`
+	Format FilesystemFormat  `json:"format,omitempty" yaml:"format"`
+	Create *FilesystemCreate `json:"create,omitempty" yaml:"create"`
+	Files  []File            `json:"files,omitempty"  yaml:"files"`
+}
+
+type FilesystemCreate struct {
+	Force   bool        `json:"force,omitempty"   yaml:"force"`
+	Options MkfsOptions `json:"options,omitempty" yaml:"options"`
 }
 
 type FilesystemFormat string
