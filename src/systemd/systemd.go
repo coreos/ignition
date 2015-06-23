@@ -23,7 +23,7 @@ import (
 
 // WaitOnDevices waits for the devices named in devs to be plugged before returning.
 func WaitOnDevices(devs []string, stage string) error {
-	conn, err := dbus.New()
+	conn, err := dbus.NewSystemdConnection()
 	if err != nil {
 		return err
 	}
