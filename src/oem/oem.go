@@ -41,6 +41,13 @@ func init() {
 			"provider": "cmdline",
 		},
 	})
+
+	configs.Register(Config{
+		name: "ec2",
+		flags: map[string]string{
+			"provider": "ec2",
+		},
+	})
 }
 
 func Get(name string) (config Config, ok bool) {
