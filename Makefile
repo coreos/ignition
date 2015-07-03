@@ -10,6 +10,8 @@ PACKAGES = \
     src/exec/util \
     src/providers \
     src/providers/cmdline \
+    src/providers/ec2 \
+    src/providers/file \
     src/providers/util \
     src/registry \
 
