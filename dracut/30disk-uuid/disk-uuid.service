@@ -1,0 +1,9 @@
+[Unit]
+Description=Generate new UUID for disk GPT
+DefaultDepedencies=no
+Requires=ignition.target
+After=ignition.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/sgdisk --disk-guid=R /dev/disk/by-diskuuid/00000000-0000-0000-0000-000000000001
