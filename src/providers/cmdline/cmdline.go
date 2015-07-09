@@ -57,13 +57,12 @@ func (creator) Create(logger log.Logger) providers.Provider {
 }
 
 type provider struct {
-	logger      log.Logger
-	backoff     time.Duration
-	path        string
-	shouldRetry bool
-	client      *http.Client
-	configUrl   string
-	rawConfig   []byte
+	logger    log.Logger
+	backoff   time.Duration
+	path      string
+	client    *http.Client
+	configUrl string
+	rawConfig []byte
 }
 
 func (provider) Name() string {
@@ -71,13 +70,15 @@ func (provider) Name() string {
 }
 
 func (p provider) FetchConfig() (config.Config, error) {
-	return config.Parse(p.rawConfig)
+	if p.rawConfig == nil {
+		return config.Config{}, nil
+	} else {
+		return config.Parse(p.rawConfig)
+	}
 }
 
 func (p *provider) IsOnline() bool {
 	if p.configUrl == "" {
-		p.shouldRetry = true
-
 		args, err := ioutil.ReadFile(p.path)
 		if err != nil {
 			p.logger.Err("couldn't read cmdline")
@@ -87,8 +88,9 @@ func (p *provider) IsOnline() bool {
 		p.configUrl = parseCmdline(args)
 		p.logger.Debug("parsed url from cmdline: %q", p.configUrl)
 		if p.configUrl == "" {
-			p.shouldRetry = false
-			return false
+			// If the cmdline flag wasn't provided, just no-op.
+			p.logger.Info("no config URL provided")
+			return true
 		}
 	}
 
@@ -116,7 +118,7 @@ func (p *provider) IsOnline() bool {
 }
 
 func (p provider) ShouldRetry() bool {
-	return p.shouldRetry
+	return true
 }
 
 func (p *provider) BackoffDuration() time.Duration {
