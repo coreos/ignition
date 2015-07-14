@@ -65,6 +65,7 @@ if [[ -n "${usr}" && -n "${usrhash}" ]]; then
 	[Unit]
 	SourcePath=/proc/cmdline
 	Description=create a dm-verity device for usr partition
+	DefaultDependencies=no
 	Before=sysroot-usr.mount
 	Requires=${device}
 	After=${device}
