@@ -1,0 +1,9 @@
+14-Jul-2015 IGNITION v0.1.0
+
+  Features
+
+    - Initial release of Ignition!
+    - Support for disk partitioning, partition formatting, writing files,
+      RAID, systemd units, networkd units, users, and groups.
+    - Supports reading the config from a remote URL (via
+      config.coreos.url) or from the Amazon EC2 metadata service.
