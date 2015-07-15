@@ -1,8 +1,6 @@
 [Unit]
 Description=Generate new UUID for disk GPT
 DefaultDependencies=no
-Requires=ignition.target
-After=ignition.target
 
 [Service]
 Type=oneshot
