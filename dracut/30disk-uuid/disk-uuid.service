@@ -1,6 +1,6 @@
 [Unit]
 Description=Generate new UUID for disk GPT
-DefaultDepedencies=no
+DefaultDependencies=no
 Requires=ignition.target
 After=ignition.target
 
