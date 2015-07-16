@@ -1,0 +1,10 @@
+[Unit]
+ConditionPathExists=/etc/initrd-release
+
+[Network]
+DHCP=v4
+LinkLocalAddressing=yes
+
+[DHCP]
+UseMTU=true
+UseDomains=true
