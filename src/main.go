@@ -64,7 +64,9 @@ func main() {
 
 	if config, ok := oem.Get(flags.oem.String()); ok {
 		for k, v := range config.Flags() {
-			flag.Set(k, v)
+			if err := flag.Set(k, v); err != nil {
+				panic(err)
+			}
 		}
 	}
 

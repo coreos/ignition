@@ -36,16 +36,111 @@ var configs = registry.Create("oem configs")
 
 func init() {
 	configs.Register(Config{
+		name: "azure",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "cloudsigma",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "cloudstack",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "digitalocean",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "brightbox",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "openstack",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "ec2",
+		flags: map[string]string{
+			"provider": "ec2",
+		},
+	})
+	configs.Register(Config{
+		name: "exoscale",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "gce",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "hyperv",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "niftycloud",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "packet",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
 		name: "pxe",
 		flags: map[string]string{
 			"provider": "cmdline",
 		},
 	})
-
 	configs.Register(Config{
-		name: "ec2",
+		name: "rackspace",
 		flags: map[string]string{
-			"provider": "ec2",
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "rackspace-onmetal",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "vagrant",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "vmware",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
+	configs.Register(Config{
+		name: "xendom0",
+		flags: map[string]string{
+			"provider": "noop",
 		},
 	})
 }
