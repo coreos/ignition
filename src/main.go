@@ -30,6 +30,7 @@ import (
 	_ "github.com/coreos/ignition/src/providers/cmdline"
 	_ "github.com/coreos/ignition/src/providers/ec2"
 	_ "github.com/coreos/ignition/src/providers/file"
+	_ "github.com/coreos/ignition/src/providers/noop"
 
 	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
 )
