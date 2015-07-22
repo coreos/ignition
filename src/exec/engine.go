@@ -80,7 +80,7 @@ func (e Engine) Run(stageName string) bool {
 		e.Logger.PushPrefix(stageName)
 		defer e.Logger.PopPrefix()
 		return stages.Get(stageName).Create(&e.Logger, e.Root).Run(cfg)
-	case config.ErrCloudConfig, config.ErrScript:
+	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
 		e.Logger.Info("%v: ignoring and exiting...", err)
 		return true
 	default:
