@@ -35,6 +35,7 @@ var (
 	ErrVersion     = errors.New("incorrect config version")
 	ErrCloudConfig = errors.New("not a config (found coreos-cloudconfig)")
 	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
+	ErrEmpty       = errors.New("not a config (empty)")
 )
 
 func Parse(config []byte) (cfg Config, err error) {
@@ -46,6 +47,12 @@ func Parse(config []byte) (cfg Config, err error) {
 		err = ErrCloudConfig
 	} else if isScript(config) {
 		err = ErrScript
+	} else if isEmpty(config) {
+		err = ErrEmpty
 	}
 	return
+}
+
+func isEmpty(userdata []byte) bool {
+	return len(userdata) == 0
 }
