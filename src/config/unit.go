@@ -90,7 +90,7 @@ func (n *SystemdUnitDropInName) unmarshal(unmarshal func(interface{}) error) err
 
 func (n SystemdUnitDropInName) assertValid() error {
 	switch filepath.Ext(string(n)) {
-	case "conf":
+	case ".conf":
 		return nil
 	default:
 		return errors.New("invalid systemd unit drop-in extension")
