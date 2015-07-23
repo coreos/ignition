@@ -74,16 +74,18 @@ func (p *provider) IsOnline() bool {
 
 		switch resp.StatusCode {
 		case http.StatusOK, http.StatusNoContent:
+			p.logger.Debug("successfully fetched")
+			if p.rawConfig, err = ioutil.ReadAll(resp.Body); err != nil {
+				p.logger.Err("failed to read body: %v", err)
+				return false
+			}
+		case http.StatusNotFound:
+			p.logger.Debug("no config to fetch")
 		default:
 			p.logger.Debug("failed fetching: HTTP status: %s", resp.Status)
 			return false
 		}
 
-		p.logger.Debug("successfully fetched")
-		if p.rawConfig, err = ioutil.ReadAll(resp.Body); err != nil {
-			p.logger.Err("failed to read body: %v", err)
-			return false
-		}
 		return true
 	} else {
 		p.logger.Warning("failed fetching: %v", err)
