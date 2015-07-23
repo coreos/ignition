@@ -15,9 +15,6 @@ install() {
     inst_simple "$moddir/initrd-systemd-resolved.service" \
         "$systemdsystemunitdir/initrd-systemd-resolved.service"
     
-    inst_simple "$moddir/99-default.link" \
-        "$systemdutildir/network/99-default.link"
-    
     inst_simple "$moddir/zz-default.network" \
         "$systemdutildir/network/zz-default.network"
 
