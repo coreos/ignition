@@ -35,7 +35,7 @@ import (
 	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
 )
 
-const versionString = "0.1.1"
+const versionString = "0.1.1+git"
 
 var version = *semver.Must(semver.NewVersion(versionString))
 
