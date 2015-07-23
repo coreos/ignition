@@ -34,6 +34,7 @@ ProtectHome=yes
 WatchdogSec=1min
 
 ExecStop=/usr/bin/ip addr flush up
+ExecStop=/usr/bin/ip link set group default down
 
 [Install]
 WantedBy=multi-user.target
