@@ -22,10 +22,10 @@ filesystem root, the config-fetch timeout, etc.).
 
 The list of supported configuration providers are as follows:
 
-  Provider Name  |                        Description
------------------|-------------------------------------------------------------
- cmdline         | Fetches the config from the URL provided via the `coreos.config.url` kernel boot option.
- file            | Read the config from a file named `config.json` in the current working directory.
+- cmdline: fetches the config from the URL provided via the `coreos.config.url`
+           kernel boot option.
+ - file: read the config from a file named `config.json` in the current working
+         directory.
 
 ## Configuration ##
 
