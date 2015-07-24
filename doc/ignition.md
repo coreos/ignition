@@ -24,7 +24,7 @@ The list of supported configuration providers are as follows:
 
 - cmdline: fetches the config from the URL provided via the `coreos.config.url`
            kernel boot option.
- - file: read the config from a file named `config.json` in the current working
+- file: read the config from a file named `config.json` in the current working
          directory.
 
 ## Configuration ##
