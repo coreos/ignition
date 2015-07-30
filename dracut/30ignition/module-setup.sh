@@ -5,6 +5,9 @@
 install() {
     inst_multiple \
         ignition \
+        useradd \
+        usermod \
+        groupadd \
         "$udevdir/rules.d/90-ignition.rules" \
         "$systemdsystemunitdir/mnt-oem.mount" \
         "$systemdsystemunitdir/ignition.target" \
