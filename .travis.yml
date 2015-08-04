@@ -9,4 +9,4 @@ install:
  - go get ${TOOLS_CMD}/vet
 
 script:
- - sudo -E env "PATH=$PATH" make verify
+ - sudo -E env "PATH=$PATH" make check

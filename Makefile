@@ -49,8 +49,8 @@ gopath/src/github.com/coreos/ignition:
 	$(Q)mkdir --parents $$(dirname $@)
 	$(Q)ln --symbolic ../../../.. gopath/src/github.com/coreos/ignition
 
-.PHONY: verify fmt vet fix test
-verify: fmt vet fix test
+.PHONY: check fmt vet fix test
+check: fmt vet fix test
 fmt:
 	@echo " FMT   src"
 	$(Q)FMTOUT=$$(gofmt -d -e -s src); test -z "$$FMTOUT" || { echo "$$FMTOUT" && exit 1; }
