@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/coreos/ignition/config"
@@ -69,7 +70,54 @@ func (provider) Name() string {
 }
 
 func (p provider) FetchConfig() (config.Config, error) {
-	return config.Parse(p.rawConfig)
+	cfg, err := config.Parse(p.rawConfig)
+	switch err {
+	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
+	default:
+		return config.Config{}, err
+	}
+
+	keynames, err := fetchAttributes(p.client, keyBaseUrl)
+	if err != nil {
+		return config.Config{}, err
+	}
+
+	keyIDs := []string{}
+	for _, keyname := range keynames {
+		tokens := strings.SplitN(keyname, "=", 2)
+		if len(tokens) != 2 {
+			return config.Config{}, fmt.Errorf("malformed public key: %q", keyname)
+		}
+		keyIDs = append(keyIDs, tokens[0])
+		p.logger.Info("found SSH public key for %q\n", tokens[1])
+	}
+
+	sshKeys := []string{}
+	for _, id := range keyIDs {
+		sshkey, _, err := fetchBody(p.client, fmt.Sprintf("%s%s/openssh-key", keyBaseUrl, id), http.StatusOK)
+		if err != nil {
+			return config.Config{}, err
+		}
+		sshKeys = append(sshKeys, string(sshkey))
+	}
+
+	exists := false
+	for i, user := range cfg.Passwd.Users {
+		if user.Name == "core" {
+			cfg.Passwd.Users[i].SSHAuthorizedKeys = append(cfg.Passwd.Users[i].SSHAuthorizedKeys, sshKeys...)
+			exists = true
+			break
+		}
+	}
+
+	if !exists {
+		cfg.Passwd.Users = append(cfg.Passwd.Users, config.User{
+			Name:              "core",
+			SSHAuthorizedKeys: sshKeys,
+		})
+	}
+
+	return cfg, nil
 }
 
 func (p *provider) IsOnline() bool {
@@ -118,4 +166,24 @@ func fetchBody(client *http.Client, url string, acceptedStatuses ...int) ([]byte
 
 	body, err := ioutil.ReadAll(resp.Body)
 	return body, resp.StatusCode, err
+}
+
+func fetchAttributes(client *http.Client, url string) ([]string, error) {
+	body, status, err := fetchBody(client, url, http.StatusOK, http.StatusNotFound)
+	if err != nil {
+		return nil, err
+	}
+	switch status {
+	case http.StatusOK:
+		scanner := bufio.NewScanner(bytes.NewBuffer(body))
+		data := make([]string, 0)
+		for scanner.Scan() {
+			data = append(data, scanner.Text())
+		}
+		return data, scanner.Err()
+	case http.StatusNotFound:
+		return []string{}, nil
+	default:
+		panic("unexpected HTTP status")
+	}
 }
