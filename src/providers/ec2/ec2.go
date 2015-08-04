@@ -18,6 +18,9 @@
 package cmdline
 
 import (
+	"bufio"
+	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -33,6 +36,7 @@ const (
 	initialBackoff = 100 * time.Millisecond
 	maxBackoff     = 30 * time.Second
 	userdataUrl    = "http://169.254.169.254/2009-04-04/user-data"
+	keyBaseUrl     = "http://169.254.169.254/2009-04-04/meta-data/public-keys/"
 )
 
 func init() {
@@ -69,29 +73,21 @@ func (p provider) FetchConfig() (config.Config, error) {
 }
 
 func (p *provider) IsOnline() bool {
-	if resp, err := p.client.Get(userdataUrl); err == nil {
-		defer resp.Body.Close()
-
-		switch resp.StatusCode {
-		case http.StatusOK, http.StatusNoContent:
-			p.logger.Debug("successfully fetched")
-			if p.rawConfig, err = ioutil.ReadAll(resp.Body); err != nil {
-				p.logger.Err("failed to read body: %v", err)
-				return false
-			}
-		case http.StatusNotFound:
-			p.logger.Debug("no config to fetch")
-		default:
-			p.logger.Debug("failed fetching: HTTP status: %s", resp.Status)
-			return false
-		}
-
-		return true
-	} else {
+	body, status, err := fetchBody(p.client, userdataUrl, http.StatusOK, http.StatusNotFound)
+	if err != nil {
 		p.logger.Warning("failed fetching: %v", err)
+		return false
 	}
 
-	return false
+	switch status {
+	case http.StatusOK:
+		p.rawConfig = body
+		p.logger.Debug("successfully fetched")
+	case http.StatusNotFound:
+		p.logger.Debug("no config to fetch")
+	}
+
+	return true
 }
 
 func (p provider) ShouldRetry() bool {
@@ -100,4 +96,26 @@ func (p provider) ShouldRetry() bool {
 
 func (p *provider) BackoffDuration() time.Duration {
 	return util.ExpBackoff(&p.backoff, maxBackoff)
+}
+
+func fetchBody(client *http.Client, url string, acceptedStatuses ...int) ([]byte, int, error) {
+	resp, err := client.Get(url)
+	if err != nil {
+		return nil, resp.StatusCode, err
+	}
+	defer resp.Body.Close()
+
+	accepted := false
+	for _, status := range acceptedStatuses {
+		if status == resp.StatusCode {
+			accepted = true
+			break
+		}
+	}
+	if !accepted {
+		return nil, resp.StatusCode, fmt.Errorf("bad HTTP status: %s", http.StatusText(resp.StatusCode))
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	return body, resp.StatusCode, err
 }
