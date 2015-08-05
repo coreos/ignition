@@ -15,7 +15,7 @@
 // The ec2 provider fetches a remote configuration from the ec2 user-data
 // metadata service URL.
 
-package cmdline
+package ec2
 
 import (
 	"io/ioutil"
