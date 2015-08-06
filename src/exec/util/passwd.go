@@ -95,29 +95,31 @@ func (u Util) AuthorizeSSHKeys(c config.User) error {
 		return nil
 	}
 
-	usr, err := u.userLookup(c.Name)
-	if err != nil {
-		return fmt.Errorf("unable to lookup user %q", c.Name)
-	}
+	return u.LogOp(func() error {
+		usr, err := u.userLookup(c.Name)
+		if err != nil {
+			return fmt.Errorf("unable to lookup user %q", c.Name)
+		}
 
-	akd, err := keys.Open(usr, true)
-	if err != nil {
-		return err
-	}
-	defer akd.Close()
+		akd, err := keys.Open(usr, true)
+		if err != nil {
+			return err
+		}
+		defer akd.Close()
 
-	// TODO(vc): introduce key names to config?
-	// TODO(vc): validate c.SSHAuthorizedKeys well-formedness.
-	kb := []byte(strings.Join(c.SSHAuthorizedKeys, "\n"))
-	if err := akd.Add("coreos-ignition", kb, true, true); err != nil {
-		return err
-	}
+		// TODO(vc): introduce key names to config?
+		// TODO(vc): validate c.SSHAuthorizedKeys well-formedness.
+		kb := []byte(strings.Join(c.SSHAuthorizedKeys, "\n"))
+		if err := akd.Add("coreos-ignition", kb, true, true); err != nil {
+			return err
+		}
 
-	if err := akd.Sync(); err != nil {
-		return err
-	}
+		if err := akd.Sync(); err != nil {
+			return err
+		}
 
-	return nil
+		return nil
+	}, "adding ssh keys to user %q", c.Name)
 }
 
 // SetPasswordHash sets the password hash of the specified user.
