@@ -31,13 +31,14 @@ import (
 	_ "github.com/coreos/ignition/src/providers/ec2"
 	_ "github.com/coreos/ignition/src/providers/file"
 	_ "github.com/coreos/ignition/src/providers/noop"
-
-	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
 )
 
-const versionString = "0.1.2+git"
+const version = "0.1.2+git"
 
-var version = *semver.Must(semver.NewVersion(versionString))
+var (
+	commitHash    = "this was not built properly"
+	versionString = fmt.Sprintf("Ignition %s (%s)", version, commitHash)
+)
 
 func main() {
 	flags := struct {
@@ -71,7 +72,7 @@ func main() {
 	}
 
 	if flags.version {
-		fmt.Printf("ignition %s\n", versionString)
+		fmt.Printf("%s\n", versionString)
 		return
 	}
 

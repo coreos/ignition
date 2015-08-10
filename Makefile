@@ -17,7 +17,12 @@ PACKAGES = \
 
 GFLAGS = \
 
+GLDFLAGS = \
+    -X main.commitHash $(COMMIT_HASH) \
+
 ABS_PACKAGES = $(PACKAGES:%=$(REPO_PATH)/%)
+
+COMMIT_HASH = $(shell git rev-parse --short HEAD || echo "unknown")
 
 # kernel-style V=1 build verbosity
 ifeq ("$(origin V)", "command line")
@@ -43,7 +48,7 @@ bin/ignition: REPO=github.com/coreos/ignition
 
 bin/%:
 	@echo " GO    $@"
-	$(Q)GOPATH=$$(pwd)/gopath go build $(GFLAGS) -o $@ $(REPO)/src
+	$(Q)GOPATH=$$(pwd)/gopath go build $(GFLAGS) -ldflags "$(GLDFLAGS)" -o $@ $(REPO)/src
 
 gopath/src/github.com/coreos/ignition:
 	$(Q)mkdir --parents $$(dirname $@)
