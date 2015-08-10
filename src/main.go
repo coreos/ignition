@@ -84,6 +84,8 @@ func main() {
 	logger := log.New()
 	defer logger.Close()
 
+	logger.Info(versionString)
+
 	if flags.clearCache {
 		if err := os.Remove(flags.configCache); err != nil {
 			logger.Err("unable to clear cache: %v", err)
