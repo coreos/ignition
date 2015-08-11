@@ -72,13 +72,9 @@ func (provider) Name() string {
 
 func (p provider) FetchConfig() (config.Config, error) {
 	cfg, err := config.Parse(p.rawConfig)
-	switch err {
-	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
-	default:
-		return cfg, err
+	if err == nil || err == config.ErrEmpty {
+		err = p.fetchSSHKeys(&cfg)
 	}
-
-	err = p.fetchSSHKeys(&cfg)
 
 	return cfg, err
 }
