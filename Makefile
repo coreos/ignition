@@ -18,11 +18,11 @@ PACKAGES = \
 GFLAGS = \
 
 GLDFLAGS = \
-    -X main.commitHash $(COMMIT_HASH) \
+    -X main.version $(VERSION) \
 
 ABS_PACKAGES = $(PACKAGES:%=$(REPO_PATH)/%)
 
-COMMIT_HASH = $(shell git rev-parse --short HEAD || echo "unknown")
+VERSION = $(shell git describe --dirty || echo "unknown")
 
 # kernel-style V=1 build verbosity
 ifeq ("$(origin V)", "command line")
