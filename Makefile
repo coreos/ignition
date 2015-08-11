@@ -18,24 +18,26 @@ PACKAGES = \
 GFLAGS = \
 
 GLDFLAGS = \
-    -X main.commitHash $(COMMIT_HASH) \
+    -X main.version $(VERSION) \
 
 ABS_PACKAGES = $(PACKAGES:%=$(REPO_PATH)/%)
 
-COMMIT_HASH = $(shell git rev-parse --short HEAD || echo "unknown")
-
+VERSION = $(shell git describe --dirty)
+ifeq ($(VERSION), )
+    $(error "failed to determine version")
+endif
 # kernel-style V=1 build verbosity
 ifeq ("$(origin V)", "command line")
-	BUILD_VERBOSE = $(V)
+    BUILD_VERBOSE = $(V)
 endif
 ifndef BUILD_VERBOSE
-	BUILD_VERBOSE = 0
+    BUILD_VERBOSE = 0
 endif
 
 ifeq ($(BUILD_VERBOSE),1)
-	Q =
+    Q =
 else
-	Q = @
+    Q = @
 endif
 
 .PHONY: all
