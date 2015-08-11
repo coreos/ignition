@@ -33,11 +33,9 @@ import (
 	_ "github.com/coreos/ignition/src/providers/noop"
 )
 
-const version = "0.1.2+git"
-
 var (
-	commitHash    = "this was not built properly"
-	versionString = fmt.Sprintf("Ignition %s (%s)", version, commitHash)
+	version       = "was not built properly"
+	versionString = "Ignition " + version
 )
 
 func main() {
