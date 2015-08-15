@@ -20,6 +20,9 @@ package cmdline
 import (
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -35,6 +38,8 @@ const (
 	maxBackoff     = 30 * time.Second
 	cmdlinePath    = "/proc/cmdline"
 	cmdlineUrlFlag = "coreos.config.url"
+	oemMountPath   = "/mnt/oem"               // Mountpoint where oem partition is mounted when present.
+	oemDirPath     = "/sysroot/usr/share/oem" // OEM dir within root fs to consider for pxe scenarios.
 )
 
 func init() {
@@ -94,27 +99,8 @@ func (p *provider) IsOnline() bool {
 		}
 	}
 
-	if resp, err := p.client.Get(p.configUrl); err == nil {
-		defer resp.Body.Close()
+	return p.getRawConfig()
 
-		switch resp.StatusCode {
-		case http.StatusOK, http.StatusNoContent:
-		default:
-			p.logger.Debug("failed fetching: HTTP status: %s", resp.Status)
-			return false
-		}
-
-		p.logger.Debug("successfully fetched")
-		if p.rawConfig, err = ioutil.ReadAll(resp.Body); err != nil {
-			p.logger.Err("failed to read body: %v", err)
-			return false
-		}
-		return true
-	} else {
-		p.logger.Warning("failed fetching: %v", err)
-	}
-
-	return false
 }
 
 func (p provider) ShouldRetry() bool {
@@ -140,4 +126,65 @@ func parseCmdline(cmdline []byte) (url string) {
 	}
 
 	return
+}
+
+// getRawConfig gets the raw configuration data from p.configUrl.
+// Supported URL schemes are:
+// http://	remote resource accessed via http
+// oem://	local file in /sysroot/usr/share/oem or /mnt/oem
+func (p *provider) getRawConfig() bool {
+	url, err := url.Parse(p.configUrl)
+	if err != nil {
+		p.logger.Err("failed to parse url: %v", err)
+		return false
+	}
+
+	switch url.Scheme {
+	case "http":
+		if resp, err := p.client.Get(p.configUrl); err == nil {
+			defer resp.Body.Close()
+
+			switch resp.StatusCode {
+			case http.StatusOK, http.StatusNoContent:
+			default:
+				p.logger.Debug("failed fetching: HTTP status: %s",
+					resp.Status)
+				return false
+			}
+
+			p.logger.Debug("successfully fetched")
+			p.rawConfig, err = ioutil.ReadAll(resp.Body)
+			if err != nil {
+				p.logger.Err("failed to read body: %v", err)
+				return false
+			}
+		} else {
+			p.logger.Warning("failed fetching: %v", err)
+		}
+	case "oem":
+		path := filepath.Clean(url.Path)
+		if !filepath.IsAbs(path) {
+			p.logger.Err("oem path is not absolute: %q", url.Path)
+			return false
+		}
+
+		absPath := filepath.Join(oemMountPath, path)
+		p.rawConfig, err = ioutil.ReadFile(absPath)
+		if os.IsNotExist(err) {
+			p.logger.Info("oem config not found in %q, trying %q",
+				oemMountPath, oemDirPath)
+			absPath = filepath.Join(oemDirPath, path)
+			p.rawConfig, err = ioutil.ReadFile(absPath)
+		}
+
+		if err != nil {
+			p.logger.Err("failed to read oem config: %v", err)
+			return false
+		}
+	default:
+		p.logger.Err("unsupported url scheme: %q", url.Scheme)
+		return false
+	}
+
+	return true
 }
