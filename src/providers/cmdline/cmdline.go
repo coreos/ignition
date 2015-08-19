@@ -160,6 +160,7 @@ func (p *provider) getRawConfig() bool {
 			}
 		} else {
 			p.logger.Warning("failed fetching: %v", err)
+			return false
 		}
 	case "oem":
 		path := filepath.Clean(url.Path)
