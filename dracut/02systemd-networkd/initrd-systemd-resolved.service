@@ -9,6 +9,7 @@
 Description=Network Name Resolution
 Documentation=man:systemd-resolved.service(8)
 ConditionPathExists=/etc/initrd-release
+DefaultDependencies=no
 After=initrd-systemd-networkd.service network.target
 
 # On kdbus systems we pull in the busname explicitly, because it
