@@ -21,7 +21,8 @@ bootengine_cmd() {
 do_setup_root() {
     # Initialize base filesystem
     bootengine_cmd systemd-tmpfiles --root=/sysroot --create \
-        baselayout.conf baselayout-etc.conf baselayout-usr.conf
+        baselayout.conf baselayout-etc.conf baselayout-usr.conf \
+        libsemanage.conf selinux-base.conf
 
     # Not all images provide this file so check before using it.
     if [ -e "/sysroot/usr/lib/tmpfiles.d/baselayout-ldso.conf" ]; then
