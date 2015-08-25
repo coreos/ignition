@@ -8,5 +8,13 @@ depends() {
 
 install() {
     dracut_install grep ldconfig systemd-tmpfiles
-    inst_hook pre-pivot 80 "$moddir/pre-pivot-setup-root.sh"
+
+    inst_script "${moddir}/initrd-setup-root" \
+	        "/sbin/initrd-setup-root"
+
+    inst_simple "${moddir}/initrd-setup-root.service" \
+        "${systemdsystemunitdir}/initrd-setup-root.service"
+
+    ln_r "${systemdsystemunitdir}/initrd-setup-root.service" \
+        "${systemdsystemunitdir}/initrd.target.wants/initrd-setup-root.service"
 }

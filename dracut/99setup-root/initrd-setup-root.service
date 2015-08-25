@@ -1,0 +1,10 @@
+[Unit]
+Description=Root filesystem setup
+DefaultDependencies=no
+
+After=initrd-root-fs.target
+Before=initrd-parse-etc.service
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/initrd-setup-root
