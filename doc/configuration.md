@@ -1,39 +1,7 @@
-# Ignition #
+# Configuration Specification #
 
-Ignition is a utility for doing early-boot machine configuration. This includes
-partitioning disks, formatting partitions, writing files (regular files,
-systemd units, networkd units, etc.), and configuring users. Ignition reads its
-configuration from a source of truth (remote URL, network metadata service,
-hypervisor bridge, etc.) and applies the configuration.
-
-## Usage ##
-
-Odds are good that you don't want to invoke Ignition directly. In fact, it
-isn't even present in the CoreOS Linux root filesystem. Take a look at the
-[Configuration](#configuration) section for details on providing Ignition with
-a runtime configuration.
-
-When invoked, Ignition needs to be provided a list of config providers. It uses
-this list to determine from where to fetch the config to be applied.
-Additionally, other parameters may be tuned via command line flags (e.g. the
-filesystem root, the config-fetch timeout, etc.).
-
-### Providers ###
-
-The list of supported configuration providers are as follows:
-
-- **cmdline**: fetches the config from the URL provided via the
-               `coreos.config.url` kernel boot option.
-- **file**: read the config from a file named `config.json` in the current
-            working directory.
-
-## Configuration ##
-
-The Ignition configuration is provided in a JSON document via one of the
-aforementioned config providers. The format of the document is detailed in the
-following section.
-
-### Specification ###
+The Ignition configuration is a JSON document conforming to the following
+specification:
 
 - **ignitionVersion** (integer): the version number of the spec. Must be `1`.
 - **storage** (object): describes the desired state of the system's storage

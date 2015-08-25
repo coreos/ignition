@@ -7,15 +7,19 @@ users. On first boot, Ignition reads its configuration from a source of truth
 (remote URL, network metadata service, hypervisor bridge, etc.) and applies the
 configuration.
 
-The documentation for Ignition can be found [here](doc/ignition.md).
+## Usage ##
+
+Odds are good that you don't want to invoke Ignition directly. In fact, it
+isn't even present in the CoreOS Linux root filesystem. Take a look at the
+[Getting Started Guide][getting started] for details on providing Ignition
+with a runtime configuration.
+
+[getting started]: doc/getting-started.md
 
 **Ignition is under very active development!**
 
 Please check out the [roadmap](ROADMAP.md) for information about the timeline.
 Use the [bug tracker][issues] to report bugs, but please avoid the urge to
 report lack of features for now.
-
-The current scope of features can be found in the
-[requirements documentation](doc/requirements.md).
 
 [issues]: https://github.com/coreos/ignition/issues
