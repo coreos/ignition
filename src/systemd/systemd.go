@@ -19,6 +19,7 @@ import (
 
 	"github.com/coreos/ignition/third_party/github.com/coreos/go-systemd/dbus"
 	"github.com/coreos/ignition/third_party/github.com/coreos/go-systemd/unit"
+	godbus "github.com/coreos/ignition/third_party/github.com/godbus/dbus"
 )
 
 // WaitOnDevices waits for the devices named in devs to be plugged before returning.
@@ -35,6 +36,10 @@ func WaitOnDevices(devs []string, stage string) error {
 
 	unitName := unit.UnitNameEscape(fmt.Sprintf("ignition_%s.service", stage))
 	props := []dbus.Property{
+		dbus.Property{
+			Name: "DefaultDependencies",
+			Value: godbus.MakeVariant(false),
+		},
 		dbus.PropExecStart([]string{"/bin/true"}, false), // XXX(vc): we apparently are required to ExecStart _something_
 		dbus.PropAfter(devUnits...),
 		dbus.PropRequires(devUnits...),
