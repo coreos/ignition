@@ -17,6 +17,6 @@ package config
 type Group struct {
 	Name         string `json:"name,omitempty"          yaml:"name"`
 	Gid          *uint  `json:"gid,omitempty"           yaml:"gid"`
-	PasswordHash string `json:"password_hash,omitempty" yaml:"password_hash"`
+	PasswordHash string `json:"passwordHash,omitempty"  yaml:"password_hash"`
 	System       bool   `json:"system,omitempty"        yaml:"system"`
 }

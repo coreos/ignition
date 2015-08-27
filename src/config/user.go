@@ -15,21 +15,21 @@
 package config
 
 type User struct {
-	Name              string      `json:"name,omitempty"                yaml:"name"`
-	PasswordHash      string      `json:"password_hash,omitempty"       yaml:"password_hash"`
-	SSHAuthorizedKeys []string    `json:"ssh_authorized_keys,omitempty" yaml:"ssh_authorized_keys"`
-	Create            *UserCreate `json:"create,omitempty"              yaml:"create"`
+	Name              string      `json:"name,omitempty"              yaml:"name"`
+	PasswordHash      string      `json:"passwordHash,omitempty"      yaml:"password_hash"`
+	SSHAuthorizedKeys []string    `json:"sshAuthorizedKeys,omitempty" yaml:"ssh_authorized_keys"`
+	Create            *UserCreate `json:"create,omitempty"            yaml:"create"`
 }
 
 type UserCreate struct {
-	Uid          *uint    `json:"uid,omitempty"            yaml:"uid"`
-	GECOS        string   `json:"gecos,omitempty"          yaml:"gecos"`
-	Homedir      string   `json:"homedir,omitempty"        yaml:"homedir"`
-	NoCreateHome bool     `json:"no_create_home,omitempty" yaml:"no_create_home"`
-	PrimaryGroup string   `json:"primary_group,omitempty"  yaml:"primary_group"`
-	Groups       []string `json:"groups,omitempty"         yaml:"groups"`
-	NoUserGroup  bool     `json:"no_user_group,omitempty"  yaml:"no_user_group"`
-	System       bool     `json:"system,omitempty"         yaml:"system"`
-	NoLogInit    bool     `json:"no_log_init,omitempty"    yaml:"no_log_init"`
-	Shell        string   `json:"shell,omitempty"          yaml:"shell"`
+	Uid          *uint    `json:"uid,omitempty"          yaml:"uid"`
+	GECOS        string   `json:"gecos,omitempty"        yaml:"gecos"`
+	Homedir      string   `json:"homeDir,omitempty"      yaml:"home_dir"`
+	NoCreateHome bool     `json:"noCreateHome,omitempty" yaml:"no_create_home"`
+	PrimaryGroup string   `json:"primaryGroup,omitempty" yaml:"primary_group"`
+	Groups       []string `json:"groups,omitempty"       yaml:"groups"`
+	NoUserGroup  bool     `json:"noUserGroup,omitempty"  yaml:"no_user_group"`
+	System       bool     `json:"system,omitempty"       yaml:"system"`
+	NoLogInit    bool     `json:"noLogInit,omitempty"    yaml:"no_log_init"`
+	Shell        string   `json:"shell,omitempty"        yaml:"shell"`
 }
