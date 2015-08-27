@@ -10,11 +10,10 @@ specification:
                                  options.
     - **device** (string): the absolute path to the device. Devices are
                            typically referenced by the /dev/disk/by-* symlinks.
-    - **wipe-table** (boolean): whether or not the partition tables should be
-                                wiped. When true, the partition tables are
-                                erased before any further manipulation.
-                                Otherwise, the existing entries are left
-                                intact.
+    - **wipeTable** (boolean): whether or not the partition tables should be
+                               wiped. When true, the partition tables are
+                               erased before any further manipulation.
+                               Otherwise, the existing entries are left intact.
     - **partitions** (list of objects): the list of partitions and their
                                         configuration for this particular disk.
       - **label** (string): the PARTLABEL for the partition.
