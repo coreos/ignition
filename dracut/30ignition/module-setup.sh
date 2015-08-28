@@ -12,11 +12,12 @@ install() {
         useradd \
         usermod \
         groupadd \
-        "$udevdir/rules.d/90-ignition.rules" \
         "$systemdsystemunitdir/mnt-oem.mount" \
         "$systemdsystemunitdir/ignition.target" \
         "$systemdsystemunitdir/ignition-disks.service" \
         "$systemdsystemunitdir/ignition-files.service"
+
+    inst_rules "90-ignition.rules"
 
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
