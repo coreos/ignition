@@ -57,7 +57,9 @@ func (creator) Create(logger log.Logger) providers.Provider {
 		logger:  logger,
 		backoff: initialBackoff,
 		path:    cmdlinePath,
-		client:  &http.Client{},
+		client: &http.Client{
+			Timeout: 10 * time.Second,
+		},
 	}
 }
 
