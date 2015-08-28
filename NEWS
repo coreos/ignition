@@ -1,3 +1,9 @@
+28-Aug-2015 IGNITION v0.1.5
+
+  Bug Fixes
+
+    - Disable EC2 provider for now
+
 27-Aug-2015 IGNITION v0.1.4
 
   Features
@@ -13,7 +19,7 @@
 
     - Add DefaultDependencies=false to WaitOnDevices() transient unit
     - Updated JSON configuration keys to match style
- 
+
   Build System Changes
 
     - Added script for tagging releases
