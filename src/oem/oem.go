@@ -74,7 +74,7 @@ func init() {
 	configs.Register(Config{
 		name: "ec2",
 		flags: map[string]string{
-			"provider": "ec2",
+			"provider": "noop",
 		},
 	})
 	configs.Register(Config{
