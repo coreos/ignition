@@ -12,6 +12,8 @@ install() {
         useradd \
         usermod \
         groupadd \
+        mkfs.btrfs \
+        mkfs.ext4 \
         "$systemdsystemunitdir/mnt-oem.mount" \
         "$systemdsystemunitdir/ignition.target" \
         "$systemdsystemunitdir/ignition-disks.service" \
