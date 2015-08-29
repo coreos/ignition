@@ -55,7 +55,9 @@ func (creator) Create(logger log.Logger) providers.Provider {
 	return &provider{
 		logger:  logger,
 		backoff: initialBackoff,
-		client:  &http.Client{},
+		client: &http.Client{
+			Timeout: 10 * time.Second,
+		},
 	}
 }
 
@@ -80,7 +82,6 @@ func (p provider) FetchConfig() (config.Config, error) {
 }
 
 func (p *provider) IsOnline() bool {
-
 	data, status, err := p.getData(userdataUrl)
 	if err != nil {
 		return false
