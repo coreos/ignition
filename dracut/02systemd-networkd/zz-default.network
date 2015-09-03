@@ -1,6 +1,3 @@
-[Unit]
-ConditionPathExists=/etc/initrd-release
-
 [Network]
 DHCP=v4
 LinkLocalAddressing=yes
