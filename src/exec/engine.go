@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	DefaultFetchTimeout = time.Minute
+	DefaultOnlineTimeout = time.Minute
 )
 
 var (
