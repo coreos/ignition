@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	DefaultFetchTimeout = time.Minute
+	DefaultOnlineTimeout = time.Minute
 )
 
 var (
@@ -171,13 +171,21 @@ func selectProvider(ps []providers.Provider, timeout time.Duration) (providers.P
 		close(done)
 	}()
 
+	expired := make(chan struct{})
+	if timeout > 0 {
+		go func() {
+			<-time.After(timeout)
+			close(expired)
+		}()
+	}
+
 	var provider providers.Provider
 	select {
 	case provider = <-online:
 		return provider, nil
 	case <-done:
 		return nil, ErrNoProviders
-	case <-time.After(timeout):
+	case <-expired:
 		return nil, ErrTimeout
 	}
 }
