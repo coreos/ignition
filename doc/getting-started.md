@@ -34,5 +34,5 @@ journalctl --identifier=ignition
 
 In the vast majority of cases, it will be immediately obvious why Ignition
 failed. If it's not, inspect the config that Ignition dumped into the log. This
-shows how Ignition interpretted the supplied configuration. The user-provided
+shows how Ignition interpreted the supplied configuration. The user-provided
 config may have a misspelled section or maybe an incorrect hierarchy.
