@@ -6,106 +6,20 @@ important parts of this config is the version number. This **must** match the
 version number accepted by Ignition. If the config version isn't accepted by
 Ignition, Ignition will fail to run and prevent the machine from booting. This
 can be seen by inspecting the console output of the failed instance. For more
-information, check out the [troubleshooting](#troubleshooting) section.
+information, check out the [troubleshooting section](#troubleshooting).
 
 [config spec]: configuration.md
 
-## Example Configs ##
+## Providing a Config ##
 
-Each of these examples is written in version 1 of the config. Always double
-check to make sure that your config matches the version that Ignition is
-expecting.
+Ignition will look in different places for its configuration and metadata,
+depending on the platform on which it is running. A full list of the
+[supported platforms] and their data sources is provided for reference.
 
-### Reformatting the Root Filesystem ###
+The configuration will need to be passed to Ignition via the designated data
+source.
 
-This config will find the device with the filesystem label "ROOT" (the root
-filesystem) and reformat it to btrfs, maintaining the filesystem label. The
-force flag is needed here because CoreOS currently ships with an EXT4 root
-filesystem. Without this flag, Ignition would recognize that there is existing
-data and refuse to overwrite it.
-
-```json
-{
-	"ignitionVersion": 1,
-	"storage": {
-		"filesystems": [
-			{
-				"device": "/dev/disk/by-label/ROOT",
-				"format": "btrfs",
-				"create": {
-					"force": true,
-					"options": [
-						"--label=ROOT"
-					]
-				}
-			}
-		]
-	}
-}
-```
-
-### Starting Services ###
-
-This config will write a single service unit with the contents of an example
-service. This unit will be enabled as a dependency of multi-user.target and
-therefore start on boot.
-
-```json
-{
-	"ignitionVersion": 1,
-	"systemd": {
-		"units": [
-			{
-				"name": "example.service",
-				"enable": true,
-				"contents": "[Service]\nType=oneshot\nExecStart=/usr/bin/echo Hello World\n\n[Install]\nWantedBy=multi-user.target"
-			}
-		]
-	}
-}
-```
-
-This instructs Ignition to create a single service unit named "example.service"
-containing the following:
-
-```
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/echo Hello World
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### Static Networking ###
-
-In this example, the network interface with the name "eth0" will be given the
-IP address 10.0.1.7. A typical interface will need more configuration and can
-use all of the options of a [network unit][network].
-
-```json
-{
-	"networkd": {
-		"units": [
-			{
-				"name": "00-eth0.network",
-				"contents": "[Match]\nName=eth0\n\n[Network]\nAddress=10.0.1.7"
-			}
-		]
-	}
-}
-```
-
-This configuration will instruct Ignition to create a single network unit named
-"00-eth0.network" with the contents:
-
-```
-[Match]
-Name=eth0
-
-[Network]
-Address=10.0.1.7
-```
+[supported platforms]: supported-platforms.md
 
 ## Troubleshooting ##
 
