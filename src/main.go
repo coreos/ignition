@@ -52,7 +52,7 @@ func main() {
 
 	flag.BoolVar(&flags.clearCache, "clear-cache", false, "clear any cached config")
 	flag.StringVar(&flags.configCache, "config-cache", "/tmp/ignition.json", "where to cache the config")
-	flag.DurationVar(&flags.fetchTimeout, "fetchtimeout", exec.DefaultFetchTimeout, "")
+	flag.DurationVar(&flags.fetchTimeout, "fetchtimeout", exec.DefaultFetchTimeout, "how long to wait for a provider to come online")
 	flag.Var(&flags.oem, "oem", fmt.Sprintf("current oem. %v", oem.Names()))
 	flag.Var(&flags.providers, "provider", fmt.Sprintf("provider of config. can be specified multiple times. %v", providers.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
