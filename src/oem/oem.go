@@ -143,6 +143,12 @@ func init() {
 			"provider": "noop",
 		},
 	})
+	configs.Register(Config{
+		name: "interoute",
+		flags: map[string]string{
+			"provider": "noop",
+		},
+	})
 }
 
 func Get(name string) (config Config, ok bool) {
