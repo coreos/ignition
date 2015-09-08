@@ -1,6 +1,5 @@
 [Network]
 DHCP=v4
-LinkLocalAddressing=yes
 
 [DHCP]
 UseMTU=true
