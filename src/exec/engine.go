@@ -39,11 +39,11 @@ var (
 
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
-	ConfigCache  string
-	FetchTimeout time.Duration
-	Logger       log.Logger
-	Root         string
-	providers    *registry.Registry
+	ConfigCache   string
+	OnlineTimeout time.Duration
+	Logger        log.Logger
+	Root          string
+	providers     *registry.Registry
 }
 
 func (e Engine) Init() Engine {
@@ -102,7 +102,7 @@ func (e Engine) acquireConfig() (cfg config.Config, err error) {
 	}
 
 	// (Re)Fetch the config if the cache is unreadable.
-	cfg, err = fetchConfig(e.Providers(), e.FetchTimeout)
+	cfg, err = fetchConfig(e.Providers(), e.OnlineTimeout)
 	if err != nil {
 		e.Logger.Crit("failed to fetch config: %v", err)
 		return
