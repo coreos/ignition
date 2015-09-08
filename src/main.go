@@ -92,7 +92,7 @@ func main() {
 
 	engine := exec.Engine{
 		Root:         flags.root,
-		FetchTimeout: flags.onlineTimeout,
+		OnlineTimeout: flags.onlineTimeout,
 		Logger:       logger,
 		ConfigCache:  flags.configCache,
 	}.Init()
