@@ -109,8 +109,16 @@ func (u Util) AuthorizeSSHKeys(c config.User) error {
 
 		// TODO(vc): introduce key names to config?
 		// TODO(vc): validate c.SSHAuthorizedKeys well-formedness.
-		kb := []byte(strings.Join(c.SSHAuthorizedKeys, "\n"))
-		if err := akd.Add("coreos-ignition", kb, true, true); err != nil {
+		ks := strings.Join(c.SSHAuthorizedKeys, "\n")
+		// XXX(vc): for now ensure the addition is always
+		// newline-terminated.  A future version of akd will handle this
+		// for us in addition to validating the ssh keys for
+		// well-formedness.
+		if !strings.HasSuffix(ks, "\n") {
+			ks = ks + "\n"
+		}
+
+		if err := akd.Add("coreos-ignition", []byte(ks), true, true); err != nil {
 			return err
 		}
 
