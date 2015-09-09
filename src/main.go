@@ -91,10 +91,10 @@ func main() {
 	}
 
 	engine := exec.Engine{
-		Root:         flags.root,
+		Root:          flags.root,
 		OnlineTimeout: flags.onlineTimeout,
-		Logger:       logger,
-		ConfigCache:  flags.configCache,
+		Logger:        logger,
+		ConfigCache:   flags.configCache,
 	}.Init()
 	for _, name := range flags.providers {
 		engine.AddProvider(providers.Get(name).Create(logger))

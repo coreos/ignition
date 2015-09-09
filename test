@@ -22,7 +22,11 @@ echo "Checking gofix..."
 go tool fix -diff $SRC
 
 echo "Checking gofmt..."
-gofmt -d -e -s $SRC
+res=$(gofmt -d -e -s $SRC)
+echo "${res}"
+if [ -n "${res}" ]; then
+	exit 1
+fi
 
 # split SRC into an array and prepend REPO_PATH to each local package for go vet
 split_vet=(${SRC// / })

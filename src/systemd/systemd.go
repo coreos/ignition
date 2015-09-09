@@ -36,8 +36,8 @@ func WaitOnDevices(devs []string, stage string) error {
 
 	unitName := unit.UnitNameEscape(fmt.Sprintf("ignition_%s.service", stage))
 	props := []dbus.Property{
-		dbus.Property{
-			Name: "DefaultDependencies",
+		{
+			Name:  "DefaultDependencies",
 			Value: godbus.MakeVariant(false),
 		},
 		dbus.PropExecStart([]string{"/bin/true"}, false), // XXX(vc): we apparently are required to ExecStart _something_
