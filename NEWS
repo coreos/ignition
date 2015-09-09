@@ -1,3 +1,24 @@
+09-Sep-2015 IGNITION v0.1.6
+
+  Features
+
+    - --fetchtimeout becomes --online-timeout
+    - --online-timeout of 0 now represents infinity
+    - Added recognition of "interoute" OEM
+
+  Documentation
+
+    - Examples have been removed and supported platforms added
+    - Various minor cleanups
+
+  Bug Fixes
+
+    - Ensure added SSH keys are newline terminated
+
+  Build System Changes
+
+    - Fix gofmt invocation from test script to fail when appropriate
+
 28-Aug-2015 IGNITION v0.1.5
 
   Bug Fixes
