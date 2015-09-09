@@ -45,7 +45,7 @@ func TestParse(t *testing.T) {
 			out: out{err: ErrEmpty},
 		},
 		{
-			in:  in{config: []byte(`#cloud-config`)},
+			in:  in{config: []byte(`#cloud-config `)},
 			out: out{err: ErrCloudConfig},
 		},
 		{

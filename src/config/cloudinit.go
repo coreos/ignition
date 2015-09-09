@@ -18,15 +18,14 @@ package config
 
 import (
 	"strings"
+	"unicode"
 )
 
 func isCloudConfig(userdata []byte) bool {
 	header := strings.SplitN(string(userdata), "\n", 2)[0]
 
-	// Explicitly trim the header so we can handle user-data from
-	// non-unix operating systems. The rest of the file is parsed
-	// by yaml, which correctly handles CRLF.
-	header = strings.TrimSuffix(header, "\r")
+	// Trim trailing whitespaces
+	header = strings.TrimRightFunc(header, unicode.IsSpace)
 
 	return (header == "#cloud-config")
 }
