@@ -97,7 +97,7 @@ fi
 mkdir -p "${USE_CHROOT}$(dirname "$CPIO_PATH")"
 if [[ -n "$USE_CHROOT" ]]; then
     echo "Running dracut in $USE_CHROOT"
-    LC_ALL=C ldconfig -X -r "$USE_CHROOT"
+    LC_ALL=C chroot "$USE_CHROOT" ldconfig -X
     LC_ALL=C chroot "$USE_CHROOT" dracut "${DRACUT_ARGS[@]}" "$CPIO_PATH"
 else
     echo "Running dracut in root"
