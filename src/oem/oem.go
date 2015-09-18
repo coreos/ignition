@@ -38,7 +38,7 @@ func init() {
 	configs.Register(Config{
 		name: "azure",
 		flags: map[string]string{
-			"provider": "noop",
+			"provider": "azure",
 		},
 	})
 	configs.Register(Config{

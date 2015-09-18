@@ -27,6 +27,7 @@ import (
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/oem"
 	"github.com/coreos/ignition/src/providers"
+	_ "github.com/coreos/ignition/src/providers/azure"
 	_ "github.com/coreos/ignition/src/providers/cmdline"
 	_ "github.com/coreos/ignition/src/providers/ec2"
 	_ "github.com/coreos/ignition/src/providers/file"
