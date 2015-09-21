@@ -74,7 +74,8 @@ func init() {
 	configs.Register(Config{
 		name: "ec2",
 		flags: map[string]string{
-			"provider": "ec2",
+			"provider":       "ec2",
+			"online-timeout": "0",
 		},
 	})
 	configs.Register(Config{
