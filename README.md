@@ -22,4 +22,4 @@ Please check out the [roadmap](ROADMAP.md) for information about the timeline.
 Use the [bug tracker][issues] to report bugs, but please avoid the urge to
 report lack of features for now.
 
-[issues]: https://github.com/coreos/ignition/issues
+[issues]: https://github.com/coreos/bugs/issues/new?labels=component/ignition
