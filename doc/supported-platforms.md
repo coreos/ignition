@@ -14,6 +14,9 @@ Ignition is currently only supported for the following platforms:
 - [Amazon EC2](https://coreos.com/os/docs/latest/booting-on-ec2.html) -
   Ignition will read its configuration from the userdata and append the SSH
   keys listed in the instance metadata.
+- [Microsoft Azure](https://coreos.com/os/docs/latest/booting-on-azure.html) -
+  Ignition will read its configuration from the custom data provided to the
+  instance. SSH keys are handled by the Azure Linux Agent.
 
 Ignition is under active development so expect this list to expand in the
 coming months.
