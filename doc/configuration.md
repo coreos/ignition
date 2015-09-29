@@ -41,7 +41,7 @@ specification, with **_italicized_** entries being optional:
                                        is configured per partition.
     - **device** (string): the absolute path to the device. Devices are
                            typically referenced by the /dev/disk/by-* symlinks.
-    - **format** (string): the filesystem format (e.g. ext4, btrfs, etc.).
+    - **format** (string): the filesystem format (ext4, btrfs, or xfs).
     - **_create_** (object): contains the set of options to be used when creating
                            the filesystem. A non-null entry indicates that the
                            filesystem shall be created.

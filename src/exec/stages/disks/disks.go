@@ -239,6 +239,11 @@ func (s stage) createFilesystem(fs config.Filesystem) error {
 		if fs.Create.Force {
 			args = append(args, "-F")
 		}
+	case "xfs":
+		mkfs = "/sbin/mkfs.xfs"
+		if fs.Create.Force {
+			args = append(args, "-f")
+		}
 	default:
 		return fmt.Errorf("unsupported filesystem format: %q", fs.Format)
 	}
