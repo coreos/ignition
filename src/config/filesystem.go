@@ -61,7 +61,7 @@ func (f *FilesystemFormat) unmarshal(unmarshal func(interface{}) error) error {
 
 func (f FilesystemFormat) assertValid() error {
 	switch f {
-	case "ext4", "btrfs":
+	case "ext4", "btrfs", "xfs":
 		return nil
 	default:
 		return ErrFilesystemInvalidFormat
