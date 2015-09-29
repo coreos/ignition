@@ -1,3 +1,14 @@
+29-Sep-2015 IGNITION v0.2.0
+
+  Features
+
+    - Added support for Azure
+    - Added support for formatting partitions as xfs
+
+  Bug Fixes
+
+    - Removed online timeout for EC2
+
 09-Sep-2015 IGNITION v0.1.6
 
   Features
