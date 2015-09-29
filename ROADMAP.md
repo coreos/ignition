@@ -15,7 +15,12 @@ projected timeline of the project.
 - support for limited config providers
   - remote URL via kernel command line
 
-## Ignition 0.2 (Aug) ##
+## Ignition 0.2 (Sep) ##
 - support for more config providers
   - EC2
   - Azure
+
+## Ignition 0.3 (Oct) ##
+- support for more config providers
+  - GCE
+  - OpenStack
