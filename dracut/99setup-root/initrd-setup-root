@@ -10,13 +10,14 @@ do_setup_root() {
     # Initialize base filesystem
     systemd-tmpfiles --root=/sysroot --create \
         baselayout.conf baselayout-etc.conf baselayout-usr.conf \
-        baselayout-home.conf etc.conf libsemanage.conf selinux-base.conf
+        baselayout-home.conf etc.conf
 
-    # Not all images provide this file so check before using it.
-    if [ -e "/sysroot/usr/lib/tmpfiles.d/baselayout-ldso.conf" ]; then
-        systemd-tmpfiles --root=/sysroot --create \
-            baselayout-ldso.conf
-    fi
+    # Not all images provide these files so check before using them.
+    for config in baselayout-ldso.conf libsemanage.conf selinux-base.conf; do
+        if [ -e "/sysroot/usr/lib/tmpfiles.d/${config}" ]; then
+            systemd-tmpfiles --root=/sysroot --create "${config}"
+        fi
+    done
 
     # This creates the modifiable users/groups in /sysroot/etc,
     # initializing the shadow database in the process.
