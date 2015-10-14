@@ -13,7 +13,8 @@ do_setup_root() {
         baselayout-home.conf etc.conf
 
     # Not all images provide these files so check before using them.
-    for config in baselayout-ldso.conf libsemanage.conf selinux-base.conf; do
+    # Note: selinux-base.conf must run before libsemanage.conf
+    for config in baselayout-ldso.conf selinux-base.conf libsemanage.conf; do
         if [ -e "/sysroot/usr/lib/tmpfiles.d/${config}" ]; then
             systemd-tmpfiles --root=/sysroot --create "${config}"
         fi
