@@ -100,7 +100,7 @@ func (p provider) FetchConfig() (config.Config, error) {
 
 	p.logger.Debug("reading config")
 	rawConfig, err := ioutil.ReadFile(filepath.Join(mnt, configPath))
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return config.Config{}, fmt.Errorf("failed to read config: %v", err)
 	}
 
