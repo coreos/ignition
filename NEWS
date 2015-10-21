@@ -1,3 +1,9 @@
+20-Oct-2015 IGNITION v0.2.2
+
+  Bug Fixes
+
+    - Mount the oem partition for oem:// schemes when needed
+
 15-Oct-2015 IGNITION v0.2.1
 
   Bug Fixes
