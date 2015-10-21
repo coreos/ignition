@@ -15,7 +15,6 @@ install() {
         mkfs.btrfs \
         mkfs.ext4 \
         mkfs.xfs \
-        "$systemdsystemunitdir/mnt-oem.mount" \
         "$systemdsystemunitdir/ignition.target" \
         "$systemdsystemunitdir/ignition-disks.service" \
         "$systemdsystemunitdir/ignition-files.service"
