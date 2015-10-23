@@ -34,6 +34,7 @@ add_requires() {
 
 if $(cmdline_bool coreos.first_boot 0); then
     add_requires ignition.target
+    add_requires disk-uuid.service
 fi
 
 echo "OEM_ID=$(cmdline_arg coreos.oem.id pxe)" > /run/ignition.env

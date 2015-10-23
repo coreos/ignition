@@ -5,6 +5,8 @@ Wants=local-fs-pre.target
 Before=local-fs-pre.target
 Wants=systemd-udevd.service
 After=systemd-udevd.service
+Requires=dev-disk-by\x2ddiskuuid-00000000\x2d0000\x2d0000\x2d0000\x2d000000000001.device
+After=dev-disk-by\x2ddiskuuid-00000000\x2d0000\x2d0000\x2d0000\x2d000000000001.device
 
 [Service]
 Type=oneshot
