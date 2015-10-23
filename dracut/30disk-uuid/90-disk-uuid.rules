@@ -7,9 +7,6 @@ SUBSYSTEM!="block", GOTO="disk_uuid_end"
 
 ENV{DEVTYPE}!="disk", GOTO="disk_uuid_end"
 
-# rename the disk UUID if it is the default
-ENV{ID_PART_TABLE_UUID}=="00000000-0000-0000-0000-000000000001", TAG+="systemd", ENV{SYSTEMD_WANTS}+="disk-uuid.service"
-
 # by-diskuuid links (partition metadata)
 ENV{ID_PART_TABLE_TYPE}=="gpt", ENV{ID_PART_TABLE_UUID}=="?*", SYMLINK+="disk/by-diskuuid/$env{ID_PART_TABLE_UUID}"
 
