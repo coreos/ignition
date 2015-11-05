@@ -15,8 +15,12 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+
+	"github.com/coreos/ignition/third_party/github.com/camlistore/camlistore/pkg/errorutil"
 )
 
 type Config struct {
@@ -50,6 +54,11 @@ func Parse(config []byte) (cfg Config, err error) {
 	} else if isEmpty(config) {
 		err = ErrEmpty
 	}
+	if serr, ok := err.(*json.SyntaxError); ok {
+		line, col, highlight := errorutil.HighlightBytePosition(bytes.NewReader(config), serr.Offset)
+		err = fmt.Errorf("error at line %d, column %d\n%s%v", line, col, highlight, err)
+	}
+
 	return
 }
 
