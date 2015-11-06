@@ -36,8 +36,10 @@ if $(cmdline_bool coreos.first_boot 0); then
     add_requires ignition.target
 fi
 
-if $(cmdline_bool coreos.randomize_disk_guid 0); then
-    add_requires disk-uuid.service
+RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)
+if [ -n "$RANDOMIZE_DISK_GUID" ]; then
+    escaped_guid=$(systemd-escape --path "/dev/disk/by-diskuuid/$RANDOMIZE_DISK_GUID")
+    add_requires "disk-uuid@${escaped_guid}.service"
 fi
 
 echo "OEM_ID=$(cmdline_arg coreos.oem.id pxe)" > /run/ignition.env

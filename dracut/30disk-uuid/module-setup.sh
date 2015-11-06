@@ -4,8 +4,8 @@
 
 install() {
     inst sgdisk
-    inst_simple "$moddir/disk-uuid.service" \
-        "$systemdsystemunitdir/disk-uuid.service"
+    inst_simple "$moddir/disk-uuid@.service" \
+        "$systemdsystemunitdir/disk-uuid@.service"
 
     inst_rules "$moddir/90-disk-uuid.rules"
 }
