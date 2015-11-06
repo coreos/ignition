@@ -34,6 +34,9 @@ add_requires() {
 
 if $(cmdline_bool coreos.first_boot 0); then
     add_requires ignition.target
+fi
+
+if $(cmdline_bool coreos.randomize_disk_guid 0); then
     add_requires disk-uuid.service
 fi
 
