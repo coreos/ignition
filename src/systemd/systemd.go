@@ -19,7 +19,6 @@ import (
 
 	"github.com/coreos/ignition/third_party/github.com/coreos/go-systemd/dbus"
 	"github.com/coreos/ignition/third_party/github.com/coreos/go-systemd/unit"
-	godbus "github.com/coreos/ignition/third_party/github.com/godbus/dbus"
 )
 
 // WaitOnDevices waits for the devices named in devs to be plugged before returning.
@@ -29,30 +28,22 @@ func WaitOnDevices(devs []string, stage string) error {
 		return err
 	}
 
-	devUnits := []string{}
-	for _, d := range devs {
-		devUnits = append(devUnits, unit.UnitNamePathEscape(d)+".device")
+	results := map[string]chan string{}
+	for _, dev := range devs {
+		unitName := unit.UnitNameEscape(dev + ".device")
+		results[unitName] = make(chan string)
+
+		if _, err = conn.StartUnit(unitName, "replace", results[unitName]); err != nil {
+			return fmt.Errorf("failed starting device unit %s: %v", unitName, err)
+		}
 	}
 
-	unitName := unit.UnitNameEscape(fmt.Sprintf("ignition_%s.service", stage))
-	props := []dbus.Property{
-		{
-			Name:  "DefaultDependencies",
-			Value: godbus.MakeVariant(false),
-		},
-		dbus.PropExecStart([]string{"/bin/true"}, false), // XXX(vc): we apparently are required to ExecStart _something_
-		dbus.PropAfter(devUnits...),
-		dbus.PropRequires(devUnits...),
-	}
+	for unitName, result := range results {
+		s := <-result
 
-	res := make(chan string)
-	if _, err = conn.StartTransientUnit(unitName, "replace", props, res); err != nil {
-		return fmt.Errorf("failed creating transient unit %s: %v", unitName, err)
-	}
-	s := <-res
-
-	if s != "done" {
-		return fmt.Errorf("transient unit %s %s", unitName, s)
+		if s != "done" {
+			return fmt.Errorf("device unit %s %s", unitName, s)
+		}
 	}
 
 	return nil
