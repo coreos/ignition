@@ -211,6 +211,11 @@ func (p *provider) mountOEM() error {
 		return err
 	}
 
+	if err := os.MkdirAll(oemMountPath, 0700); err != nil {
+		p.logger.Err("failed to create oem mount point: %v", err)
+		return err
+	}
+
 	if err := p.logger.LogOp(
 		func() error {
 			return syscall.Mount(dev[0], oemMountPath, "ext4", 0, "")
