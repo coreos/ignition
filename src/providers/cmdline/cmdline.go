@@ -42,7 +42,7 @@ const (
 	cmdlinePath    = "/proc/cmdline"
 	cmdlineUrlFlag = "coreos.config.url"
 	oemDevicePath  = "/dev/disk/by-label/OEM" // Device link where oem partition is found.
-	oemDirPath     = "/sysroot/usr/share/oem" // OEM dir within root fs to consider for pxe scenarios.
+	oemDirPath     = "/usr/share/oem"         // OEM dir within root fs to consider for pxe scenarios.
 	oemMountPath   = "/mnt/oem"               // Mountpoint where oem partition is mounted when present.
 )
 
