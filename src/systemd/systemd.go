@@ -30,7 +30,7 @@ func WaitOnDevices(devs []string, stage string) error {
 
 	results := map[string]chan string{}
 	for _, dev := range devs {
-		unitName := unit.UnitNameEscape(dev + ".device")
+		unitName := unit.UnitNamePathEscape(dev + ".device")
 		results[unitName] = make(chan string)
 
 		if _, err = conn.StartUnit(unitName, "replace", results[unitName]); err != nil {
