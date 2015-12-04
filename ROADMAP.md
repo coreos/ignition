@@ -2,9 +2,7 @@
 
 **work in progress**
 
-This document defines a high level roadmap for Ignition development. The dates
-below should not be considered authoritative, but rather indicative of the
-projected timeline of the project.
+This document defines a high level roadmap for Ignition development. The dates below should not be considered authoritative, but rather indicative of the projected timeline of the project.
 
 ## Ignition 0.1 (Jul) ##
 - support basic disk manipulation
