@@ -1,14 +1,14 @@
 # Getting Started with Ignition #
 
-Ignition uses a JSON config to represent the set of changes to be made. The format of this config is detailed [in the spec][config spec]. One of the most important parts of this config is the version number. This **must** match the version number accepted by Ignition. If the config version isn't accepted by Ignition, Ignition will fail to run and prevent the machine from booting. This can be seen by inspecting the console output of the failed instance. For more information, check out the [troubleshooting section](#troubleshooting).
+Ignition uses a JSON configuration file to represent the set of changes to be made. The format of this config is detailed [in the spec][config spec]. One of the most important parts of this config is the version number. This **must** match the version number accepted by Ignition. If the config version isn't accepted by Ignition, Ignition will fail to run and prevent the machine from booting. This can be seen by inspecting the console output of the failed instance. For more information, check out the [troubleshooting section](#troubleshooting).
 
 [config spec]: configuration.md
 
 ## Providing a Config ##
 
-Ignition will look in different places for its configuration and metadata, depending on the platform on which it is running. A full list of the [supported platforms] and their data sources is provided for reference.
+Ignition will choose where to look for configuration based on the underlying platform. A list of [supported platforms] and metadata sources is provided for reference.
 
-The configuration will need to be passed to Ignition via the designated data source.
+The configuration must be passed to Ignition through the designated data source.
 
 [supported platforms]: supported-platforms.md
 
