@@ -16,9 +16,11 @@ package config
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/coreos/ignition/third_party/github.com/camlistore/camlistore/pkg/errorutil"
 )
@@ -47,9 +49,9 @@ func Parse(config []byte) (cfg Config, err error) {
 		if cfg.Version != Version {
 			err = ErrVersion
 		}
-	} else if isCloudConfig(config) {
+	} else if isCloudConfig(decompressIfGzipped(config)) {
 		err = ErrCloudConfig
-	} else if isScript(config) {
+	} else if isScript(decompressIfGzipped(config)) {
 		err = ErrScript
 	} else if isEmpty(config) {
 		err = ErrEmpty
@@ -64,4 +66,18 @@ func Parse(config []byte) (cfg Config, err error) {
 
 func isEmpty(userdata []byte) bool {
 	return len(userdata) == 0
+}
+
+func decompressIfGzipped(data []byte) []byte {
+	if reader, err := gzip.NewReader(bytes.NewReader(data)); err == nil {
+		uncompressedData, err := ioutil.ReadAll(reader)
+		reader.Close()
+		if err == nil {
+			return uncompressedData
+		} else {
+			return data
+		}
+	} else {
+		return data
+	}
 }
