@@ -135,7 +135,7 @@ func init() {
 	configs.Register(Config{
 		name: "vmware",
 		flags: map[string]string{
-			"provider": "noop",
+			"provider": "vmware",
 		},
 	})
 	configs.Register(Config{
