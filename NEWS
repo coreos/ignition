@@ -1,3 +1,9 @@
+06-Jan-2016 IGNITION v0.2.5
+
+  Bug Fixes
+
+    - Recognize and ignore gzipped cloud-configs
+
 19-Nov-2015 IGNITION v0.2.4
 
   Bug Fixes
