@@ -299,3 +299,111 @@ func TestMkfsOptionsUnmarshalYAML(t *testing.T) {
 		}
 	}
 }
+
+func TestFilesystemUnmarshalJSON(t *testing.T) {
+	type in struct {
+		data string
+	}
+	type out struct {
+		filesystem Filesystem
+		err        error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{data: `{"device": "/foo", "format": "ext4"}`},
+			out: out{filesystem: Filesystem{Device: "/foo", Format: "ext4"}},
+		},
+		{
+			in:  in{data: `{"format": "ext4"}`},
+			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrFilesystemMissingDevice},
+		},
+	}
+
+	for i, test := range tests {
+		var filesystem Filesystem
+		err := json.Unmarshal([]byte(test.in.data), &filesystem)
+		if !reflect.DeepEqual(test.out.err, err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+		if !reflect.DeepEqual(test.out.filesystem, filesystem) {
+			t.Errorf("#%d: bad filesystem: want %#v, got %#v", i, test.out.filesystem, filesystem)
+		}
+	}
+}
+
+func TestFilesystemUnmarshalYAML(t *testing.T) {
+	type in struct {
+		data string
+	}
+	type out struct {
+		filesystem Filesystem
+		err        error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{data: "device: /foo\nformat: ext4"},
+			out: out{filesystem: Filesystem{Device: "/foo", Format: "ext4"}},
+		},
+		{
+			in:  in{data: "format: ext4"},
+			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrFilesystemMissingDevice},
+		},
+	}
+
+	for i, test := range tests {
+		var filesystem Filesystem
+		err := yaml.Unmarshal([]byte(test.in.data), &filesystem)
+		if !reflect.DeepEqual(test.out.err, err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+		if !reflect.DeepEqual(test.out.filesystem, filesystem) {
+			t.Errorf("#%d: bad filesystem: want %#v, got %#v", i, test.out.filesystem, filesystem)
+		}
+	}
+}
+
+func TestFilesystemAssertValid(t *testing.T) {
+	type in struct {
+		filesystem Filesystem
+	}
+	type out struct {
+		err error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{filesystem: Filesystem{Device: "/foo", Format: "ext4"}},
+			out: out{},
+		},
+		{
+			in:  in{filesystem: Filesystem{Device: "/foo"}},
+			out: out{err: ErrFilesystemMissingFormat},
+		},
+		{
+			in:  in{filesystem: Filesystem{Format: "ext4"}},
+			out: out{err: ErrFilesystemMissingDevice},
+		},
+		{
+			in:  in{filesystem: Filesystem{}},
+			out: out{err: ErrFilesystemMissingDevice},
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.filesystem.assertValid()
+		if !reflect.DeepEqual(test.out.err, err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
+}
