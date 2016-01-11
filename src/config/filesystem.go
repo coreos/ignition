@@ -22,6 +22,8 @@ import (
 var (
 	ErrFilesystemRelativePath  = errors.New("device path not absolute")
 	ErrFilesystemInvalidFormat = errors.New("invalid filesystem format")
+	ErrFilesystemMissingDevice = errors.New("missing filesystem device")
+	ErrFilesystemMissingFormat = errors.New("missing filesystem format")
 )
 
 type Filesystem struct {
@@ -34,6 +36,37 @@ type Filesystem struct {
 type FilesystemCreate struct {
 	Force   bool        `json:"force,omitempty"   yaml:"force"`
 	Options MkfsOptions `json:"options,omitempty" yaml:"options"`
+}
+
+func (f *Filesystem) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	return f.unmarshal(unmarshal)
+}
+
+func (f *Filesystem) UnmarshalJSON(data []byte) error {
+	return f.unmarshal(func(tf interface{}) error {
+		return json.Unmarshal(data, tf)
+	})
+}
+
+type filesystem Filesystem
+
+func (f *Filesystem) unmarshal(unmarshal func(interface{}) error) error {
+	tf := filesystem(*f)
+	if err := unmarshal(&tf); err != nil {
+		return err
+	}
+	*f = Filesystem(tf)
+	return f.assertValid()
+}
+
+func (f Filesystem) assertValid() error {
+	if f.Device == "" {
+		return ErrFilesystemMissingDevice
+	}
+	if f.Format == "" {
+		return ErrFilesystemMissingFormat
+	}
+	return nil
 }
 
 type FilesystemFormat string
