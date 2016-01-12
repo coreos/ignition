@@ -22,8 +22,6 @@ import (
 var (
 	ErrFilesystemRelativePath  = errors.New("device path not absolute")
 	ErrFilesystemInvalidFormat = errors.New("invalid filesystem format")
-	ErrFilesystemMissingDevice = errors.New("missing filesystem device")
-	ErrFilesystemMissingFormat = errors.New("missing filesystem format")
 )
 
 type Filesystem struct {
@@ -60,11 +58,11 @@ func (f *Filesystem) unmarshal(unmarshal func(interface{}) error) error {
 }
 
 func (f Filesystem) assertValid() error {
-	if f.Device == "" {
-		return ErrFilesystemMissingDevice
+	if err := f.Device.assertValid(); err != nil {
+		return err
 	}
-	if f.Format == "" {
-		return ErrFilesystemMissingFormat
+	if err := f.Format.assertValid(); err != nil {
+		return err
 	}
 	return nil
 }

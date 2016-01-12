@@ -319,7 +319,7 @@ func TestFilesystemUnmarshalJSON(t *testing.T) {
 		},
 		{
 			in:  in{data: `{"format": "ext4"}`},
-			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrFilesystemMissingDevice},
+			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrFilesystemRelativePath},
 		},
 	}
 
@@ -354,7 +354,7 @@ func TestFilesystemUnmarshalYAML(t *testing.T) {
 		},
 		{
 			in:  in{data: "format: ext4"},
-			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrFilesystemMissingDevice},
+			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrFilesystemRelativePath},
 		},
 	}
 
@@ -388,15 +388,15 @@ func TestFilesystemAssertValid(t *testing.T) {
 		},
 		{
 			in:  in{filesystem: Filesystem{Device: "/foo"}},
-			out: out{err: ErrFilesystemMissingFormat},
+			out: out{err: ErrFilesystemInvalidFormat},
 		},
 		{
 			in:  in{filesystem: Filesystem{Format: "ext4"}},
-			out: out{err: ErrFilesystemMissingDevice},
+			out: out{err: ErrFilesystemRelativePath},
 		},
 		{
 			in:  in{filesystem: Filesystem{}},
-			out: out{err: ErrFilesystemMissingDevice},
+			out: out{err: ErrFilesystemRelativePath},
 		},
 	}
 
