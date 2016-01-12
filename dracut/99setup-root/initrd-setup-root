@@ -10,7 +10,7 @@ do_setup_root() {
     # Initialize base filesystem
     systemd-tmpfiles --root=/sysroot --create \
         baselayout.conf baselayout-etc.conf baselayout-usr.conf \
-        baselayout-home.conf etc.conf
+        baselayout-home.conf etc.conf etc-shadow.conf
 
     # Not all images provide these files so check before using them.
     # Note: selinux-base.conf must run before libsemanage.conf
