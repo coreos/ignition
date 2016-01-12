@@ -59,7 +59,11 @@ func (op *Operation) Commit() error {
 	if op.wipe {
 		cmd := exec.Command(sgdiskPath, "--zap-all", op.dev)
 		if err := op.logger.LogCmd(cmd, "wiping table on %q", op.dev); err != nil {
-			return fmt.Errorf("wipe failed: %v")
+			op.logger.Info("potential error encountered while wiping table... retrying")
+			cmd = exec.Command(sgdiskPath, "--zap-all", op.dev)
+			if err := op.logger.LogCmd(cmd, "wiping table on %q", op.dev); err != nil {
+				return fmt.Errorf("wipe failed: %v")
+			}
 		}
 	}
 
