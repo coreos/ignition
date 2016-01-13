@@ -1,3 +1,13 @@
+13-Jan-2016 IGNITION v0.2.6
+
+  Features
+
+    - Improve validation of storage.filesystems options
+
+  Bug Fixes
+
+    - Properly zap GPT tables when they are partially valid
+
 06-Jan-2016 IGNITION v0.2.5
 
   Bug Fixes
