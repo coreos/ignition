@@ -57,7 +57,7 @@ func (u Util) WriteFile(f *types.File) error {
 	// by using syscall.Fchown() and syscall.Fchmod()
 
 	// Ensure the ownership and mode are as requested (since WriteFile can be affected by sticky bit)
-	if err := os.Chown(tmp.Name(), f.Uid, f.Gid); err != nil {
+	if err := os.Chown(tmp.Name(), f.User.Id, f.Group.Id); err != nil {
 		return err
 	}
 
