@@ -4,6 +4,31 @@ The Ignition configuration is a JSON document conforming to the following specif
 
 * **ignition** (object): metadata about the configuration itself.
   * **version** (string): the semantic version number of the spec. Must be at least `2.0.0`.
+  * **_config_** (objects): options related to the configuration.
+    * **_append_** (list of objects): a list of the configs to be appended to the current config.
+      * **contents** (string): the URL of the config. Supports schemes are http and data.
+      * **_verification_** (object): options related to the verification of the config.
+        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type can be one of: md5 or sha512.
+        * **_gpg_** (object): options related to GPG verification.
+          * **_key_** (string): the URL of the GPG key to be used for verification. Supported schemes are data.
+          * **_signature_** (object): options related to the GPG signature.
+            * **_detached_** (string): the URL of the GPG detached signature of the config. Supported schemes are http and data.
+            * **_inline_** (boolean): indicates whether or not the config includes an inline signature.
+      * **_encryption_** (object): options related to the encryption of the config.
+        * **_gpg_** (object): options related to GPG encryption.
+          * **_key_** (string): the URL of the GPG key to be used for encryption. Supported schemes are data.
+    * **_replace_** (object): the config that will replace the current.
+      * **contents** (string): the URL of the config. Supports schemes are http and data.
+      * **_verification_** (object): options related to the verification of the config.
+        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type can be one of: md5 or sha512.
+        * **_gpg_** (object): options related to GPG verification.
+          * **_key_** (string): the URL of the GPG key to be used for verification. Supported schemes are data.
+          * **_signature_** (object): options related to the GPG signature.
+            * **_detached_** (string): the URL of the GPG detached signature of the config. Supported schemes are http and data.
+            * **_inline_** (boolean): indicates whether or not the config includes an inline signature.
+      * **_encryption_** (object): options related to the encryption of the config.
+        * **_gpg_** (object): options related to GPG encryption.
+          * **_key_** (string): the URL of the GPG key to be used for encryption. Supported schemes are data.
 * **_storage_** (object): describes the desired state of the system's storage devices.
   * **_disks_** (list of objects): the list of disks to be configured and their options.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
