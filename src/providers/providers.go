@@ -19,7 +19,6 @@ import (
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/log"
-	"github.com/coreos/ignition/src/registry"
 )
 
 // Provider represents an external source of configuration. The source can be
@@ -37,21 +36,4 @@ type Provider interface {
 type ProviderCreator interface {
 	Name() string
 	Create(logger log.Logger) Provider
-}
-
-var providers = registry.Create("providers")
-
-func Register(provider ProviderCreator) {
-	providers.Register(provider)
-}
-
-func Get(name string) ProviderCreator {
-	if p, ok := providers.Get(name).(ProviderCreator); ok {
-		return p
-	}
-	return nil
-}
-
-func Names() []string {
-	return providers.Names()
 }

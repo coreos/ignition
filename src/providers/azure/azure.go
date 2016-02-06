@@ -52,17 +52,13 @@ const (
 	CDS_DISC_OK
 )
 
-func init() {
-	providers.Register(creator{})
-}
+type Creator struct{}
 
-type creator struct{}
-
-func (creator) Name() string {
+func (Creator) Name() string {
 	return name
 }
 
-func (creator) Create(logger log.Logger) providers.Provider {
+func (Creator) Create(logger log.Logger) providers.Provider {
 	return &provider{
 		logger:  logger,
 		backoff: initialBackoff,
