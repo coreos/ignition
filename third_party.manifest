@@ -7,4 +7,6 @@ github.com/coreos/go-systemd/unit			9b2f329b69ae0292a30f426867494f38af617a42
 github.com/coreos/update-ssh-keys/authorized_keys_d	539317dc5100bc599dab125b1e644a2b017b2b35
 github.com/godbus/dbus					41608027bdce7bfa8959d653a00b954591220e67
 github.com/go-yaml/yaml					49c95bdc21843256fb6c4e0d370a05f24a0bf213
+github.com/sigma/vmw-guestinfo				95dd4126d6e8b4ef1970b3f3fe2e8cdd470d2903
+github.com/sigma/bdoor					babf2a4017b020d4ce04e8167076186e82645dd1
 speter.net/go/exp/math/dec/inf				42ca6cd68aa922bc3f32f1e056e61b65945d9ad7
