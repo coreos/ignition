@@ -32,6 +32,7 @@ import (
 	_ "github.com/coreos/ignition/src/providers/ec2"
 	_ "github.com/coreos/ignition/src/providers/file"
 	_ "github.com/coreos/ignition/src/providers/noop"
+	_ "github.com/coreos/ignition/src/providers/packet"
 	_ "github.com/coreos/ignition/src/providers/vmware"
 )
 
