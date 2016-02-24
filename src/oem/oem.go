@@ -105,7 +105,7 @@ func init() {
 	configs.Register(Config{
 		name: "packet",
 		flags: map[string]string{
-			"provider": "noop",
+			"provider": "packet",
 		},
 	})
 	configs.Register(Config{
