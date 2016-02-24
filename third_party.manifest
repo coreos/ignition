@@ -2,6 +2,7 @@
 # pkg							version
 github.com/alecthomas/units				6b4e7dc5e3143b85ea77909c72caf89416fc2915
 github.com/camlistore/camlistore/pkg/errorutil		9106ce829629773474c689b34aacd7d3aaa99426
+github.com/coreos/go-semver				37bb68f88c4418889f0a9bfea4a5333d36bd15d5
 github.com/coreos/go-systemd/dbus			9b2f329b69ae0292a30f426867494f38af617a42
 github.com/coreos/go-systemd/unit			9b2f329b69ae0292a30f426867494f38af617a42
 github.com/coreos/update-ssh-keys/authorized_keys_d	539317dc5100bc599dab125b1e644a2b017b2b35
