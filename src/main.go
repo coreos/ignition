@@ -54,11 +54,9 @@ func main() {
 
 	flag.Parse()
 
-	if config, ok := oem.Get(flags.oem.String()); ok {
-		for k, v := range config.Flags() {
-			if err := flag.Set(k, v); err != nil {
-				panic(err)
-			}
+	for k, v := range oem.MustGet(flags.oem.String()).Flags() {
+		if err := flag.Set(k, v); err != nil {
+			panic(err)
 		}
 	}
 
@@ -90,9 +88,7 @@ func main() {
 		ConfigCache:   flags.configCache,
 	}.Init()
 
-	if config, ok := oem.Get(flags.oem.String()); ok {
-		engine.AddProvider(config.Provider().Create(logger))
-	}
+	engine.AddProvider(oem.MustGet(flags.oem.String()).Provider().Create(logger))
 
 	if !engine.Run(flags.stage.String()) {
 		os.Exit(1)

@@ -15,6 +15,8 @@
 package oem
 
 import (
+	"fmt"
+
 	"github.com/coreos/ignition/src/providers"
 	"github.com/coreos/ignition/src/providers/azure"
 	"github.com/coreos/ignition/src/providers/cmdline"
@@ -130,6 +132,14 @@ func init() {
 func Get(name string) (config Config, ok bool) {
 	config, ok = configs.Get(name).(Config)
 	return
+}
+
+func MustGet(name string) Config {
+	if config, ok := Get(name); ok {
+		return config
+	} else {
+		panic(fmt.Sprintf("invalid OEM name %q provided", name))
+	}
 }
 
 func Names() (names []string) {
