@@ -22,7 +22,6 @@ import (
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/providers"
-	"github.com/coreos/ignition/src/registry"
 )
 
 type mockProvider struct {
@@ -40,105 +39,14 @@ func (p mockProvider) IsOnline() bool                      { return p.online }
 func (p mockProvider) ShouldRetry() bool                   { return p.retry }
 func (p mockProvider) BackoffDuration() time.Duration      { return p.backoff }
 
-func registryFromList(name string, registrants []registry.Registrant) *registry.Registry {
-	registry := registry.Create(name)
-	for _, registrant := range registrants {
-		registry.Register(registrant)
-	}
-	return registry
-}
-
-func TestAddProvider(t *testing.T) {
-	type in struct {
-		engine    Engine
-		providers []providers.Provider
-	}
-	type out struct {
-		providers *registry.Registry
-	}
-
-	a := mockProvider{name: "a"}
-	b := mockProvider{name: "b"}
-
-	tests := []struct {
-		in  in
-		out out
-	}{
-		{
-			in:  in{engine: Engine{}.Init(), providers: nil},
-			out: out{providers: registryFromList("engine.providers", []registry.Registrant{})},
-		},
-		{
-			in:  in{engine: Engine{}.Init(), providers: []providers.Provider{a}},
-			out: out{providers: registryFromList("engine.providers", []registry.Registrant{a})},
-		},
-		{
-			in:  in{engine: Engine{}.Init(), providers: []providers.Provider{a, b}},
-			out: out{providers: registryFromList("engine.providers", []registry.Registrant{a, b})},
-		},
-	}
-
-	for i, test := range tests {
-		for _, p := range test.in.providers {
-			test.in.engine.AddProvider(p)
-		}
-		if !reflect.DeepEqual(test.out.providers, test.in.engine.providers) {
-			t.Errorf("#%d: bad providers: want %#v, got %#v", i, test.out.providers, test.in.engine.providers)
-		}
-	}
-}
-
-func TestProviders(t *testing.T) {
-	type in struct {
-		engine Engine
-	}
-	type out struct {
-		providers []providers.Provider
-	}
-
-	a := mockProvider{name: "a"}
-	b := mockProvider{name: "b"}
-
-	tests := []struct {
-		in  in
-		out out
-	}{
-		{
-			in: in{engine: Engine{
-				providers: registryFromList("engine.providers", []registry.Registrant{}),
-			}},
-			out: out{providers: []providers.Provider{}},
-		},
-		{
-			in: in{engine: Engine{
-				providers: registryFromList("engine.providers", []registry.Registrant{a}),
-			}},
-			out: out{providers: []providers.Provider{a}},
-		},
-		{
-			in: in{engine: Engine{
-				providers: registryFromList("engine.providers", []registry.Registrant{a, b}),
-			}},
-			out: out{providers: []providers.Provider{a, b}},
-		},
-	}
-
-	for i, test := range tests {
-		providers := test.in.engine.Providers()
-		if !reflect.DeepEqual(test.out.providers, providers) {
-			t.Errorf("#%d: bad providers: want %#v, got %#v", i, test.out.providers, providers)
-		}
-	}
-}
-
 // TODO
 func TestRun(t *testing.T) {
 }
 
 func TestFetchConfigs(t *testing.T) {
 	type in struct {
-		providers []providers.Provider
-		timeout   time.Duration
+		provider providers.Provider
+		timeout  time.Duration
 	}
 	type out struct {
 		config config.Config
@@ -161,25 +69,17 @@ func TestFetchConfigs(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{providers: nil, timeout: time.Second},
-			out: out{config: config.Config{}, err: ErrNoProviders},
-		},
-		{
-			in:  in{providers: []providers.Provider{online}, timeout: time.Second},
+			in:  in{provider: online, timeout: time.Second},
 			out: out{config: online.config, err: online.err},
 		},
 		{
-			in:  in{providers: []providers.Provider{offline}, timeout: time.Second},
-			out: out{config: config.Config{}, err: ErrNoProviders},
-		},
-		{
-			in:  in{providers: []providers.Provider{online, offline}, timeout: time.Second},
-			out: out{config: online.config, err: online.err},
+			in:  in{provider: offline, timeout: time.Second},
+			out: out{config: config.Config{}, err: ErrNoProvider},
 		},
 	}
 
 	for i, test := range tests {
-		config, err := fetchConfig(test.in.providers, test.in.timeout)
+		config, err := fetchConfig(test.in.provider, test.in.timeout)
 		if !reflect.DeepEqual(test.out.config, config) {
 			t.Errorf("#%d: bad provider: want %+v, got %+v", i, test.out.config, config)
 		}
@@ -189,14 +89,13 @@ func TestFetchConfigs(t *testing.T) {
 	}
 }
 
-func TestSelectProvider(t *testing.T) {
+func TestWaitForProvider(t *testing.T) {
 	type in struct {
-		providers []providers.Provider
-		timeout   time.Duration
+		provider providers.Provider
+		timeout  time.Duration
 	}
 	type out struct {
-		provider providers.Provider
-		err      error
+		err error
 	}
 
 	online := mockProvider{online: true}
@@ -208,36 +107,21 @@ func TestSelectProvider(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{providers: nil, timeout: time.Second},
-			out: out{provider: nil, err: ErrNoProviders},
+			in:  in{provider: online, timeout: time.Second},
+			out: out{err: nil},
 		},
 		{
-			in:  in{providers: []providers.Provider{online}, timeout: time.Second},
-			out: out{provider: online, err: nil},
+			in:  in{provider: offline, timeout: time.Second},
+			out: out{err: ErrNoProvider},
 		},
 		{
-			in:  in{providers: []providers.Provider{offline}, timeout: time.Second},
-			out: out{provider: nil, err: ErrNoProviders},
-		},
-		{
-			in:  in{providers: []providers.Provider{offlineRetry}, timeout: time.Second},
-			out: out{provider: nil, err: ErrTimeout},
-		},
-		{
-			in:  in{providers: []providers.Provider{online, offline}, timeout: time.Second},
-			out: out{provider: online, err: nil},
-		},
-		{
-			in:  in{providers: []providers.Provider{online, offlineRetry}, timeout: time.Second},
-			out: out{provider: online, err: nil},
+			in:  in{provider: offlineRetry, timeout: time.Second},
+			out: out{err: ErrTimeout},
 		},
 	}
 
 	for i, test := range tests {
-		provider, err := selectProvider(test.in.providers, test.in.timeout)
-		if !reflect.DeepEqual(test.out.provider, provider) {
-			t.Errorf("#%d: bad provider: want %+v, got %+v", i, test.out.provider, provider)
-		}
+		err := waitForProvider(test.in.provider, test.in.timeout)
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}

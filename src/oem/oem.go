@@ -15,13 +15,22 @@
 package oem
 
 import (
+	"fmt"
+
+	"github.com/coreos/ignition/src/providers"
+	"github.com/coreos/ignition/src/providers/azure"
+	"github.com/coreos/ignition/src/providers/cmdline"
+	"github.com/coreos/ignition/src/providers/ec2"
+	"github.com/coreos/ignition/src/providers/noop"
+	"github.com/coreos/ignition/src/providers/vmware"
 	"github.com/coreos/ignition/src/registry"
 )
 
 // Config represents a set of command line flags that map to a particular OEM.
 type Config struct {
-	name  string
-	flags map[string]string
+	name     string
+	flags    map[string]string
+	provider providers.ProviderCreator
 }
 
 func (c Config) Name() string {
@@ -32,129 +41,105 @@ func (c Config) Flags() map[string]string {
 	return c.flags
 }
 
+func (c Config) Provider() providers.ProviderCreator {
+	return c.provider
+}
+
 var configs = registry.Create("oem configs")
 
 func init() {
 	configs.Register(Config{
-		name: "azure",
-		flags: map[string]string{
-			"provider": "azure",
-		},
+		name:     "azure",
+		provider: azure.Creator{},
 	})
 	configs.Register(Config{
-		name: "cloudsigma",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "cloudsigma",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "cloudstack",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "cloudstack",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "digitalocean",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "digitalocean",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "brightbox",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "brightbox",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "openstack",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "openstack",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "ec2",
+		name:     "ec2",
+		provider: ec2.Creator{},
 		flags: map[string]string{
-			"provider":       "ec2",
 			"online-timeout": "0",
 		},
 	})
 	configs.Register(Config{
-		name: "exoscale",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "exoscale",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "gce",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "gce",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "hyperv",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "hyperv",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "niftycloud",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "niftycloud",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "packet",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "packet",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "pxe",
-		flags: map[string]string{
-			"provider": "cmdline",
-		},
+		name:     "pxe",
+		provider: cmdline.Creator{},
 	})
 	configs.Register(Config{
-		name: "rackspace",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "rackspace",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "rackspace-onmetal",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "rackspace-onmetal",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "vagrant",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "vagrant",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "vmware",
-		flags: map[string]string{
-			"provider": "vmware",
-		},
+		name:     "vmware",
+		provider: vmware.Creator{},
 	})
 	configs.Register(Config{
-		name: "xendom0",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "xendom0",
+		provider: noop.Creator{},
 	})
 	configs.Register(Config{
-		name: "interoute",
-		flags: map[string]string{
-			"provider": "noop",
-		},
+		name:     "interoute",
+		provider: noop.Creator{},
 	})
 }
 
 func Get(name string) (config Config, ok bool) {
 	config, ok = configs.Get(name).(Config)
 	return
+}
+
+func MustGet(name string) Config {
+	if config, ok := Get(name); ok {
+		return config
+	} else {
+		panic(fmt.Sprintf("invalid OEM name %q provided", name))
+	}
 }
 
 func Names() (names []string) {
