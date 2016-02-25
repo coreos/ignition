@@ -86,9 +86,8 @@ func main() {
 		OnlineTimeout: flags.onlineTimeout,
 		Logger:        logger,
 		ConfigCache:   flags.configCache,
-	}.Init()
-
-	engine.AddProvider(oem.MustGet(flags.oem.String()).Provider().Create(logger))
+		Provider:      oem.MustGet(flags.oem.String()).Provider().Create(logger),
+	}
 
 	if !engine.Run(flags.stage.String()) {
 		os.Exit(1)

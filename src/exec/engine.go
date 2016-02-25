@@ -18,14 +18,12 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"sync"
 	"time"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/exec/stages"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
-	"github.com/coreos/ignition/src/registry"
 )
 
 const (
@@ -33,8 +31,8 @@ const (
 )
 
 var (
-	ErrNoProviders = errors.New("no config providers were online")
-	ErrTimeout     = errors.New("timed out while waiting for a config provider to come online")
+	ErrNoProvider = errors.New("config provider was not online")
+	ErrTimeout    = errors.New("timed out while waiting for config provider to come online")
 )
 
 // Engine represents the entity that fetches and executes a configuration.
@@ -43,32 +41,7 @@ type Engine struct {
 	OnlineTimeout time.Duration
 	Logger        log.Logger
 	Root          string
-	providers     *registry.Registry
-}
-
-func (e Engine) Init() Engine {
-	e.providers = registry.Create("engine.providers")
-	return e
-}
-
-// AddProvider registers a configuration provider with the engine.
-func (e *Engine) AddProvider(provider providers.Provider) {
-	e.providers.Register(provider)
-}
-
-// GetProvider returns the specified provider.
-func (e Engine) GetProvider(name string) providers.Provider {
-	return e.providers.Get(name).(providers.Provider)
-}
-
-// Providers returns a list of the registered providers in alphabetical order.
-func (e Engine) Providers() []providers.Provider {
-	names := e.providers.Names()
-	providers := make([]providers.Provider, 0, len(names))
-	for _, name := range names {
-		providers = append(providers, e.GetProvider(name))
-	}
-	return providers
+	Provider      providers.Provider
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -90,7 +63,7 @@ func (e Engine) Run(stageName string) bool {
 }
 
 // acquireConfig returns the configuration, first checking a local cache
-// before attempting to fetch it from the registered providers.
+// before attempting to fetch it from the provider.
 func (e Engine) acquireConfig() (cfg config.Config, err error) {
 	// First try read the config @ e.ConfigCache.
 	b, err := ioutil.ReadFile(e.ConfigCache)
@@ -102,7 +75,7 @@ func (e Engine) acquireConfig() (cfg config.Config, err error) {
 	}
 
 	// (Re)Fetch the config if the cache is unreadable.
-	cfg, err = fetchConfig(e.Providers(), e.OnlineTimeout)
+	cfg, err = fetchConfig(e.Provider, e.OnlineTimeout)
 	if err != nil {
 		e.Logger.Crit("failed to fetch config: %v", err)
 		return
@@ -123,52 +96,40 @@ func (e Engine) acquireConfig() (cfg config.Config, err error) {
 	return
 }
 
-// fetchConfig returns the configuration from the first available provider or
-// returns an error if none of the providers are available.
-func fetchConfig(providers []providers.Provider, timeout time.Duration) (config.Config, error) {
-	if provider, err := selectProvider(providers, timeout); err == nil {
-		return provider.FetchConfig()
-	} else {
+// fetchConfig returns the configuration from the provider or returns an error
+// if the provider is unavailable.
+func fetchConfig(provider providers.Provider, timeout time.Duration) (config.Config, error) {
+	if err := waitForProvider(provider, timeout); err != nil {
 		return config.Config{}, err
 	}
+
+	return provider.FetchConfig()
 }
 
-// selectProvider chooses the first online provider, given a list of providers
-// and a timeout. If none of the providers will ever be online, or if the
-// timeout elapses before any providers are online, this returns an appropriate
-// error.
-func selectProvider(ps []providers.Provider, timeout time.Duration) (providers.Provider, error) {
-	online := make(chan providers.Provider)
-	wg := sync.WaitGroup{}
+// waitForProvider waits for the provider to come online. If the provider will
+// never be online, or if the timeout elapses before it is online, this returns
+// an appropriate error.
+func waitForProvider(provider providers.Provider, timeout time.Duration) error {
+	online := make(chan bool, 1)
 	stop := make(chan struct{})
 	defer close(stop)
 
-	for _, p := range ps {
-		wg.Add(1)
-		go func(provider providers.Provider) {
-			defer wg.Done()
-
-			for {
-				if provider.IsOnline() {
-					online <- provider
-					return
-				} else if !provider.ShouldRetry() {
-					return
-				}
-
-				select {
-				case <-time.After(provider.BackoffDuration()):
-				case <-stop:
-					return
-				}
-			}
-		}(p)
-	}
-
-	done := make(chan struct{})
 	go func() {
-		wg.Wait()
-		close(done)
+		for {
+			if provider.IsOnline() {
+				online <- true
+				return
+			} else if !provider.ShouldRetry() {
+				online <- false
+				return
+			}
+
+			select {
+			case <-time.After(provider.BackoffDuration()):
+			case <-stop:
+				return
+			}
+		}
 	}()
 
 	expired := make(chan struct{})
@@ -179,13 +140,14 @@ func selectProvider(ps []providers.Provider, timeout time.Duration) (providers.P
 		}()
 	}
 
-	var provider providers.Provider
 	select {
-	case provider = <-online:
-		return provider, nil
-	case <-done:
-		return nil, ErrNoProviders
+	case on := <-online:
+		if !on {
+			return ErrNoProvider
+		}
 	case <-expired:
-		return nil, ErrTimeout
+		return ErrTimeout
 	}
+
+	return nil
 }
