@@ -36,7 +36,6 @@ import (
 )
 
 const (
-	name           = "cmdline"
 	initialBackoff = 100 * time.Millisecond
 	maxBackoff     = 30 * time.Second
 	cmdlinePath    = "/proc/cmdline"
@@ -47,10 +46,6 @@ const (
 )
 
 type Creator struct{}
-
-func (Creator) Name() string {
-	return name
-}
 
 func (Creator) Create(logger log.Logger) providers.Provider {
 	return &provider{
@@ -70,10 +65,6 @@ type provider struct {
 	client    *http.Client
 	configUrl string
 	rawConfig []byte
-}
-
-func (provider) Name() string {
-	return name
 }
 
 func (p provider) FetchConfig() (config.Config, error) {
