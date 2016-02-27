@@ -26,7 +26,6 @@ import (
 // or not the source is online, if the caller should try again when the source
 // is offline, and how long the caller should wait before retries.
 type Provider interface {
-	Name() string
 	FetchConfig() (config.Config, error)
 	IsOnline() bool
 	ShouldRetry() bool
@@ -34,6 +33,5 @@ type Provider interface {
 }
 
 type ProviderCreator interface {
-	Name() string
 	Create(logger log.Logger) Provider
 }

@@ -31,7 +31,6 @@ import (
 )
 
 const (
-	name           = "azure"
 	initialBackoff = 100 * time.Millisecond
 	maxBackoff     = 30 * time.Second
 	configDevice   = "/dev/disk/by-id/ata-Virtual_CD"
@@ -54,10 +53,6 @@ const (
 
 type Creator struct{}
 
-func (Creator) Name() string {
-	return name
-}
-
 func (Creator) Create(logger log.Logger) providers.Provider {
 	return &provider{
 		logger:  logger,
@@ -68,10 +63,6 @@ func (Creator) Create(logger log.Logger) providers.Provider {
 type provider struct {
 	logger  log.Logger
 	backoff time.Duration
-}
-
-func (provider) Name() string {
-	return name
 }
 
 func (p provider) FetchConfig() (config.Config, error) {
