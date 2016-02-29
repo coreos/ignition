@@ -15,10 +15,16 @@
 package providers
 
 import (
+	"errors"
 	"time"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/log"
+)
+
+var (
+	ErrNoProvider = errors.New("config provider was not online")
+	ErrTimeout    = errors.New("timed out while waiting for config provider to come online")
 )
 
 // Provider represents an external source of configuration. The source can be

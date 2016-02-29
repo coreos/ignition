@@ -16,7 +16,6 @@ package exec
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"time"
 
@@ -24,15 +23,11 @@ import (
 	"github.com/coreos/ignition/src/exec/stages"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
+	"github.com/coreos/ignition/src/providers/util"
 )
 
 const (
 	DefaultOnlineTimeout = time.Minute
-)
-
-var (
-	ErrNoProvider = errors.New("config provider was not online")
-	ErrTimeout    = errors.New("timed out while waiting for config provider to come online")
 )
 
 // Engine represents the entity that fetches and executes a configuration.
@@ -99,55 +94,9 @@ func (e Engine) acquireConfig() (cfg config.Config, err error) {
 // fetchConfig returns the configuration from the provider or returns an error
 // if the provider is unavailable.
 func fetchConfig(provider providers.Provider, timeout time.Duration) (config.Config, error) {
-	if err := waitForProvider(provider, timeout); err != nil {
+	if err := util.WaitUntilOnline(provider, timeout); err != nil {
 		return config.Config{}, err
 	}
 
 	return provider.FetchConfig()
-}
-
-// waitForProvider waits for the provider to come online. If the provider will
-// never be online, or if the timeout elapses before it is online, this returns
-// an appropriate error.
-func waitForProvider(provider providers.Provider, timeout time.Duration) error {
-	online := make(chan bool, 1)
-	stop := make(chan struct{})
-	defer close(stop)
-
-	go func() {
-		for {
-			if provider.IsOnline() {
-				online <- true
-				return
-			} else if !provider.ShouldRetry() {
-				online <- false
-				return
-			}
-
-			select {
-			case <-time.After(provider.BackoffDuration()):
-			case <-stop:
-				return
-			}
-		}
-	}()
-
-	expired := make(chan struct{})
-	if timeout > 0 {
-		go func() {
-			<-time.After(timeout)
-			close(expired)
-		}()
-	}
-
-	select {
-	case on := <-online:
-		if !on {
-			return ErrNoProvider
-		}
-	case <-expired:
-		return ErrTimeout
-	}
-
-	return nil
 }
