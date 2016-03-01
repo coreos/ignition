@@ -54,20 +54,25 @@ func main() {
 
 	flag.Parse()
 
-	for k, v := range oem.MustGet(flags.oem.String()).Flags() {
-		if err := flag.Set(k, v); err != nil {
-			panic(err)
-		}
-	}
-
 	if flags.version {
 		fmt.Printf("%s\n", versionString)
 		return
 	}
 
+	if flags.oem == "" {
+		fmt.Fprint(os.Stderr, "'--oem' must be provided\n")
+		os.Exit(2)
+	}
+
 	if flags.stage == "" {
 		fmt.Fprint(os.Stderr, "'--stage' must be provided\n")
 		os.Exit(2)
+	}
+
+	for k, v := range oem.MustGet(flags.oem.String()).Flags() {
+		if err := flag.Set(k, v); err != nil {
+			panic(err)
+		}
 	}
 
 	logger := log.New()
