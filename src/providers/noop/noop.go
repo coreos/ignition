@@ -24,21 +24,9 @@ import (
 	"github.com/coreos/ignition/src/providers"
 )
 
-const (
-	name = "noop"
-)
+type Creator struct{}
 
-func init() {
-	providers.Register(creator{})
-}
-
-type creator struct{}
-
-func (creator) Name() string {
-	return name
-}
-
-func (creator) Create(logger log.Logger) providers.Provider {
+func (Creator) Create(logger log.Logger) providers.Provider {
 	return &provider{
 		logger: logger,
 	}
@@ -46,10 +34,6 @@ func (creator) Create(logger log.Logger) providers.Provider {
 
 type provider struct {
 	logger log.Logger
-}
-
-func (provider) Name() string {
-	return name
 }
 
 func (p provider) FetchConfig() (config.Config, error) {

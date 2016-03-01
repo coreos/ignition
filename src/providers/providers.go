@@ -15,11 +15,16 @@
 package providers
 
 import (
+	"errors"
 	"time"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/log"
-	"github.com/coreos/ignition/src/registry"
+)
+
+var (
+	ErrNoProvider = errors.New("config provider was not online")
+	ErrTimeout    = errors.New("timed out while waiting for config provider to come online")
 )
 
 // Provider represents an external source of configuration. The source can be
@@ -27,7 +32,6 @@ import (
 // or not the source is online, if the caller should try again when the source
 // is offline, and how long the caller should wait before retries.
 type Provider interface {
-	Name() string
 	FetchConfig() (config.Config, error)
 	IsOnline() bool
 	ShouldRetry() bool
@@ -35,23 +39,5 @@ type Provider interface {
 }
 
 type ProviderCreator interface {
-	Name() string
 	Create(logger log.Logger) Provider
-}
-
-var providers = registry.Create("providers")
-
-func Register(provider ProviderCreator) {
-	providers.Register(provider)
-}
-
-func Get(name string) ProviderCreator {
-	if p, ok := providers.Get(name).(ProviderCreator); ok {
-		return p
-	}
-	return nil
-}
-
-func Names() []string {
-	return providers.Names()
 }

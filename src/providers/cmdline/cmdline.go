@@ -36,7 +36,6 @@ import (
 )
 
 const (
-	name           = "cmdline"
 	initialBackoff = 100 * time.Millisecond
 	maxBackoff     = 30 * time.Second
 	cmdlinePath    = "/proc/cmdline"
@@ -46,17 +45,9 @@ const (
 	oemMountPath   = "/mnt/oem"               // Mountpoint where oem partition is mounted when present.
 )
 
-func init() {
-	providers.Register(creator{})
-}
+type Creator struct{}
 
-type creator struct{}
-
-func (creator) Name() string {
-	return name
-}
-
-func (creator) Create(logger log.Logger) providers.Provider {
+func (Creator) Create(logger log.Logger) providers.Provider {
 	return &provider{
 		logger:  logger,
 		backoff: initialBackoff,
@@ -74,10 +65,6 @@ type provider struct {
 	client    *http.Client
 	configUrl string
 	rawConfig []byte
-}
-
-func (provider) Name() string {
-	return name
 }
 
 func (p provider) FetchConfig() (config.Config, error) {

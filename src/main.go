@@ -26,12 +26,6 @@ import (
 	_ "github.com/coreos/ignition/src/exec/stages/files"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/oem"
-	"github.com/coreos/ignition/src/providers"
-	_ "github.com/coreos/ignition/src/providers/azure"
-	_ "github.com/coreos/ignition/src/providers/cmdline"
-	_ "github.com/coreos/ignition/src/providers/ec2"
-	_ "github.com/coreos/ignition/src/providers/file"
-	_ "github.com/coreos/ignition/src/providers/noop"
 )
 
 var (
@@ -45,7 +39,6 @@ func main() {
 		configCache   string
 		onlineTimeout time.Duration
 		oem           oem.Name
-		providers     providers.List
 		root          string
 		stage         stages.Name
 		version       bool
@@ -55,29 +48,31 @@ func main() {
 	flag.StringVar(&flags.configCache, "config-cache", "/run/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.onlineTimeout, "online-timeout", exec.DefaultOnlineTimeout, "how long to wait for a provider to come online")
 	flag.Var(&flags.oem, "oem", fmt.Sprintf("current oem. %v", oem.Names()))
-	flag.Var(&flags.providers, "provider", fmt.Sprintf("provider of config. can be specified multiple times. %v", providers.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
 
 	flag.Parse()
 
-	if config, ok := oem.Get(flags.oem.String()); ok {
-		for k, v := range config.Flags() {
-			if err := flag.Set(k, v); err != nil {
-				panic(err)
-			}
-		}
-	}
-
 	if flags.version {
 		fmt.Printf("%s\n", versionString)
 		return
 	}
 
+	if flags.oem == "" {
+		fmt.Fprint(os.Stderr, "'--oem' must be provided\n")
+		os.Exit(2)
+	}
+
 	if flags.stage == "" {
 		fmt.Fprint(os.Stderr, "'--stage' must be provided\n")
 		os.Exit(2)
+	}
+
+	for k, v := range oem.MustGet(flags.oem.String()).Flags() {
+		if err := flag.Set(k, v); err != nil {
+			panic(err)
+		}
 	}
 
 	logger := log.New()
@@ -96,9 +91,7 @@ func main() {
 		OnlineTimeout: flags.onlineTimeout,
 		Logger:        logger,
 		ConfigCache:   flags.configCache,
-	}.Init()
-	for _, name := range flags.providers {
-		engine.AddProvider(providers.Get(name).Create(logger))
+		Provider:      oem.MustGet(flags.oem.String()).Provider().Create(logger),
 	}
 
 	if !engine.Run(flags.stage.String()) {

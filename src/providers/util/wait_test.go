@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package exec
+package util
 
 import (
-	"errors"
-	"reflect"
 	"testing"
 	"time"
 
@@ -37,30 +35,18 @@ func (p mockProvider) IsOnline() bool                      { return p.online }
 func (p mockProvider) ShouldRetry() bool                   { return p.retry }
 func (p mockProvider) BackoffDuration() time.Duration      { return p.backoff }
 
-// TODO
-func TestRun(t *testing.T) {
-}
-
-func TestFetchConfigs(t *testing.T) {
+func TestWaitUntilOnline(t *testing.T) {
 	type in struct {
 		provider mockProvider
 		timeout  time.Duration
 	}
 	type out struct {
-		config config.Config
-		err    error
+		err error
 	}
 
-	online := mockProvider{
-		online: true,
-		err:    errors.New("test error"),
-		config: config.Config{
-			Systemd: config.Systemd{
-				Units: []config.SystemdUnit{},
-			},
-		},
-	}
+	online := mockProvider{online: true}
 	offline := mockProvider{online: false}
+	offlineRetry := mockProvider{online: false, retry: true}
 
 	tests := []struct {
 		in  in
@@ -68,19 +54,20 @@ func TestFetchConfigs(t *testing.T) {
 	}{
 		{
 			in:  in{provider: online, timeout: time.Second},
-			out: out{config: online.config, err: online.err},
+			out: out{err: nil},
 		},
 		{
 			in:  in{provider: offline, timeout: time.Second},
-			out: out{config: config.Config{}, err: providers.ErrNoProvider},
+			out: out{err: providers.ErrNoProvider},
+		},
+		{
+			in:  in{provider: offlineRetry, timeout: time.Second},
+			out: out{err: providers.ErrTimeout},
 		},
 	}
 
 	for i, test := range tests {
-		config, err := fetchConfig(test.in.provider, test.in.timeout)
-		if !reflect.DeepEqual(test.out.config, config) {
-			t.Errorf("#%d: bad provider: want %+v, got %+v", i, test.out.config, config)
-		}
+		err := WaitUntilOnline(test.in.provider, test.in.timeout)
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}

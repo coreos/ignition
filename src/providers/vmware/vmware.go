@@ -12,50 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The file provider reads the configuration from a file in the current
-// working directory by the name "config.json".
+// The vmware provider fetches a configuration from the VMware Guest Info
+// interface.
 
-package file
+package vmware
 
 import (
-	"io/ioutil"
 	"time"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
-	"github.com/coreos/ignition/src/providers/util"
+
+	"github.com/coreos/ignition/third_party/github.com/sigma/vmw-guestinfo/rpcvmx"
+	"github.com/coreos/ignition/third_party/github.com/sigma/vmw-guestinfo/vmcheck"
 )
 
 const (
-	name           = "file"
-	fileName       = "config.json"
-	initialBackoff = 100 * time.Millisecond
-	maxBackoff     = 30 * time.Second
+	name = "vmware"
 )
 
-func init() {
-	providers.Register(creator{})
-}
+type Creator struct{}
 
-type creator struct{}
-
-func (creator) Name() string {
+func (Creator) Name() string {
 	return name
 }
 
-func (creator) Create(logger log.Logger) providers.Provider {
+func (Creator) Create(logger log.Logger) providers.Provider {
 	return &provider{
-		logger:  logger,
-		backoff: initialBackoff,
+		logger: logger,
 	}
 }
 
 type provider struct {
-	backoff     time.Duration
-	logger      log.Logger
-	rawConfig   []byte
-	shouldRetry bool
+	logger log.Logger
 }
 
 func (provider) Name() string {
@@ -63,24 +53,24 @@ func (provider) Name() string {
 }
 
 func (p provider) FetchConfig() (config.Config, error) {
-	return config.Parse(p.rawConfig)
+	data, err := rpcvmx.NewConfig().String("coreos.config.data", "")
+	if err != nil {
+		p.logger.Debug("failed to fetch config: %v", err)
+		return config.Config{}, err
+	}
+
+	p.logger.Debug("config successfully fetched")
+	return config.Parse([]byte(data))
 }
 
 func (p *provider) IsOnline() bool {
-	var err error
-	p.rawConfig, err = ioutil.ReadFile(fileName)
-	if err != nil {
-		p.logger.Err("couldn't read config %q: %v", fileName, err)
-		return false
-	}
-
-	return true
+	return vmcheck.IsVirtualWorld()
 }
 
 func (p provider) ShouldRetry() bool {
-	return true
+	return false
 }
 
 func (p *provider) BackoffDuration() time.Duration {
-	return util.ExpBackoff(&p.backoff, maxBackoff)
+	return 0
 }
