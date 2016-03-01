@@ -17,6 +17,8 @@ package config
 import (
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
 )
 
 func TestParse(t *testing.T) {
@@ -34,11 +36,23 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{config: Config{Version: 1}},
+			out: out{err: ErrOldVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "1.0.0"}}`)},
+			out: out{err: ErrOldVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.0.0-dev"}}`)},
+			out: out{config: Config{Ignition: Ignition{Version: semver.Version{Major: 2, Minor: 0, PreRelease: "dev"}}}},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
+			out: out{err: ErrNewVersion},
 		},
 		{
 			in:  in{config: []byte(`{}`)},
-			out: out{err: ErrVersion},
+			out: out{err: ErrOldVersion},
 		},
 		{
 			in:  in{config: []byte{}},
@@ -77,11 +91,11 @@ func TestParse(t *testing.T) {
 
 	for i, test := range tests {
 		config, err := Parse(test.in.config)
-		if !reflect.DeepEqual(test.out.config, config) {
-			t.Errorf("#%d: bad config: want %+v, got %+v", i, test.out.config, config)
-		}
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+		if test.out.err == nil && !reflect.DeepEqual(test.out.config, config) {
+			t.Errorf("#%d: bad config: want %+v, got %+v", i, test.out.config, config)
 		}
 	}
 }

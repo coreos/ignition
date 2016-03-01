@@ -23,22 +23,28 @@ import (
 	"io/ioutil"
 
 	"github.com/coreos/ignition/third_party/github.com/camlistore/camlistore/pkg/errorutil"
+	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
+)
+
+var (
+	MaxVersion = semver.Version{
+		Major:      2,
+		Minor:      0,
+		PreRelease: "dev",
+	}
 )
 
 type Config struct {
-	Version  int      `json:"ignitionVersion"    yaml:"ignition_version"`
+	Ignition Ignition `json:"ignition"           yaml:"ignition"`
 	Storage  Storage  `json:"storage,omitempty"  yaml:"storage"`
 	Systemd  Systemd  `json:"systemd,omitempty"  yaml:"systemd"`
 	Networkd Networkd `json:"networkd,omitempty" yaml:"networkd"`
 	Passwd   Passwd   `json:"passwd,omitempty"   yaml:"passwd"`
 }
 
-const (
-	Version = 1
-)
-
 var (
-	ErrVersion     = errors.New("incorrect config version")
+	ErrOldVersion  = errors.New("incorrect config version (too old)")
+	ErrNewVersion  = errors.New("incorrect config version (too new)")
 	ErrCloudConfig = errors.New("not a config (found coreos-cloudconfig)")
 	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
 	ErrEmpty       = errors.New("not a config (empty)")
@@ -46,9 +52,7 @@ var (
 
 func Parse(config []byte) (cfg Config, err error) {
 	if err = json.Unmarshal(config, &cfg); err == nil {
-		if cfg.Version != Version {
-			err = ErrVersion
-		}
+		err = cfg.Ignition.assertValidVersion(MaxVersion)
 	} else if isCloudConfig(decompressIfGzipped(config)) {
 		err = ErrCloudConfig
 	} else if isScript(decompressIfGzipped(config)) {
