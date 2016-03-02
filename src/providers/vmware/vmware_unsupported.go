@@ -15,31 +15,20 @@
 // The vmware provider fetches a configuration from the VMware Guest Info
 // interface.
 
+// +build !amd64
+
 package vmware
 
 import (
-	"time"
+	"errors"
 
-	"github.com/coreos/ignition/src/log"
-	"github.com/coreos/ignition/src/providers"
+	"github.com/coreos/ignition/config"
 )
 
-type Creator struct{}
-
-func (Creator) Create(logger log.Logger) providers.Provider {
-	return &provider{
-		logger: logger,
-	}
+func (p provider) FetchConfig() (config.Config, error) {
+	return config.Config{}, errors.New("vmware provider is not supported on this architecture")
 }
 
-type provider struct {
-	logger log.Logger
-}
-
-func (p provider) ShouldRetry() bool {
+func (p *provider) IsOnline() bool {
 	return false
-}
-
-func (p *provider) BackoffDuration() time.Duration {
-	return 0
 }
