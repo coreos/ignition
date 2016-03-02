@@ -28,15 +28,7 @@ import (
 	"github.com/coreos/ignition/third_party/github.com/sigma/vmw-guestinfo/vmcheck"
 )
 
-const (
-	name = "vmware"
-)
-
 type Creator struct{}
-
-func (Creator) Name() string {
-	return name
-}
 
 func (Creator) Create(logger log.Logger) providers.Provider {
 	return &provider{
@@ -46,10 +38,6 @@ func (Creator) Create(logger log.Logger) providers.Provider {
 
 type provider struct {
 	logger log.Logger
-}
-
-func (provider) Name() string {
-	return name
 }
 
 func (p provider) FetchConfig() (config.Config, error) {
