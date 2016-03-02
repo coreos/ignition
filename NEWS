@@ -1,3 +1,13 @@
+02-Mar-2016 IGNITION v0.3.1
+
+  Bug Fixes
+
+    - Allow building on non-AMD64 architectures
+
+  Changes
+
+    - Major refactoring of the internal processing of OEMs and providers
+
 24-Feb-2016 IGNITION v0.3.0
 
   Features
