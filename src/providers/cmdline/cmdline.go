@@ -31,8 +31,9 @@ import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
-	"github.com/coreos/ignition/src/providers/util"
+	putil "github.com/coreos/ignition/src/providers/util"
 	"github.com/coreos/ignition/src/systemd"
+	"github.com/coreos/ignition/src/util"
 )
 
 const (
@@ -52,9 +53,7 @@ func (Creator) Create(logger log.Logger) providers.Provider {
 		logger:  logger,
 		backoff: initialBackoff,
 		path:    cmdlinePath,
-		client: &http.Client{
-			Timeout: 10 * time.Second,
-		},
+		client:  util.NewHttpClient(logger),
 	}
 }
 
@@ -62,7 +61,7 @@ type provider struct {
 	logger    log.Logger
 	backoff   time.Duration
 	path      string
-	client    *http.Client
+	client    util.HttpClient
 	configUrl string
 	rawConfig []byte
 }
@@ -101,7 +100,7 @@ func (p provider) ShouldRetry() bool {
 }
 
 func (p *provider) BackoffDuration() time.Duration {
-	return util.ExpBackoff(&p.backoff, maxBackoff)
+	return putil.ExpBackoff(&p.backoff, maxBackoff)
 }
 
 func parseCmdline(cmdline []byte) (url string) {
@@ -134,25 +133,8 @@ func (p *provider) getRawConfig() bool {
 
 	switch url.Scheme {
 	case "http":
-		if resp, err := p.client.Get(p.configUrl); err == nil {
-			defer resp.Body.Close()
-
-			switch resp.StatusCode {
-			case http.StatusOK, http.StatusNoContent:
-			default:
-				p.logger.Debug("failed fetching: HTTP status: %s",
-					resp.Status)
-				return false
-			}
-
-			p.logger.Debug("successfully fetched")
-			p.rawConfig, err = ioutil.ReadAll(resp.Body)
-			if err != nil {
-				p.logger.Err("failed to read body: %v", err)
-				return false
-			}
-		} else {
-			p.logger.Warning("failed fetching: %v", err)
+		p.rawConfig = p.client.FetchConfig(p.configUrl, http.StatusOK, http.StatusNoContent)
+		if p.rawConfig == nil {
 			return false
 		}
 	case "oem":
