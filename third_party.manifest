@@ -10,4 +10,5 @@ github.com/godbus/dbus					41608027bdce7bfa8959d653a00b954591220e67
 github.com/go-yaml/yaml					49c95bdc21843256fb6c4e0d370a05f24a0bf213
 github.com/sigma/vmw-guestinfo				95dd4126d6e8b4ef1970b3f3fe2e8cdd470d2903
 github.com/sigma/bdoor					babf2a4017b020d4ce04e8167076186e82645dd1
+github.com/vincent-petithory/dataurl			a81abcdac6cb8cbd9bf6ec779c2fb09fffb1d3f5
 speter.net/go/exp/math/dec/inf				42ca6cd68aa922bc3f32f1e056e61b65945d9ad7
