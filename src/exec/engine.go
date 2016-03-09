@@ -34,7 +34,7 @@ const (
 type Engine struct {
 	ConfigCache   string
 	OnlineTimeout time.Duration
-	Logger        log.Logger
+	Logger        *log.Logger
 	Root          string
 	Provider      providers.Provider
 }
@@ -47,7 +47,7 @@ func (e Engine) Run(stageName string) bool {
 	case nil:
 		e.Logger.PushPrefix(stageName)
 		defer e.Logger.PopPrefix()
-		return stages.Get(stageName).Create(&e.Logger, e.Root).Run(cfg)
+		return stages.Get(stageName).Create(e.Logger, e.Root).Run(cfg)
 	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
 		e.Logger.Info("%v: ignoring and exiting...", err)
 		return true

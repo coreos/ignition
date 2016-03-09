@@ -27,11 +27,11 @@ import (
 // the process and logging of fetching payloads.
 type HttpClient struct {
 	client *http.Client
-	logger log.Logger
+	logger *log.Logger
 }
 
 // NewHttpClient creates a new client with the given logger.
-func NewHttpClient(logger log.Logger) HttpClient {
+func NewHttpClient(logger *log.Logger) HttpClient {
 	return HttpClient{
 		client: &http.Client{
 			Timeout: 10 * time.Second,

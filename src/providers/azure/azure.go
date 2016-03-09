@@ -53,7 +53,7 @@ const (
 
 type Creator struct{}
 
-func (Creator) Create(logger log.Logger) providers.Provider {
+func (Creator) Create(logger *log.Logger) providers.Provider {
 	return &provider{
 		logger:  logger,
 		backoff: initialBackoff,
@@ -61,7 +61,7 @@ func (Creator) Create(logger log.Logger) providers.Provider {
 }
 
 type provider struct {
-	logger  log.Logger
+	logger  *log.Logger
 	backoff time.Duration
 }
 
