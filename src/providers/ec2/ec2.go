@@ -21,7 +21,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -29,7 +28,8 @@ import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
-	"github.com/coreos/ignition/src/providers/util"
+	putil "github.com/coreos/ignition/src/providers/util"
+	"github.com/coreos/ignition/src/util"
 )
 
 const (
@@ -42,20 +42,18 @@ const (
 
 type Creator struct{}
 
-func (Creator) Create(logger log.Logger) providers.Provider {
+func (Creator) Create(logger *log.Logger) providers.Provider {
 	return &provider{
 		logger:  logger,
 		backoff: initialBackoff,
-		client: &http.Client{
-			Timeout: 10 * time.Second,
-		},
+		client:  util.NewHttpClient(logger),
 	}
 }
 
 type provider struct {
-	logger    log.Logger
+	logger    *log.Logger
 	backoff   time.Duration
-	client    *http.Client
+	client    util.HttpClient
 	rawConfig []byte
 }
 
@@ -69,23 +67,8 @@ func (p provider) FetchConfig() (config.Config, error) {
 }
 
 func (p *provider) IsOnline() bool {
-	data, status, err := p.getData(userdataUrl)
-	if err != nil {
-		return false
-	}
-
-	switch status {
-	case http.StatusOK, http.StatusNoContent:
-		p.logger.Debug("config successfully fetched")
-		p.rawConfig = data
-	case http.StatusNotFound:
-		p.logger.Debug("no config to fetch")
-	default:
-		p.logger.Debug("failed fetching: HTTP status: %s", http.StatusText(status))
-		return false
-	}
-
-	return true
+	p.rawConfig = p.client.FetchConfig(userdataUrl, http.StatusOK, http.StatusNotFound)
+	return (p.rawConfig != nil)
 }
 
 func (p provider) ShouldRetry() bool {
@@ -93,7 +76,7 @@ func (p provider) ShouldRetry() bool {
 }
 
 func (p *provider) BackoffDuration() time.Duration {
-	return util.ExpBackoff(&p.backoff, maxBackoff)
+	return putil.ExpBackoff(&p.backoff, maxBackoff)
 }
 
 // fetchSSHKeys fetches and appends ssh keys to the config.
@@ -139,29 +122,10 @@ func (p *provider) fetchSSHKeys(cfg *config.Config) error {
 	return nil
 }
 
-// getData gets a url and reads the body.
-func (p *provider) getData(url string) (data []byte, status int, err error) {
-	err = p.logger.LogOp(func() error {
-		resp, err := p.client.Get(url)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-
-		status = resp.StatusCode
-		data, err = ioutil.ReadAll(resp.Body)
-		p.logger.Debug("got data %q", data)
-
-		return err
-	}, "GET %q", url)
-
-	return
-}
-
 // getAttributes gets a list of metadata attributes from the format string.
 func (p *provider) getAttributes(format string, a ...interface{}) ([]string, error) {
 	path := fmt.Sprintf(format, a...)
-	data, status, err := p.getData(metadataUrl + path)
+	data, status, err := p.client.Get(metadataUrl + path)
 	if err != nil {
 		return nil, err
 	}
