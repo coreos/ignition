@@ -26,14 +26,14 @@ import (
 
 type Creator struct{}
 
-func (Creator) Create(logger log.Logger) providers.Provider {
+func (Creator) Create(logger *log.Logger) providers.Provider {
 	return &provider{
 		logger: logger,
 	}
 }
 
 type provider struct {
-	logger log.Logger
+	logger *log.Logger
 }
 
 func (p provider) FetchConfig() (config.Config, error) {

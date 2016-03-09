@@ -39,5 +39,5 @@ type Provider interface {
 }
 
 type ProviderCreator interface {
-	Create(logger log.Logger) Provider
+	Create(logger *log.Logger) Provider
 }

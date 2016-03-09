@@ -4,21 +4,15 @@
 
 This document defines a high level roadmap for Ignition development. The dates below should not be considered authoritative, but rather indicative of the projected timeline of the project.
 
-## Ignition 0.1 (Jul) ##
-- support basic disk manipulation
-  - writing files
-  - writing systemd units
-  - writing networkd units
-  - formatting filesystems
-- support for limited config providers
-  - remote URL via kernel command line
+## Ignition 0.4 (Apr) ##
 
-## Ignition 0.2 (Sep) ##
-- support for more config providers
-  - EC2
-  - Azure
+- support for version 2.0.0 of the specification
+  - remote file contents
+  - chain-loaded configs
+  - RAM-based filesystems
 
-## Ignition 0.3 (Oct) ##
+## Ignition 0.5 (May) ##
+
 - support for more config providers
   - GCE
   - OpenStack
