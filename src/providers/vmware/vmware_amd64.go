@@ -18,28 +18,23 @@
 package vmware
 
 import (
-	"time"
+	"github.com/coreos/ignition/config"
 
-	"github.com/coreos/ignition/src/log"
-	"github.com/coreos/ignition/src/providers"
+	"github.com/coreos/ignition/third_party/github.com/sigma/vmw-guestinfo/rpcvmx"
+	"github.com/coreos/ignition/third_party/github.com/sigma/vmw-guestinfo/vmcheck"
 )
 
-type Creator struct{}
-
-func (Creator) Create(logger log.Logger) providers.Provider {
-	return &provider{
-		logger: logger,
+func (p provider) FetchConfig() (config.Config, error) {
+	data, err := rpcvmx.NewConfig().String("coreos.config.data", "")
+	if err != nil {
+		p.logger.Debug("failed to fetch config: %v", err)
+		return config.Config{}, err
 	}
+
+	p.logger.Debug("config successfully fetched")
+	return config.Parse([]byte(data))
 }
 
-type provider struct {
-	logger log.Logger
-}
-
-func (p provider) ShouldRetry() bool {
-	return false
-}
-
-func (p *provider) BackoffDuration() time.Duration {
-	return 0
+func (p *provider) IsOnline() bool {
+	return vmcheck.IsVirtualWorld()
 }
