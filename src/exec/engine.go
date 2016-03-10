@@ -153,6 +153,10 @@ func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Confi
 		return types.Config{}, ErrSchemeUnsupported
 	}
 
+	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
+		return types.Config{}, err
+	}
+
 	cfg, err := config.Parse(rawCfg)
 	if err != nil {
 		return types.Config{}, err

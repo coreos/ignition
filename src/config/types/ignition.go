@@ -37,7 +37,8 @@ type IgnitionConfig struct {
 }
 
 type ConfigReference struct {
-	Source Url `json:"source,omitempty" yaml:"source"`
+	Source       Url          `json:"source,omitempty"       yaml:"source"`
+	Verification Verification `json:"verification,omitempty" yaml:"verification"`
 }
 
 type IgnitionVersion semver.Version
