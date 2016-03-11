@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
 	putil "github.com/coreos/ignition/src/providers/util"
@@ -66,9 +67,9 @@ type provider struct {
 	rawConfig []byte
 }
 
-func (p provider) FetchConfig() (config.Config, error) {
+func (p provider) FetchConfig() (types.Config, error) {
 	if p.rawConfig == nil {
-		return config.Config{}, nil
+		return types.Config{}, nil
 	} else {
 		return config.Parse(p.rawConfig)
 	}

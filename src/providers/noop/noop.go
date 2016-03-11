@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
 )
@@ -36,9 +37,9 @@ type provider struct {
 	logger *log.Logger
 }
 
-func (p provider) FetchConfig() (config.Config, error) {
+func (p provider) FetchConfig() (types.Config, error) {
 	p.logger.Debug("noop provider fetching empty config")
-	return config.Config{}, config.ErrEmpty
+	return types.Config{}, config.ErrEmpty
 }
 
 func (p *provider) IsOnline() bool {

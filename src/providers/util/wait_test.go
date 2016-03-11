@@ -18,22 +18,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/providers"
 )
 
 type mockProvider struct {
-	config  config.Config
+	config  types.Config
 	err     error
 	online  bool
 	retry   bool
 	backoff time.Duration
 }
 
-func (p mockProvider) FetchConfig() (config.Config, error) { return p.config, p.err }
-func (p mockProvider) IsOnline() bool                      { return p.online }
-func (p mockProvider) ShouldRetry() bool                   { return p.retry }
-func (p mockProvider) BackoffDuration() time.Duration      { return p.backoff }
+func (p mockProvider) FetchConfig() (types.Config, error) { return p.config, p.err }
+func (p mockProvider) IsOnline() bool                     { return p.online }
+func (p mockProvider) ShouldRetry() bool                  { return p.retry }
+func (p mockProvider) BackoffDuration() time.Duration     { return p.backoff }
 
 func TestWaitUntilOnline(t *testing.T) {
 	type in struct {
