@@ -18,7 +18,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/log"
 )
 
@@ -32,7 +32,7 @@ var (
 // or not the source is online, if the caller should try again when the source
 // is offline, and how long the caller should wait before retries.
 type Provider interface {
-	FetchConfig() (config.Config, error)
+	FetchConfig() (types.Config, error)
 	IsOnline() bool
 	ShouldRetry() bool
 	BackoffDuration() time.Duration

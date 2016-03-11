@@ -20,22 +20,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/providers"
 )
 
 type mockProvider struct {
-	config  config.Config
+	config  types.Config
 	err     error
 	online  bool
 	retry   bool
 	backoff time.Duration
 }
 
-func (p mockProvider) FetchConfig() (config.Config, error) { return p.config, p.err }
-func (p mockProvider) IsOnline() bool                      { return p.online }
-func (p mockProvider) ShouldRetry() bool                   { return p.retry }
-func (p mockProvider) BackoffDuration() time.Duration      { return p.backoff }
+func (p mockProvider) FetchConfig() (types.Config, error) { return p.config, p.err }
+func (p mockProvider) IsOnline() bool                     { return p.online }
+func (p mockProvider) ShouldRetry() bool                  { return p.retry }
+func (p mockProvider) BackoffDuration() time.Duration     { return p.backoff }
 
 // TODO
 func TestRun(t *testing.T) {
@@ -47,16 +47,16 @@ func TestFetchConfigs(t *testing.T) {
 		timeout  time.Duration
 	}
 	type out struct {
-		config config.Config
+		config types.Config
 		err    error
 	}
 
 	online := mockProvider{
 		online: true,
 		err:    errors.New("test error"),
-		config: config.Config{
-			Systemd: config.Systemd{
-				Units: []config.SystemdUnit{},
+		config: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.SystemdUnit{},
 			},
 		},
 	}
@@ -72,7 +72,7 @@ func TestFetchConfigs(t *testing.T) {
 		},
 		{
 			in:  in{provider: offline, timeout: time.Second},
-			out: out{config: config.Config{}, err: providers.ErrNoProvider},
+			out: out{config: types.Config{}, err: providers.ErrNoProvider},
 		},
 	}
 

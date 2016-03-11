@@ -19,16 +19,17 @@ package vmware
 
 import (
 	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 
 	"github.com/coreos/ignition/third_party/github.com/sigma/vmw-guestinfo/rpcvmx"
 	"github.com/coreos/ignition/third_party/github.com/sigma/vmw-guestinfo/vmcheck"
 )
 
-func (p provider) FetchConfig() (config.Config, error) {
+func (p provider) FetchConfig() (types.Config, error) {
 	data, err := rpcvmx.NewConfig().String("coreos.config.data", "")
 	if err != nil {
 		p.logger.Debug("failed to fetch config: %v", err)
-		return config.Config{}, err
+		return types.Config{}, err
 	}
 
 	p.logger.Debug("config successfully fetched")

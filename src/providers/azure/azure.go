@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
 	"github.com/coreos/ignition/src/providers/util"
@@ -65,11 +66,11 @@ type provider struct {
 	backoff time.Duration
 }
 
-func (p provider) FetchConfig() (config.Config, error) {
+func (p provider) FetchConfig() (types.Config, error) {
 	p.logger.Debug("creating temporary mount point")
 	mnt, err := ioutil.TempDir("", "ignition-azure")
 	if err != nil {
-		return config.Config{}, fmt.Errorf("failed to create temp directory: %v", err)
+		return types.Config{}, fmt.Errorf("failed to create temp directory: %v", err)
 	}
 	defer os.Remove(mnt)
 
@@ -78,7 +79,7 @@ func (p provider) FetchConfig() (config.Config, error) {
 		func() error { return syscall.Mount(configDevice, mnt, "udf", syscall.MS_RDONLY, "") },
 		"mounting %q at %q", configDevice, mnt,
 	); err != nil {
-		return config.Config{}, fmt.Errorf("failed to mount device %q at %q: %v", configDevice, mnt, err)
+		return types.Config{}, fmt.Errorf("failed to mount device %q at %q: %v", configDevice, mnt, err)
 	}
 	defer p.logger.LogOp(
 		func() error { return syscall.Unmount(mnt, 0) },
@@ -88,7 +89,7 @@ func (p provider) FetchConfig() (config.Config, error) {
 	p.logger.Debug("reading config")
 	rawConfig, err := ioutil.ReadFile(filepath.Join(mnt, configPath))
 	if err != nil && !os.IsNotExist(err) {
-		return config.Config{}, fmt.Errorf("failed to read config: %v", err)
+		return types.Config{}, fmt.Errorf("failed to read config: %v", err)
 	}
 
 	return config.Parse(rawConfig)

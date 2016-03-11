@@ -25,7 +25,7 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/exec/stages"
 	"github.com/coreos/ignition/src/exec/util"
 	"github.com/coreos/ignition/src/log"
@@ -62,7 +62,7 @@ func (stage) Name() string {
 	return name
 }
 
-func (s stage) Run(config config.Config) bool {
+func (s stage) Run(config types.Config) bool {
 	if err := s.createPartitions(config); err != nil {
 		s.Logger.Crit("create partitions failed: %v", err)
 		return false
@@ -99,7 +99,7 @@ func (s stage) waitOnDevices(devs []string, ctxt string) error {
 }
 
 // createPartitions creates the partitions described in config.Storage.Disks.
-func (s stage) createPartitions(config config.Config) error {
+func (s stage) createPartitions(config types.Config) error {
 	if len(config.Storage.Disks) == 0 {
 		return nil
 	}
@@ -147,7 +147,7 @@ func (s stage) createPartitions(config config.Config) error {
 }
 
 // createRaids creates the raid arrays described in config.Storage.Arrays.
-func (s stage) createRaids(config config.Config) error {
+func (s stage) createRaids(config types.Config) error {
 	if len(config.Storage.Arrays) == 0 {
 		return nil
 	}
@@ -196,7 +196,7 @@ func (s stage) createRaids(config config.Config) error {
 }
 
 // createFilesystems creates the filesystems described in config.Storage.Filesystems.
-func (s stage) createFilesystems(config config.Config) error {
+func (s stage) createFilesystems(config types.Config) error {
 	if len(config.Storage.Filesystems) == 0 {
 		return nil
 	}
@@ -221,7 +221,7 @@ func (s stage) createFilesystems(config config.Config) error {
 	return nil
 }
 
-func (s stage) createFilesystem(fs config.Filesystem) error {
+func (s stage) createFilesystem(fs types.Filesystem) error {
 	if fs.Create == nil {
 		return nil
 	}
@@ -261,7 +261,7 @@ func (s stage) createFilesystem(fs config.Filesystem) error {
 }
 
 // createFilesystemsFiles creates the files described in config.Storage.Filesystems.
-func (s stage) createFilesystemsFiles(config config.Config) error {
+func (s stage) createFilesystemsFiles(config types.Config) error {
 	if len(config.Storage.Filesystems) == 0 {
 		return nil
 	}
@@ -278,7 +278,7 @@ func (s stage) createFilesystemsFiles(config config.Config) error {
 }
 
 // createFiles creates any files listed for the filesystem in fs.Files.
-func (s stage) createFiles(fs config.Filesystem) error {
+func (s stage) createFiles(fs types.Filesystem) error {
 	if len(fs.Files) == 0 {
 		return nil
 	}

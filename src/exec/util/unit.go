@@ -19,7 +19,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 )
 
 const (
@@ -27,8 +27,8 @@ const (
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func FileFromSystemdUnit(unit config.SystemdUnit) *config.File {
-	return &config.File{
+func FileFromSystemdUnit(unit types.SystemdUnit) *types.File {
+	return &types.File{
 		Path:     filepath.Join(SystemdUnitsPath(), string(unit.Name)),
 		Contents: unit.Contents,
 		Mode:     DefaultFilePermissions,
@@ -37,8 +37,8 @@ func FileFromSystemdUnit(unit config.SystemdUnit) *config.File {
 	}
 }
 
-func FileFromNetworkdUnit(unit config.NetworkdUnit) *config.File {
-	return &config.File{
+func FileFromNetworkdUnit(unit types.NetworkdUnit) *types.File {
+	return &types.File{
 		Path:     filepath.Join(NetworkdUnitsPath(), string(unit.Name)),
 		Contents: unit.Contents,
 		Mode:     DefaultFilePermissions,
@@ -47,8 +47,8 @@ func FileFromNetworkdUnit(unit config.NetworkdUnit) *config.File {
 	}
 }
 
-func FileFromUnitDropin(unit config.SystemdUnit, dropin config.SystemdUnitDropIn) *config.File {
-	return &config.File{
+func FileFromUnitDropin(unit types.SystemdUnit, dropin types.SystemdUnitDropIn) *types.File {
+	return &types.File{
 		Path:     filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
 		Contents: dropin.Contents,
 		Mode:     DefaultFilePermissions,
@@ -57,7 +57,7 @@ func FileFromUnitDropin(unit config.SystemdUnit, dropin config.SystemdUnitDropIn
 	}
 }
 
-func (u Util) MaskUnit(unit config.SystemdUnit) error {
+func (u Util) MaskUnit(unit types.SystemdUnit) error {
 	path := u.JoinPath(SystemdUnitsPath(), string(unit.Name))
 	if err := mkdirForFile(path); err != nil {
 		return err
@@ -65,7 +65,7 @@ func (u Util) MaskUnit(unit config.SystemdUnit) error {
 	return os.Symlink("/dev/null", path)
 }
 
-func (u Util) EnableUnit(unit config.SystemdUnit) error {
+func (u Util) EnableUnit(unit types.SystemdUnit) error {
 	path := u.JoinPath(presetPath)
 	if err := mkdirForFile(path); err != nil {
 		return err

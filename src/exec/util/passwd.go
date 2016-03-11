@@ -20,13 +20,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 
 	keys "github.com/coreos/ignition/third_party/github.com/coreos/update-ssh-keys/authorized_keys_d"
 )
 
 // CreateUser creates the user as described.
-func (u Util) CreateUser(c config.User) error {
+func (u Util) CreateUser(c types.User) error {
 	if c.Create == nil {
 		return nil
 	}
@@ -90,7 +90,7 @@ func (u Util) CreateUser(c config.User) error {
 }
 
 // Add the provided SSH public keys to the user's authorized keys.
-func (u Util) AuthorizeSSHKeys(c config.User) error {
+func (u Util) AuthorizeSSHKeys(c types.User) error {
 	if len(c.SSHAuthorizedKeys) == 0 {
 		return nil
 	}
@@ -131,7 +131,7 @@ func (u Util) AuthorizeSSHKeys(c config.User) error {
 }
 
 // SetPasswordHash sets the password hash of the specified user.
-func (u Util) SetPasswordHash(c config.User) error {
+func (u Util) SetPasswordHash(c types.User) error {
 	if c.PasswordHash == "" {
 		return nil
 	}
@@ -148,7 +148,7 @@ func (u Util) SetPasswordHash(c config.User) error {
 }
 
 // CreateGroup creates the group as described.
-func (u Util) CreateGroup(g config.Group) error {
+func (u Util) CreateGroup(g types.Group) error {
 	args := []string{"--root", u.DestDir}
 
 	if g.Gid != nil {

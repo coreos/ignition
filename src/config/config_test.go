@@ -17,6 +17,8 @@ package config
 import (
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/config/types"
 )
 
 func TestParse(t *testing.T) {
@@ -24,7 +26,7 @@ func TestParse(t *testing.T) {
 		config []byte
 	}
 	type out struct {
-		config Config
+		config types.Config
 		err    error
 	}
 
@@ -34,7 +36,7 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{config: Config{Version: 1}},
+			out: out{config: types.Config{Version: 1}},
 		},
 		{
 			in:  in{config: []byte(`{}`)},

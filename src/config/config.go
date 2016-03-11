@@ -22,42 +22,32 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/coreos/ignition/config/types"
+
 	"github.com/coreos/ignition/third_party/github.com/camlistore/camlistore/pkg/errorutil"
-)
-
-type Config struct {
-	Version  int      `json:"ignitionVersion"    yaml:"ignition_version"`
-	Storage  Storage  `json:"storage,omitempty"  yaml:"storage"`
-	Systemd  Systemd  `json:"systemd,omitempty"  yaml:"systemd"`
-	Networkd Networkd `json:"networkd,omitempty" yaml:"networkd"`
-	Passwd   Passwd   `json:"passwd,omitempty"   yaml:"passwd"`
-}
-
-const (
-	Version = 1
 )
 
 var (
 	ErrVersion     = errors.New("incorrect config version")
 	ErrCloudConfig = errors.New("not a config (found coreos-cloudconfig)")
-	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
 	ErrEmpty       = errors.New("not a config (empty)")
+	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
 )
 
-func Parse(config []byte) (cfg Config, err error) {
-	if err = json.Unmarshal(config, &cfg); err == nil {
-		if cfg.Version != Version {
+func Parse(rawConfig []byte) (config types.Config, err error) {
+	if err = json.Unmarshal(rawConfig, &config); err == nil {
+		if config.Version != types.Version {
 			err = ErrVersion
 		}
-	} else if isCloudConfig(decompressIfGzipped(config)) {
-		err = ErrCloudConfig
-	} else if isScript(decompressIfGzipped(config)) {
-		err = ErrScript
-	} else if isEmpty(config) {
+	} else if isEmpty(rawConfig) {
 		err = ErrEmpty
+	} else if isCloudConfig(decompressIfGzipped(rawConfig)) {
+		err = ErrCloudConfig
+	} else if isScript(decompressIfGzipped(rawConfig)) {
+		err = ErrScript
 	}
 	if serr, ok := err.(*json.SyntaxError); ok {
-		line, col, highlight := errorutil.HighlightBytePosition(bytes.NewReader(config), serr.Offset)
+		line, col, highlight := errorutil.HighlightBytePosition(bytes.NewReader(rawConfig), serr.Offset)
 		err = fmt.Errorf("error at line %d, column %d\n%s%v", line, col, highlight, err)
 	}
 
