@@ -1,4 +1,4 @@
-// Copyright 2015 CoreOS, Inc.
+// Copyright 2016 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,22 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package types
 
-import (
-	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
-)
-
-type Ignition struct {
-	Version semver.Version `json:"version" yaml:"version"`
-}
-
-func (i Ignition) assertValidVersion(maxVersion semver.Version) error {
-	if maxVersion.Major > i.Version.Major {
-		return ErrOldVersion
-	}
-	if maxVersion.LessThan(i.Version) {
-		return ErrNewVersion
-	}
-	return nil
+type Passwd struct {
+	Users  []User  `json:"users,omitempty"  yaml:"users"`
+	Groups []Group `json:"groups,omitempty" yaml:"groups"`
 }

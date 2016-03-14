@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/exec/stages"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
@@ -59,7 +60,7 @@ func (e Engine) Run(stageName string) bool {
 
 // acquireConfig returns the configuration, first checking a local cache
 // before attempting to fetch it from the provider.
-func (e Engine) acquireConfig() (cfg config.Config, err error) {
+func (e Engine) acquireConfig() (cfg types.Config, err error) {
 	// First try read the config @ e.ConfigCache.
 	b, err := ioutil.ReadFile(e.ConfigCache)
 	if err == nil {
@@ -93,9 +94,9 @@ func (e Engine) acquireConfig() (cfg config.Config, err error) {
 
 // fetchConfig returns the configuration from the provider or returns an error
 // if the provider is unavailable.
-func fetchConfig(provider providers.Provider, timeout time.Duration) (config.Config, error) {
+func fetchConfig(provider providers.Provider, timeout time.Duration) (types.Config, error) {
 	if err := util.WaitUntilOnline(provider, timeout); err != nil {
-		return config.Config{}, err
+		return types.Config{}, err
 	}
 
 	return provider.FetchConfig()

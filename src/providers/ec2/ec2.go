@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/providers"
 	putil "github.com/coreos/ignition/src/providers/util"
@@ -57,7 +58,7 @@ type provider struct {
 	rawConfig []byte
 }
 
-func (p provider) FetchConfig() (config.Config, error) {
+func (p provider) FetchConfig() (types.Config, error) {
 	cfg, err := config.Parse(p.rawConfig)
 	if err == nil || err == config.ErrEmpty {
 		err = p.fetchSSHKeys(&cfg)
@@ -80,7 +81,7 @@ func (p *provider) BackoffDuration() time.Duration {
 }
 
 // fetchSSHKeys fetches and appends ssh keys to the config.
-func (p *provider) fetchSSHKeys(cfg *config.Config) error {
+func (p *provider) fetchSSHKeys(cfg *types.Config) error {
 	keynames, err := p.getAttributes("/public-keys")
 	if err != nil {
 		return fmt.Errorf("error reading keys: %v", err)
@@ -114,7 +115,7 @@ func (p *provider) fetchSSHKeys(cfg *config.Config) error {
 		}
 	}
 
-	cfg.Passwd.Users = append(cfg.Passwd.Users, config.User{
+	cfg.Passwd.Users = append(cfg.Passwd.Users, types.User{
 		Name:              "core",
 		SSHAuthorizedKeys: keys,
 	})

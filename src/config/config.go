@@ -22,46 +22,29 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/coreos/ignition/config/types"
+
 	"github.com/coreos/ignition/third_party/github.com/camlistore/camlistore/pkg/errorutil"
-	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
 )
 
 var (
-	MaxVersion = semver.Version{
-		Major:      2,
-		Minor:      0,
-		PreRelease: "dev",
-	}
-)
-
-type Config struct {
-	Ignition Ignition `json:"ignition"           yaml:"ignition"`
-	Storage  Storage  `json:"storage,omitempty"  yaml:"storage"`
-	Systemd  Systemd  `json:"systemd,omitempty"  yaml:"systemd"`
-	Networkd Networkd `json:"networkd,omitempty" yaml:"networkd"`
-	Passwd   Passwd   `json:"passwd,omitempty"   yaml:"passwd"`
-}
-
-var (
-	ErrOldVersion  = errors.New("incorrect config version (too old)")
-	ErrNewVersion  = errors.New("incorrect config version (too new)")
 	ErrCloudConfig = errors.New("not a config (found coreos-cloudconfig)")
-	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
 	ErrEmpty       = errors.New("not a config (empty)")
+	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
 )
 
-func Parse(config []byte) (cfg Config, err error) {
-	if err = json.Unmarshal(config, &cfg); err == nil {
-		err = cfg.Ignition.assertValidVersion(MaxVersion)
-	} else if isCloudConfig(decompressIfGzipped(config)) {
-		err = ErrCloudConfig
-	} else if isScript(decompressIfGzipped(config)) {
-		err = ErrScript
-	} else if isEmpty(config) {
+func Parse(rawConfig []byte) (config types.Config, err error) {
+	if err = json.Unmarshal(rawConfig, &config); err == nil {
+		err = config.Ignition.Version.AssertValid()
+	} else if isEmpty(rawConfig) {
 		err = ErrEmpty
+	} else if isCloudConfig(decompressIfGzipped(rawConfig)) {
+		err = ErrCloudConfig
+	} else if isScript(decompressIfGzipped(rawConfig)) {
+		err = ErrScript
 	}
 	if serr, ok := err.(*json.SyntaxError); ok {
-		line, col, highlight := errorutil.HighlightBytePosition(bytes.NewReader(config), serr.Offset)
+		line, col, highlight := errorutil.HighlightBytePosition(bytes.NewReader(rawConfig), serr.Offset)
 		err = fmt.Errorf("error at line %d, column %d\n%s%v", line, col, highlight, err)
 	}
 

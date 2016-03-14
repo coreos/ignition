@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
+	"github.com/coreos/ignition/config/types"
 )
 
 func TestParse(t *testing.T) {
@@ -26,7 +26,7 @@ func TestParse(t *testing.T) {
 		config []byte
 	}
 	type out struct {
-		config Config
+		config types.Config
 		err    error
 	}
 
@@ -36,23 +36,23 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{err: ErrOldVersion},
+			out: out{err: types.ErrOldVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "1.0.0"}}`)},
-			out: out{err: ErrOldVersion},
+			out: out{err: types.ErrOldVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0-dev"}}`)},
-			out: out{config: Config{Ignition: Ignition{Version: semver.Version{Major: 2, Minor: 0, PreRelease: "dev"}}}},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion{Major: 2, Minor: 0, PreRelease: "dev"}}}},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
-			out: out{err: ErrNewVersion},
+			out: out{err: types.ErrNewVersion},
 		},
 		{
 			in:  in{config: []byte(`{}`)},
-			out: out{err: ErrOldVersion},
+			out: out{err: types.ErrOldVersion},
 		},
 		{
 			in:  in{config: []byte{}},

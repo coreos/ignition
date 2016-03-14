@@ -12,9 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package types
 
-type Passwd struct {
-	Users  []User  `json:"users,omitempty"  yaml:"users"`
-	Groups []Group `json:"groups,omitempty" yaml:"groups"`
+import (
+	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
+)
+
+var (
+	MaxVersion = semver.Version{
+		Major:      2,
+		Minor:      0,
+		PreRelease: "dev",
+	}
+)
+
+type Config struct {
+	Ignition Ignition `json:"ignition"           yaml:"ignition"`
+	Storage  Storage  `json:"storage,omitempty"  yaml:"storage"`
+	Systemd  Systemd  `json:"systemd,omitempty"  yaml:"systemd"`
+	Networkd Networkd `json:"networkd,omitempty" yaml:"networkd"`
+	Passwd   Passwd   `json:"passwd,omitempty"   yaml:"passwd"`
 }

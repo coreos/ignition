@@ -19,16 +19,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 )
 
 const (
-	DefaultDirectoryPermissions config.FileMode = 0755
-	DefaultFilePermissions      config.FileMode = 0644
+	DefaultDirectoryPermissions types.FileMode = 0755
+	DefaultFilePermissions      types.FileMode = 0644
 )
 
 // WriteFile creates and writes the file described by f using the provided context
-func (u Util) WriteFile(f *config.File) error {
+func (u Util) WriteFile(f *types.File) error {
 	var err error
 
 	path := u.JoinPath(f.Path)
