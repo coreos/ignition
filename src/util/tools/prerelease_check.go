@@ -18,16 +18,16 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 )
 
 func main() {
-	if config.MaxVersion.PreRelease != "" {
-		fmt.Fprintf(os.Stderr, "config version still has pre-release (%s)\n", config.MaxVersion.PreRelease)
+	if types.MaxVersion.PreRelease != "" {
+		fmt.Fprintf(os.Stderr, "config version still has pre-release (%s)\n", types.MaxVersion.PreRelease)
 		os.Exit(1)
 	}
-	if config.MaxVersion.Metadata != "" {
-		fmt.Fprintf(os.Stderr, "config version still has metadata (%s)\n", config.MaxVersion.Metadata)
+	if types.MaxVersion.Metadata != "" {
+		fmt.Fprintf(os.Stderr, "config version still has metadata (%s)\n", types.MaxVersion.Metadata)
 		os.Exit(1)
 	}
 }
