@@ -29,8 +29,10 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **path** (string): the absolute path to the file.
       * **_contents_** (string): the contents of the file.
       * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
-      * **_uid_** (integer): the user ID of the owner.
-      * **_gid_** (integer): the group ID of the owner.
+      * **_user_** (object): specifies the file's owner.
+        * **_id_** (integer): the user ID of the owner.
+      * **_group_** (object): specifies the group of the owner.
+        * **_id_** (integer): the group ID of the owner.
 * **_systemd_** (object): describes the desired state of the systemd units.
   * **_units_** (list of objects): the list of systemd units.
     * **name** (string): the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service").

@@ -32,8 +32,6 @@ func FileFromSystemdUnit(unit types.SystemdUnit) *types.File {
 		Path:     filepath.Join(SystemdUnitsPath(), string(unit.Name)),
 		Contents: unit.Contents,
 		Mode:     DefaultFilePermissions,
-		Uid:      0,
-		Gid:      0,
 	}
 }
 
@@ -42,8 +40,6 @@ func FileFromNetworkdUnit(unit types.NetworkdUnit) *types.File {
 		Path:     filepath.Join(NetworkdUnitsPath(), string(unit.Name)),
 		Contents: unit.Contents,
 		Mode:     DefaultFilePermissions,
-		Uid:      0,
-		Gid:      0,
 	}
 }
 
@@ -52,8 +48,6 @@ func FileFromUnitDropin(unit types.SystemdUnit, dropin types.SystemdUnitDropIn) 
 		Path:     filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
 		Contents: dropin.Contents,
 		Mode:     DefaultFilePermissions,
-		Uid:      0,
-		Gid:      0,
 	}
 }
 
