@@ -23,12 +23,30 @@ import (
 )
 
 const (
-	DefaultDirectoryPermissions types.FileMode = 0755
-	DefaultFilePermissions      types.FileMode = 0644
+	DefaultDirectoryPermissions os.FileMode = 0755
+	DefaultFilePermissions      os.FileMode = 0644
 )
 
+type File struct {
+	Path     types.Path
+	Contents []byte
+	Mode     os.FileMode
+	Uid      int
+	Gid      int
+}
+
+func RenderFile(f types.File) *File {
+	return &File{
+		Path:     f.Path,
+		Contents: []byte(f.Contents),
+		Mode:     os.FileMode(f.Mode),
+		Uid:      f.User.Id,
+		Gid:      f.Group.Id,
+	}
+}
+
 // WriteFile creates and writes the file described by f using the provided context
-func (u Util) WriteFile(f *types.File) error {
+func (u Util) WriteFile(f *File) error {
 	var err error
 
 	path := u.JoinPath(string(f.Path))
@@ -49,7 +67,7 @@ func (u Util) WriteFile(f *types.File) error {
 		}
 	}()
 
-	if err := ioutil.WriteFile(tmp.Name(), []byte(f.Contents), os.FileMode(f.Mode)); err != nil {
+	if err := ioutil.WriteFile(tmp.Name(), f.Contents, f.Mode); err != nil {
 		return err
 	}
 
@@ -57,11 +75,11 @@ func (u Util) WriteFile(f *types.File) error {
 	// by using syscall.Fchown() and syscall.Fchmod()
 
 	// Ensure the ownership and mode are as requested (since WriteFile can be affected by sticky bit)
-	if err := os.Chown(tmp.Name(), f.User.Id, f.Group.Id); err != nil {
+	if err := os.Chown(tmp.Name(), f.Uid, f.Gid); err != nil {
 		return err
 	}
 
-	if err := os.Chmod(tmp.Name(), os.FileMode(f.Mode)); err != nil {
+	if err := os.Chmod(tmp.Name(), f.Mode); err != nil {
 		return err
 	}
 
@@ -74,5 +92,5 @@ func (u Util) WriteFile(f *types.File) error {
 
 // mkdirForFile helper creates the directory components of path
 func mkdirForFile(path string) error {
-	return os.MkdirAll(filepath.Dir(path), os.FileMode(DefaultDirectoryPermissions))
+	return os.MkdirAll(filepath.Dir(path), DefaultDirectoryPermissions)
 }

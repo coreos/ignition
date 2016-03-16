@@ -161,11 +161,16 @@ func (s stage) createFiles(fs types.Filesystem, files []types.File) error {
 		DestDir: mnt,
 	}
 	for _, f := range files {
+		file := util.RenderFile(f)
+		if file == nil {
+			return fmt.Errorf("failed to resolve file %q", f.Path)
+		}
+
 		if err := s.Logger.LogOp(
-			func() error { return u.WriteFile(&f) },
+			func() error { return u.WriteFile(file) },
 			"writing file %q", string(f.Path),
 		); err != nil {
-			return fmt.Errorf("failed to create file %q: %v", f.Path, err)
+			return fmt.Errorf("failed to create file %q: %v", file.Path, err)
 		}
 	}
 
