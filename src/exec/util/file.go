@@ -15,16 +15,29 @@
 package util
 
 import (
+	"bytes"
+	"compress/gzip"
+	"errors"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/src/log"
+	"github.com/coreos/ignition/src/util"
+
+	"github.com/coreos/ignition/third_party/github.com/vincent-petithory/dataurl"
 )
 
 const (
 	DefaultDirectoryPermissions os.FileMode = 0755
 	DefaultFilePermissions      os.FileMode = 0644
+)
+
+var (
+	ErrSchemeUnsupported = errors.New("unsupported source scheme")
+	ErrStatusBad         = errors.New("bad HTTP response status")
 )
 
 type File struct {
@@ -35,13 +48,84 @@ type File struct {
 	Gid      int
 }
 
-func RenderFile(f types.File) *File {
+func RenderFile(l *log.Logger, f types.File) *File {
+	var contents []byte
+	var err error
+
+	fetch := func() error {
+		contents, err = fetchFile(l, f)
+		return err
+	}
+
+	validate := func() error {
+		return util.AssertValid(f.Contents.Verification, contents)
+	}
+
+	decompress := func() error {
+		contents, err = decompressFile(l, f, contents)
+		return err
+	}
+
+	if l.LogOp(fetch, "fetching file %q", f.Path) != nil {
+		return nil
+	}
+	if l.LogOp(validate, "validating file contents") != nil {
+		return nil
+	}
+	if l.LogOp(decompress, "decompressing file contents") != nil {
+		return nil
+	}
+
 	return &File{
 		Path:     f.Path,
-		Contents: []byte(f.Contents),
+		Contents: []byte(contents),
 		Mode:     os.FileMode(f.Mode),
 		Uid:      f.User.Id,
 		Gid:      f.Group.Id,
+	}
+}
+
+func fetchFile(l *log.Logger, f types.File) ([]byte, error) {
+	switch f.Contents.Source.Scheme {
+	case "http":
+		client := util.NewHttpClient(l)
+		data, status, err := client.Get(f.Contents.Source.String())
+		if err != nil {
+			return nil, err
+		}
+
+		l.Debug("GET result: %s", http.StatusText(status))
+		if status != http.StatusOK {
+			return nil, ErrStatusBad
+		}
+
+		return data, nil
+	case "data":
+		url, err := dataurl.DecodeString(f.Contents.Source.String())
+		if err != nil {
+			return nil, err
+		}
+
+		return url.Data, nil
+	default:
+		return nil, ErrSchemeUnsupported
+	}
+}
+
+func decompressFile(l *log.Logger, f types.File, contents []byte) ([]byte, error) {
+	switch f.Contents.Compression {
+	case "":
+		return contents, nil
+	case "gzip":
+		reader, err := gzip.NewReader(bytes.NewReader(contents))
+		if err != nil {
+			return nil, err
+		}
+		defer reader.Close()
+
+		return ioutil.ReadAll(reader)
+	default:
+		return nil, types.ErrCompressionInvalid
 	}
 }
 
