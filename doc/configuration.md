@@ -4,6 +4,15 @@ The Ignition configuration is a JSON document conforming to the following specif
 
 * **ignition** (object): metadata about the configuration itself.
   * **version** (string): the semantic version number of the spec. Must be at least `2.0.0`.
+  * **_config_** (objects): options related to the configuration.
+    * **_append_** (list of objects): a list of the configs to be appended to the current config.
+      * **source** (string): the URL of the config. Supported schemes are http.
+      * **_verification_** (object): options related to the verification of the config.
+        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type is sha512.
+    * **_replace_** (object): the config that will replace the current.
+      * **source** (string): the URL of the config. Supported schemes are http.
+      * **_verification_** (object): options related to the verification of the config.
+        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type is sha512.
 * **_storage_** (object): describes the desired state of the system's storage devices.
   * **_disks_** (list of objects): the list of disks to be configured and their options.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.

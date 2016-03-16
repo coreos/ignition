@@ -27,7 +27,18 @@ var (
 )
 
 type Ignition struct {
-	Version IgnitionVersion `json:"version" yaml:"version" merge:"old"`
+	Version IgnitionVersion `json:"version,omitempty" yaml:"version" merge:"old"`
+	Config  IgnitionConfig  `json:"config,omitempty"  yaml:"config"  merge:"new"`
+}
+
+type IgnitionConfig struct {
+	Append  []ConfigReference `json:"append,omitempty"  yaml:"append"`
+	Replace *ConfigReference  `json:"replace,omitempty" yaml:"replace"`
+}
+
+type ConfigReference struct {
+	Source       Url          `json:"source,omitempty"       yaml:"source"`
+	Verification Verification `json:"verification,omitempty" yaml:"verification"`
 }
 
 type IgnitionVersion semver.Version
