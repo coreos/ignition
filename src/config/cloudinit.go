@@ -17,12 +17,15 @@
 package config
 
 import (
+	"bytes"
+	"compress/gzip"
+	"io/ioutil"
 	"strings"
 	"unicode"
 )
 
 func isCloudConfig(userdata []byte) bool {
-	header := strings.SplitN(string(userdata), "\n", 2)[0]
+	header := strings.SplitN(string(decompressIfGzipped(userdata)), "\n", 2)[0]
 
 	// Trim trailing whitespaces
 	header = strings.TrimRightFunc(header, unicode.IsSpace)
@@ -31,6 +34,20 @@ func isCloudConfig(userdata []byte) bool {
 }
 
 func isScript(userdata []byte) bool {
-	header := strings.SplitN(string(userdata), "\n", 2)[0]
+	header := strings.SplitN(string(decompressIfGzipped(userdata)), "\n", 2)[0]
 	return strings.HasPrefix(header, "#!")
+}
+
+func decompressIfGzipped(data []byte) []byte {
+	if reader, err := gzip.NewReader(bytes.NewReader(data)); err == nil {
+		uncompressedData, err := ioutil.ReadAll(reader)
+		reader.Close()
+		if err == nil {
+			return uncompressedData
+		} else {
+			return data
+		}
+	} else {
+		return data
+	}
 }
