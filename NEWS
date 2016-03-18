@@ -1,3 +1,13 @@
+17-Mar-2016 IGNITION v0.3.2
+
+  Bug Fixes
+
+    - Properly decode VMware guest variables before parsing config
+
+  Changes
+
+    - Move config structures from config package to config/types
+
 02-Mar-2016 IGNITION v0.3.1
 
   Bug Fixes
