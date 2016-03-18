@@ -1,5 +1,9 @@
 # Getting Started with Ignition #
 
+## What is Ignition? ##
+
+Ignition is a boot-time configuration utility that runs before the switch out of the initramfs during boot.  Mechanically-speaking, it is an executable in the initramfs that looks for configuration data (or a pointer to a URL for such data) in an environment-specific location and applies it to the machine before switch_root is called (see below under [Providing a Config](#providing-a-config) for details).
+
 Ignition uses a JSON configuration file to represent the set of changes to be made. The format of this config is detailed [in the spec][config spec]. One of the most important parts of this config is the version number. This **must** match the version number accepted by Ignition. If the config version isn't accepted by Ignition, Ignition will fail to run and prevent the machine from booting. This can be seen by inspecting the console output of the failed instance. For more information, check out the [troubleshooting section](#troubleshooting).
 
 ## Providing a Config ##
