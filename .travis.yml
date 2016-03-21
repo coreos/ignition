@@ -1,11 +1,16 @@
 language: go
-matrix:
-  include:
-    - go: 1.4
-      install:
-        - go get golang.org/x/tools/cmd/vet
-    - go: 1.5
-    - go: 1.6
+
+go:
+  - 1.5
+  - 1.6
+
+env:
+  - GIMME_ARCH="amd64"
+  - GIMME_ARCH="arm64" CGO_ENABLED="1"
+
+before_script:
+  - export GOARCH="${GIMME_ARCH}"
+  - go env
 
 script:
- - ./test
+  - ./test
