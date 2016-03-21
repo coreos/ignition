@@ -29,6 +29,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **devices** (list of strings): the list of devices (referenced by their absolute path) in the array.
     * **_spares_** (integer): the number of spares (if applicable) in the array.
   * **_filesystems_** (list of objects): the list of filesystems to be configured and/or used in the "files" section. Either "mount" or "path" needs to be specified.
+    * **_name_** (string): the identifier for the filesystem, internal to Ignition. This is only required if the filesystem needs to be referenced in the "files" section.
     * **_mount_** (object): contains the set of mount and formatting options for the filesystem. A non-null entry indicates that the filesystem should be mounted before it is used by Ignition.
       * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
       * **format** (string): the filesystem format (ext4, btrfs, or xfs).
@@ -36,14 +37,15 @@ The Ignition configuration is a JSON document conforming to the following specif
         * **_force_** (boolean): whether or not the create operation shall overwrite an existing filesystem.
         * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
     * **_path_** (string): the mount-point of the filesystem. A non-null entry indicates that the filesystem has already been mounted by the system at the specified path. This is really only useful for "/sysroot".
-    * **_files_** (list of objects): the list of files, rooted in this particular filesystem, to be written.
-      * **path** (string): the absolute path to the file.
-      * **_contents_** (string): the contents of the file.
-      * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
-      * **_user_** (object): specifies the file's owner.
-        * **_id_** (integer): the user ID of the owner.
-      * **_group_** (object): specifies the group of the owner.
-        * **_id_** (integer): the group ID of the owner.
+  * **_files_** (list of objects): the list of files, rooted in this particular filesystem, to be written.
+    * **filesystem** (string): the internal identifier of the filesystem. This matches the last filesystem with the given identifier.
+    * **path** (string): the absolute path to the file.
+    * **_contents_** (string): the contents of the file.
+    * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
+    * **_user_** (object): specifies the file's owner.
+      * **_id_** (integer): the user ID of the owner.
+    * **_group_** (object): specifies the group of the owner.
+      * **_id_** (integer): the group ID of the owner.
 * **_systemd_** (object): describes the desired state of the systemd units.
   * **_units_** (list of objects): the list of systemd units.
     * **name** (string): the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service").
