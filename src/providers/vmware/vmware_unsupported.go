@@ -22,11 +22,11 @@ package vmware
 import (
 	"errors"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/types"
 )
 
-func (p provider) FetchConfig() (config.Config, error) {
-	return config.Config{}, errors.New("vmware provider is not supported on this architecture")
+func (p provider) FetchConfig() (types.Config, error) {
+	return types.Config{}, errors.New("vmware provider is not supported on this architecture")
 }
 
 func (p *provider) IsOnline() bool {
