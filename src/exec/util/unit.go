@@ -29,7 +29,7 @@ const (
 
 func FileFromSystemdUnit(unit types.SystemdUnit) *types.File {
 	return &types.File{
-		Path:     filepath.Join(SystemdUnitsPath(), string(unit.Name)),
+		Path:     types.Path(filepath.Join(SystemdUnitsPath(), string(unit.Name))),
 		Contents: unit.Contents,
 		Mode:     DefaultFilePermissions,
 		Uid:      0,
@@ -39,7 +39,7 @@ func FileFromSystemdUnit(unit types.SystemdUnit) *types.File {
 
 func FileFromNetworkdUnit(unit types.NetworkdUnit) *types.File {
 	return &types.File{
-		Path:     filepath.Join(NetworkdUnitsPath(), string(unit.Name)),
+		Path:     types.Path(filepath.Join(NetworkdUnitsPath(), string(unit.Name))),
 		Contents: unit.Contents,
 		Mode:     DefaultFilePermissions,
 		Uid:      0,
@@ -49,7 +49,7 @@ func FileFromNetworkdUnit(unit types.NetworkdUnit) *types.File {
 
 func FileFromUnitDropin(unit types.SystemdUnit, dropin types.SystemdUnitDropIn) *types.File {
 	return &types.File{
-		Path:     filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
+		Path:     types.Path(filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name))),
 		Contents: dropin.Contents,
 		Mode:     DefaultFilePermissions,
 		Uid:      0,
