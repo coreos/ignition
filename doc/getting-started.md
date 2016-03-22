@@ -1,6 +1,6 @@
 # Getting Started with Ignition
 
-*Ignition* is a low-level system configuration utility. The Ignition executable is part of the temporary initial root filesystem, the *initramfs*. When Ignition runs, it finds configuration data in a named location for a given environment, such as a file or URL, and applies it to the machine before `switch_root` is called to mount the machine's root filesystem.
+*Ignition* is a low-level system configuration utility. The Ignition executable is part of the temporary initial root filesystem, the *initramfs*. When Ignition runs, it finds configuration data in a named location for a given environment, such as a file or URL, and applies it to the machine before `switch_root` is called to pivot to the machine's root filesystem.
 
 Ignition uses a JSON configuration file to represent the set of changes to be made. The format of this config is detailed [in the specification][configspec]. One of the most important parts of this config is the version number. This **must** match the version number accepted by Ignition. If the config version isn't accepted by Ignition, Ignition will fail to run and prevent the machine from booting. This can be seen by inspecting the console output of the failed instance. For more information, check out the [troubleshooting section][troubleshooting].
 
@@ -18,10 +18,10 @@ The single most useful piece of information needed when troubleshooting is the l
 journalctl --identifier=ignition
 ```
 
-In the vast majority of cases, it will be immediately obvious why Ignition failed. If it's not, inspect the config that Ignition dumped into the log. This shows how Ignition interpreted the supplied configuration. The user-provided config may have a misspelled section or maybe an incorrect hierarchy.
+In the vast majority of cases, it will be immediately obvious why Ignition failed. If it's not, inspect the config that Ignition wrote into the log. This shows how Ignition interpreted the supplied configuration. The user-provided config may have a misspelled section or maybe an incorrect hierarchy.
 
 
-[examples]: https://github.com/coreos/docs/blob/master/ignition/examples.md
 [configspec]: configuration.md
+[examples]: https://github.com/coreos/docs/blob/master/ignition/examples.md
 [platforms]: supported-platforms.md
 [troubleshooting]: #troubleshooting
