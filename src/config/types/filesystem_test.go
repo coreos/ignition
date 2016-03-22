@@ -41,7 +41,7 @@ func TestPathUnmarshalJSON(t *testing.T) {
 		},
 		{
 			in:  in{data: `"bad"`},
-			out: out{device: Path("bad"), err: ErrFilesystemRelativePath},
+			out: out{device: Path("bad"), err: ErrPathRelative},
 		},
 	}
 
@@ -76,7 +76,7 @@ func TestPathUnmarshalYAML(t *testing.T) {
 		},
 		{
 			in:  in{data: `"bad"`},
-			out: out{device: Path("bad"), err: ErrFilesystemRelativePath},
+			out: out{device: Path("bad"), err: ErrPathRelative},
 		},
 	}
 
@@ -122,7 +122,7 @@ func TestPathAssertValid(t *testing.T) {
 		},
 		{
 			in:  in{device: Path("relative/path")},
-			out: out{err: ErrFilesystemRelativePath},
+			out: out{err: ErrPathRelative},
 		},
 	}
 
@@ -319,7 +319,7 @@ func TestFilesystemUnmarshalJSON(t *testing.T) {
 		},
 		{
 			in:  in{data: `{"format": "ext4"}`},
-			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrFilesystemRelativePath},
+			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrPathRelative},
 		},
 	}
 
@@ -354,7 +354,7 @@ func TestFilesystemUnmarshalYAML(t *testing.T) {
 		},
 		{
 			in:  in{data: "format: ext4"},
-			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrFilesystemRelativePath},
+			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrPathRelative},
 		},
 	}
 
@@ -392,11 +392,11 @@ func TestFilesystemAssertValid(t *testing.T) {
 		},
 		{
 			in:  in{filesystem: Filesystem{Format: "ext4"}},
-			out: out{err: ErrFilesystemRelativePath},
+			out: out{err: ErrPathRelative},
 		},
 		{
 			in:  in{filesystem: Filesystem{}},
-			out: out{err: ErrFilesystemRelativePath},
+			out: out{err: ErrPathRelative},
 		},
 	}
 

@@ -5,6 +5,7 @@ source ./build
 SRC="
 	src
 	src/config
+	src/config/types
 	src/exec
 	src/exec/stages
 	src/exec/stages/disks
