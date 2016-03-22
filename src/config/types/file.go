@@ -25,7 +25,7 @@ var (
 )
 
 type File struct {
-	Path     string    `json:"path,omitempty"     yaml:"path"`
+	Path     Path      `json:"path,omitempty"     yaml:"path"`
 	Contents string    `json:"contents,omitempty" yaml:"contents"`
 	Mode     FileMode  `json:"mode,omitempty"     yaml:"mode"`
 	User     FileUser  `json:"user,omitempty"     yaml:"uid"`

@@ -26,14 +26,27 @@ import (
 )
 
 func (p provider) FetchConfig() (types.Config, error) {
-	data, err := rpcvmx.NewConfig().String("coreos.config.data", "")
+	info := rpcvmx.NewConfig()
+	data, err := info.String("coreos.config.data", "")
 	if err != nil {
 		p.logger.Debug("failed to fetch config: %v", err)
 		return types.Config{}, err
 	}
 
+	encoding, err := info.String("coreos.config.data.encoding", "")
+	if err != nil {
+		p.logger.Debug("failed to fetch config encoding: %v", err)
+		return types.Config{}, err
+	}
+
+	decodedData, err := decodeData(data, encoding)
+	if err != nil {
+		p.logger.Debug("failed to decode config: %v", err)
+		return types.Config{}, err
+	}
+
 	p.logger.Debug("config successfully fetched")
-	return config.Parse([]byte(data))
+	return config.Parse(decodedData)
 }
 
 func (p *provider) IsOnline() bool {

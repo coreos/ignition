@@ -22,12 +22,12 @@ import (
 	"github.com/coreos/ignition/third_party/github.com/go-yaml/yaml"
 )
 
-func TestDevicePathUnmarshalJSON(t *testing.T) {
+func TestPathUnmarshalJSON(t *testing.T) {
 	type in struct {
 		data string
 	}
 	type out struct {
-		device DevicePath
+		device Path
 		err    error
 	}
 
@@ -37,16 +37,16 @@ func TestDevicePathUnmarshalJSON(t *testing.T) {
 	}{
 		{
 			in:  in{data: `"/path"`},
-			out: out{device: DevicePath("/path")},
+			out: out{device: Path("/path")},
 		},
 		{
 			in:  in{data: `"bad"`},
-			out: out{device: DevicePath("bad"), err: ErrFilesystemRelativePath},
+			out: out{device: Path("bad"), err: ErrFilesystemRelativePath},
 		},
 	}
 
 	for i, test := range tests {
-		var device DevicePath
+		var device Path
 		err := json.Unmarshal([]byte(test.in.data), &device)
 		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
@@ -57,12 +57,12 @@ func TestDevicePathUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestDevicePathUnmarshalYAML(t *testing.T) {
+func TestPathUnmarshalYAML(t *testing.T) {
 	type in struct {
 		data string
 	}
 	type out struct {
-		device DevicePath
+		device Path
 		err    error
 	}
 
@@ -72,16 +72,16 @@ func TestDevicePathUnmarshalYAML(t *testing.T) {
 	}{
 		{
 			in:  in{data: `"/path"`},
-			out: out{device: DevicePath("/path")},
+			out: out{device: Path("/path")},
 		},
 		{
 			in:  in{data: `"bad"`},
-			out: out{device: DevicePath("bad"), err: ErrFilesystemRelativePath},
+			out: out{device: Path("bad"), err: ErrFilesystemRelativePath},
 		},
 	}
 
 	for i, test := range tests {
-		var device DevicePath
+		var device Path
 		err := yaml.Unmarshal([]byte(test.in.data), &device)
 		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
@@ -92,9 +92,9 @@ func TestDevicePathUnmarshalYAML(t *testing.T) {
 	}
 }
 
-func TestDevicePathAssertValid(t *testing.T) {
+func TestPathAssertValid(t *testing.T) {
 	type in struct {
-		device DevicePath
+		device Path
 	}
 	type out struct {
 		err error
@@ -105,23 +105,23 @@ func TestDevicePathAssertValid(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{device: DevicePath("/good/path")},
+			in:  in{device: Path("/good/path")},
 			out: out{},
 		},
 		{
-			in:  in{device: DevicePath("/name")},
+			in:  in{device: Path("/name")},
 			out: out{},
 		},
 		{
-			in:  in{device: DevicePath("/this/is/a/fairly/long/path/to/a/device.")},
+			in:  in{device: Path("/this/is/a/fairly/long/path/to/a/device.")},
 			out: out{},
 		},
 		{
-			in:  in{device: DevicePath("/this one has spaces")},
+			in:  in{device: Path("/this one has spaces")},
 			out: out{},
 		},
 		{
-			in:  in{device: DevicePath("relative/path")},
+			in:  in{device: Path("relative/path")},
 			out: out{err: ErrFilesystemRelativePath},
 		},
 	}

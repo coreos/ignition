@@ -124,7 +124,7 @@ func parseCmdline(cmdline []byte) (url string) {
 // getRawConfig gets the raw configuration data from p.configUrl.
 // Supported URL schemes are:
 // http://	remote resource accessed via http
-// oem://	local file in /sysroot/usr/share/oem or /mnt/oem
+// oem://	local file in /usr/share/oem or /mnt/oem
 func (p *provider) getRawConfig() bool {
 	url, err := url.Parse(p.configUrl)
 	if err != nil {

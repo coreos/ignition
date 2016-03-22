@@ -31,7 +31,7 @@ const (
 func (u Util) WriteFile(f *types.File) error {
 	var err error
 
-	path := u.JoinPath(f.Path)
+	path := u.JoinPath(string(f.Path))
 
 	if err := mkdirForFile(path); err != nil {
 		return err

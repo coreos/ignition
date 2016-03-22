@@ -20,10 +20,10 @@ import (
 )
 
 type Raid struct {
-	Name    string       `json:"name"              yaml:"name"`
-	Level   string       `json:"level"             yaml:"level"`
-	Devices []DevicePath `json:"devices,omitempty" yaml:"devices"`
-	Spares  int          `json:"spares,omitempty"  yaml:"spares"`
+	Name    string `json:"name"              yaml:"name"`
+	Level   string `json:"level"             yaml:"level"`
+	Devices []Path `json:"devices,omitempty" yaml:"devices"`
+	Spares  int    `json:"spares,omitempty"  yaml:"spares"`
 }
 
 func (n *Raid) UnmarshalYAML(unmarshal func(interface{}) error) error {

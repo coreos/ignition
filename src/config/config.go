@@ -16,11 +16,9 @@ package config
 
 import (
 	"bytes"
-	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/coreos/ignition/config/types"
 
@@ -38,9 +36,9 @@ func Parse(rawConfig []byte) (config types.Config, err error) {
 		err = config.Ignition.Version.AssertValid()
 	} else if isEmpty(rawConfig) {
 		err = ErrEmpty
-	} else if isCloudConfig(decompressIfGzipped(rawConfig)) {
+	} else if isCloudConfig(rawConfig) {
 		err = ErrCloudConfig
-	} else if isScript(decompressIfGzipped(rawConfig)) {
+	} else if isScript(rawConfig) {
 		err = ErrScript
 	}
 	if serr, ok := err.(*json.SyntaxError); ok {
@@ -53,18 +51,4 @@ func Parse(rawConfig []byte) (config types.Config, err error) {
 
 func isEmpty(userdata []byte) bool {
 	return len(userdata) == 0
-}
-
-func decompressIfGzipped(data []byte) []byte {
-	if reader, err := gzip.NewReader(bytes.NewReader(data)); err == nil {
-		uncompressedData, err := ioutil.ReadAll(reader)
-		reader.Close()
-		if err == nil {
-			return uncompressedData
-		} else {
-			return data
-		}
-	} else {
-		return data
-	}
 }

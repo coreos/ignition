@@ -20,7 +20,7 @@ import (
 )
 
 type Disk struct {
-	Device     DevicePath  `json:"device,omitempty"     yaml:"device"`
+	Device     Path        `json:"device,omitempty"     yaml:"device"`
 	WipeTable  bool        `json:"wipeTable,omitempty"  yaml:"wipe_table"`
 	Partitions []Partition `json:"partitions,omitempty" yaml:"partitions"`
 }
