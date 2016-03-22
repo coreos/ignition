@@ -21,13 +21,20 @@ import (
 
 var (
 	ErrFilesystemInvalidFormat = errors.New("invalid filesystem format")
+	ErrFilesystemNoMountPath   = errors.New("filesystem is missing mount or path")
+	ErrFilesystemMountAndPath  = errors.New("filesystem has both mount and path defined")
 )
 
 type Filesystem struct {
+	Mount *FilesystemMount `json:"mount,omitempty" yaml:"mount"`
+	Path  Path             `json:"path,omitempty"  yaml:"path"`
+	Files []File           `json:"files,omitempty" yaml:"files"`
+}
+
+type FilesystemMount struct {
 	Device Path              `json:"device,omitempty" yaml:"device"`
 	Format FilesystemFormat  `json:"format,omitempty" yaml:"format"`
 	Create *FilesystemCreate `json:"create,omitempty" yaml:"create"`
-	Files  []File            `json:"files,omitempty"  yaml:"files"`
 }
 
 type FilesystemCreate struct {
@@ -57,6 +64,54 @@ func (f *Filesystem) unmarshal(unmarshal func(interface{}) error) error {
 }
 
 func (f Filesystem) assertValid() error {
+	hasMount := false
+	hasPath := false
+
+	if f.Mount != nil {
+		hasMount = true
+		if err := f.Mount.assertValid(); err != nil {
+			return err
+		}
+	}
+
+	if len(f.Path) != 0 {
+		hasPath = true
+		if err := f.Path.assertValid(); err != nil {
+			return err
+		}
+	}
+
+	if !hasMount && !hasPath {
+		return ErrFilesystemNoMountPath
+	} else if hasMount && hasPath {
+		return ErrFilesystemMountAndPath
+	}
+
+	return nil
+}
+
+func (f *FilesystemMount) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	return f.unmarshal(unmarshal)
+}
+
+func (f *FilesystemMount) UnmarshalJSON(data []byte) error {
+	return f.unmarshal(func(tf interface{}) error {
+		return json.Unmarshal(data, tf)
+	})
+}
+
+type filesystemMount FilesystemMount
+
+func (f *FilesystemMount) unmarshal(unmarshal func(interface{}) error) error {
+	tf := filesystemMount(*f)
+	if err := unmarshal(&tf); err != nil {
+		return err
+	}
+	*f = FilesystemMount(tf)
+	return f.assertValid()
+}
+
+func (f FilesystemMount) assertValid() error {
 	if err := f.Device.assertValid(); err != nil {
 		return err
 	}
