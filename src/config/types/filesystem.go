@@ -20,12 +20,11 @@ import (
 )
 
 var (
-	ErrFilesystemRelativePath  = errors.New("device path not absolute")
 	ErrFilesystemInvalidFormat = errors.New("invalid filesystem format")
 )
 
 type Filesystem struct {
-	Device DevicePath        `json:"device,omitempty" yaml:"device"`
+	Device Path              `json:"device,omitempty" yaml:"device"`
 	Format FilesystemFormat  `json:"format,omitempty" yaml:"format"`
 	Create *FilesystemCreate `json:"create,omitempty" yaml:"create"`
 	Files  []File            `json:"files,omitempty"  yaml:"files"`

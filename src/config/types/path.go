@@ -16,35 +16,40 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 	"path/filepath"
 )
 
-type DevicePath string
+var (
+	ErrPathRelative = errors.New("path not absolute")
+)
 
-func (d *DevicePath) UnmarshalYAML(unmarshal func(interface{}) error) error {
+type Path string
+
+func (d *Path) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return d.unmarshal(unmarshal)
 }
 
-func (d *DevicePath) UnmarshalJSON(data []byte) error {
+func (d *Path) UnmarshalJSON(data []byte) error {
 	return d.unmarshal(func(td interface{}) error {
 		return json.Unmarshal(data, td)
 	})
 }
 
-type devicePath DevicePath
+type path Path
 
-func (d *DevicePath) unmarshal(unmarshal func(interface{}) error) error {
-	td := devicePath(*d)
+func (d *Path) unmarshal(unmarshal func(interface{}) error) error {
+	td := path(*d)
 	if err := unmarshal(&td); err != nil {
 		return err
 	}
-	*d = DevicePath(td)
+	*d = Path(td)
 	return d.assertValid()
 }
 
-func (d DevicePath) assertValid() error {
+func (d Path) assertValid() error {
 	if !filepath.IsAbs(string(d)) {
-		return ErrFilesystemRelativePath
+		return ErrPathRelative
 	}
 	return nil
 }
