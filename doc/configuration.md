@@ -40,7 +40,11 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_files_** (list of objects): the list of files, rooted in this particular filesystem, to be written.
     * **filesystem** (string): the internal identifier of the filesystem. This matches the last filesystem with the given identifier.
     * **path** (string): the absolute path to the file.
-    * **_contents_** (string): the contents of the file.
+    * **_contents_** (object): options related to the contents of the file.
+      * **_compression_** (string): the type of compression used on the contents (null or gzip)
+      * **_source_** (string): the URL of the file contents. Supported schemes are http and [data][rfc2397].
+      * **_verification_** (object): options related to the verification of the file contents.
+        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type is sha512.
     * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
     * **_user_** (object): specifies the file's owner.
       * **_id_** (integer): the user ID of the owner.
@@ -80,3 +84,4 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_passwordHash_** (string): the encrypted password of the new group.
 
 [part-types]: http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
+[rfc2397]: https://tools.ietf.org/html/rfc2397
