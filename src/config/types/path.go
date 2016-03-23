@@ -26,29 +26,29 @@ var (
 
 type Path string
 
-func (d *Path) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return d.unmarshal(unmarshal)
+func (p *Path) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	return p.unmarshal(unmarshal)
 }
 
-func (d *Path) UnmarshalJSON(data []byte) error {
-	return d.unmarshal(func(td interface{}) error {
+func (p *Path) UnmarshalJSON(data []byte) error {
+	return p.unmarshal(func(td interface{}) error {
 		return json.Unmarshal(data, td)
 	})
 }
 
 type path Path
 
-func (d *Path) unmarshal(unmarshal func(interface{}) error) error {
-	td := path(*d)
+func (p *Path) unmarshal(unmarshal func(interface{}) error) error {
+	td := path(*p)
 	if err := unmarshal(&td); err != nil {
 		return err
 	}
-	*d = Path(td)
-	return d.assertValid()
+	*p = Path(td)
+	return p.assertValid()
 }
 
-func (d Path) assertValid() error {
-	if !filepath.IsAbs(string(d)) {
+func (p Path) assertValid() error {
+	if !filepath.IsAbs(string(p)) {
 		return ErrPathRelative
 	}
 	return nil
