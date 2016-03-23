@@ -53,6 +53,10 @@ func (v *IgnitionVersion) UnmarshalJSON(data []byte) error {
 	})
 }
 
+func (v IgnitionVersion) MarshalJSON() ([]byte, error) {
+	return semver.Version(v).MarshalJSON()
+}
+
 func (v *IgnitionVersion) unmarshal(unmarshal func(interface{}) error) error {
 	tv := semver.Version(*v)
 	if err := unmarshal(&tv); err != nil {

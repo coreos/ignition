@@ -28,12 +28,14 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **level** (string): the redundancy level of the array (e.g. linear, raid1, raid5, etc.).
     * **devices** (list of strings): the list of devices (referenced by their absolute path) in the array.
     * **_spares_** (integer): the number of spares (if applicable) in the array.
-  * **_filesystems_** (list of objects): the list of filesystems to be configured. Typically, one filesystem is configured per partition.
-    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-    * **format** (string): the filesystem format (ext4, btrfs, or xfs).
-    * **_create_** (object): contains the set of options to be used when creating the filesystem. A non-null entry indicates that the filesystem shall be created.
-      * **_force_** (boolean): whether or not the create operation shall overwrite an existing filesystem.
-      * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
+  * **_filesystems_** (list of objects): the list of filesystems to be configured and/or used in the "files" section. Either "mount" or "path" needs to be specified.
+    * **_mount_** (object): contains the set of mount and formatting options for the filesystem. A non-null entry indicates that the filesystem should be mounted before it is used by Ignition.
+      * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
+      * **format** (string): the filesystem format (ext4, btrfs, or xfs).
+      * **_create_** (object): contains the set of options to be used when creating the filesystem. A non-null entry indicates that the filesystem shall be created.
+        * **_force_** (boolean): whether or not the create operation shall overwrite an existing filesystem.
+        * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
+    * **_path_** (string): the mount-point of the filesystem. A non-null entry indicates that the filesystem has already been mounted by the system at the specified path. This is really only useful for "/sysroot".
     * **_files_** (list of objects): the list of files, rooted in this particular filesystem, to be written.
       * **path** (string): the absolute path to the file.
       * **_contents_** (string): the contents of the file.
