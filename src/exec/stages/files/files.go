@@ -15,6 +15,7 @@
 package files
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -28,6 +29,10 @@ import (
 
 const (
 	name = "files"
+)
+
+var (
+	ErrFilesystemUndefined = errors.New("the referenced filesystem was not defined")
 )
 
 func init() {
@@ -81,24 +86,49 @@ func (s stage) createFilesystemsFiles(config types.Config) error {
 	s.Logger.PushPrefix("createFilesystemsFiles")
 	defer s.Logger.PopPrefix()
 
-	for _, fs := range config.Storage.Filesystems {
-		if err := s.createFiles(fs); err != nil {
-			path := string(fs.Path)
-			if len(path) == 0 {
-				path = string(fs.Mount.Device)
-			}
-			return fmt.Errorf("failed to create files %q: %v", path, err)
+	fileMap, err := s.mapFilesToFilesystems(config)
+	if err != nil {
+		return err
+	}
+
+	for fs, f := range fileMap {
+		if err := s.createFiles(fs, f); err != nil {
+			return fmt.Errorf("failed to create files: %v", err)
 		}
 	}
 
 	return nil
 }
 
-// createFiles creates any files listed for the filesystem in fs.Files.
-func (s stage) createFiles(fs types.Filesystem) error {
-	if len(fs.Files) == 0 {
-		return nil
+// mapFilesToFilesystems builds a map of filesystems to files. If multiple
+// definitions of the same filesystem are present, only the final definition is
+// used.
+func (s stage) mapFilesToFilesystems(config types.Config) (map[types.Filesystem][]types.File, error) {
+	files := map[string][]types.File{}
+	for _, f := range config.Storage.Files {
+		files[f.Filesystem] = append(files[f.Filesystem], f)
 	}
+
+	filesystems := map[string]types.Filesystem{}
+	for _, fs := range config.Storage.Filesystems {
+		filesystems[fs.Name] = fs
+	}
+
+	fileMap := map[types.Filesystem][]types.File{}
+	for fsn, f := range files {
+		if fs, ok := filesystems[fsn]; ok {
+			fileMap[fs] = append(fileMap[fs], f...)
+		} else {
+			s.Logger.Crit("the filesystem (%q), was not defined", fsn)
+			return nil, ErrFilesystemUndefined
+		}
+	}
+
+	return fileMap, nil
+}
+
+// createFiles creates any files listed for the filesystem in fs.Files.
+func (s stage) createFiles(fs types.Filesystem, files []types.File) error {
 	s.Logger.PushPrefix("createFiles")
 	defer s.Logger.PopPrefix()
 
@@ -130,7 +160,7 @@ func (s stage) createFiles(fs types.Filesystem) error {
 		Logger:  s.Logger,
 		DestDir: mnt,
 	}
-	for _, f := range fs.Files {
+	for _, f := range files {
 		if err := s.Logger.LogOp(
 			func() error { return u.WriteFile(&f) },
 			"writing file %q", string(f.Path),

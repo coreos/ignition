@@ -26,9 +26,9 @@ var (
 )
 
 type Filesystem struct {
+	Name  string           `json:"name,omitempty"  yaml:"name"`
 	Mount *FilesystemMount `json:"mount,omitempty" yaml:"mount"`
 	Path  Path             `json:"path,omitempty"  yaml:"path"`
-	Files []File           `json:"files,omitempty" yaml:"files"`
 }
 
 type FilesystemMount struct {

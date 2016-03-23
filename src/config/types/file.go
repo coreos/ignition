@@ -25,11 +25,12 @@ var (
 )
 
 type File struct {
-	Path     Path      `json:"path,omitempty"     yaml:"path"`
-	Contents string    `json:"contents,omitempty" yaml:"contents"`
-	Mode     FileMode  `json:"mode,omitempty"     yaml:"mode"`
-	User     FileUser  `json:"user,omitempty"     yaml:"uid"`
-	Group    FileGroup `json:"group,omitempty"    yaml:"gid"`
+	Filesystem string    `json:"filesystem,omitempty" yaml:"filesystem"`
+	Path       Path      `json:"path,omitempty"       yaml:"path"`
+	Contents   string    `json:"contents,omitempty"   yaml:"contents"`
+	Mode       FileMode  `json:"mode,omitempty"       yaml:"mode"`
+	User       FileUser  `json:"user,omitempty"       yaml:"uid"`
+	Group      FileGroup `json:"group,omitempty"      yaml:"gid"`
 }
 
 type FileUser struct {

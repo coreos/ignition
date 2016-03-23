@@ -18,4 +18,5 @@ type Storage struct {
 	Disks       []Disk       `json:"disks,omitempty"       yaml:"disks"`
 	Arrays      []Raid       `json:"raid,omitempty"        yaml:"raid"`
 	Filesystems []Filesystem `json:"filesystems,omitempty" yaml:"filesystems"`
+	Files       []File       `json:"files,omitempty"       yaml:"files"`
 }
