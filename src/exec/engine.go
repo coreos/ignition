@@ -39,6 +39,18 @@ var (
 	ErrNetworkFailure    = errors.New("network failure")
 )
 
+var (
+	baseConfig = types.Config{
+		Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)},
+		Storage: types.Storage{
+			Filesystems: []types.Filesystem{{
+				Name: "root",
+				Path: "/sysroot",
+			}},
+		},
+	}
+)
+
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
 	ConfigCache   string
@@ -56,7 +68,7 @@ func (e Engine) Run(stageName string) bool {
 	case nil:
 		e.Logger.PushPrefix(stageName)
 		defer e.Logger.PopPrefix()
-		return stages.Get(stageName).Create(e.Logger, e.Root).Run(cfg)
+		return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(baseConfig, cfg))
 	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
 		e.Logger.Info("%v: ignoring and exiting...", err)
 		return true
