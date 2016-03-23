@@ -36,6 +36,10 @@ func (p *Path) UnmarshalJSON(data []byte) error {
 	})
 }
 
+func (p Path) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + string(p) + `"`), nil
+}
+
 type path Path
 
 func (p *Path) unmarshal(unmarshal func(interface{}) error) error {
