@@ -16,7 +16,7 @@
 // arrays, formatting partitions, writing files, writing systemd units, and
 // writing network units.
 
-package storage
+package disks
 
 import (
 	"fmt"
