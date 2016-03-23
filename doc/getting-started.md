@@ -8,7 +8,18 @@ Ignition uses a JSON configuration file to represent the set of changes to be ma
 
 Ignition will choose where to look for configuration based on the underlying platform. A list of [supported platforms][platforms] and metadata sources is provided for reference.
 
-The configuration must be passed to Ignition through the designated data source. Please refer to Ignition [config examples][examples] to learn about writing config files.
+The configuration must be passed to Ignition through the designated data source. Please refer to Ignition [config examples][examples] to learn about writing config files. The provided configuration will be appended to the universal base configuration:
+
+```json
+{
+  "storage": {
+    "filesystems": [{
+      "name": "root",
+      "path": "/sysroot"
+    }]
+  }
+}
+```
 
 ## Troubleshooting
 
