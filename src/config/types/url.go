@@ -33,6 +33,10 @@ func (u *Url) UnmarshalJSON(data []byte) error {
 	})
 }
 
+func (u Url) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + u.String() + `"`), nil
+}
+
 func (u *Url) unmarshal(unmarshal func(interface{}) error) error {
 	var tu string
 	if err := unmarshal(&tu); err != nil {
