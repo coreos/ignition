@@ -123,7 +123,7 @@ There are cases where it is desirable to write a file to disk, but with the cont
 }
 ```
 
-The hash can be determined using `curl http://example.com/asset | sha512sum`.
+The SHA512 sum of the file can be determined using `sha512sum`.
 
 ## Create a RAID-enabled Data Volume
 
@@ -209,6 +209,6 @@ In some cloud environments, there is a limit on the size of the config which may
 }
 ```
 
-The hash can be determined using `curl http://example.com/asset | sha512sum`.
+The SHA512 sum of the config can be determined using `sha512sum`.
 
 [rfc2397]: http://tools.ietf.org/html/rfc2397
