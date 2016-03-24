@@ -66,7 +66,8 @@ func (c HttpClient) Get(url string) ([]byte, int, error) {
 // FetchConfig fetches a raw config from the provided URL and returns the
 // response body on success or nil on failure. The caller must also provide a
 // list of acceptable HTTP status codes. If the response's status code is not in
-// the provided list, it is considered a failure.
+// the provided list, it is considered a failure. The HTTP response must be OK,
+// otherwise an empty (v.s. nil) config is returned.
 func (c HttpClient) FetchConfig(url string, acceptedStatuses ...int) []byte {
 	var config []byte
 
@@ -78,7 +79,11 @@ func (c HttpClient) FetchConfig(url string, acceptedStatuses ...int) []byte {
 
 		for _, acceptedStatus := range acceptedStatuses {
 			if status == acceptedStatus {
-				config = data
+				if status == http.StatusOK {
+					config = data
+				} else {
+					config = []byte{}
+				}
 				return nil
 			}
 		}
