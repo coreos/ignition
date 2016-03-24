@@ -43,6 +43,10 @@ func (h *Hash) UnmarshalJSON(data []byte) error {
 	})
 }
 
+func (h Hash) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + h.Function + "-" + h.Sum + `"`), nil
+}
+
 func (h *Hash) unmarshal(unmarshal func(interface{}) error) error {
 	var th string
 	if err := unmarshal(&th); err != nil {
