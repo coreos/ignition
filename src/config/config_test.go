@@ -21,7 +21,7 @@ import (
 	"github.com/coreos/ignition/config/types"
 )
 
-func TestParse(t *testing.T) {
+func TestParseFromLatest(t *testing.T) {
 	type in struct {
 		config []byte
 	}
@@ -90,7 +90,7 @@ func TestParse(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		config, err := Parse(test.in.config)
+		config, err := ParseFromLatest(test.in.config)
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}

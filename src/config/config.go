@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/v1"
 
 	"github.com/coreos/ignition/third_party/github.com/camlistore/camlistore/pkg/errorutil"
 )
@@ -31,7 +32,21 @@ var (
 	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
 )
 
-func Parse(rawConfig []byte) (config types.Config, err error) {
+func Parse(rawConfig []byte) (types.Config, error) {
+	major, err := majorVersion(rawConfig)
+	if err != nil {
+		return types.Config{}, err
+	}
+
+	switch major {
+	case 1:
+		return ParseFromV1(rawConfig)
+	default:
+		return ParseFromLatest(rawConfig)
+	}
+}
+
+func ParseFromLatest(rawConfig []byte) (config types.Config, err error) {
 	if err = json.Unmarshal(rawConfig, &config); err == nil {
 		err = config.Ignition.Version.AssertValid()
 	} else if isEmpty(rawConfig) {
@@ -47,6 +62,42 @@ func Parse(rawConfig []byte) (config types.Config, err error) {
 	}
 
 	return
+}
+
+func ParseFromV1(rawConfig []byte) (types.Config, error) {
+	config, err := v1.Parse(rawConfig)
+	if err != nil {
+		return types.Config{}, err
+	}
+
+	return TranslateFromV1(config)
+}
+
+type config struct {
+	Version  *int `json:"ignitionVersion" yaml:"ignition_version"`
+	Ignition struct {
+		Version *types.IgnitionVersion `json:"version,omitempty" yaml:"version" merge:"old"`
+	} `json:"ignition" yaml:"ignition"`
+}
+
+func majorVersion(rawConfig []byte) (int64, error) {
+	var composite config
+	if err := json.Unmarshal(rawConfig, &composite); err != nil {
+		if serr, ok := err.(*json.SyntaxError); ok {
+			line, col, highlight := errorutil.HighlightBytePosition(bytes.NewReader(rawConfig), serr.Offset)
+			err = fmt.Errorf("error at line %d, column %d\n%s%v", line, col, highlight, err)
+		}
+		return 0, err
+	}
+
+	var major int64
+	if composite.Ignition.Version != nil {
+		major = composite.Ignition.Version.Major
+	} else if composite.Version != nil {
+		major = int64(*composite.Version)
+	}
+
+	return major, nil
 }
 
 func isEmpty(userdata []byte) bool {
