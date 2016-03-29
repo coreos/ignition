@@ -6,6 +6,8 @@ SRC="
 	src
 	src/config
 	src/config/types
+	src/config/v1
+	src/config/v1/types
 	src/exec
 	src/exec/stages
 	src/exec/stages/disks
