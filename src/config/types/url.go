@@ -19,9 +19,7 @@ import (
 	"net/url"
 )
 
-type Url struct {
-	url.URL
-}
+type Url url.URL
 
 func (u *Url) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return u.unmarshal(unmarshal)
@@ -44,11 +42,11 @@ func (u *Url) unmarshal(unmarshal func(interface{}) error) error {
 	}
 
 	pu, err := url.Parse(tu)
-	if err != nil {
-		return err
-	}
+	*u = Url(*pu)
+	return err
+}
 
-	*u = Url{URL: *pu}
-
-	return nil
+func (u Url) String() string {
+	tu := url.URL(u)
+	return (&tu).String()
 }
