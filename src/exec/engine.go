@@ -120,9 +120,14 @@ func (e Engine) fetchProviderConfig() (types.Config, error) {
 		return types.Config{}, err
 	}
 
-	if cfg, err := e.Provider.FetchConfig(); err == nil {
+	cfg, err := e.Provider.FetchConfig()
+	switch err {
+	case config.ErrDeprecated:
+		e.Logger.Warning("%v: the provided config format is deprecated and will not be supported in the future", err)
+		fallthrough
+	case nil:
 		return e.renderConfig(cfg)
-	} else {
+	default:
 		return types.Config{}, err
 	}
 }

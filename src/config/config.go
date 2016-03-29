@@ -30,6 +30,7 @@ var (
 	ErrCloudConfig = errors.New("not a config (found coreos-cloudconfig)")
 	ErrEmpty       = errors.New("not a config (empty)")
 	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
+	ErrDeprecated  = errors.New("config format deprecated")
 )
 
 func Parse(rawConfig []byte) (types.Config, error) {
@@ -40,7 +41,12 @@ func Parse(rawConfig []byte) (types.Config, error) {
 
 	switch major {
 	case 1:
-		return ParseFromV1(rawConfig)
+		config, err := ParseFromV1(rawConfig)
+		if err != nil {
+			return types.Config{}, err
+		}
+
+		return config, ErrDeprecated
 	default:
 		return ParseFromLatest(rawConfig)
 	}
