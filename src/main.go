@@ -26,11 +26,7 @@ import (
 	_ "github.com/coreos/ignition/src/exec/stages/files"
 	"github.com/coreos/ignition/src/log"
 	"github.com/coreos/ignition/src/oem"
-)
-
-var (
-	version       = "was not built properly"
-	versionString = fmt.Sprintf("Ignition %s", version)
+	"github.com/coreos/ignition/src/version"
 )
 
 func main() {
@@ -55,7 +51,7 @@ func main() {
 	flag.Parse()
 
 	if flags.version {
-		fmt.Printf("%s\n", versionString)
+		fmt.Printf("%s\n", version.String)
 		return
 	}
 
@@ -78,7 +74,7 @@ func main() {
 	logger := log.New()
 	defer logger.Close()
 
-	logger.Info(versionString)
+	logger.Info(version.String)
 
 	if flags.clearCache {
 		if err := os.Remove(flags.configCache); err != nil {
