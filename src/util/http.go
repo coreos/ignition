@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/src/log"
+	"github.com/coreos/ignition/src/version"
 )
 
 // HttpClient is a simple wrapper around the Go HTTP client that standardizes
@@ -43,11 +44,28 @@ func NewHttpClient(logger *log.Logger) HttpClient {
 // Get performs an HTTP GET on the provided URL and returns the response body,
 // HTTP status code, and error (if any).
 func (c HttpClient) Get(url string) ([]byte, int, error) {
+	return c.GetWithHeader(url, http.Header{})
+}
+
+// Get performs an HTTP GET on the provided URL with the provided request header
+// and returns the response body, HTTP status code, and error (if any). By
+// default, User-Agent and Accept are added to the header but these can be
+// overridden.
+func (c HttpClient) GetWithHeader(url string, header http.Header) ([]byte, int, error) {
 	var body []byte
 	var status int
 
 	err := c.logger.LogOp(func() error {
-		resp, err := c.client.Get(url)
+		req, err := http.NewRequest("GET", url, nil)
+		req.Header.Set("User-Agent", "Ignition/"+version.Raw)
+		req.Header.Set("Accept", "*")
+		for key, values := range header {
+			req.Header.Del(key)
+			for _, value := range values {
+				req.Header.Add(key, value)
+			}
+		}
+		resp, err := c.client.Do(req)
 		if err != nil {
 			return err
 		}
@@ -71,7 +89,10 @@ func (c HttpClient) FetchConfig(url string, acceptedStatuses ...int) []byte {
 	var config []byte
 
 	c.logger.LogOp(func() error {
-		data, status, err := c.Get(url)
+		data, status, err := c.GetWithHeader(url, http.Header{
+			"Accept-Encoding": []string{"identity"},
+			"Accept":          []string{"application/vnd.coreos.ignition+json; version=2.0.0, application/vnd.coreos.ignition+json; version=1; q=0.5"},
+		})
 		if err != nil {
 			return err
 		}
