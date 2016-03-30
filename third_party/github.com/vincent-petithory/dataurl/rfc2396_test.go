@@ -10,7 +10,7 @@ var tests = []struct {
 	escaped   string
 	unescaped []byte
 }{
-	{"A%20brief%20note", []byte("A brief note")},
+	{"A%20brief%20note%0A", []byte("A brief note\n")},
 	{"%7B%5B%5Dbyte(%22A%2520brief%2520note%22)%2C%20%5B%5Dbyte(%22A%20brief%20note%22)%7D", []byte(`{[]byte("A%20brief%20note"), []byte("A brief note")}`)},
 }
 

@@ -19,7 +19,7 @@ func Escape(data []byte) string {
 		case isUnreserved(b):
 			buf.WriteByte(b)
 		default:
-			fmt.Fprintf(buf, "%%%X", b)
+			fmt.Fprintf(buf, "%%%02X", b)
 		}
 	}
 	return buf.String()
