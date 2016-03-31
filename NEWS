@@ -1,3 +1,10 @@
+25-Mar-2016 IGNITION v0.3.3
+
+  Bug Fixes
+
+    - Fix compilation errors when building for ARM
+    - Properly fetch configs from EC2
+
 17-Mar-2016 IGNITION v0.3.2
 
   Bug Fixes
