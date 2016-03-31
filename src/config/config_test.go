@@ -43,8 +43,8 @@ func TestParseFromLatest(t *testing.T) {
 			out: out{err: types.ErrOldVersion},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.0.0-dev"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion{Major: 2, Minor: 0, PreRelease: "dev"}}}},
+			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"}}`)},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion{Major: 2, Minor: 0}}}},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
