@@ -16,37 +16,40 @@ package types
 
 import (
 	"encoding/json"
-	"net/url"
+	"errors"
+	"path/filepath"
 )
 
-type Url url.URL
+var (
+	ErrPathRelative = errors.New("path not absolute")
+)
 
-func (u *Url) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return u.unmarshal(unmarshal)
+type Path string
+
+func (d *Path) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	return d.unmarshal(unmarshal)
 }
 
-func (u *Url) UnmarshalJSON(data []byte) error {
-	return u.unmarshal(func(tu interface{}) error {
-		return json.Unmarshal(data, tu)
+func (d *Path) UnmarshalJSON(data []byte) error {
+	return d.unmarshal(func(td interface{}) error {
+		return json.Unmarshal(data, td)
 	})
 }
 
-func (u Url) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + u.String() + `"`), nil
-}
+type path Path
 
-func (u *Url) unmarshal(unmarshal func(interface{}) error) error {
-	var tu string
-	if err := unmarshal(&tu); err != nil {
+func (d *Path) unmarshal(unmarshal func(interface{}) error) error {
+	td := path(*d)
+	if err := unmarshal(&td); err != nil {
 		return err
 	}
-
-	pu, err := url.Parse(tu)
-	*u = Url(*pu)
-	return err
+	*d = Path(td)
+	return d.assertValid()
 }
 
-func (u Url) String() string {
-	tu := url.URL(u)
-	return (&tu).String()
+func (d Path) assertValid() error {
+	if !filepath.IsAbs(string(d)) {
+		return ErrPathRelative
+	}
+	return nil
 }
