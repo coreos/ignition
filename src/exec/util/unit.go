@@ -27,33 +27,27 @@ const (
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func FileFromSystemdUnit(unit types.SystemdUnit) *types.File {
-	return &types.File{
+func FileFromSystemdUnit(unit types.SystemdUnit) *File {
+	return &File{
 		Path:     types.Path(filepath.Join(SystemdUnitsPath(), string(unit.Name))),
-		Contents: unit.Contents,
+		Contents: []byte(unit.Contents),
 		Mode:     DefaultFilePermissions,
-		Uid:      0,
-		Gid:      0,
 	}
 }
 
-func FileFromNetworkdUnit(unit types.NetworkdUnit) *types.File {
-	return &types.File{
+func FileFromNetworkdUnit(unit types.NetworkdUnit) *File {
+	return &File{
 		Path:     types.Path(filepath.Join(NetworkdUnitsPath(), string(unit.Name))),
-		Contents: unit.Contents,
+		Contents: []byte(unit.Contents),
 		Mode:     DefaultFilePermissions,
-		Uid:      0,
-		Gid:      0,
 	}
 }
 
-func FileFromUnitDropin(unit types.SystemdUnit, dropin types.SystemdUnitDropIn) *types.File {
-	return &types.File{
+func FileFromUnitDropin(unit types.SystemdUnit, dropin types.SystemdUnitDropIn) *File {
+	return &File{
 		Path:     types.Path(filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name))),
-		Contents: dropin.Contents,
+		Contents: []byte(dropin.Contents),
 		Mode:     DefaultFilePermissions,
-		Uid:      0,
-		Gid:      0,
 	}
 }
 

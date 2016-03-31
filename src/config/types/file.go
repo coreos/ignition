@@ -24,15 +24,30 @@ var (
 	ErrFileIllegalMode = errors.New("illegal file mode")
 )
 
-type FileMode os.FileMode
-
 type File struct {
-	Path     Path     `json:"path,omitempty"     yaml:"path"`
-	Contents string   `json:"contents,omitempty" yaml:"contents"`
-	Mode     FileMode `json:"mode,omitempty"     yaml:"mode"`
-	Uid      int      `json:"uid,omitempty"      yaml:"uid"`
-	Gid      int      `json:"gid,omitempty"      yaml:"gid"`
+	Filesystem string       `json:"filesystem,omitempty" yaml:"filesystem"`
+	Path       Path         `json:"path,omitempty"       yaml:"path"`
+	Contents   FileContents `json:"contents,omitempty"   yaml:"contents"`
+	Mode       FileMode     `json:"mode,omitempty"       yaml:"mode"`
+	User       FileUser     `json:"user,omitempty"       yaml:"uid"`
+	Group      FileGroup    `json:"group,omitempty"      yaml:"gid"`
 }
+
+type FileUser struct {
+	Id int `json:"id,omitempty" yaml:"id"`
+}
+
+type FileGroup struct {
+	Id int `json:"id,omitempty" yaml:"id"`
+}
+
+type FileContents struct {
+	Compression  Compression  `json:"compression,omitempty"  yaml:"compression"`
+	Source       Url          `json:"source,omitempty"       yaml:"source"`
+	Verification Verification `json:"verification,omitempty" yaml:"verification"`
+}
+
+type FileMode os.FileMode
 
 func (m *FileMode) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return m.unmarshal(unmarshal)

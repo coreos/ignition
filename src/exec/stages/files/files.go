@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prepivot
+package files
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"syscall"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/exec/stages"
@@ -25,6 +29,10 @@ import (
 
 const (
 	name = "files"
+)
+
+var (
+	ErrFilesystemUndefined = errors.New("the referenced filesystem was not defined")
 )
 
 func init() {
@@ -53,6 +61,11 @@ func (stage) Name() string {
 }
 
 func (s stage) Run(config types.Config) bool {
+	if err := s.createFilesystemsFiles(config); err != nil {
+		s.Logger.Crit("failed to create files: %v", err)
+		return false
+	}
+
 	if err := s.createPasswd(config); err != nil {
 		s.Logger.Crit("failed to create users/groups: %v", err)
 		return false
@@ -63,6 +76,105 @@ func (s stage) Run(config types.Config) bool {
 		return false
 	}
 	return true
+}
+
+// createFilesystemsFiles creates the files described in config.Storage.Filesystems.
+func (s stage) createFilesystemsFiles(config types.Config) error {
+	if len(config.Storage.Filesystems) == 0 {
+		return nil
+	}
+	s.Logger.PushPrefix("createFilesystemsFiles")
+	defer s.Logger.PopPrefix()
+
+	fileMap, err := s.mapFilesToFilesystems(config)
+	if err != nil {
+		return err
+	}
+
+	for fs, f := range fileMap {
+		if err := s.createFiles(fs, f); err != nil {
+			return fmt.Errorf("failed to create files: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// mapFilesToFilesystems builds a map of filesystems to files. If multiple
+// definitions of the same filesystem are present, only the final definition is
+// used.
+func (s stage) mapFilesToFilesystems(config types.Config) (map[types.Filesystem][]types.File, error) {
+	files := map[string][]types.File{}
+	for _, f := range config.Storage.Files {
+		files[f.Filesystem] = append(files[f.Filesystem], f)
+	}
+
+	filesystems := map[string]types.Filesystem{}
+	for _, fs := range config.Storage.Filesystems {
+		filesystems[fs.Name] = fs
+	}
+
+	fileMap := map[types.Filesystem][]types.File{}
+	for fsn, f := range files {
+		if fs, ok := filesystems[fsn]; ok {
+			fileMap[fs] = append(fileMap[fs], f...)
+		} else {
+			s.Logger.Crit("the filesystem (%q), was not defined", fsn)
+			return nil, ErrFilesystemUndefined
+		}
+	}
+
+	return fileMap, nil
+}
+
+// createFiles creates any files listed for the filesystem in fs.Files.
+func (s stage) createFiles(fs types.Filesystem, files []types.File) error {
+	s.Logger.PushPrefix("createFiles")
+	defer s.Logger.PopPrefix()
+
+	mnt := string(fs.Path)
+	if len(mnt) == 0 {
+		var err error
+		mnt, err = ioutil.TempDir("", "ignition-files")
+		if err != nil {
+			return fmt.Errorf("failed to create temp directory: %v", err)
+		}
+		defer os.Remove(mnt)
+
+		dev := string(fs.Mount.Device)
+		format := string(fs.Mount.Format)
+
+		if err := s.Logger.LogOp(
+			func() error { return syscall.Mount(dev, mnt, format, 0, "") },
+			"mounting %q at %q", dev, mnt,
+		); err != nil {
+			return fmt.Errorf("failed to mount device %q at %q: %v", dev, mnt, err)
+		}
+		defer s.Logger.LogOp(
+			func() error { return syscall.Unmount(mnt, 0) },
+			"unmounting %q at %q", dev, mnt,
+		)
+	}
+
+	u := util.Util{
+		Logger:  s.Logger,
+		DestDir: mnt,
+	}
+	for _, f := range files {
+		file := util.RenderFile(s.Logger, f)
+		if file == nil {
+			return fmt.Errorf("failed to resolve file %q", f.Path)
+		}
+
+		if err := s.Logger.LogOp(
+			func() error { return u.WriteFile(file) },
+			"writing file %q", string(f.Path),
+		); err != nil {
+			return fmt.Errorf("failed to create file %q: %v", file.Path, err)
+		}
+	}
+
+	return nil
 }
 
 // createUnits creates the units listed under systemd.units and networkd.units.

@@ -16,14 +16,11 @@
 // arrays, formatting partitions, writing files, writing systemd units, and
 // writing network units.
 
-package storage
+package disks
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"os/exec"
-	"syscall"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/src/exec/stages"
@@ -75,11 +72,6 @@ func (s stage) Run(config types.Config) bool {
 
 	if err := s.createFilesystems(config); err != nil {
 		s.Logger.Crit("failed to create filesystems: %v", err)
-		return false
-	}
-
-	if err := s.createFilesystemsFiles(config); err != nil {
-		s.Logger.Crit("failed to create files: %v", err)
 		return false
 	}
 
@@ -197,14 +189,21 @@ func (s stage) createRaids(config types.Config) error {
 
 // createFilesystems creates the filesystems described in config.Storage.Filesystems.
 func (s stage) createFilesystems(config types.Config) error {
-	if len(config.Storage.Filesystems) == 0 {
+	fss := make([]types.FilesystemMount, 0, len(config.Storage.Filesystems))
+	for _, fs := range config.Storage.Filesystems {
+		if len(fs.Path) == 0 {
+			fss = append(fss, *fs.Mount)
+		}
+	}
+
+	if len(fss) == 0 {
 		return nil
 	}
 	s.Logger.PushPrefix("createFilesystems")
 	defer s.Logger.PopPrefix()
 
 	devs := []string{}
-	for _, fs := range config.Storage.Filesystems {
+	for _, fs := range fss {
 		devs = append(devs, string(fs.Device))
 	}
 
@@ -212,7 +211,7 @@ func (s stage) createFilesystems(config types.Config) error {
 		return err
 	}
 
-	for _, fs := range config.Storage.Filesystems {
+	for _, fs := range fss {
 		if err := s.createFilesystem(fs); err != nil {
 			return err
 		}
@@ -221,7 +220,7 @@ func (s stage) createFilesystems(config types.Config) error {
 	return nil
 }
 
-func (s stage) createFilesystem(fs types.Filesystem) error {
+func (s stage) createFilesystem(fs types.FilesystemMount) error {
 	if fs.Create == nil {
 		return nil
 	}
@@ -255,67 +254,6 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		fs.Format, string(fs.Device),
 	); err != nil {
 		return fmt.Errorf("failed to run %q: %v %v", mkfs, err, args)
-	}
-
-	return nil
-}
-
-// createFilesystemsFiles creates the files described in config.Storage.Filesystems.
-func (s stage) createFilesystemsFiles(config types.Config) error {
-	if len(config.Storage.Filesystems) == 0 {
-		return nil
-	}
-	s.Logger.PushPrefix("createFilesystemsFiles")
-	defer s.Logger.PopPrefix()
-
-	for _, fs := range config.Storage.Filesystems {
-		if err := s.createFiles(fs); err != nil {
-			return fmt.Errorf("failed to create files %q: %v", fs.Device, err)
-		}
-	}
-
-	return nil
-}
-
-// createFiles creates any files listed for the filesystem in fs.Files.
-func (s stage) createFiles(fs types.Filesystem) error {
-	if len(fs.Files) == 0 {
-		return nil
-	}
-	s.Logger.PushPrefix("createFiles")
-	defer s.Logger.PopPrefix()
-
-	mnt, err := ioutil.TempDir("", "ignition-files")
-	if err != nil {
-		return fmt.Errorf("failed to create temp directory: %v", err)
-	}
-	defer os.Remove(mnt)
-
-	dev := string(fs.Device)
-	format := string(fs.Format)
-
-	if err := s.Logger.LogOp(
-		func() error { return syscall.Mount(dev, mnt, format, 0, "") },
-		"mounting %q at %q", dev, mnt,
-	); err != nil {
-		return fmt.Errorf("failed to mount device %q at %q: %v", dev, mnt, err)
-	}
-	defer s.Logger.LogOp(
-		func() error { return syscall.Unmount(mnt, 0) },
-		"unmounting %q at %q", dev, mnt,
-	)
-
-	u := util.Util{
-		Logger:  s.Logger,
-		DestDir: mnt,
-	}
-	for _, f := range fs.Files {
-		if err := s.Logger.LogOp(
-			func() error { return u.WriteFile(&f) },
-			"writing file %q", string(f.Path),
-		); err != nil {
-			return fmt.Errorf("failed to create file %q: %v", f.Path, err)
-		}
 	}
 
 	return nil

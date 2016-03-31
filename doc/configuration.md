@@ -2,7 +2,17 @@
 
 The Ignition configuration is a JSON document conforming to the following specification, with **_italicized_** entries being optional:
 
-* **ignitionVersion** (integer): the version number of the spec. Must be `1`.
+* **ignition** (object): metadata about the configuration itself.
+  * **version** (string): the semantic version number of the spec. The spec version must be compatible with the latest version (`2.0.0`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version.
+  * **_config_** (objects): options related to the configuration.
+    * **_append_** (list of objects): a list of the configs to be appended to the current config.
+      * **source** (string): the URL of the config. Supported schemes are http. Note: When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_verification_** (object): options related to the verification of the config.
+        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type is sha512.
+    * **_replace_** (object): the config that will replace the current.
+      * **source** (string): the URL of the config. Supported schemes are http. Note: When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_verification_** (object): options related to the verification of the config.
+        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type is sha512.
 * **_storage_** (object): describes the desired state of the system's storage devices.
   * **_disks_** (list of objects): the list of disks to be configured and their options.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
@@ -18,18 +28,28 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **level** (string): the redundancy level of the array (e.g. linear, raid1, raid5, etc.).
     * **devices** (list of strings): the list of devices (referenced by their absolute path) in the array.
     * **_spares_** (integer): the number of spares (if applicable) in the array.
-  * **_filesystems_** (list of objects): the list of filesystems to be configured. Typically, one filesystem is configured per partition.
-    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-    * **format** (string): the filesystem format (ext4, btrfs, or xfs).
-    * **_create_** (object): contains the set of options to be used when creating the filesystem. A non-null entry indicates that the filesystem shall be created.
-      * **_force_** (boolean): whether or not the create operation shall overwrite an existing filesystem.
-      * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
-    * **_files_** (list of objects): the list of files, rooted in this particular filesystem, to be written.
-      * **path** (string): the absolute path to the file.
-      * **_contents_** (string): the contents of the file.
-      * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
-      * **_uid_** (integer): the user ID of the owner.
-      * **_gid_** (integer): the group ID of the owner.
+  * **_filesystems_** (list of objects): the list of filesystems to be configured and/or used in the "files" section. Either "mount" or "path" needs to be specified.
+    * **_name_** (string): the identifier for the filesystem, internal to Ignition. This is only required if the filesystem needs to be referenced in the "files" section.
+    * **_mount_** (object): contains the set of mount and formatting options for the filesystem. A non-null entry indicates that the filesystem should be mounted before it is used by Ignition.
+      * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
+      * **format** (string): the filesystem format (ext4, btrfs, or xfs).
+      * **_create_** (object): contains the set of options to be used when creating the filesystem. A non-null entry indicates that the filesystem shall be created.
+        * **_force_** (boolean): whether or not the create operation shall overwrite an existing filesystem.
+        * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
+    * **_path_** (string): the mount-point of the filesystem. A non-null entry indicates that the filesystem has already been mounted by the system at the specified path. This is really only useful for "/sysroot".
+  * **_files_** (list of objects): the list of files, rooted in this particular filesystem, to be written.
+    * **filesystem** (string): the internal identifier of the filesystem. This matches the last filesystem with the given identifier.
+    * **path** (string): the absolute path to the file.
+    * **_contents_** (object): options related to the contents of the file.
+      * **_compression_** (string): the type of compression used on the contents (null or gzip)
+      * **_source_** (string): the URL of the file contents. Supported schemes are http and [data][rfc2397]. Note: When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_verification_** (object): options related to the verification of the file contents.
+        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type is sha512.
+    * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
+    * **_user_** (object): specifies the file's owner.
+      * **_id_** (integer): the user ID of the owner.
+    * **_group_** (object): specifies the group of the owner.
+      * **_id_** (integer): the group ID of the owner.
 * **_systemd_** (object): describes the desired state of the systemd units.
   * **_units_** (list of objects): the list of systemd units.
     * **name** (string): the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service").
@@ -64,3 +84,4 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_passwordHash_** (string): the encrypted password of the new group.
 
 [part-types]: http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
+[rfc2397]: https://tools.ietf.org/html/rfc2397

@@ -202,12 +202,12 @@ func TestFilesystemUnmarshalJSON(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{data: `{"device": "/foo", "format": "ext4"}`},
-			out: out{filesystem: Filesystem{Device: "/foo", Format: "ext4"}},
+			in:  in{data: `{"mount": {"device": "/foo", "format": "ext4"}}`},
+			out: out{filesystem: Filesystem{Mount: &FilesystemMount{Device: "/foo", Format: "ext4"}}},
 		},
 		{
-			in:  in{data: `{"format": "ext4"}`},
-			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrPathRelative},
+			in:  in{data: `{"mount": {"format": "ext4"}}`},
+			out: out{err: ErrPathRelative},
 		},
 	}
 
@@ -237,12 +237,12 @@ func TestFilesystemUnmarshalYAML(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{data: "device: /foo\nformat: ext4"},
-			out: out{filesystem: Filesystem{Device: "/foo", Format: "ext4"}},
+			in:  in{data: "mount:\n  device: /foo\n  format: ext4"},
+			out: out{filesystem: Filesystem{Mount: &FilesystemMount{Device: "/foo", Format: "ext4"}}},
 		},
 		{
-			in:  in{data: "format: ext4"},
-			out: out{filesystem: Filesystem{Format: "ext4"}, err: ErrPathRelative},
+			in:  in{data: "mount:\n  format: ext4"},
+			out: out{err: ErrPathRelative},
 		},
 	}
 
@@ -271,20 +271,32 @@ func TestFilesystemAssertValid(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{filesystem: Filesystem{Device: "/foo", Format: "ext4"}},
+			in:  in{filesystem: Filesystem{Mount: &FilesystemMount{Device: "/foo", Format: "ext4"}}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Device: "/foo"}},
+			in:  in{filesystem: Filesystem{Mount: &FilesystemMount{Device: "/foo"}}},
 			out: out{err: ErrFilesystemInvalidFormat},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "ext4"}},
+			in:  in{filesystem: Filesystem{Mount: &FilesystemMount{Format: "ext4"}}},
 			out: out{err: ErrPathRelative},
 		},
 		{
-			in:  in{filesystem: Filesystem{}},
+			in:  in{filesystem: Filesystem{Path: Path("/mount")}},
+			out: out{},
+		},
+		{
+			in:  in{filesystem: Filesystem{Path: Path("mount")}},
 			out: out{err: ErrPathRelative},
+		},
+		{
+			in:  in{filesystem: Filesystem{Path: Path("/mount"), Mount: &FilesystemMount{Device: "/foo", Format: "ext4"}}},
+			out: out{err: ErrFilesystemMountAndPath},
+		},
+		{
+			in:  in{filesystem: Filesystem{}},
+			out: out{err: ErrFilesystemNoMountPath},
 		},
 	}
 

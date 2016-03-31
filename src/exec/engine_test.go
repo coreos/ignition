@@ -53,12 +53,15 @@ func TestFetchConfigs(t *testing.T) {
 
 	online := mockProvider{
 		online: true,
-		err:    errors.New("test error"),
 		config: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.SystemdUnit{},
 			},
 		},
+	}
+	error := mockProvider{
+		online: true,
+		err:    errors.New("test error"),
 	}
 	offline := mockProvider{online: false}
 
@@ -68,7 +71,11 @@ func TestFetchConfigs(t *testing.T) {
 	}{
 		{
 			in:  in{provider: online, timeout: time.Second},
-			out: out{config: online.config, err: online.err},
+			out: out{config: online.config},
+		},
+		{
+			in:  in{provider: error, timeout: time.Second},
+			out: out{config: types.Config{}, err: error.err},
 		},
 		{
 			in:  in{provider: offline, timeout: time.Second},
@@ -77,7 +84,10 @@ func TestFetchConfigs(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		config, err := fetchConfig(test.in.provider, test.in.timeout)
+		config, err := Engine{
+			Provider:      test.in.provider,
+			OnlineTimeout: test.in.timeout,
+		}.fetchProviderConfig()
 		if !reflect.DeepEqual(test.out.config, config) {
 			t.Errorf("#%d: bad provider: want %+v, got %+v", i, test.out.config, config)
 		}

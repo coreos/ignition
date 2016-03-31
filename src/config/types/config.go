@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2015 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,12 +14,19 @@
 
 package types
 
-const (
-	Version = 1
+import (
+	"github.com/coreos/ignition/third_party/github.com/coreos/go-semver/semver"
+)
+
+var (
+	MaxVersion = semver.Version{
+		Major: 2,
+		Minor: 0,
+	}
 )
 
 type Config struct {
-	Version  int      `json:"ignitionVersion"    yaml:"ignition_version"`
+	Ignition Ignition `json:"ignition"           yaml:"ignition"`
 	Storage  Storage  `json:"storage,omitempty"  yaml:"storage"`
 	Systemd  Systemd  `json:"systemd,omitempty"  yaml:"systemd"`
 	Networkd Networkd `json:"networkd,omitempty" yaml:"networkd"`

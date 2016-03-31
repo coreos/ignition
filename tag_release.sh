@@ -15,6 +15,9 @@ COMMIT=$2
 	exit 3
 }
 
+source ./build
+go run src/util/tools/prerelease_check.go
+
 # TODO(vc): generate NEWS as part of the release process.
 # @marineam suggested using git notes to associate NEWS-destined payloads
 # with objects, we just need to define a syntax and employ them.
