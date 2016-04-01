@@ -2,25 +2,18 @@
 
 source ./build
 
-SRC="
-	config
-	config/types
-	config/v1
-	config/v1/types
-	internal
-	internal/exec
-	internal/exec/stages
-	internal/exec/stages/disks
-	internal/exec/stages/files
-	internal/exec/util
-	internal/providers
-	internal/providers/cmdline
-	internal/providers/ec2
-	internal/providers/util
-	internal/registry
-	internal/util
-	internal/util/tools
-"
+SRC=$(find . -name '*.go' \
+	-not -path "./internal/vendor/*" \
+	-not -path "./config/vendor/*" \
+	-not -path "./config/v1/vendor/*")
+
+PKG=$(cd gopath/src/${REPO_PATH}; go list ./... | \
+	grep --invert-match vendor)
+
+# https://github.com/golang/go/issues/15067
+PKG_VET=$(cd gopath/src/${REPO_PATH}; go list ./... | \
+	grep --invert-match vendor | \
+	grep --invert-match internal/log)
 
 echo "Checking gofix..."
 go tool fix -diff $SRC
@@ -32,14 +25,10 @@ if [ -n "${res}" ]; then
 	exit 1
 fi
 
-# split SRC into an array and prepend REPO_PATH to each local package for go vet
-split_vet=(${SRC// / })
-VET_TEST=${split_vet[@]/#/${REPO_PATH}/}
-
 echo "Checking govet..."
-go vet $VET_TEST
+go vet $PKG_VET
 
 echo "Running tests..."
-go test -timeout 60s -cover $@ ${VET_TEST} --race
+go test -timeout 60s -cover $@ ${PKG} --race
 
 echo "Success"
