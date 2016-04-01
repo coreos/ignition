@@ -27,7 +27,7 @@ import (
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/util"
 
-	"github.com/coreos/ignition/third_party/github.com/vincent-petithory/dataurl"
+	"github.com/vincent-petithory/dataurl"
 )
 
 const (

@@ -21,8 +21,8 @@ import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 
-	"github.com/coreos/ignition/third_party/github.com/sigma/vmw-guestinfo/rpcvmx"
-	"github.com/coreos/ignition/third_party/github.com/sigma/vmw-guestinfo/vmcheck"
+	"github.com/sigma/vmw-guestinfo/rpcvmx"
+	"github.com/sigma/vmw-guestinfo/vmcheck"
 )
 
 func (p provider) FetchConfig() (types.Config, error) {

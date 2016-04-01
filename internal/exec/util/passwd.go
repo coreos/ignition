@@ -22,7 +22,7 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 
-	keys "github.com/coreos/ignition/third_party/github.com/coreos/update-ssh-keys/authorized_keys_d"
+	keys "github.com/coreos/update-ssh-keys/authorized_keys_d"
 )
 
 // CreateUser creates the user as described.
