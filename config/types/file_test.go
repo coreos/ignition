@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/coreos/ignition/third_party/github.com/go-yaml/yaml"
+	"github.com/go-yaml/yaml"
 )
 
 func TestFileModeUnmarshalJSON(t *testing.T) {

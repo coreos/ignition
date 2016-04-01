@@ -20,7 +20,7 @@ import (
 	"github.com/coreos/ignition/config/types"
 	v1 "github.com/coreos/ignition/config/v1/types"
 
-	"github.com/coreos/ignition/third_party/github.com/vincent-petithory/dataurl"
+	"github.com/vincent-petithory/dataurl"
 )
 
 func TranslateFromV1(old v1.Config) (types.Config, error) {
