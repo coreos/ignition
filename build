@@ -17,4 +17,4 @@ export GOPATH=${PWD}/gopath
 eval $(go env)
 
 echo "Building ${NAME}..."
-go build -ldflags "${GLDFLAGS}" -o ${GOBIN}/${NAME} ${REPO_PATH}/src
+go build -ldflags "${GLDFLAGS}" -o ${GOBIN}/${NAME} ${REPO_PATH}/internal
