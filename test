@@ -6,6 +6,8 @@ SRC="
 	src
 	src/config
 	src/config/types
+	src/config/v1
+	src/config/v1/types
 	src/exec
 	src/exec/stages
 	src/exec/stages/disks
@@ -16,6 +18,8 @@ SRC="
 	src/providers/ec2
 	src/providers/util
 	src/registry
+	src/util
+	src/util/tools
 "
 
 echo "Checking gofix..."

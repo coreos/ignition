@@ -21,7 +21,7 @@ import (
 	"github.com/coreos/ignition/config/types"
 )
 
-func TestParse(t *testing.T) {
+func TestParseFromLatest(t *testing.T) {
 	type in struct {
 		config []byte
 	}
@@ -36,11 +36,23 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{config: types.Config{Version: 1}},
+			out: out{err: types.ErrOldVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "1.0.0"}}`)},
+			out: out{err: types.ErrOldVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"}}`)},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion{Major: 2, Minor: 0}}}},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
+			out: out{err: types.ErrNewVersion},
 		},
 		{
 			in:  in{config: []byte(`{}`)},
-			out: out{err: ErrVersion},
+			out: out{err: types.ErrOldVersion},
 		},
 		{
 			in:  in{config: []byte{}},
@@ -78,12 +90,12 @@ func TestParse(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		config, err := Parse(test.in.config)
-		if !reflect.DeepEqual(test.out.config, config) {
-			t.Errorf("#%d: bad config: want %+v, got %+v", i, test.out.config, config)
-		}
+		config, err := ParseFromLatest(test.in.config)
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+		if test.out.err == nil && !reflect.DeepEqual(test.out.config, config) {
+			t.Errorf("#%d: bad config: want %+v, got %+v", i, test.out.config, config)
 		}
 	}
 }
