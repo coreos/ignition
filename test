@@ -3,23 +3,23 @@
 source ./build
 
 SRC="
-	src
-	src/config
-	src/config/types
-	src/config/v1
-	src/config/v1/types
-	src/exec
-	src/exec/stages
-	src/exec/stages/disks
-	src/exec/stages/files
-	src/exec/util
-	src/providers
-	src/providers/cmdline
-	src/providers/ec2
-	src/providers/util
-	src/registry
-	src/util
-	src/util/tools
+	config
+	config/types
+	config/v1
+	config/v1/types
+	internal
+	internal/exec
+	internal/exec/stages
+	internal/exec/stages/disks
+	internal/exec/stages/files
+	internal/exec/util
+	internal/providers
+	internal/providers/cmdline
+	internal/providers/ec2
+	internal/providers/util
+	internal/registry
+	internal/util
+	internal/util/tools
 "
 
 echo "Checking gofix..."
