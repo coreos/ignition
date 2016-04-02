@@ -60,7 +60,7 @@ type provider struct {
 
 func (p provider) FetchConfig() (types.Config, error) {
 	cfg, err := config.Parse(p.rawConfig)
-	if err == nil || err == config.ErrEmpty {
+	if err == nil || err == config.ErrEmpty || err == config.ErrDeprecated {
 		err = p.fetchSSHKeys(&cfg)
 	}
 
