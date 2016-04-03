@@ -41,11 +41,13 @@ This example Ignition configuration will locate the device with the "ROOT" files
   "ignition": { "version": "2.0.0" },
   "storage": {
     "filesystems": [{
-      "device": "/dev/disk/by-label/ROOT",
-      "format": "btrfs",
-      "create": {
-        "force": true,
-        "options": [ "--label=ROOT" ]
+      "mount": {
+        "device": "/dev/disk/by-label/ROOT",
+        "format": "btrfs",
+        "create": {
+          "force": true,
+          "options": [ "--label=ROOT" ]
+        }
       }
     }]
   }
@@ -59,11 +61,13 @@ This example Ignition configuration will locate the device with the "ROOT" files
   "ignition": { "version": "2.0.0" },
   "storage": {
     "filesystems": [{
-      "device": "/dev/disk/by-label/ROOT",
-      "format": "xfs",
-      "create": {
-        "force": true,
-        "options": [ "-L", "ROOT" ]
+      "mount": {
+        "device": "/dev/disk/by-label/ROOT",
+        "format": "xfs",
+        "create": {
+          "force": true,
+          "options": [ "-L", "ROOT" ]
+        }
       }
     }]
   }
@@ -164,9 +168,11 @@ In many scenarios, it may be useful to have an external data volume. This config
       "name": "data"
     }],
     "filesystems": [{
-      "device": "/dev/md/data",
-      "format": "ext4",
-      "create": { "options": [ "-L", "DATA" ] }
+      "mount": {
+        "device": "/dev/md/data",
+        "format": "ext4",
+        "create": { "options": [ "-L", "DATA" ] }
+      }
     }]
   },
   "systemd": {
