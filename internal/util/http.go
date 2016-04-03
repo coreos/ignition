@@ -81,19 +81,33 @@ func (c HttpClient) GetWithHeader(url string, header http.Header) ([]byte, int, 
 	return body, status, err
 }
 
-// FetchConfig fetches a raw config from the provided URL and returns the
-// response body on success or nil on failure. The caller must also provide a
-// list of acceptable HTTP status codes. If the response's status code is not in
-// the provided list, it is considered a failure. The HTTP response must be OK,
-// otherwise an empty (v.s. nil) config is returned.
+// FetchConfig calls FetchConfigWithHeader with an empty set of headers.
 func (c HttpClient) FetchConfig(url string, acceptedStatuses ...int) []byte {
+	return c.FetchConfigWithHeader(url, http.Header{}, acceptedStatuses...)
+}
+
+// FetchConfigWithHeader fetches a raw config from the provided URL and returns
+// the response body on success or nil on failure. The caller must also provide
+// a list of acceptable HTTP status codes and headers. If the response's status
+// code is not in the provided list, it is considered a failure. The HTTP
+// response must be OK, otherwise an empty (v.s. nil) config is returned. The
+// provided headers are merged with a set of default headers.
+func (c HttpClient) FetchConfigWithHeader(url string, header http.Header, acceptedStatuses ...int) []byte {
 	var config []byte
 
 	c.logger.LogOp(func() error {
-		data, status, err := c.GetWithHeader(url, http.Header{
+		reqHeader := http.Header{
 			"Accept-Encoding": []string{"identity"},
 			"Accept":          []string{"application/vnd.coreos.ignition+json; version=2.0.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1"},
-		})
+		}
+		for key, values := range header {
+			reqHeader.Del(key)
+			for _, value := range values {
+				reqHeader.Add(key, value)
+			}
+		}
+
+		data, status, err := c.GetWithHeader(url, reqHeader)
 		if err != nil {
 			return err
 		}
