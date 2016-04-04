@@ -19,9 +19,10 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/config/types"
+	v1 "github.com/coreos/ignition/config/v1"
 )
 
-func TestParseFromLatest(t *testing.T) {
+func TestParse(t *testing.T) {
 	type in struct {
 		config []byte
 	}
@@ -36,11 +37,11 @@ func TestParseFromLatest(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{err: types.ErrOldVersion},
+			out: out{err: ErrDeprecated},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "1.0.0"}}`)},
-			out: out{err: types.ErrOldVersion},
+			out: out{err: v1.ErrVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"}}`)},
@@ -90,7 +91,7 @@ func TestParseFromLatest(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		config, err := ParseFromLatest(test.in.config)
+		config, err := Parse(test.in.config)
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
