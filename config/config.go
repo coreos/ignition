@@ -34,12 +34,7 @@ var (
 )
 
 func Parse(rawConfig []byte) (types.Config, error) {
-	major, err := majorVersion(rawConfig)
-	if err != nil {
-		return types.Config{}, err
-	}
-
-	switch major {
+	switch majorVersion(rawConfig) {
 	case 1:
 		config, err := ParseFromV1(rawConfig)
 		if err != nil {
@@ -79,21 +74,16 @@ func ParseFromV1(rawConfig []byte) (types.Config, error) {
 	return TranslateFromV1(config)
 }
 
-type config struct {
-	Version  *int `json:"ignitionVersion" yaml:"ignition_version"`
-	Ignition struct {
-		Version *types.IgnitionVersion `json:"version,omitempty" yaml:"version" merge:"old"`
-	} `json:"ignition" yaml:"ignition"`
-}
+func majorVersion(rawConfig []byte) int64 {
+	var composite struct {
+		Version  *int `json:"ignitionVersion"`
+		Ignition struct {
+			Version *types.IgnitionVersion `json:"version"`
+		} `json:"ignition"`
+	}
 
-func majorVersion(rawConfig []byte) (int64, error) {
-	var composite config
-	if err := json.Unmarshal(rawConfig, &composite); err != nil {
-		if serr, ok := err.(*json.SyntaxError); ok {
-			line, col, highlight := errorutil.HighlightBytePosition(bytes.NewReader(rawConfig), serr.Offset)
-			err = fmt.Errorf("error at line %d, column %d\n%s%v", line, col, highlight, err)
-		}
-		return 0, err
+	if json.Unmarshal(rawConfig, &composite) != nil {
+		return 0
 	}
 
 	var major int64
@@ -103,7 +93,7 @@ func majorVersion(rawConfig []byte) (int64, error) {
 		major = int64(*composite.Version)
 	}
 
-	return major, nil
+	return major
 }
 
 func isEmpty(userdata []byte) bool {
