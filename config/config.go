@@ -74,15 +74,14 @@ func ParseFromV1(rawConfig []byte) (types.Config, error) {
 	return TranslateFromV1(config)
 }
 
-type config struct {
-	Version  *int `json:"ignitionVersion" yaml:"ignition_version"`
-	Ignition struct {
-		Version *types.IgnitionVersion `json:"version,omitempty" yaml:"version" merge:"old"`
-	} `json:"ignition" yaml:"ignition"`
-}
-
 func majorVersion(rawConfig []byte) int64 {
-	var composite config
+	var composite struct {
+		Version  *int `json:"ignitionVersion"`
+		Ignition struct {
+			Version *types.IgnitionVersion `json:"version"`
+		} `json:"ignition"`
+	}
+
 	if json.Unmarshal(rawConfig, &composite) != nil {
 		return 0
 	}
