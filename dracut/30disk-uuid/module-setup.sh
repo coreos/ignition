@@ -3,7 +3,10 @@
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
 install() {
-    inst sgdisk
+    inst_multiple \
+        sgdisk \
+        cgpt
+
     inst_simple "$moddir/disk-uuid@.service" \
         "$systemdsystemunitdir/disk-uuid@.service"
 

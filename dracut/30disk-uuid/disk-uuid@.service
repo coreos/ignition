@@ -10,5 +10,6 @@ After=%i.device
 
 [Service]
 Type=oneshot
+ExecStart=/usr/bin/cgpt repair %I
 ExecStart=/usr/sbin/sgdisk --disk-guid=R %I
 ExecStart=/usr/bin/udevadm settle
