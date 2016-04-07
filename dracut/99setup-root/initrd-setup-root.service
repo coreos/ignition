@@ -1,7 +1,7 @@
 [Unit]
 Description=Root filesystem setup
 DefaultDependencies=no
-
+RequiresMountsFor=/sysroot/usr/share/oem
 After=initrd-root-fs.target
 Before=initrd-parse-etc.service
 

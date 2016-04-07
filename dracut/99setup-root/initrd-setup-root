@@ -6,33 +6,26 @@
 COREOS_BLANK_MACHINE_ID="42000000000000000000000000000042"
 MACHINE_ID_FILE="/sysroot/etc/machine-id"
 
-do_setup_root() {
-    # Initialize base filesystem
-    systemd-tmpfiles --root=/sysroot --create \
-        baselayout.conf baselayout-etc.conf baselayout-usr.conf \
-        baselayout-home.conf etc.conf etc-shadow.conf
+# Initialize base filesystem
+systemd-tmpfiles --root=/sysroot --create \
+    baselayout.conf baselayout-etc.conf baselayout-usr.conf \
+    baselayout-home.conf etc.conf etc-shadow.conf
 
-    # Not all images provide these files so check before using them.
-    # Note: selinux-base.conf must run before libsemanage.conf
-    for config in baselayout-ldso.conf selinux-base.conf libsemanage.conf; do
-        if [ -e "/sysroot/usr/lib/tmpfiles.d/${config}" ]; then
-            systemd-tmpfiles --root=/sysroot --create "${config}"
-        fi
-    done
-
-    # This creates the modifiable users/groups in /sysroot/etc,
-    # initializing the shadow database in the process.
-    /usr/sbin/coreos-tmpfiles /sysroot
-
-    # Remove our phony id. systemd will initialize this during boot.
-    if grep -qs "${COREOS_BLANK_MACHINE_ID}" "${MACHINE_ID_FILE}"; then
-        rm "${MACHINE_ID_FILE}"
+# Not all images provide these files so check before using them.
+# Note: selinux-base.conf must run before libsemanage.conf
+for config in baselayout-ldso.conf selinux-base.conf libsemanage.conf; do
+    if [ -e "/sysroot/usr/lib/tmpfiles.d/${config}" ]; then
+        systemd-tmpfiles --root=/sysroot --create "${config}"
     fi
-}
+done
 
-# Skip if root and root/usr are not mount points
-if mountpoint --quiet /sysroot && mountpoint --quiet /sysroot/usr; then
-    do_setup_root
+# This creates the modifiable users/groups in /sysroot/etc,
+# initializing the shadow database in the process.
+/usr/sbin/coreos-tmpfiles /sysroot
+
+# Remove our phony id. systemd will initialize this during boot.
+if grep -qs "${COREOS_BLANK_MACHINE_ID}" "${MACHINE_ID_FILE}"; then
+    rm "${MACHINE_ID_FILE}"
 fi
 
 # PXE initrds may provide OEM
