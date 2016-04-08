@@ -35,6 +35,7 @@ func main() {
 		configCache   string
 		onlineTimeout time.Duration
 		oem           oem.Name
+		prependConfig string
 		root          string
 		stage         stages.Name
 		version       bool
@@ -44,6 +45,7 @@ func main() {
 	flag.StringVar(&flags.configCache, "config-cache", "/run/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.onlineTimeout, "online-timeout", exec.DefaultOnlineTimeout, "how long to wait for a provider to come online")
 	flag.Var(&flags.oem, "oem", fmt.Sprintf("current oem. %v", oem.Names()))
+	flag.StringVar(&flags.prependConfig, "prepend-config", "", "path of the config to be prepended to the fetched config")
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
@@ -88,6 +90,7 @@ func main() {
 		Logger:        &logger,
 		ConfigCache:   flags.configCache,
 		Provider:      oem.MustGet(flags.oem.String()).Provider().Create(&logger),
+		PreConfig:     flags.prependConfig,
 	}
 
 	if !engine.Run(flags.stage.String()) {

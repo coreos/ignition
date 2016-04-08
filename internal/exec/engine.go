@@ -58,6 +58,7 @@ type Engine struct {
 	Logger        *log.Logger
 	Root          string
 	Provider      providers.Provider
+	PreConfig     string
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -66,9 +67,16 @@ func (e Engine) Run(stageName string) bool {
 	cfg, err := e.acquireConfig()
 	switch err {
 	case nil:
+		cfg, err = e.prepareConfig(cfg)
+		if err != nil {
+			e.Logger.Crit("failed to prepare config: %v", err)
+			return false
+		}
+
 		e.Logger.PushPrefix(stageName)
 		defer e.Logger.PopPrefix()
-		return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(baseConfig, cfg))
+		e.Logger.Debug("executing config: %+v", cfg)
+		return stages.Get(stageName).Create(e.Logger, e.Root).Run(cfg)
 	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
 		e.Logger.Info("%v: ignoring and exiting...", err)
 		return true
@@ -76,6 +84,30 @@ func (e Engine) Run(stageName string) bool {
 		e.Logger.Crit("failed to acquire config: %v", err)
 		return false
 	}
+}
+
+// prepareConfig returns the provided configuration appended to the pre-config
+// (if provided) and the base config.
+func (e Engine) prepareConfig(cfg types.Config) (types.Config, error) {
+	if e.PreConfig != "" {
+		e.Logger.Debug("reading pre-config...")
+		b, err := ioutil.ReadFile(e.PreConfig)
+		if err != nil {
+			e.Logger.Crit("failed to read pre-config: %s", err)
+			return types.Config{}, err
+		}
+
+		e.Logger.Debug("prepending pre-config...")
+		pre, err := config.Parse(b)
+		if err != nil {
+			e.Logger.Crit("failed to parse pre-config: %v", err)
+			return types.Config{}, err
+		}
+
+		cfg = config.Append(pre, cfg)
+	}
+
+	return config.Append(baseConfig, cfg), nil
 }
 
 // acquireConfig returns the configuration, first checking a local cache
@@ -96,7 +128,6 @@ func (e Engine) acquireConfig() (cfg types.Config, err error) {
 		e.Logger.Crit("failed to fetch config: %s", err)
 		return
 	}
-	e.Logger.Debug("fetched config: %+v", cfg)
 
 	// Populate the config cache.
 	b, err = json.Marshal(cfg)
