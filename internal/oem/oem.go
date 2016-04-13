@@ -21,6 +21,7 @@ import (
 	"github.com/coreos/ignition/internal/providers/azure"
 	"github.com/coreos/ignition/internal/providers/cmdline"
 	"github.com/coreos/ignition/internal/providers/ec2"
+	"github.com/coreos/ignition/internal/providers/gce"
 	"github.com/coreos/ignition/internal/providers/noop"
 	"github.com/coreos/ignition/internal/providers/vmware"
 	"github.com/coreos/ignition/internal/registry"
@@ -85,7 +86,7 @@ func init() {
 	})
 	configs.Register(Config{
 		name:     "gce",
-		provider: noop.Creator{},
+		provider: gce.Creator{},
 	})
 	configs.Register(Config{
 		name:     "hyperv",
