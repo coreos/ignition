@@ -8,11 +8,11 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_append_** (list of objects): a list of the configs to be appended to the current config.
       * **source** (string): the URL of the config. Supported schemes are http. Note: When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_verification_** (object): options related to the verification of the config.
-        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type is sha512.
+        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is sha512.
     * **_replace_** (object): the config that will replace the current.
       * **source** (string): the URL of the config. Supported schemes are http. Note: When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_verification_** (object): options related to the verification of the config.
-        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type is sha512.
+        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is sha512.
 * **_storage_** (object): describes the desired state of the system's storage devices.
   * **_disks_** (list of objects): the list of disks to be configured and their options.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
@@ -44,7 +44,7 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_compression_** (string): the type of compression used on the contents (null or gzip)
       * **_source_** (string): the URL of the file contents. Supported schemes are http and [data][rfc2397]. Note: When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_verification_** (object): options related to the verification of the file contents.
-        * **_hash_** (string): the hash of the config, in the form "<type>-<value>" where type is sha512.
+        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is sha512.
     * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
     * **_user_** (object): specifies the file's owner.
       * **_id_** (integer): the user ID of the owner.
