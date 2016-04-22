@@ -85,6 +85,14 @@ func init() {
 		flags: map[string]string{
 			"online-timeout": "0",
 		},
+		config: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.SystemdUnit{{
+					Name:   "coreos-metadata-sshkeys@.service",
+					Enable: true,
+				}},
+			},
+		},
 	})
 	configs.Register(Config{
 		name:     "exoscale",
