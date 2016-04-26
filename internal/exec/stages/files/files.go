@@ -61,11 +61,6 @@ func (stage) Name() string {
 }
 
 func (s stage) Run(config types.Config) bool {
-	if err := s.createFilesystemsFiles(config); err != nil {
-		s.Logger.Crit("failed to create files: %v", err)
-		return false
-	}
-
 	if err := s.createPasswd(config); err != nil {
 		s.Logger.Crit("failed to create users/groups: %v", err)
 		return false
@@ -75,6 +70,12 @@ func (s stage) Run(config types.Config) bool {
 		s.Logger.Crit("failed to create units: %v", err)
 		return false
 	}
+
+	if err := s.createFilesystemsFiles(config); err != nil {
+		s.Logger.Crit("failed to create files: %v", err)
+		return false
+	}
+
 	return true
 }
 
