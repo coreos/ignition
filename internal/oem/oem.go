@@ -17,6 +17,7 @@ package oem
 import (
 	"fmt"
 
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/azure"
 	"github.com/coreos/ignition/internal/providers/cmdline"
@@ -32,6 +33,7 @@ type Config struct {
 	name     string
 	flags    map[string]string
 	provider providers.ProviderCreator
+	config   types.Config
 }
 
 func (c Config) Name() string {
@@ -44,6 +46,10 @@ func (c Config) Flags() map[string]string {
 
 func (c Config) Provider() providers.ProviderCreator {
 	return c.provider
+}
+
+func (c Config) Config() types.Config {
+	return c.config
 }
 
 var configs = registry.Create("oem configs")
@@ -78,6 +84,14 @@ func init() {
 		provider: ec2.Creator{},
 		flags: map[string]string{
 			"online-timeout": "0",
+		},
+		config: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.SystemdUnit{{
+					Name:   "coreos-metadata-sshkeys@.service",
+					Enable: true,
+				}},
+			},
 		},
 	})
 	configs.Register(Config{

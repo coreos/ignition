@@ -58,6 +58,7 @@ type Engine struct {
 	Logger        *log.Logger
 	Root          string
 	Provider      providers.Provider
+	OemConfig     types.Config
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -68,7 +69,7 @@ func (e Engine) Run(stageName string) bool {
 	case nil:
 		e.Logger.PushPrefix(stageName)
 		defer e.Logger.PopPrefix()
-		return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(baseConfig, cfg))
+		return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(config.Append(baseConfig, e.OemConfig), cfg))
 	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
 		e.Logger.Info("%v: ignoring and exiting...", err)
 		return true
