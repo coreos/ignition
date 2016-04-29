@@ -101,6 +101,14 @@ func init() {
 	configs.Register(Config{
 		name:     "gce",
 		provider: gce.Creator{},
+		config: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.SystemdUnit{{
+					Name:   "coreos-metadata-sshkeys@.service",
+					Enable: true,
+				}},
+			},
+		},
 	})
 	configs.Register(Config{
 		name:     "hyperv",
