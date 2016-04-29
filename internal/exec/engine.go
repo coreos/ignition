@@ -66,11 +66,11 @@ type Engine struct {
 func (e Engine) Run(stageName string) bool {
 	cfg, err := e.acquireConfig()
 	switch err {
-	case nil:
+	case config.ErrEmpty, nil:
 		e.Logger.PushPrefix(stageName)
 		defer e.Logger.PopPrefix()
 		return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(config.Append(baseConfig, e.OemConfig), cfg))
-	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
+	case config.ErrCloudConfig, config.ErrScript:
 		e.Logger.Info("%v: ignoring and exiting...", err)
 		return true
 	default:
