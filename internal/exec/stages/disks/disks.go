@@ -191,7 +191,7 @@ func (s stage) createRaids(config types.Config) error {
 func (s stage) createFilesystems(config types.Config) error {
 	fss := make([]types.FilesystemMount, 0, len(config.Storage.Filesystems))
 	for _, fs := range config.Storage.Filesystems {
-		if len(fs.Path) == 0 {
+		if fs.Mount != nil {
 			fss = append(fss, *fs.Mount)
 		}
 	}
