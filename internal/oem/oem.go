@@ -54,6 +54,23 @@ func (c Config) Config() types.Config {
 
 var configs = registry.Create("oem configs")
 
+func Get(name string) (config Config, ok bool) {
+	config, ok = configs.Get(name).(Config)
+	return
+}
+
+func MustGet(name string) Config {
+	if config, ok := Get(name); ok {
+		return config
+	} else {
+		panic(fmt.Sprintf("invalid OEM name %q provided", name))
+	}
+}
+
+func Names() (names []string) {
+	return configs.Names()
+}
+
 func init() {
 	configs.Register(Config{
 		name:     "azure",
@@ -87,10 +104,9 @@ func init() {
 		},
 		config: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{{
-					Name:   "coreos-metadata-sshkeys@.service",
-					Enable: true,
-				}},
+				Units: flatten(
+					sshKeys(),
+				),
 			},
 		},
 	})
@@ -103,10 +119,9 @@ func init() {
 		provider: gce.Creator{},
 		config: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{{
-					Name:   "coreos-metadata-sshkeys@.service",
-					Enable: true,
-				}},
+				Units: flatten(
+					sshKeys(),
+				),
 			},
 		},
 	})
@@ -152,19 +167,14 @@ func init() {
 	})
 }
 
-func Get(name string) (config Config, ok bool) {
-	config, ok = configs.Get(name).(Config)
-	return
-}
-
-func MustGet(name string) Config {
-	if config, ok := Get(name); ok {
-		return config
-	} else {
-		panic(fmt.Sprintf("invalid OEM name %q provided", name))
+func flatten(uss ...[]types.SystemdUnit) []types.SystemdUnit {
+	var units []types.SystemdUnit
+	for _, us := range uss {
+		units = append(units, us...)
 	}
+	return units
 }
 
-func Names() (names []string) {
-	return configs.Names()
+func sshKeys() []types.SystemdUnit {
+	return []types.SystemdUnit{{Name: "coreos-metadata-sshkeys@.service", Enable: true}}
 }
