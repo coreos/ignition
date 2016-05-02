@@ -16,6 +16,7 @@ package oem
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/providers"
@@ -26,6 +27,8 @@ import (
 	"github.com/coreos/ignition/internal/providers/noop"
 	"github.com/coreos/ignition/internal/providers/vmware"
 	"github.com/coreos/ignition/internal/registry"
+
+	"github.com/vincent-petithory/dataurl"
 )
 
 // Config represents a set of command line flags that map to a particular OEM.
@@ -106,7 +109,13 @@ func init() {
 			Systemd: types.Systemd{
 				Units: flatten(
 					sshKeys(),
+					etcdConfigs(1200*time.Millisecond),
+					userCloudInit("EC2", "ec2-compat"),
+					configDrive(),
 				),
+			},
+			Storage: types.Storage{
+				Files: []types.File{oemId("ID=ec2\nNAME=Amazon EC2\nHOME_URL=http://aws.amazon.com/ec2/\nBUG_REPORT_URL=https://github.com/coreos/bugs/issues")},
 			},
 		},
 	})
@@ -175,6 +184,44 @@ func flatten(uss ...[]types.SystemdUnit) []types.SystemdUnit {
 	return units
 }
 
+func oemId(contents string) types.File {
+	return types.File{
+		Filesystem: "root",
+		Path:       "/etc/oem-release",
+		Mode:       0644,
+		Contents: types.FileContents{Source: types.Url{
+			Scheme: "data",
+			Opaque: "," + dataurl.EscapeString(contents),
+		}},
+	}
+}
+
 func sshKeys() []types.SystemdUnit {
 	return []types.SystemdUnit{{Name: "coreos-metadata-sshkeys@.service", Enable: true}}
+}
+
+func etcdConfigs(election_timeout time.Duration) []types.SystemdUnit {
+	dropIn := types.SystemdUnitDropIn{
+		Name:     "10-oem.conf",
+		Contents: fmt.Sprintf("[Service]\nEnvironment=ETCD_PEER_ELECTION_TIMEOUT=%s", election_timeout/time.Millisecond),
+	}
+	return []types.SystemdUnit{
+		{Name: "etcd.service", DropIns: []types.SystemdUnitDropIn{dropIn}},
+		{Name: "etcd2.service", DropIns: []types.SystemdUnitDropIn{dropIn}},
+	}
+}
+
+func userCloudInit(name string, oem string) []types.SystemdUnit {
+	return []types.SystemdUnit{{
+		Name:     "oem-cloudinit.service",
+		Enable:   true,
+		Contents: fmt.Sprintf("[Unit]\nDescription=Cloudinit from %s metadata\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/coreos-cloudinit --oem=%s\n\n[Install]\nWantedBy=multi-user.target", name, oem),
+	}}
+}
+
+func configDrive() []types.SystemdUnit {
+	return []types.SystemdUnit{
+		{Name: "user-configdrive.service", Mask: true},
+		{Name: "user-configvirtfs.service", Mask: true},
+	}
 }
