@@ -96,6 +96,19 @@ func (v Version) String() string {
 	return buffer.String()
 }
 
+func (v *Version) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var data string
+	if err := unmarshal(&data); err != nil {
+		return err
+	}
+	vv, err := NewVersion(data)
+	if err != nil {
+		return err
+	}
+	*v = *vv
+	return nil
+}
+
 func (v Version) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + v.String() + `"`), nil
 }

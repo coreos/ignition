@@ -22,6 +22,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 type fixture struct {
@@ -278,6 +280,37 @@ func TestJSON(t *testing.T) {
 	if !reflect.DeepEqual(fromJson, fj) {
 		t.Error("Expected:   ", fj)
 		t.Error("Unexpected: ", fromJson)
+	}
+}
+
+func TestYAML(t *testing.T) {
+	document, err := yaml.Marshal(fixtures)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := make([]fixtureJSON, len(fixtures))
+	for i, v := range fixtures {
+		var err error
+		expected[i].GreaterVersion, err = NewVersion(v.GreaterVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+		expected[i].LesserVersion, err = NewVersion(v.LesserVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	fromYAML := make([]fixtureJSON, 0, len(fixtures))
+	err = yaml.Unmarshal(document, &fromYAML)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(fromYAML, expected) {
+		t.Error("Expected:   ", expected)
+		t.Error("Unexpected: ", fromYAML)
 	}
 }
 
