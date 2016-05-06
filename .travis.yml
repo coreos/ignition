@@ -1,4 +1,6 @@
 language: go
+go_import_path: github.com/coreos/ignition
+
 matrix:
   include:
     - go: 1.5
