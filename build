@@ -13,6 +13,7 @@ fi
 
 export GOBIN=${PWD}/bin
 export GOPATH=${PWD}/gopath
+export CGO_ENABLED=1
 
 eval $(go env)
 
