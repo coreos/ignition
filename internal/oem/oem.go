@@ -26,6 +26,8 @@ import (
 	"github.com/coreos/ignition/internal/providers/noop"
 	"github.com/coreos/ignition/internal/providers/vmware"
 	"github.com/coreos/ignition/internal/registry"
+
+	"github.com/vincent-petithory/dataurl"
 )
 
 // Config represents a set of command line flags that map to a particular OEM.
@@ -108,12 +110,42 @@ func init() {
 		provider: gce.Creator{},
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{{
-					Name:   "coreos-metadata-sshkeys@.service",
-					Enable: true,
-				}},
+				Units: []types.SystemdUnit{
+					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
+					{Enable: true, Name: "google-accounts-manager.service"},
+					{Enable: true, Name: "google-address-manager.service"},
+					{Enable: true, Name: "google-clock-sync-manager.service"},
+					{Enable: true, Name: "google-startup-scripts-onboot.service"},
+					{Enable: true, Name: "google-startup-scripts.service"},
+				},
+			},
+			Storage: types.Storage{
+				Files: []types.File{
+					serviceFromOem("google-accounts-manager.service"),
+					serviceFromOem("google-address-manager.service"),
+					serviceFromOem("google-clock-sync-manager.service"),
+					serviceFromOem("google-startup-scripts-onboot.service"),
+					serviceFromOem("google-startup-scripts.service"),
+					{
+						Filesystem: "root",
+						Path:       "/etc/hosts",
+						Mode:       0444,
+						Contents:   contentsFromString("169.254.169.254 metadata\n127.0.0.1 localhost\n"),
+					},
+					{
+						Filesystem: "root",
+						Path:       "/etc/profile.d/google-cloud-sdk.sh",
+						Mode:       0444,
+						Contents: contentsFromString(`#!/bin/sh
+alias gcloud="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config -v /var/run/docker.sock:/var/run/doker.sock google/cloud-sdk gcloud"
+alias gcutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config google/cloud-sdk gcutil"
+alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config google/cloud-sdk gsutil"
+`),
+					},
+				},
 			},
 		},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("GCE", "gce")}}},
 	})
 	configs.Register(Config{
 		name:     "hyperv",
@@ -172,4 +204,50 @@ func MustGet(name string) Config {
 
 func Names() (names []string) {
 	return configs.Names()
+}
+
+func contentsFromString(data string) types.FileContents {
+	return types.FileContents{
+		Source: types.Url{
+			Scheme: "data",
+			Opaque: "," + dataurl.EscapeString(data),
+		},
+	}
+}
+
+func contentsFromOem(path string) types.FileContents {
+	return types.FileContents{
+		Source: types.Url{
+			Scheme: "oem",
+			Path:   path,
+		},
+	}
+}
+
+func userCloudInit(name string, oem string) types.SystemdUnit {
+	contents := `[Unit]
+Description=Cloudinit from %s metadata
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/coreos-cloudinit --oem=%s
+
+[Install]
+WantedBy=multi-user.target
+`
+
+	return types.SystemdUnit{
+		Name:     "oem-cloudinit.service",
+		Enable:   true,
+		Contents: fmt.Sprintf(contents, name, oem),
+	}
+}
+
+func serviceFromOem(unit string) types.File {
+	return types.File{
+		Filesystem: "root",
+		Path:       types.Path("/etc/systemd/system/" + unit),
+		Mode:       0444,
+		Contents:   contentsFromOem("/units/" + unit),
+	}
 }
