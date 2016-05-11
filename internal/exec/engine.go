@@ -16,9 +16,8 @@ package exec
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
-	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/coreos/ignition/config"
@@ -32,11 +31,6 @@ import (
 
 const (
 	DefaultOnlineTimeout = time.Minute
-)
-
-var (
-	ErrSchemeUnsupported = errors.New("unsupported url scheme")
-	ErrNetworkFailure    = errors.New("network failure")
 )
 
 var (
@@ -159,16 +153,9 @@ func (e Engine) renderConfig(cfg types.Config) (types.Config, error) {
 // fetchReferencedConfig fetches, renders, and attempts to verify the requested
 // config.
 func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
-	var rawCfg []byte
-	switch cfgRef.Source.Scheme {
-	case "http":
-		rawCfg = util.NewHttpClient(e.Logger).
-			FetchConfig(cfgRef.Source.String(), http.StatusOK, http.StatusNoContent)
-		if rawCfg == nil {
-			return types.Config{}, ErrNetworkFailure
-		}
-	default:
-		return types.Config{}, ErrSchemeUnsupported
+	rawCfg, err := util.FetchResource(e.Logger, url.URL(cfgRef.Source))
+	if err != nil {
+		return types.Config{}, err
 	}
 
 	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
