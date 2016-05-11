@@ -47,12 +47,13 @@ var (
 
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
-	ConfigCache   string
-	OnlineTimeout time.Duration
-	Logger        *log.Logger
-	Root          string
-	Provider      providers.Provider
-	OemConfig     types.Config
+	ConfigCache       string
+	OnlineTimeout     time.Duration
+	Logger            *log.Logger
+	Root              string
+	Provider          providers.Provider
+	OemBaseConfig     types.Config
+	DefaultUserConfig types.Config
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -60,17 +61,18 @@ type Engine struct {
 func (e Engine) Run(stageName string) bool {
 	cfg, err := e.acquireConfig()
 	switch err {
-	case config.ErrEmpty, nil:
-		e.Logger.PushPrefix(stageName)
-		defer e.Logger.PopPrefix()
-		return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(config.Append(baseConfig, e.OemConfig), cfg))
-	case config.ErrCloudConfig, config.ErrScript:
-		e.Logger.Info("%v: ignoring and exiting...", err)
-		return true
+	case nil:
+	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
+		e.Logger.Info("%v: ignoring user-provided config", err)
+		cfg = e.DefaultUserConfig
 	default:
 		e.Logger.Crit("failed to acquire config: %v", err)
 		return false
 	}
+
+	e.Logger.PushPrefix(stageName)
+	defer e.Logger.PopPrefix()
+	return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(baseConfig, config.Append(e.OemBaseConfig, cfg)))
 }
 
 // acquireConfig returns the configuration, first checking a local cache

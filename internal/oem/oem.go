@@ -30,10 +30,11 @@ import (
 
 // Config represents a set of command line flags that map to a particular OEM.
 type Config struct {
-	name     string
-	flags    map[string]string
-	provider providers.ProviderCreator
-	config   types.Config
+	name              string
+	flags             map[string]string
+	provider          providers.ProviderCreator
+	baseConfig        types.Config
+	defaultUserConfig types.Config
 }
 
 func (c Config) Name() string {
@@ -48,8 +49,12 @@ func (c Config) Provider() providers.ProviderCreator {
 	return c.provider
 }
 
-func (c Config) Config() types.Config {
-	return c.config
+func (c Config) BaseConfig() types.Config {
+	return c.baseConfig
+}
+
+func (c Config) DefaultUserConfig() types.Config {
+	return c.defaultUserConfig
 }
 
 var configs = registry.Create("oem configs")
@@ -85,7 +90,7 @@ func init() {
 		flags: map[string]string{
 			"online-timeout": "0",
 		},
-		config: types.Config{
+		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.SystemdUnit{{
 					Name:   "coreos-metadata-sshkeys@.service",
@@ -101,7 +106,7 @@ func init() {
 	configs.Register(Config{
 		name:     "gce",
 		provider: gce.Creator{},
-		config: types.Config{
+		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.SystemdUnit{{
 					Name:   "coreos-metadata-sshkeys@.service",
