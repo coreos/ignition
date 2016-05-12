@@ -66,13 +66,13 @@ func (s stage) Run(config types.Config) bool {
 		return false
 	}
 
-	if err := s.createUnits(config); err != nil {
-		s.Logger.Crit("failed to create units: %v", err)
+	if err := s.createFilesystemsFiles(config); err != nil {
+		s.Logger.Crit("failed to create files: %v", err)
 		return false
 	}
 
-	if err := s.createFilesystemsFiles(config); err != nil {
-		s.Logger.Crit("failed to create files: %v", err)
+	if err := s.createUnits(config); err != nil {
+		s.Logger.Crit("failed to create units: %v", err)
 		return false
 	}
 
