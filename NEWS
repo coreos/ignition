@@ -1,3 +1,11 @@
+18-May-2016 IGNITION v0.6.0
+
+  Features
+
+    - All URL schemes (currently http, oem, and data) are now supported
+      everywhere a URL can be provided
+    - Add base OEM and default user configurations for GCE
+
 04-May-2016 IGNITION v0.5.0
 
   Features
