@@ -37,10 +37,10 @@ func (c *Compression) unmarshal(unmarshal func(interface{}) error) error {
 		return err
 	}
 	*c = Compression(tc)
-	return c.assertValid()
+	return c.AssertValid()
 }
 
-func (c Compression) assertValid() error {
+func (c Compression) AssertValid() error {
 	switch c {
 	case "gzip":
 	default:

@@ -32,10 +32,10 @@ func (n *Disk) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*n = Disk(tn)
-	return n.assertValid()
+	return n.AssertValid()
 }
 
-func (n Disk) assertValid() error {
+func (n Disk) AssertValid() error {
 	if len(n.Device) == 0 {
 		return fmt.Errorf("disk device is required")
 	}

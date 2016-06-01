@@ -33,10 +33,10 @@ func (n *Raid) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*n = Raid(tn)
-	return n.assertValid()
+	return n.AssertValid()
 }
 
-func (n Raid) assertValid() error {
+func (n Raid) AssertValid() error {
 	switch n.Level {
 	case "linear", "raid0", "0", "stripe":
 		if n.Spares != 0 {

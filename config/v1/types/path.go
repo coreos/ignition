@@ -33,10 +33,10 @@ func (d *Path) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*d = Path(td)
-	return d.assertValid()
+	return d.AssertValid()
 }
 
-func (d Path) assertValid() error {
+func (d Path) AssertValid() error {
 	if !filepath.IsAbs(string(d)) {
 		return ErrPathRelative
 	}

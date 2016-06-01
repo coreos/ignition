@@ -86,7 +86,7 @@ func TestHashAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.hash.assertValid()
+		err := test.in.hash.AssertValid()
 		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}

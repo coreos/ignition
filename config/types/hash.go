@@ -47,14 +47,14 @@ func (h *Hash) UnmarshalJSON(data []byte) error {
 	h.Function = parts[0]
 	h.Sum = parts[1]
 
-	return h.assertValid()
+	return h.AssertValid()
 }
 
 func (h Hash) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + h.Function + "-" + h.Sum + `"`), nil
 }
 
-func (h Hash) assertValid() error {
+func (h Hash) AssertValid() error {
 	var hash crypto.Hash
 	switch h.Function {
 	case "sha512":
