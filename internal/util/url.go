@@ -46,7 +46,7 @@ const (
 // FetchResource fetches a resource given a URL. The supported schemes are http, data, and oem.
 func FetchResource(l *log.Logger, u url.URL) ([]byte, error) {
 	switch u.Scheme {
-	case "http":
+	case "http", "https":
 		client := NewHttpClient(l)
 		data, status, err := client.Get(u.String())
 		if err != nil {
