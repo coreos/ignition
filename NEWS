@@ -1,3 +1,19 @@
+15-Jun-2016 IGNITION v0.7.0
+
+  Features
+
+    - Allow HTTPS URLs
+
+  Bug Fixes
+
+    - Don't overwrite existing data when formatting ext4 unless force is set
+    - Ensure service unit in /etc doesn't exist before masking
+    - Capture and log stdout of subprocesses
+
+  Changes
+
+    - Drop YAML tags from the config package
+
 18-May-2016 IGNITION v0.6.0
 
   Features
