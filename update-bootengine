@@ -27,7 +27,6 @@ bad that happens will be less likely to hurt the host system. But no promises!
 DRACUT_ARGS=(
     --force
     --no-hostonly
-    --no-kernel
     --no-compress
     --omit i18n
     --omit lvm
@@ -38,10 +37,12 @@ DRACUT_ARGS=(
 SETUP_MOUNTS=
 USE_CHROOT=
 CPIO_PATH="/usr/share/bootengine/bootengine.cpio"
-while getopts "hmc:o:" OPTION
+KERNEL=
+while getopts "hmc:k:o:" OPTION
 do
     case $OPTION in
         c) USE_CHROOT="$OPTARG";;
+        k) KERNEL="$OPTARG";;
         m) SETUP_MOUNTS=1;;
         o) CPIO_PATH="$OPTARG";;
         h) echo "$USAGE"; exit;;
@@ -92,6 +93,12 @@ if [[ "$SETUP_MOUNTS" -eq 1 ]]; then
     mount -n --bind /dev "${USE_CHROOT}/dev"
     mount -n --bind /sys "${USE_CHROOT}/sys"
     mount -n --bind /run "${USE_CHROOT}/run"
+fi
+
+if [[ -n "$KERNEL" ]]; then
+    DRACUT_ARGS+=( "--kver" "$KERNEL" )
+else
+    DRACUT_ARGS+=( "--no-kernel" )
 fi
 
 mkdir -p "${USE_CHROOT}$(dirname "$CPIO_PATH")"
