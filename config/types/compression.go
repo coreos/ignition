@@ -25,10 +25,6 @@ var (
 
 type Compression string
 
-func (c *Compression) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return c.unmarshal(unmarshal)
-}
-
 func (c *Compression) UnmarshalJSON(data []byte) error {
 	return c.unmarshal(func(tc interface{}) error {
 		return json.Unmarshal(data, tc)

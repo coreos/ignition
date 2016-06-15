@@ -33,23 +33,9 @@ type Hash struct {
 	Sum      string
 }
 
-func (h *Hash) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return h.unmarshal(unmarshal)
-}
-
 func (h *Hash) UnmarshalJSON(data []byte) error {
-	return h.unmarshal(func(th interface{}) error {
-		return json.Unmarshal(data, th)
-	})
-}
-
-func (h Hash) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + h.Function + "-" + h.Sum + `"`), nil
-}
-
-func (h *Hash) unmarshal(unmarshal func(interface{}) error) error {
 	var th string
-	if err := unmarshal(&th); err != nil {
+	if err := json.Unmarshal(data, &th); err != nil {
 		return err
 	}
 
@@ -62,6 +48,10 @@ func (h *Hash) unmarshal(unmarshal func(interface{}) error) error {
 	h.Sum = parts[1]
 
 	return h.assertValid()
+}
+
+func (h Hash) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + h.Function + "-" + h.Sum + `"`), nil
 }
 
 func (h Hash) assertValid() error {

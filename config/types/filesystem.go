@@ -26,37 +26,26 @@ var (
 )
 
 type Filesystem struct {
-	Name  string           `json:"name,omitempty"  yaml:"name"`
-	Mount *FilesystemMount `json:"mount,omitempty" yaml:"mount"`
-	Path  Path             `json:"path,omitempty"  yaml:"path"`
+	Name  string           `json:"name,omitempty"`
+	Mount *FilesystemMount `json:"mount,omitempty"`
+	Path  Path             `json:"path,omitempty"`
 }
+type filesystem Filesystem
 
 type FilesystemMount struct {
-	Device Path              `json:"device,omitempty" yaml:"device"`
-	Format FilesystemFormat  `json:"format,omitempty" yaml:"format"`
-	Create *FilesystemCreate `json:"create,omitempty" yaml:"create"`
+	Device Path              `json:"device,omitempty"`
+	Format FilesystemFormat  `json:"format,omitempty"`
+	Create *FilesystemCreate `json:"create,omitempty"`
 }
 
 type FilesystemCreate struct {
-	Force   bool        `json:"force,omitempty"   yaml:"force"`
-	Options MkfsOptions `json:"options,omitempty" yaml:"options"`
-}
-
-func (f *Filesystem) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return f.unmarshal(unmarshal)
+	Force   bool        `json:"force,omitempty"`
+	Options MkfsOptions `json:"options,omitempty"`
 }
 
 func (f *Filesystem) UnmarshalJSON(data []byte) error {
-	return f.unmarshal(func(tf interface{}) error {
-		return json.Unmarshal(data, tf)
-	})
-}
-
-type filesystem Filesystem
-
-func (f *Filesystem) unmarshal(unmarshal func(interface{}) error) error {
 	tf := filesystem(*f)
-	if err := unmarshal(&tf); err != nil {
+	if err := json.Unmarshal(data, &tf); err != nil {
 		return err
 	}
 	*f = Filesystem(tf)
@@ -90,21 +79,11 @@ func (f Filesystem) assertValid() error {
 	return nil
 }
 
-func (f *FilesystemMount) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return f.unmarshal(unmarshal)
-}
-
-func (f *FilesystemMount) UnmarshalJSON(data []byte) error {
-	return f.unmarshal(func(tf interface{}) error {
-		return json.Unmarshal(data, tf)
-	})
-}
-
 type filesystemMount FilesystemMount
 
-func (f *FilesystemMount) unmarshal(unmarshal func(interface{}) error) error {
+func (f *FilesystemMount) UnmarshalJSON(data []byte) error {
 	tf := filesystemMount(*f)
-	if err := unmarshal(&tf); err != nil {
+	if err := json.Unmarshal(data, &tf); err != nil {
 		return err
 	}
 	*f = FilesystemMount(tf)
@@ -122,22 +101,11 @@ func (f FilesystemMount) assertValid() error {
 }
 
 type FilesystemFormat string
-
-func (f *FilesystemFormat) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return f.unmarshal(unmarshal)
-}
-
-func (f *FilesystemFormat) UnmarshalJSON(data []byte) error {
-	return f.unmarshal(func(tf interface{}) error {
-		return json.Unmarshal(data, tf)
-	})
-}
-
 type filesystemFormat FilesystemFormat
 
-func (f *FilesystemFormat) unmarshal(unmarshal func(interface{}) error) error {
+func (f *FilesystemFormat) UnmarshalJSON(data []byte) error {
 	tf := filesystemFormat(*f)
-	if err := unmarshal(&tf); err != nil {
+	if err := json.Unmarshal(data, &tf); err != nil {
 		return err
 	}
 	*f = FilesystemFormat(tf)
@@ -154,22 +122,11 @@ func (f FilesystemFormat) assertValid() error {
 }
 
 type MkfsOptions []string
-
-func (o *MkfsOptions) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return o.unmarshal(unmarshal)
-}
-
-func (o *MkfsOptions) UnmarshalJSON(data []byte) error {
-	return o.unmarshal(func(to interface{}) error {
-		return json.Unmarshal(data, to)
-	})
-}
-
 type mkfsOptions MkfsOptions
 
-func (o *MkfsOptions) unmarshal(unmarshal func(interface{}) error) error {
+func (o *MkfsOptions) UnmarshalJSON(data []byte) error {
 	to := mkfsOptions(*o)
-	if err := unmarshal(&to); err != nil {
+	if err := json.Unmarshal(data, &to); err != nil {
 		return err
 	}
 	*o = MkfsOptions(to)

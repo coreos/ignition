@@ -26,9 +26,9 @@ var (
 )
 
 type Config struct {
-	Ignition Ignition `json:"ignition"           yaml:"ignition"`
-	Storage  Storage  `json:"storage,omitempty"  yaml:"storage"`
-	Systemd  Systemd  `json:"systemd,omitempty"  yaml:"systemd"`
-	Networkd Networkd `json:"networkd,omitempty" yaml:"networkd"`
-	Passwd   Passwd   `json:"passwd,omitempty"   yaml:"passwd"`
+	Ignition Ignition `json:"ignition"`
+	Storage  Storage  `json:"storage,omitempty"`
+	Systemd  Systemd  `json:"systemd,omitempty"`
+	Networkd Networkd `json:"networkd,omitempty"`
+	Passwd   Passwd   `json:"passwd,omitempty"`
 }

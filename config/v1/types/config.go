@@ -19,9 +19,9 @@ const (
 )
 
 type Config struct {
-	Version  int      `json:"ignitionVersion"    yaml:"ignition_version"`
-	Storage  Storage  `json:"storage,omitempty"  yaml:"storage"`
-	Systemd  Systemd  `json:"systemd,omitempty"  yaml:"systemd"`
-	Networkd Networkd `json:"networkd,omitempty" yaml:"networkd"`
-	Passwd   Passwd   `json:"passwd,omitempty"   yaml:"passwd"`
+	Version  int      `json:"ignitionVersion"`
+	Storage  Storage  `json:"storage,omitempty"`
+	Systemd  Systemd  `json:"systemd,omitempty"`
+	Networkd Networkd `json:"networkd,omitempty"`
+	Passwd   Passwd   `json:"passwd,omitempty"`
 }
