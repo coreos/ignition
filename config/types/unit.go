@@ -42,10 +42,10 @@ func (n *SystemdUnitName) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*n = SystemdUnitName(tn)
-	return n.assertValid()
+	return n.AssertValid()
 }
 
-func (n SystemdUnitName) assertValid() error {
+func (n SystemdUnitName) AssertValid() error {
 	switch filepath.Ext(string(n)) {
 	case ".service", ".socket", ".device", ".mount", ".automount", ".swap", ".target", ".path", ".timer", ".snapshot", ".slice", ".scope":
 		return nil
@@ -63,10 +63,10 @@ func (n *SystemdUnitDropInName) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*n = SystemdUnitDropInName(tn)
-	return n.assertValid()
+	return n.AssertValid()
 }
 
-func (n SystemdUnitDropInName) assertValid() error {
+func (n SystemdUnitDropInName) AssertValid() error {
 	switch filepath.Ext(string(n)) {
 	case ".conf":
 		return nil
@@ -89,10 +89,10 @@ func (n *NetworkdUnitName) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*n = NetworkdUnitName(tn)
-	return n.assertValid()
+	return n.AssertValid()
 }
 
-func (n NetworkdUnitName) assertValid() error {
+func (n NetworkdUnitName) AssertValid() error {
 	switch filepath.Ext(string(n)) {
 	case ".link", ".netdev", ".network":
 		return nil

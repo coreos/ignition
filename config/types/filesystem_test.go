@@ -82,7 +82,7 @@ func TestFilesystemFormatAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.format.assertValid()
+		err := test.in.format.AssertValid()
 		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
@@ -198,7 +198,7 @@ func TestFilesystemAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.filesystem.assertValid()
+		err := test.in.filesystem.AssertValid()
 		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}

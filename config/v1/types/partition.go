@@ -37,10 +37,10 @@ func (n *PartitionLabel) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*n = PartitionLabel(tn)
-	return n.assertValid()
+	return n.AssertValid()
 }
 
-func (n PartitionLabel) assertValid() error {
+func (n PartitionLabel) AssertValid() error {
 	// http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_entries:
 	// 56 (0x38) 	72 bytes 	Partition name (36 UTF-16LE code units)
 
@@ -72,10 +72,10 @@ func (d *PartitionTypeGUID) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*d = PartitionTypeGUID(td)
-	return d.assertValid()
+	return d.AssertValid()
 }
 
-func (d PartitionTypeGUID) assertValid() error {
+func (d PartitionTypeGUID) AssertValid() error {
 	ok, err := regexp.MatchString("[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}", string(d))
 	if err != nil {
 		return fmt.Errorf("error matching type-guid regexp: %v", err)

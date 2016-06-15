@@ -42,14 +42,14 @@ func (f *Filesystem) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*f = Filesystem(tf)
-	return f.assertValid()
+	return f.AssertValid()
 }
 
-func (f Filesystem) assertValid() error {
-	if err := f.Device.assertValid(); err != nil {
+func (f Filesystem) AssertValid() error {
+	if err := f.Device.AssertValid(); err != nil {
 		return err
 	}
-	if err := f.Format.assertValid(); err != nil {
+	if err := f.Format.AssertValid(); err != nil {
 		return err
 	}
 	return nil
@@ -64,10 +64,10 @@ func (f *FilesystemFormat) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*f = FilesystemFormat(tf)
-	return f.assertValid()
+	return f.AssertValid()
 }
 
-func (f FilesystemFormat) assertValid() error {
+func (f FilesystemFormat) AssertValid() error {
 	switch f {
 	case "ext4", "btrfs", "xfs":
 		return nil
@@ -85,9 +85,9 @@ func (o *MkfsOptions) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*o = MkfsOptions(to)
-	return o.assertValid()
+	return o.AssertValid()
 }
 
-func (o MkfsOptions) assertValid() error {
+func (o MkfsOptions) AssertValid() error {
 	return nil
 }

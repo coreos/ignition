@@ -15,6 +15,8 @@
 package types
 
 import (
+	"reflect"
+
 	"github.com/coreos/go-semver/semver"
 )
 
@@ -31,4 +33,40 @@ type Config struct {
 	Systemd  Systemd  `json:"systemd,omitempty"`
 	Networkd Networkd `json:"networkd,omitempty"`
 	Passwd   Passwd   `json:"passwd,omitempty"`
+}
+
+func (c Config) AssertValid() error {
+	return assertStructValid(reflect.ValueOf(c))
+}
+
+func assertValid(vObj reflect.Value) error {
+	if obj, ok := vObj.Interface().(interface {
+		AssertValid() error
+	}); ok {
+		if err := obj.AssertValid(); err != nil {
+			return err
+		}
+	}
+
+	switch vObj.Kind() {
+	case reflect.Struct:
+		return assertStructValid(vObj)
+	case reflect.Slice:
+		for i := 0; i < vObj.Len(); i++ {
+			if err := assertValid(vObj.Index(i)); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func assertStructValid(vObj reflect.Value) error {
+	for i := 0; i < vObj.Type().NumField(); i++ {
+		if err := assertValid(vObj.Field(i)); err != nil {
+			return err
+		}
+	}
+	return nil
 }

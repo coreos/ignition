@@ -41,10 +41,10 @@ func (m *FileMode) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*m = FileMode(tm)
-	return m.assertValid()
+	return m.AssertValid()
 }
 
-func (m FileMode) assertValid() error {
+func (m FileMode) AssertValid() error {
 	if (m &^ 07777) != 0 {
 		return ErrFileIllegalMode
 	}

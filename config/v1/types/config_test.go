@@ -15,30 +15,37 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
-	"path/filepath"
+	"reflect"
+	"testing"
 )
 
-var (
-	ErrPathRelative = errors.New("path not absolute")
-)
-
-type Path string
-type path Path
-
-func (d *Path) UnmarshalJSON(data []byte) error {
-	td := path(*d)
-	if err := json.Unmarshal(data, &td); err != nil {
-		return err
+func TestAssertValid(t *testing.T) {
+	type in struct {
+		cfg Config
 	}
-	*d = Path(td)
-	return d.AssertValid()
-}
-
-func (d Path) AssertValid() error {
-	if !filepath.IsAbs(string(d)) {
-		return ErrPathRelative
+	type out struct {
+		err error
 	}
-	return nil
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{cfg: Config{}},
+			out: out{},
+		},
+		{
+			in:  in{cfg: Config{Systemd: Systemd{Units: []SystemdUnit{{Name: "foo.bar"}}}}},
+			out: out{err: errors.New("invalid systemd unit extension")},
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.cfg.AssertValid()
+		if !reflect.DeepEqual(test.out.err, err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
 }
