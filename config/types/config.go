@@ -42,7 +42,7 @@ func (c Config) AssertValid() error {
 func assertValid(vObj reflect.Value) error {
 	if obj, ok := vObj.Interface().(interface {
 		AssertValid() error
-	}); ok {
+	}); ok && !(vObj.Kind() == reflect.Ptr && vObj.IsNil()) {
 		if err := obj.AssertValid(); err != nil {
 			return err
 		}
