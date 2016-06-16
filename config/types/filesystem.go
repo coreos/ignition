@@ -28,7 +28,7 @@ var (
 type Filesystem struct {
 	Name  string           `json:"name,omitempty"`
 	Mount *FilesystemMount `json:"mount,omitempty"`
-	Path  Path             `json:"path,omitempty"`
+	Path  *Path            `json:"path,omitempty"`
 }
 type filesystem Filesystem
 
@@ -63,7 +63,7 @@ func (f Filesystem) AssertValid() error {
 		}
 	}
 
-	if len(f.Path) != 0 {
+	if f.Path != nil {
 		hasPath = true
 		if err := f.Path.AssertValid(); err != nil {
 			return err
