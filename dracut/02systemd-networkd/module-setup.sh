@@ -2,6 +2,12 @@
 
 # This is derived from upstream dracut 043
 
+# called by dracut
+depends() {
+    echo "systemd kernel-network-modules"
+}
+
+# called by dracut
 install() {
     inst_multiple -o \
         $systemdutildir/systemd-networkd \
