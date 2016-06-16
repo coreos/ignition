@@ -58,6 +58,23 @@ func TestAssertValid(t *testing.T) {
 		{
 			in: in{cfg: Config{
 				Ignition: Ignition{Version: IgnitionVersion{Major: 2}},
+				Storage: Storage{
+					Filesystems: []Filesystem{
+						{
+							Name: "filesystem1",
+							Mount: &FilesystemMount{
+								Device: Path("/dev/disk/by-partlabel/ROOT"),
+								Format: FilesystemFormat("btrfs"),
+							},
+						},
+					},
+				},
+			}},
+			out: out{},
+		},
+		{
+			in: in{cfg: Config{
+				Ignition: Ignition{Version: IgnitionVersion{Major: 2}},
 				Systemd:  Systemd{Units: []SystemdUnit{{Name: "foo.bar"}}},
 			}},
 			out: out{err: errors.New("invalid systemd unit extension")},
