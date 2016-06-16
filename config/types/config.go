@@ -49,6 +49,8 @@ func assertValid(vObj reflect.Value) error {
 	}
 
 	switch vObj.Kind() {
+	case reflect.Ptr:
+		return assertStructValid(vObj.Elem())
 	case reflect.Struct:
 		return assertStructValid(vObj)
 	case reflect.Slice:
@@ -63,6 +65,10 @@ func assertValid(vObj reflect.Value) error {
 }
 
 func assertStructValid(vObj reflect.Value) error {
+	if !vObj.IsValid() {
+		return nil
+	}
+
 	for i := 0; i < vObj.Type().NumField(); i++ {
 		if err := assertValid(vObj.Field(i)); err != nil {
 			return err
