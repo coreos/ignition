@@ -42,7 +42,7 @@ func (c *Compression) unmarshal(unmarshal func(interface{}) error) error {
 
 func (c Compression) AssertValid() error {
 	switch c {
-	case "gzip":
+	case "", "gzip":
 	default:
 		return ErrCompressionInvalid
 	}

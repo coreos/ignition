@@ -42,6 +42,38 @@ func TestAssertValid(t *testing.T) {
 		},
 		{
 			in: in{cfg: Config{
+				Ignition: Ignition{
+					Version: IgnitionVersion{Major: 2},
+					Config: IgnitionConfig{
+						Replace: &ConfigReference{
+							Verification: Verification{
+								Hash: &Hash{Function: "foobar"},
+							},
+						},
+					},
+				},
+			}},
+			out: out{errors.New("unrecognized hash function")},
+		},
+		{
+			in: in{cfg: Config{
+				Ignition: Ignition{Version: IgnitionVersion{Major: 2}},
+				Storage: Storage{
+					Filesystems: []Filesystem{
+						{
+							Name: "filesystem1",
+							Mount: &FilesystemMount{
+								Device: Path("/dev/disk/by-partlabel/ROOT"),
+								Format: FilesystemFormat("btrfs"),
+							},
+						},
+					},
+				},
+			}},
+			out: out{},
+		},
+		{
+			in: in{cfg: Config{
 				Ignition: Ignition{Version: IgnitionVersion{Major: 2}},
 				Systemd:  Systemd{Units: []SystemdUnit{{Name: "foo.bar"}}},
 			}},

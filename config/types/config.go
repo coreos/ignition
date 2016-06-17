@@ -42,13 +42,15 @@ func (c Config) AssertValid() error {
 func assertValid(vObj reflect.Value) error {
 	if obj, ok := vObj.Interface().(interface {
 		AssertValid() error
-	}); ok {
+	}); ok && !(vObj.Kind() == reflect.Ptr && vObj.IsNil()) {
 		if err := obj.AssertValid(); err != nil {
 			return err
 		}
 	}
 
 	switch vObj.Kind() {
+	case reflect.Ptr:
+		return assertStructValid(vObj.Elem())
 	case reflect.Struct:
 		return assertStructValid(vObj)
 	case reflect.Slice:
@@ -63,6 +65,10 @@ func assertValid(vObj reflect.Value) error {
 }
 
 func assertStructValid(vObj reflect.Value) error {
+	if !vObj.IsValid() {
+		return nil
+	}
+
 	for i := 0; i < vObj.Type().NumField(); i++ {
 		if err := assertValid(vObj.Field(i)); err != nil {
 			return err

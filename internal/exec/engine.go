@@ -39,7 +39,7 @@ var (
 		Storage: types.Storage{
 			Filesystems: []types.Filesystem{{
 				Name: "root",
-				Path: "/sysroot",
+				Path: func(p types.Path) *types.Path { return &p }("/sysroot"),
 			}},
 		},
 	}

@@ -133,8 +133,8 @@ func (s stage) createFiles(fs types.Filesystem, files []types.File) error {
 	s.Logger.PushPrefix("createFiles")
 	defer s.Logger.PopPrefix()
 
-	mnt := string(fs.Path)
-	if len(mnt) == 0 {
+	var mnt string
+	if fs.Path == nil {
 		var err error
 		mnt, err = ioutil.TempDir("", "ignition-files")
 		if err != nil {
@@ -155,6 +155,8 @@ func (s stage) createFiles(fs types.Filesystem, files []types.File) error {
 			func() error { return syscall.Unmount(mnt, 0) },
 			"unmounting %q at %q", dev, mnt,
 		)
+	} else {
+		mnt = string(*fs.Path)
 	}
 
 	u := util.Util{
