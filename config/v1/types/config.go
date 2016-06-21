@@ -35,15 +35,21 @@ func (c Config) AssertValid() error {
 }
 
 func assertValid(vObj reflect.Value) error {
+	if !vObj.IsValid() {
+		return nil
+	}
+
 	if obj, ok := vObj.Interface().(interface {
 		AssertValid() error
-	}); ok {
+	}); ok && !(vObj.Kind() == reflect.Ptr && vObj.IsNil()) {
 		if err := obj.AssertValid(); err != nil {
 			return err
 		}
 	}
 
 	switch vObj.Kind() {
+	case reflect.Ptr:
+		return assertValid(vObj.Elem())
 	case reflect.Struct:
 		return assertStructValid(vObj)
 	case reflect.Slice:
