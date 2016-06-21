@@ -76,7 +76,7 @@ func (d *PartitionTypeGUID) UnmarshalJSON(data []byte) error {
 }
 
 func (d PartitionTypeGUID) AssertValid() error {
-	ok, err := regexp.MatchString("[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}", string(d))
+	ok, err := regexp.MatchString("^(|[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12})$", string(d))
 	if err != nil {
 		return fmt.Errorf("error matching type-guid regexp: %v", err)
 	}
