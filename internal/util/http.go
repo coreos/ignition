@@ -25,6 +25,11 @@ import (
 	"github.com/coreos/ignition/internal/version"
 )
 
+const (
+	defaultHttpResponseHeaderTimeout = 10
+	defaultHttpTotalTimeout          = 0
+)
+
 // HttpClient is a simple wrapper around the Go HTTP client that standardizes
 // the process and logging of fetching payloads.
 type HttpClient struct {
@@ -34,10 +39,23 @@ type HttpClient struct {
 
 // NewHttpClient creates a new client with the given logger.
 func NewHttpClient(logger *log.Logger) HttpClient {
+	return NewHttpClientWithTimeouts(logger, nil, nil)
+}
+
+func NewHttpClientWithTimeouts(logger *log.Logger, responseHeader, total *int) HttpClient {
+	if responseHeader == nil {
+		tmp := defaultHttpResponseHeaderTimeout
+		responseHeader = &tmp
+	}
+	if total == nil {
+		tmp := defaultHttpTotalTimeout
+		total = &tmp
+	}
 	return HttpClient{
 		client: &http.Client{
+			Timeout: time.Duration(*total) * time.Second,
 			Transport: &http.Transport{
-				ResponseHeaderTimeout: 10 * time.Second,
+				ResponseHeaderTimeout: time.Duration(*responseHeader) * time.Second,
 			},
 		},
 		logger: logger,
