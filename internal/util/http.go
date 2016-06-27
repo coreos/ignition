@@ -23,14 +23,21 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/version"
+
+	"golang.org/x/net/context"
+	"golang.org/x/net/context/ctxhttp"
 )
 
 const (
 	maxAttempts    = 15
 	initialBackoff = 100 * time.Millisecond
 	maxBackoff     = 5 * time.Second
+
+	defaultHttpResponseHeaderTimeout = 10
+	defaultHttpTotalTimeout          = 0
 )
 
 var (
@@ -40,16 +47,29 @@ var (
 // HttpClient is a simple wrapper around the Go HTTP client that standardizes
 // the process and logging of fetching payloads.
 type HttpClient struct {
-	client *http.Client
-	logger *log.Logger
+	client  *http.Client
+	logger  *log.Logger
+	timeout time.Duration
 }
 
 // NewHttpClient creates a new client with the given logger.
 func NewHttpClient(logger *log.Logger) HttpClient {
+	return NewHttpClientWithTimeouts(logger, types.Timeouts{})
+}
+
+func NewHttpClientWithTimeouts(logger *log.Logger, timeouts types.Timeouts) HttpClient {
+	responseHeader := defaultHttpResponseHeaderTimeout
+	total := defaultHttpTotalTimeout
+	if timeouts.HttpResponseHeaders != nil {
+		responseHeader = *timeouts.HttpResponseHeaders
+	}
+	if timeouts.HttpTotal != nil {
+		total = *timeouts.HttpTotal
+	}
 	return HttpClient{
 		client: &http.Client{
 			Transport: &http.Transport{
-				ResponseHeaderTimeout: 10 * time.Second,
+				ResponseHeaderTimeout: time.Duration(responseHeader) * time.Second,
 				Dial: (&net.Dialer{
 					Timeout:   30 * time.Second,
 					KeepAlive: 30 * time.Second,
@@ -57,7 +77,8 @@ func NewHttpClient(logger *log.Logger) HttpClient {
 				TLSHandshakeTimeout: 10 * time.Second,
 			},
 		},
-		logger: logger,
+		logger:  logger,
+		timeout: time.Duration(total) * time.Second,
 	}
 }
 
@@ -118,10 +139,15 @@ func (c HttpClient) GetReaderWithHeader(url string, header http.Header) (io.Read
 		}
 	}
 
+	ctx := context.Background()
+	if c.timeout != 0 {
+		ctx, _ = context.WithTimeout(ctx, c.timeout)
+	}
+
 	duration := initialBackoff
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		c.logger.Debug("GET %s: attempt #%d", url, attempt)
-		resp, err := c.client.Do(req)
+		resp, err := ctxhttp.Do(ctx, c.client, req)
 
 		if err == nil {
 			c.logger.Debug("GET result: %s", http.StatusText(resp.StatusCode))
@@ -138,7 +164,13 @@ func (c HttpClient) GetReaderWithHeader(url string, header http.Header) (io.Read
 		if duration > maxBackoff {
 			duration = maxBackoff
 		}
-		time.Sleep(duration)
+
+		// Wait before next attempt or exit if we timeout while waiting
+		select {
+		case <-time.After(duration):
+		case <-ctx.Done():
+			return nil, 0, ErrTimeout
+		}
 	}
 
 	return nil, 0, ErrTimeout
