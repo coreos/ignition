@@ -21,6 +21,7 @@ import (
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/azure"
 	"github.com/coreos/ignition/internal/providers/cmdline"
+	"github.com/coreos/ignition/internal/providers/configdrive"
 	"github.com/coreos/ignition/internal/providers/ec2"
 	"github.com/coreos/ignition/internal/providers/gce"
 	"github.com/coreos/ignition/internal/providers/noop"
@@ -84,7 +85,15 @@ func init() {
 	})
 	configs.Register(Config{
 		name:     "openstack",
-		provider: noop.Creator{},
+		provider: configdrive.Creator{},
+		baseConfig: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.SystemdUnit{{
+					Name:   "coreos-metadata-sshkeys@.service",
+					Enable: true,
+				}},
+			},
+		},
 	})
 	configs.Register(Config{
 		name:     "ec2",

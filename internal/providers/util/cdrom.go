@@ -34,6 +34,12 @@ const (
 	CDS_DISC_OK
 )
 
+type constantError string
+func (e constantError) Error() string { return string(e) }
+const (
+	ErrNotACdrom = constantError("Not a CD-ROM drive")
+)
+
 func AssertCdromOnline(devicePath string) error {
 	device, err := os.Open(devicePath)
 	if err != nil {
@@ -60,6 +66,9 @@ func AssertCdromOnline(devicePath string) error {
 	case CDS_DISC_OK:
 		return nil
 	default:
+		if errno == syscall.ENOTTY {
+			return ErrNotACdrom
+		}
 		return fmt.Errorf("%s failed to get drive status: %s", devicePath, errno.Error())
 	}
 }
