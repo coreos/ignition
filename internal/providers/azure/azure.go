@@ -38,20 +38,6 @@ const (
 	configPath     = "/CustomData.bin"
 )
 
-// These constants come from <cdrom.h>.
-const (
-	CDROM_DRIVE_STATUS = 0x5326
-)
-
-// These constants come from <cdrom.h>.
-const (
-	CDS_NO_INFO = iota
-	CDS_NO_DISC
-	CDS_TRAY_OPEN
-	CDS_DRIVE_NOT_READY
-	CDS_DISC_OK
-)
-
 type Creator struct{}
 
 func (Creator) Create(logger *log.Logger) providers.Provider {
@@ -97,37 +83,13 @@ func (p provider) FetchConfig() (types.Config, error) {
 
 func (p provider) IsOnline() bool {
 	p.logger.Debug("opening config device")
-	device, err := os.Open(configDevice)
-	if err != nil {
-		p.logger.Info("failed to open config device: %v", err)
+	err := util.AssertCdromOnline(configDevice)
+	if err == nil {
+		return true
+	} else {
+		p.logger.Info("Drive is not online: %s", err)
 		return false
 	}
-	defer device.Close()
-
-	p.logger.Debug("getting drive status")
-	status, _, errno := syscall.Syscall(
-		syscall.SYS_IOCTL,
-		uintptr(device.Fd()),
-		uintptr(CDROM_DRIVE_STATUS),
-		uintptr(0),
-	)
-
-	switch status {
-	case CDS_NO_INFO:
-		p.logger.Info("drive status: no info")
-	case CDS_NO_DISC:
-		p.logger.Info("drive status: no disc")
-	case CDS_TRAY_OPEN:
-		p.logger.Info("drive status: open")
-	case CDS_DRIVE_NOT_READY:
-		p.logger.Info("drive status: not ready")
-	case CDS_DISC_OK:
-		p.logger.Info("drive status: OK")
-	default:
-		p.logger.Err("failed to get drive status: %s", errno.Error())
-	}
-
-	return (status == CDS_DISC_OK)
 }
 
 func (p provider) ShouldRetry() bool {
