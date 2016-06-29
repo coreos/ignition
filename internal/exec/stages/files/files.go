@@ -25,6 +25,7 @@ import (
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
+	hutil "github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -60,13 +61,13 @@ func (stage) Name() string {
 	return name
 }
 
-func (s stage) Run(config types.Config) bool {
+func (s stage) Run(config types.Config, client hutil.HttpClient) bool {
 	if err := s.createPasswd(config); err != nil {
 		s.Logger.Crit("failed to create users/groups: %v", err)
 		return false
 	}
 
-	if err := s.createFilesystemsFiles(config); err != nil {
+	if err := s.createFilesystemsFiles(config, client); err != nil {
 		s.Logger.Crit("failed to create files: %v", err)
 		return false
 	}
@@ -80,7 +81,7 @@ func (s stage) Run(config types.Config) bool {
 }
 
 // createFilesystemsFiles creates the files described in config.Storage.Filesystems.
-func (s stage) createFilesystemsFiles(config types.Config) error {
+func (s stage) createFilesystemsFiles(config types.Config, client hutil.HttpClient) error {
 	if len(config.Storage.Filesystems) == 0 {
 		return nil
 	}
@@ -93,7 +94,7 @@ func (s stage) createFilesystemsFiles(config types.Config) error {
 	}
 
 	for fs, f := range fileMap {
-		if err := s.createFiles(fs, f); err != nil {
+		if err := s.createFiles(fs, f, client); err != nil {
 			return fmt.Errorf("failed to create files: %v", err)
 		}
 	}
@@ -129,7 +130,7 @@ func (s stage) mapFilesToFilesystems(config types.Config) (map[types.Filesystem]
 }
 
 // createFiles creates any files listed for the filesystem in fs.Files.
-func (s stage) createFiles(fs types.Filesystem, files []types.File) error {
+func (s stage) createFiles(fs types.Filesystem, files []types.File, client hutil.HttpClient) error {
 	s.Logger.PushPrefix("createFiles")
 	defer s.Logger.PopPrefix()
 
@@ -164,7 +165,7 @@ func (s stage) createFiles(fs types.Filesystem, files []types.File) error {
 		DestDir: mnt,
 	}
 	for _, f := range files {
-		file := util.RenderFile(s.Logger, f)
+		file := util.RenderFile(s.Logger, client, f)
 		if file == nil {
 			return fmt.Errorf("failed to resolve file %q", f.Path)
 		}

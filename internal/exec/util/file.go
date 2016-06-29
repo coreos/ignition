@@ -76,12 +76,12 @@ func newHashedReader(reader io.ReadCloser, hasher hash.Hash) io.ReadCloser {
 // RenderFile returns a *File with a Reader that downloads, sha512's, and unzips the incoming data
 // Returns nil if f had invalid options. Errors reading/verifying/uncompressing the file will
 // present themselves when the Reader is actually read from
-func RenderFile(l *log.Logger, f types.File) *File {
+func RenderFile(l *log.Logger, client util.HttpClient, f types.File) *File {
 	var reader io.ReadCloser
 	var err error
 	var expectedSum string
 
-	reader, err = util.FetchResourceAsReader(l, url.URL(f.Contents.Source))
+	reader, err = util.FetchResourceAsReader(l, client, url.URL(f.Contents.Source))
 	if err != nil {
 		l.Crit("Error fetching file %q: %v", f.Path, err)
 		return nil

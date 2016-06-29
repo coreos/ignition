@@ -45,11 +45,12 @@ const (
 	oemMountPath  = "/mnt/oem"               // Mountpoint where oem partition is mounted when present.
 )
 
-// FetchResource fetches a resource given a URL. The supported schemes are http, data, and oem.
-func FetchResource(l *log.Logger, u url.URL) ([]byte, error) {
+// FetchResource fetches a resource given a URL. The supported schemes are http(s), data, and oem.
+// client is only needed if the scheme is http(s)
+func FetchResource(l *log.Logger, client HttpClient, u url.URL) ([]byte, error) {
 	var data []byte
 
-	dataReader, err := FetchResourceAsReader(l, u)
+	dataReader, err := FetchResourceAsReader(l, client, u)
 
 	if err != nil {
 		return nil, err
@@ -77,11 +78,10 @@ func (f ReadUnmounter) Close() error {
 }
 
 // Returns a reader to the data at the url specified. Caller is responsible for
-// closing the reader
-func FetchResourceAsReader(l *log.Logger, u url.URL) (io.ReadCloser, error) {
+// closing the reader. client is only necessary if the url is http or https
+func FetchResourceAsReader(l *log.Logger, client HttpClient, u url.URL) (io.ReadCloser, error) {
 	switch u.Scheme {
 	case "http", "https":
-		client := NewHttpClient(l)
 		dataReader, status, err := client.GetReader(u.String())
 		if err != nil {
 			return nil, err

@@ -28,6 +28,7 @@ import (
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/sgdisk"
 	"github.com/coreos/ignition/internal/systemd"
+	hutil "github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -59,7 +60,7 @@ func (stage) Name() string {
 	return name
 }
 
-func (s stage) Run(config types.Config) bool {
+func (s stage) Run(config types.Config, client hutil.HttpClient) bool {
 	if err := s.createPartitions(config); err != nil {
 		s.Logger.Crit("create partitions failed: %v", err)
 		return false

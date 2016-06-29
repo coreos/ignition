@@ -54,6 +54,7 @@ type Engine struct {
 	Provider          providers.Provider
 	OemBaseConfig     types.Config
 	DefaultUserConfig types.Config
+	HttpClient        util.HttpClient
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -72,7 +73,7 @@ func (e Engine) Run(stageName string) bool {
 
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
-	return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(baseConfig, config.Append(e.OemBaseConfig, cfg)))
+	return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(baseConfig, config.Append(e.OemBaseConfig, cfg)), e.HttpClient)
 }
 
 // acquireConfig returns the configuration, first checking a local cache
@@ -155,7 +156,7 @@ func (e Engine) renderConfig(cfg types.Config) (types.Config, error) {
 // fetchReferencedConfig fetches, renders, and attempts to verify the requested
 // config.
 func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
-	rawCfg, err := util.FetchResource(e.Logger, url.URL(cfgRef.Source))
+	rawCfg, err := util.FetchResource(e.Logger, e.HttpClient, url.URL(cfgRef.Source))
 	if err != nil {
 		return types.Config{}, err
 	}

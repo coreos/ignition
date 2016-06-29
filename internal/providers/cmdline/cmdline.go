@@ -40,12 +40,12 @@ const (
 
 type Creator struct{}
 
-func (Creator) Create(logger *log.Logger) providers.Provider {
+func (Creator) Create(logger *log.Logger, client util.HttpClient) providers.Provider {
 	return &provider{
 		logger:  logger,
 		backoff: initialBackoff,
 		path:    cmdlinePath,
-		client:  util.NewHttpClient(logger),
+		client:  client,
 	}
 }
 
@@ -123,7 +123,7 @@ func (p *provider) getRawConfig() bool {
 		return false
 	}
 
-	data, err := util.FetchResource(p.logger, *url)
+	data, err := util.FetchResource(p.logger, p.client, *url)
 	if err != nil {
 		p.logger.Err("failed to fetch %v: %v", url, err)
 		return false

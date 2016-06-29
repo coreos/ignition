@@ -23,11 +23,12 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
+	"github.com/coreos/ignition/internal/util"
 )
 
 type Creator struct{}
 
-func (Creator) Create(logger *log.Logger) providers.Provider {
+func (Creator) Create(logger *log.Logger, _ util.HttpClient) providers.Provider {
 	return &provider{
 		logger: logger,
 	}
