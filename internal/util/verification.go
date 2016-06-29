@@ -18,18 +18,19 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
+	"hash"
 
 	"github.com/coreos/ignition/config/types"
 )
 
 type ErrHashMismatch struct {
-	calculated string
-	expected   string
+	Calculated string
+	Expected   string
 }
 
 func (e ErrHashMismatch) Error() string {
 	return fmt.Sprintf("hash verification failed (calculated %s but expected %s)",
-		e.calculated, e.expected)
+		e.Calculated, e.Expected)
 }
 
 func AssertValid(verify types.Verification, data []byte) error {
@@ -47,11 +48,24 @@ func AssertValid(verify types.Verification, data []byte) error {
 		hex.Encode(encodedSum, sum)
 		if string(encodedSum) != hash.Sum {
 			return ErrHashMismatch{
-				calculated: string(encodedSum),
-				expected:   hash.Sum,
+				Calculated: string(encodedSum),
+				Expected:   hash.Sum,
 			}
 		}
 	}
 
 	return nil
+}
+
+func GetHasher(verify types.Verification) (hash.Hash, error) {
+	if verify.Hash == nil {
+		return nil, nil
+	}
+
+	switch verify.Hash.Function {
+	case "sha512":
+		return sha512.New(), nil
+	default:
+		return nil, types.ErrHashUnrecognized
+	}
 }
