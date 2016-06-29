@@ -145,6 +145,14 @@ func FetchResourceAsReader(l *log.Logger, u url.URL) (io.ReadCloser, error) {
 			ReadCloser: f,
 		}, nil
 
+	case "":
+		f, err := os.Open(os.DevNull)
+		if err != nil {
+			l.Err("Failed to open /dev/null for writing empty files")
+			return nil, ErrFailed
+		}
+		return f, nil
+
 	default:
 		return nil, ErrSchemeUnsupported
 	}
