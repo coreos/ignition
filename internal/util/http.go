@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"time"
 
@@ -36,7 +37,14 @@ type HttpClient struct {
 func NewHttpClient(logger *log.Logger) HttpClient {
 	return HttpClient{
 		client: &http.Client{
-			Timeout: 10 * time.Second,
+			Transport: &http.Transport{
+				ResponseHeaderTimeout: 10 * time.Second,
+				Dial: (&net.Dialer{
+					Timeout:   30 * time.Second,
+					KeepAlive: 30 * time.Second,
+				}).Dial,
+				TLSHandshakeTimeout: 10 * time.Second,
+			},
 		},
 		logger: logger,
 	}
