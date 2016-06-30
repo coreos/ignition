@@ -134,7 +134,7 @@ func (s stage) mapFilesToFilesystems(config types.Config) (map[types.Filesystem]
 	return fileMap, nil
 }
 
-// createFiles creates any files listed for the filesystem in fs.Files.
+// createFiles creates any files listed for the filesystem in storage.Files.
 func (s stage) createFiles(fs types.Filesystem, files []types.File) error {
 	s.Logger.PushPrefix("createFiles")
 	defer s.Logger.PopPrefix()

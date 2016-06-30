@@ -14,54 +14,14 @@
 
 package types
 
-import (
-	"encoding/json"
-	"errors"
-	"os"
-)
-
-var (
-	ErrFileIllegalMode = errors.New("illegal file mode")
-)
-
+// File represents regular files
 type File struct {
-	Filesystem string       `json:"filesystem,omitempty"`
-	Path       Path         `json:"path,omitempty"`
-	Contents   FileContents `json:"contents,omitempty"`
-	Mode       FileMode     `json:"mode,omitempty"`
-	User       FileUser     `json:"user,omitempty"`
-	Group      FileGroup    `json:"group,omitempty"`
-}
-
-type FileUser struct {
-	Id int `json:"id,omitempty"`
-}
-
-type FileGroup struct {
-	Id int `json:"id,omitempty"`
+	Node
+	Contents FileContents `json:"contents,omitempty"`
 }
 
 type FileContents struct {
 	Compression  Compression  `json:"compression,omitempty"`
 	Source       Url          `json:"source,omitempty"`
 	Verification Verification `json:"verification,omitempty"`
-}
-
-type FileMode os.FileMode
-type fileMode FileMode
-
-func (m *FileMode) UnmarshalJSON(data []byte) error {
-	tm := fileMode(*m)
-	if err := json.Unmarshal(data, &tm); err != nil {
-		return err
-	}
-	*m = FileMode(tm)
-	return m.AssertValid()
-}
-
-func (m FileMode) AssertValid() error {
-	if (m &^ 07777) != 0 {
-		return ErrFileIllegalMode
-	}
-	return nil
 }

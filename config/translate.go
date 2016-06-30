@@ -83,17 +83,19 @@ func TranslateFromV1(old v1.Config) (types.Config, error) {
 
 		for _, oldFile := range oldFilesystem.Files {
 			file := types.File{
-				Filesystem: filesystem.Name,
-				Path:       types.Path(oldFile.Path),
+				Node: types.Node{
+					Filesystem: filesystem.Name,
+					Path:       types.Path(oldFile.Path),
+					Mode:       types.NodeMode(oldFile.Mode),
+					User:       types.NodeUser{Id: oldFile.Uid},
+					Group:      types.NodeGroup{Id: oldFile.Gid},
+				},
 				Contents: types.FileContents{
 					Source: types.Url{
 						Scheme: "data",
 						Opaque: "," + dataurl.EscapeString(oldFile.Contents),
 					},
 				},
-				Mode:  types.FileMode(oldFile.Mode),
-				User:  types.FileUser{Id: oldFile.Uid},
-				Group: types.FileGroup{Id: oldFile.Gid},
 			}
 
 			config.Storage.Files = append(config.Storage.Files, file)
