@@ -17,10 +17,13 @@ install() {
 
     inst_simple "$moddir/initrd-systemd-networkd.service" \
         "$systemdsystemunitdir/initrd-systemd-networkd.service"
-    
+
     inst_simple "$moddir/initrd-systemd-resolved.service" \
         "$systemdsystemunitdir/initrd-systemd-resolved.service"
-    
+
+    inst_simple "$moddir/yy-pxe.network" \
+        "$systemdutildir/network/yy-pxe.network"
+
     inst_simple "$moddir/zz-default.network" \
         "$systemdutildir/network/zz-default.network"
 

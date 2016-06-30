@@ -1,0 +1,10 @@
+[Match]
+KernelCommandLine=!coreos.oem.id
+
+[Network]
+DHCP=yes
+
+[DHCP]
+ClientIdentifier=mac
+UseMTU=true
+UseDomains=true
