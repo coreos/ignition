@@ -50,6 +50,14 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_id_** (integer): the user ID of the owner.
     * **_group_** (object): specifies the group of the owner.
       * **_id_** (integer): the group ID of the owner.
+  * **_directories_** (list of objects): the list of directories to be created.
+    * **filesystem** (string): the internal identifier of the filesystem in which to create the directory. This matches the last filesystem with the given identifier.
+    * **path** (string): the absolute path to the directory.
+    * **_mode_** (integer): the directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0755 -> 493).
+    * **_user_** (object): specifies the directory's owner.
+      * **_id_** (integer): the user ID of the owner.
+    * **_group_** (object): specifies the group of the owner.
+      * **_id_** (integer): the group ID of the owner.
 * **_systemd_** (object): describes the desired state of the systemd units.
   * **_units_** (list of objects): the list of systemd units.
     * **name** (string): the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service").
