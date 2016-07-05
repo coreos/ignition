@@ -26,6 +26,7 @@ import (
 	_ "github.com/coreos/ignition/internal/exec/stages/files"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/oem"
+	"github.com/coreos/ignition/internal/util"
 	"github.com/coreos/ignition/internal/version"
 )
 
@@ -82,15 +83,17 @@ func main() {
 		}
 	}
 
+	httpClient := util.NewHttpClient(&logger)
 	oemConfig := oem.MustGet(flags.oem.String())
 	engine := exec.Engine{
 		Root:              flags.root,
 		OnlineTimeout:     flags.onlineTimeout,
 		Logger:            &logger,
 		ConfigCache:       flags.configCache,
-		Provider:          oemConfig.Provider().Create(&logger),
+		Provider:          oemConfig.Provider().Create(&logger, httpClient),
 		OemBaseConfig:     oemConfig.BaseConfig(),
 		DefaultUserConfig: oemConfig.DefaultUserConfig(),
+		HttpClient:        httpClient,
 	}
 
 	if !engine.Run(flags.stage.String()) {

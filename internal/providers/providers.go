@@ -20,6 +20,7 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/util"
 )
 
 var (
@@ -39,5 +40,5 @@ type Provider interface {
 }
 
 type ProviderCreator interface {
-	Create(logger *log.Logger) Provider
+	Create(logger *log.Logger, client util.HttpClient) Provider
 }

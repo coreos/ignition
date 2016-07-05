@@ -41,11 +41,11 @@ var (
 
 type Creator struct{}
 
-func (Creator) Create(logger *log.Logger) providers.Provider {
+func (Creator) Create(logger *log.Logger, client util.HttpClient) providers.Provider {
 	return &provider{
 		logger:  logger,
 		backoff: initialBackoff,
-		client:  util.NewHttpClient(logger),
+		client:  client,
 	}
 }
 

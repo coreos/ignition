@@ -54,6 +54,7 @@ type Engine struct {
 	Provider          providers.Provider
 	OemBaseConfig     types.Config
 	DefaultUserConfig types.Config
+	HttpClient        util.HttpClient
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -72,18 +73,19 @@ func (e Engine) Run(stageName string) bool {
 
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
-	return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(baseConfig, config.Append(e.OemBaseConfig, cfg)))
+	return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(baseConfig, config.Append(e.OemBaseConfig, cfg)), e.HttpClient)
 }
 
 // acquireConfig returns the configuration, first checking a local cache
 // before attempting to fetch it from the provider.
-func (e Engine) acquireConfig() (cfg types.Config, err error) {
+func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 	// First try read the config @ e.ConfigCache.
 	b, err := ioutil.ReadFile(e.ConfigCache)
 	if err == nil {
 		if err = json.Unmarshal(b, &cfg); err != nil {
 			e.Logger.Crit("failed to parse cached config: %v", err)
 		}
+		e.HttpClient = util.NewHttpClientWithTimeouts(e.Logger, cfg.Ignition.Timeouts.HttpResponseHeaders, cfg.Ignition.Timeouts.HttpTotal)
 		return
 	}
 
@@ -112,7 +114,7 @@ func (e Engine) acquireConfig() (cfg types.Config, err error) {
 // fetchProviderConfig returns the configuration from the engine's provider
 // returning an error if the provider is unavailable. This will also render the
 // config (see renderConfig) before returning.
-func (e Engine) fetchProviderConfig() (types.Config, error) {
+func (e *Engine) fetchProviderConfig() (types.Config, error) {
 	if err := putil.WaitUntilOnline(e.Provider, e.OnlineTimeout); err != nil {
 		return types.Config{}, err
 	}
@@ -135,7 +137,10 @@ func (e Engine) fetchProviderConfig() (types.Config, error) {
 // "ignition.config.append" is set, each of the referenced configs will be
 // evaluated and appended to the provided config. If neither option is set, the
 // provided config will be returned unmodified.
-func (e Engine) renderConfig(cfg types.Config) (types.Config, error) {
+func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
+	// Apply any new timeout info before fetching other configs.
+	e.HttpClient = util.NewHttpClientWithTimeouts(e.Logger, cfg.Ignition.Timeouts.HttpResponseHeaders, cfg.Ignition.Timeouts.HttpTotal)
+
 	if cfgRef := cfg.Ignition.Config.Replace; cfgRef != nil {
 		return e.fetchReferencedConfig(*cfgRef)
 	}
@@ -155,7 +160,7 @@ func (e Engine) renderConfig(cfg types.Config) (types.Config, error) {
 // fetchReferencedConfig fetches, renders, and attempts to verify the requested
 // config.
 func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
-	rawCfg, err := util.FetchResource(e.Logger, url.URL(cfgRef.Source))
+	rawCfg, err := util.FetchResource(e.Logger, e.HttpClient, url.URL(cfgRef.Source))
 	if err != nil {
 		return types.Config{}, err
 	}

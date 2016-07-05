@@ -28,7 +28,8 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/providers/util"
+	putil "github.com/coreos/ignition/internal/providers/util"
+	"github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -54,7 +55,7 @@ const (
 
 type Creator struct{}
 
-func (Creator) Create(logger *log.Logger) providers.Provider {
+func (Creator) Create(logger *log.Logger, _ util.HttpClient) providers.Provider {
 	return &provider{
 		logger:  logger,
 		backoff: initialBackoff,
@@ -135,5 +136,5 @@ func (p provider) ShouldRetry() bool {
 }
 
 func (p *provider) BackoffDuration() time.Duration {
-	return util.ExpBackoff(&p.backoff, maxBackoff)
+	return putil.ExpBackoff(&p.backoff, maxBackoff)
 }

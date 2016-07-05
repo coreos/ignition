@@ -18,11 +18,12 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/registry"
+	"github.com/coreos/ignition/internal/util"
 )
 
 // Stage is responsible for actually executing a stage of the configuration.
 type Stage interface {
-	Run(config types.Config) bool
+	Run(config types.Config, client util.HttpClient) bool
 	Name() string
 }
 
