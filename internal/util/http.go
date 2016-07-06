@@ -16,7 +16,9 @@ package util
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"time"
 
@@ -35,7 +37,14 @@ type HttpClient struct {
 func NewHttpClient(logger *log.Logger) HttpClient {
 	return HttpClient{
 		client: &http.Client{
-			Timeout: 10 * time.Second,
+			Transport: &http.Transport{
+				ResponseHeaderTimeout: 10 * time.Second,
+				Dial: (&net.Dialer{
+					Timeout:   30 * time.Second,
+					KeepAlive: 30 * time.Second,
+				}).Dial,
+				TLSHandshakeTimeout: 10 * time.Second,
+			},
 		},
 		logger: logger,
 	}
@@ -47,7 +56,7 @@ func (c HttpClient) Get(url string) ([]byte, int, error) {
 	return c.GetWithHeader(url, http.Header{})
 }
 
-// Get performs an HTTP GET on the provided URL with the provided request header
+// GetWithHeader performs an HTTP GET on the provided URL with the provided request header
 // and returns the response body, HTTP status code, and error (if any). By
 // default, User-Agent and Accept are added to the header but these can be
 // overridden.
@@ -56,27 +65,55 @@ func (c HttpClient) GetWithHeader(url string, header http.Header) ([]byte, int, 
 	var status int
 
 	err := c.logger.LogOp(func() error {
-		req, err := http.NewRequest("GET", url, nil)
-		req.Header.Set("User-Agent", "Ignition/"+version.Raw)
-		req.Header.Set("Accept", "*")
-		for key, values := range header {
-			req.Header.Del(key)
-			for _, value := range values {
-				req.Header.Add(key, value)
-			}
-		}
-		resp, err := c.client.Do(req)
+		var bodyReader io.ReadCloser
+		var err error
+
+		bodyReader, status, err = c.GetReaderWithHeader(url, header)
 		if err != nil {
 			return err
 		}
-		defer resp.Body.Close()
+		defer bodyReader.Close()
 
-		status = resp.StatusCode
-		c.logger.Debug("GET result: %s", http.StatusText(status))
-		body, err = ioutil.ReadAll(resp.Body)
+		body, err = ioutil.ReadAll(bodyReader)
 
 		return err
 	}, "GET %q", url)
+
+	return body, status, err
+}
+
+// GetReader performs an HTTP GET on the provided URL and returns the response body Reader,
+// HTTP status code, and error (if any).
+func (c HttpClient) GetReader(url string) (io.ReadCloser, int, error) {
+	return c.GetReaderWithHeader(url, http.Header{})
+}
+
+// GetReaderWithHeader performs an HTTP GET on the provided URL with the provided request header
+// and returns the response body Reader, HTTP status code, and error (if any). By
+// default, User-Agent and Accept are added to the header but these can be
+// overridden.
+func (c HttpClient) GetReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, error) {
+	var body io.ReadCloser
+	var status int
+
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", "Ignition/"+version.Raw)
+	req.Header.Set("Accept", "*")
+	for key, values := range header {
+		req.Header.Del(key)
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return body, status, err
+	}
+
+	status = resp.StatusCode
+	c.logger.Debug("GET result: %s", http.StatusText(status))
+	body = resp.Body
 
 	return body, status, err
 }

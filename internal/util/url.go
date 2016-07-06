@@ -15,8 +15,10 @@
 package util
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -45,10 +47,40 @@ const (
 
 // FetchResource fetches a resource given a URL. The supported schemes are http, data, and oem.
 func FetchResource(l *log.Logger, u url.URL) ([]byte, error) {
+	var data []byte
+
+	dataReader, err := FetchResourceAsReader(l, u)
+	if err != nil {
+		return nil, err
+	}
+	defer dataReader.Close()
+
+	data, err = ioutil.ReadAll(dataReader)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+// ReadUnmounter calls umountOEM() when closed, in addition to closing the ReadCloser it wraps.
+type ReadUnmounter struct {
+	io.ReadCloser
+	logger *log.Logger
+}
+
+func (f ReadUnmounter) Close() error {
+	defer umountOEM(f.logger)
+	return f.ReadCloser.Close()
+}
+
+// FetchResourceAsReader returns a ReadCloser to the data at the url specified. The caller is responsible for
+// closing the reader.
+func FetchResourceAsReader(l *log.Logger, u url.URL) (io.ReadCloser, error) {
 	switch u.Scheme {
 	case "http", "https":
 		client := NewHttpClient(l)
-		data, status, err := client.Get(u.String())
+		dataReader, status, err := client.GetReader(u.String())
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +88,7 @@ func FetchResource(l *log.Logger, u url.URL) ([]byte, error) {
 		l.Debug("GET result: %s", http.StatusText(status))
 		switch status {
 		case http.StatusOK, http.StatusNoContent:
-			return data, nil
+			return dataReader, nil
 		case http.StatusNotFound:
 			return nil, ErrNotFound
 		default:
@@ -68,8 +100,7 @@ func FetchResource(l *log.Logger, u url.URL) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		return url.Data, nil
+		return ioutil.NopCloser(bytes.NewReader(url.Data)), nil
 
 	case "oem":
 		path := filepath.Clean(u.Path)
@@ -80,27 +111,43 @@ func FetchResource(l *log.Logger, u url.URL) ([]byte, error) {
 
 		// check if present under oemDirPath, if so use it.
 		absPath := filepath.Join(oemDirPath, path)
-		data, err := ioutil.ReadFile(absPath)
-		if os.IsNotExist(err) {
-			l.Info("oem config not found in %q, trying %q",
-				oemDirPath, oemMountPath)
 
-			// try oemMountPath, requires mounting it.
-			err := mountOEM(l)
-			if err != nil {
-				l.Err("failed to mount oem partition: %v", err)
-				return nil, ErrFailed
-			}
-
-			absPath := filepath.Join(oemMountPath, path)
-			data, err = ioutil.ReadFile(absPath)
-			umountOEM(l)
-		} else if err != nil {
+		if f, err := os.Open(absPath); err == nil {
+			return f, nil
+		} else if !os.IsNotExist(err) {
 			l.Err("failed to read oem config: %v", err)
 			return nil, ErrFailed
 		}
 
-		return data, nil
+		l.Info("oem config not found in %q, trying %q",
+			oemDirPath, oemMountPath)
+
+		// try oemMountPath, requires mounting it.
+		if err := mountOEM(l); err != nil {
+			l.Err("failed to mount oem partition: %v", err)
+			return nil, ErrFailed
+		}
+
+		absPath = filepath.Join(oemMountPath, path)
+		f, err := os.Open(absPath)
+		if err != nil {
+			l.Err("failed to read oem config: %v", err)
+			umountOEM(l)
+			return nil, ErrFailed
+		}
+
+		return ReadUnmounter{
+			logger:     l,
+			ReadCloser: f,
+		}, nil
+
+	case "":
+		f, err := os.Open(os.DevNull)
+		if err != nil {
+			l.Err("Failed to open /dev/null for writing empty files")
+			return nil, ErrFailed
+		}
+		return f, nil
 
 	default:
 		return nil, ErrSchemeUnsupported
