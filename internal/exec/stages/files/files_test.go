@@ -44,33 +44,48 @@ func TestMapFilesToFilesystems(t *testing.T) {
 			out: out{files: map[types.Filesystem][]types.File{}},
 		},
 		{
-			in:  in{config: types.Config{Storage: types.Storage{Files: []types.File{{Filesystem: "foo"}}}}},
+			in:  in{config: types.Config{Storage: types.Storage{Files: []types.File{{Node: types.Node{Filesystem: "foo"}}}}}},
 			out: out{err: ErrFilesystemUndefined},
 		},
 		{
 			in: in{config: types.Config{Storage: types.Storage{
 				Filesystems: []types.Filesystem{{Name: "fs1"}},
-				Files:       []types.File{{Filesystem: "fs1", Path: "/foo"}, {Filesystem: "fs1", Path: "/bar"}},
+				Files: []types.File{
+					{Node: types.Node{Filesystem: "fs1", Path: "/foo"}},
+					{Node: types.Node{Filesystem: "fs1", Path: "/bar"}},
+				},
 			}}},
-			out: out{files: map[types.Filesystem][]types.File{types.Filesystem{Name: "fs1"}: {{Filesystem: "fs1", Path: "/foo"}, {Filesystem: "fs1", Path: "/bar"}}}},
+			out: out{files: map[types.Filesystem][]types.File{types.Filesystem{Name: "fs1"}: {
+				{Node: types.Node{Filesystem: "fs1", Path: "/foo"}},
+				{Node: types.Node{Filesystem: "fs1", Path: "/bar"}},
+			}}},
 		},
 		{
 			in: in{config: types.Config{Storage: types.Storage{
 				Filesystems: []types.Filesystem{{Name: "fs1", Path: &fs1}, {Name: "fs2", Path: &fs2}},
-				Files:       []types.File{{Filesystem: "fs1", Path: "/foo"}, {Filesystem: "fs2", Path: "/bar"}},
+				Files: []types.File{
+					{Node: types.Node{Filesystem: "fs1", Path: "/foo"}},
+					{Node: types.Node{Filesystem: "fs2", Path: "/bar"}},
+				},
 			}}},
 			out: out{files: map[types.Filesystem][]types.File{
-				types.Filesystem{Name: "fs1", Path: &fs1}: {{Filesystem: "fs1", Path: "/foo"}},
-				types.Filesystem{Name: "fs2", Path: &fs2}: {{Filesystem: "fs2", Path: "/bar"}},
+				types.Filesystem{Name: "fs1", Path: &fs1}: {{Node: types.Node{Filesystem: "fs1", Path: "/foo"}}},
+				types.Filesystem{Name: "fs2", Path: &fs2}: {{Node: types.Node{Filesystem: "fs2", Path: "/bar"}}},
 			}},
 		},
 		{
 			in: in{config: types.Config{Storage: types.Storage{
 				Filesystems: []types.Filesystem{{Name: "fs1"}, {Name: "fs1", Path: &fs1}},
-				Files:       []types.File{{Filesystem: "fs1", Path: "/foo"}, {Filesystem: "fs1", Path: "/bar"}},
+				Files: []types.File{
+					{Node: types.Node{Filesystem: "fs1", Path: "/foo"}},
+					{Node: types.Node{Filesystem: "fs1", Path: "/bar"}},
+				},
 			}}},
 			out: out{files: map[types.Filesystem][]types.File{
-				types.Filesystem{Name: "fs1", Path: &fs1}: {{Filesystem: "fs1", Path: "/foo"}, {Filesystem: "fs1", Path: "/bar"}},
+				types.Filesystem{Name: "fs1", Path: &fs1}: {
+					{Node: types.Node{Filesystem: "fs1", Path: "/foo"}},
+					{Node: types.Node{Filesystem: "fs1", Path: "/bar"}},
+				},
 			}},
 		},
 	}

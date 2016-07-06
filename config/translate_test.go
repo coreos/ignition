@@ -188,43 +188,49 @@ func TestTranslateFromV1(t *testing.T) {
 					},
 					Files: []types.File{
 						{
-							Filesystem: "_translate-filesystem-0",
-							Path:       types.Path("/opt/file1"),
+							Node: types.Node{
+								Filesystem: "_translate-filesystem-0",
+								Path:       types.Path("/opt/file1"),
+								Mode:       types.NodeMode(0664),
+								User:       types.NodeUser{Id: 500},
+								Group:      types.NodeGroup{Id: 501},
+							},
 							Contents: types.FileContents{
 								Source: types.Url{
 									Scheme: "data",
 									Opaque: ",file1",
 								},
 							},
-							Mode:  types.FileMode(0664),
-							User:  types.FileUser{Id: 500},
-							Group: types.FileGroup{Id: 501},
 						},
 						{
-							Filesystem: "_translate-filesystem-0",
-							Path:       types.Path("/opt/file2"),
+							Node: types.Node{
+								Filesystem: "_translate-filesystem-0",
+								Path:       types.Path("/opt/file2"),
+								Mode:       types.NodeMode(0644),
+								User:       types.NodeUser{Id: 502},
+								Group:      types.NodeGroup{Id: 503},
+							},
 							Contents: types.FileContents{
 								Source: types.Url{
 									Scheme: "data",
 									Opaque: ",file2",
 								},
 							},
-							Mode:  types.FileMode(0644),
-							User:  types.FileUser{Id: 502},
-							Group: types.FileGroup{Id: 503},
 						},
 						{
-							Filesystem: "_translate-filesystem-1",
-							Path:       types.Path("/opt/file3"),
+							Node: types.Node{
+								Filesystem: "_translate-filesystem-1",
+								Path:       types.Path("/opt/file3"),
+								Mode:       types.NodeMode(0400),
+								User:       types.NodeUser{Id: 1000},
+								Group:      types.NodeGroup{Id: 1001},
+							},
 							Contents: types.FileContents{
 								Source: types.Url{
 									Scheme: "data",
 									Opaque: ",file3",
 								},
 							},
-							Mode:  types.FileMode(0400),
-							User:  types.FileUser{Id: 1000},
-							Group: types.FileGroup{Id: 1001},
 						},
 					},
 				},

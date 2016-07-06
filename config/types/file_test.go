@@ -20,12 +20,12 @@ import (
 	"testing"
 )
 
-func TestFileModeUnmarshalJSON(t *testing.T) {
+func TestNodeModeUnmarshalJSON(t *testing.T) {
 	type in struct {
 		data string
 	}
 	type out struct {
-		mode FileMode
+		mode NodeMode
 		err  error
 	}
 
@@ -35,16 +35,16 @@ func TestFileModeUnmarshalJSON(t *testing.T) {
 	}{
 		{
 			in:  in{data: `420`},
-			out: out{mode: FileMode(420)},
+			out: out{mode: NodeMode(420)},
 		},
 		{
 			in:  in{data: `9999`},
-			out: out{mode: FileMode(9999), err: ErrFileIllegalMode},
+			out: out{mode: NodeMode(9999), err: ErrFileIllegalMode},
 		},
 	}
 
 	for i, test := range tests {
-		var mode FileMode
+		var mode NodeMode
 		err := json.Unmarshal([]byte(test.in.data), &mode)
 		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
@@ -57,7 +57,7 @@ func TestFileModeUnmarshalJSON(t *testing.T) {
 
 func TestFileAssertValid(t *testing.T) {
 	type in struct {
-		mode FileMode
+		mode NodeMode
 	}
 	type out struct {
 		err error
@@ -68,23 +68,23 @@ func TestFileAssertValid(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{mode: FileMode(0)},
+			in:  in{mode: NodeMode(0)},
 			out: out{},
 		},
 		{
-			in:  in{mode: FileMode(0644)},
+			in:  in{mode: NodeMode(0644)},
 			out: out{},
 		},
 		{
-			in:  in{mode: FileMode(01755)},
+			in:  in{mode: NodeMode(01755)},
 			out: out{},
 		},
 		{
-			in:  in{mode: FileMode(07777)},
+			in:  in{mode: NodeMode(07777)},
 			out: out{},
 		},
 		{
-			in:  in{mode: FileMode(010000)},
+			in:  in{mode: NodeMode(010000)},
 			out: out{err: ErrFileIllegalMode},
 		},
 	}
