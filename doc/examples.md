@@ -217,4 +217,22 @@ In some cloud environments, there is a limit on the size of the config which may
 
 The SHA512 sum of the config can be determined using `sha512sum`.
 
+## Setting the hostname
+
+Setting the hostname of a system is as simple as writing `/etc/hostname`:
+
+```json
+{
+  "ignition": { "version": "2.0.0" },
+  "storage": {
+    "files": [{
+      "filesystem": "root",
+      "path": "/etc/hostname",
+      "mode": 420,
+      "contents": { "source": "data:,core1" }
+    }]
+  }
+}
+```
+
 [rfc2397]: http://tools.ietf.org/html/rfc2397
