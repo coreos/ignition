@@ -14,10 +14,16 @@
 
 package types
 
-type Storage struct {
-	Disks       []Disk       `json:"disks,omitempty"`
-	Arrays      []Raid       `json:"raid,omitempty"`
-	Filesystems []Filesystem `json:"filesystems,omitempty"`
-	Files       []File       `json:"files,omitempty"`
-	Directories []Directory  `json:"directories,omitempty"`
+import (
+	"path/filepath"
+)
+
+type Directory Node
+
+func (d *Directory) Depth() int {
+	count := 0
+	for p := filepath.Clean(string(d.Path)); p != "/"; count++ {
+		p = filepath.Dir(p)
+	}
+	return count
 }

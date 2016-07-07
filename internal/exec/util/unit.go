@@ -55,7 +55,7 @@ func FileFromUnitDropin(unit types.SystemdUnit, dropin types.SystemdUnitDropIn) 
 
 func (u Util) MaskUnit(unit types.SystemdUnit) error {
 	path := u.JoinPath(SystemdUnitsPath(), string(unit.Name))
-	if err := mkdirForFile(path); err != nil {
+	if err := MkdirForFile(path); err != nil {
 		return err
 	}
 	if err := os.RemoveAll(path); err != nil {
@@ -66,7 +66,7 @@ func (u Util) MaskUnit(unit types.SystemdUnit) error {
 
 func (u Util) EnableUnit(unit types.SystemdUnit) error {
 	path := u.JoinPath(presetPath)
-	if err := mkdirForFile(path); err != nil {
+	if err := MkdirForFile(path); err != nil {
 		return err
 	}
 	file, err := os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, DefaultPresetPermissions)
