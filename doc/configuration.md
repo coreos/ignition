@@ -37,8 +37,8 @@ The Ignition configuration is a JSON document conforming to the following specif
         * **_force_** (boolean): whether or not the create operation shall overwrite an existing filesystem.
         * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
     * **_path_** (string): the mount-point of the filesystem. A non-null entry indicates that the filesystem has already been mounted by the system at the specified path. This is really only useful for "/sysroot".
-  * **_files_** (list of objects): the list of files, rooted in this particular filesystem, to be written.
-    * **filesystem** (string): the internal identifier of the filesystem. This matches the last filesystem with the given identifier.
+  * **_files_** (list of objects): the list of files to be written.
+    * **filesystem** (string): the internal identifier of the filesystem in which to write the file. This matches the last filesystem with the given identifier.
     * **path** (string): the absolute path to the file.
     * **_contents_** (object): options related to the contents of the file.
       * **_compression_** (string): the type of compression used on the contents (null or gzip)
