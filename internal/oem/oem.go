@@ -24,6 +24,7 @@ import (
 	"github.com/coreos/ignition/internal/providers/ec2"
 	"github.com/coreos/ignition/internal/providers/gce"
 	"github.com/coreos/ignition/internal/providers/noop"
+	"github.com/coreos/ignition/internal/providers/packet"
 	"github.com/coreos/ignition/internal/providers/vmware"
 	"github.com/coreos/ignition/internal/registry"
 
@@ -157,7 +158,7 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 	})
 	configs.Register(Config{
 		name:     "packet",
-		provider: noop.Creator{},
+		provider: packet.Creator{},
 	})
 	configs.Register(Config{
 		name:     "pxe",
