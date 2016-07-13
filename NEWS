@@ -1,3 +1,15 @@
+13-Jul-2016 IGNITION v0.7.1
+
+  Bug Fixes
+
+    - Interpret files without a URL to be empty instead of invalid
+    - HTTP fetches time out while waiting for response header instead of body
+    - Stream remote assets to disk instead of loading them into memory
+
+  Changes
+
+    - Improve configuration validation
+
 15-Jun-2016 IGNITION v0.7.0
 
   Features
