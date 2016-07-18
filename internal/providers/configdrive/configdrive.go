@@ -1,4 +1,4 @@
-// Copyright 2015 CoreOS, Inc.
+// Copyright 2016 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The azure provider fetches a configuration from the Azure OVF DVD.
+// The configdrive provider fetches a user_data from a config-2 file system.
 
-package azure
+package configdrive
 
 import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -34,8 +36,8 @@ import (
 const (
 	initialBackoff = 100 * time.Millisecond
 	maxBackoff     = 30 * time.Second
-	configDevice   = "/dev/disk/by-id/ata-Virtual_CD"
-	configPath     = "/CustomData.bin"
+	configDevice   = "/dev/disk/by-label/config-2"
+	configPath     = "/openstack/latest/user_data:/ec2/latest/user-data"
 )
 
 type Creator struct{}
@@ -54,17 +56,14 @@ type provider struct {
 
 func (p provider) FetchConfig() (types.Config, error) {
 	p.logger.Debug("creating temporary mount point")
-	mnt, err := ioutil.TempDir("", "ignition-azure")
+	mnt, err := ioutil.TempDir("", "ignition-configdrive")
 	if err != nil {
 		return types.Config{}, fmt.Errorf("failed to create temp directory: %v", err)
 	}
 	defer os.Remove(mnt)
 
-	p.logger.Debug("mounting config device")
-	if err := p.logger.LogOp(
-		func() error { return syscall.Mount(configDevice, mnt, "udf", syscall.MS_RDONLY, "") },
-		"mounting %q at %q", configDevice, mnt,
-	); err != nil {
+	p.logger.Debug("mounting config drive")
+	if cmd := exec.Command("/usr/bin/mount", "-o", "ro", "-t", "auto", configDevice, mnt); cmd.Run() != nil {
 		return types.Config{}, fmt.Errorf("failed to mount device %q at %q: %v", configDevice, mnt, err)
 	}
 	defer p.logger.LogOp(
@@ -73,18 +72,20 @@ func (p provider) FetchConfig() (types.Config, error) {
 	)
 
 	p.logger.Debug("reading config")
-	rawConfig, err := ioutil.ReadFile(filepath.Join(mnt, configPath))
-	if err != nil && !os.IsNotExist(err) {
-		return types.Config{}, fmt.Errorf("failed to read config: %v", err)
+	for _, path := range strings.Split(configPath, ":") {
+		rawConfig, err := ioutil.ReadFile(filepath.Join(mnt, path))
+		if err == nil {
+			return config.Parse(rawConfig)
+		}
 	}
 
-	return config.Parse(rawConfig)
+	return types.Config{}, fmt.Errorf("failed to find config in %s", configPath)
 }
 
 func (p provider) IsOnline() bool {
-	p.logger.Debug("opening config device")
+	p.logger.Debug("opening config drive: %s", configDevice)
 	err := util.AssertCdromOnline(configDevice)
-	if err == nil {
+	if err == nil || err == util.ErrNotACdrom {
 		return true
 	} else {
 		p.logger.Info("Drive is not online: %s", err)
