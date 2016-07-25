@@ -22,6 +22,7 @@ import (
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
@@ -116,16 +117,13 @@ func (e Engine) acquireConfig() (cfg types.Config, err error) {
 // returning an error if the provider is unavailable. This will also render the
 // config (see renderConfig) before returning.
 func (e Engine) fetchProviderConfig() (types.Config, error) {
-	cfg, err := e.FetchFunc(e.Logger, &e.client)
-	switch err {
-	case config.ErrDeprecated:
-		e.Logger.Warning("%v: the provided config format is deprecated and will not be supported in the future", err)
-		fallthrough
-	case nil:
-		return e.renderConfig(cfg)
-	default:
+	cfg, r, err := e.FetchFunc(e.Logger, &e.client)
+	e.logReport(r)
+	if err != nil {
 		return types.Config{}, err
 	}
+
+	return e.renderConfig(cfg)
 }
 
 // renderConfig evaluates "ignition.config.replace" and "ignition.config.append"
@@ -163,10 +161,26 @@ func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Confi
 		return types.Config{}, err
 	}
 
-	cfg, err := config.Parse(rawCfg)
+	cfg, r, err := config.Parse(rawCfg)
+	e.logReport(r)
 	if err != nil {
 		return types.Config{}, err
 	}
 
 	return e.renderConfig(cfg)
+}
+
+func (e Engine) logReport(r report.Report) {
+	for _, entry := range r.Entries {
+		switch entry.Kind {
+		case report.EntryError:
+			e.Logger.Crit("%v", entry)
+		case report.EntryWarning:
+			e.Logger.Warning("%v", entry)
+		case report.EntryDeprecated:
+			e.Logger.Warning("%v: the provided config format is deprecated and will not be supported in the future.", entry)
+		case report.EntryInfo:
+			e.Logger.Info("%v", entry)
+		}
+	}
 }

@@ -93,10 +93,32 @@ func (r *Report) Add(e Entry) {
 	r.Entries = append(r.Entries, e)
 }
 
+func (r Report) String() string {
+	var errs bytes.Buffer
+	for i, entry := range r.Entries {
+		if i != 0 {
+			// Only add line breaks on multiline reports
+			errs.WriteString("\n")
+		}
+		errs.WriteString(entry.String())
+	}
+	return errs.String()
+}
+
 // IsFatal returns if there were any errors that make the config invalid
 func (r Report) IsFatal() bool {
 	for _, entry := range r.Entries {
 		if entry.Kind == EntryError {
+			return true
+		}
+	}
+	return false
+}
+
+// IsDeprecated returns if the report has deprecations
+func (r Report) IsDeprecated() bool {
+	for _, entry := range r.Entries {
+		if entry.Kind == EntryDeprecated {
 			return true
 		}
 	}

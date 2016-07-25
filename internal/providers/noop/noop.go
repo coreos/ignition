@@ -19,11 +19,12 @@ package noop
 import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/util"
 )
 
-func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, error) {
+func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, report.Report, error) {
 	logger.Debug("noop provider fetching empty config")
-	return types.Config{}, config.ErrEmpty
+	return types.Config{}, report.Report{}, config.ErrEmpty
 }
