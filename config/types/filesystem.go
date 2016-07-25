@@ -15,7 +15,6 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
 )
 
@@ -30,7 +29,6 @@ type Filesystem struct {
 	Mount *FilesystemMount `json:"mount,omitempty"`
 	Path  *Path            `json:"path,omitempty"`
 }
-type filesystem Filesystem
 
 type FilesystemMount struct {
 	Device Path              `json:"device,omitempty"`
@@ -41,15 +39,6 @@ type FilesystemMount struct {
 type FilesystemCreate struct {
 	Force   bool        `json:"force,omitempty"`
 	Options MkfsOptions `json:"options,omitempty"`
-}
-
-func (f *Filesystem) UnmarshalJSON(data []byte) error {
-	tf := filesystem(*f)
-	if err := json.Unmarshal(data, &tf); err != nil {
-		return err
-	}
-	*f = Filesystem(tf)
-	return f.AssertValid()
 }
 
 func (f Filesystem) AssertValid() error {
@@ -79,17 +68,6 @@ func (f Filesystem) AssertValid() error {
 	return nil
 }
 
-type filesystemMount FilesystemMount
-
-func (f *FilesystemMount) UnmarshalJSON(data []byte) error {
-	tf := filesystemMount(*f)
-	if err := json.Unmarshal(data, &tf); err != nil {
-		return err
-	}
-	*f = FilesystemMount(tf)
-	return f.AssertValid()
-}
-
 func (f FilesystemMount) AssertValid() error {
 	if err := f.Device.AssertValid(); err != nil {
 		return err
@@ -101,16 +79,6 @@ func (f FilesystemMount) AssertValid() error {
 }
 
 type FilesystemFormat string
-type filesystemFormat FilesystemFormat
-
-func (f *FilesystemFormat) UnmarshalJSON(data []byte) error {
-	tf := filesystemFormat(*f)
-	if err := json.Unmarshal(data, &tf); err != nil {
-		return err
-	}
-	*f = FilesystemFormat(tf)
-	return f.AssertValid()
-}
 
 func (f FilesystemFormat) AssertValid() error {
 	switch f {
@@ -122,16 +90,6 @@ func (f FilesystemFormat) AssertValid() error {
 }
 
 type MkfsOptions []string
-type mkfsOptions MkfsOptions
-
-func (o *MkfsOptions) UnmarshalJSON(data []byte) error {
-	to := mkfsOptions(*o)
-	if err := json.Unmarshal(data, &to); err != nil {
-		return err
-	}
-	*o = MkfsOptions(to)
-	return o.AssertValid()
-}
 
 func (o MkfsOptions) AssertValid() error {
 	return nil

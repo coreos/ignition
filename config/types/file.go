@@ -15,7 +15,6 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
 	"os"
 )
@@ -48,16 +47,6 @@ type FileContents struct {
 }
 
 type FileMode os.FileMode
-type fileMode FileMode
-
-func (m *FileMode) UnmarshalJSON(data []byte) error {
-	tm := fileMode(*m)
-	if err := json.Unmarshal(data, &tm); err != nil {
-		return err
-	}
-	*m = FileMode(tm)
-	return m.AssertValid()
-}
 
 func (m FileMode) AssertValid() error {
 	if (m &^ 07777) != 0 {

@@ -15,7 +15,6 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
 	"path/filepath"
 )
@@ -25,16 +24,6 @@ var (
 )
 
 type Path string
-type path Path
-
-func (p *Path) UnmarshalJSON(data []byte) error {
-	td := path(*p)
-	if err := json.Unmarshal(data, &td); err != nil {
-		return err
-	}
-	*p = Path(td)
-	return p.AssertValid()
-}
 
 func (p Path) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + string(p) + `"`), nil
