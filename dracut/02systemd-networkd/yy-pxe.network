@@ -1,5 +1,5 @@
 [Match]
-KernelCommandLine=!coreos.oem.id
+KernelCommandLine=!root
 
 [Network]
 DHCP=yes
