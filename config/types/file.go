@@ -21,6 +21,7 @@ import (
 
 var (
 	ErrFileIllegalMode = errors.New("illegal file mode")
+	ErrNoFilesystem    = errors.New("no filesystem specified")
 )
 
 type File struct {
@@ -30,6 +31,13 @@ type File struct {
 	Mode       FileMode     `json:"mode,omitempty"`
 	User       FileUser     `json:"user,omitempty"`
 	Group      FileGroup    `json:"group,omitempty"`
+}
+
+func (f File) AssertValid() error {
+	if f.Filesystem == "" {
+		return ErrNoFilesystem
+	}
+	return nil
 }
 
 type FileUser struct {
