@@ -42,7 +42,9 @@ func posFromOffset(offset int, source io.ReadSeeker) (int, int, string) {
 
 func Validate(cfg types.Config, ast json.Node, source io.ReadSeeker) report.Report {
 	v := reflect.ValueOf(cfg)
-	return validate(v, ast, source)
+	r := validate(v, ast, source)
+	r.Merge(applyRules(cfg))
+	return r
 }
 
 // Validate walks down a struct tree calling AssertValid on every node that implements it, building
