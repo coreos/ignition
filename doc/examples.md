@@ -189,7 +189,7 @@ In many scenarios, it may be useful to have an external data volume. This config
 
 ```
 [Mount]
-What=/dev/data
+What=/dev/md/data
 Where=/var/lib/data
 Type=ext4
 
