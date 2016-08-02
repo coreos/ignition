@@ -21,31 +21,16 @@ import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/util"
 
 	"github.com/packethost/packngo/metadata"
 )
 
-type Creator struct{}
-
-func (Creator) Create(logger *log.Logger) providers.Provider {
-	return &provider{
-		logger: logger,
-		client: util.NewHttpClient(logger),
-	}
-}
-
-type provider struct {
-	logger *log.Logger
-	client util.HttpClient
-}
-
-func (p provider) FetchConfig() (types.Config, error) {
-	p.logger.Debug("fetching config from packet metadata")
+func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, error) {
+	logger.Debug("fetching config from packet metadata")
 	data, err := metadata.GetUserData()
 	if err != nil {
-		p.logger.Err("failed to fetch config: %v", err)
+		logger.Err("failed to fetch config: %v", err)
 		return types.Config{}, err
 	}
 

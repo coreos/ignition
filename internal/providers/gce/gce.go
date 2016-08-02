@@ -35,22 +35,8 @@ var (
 	metadataHeader = http.Header{"Metadata-Flavor": []string{"Google"}}
 )
 
-type Creator struct{}
-
-func (Creator) Create(logger *log.Logger) providers.Provider {
-	return &provider{
-		logger: logger,
-		client: util.NewHttpClient(logger),
-	}
-}
-
-type provider struct {
-	logger *log.Logger
-	client util.HttpClient
-}
-
-func (p provider) FetchConfig() (types.Config, error) {
-	data := p.client.FetchConfigWithHeader(userdataUrl, metadataHeader, http.StatusOK, http.StatusNotFound)
+func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, error) {
+	data := client.FetchConfigWithHeader(userdataUrl, metadataHeader, http.StatusOK, http.StatusNotFound)
 	if data == nil {
 		return types.Config{}, providers.ErrNoProvider
 	}

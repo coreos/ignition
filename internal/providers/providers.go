@@ -19,18 +19,11 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/util"
 )
 
 var (
 	ErrNoProvider = errors.New("config provider was not online")
 )
 
-// Provider represents an external source of configuration. The source can be
-// local to the host system or it may be remote.
-type Provider interface {
-	FetchConfig() (types.Config, error)
-}
-
-type ProviderCreator interface {
-	Create(logger *log.Logger) Provider
-}
+type FuncFetchConfig func(logger *log.Logger, client *util.HttpClient) (types.Config, error)

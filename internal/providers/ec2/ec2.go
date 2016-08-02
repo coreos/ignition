@@ -31,22 +31,8 @@ const (
 	userdataUrl = "http://169.254.169.254/2009-04-04/user-data"
 )
 
-type Creator struct{}
-
-func (Creator) Create(logger *log.Logger) providers.Provider {
-	return &provider{
-		logger: logger,
-		client: util.NewHttpClient(logger),
-	}
-}
-
-type provider struct {
-	logger *log.Logger
-	client util.HttpClient
-}
-
-func (p provider) FetchConfig() (types.Config, error) {
-	data := p.client.FetchConfig(userdataUrl, http.StatusOK, http.StatusNotFound)
+func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, error) {
+	data := client.FetchConfig(userdataUrl, http.StatusOK, http.StatusNotFound)
 	if data == nil {
 		return types.Config{}, providers.ErrNoProvider
 	}

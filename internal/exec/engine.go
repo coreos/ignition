@@ -50,7 +50,7 @@ type Engine struct {
 	OnlineTimeout     time.Duration
 	Logger            *log.Logger
 	Root              string
-	Provider          providers.Provider
+	FetchFunc         providers.FuncFetchConfig
 	OemBaseConfig     types.Config
 	DefaultUserConfig types.Config
 }
@@ -112,7 +112,8 @@ func (e Engine) acquireConfig() (cfg types.Config, err error) {
 // returning an error if the provider is unavailable. This will also render the
 // config (see renderConfig) before returning.
 func (e Engine) fetchProviderConfig() (types.Config, error) {
-	cfg, err := e.Provider.FetchConfig()
+	client := util.NewHttpClient(e.Logger)
+	cfg, err := e.FetchFunc(e.Logger, &client)
 	switch err {
 	case config.ErrDeprecated:
 		e.Logger.Warning("%v: the provided config format is deprecated and will not be supported in the future", err)

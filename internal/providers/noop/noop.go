@@ -20,22 +20,10 @@ import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/providers"
+	"github.com/coreos/ignition/internal/util"
 )
 
-type Creator struct{}
-
-func (Creator) Create(logger *log.Logger) providers.Provider {
-	return &provider{
-		logger: logger,
-	}
-}
-
-type provider struct {
-	logger *log.Logger
-}
-
-func (p provider) FetchConfig() (types.Config, error) {
-	p.logger.Debug("noop provider fetching empty config")
+func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, error) {
+	logger.Debug("noop provider fetching empty config")
 	return types.Config{}, config.ErrEmpty
 }

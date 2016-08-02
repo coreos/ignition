@@ -35,29 +35,13 @@ const (
 	cmdlineUrlFlag = "coreos.config.url"
 )
 
-type Creator struct{}
-
-func (Creator) Create(logger *log.Logger) providers.Provider {
-	return &provider{
-		client: util.NewHttpClient(logger),
-		logger: logger,
-		path:   cmdlinePath,
-	}
-}
-
-type provider struct {
-	client util.HttpClient
-	logger *log.Logger
-	path   string
-}
-
-func (p provider) FetchConfig() (types.Config, error) {
-	url, err := p.readCmdline()
+func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, error) {
+	url, err := readCmdline(logger)
 	if err != nil || url == nil {
 		return types.Config{}, err
 	}
 
-	data := p.client.FetchConfig(url.String(), http.StatusOK)
+	data := client.FetchConfig(url.String(), http.StatusOK)
 	if data == nil {
 		return types.Config{}, providers.ErrNoProvider
 	}
@@ -65,23 +49,23 @@ func (p provider) FetchConfig() (types.Config, error) {
 	return config.Parse(data)
 }
 
-func (p provider) readCmdline() (*url.URL, error) {
-	args, err := ioutil.ReadFile(p.path)
+func readCmdline(logger *log.Logger) (*url.URL, error) {
+	args, err := ioutil.ReadFile(cmdlinePath)
 	if err != nil {
-		p.logger.Err("couldn't read cmdline: %v", err)
+		logger.Err("couldn't read cmdline: %v", err)
 		return nil, err
 	}
 
 	rawUrl := parseCmdline(args)
-	p.logger.Debug("parsed url from cmdline: %q", rawUrl)
+	logger.Debug("parsed url from cmdline: %q", rawUrl)
 	if rawUrl == "" {
-		p.logger.Info("no config URL provided")
+		logger.Info("no config URL provided")
 		return nil, nil
 	}
 
 	url, err := url.Parse(rawUrl)
 	if err != nil {
-		p.logger.Err("failed to parse url: %v", err)
+		logger.Err("failed to parse url: %v", err)
 		return nil, err
 	}
 
