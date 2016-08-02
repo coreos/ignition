@@ -28,14 +28,11 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/providers/util"
 )
 
 const (
-	initialBackoff = 100 * time.Millisecond
-	maxBackoff     = 30 * time.Second
-	configDevice   = "/dev/disk/by-id/ata-Virtual_CD"
-	configPath     = "/CustomData.bin"
+	configDevice = "/dev/disk/by-id/ata-Virtual_CD"
+	configPath   = "/CustomData.bin"
 )
 
 // These constants come from <cdrom.h>.
@@ -56,17 +53,18 @@ type Creator struct{}
 
 func (Creator) Create(logger *log.Logger) providers.Provider {
 	return &provider{
-		logger:  logger,
-		backoff: initialBackoff,
+		logger: logger,
 	}
 }
 
 type provider struct {
-	logger  *log.Logger
-	backoff time.Duration
+	logger *log.Logger
 }
 
 func (p provider) FetchConfig() (types.Config, error) {
+	p.logger.Debug("waiting for config DVD...")
+	p.waitForCdrom()
+
 	p.logger.Debug("creating temporary mount point")
 	mnt, err := ioutil.TempDir("", "ignition-azure")
 	if err != nil {
@@ -95,7 +93,13 @@ func (p provider) FetchConfig() (types.Config, error) {
 	return config.Parse(rawConfig)
 }
 
-func (p provider) IsOnline() bool {
+func (p provider) waitForCdrom() {
+	for !p.isCdromPresent() {
+		time.Sleep(time.Second)
+	}
+}
+
+func (p provider) isCdromPresent() bool {
 	p.logger.Debug("opening config device")
 	device, err := os.Open(configDevice)
 	if err != nil {
@@ -128,12 +132,4 @@ func (p provider) IsOnline() bool {
 	}
 
 	return (status == CDS_DISC_OK)
-}
-
-func (p provider) ShouldRetry() bool {
-	return true
-}
-
-func (p *provider) BackoffDuration() time.Duration {
-	return util.ExpBackoff(&p.backoff, maxBackoff)
 }

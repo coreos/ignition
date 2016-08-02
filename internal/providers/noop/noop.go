@@ -17,8 +17,6 @@
 package noop
 
 import (
-	"time"
-
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
@@ -40,16 +38,4 @@ type provider struct {
 func (p provider) FetchConfig() (types.Config, error) {
 	p.logger.Debug("noop provider fetching empty config")
 	return types.Config{}, config.ErrEmpty
-}
-
-func (p *provider) IsOnline() bool {
-	return true
-}
-
-func (p provider) ShouldRetry() bool {
-	return false
-}
-
-func (p *provider) BackoffDuration() time.Duration {
-	return 0
 }

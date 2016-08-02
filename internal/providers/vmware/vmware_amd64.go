@@ -20,12 +20,17 @@ package vmware
 import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/providers"
 
 	"github.com/sigma/vmw-guestinfo/rpcvmx"
 	"github.com/sigma/vmw-guestinfo/vmcheck"
 )
 
 func (p provider) FetchConfig() (types.Config, error) {
+	if !vmcheck.IsVirtualWorld() {
+		return types.Config{}, providers.ErrNoProvider
+	}
+
 	info := rpcvmx.NewConfig()
 	data, err := info.String("coreos.config.data", "")
 	if err != nil {
@@ -47,8 +52,4 @@ func (p provider) FetchConfig() (types.Config, error) {
 
 	p.logger.Debug("config successfully fetched")
 	return config.Parse(decodedData)
-}
-
-func (p *provider) IsOnline() bool {
-	return vmcheck.IsVirtualWorld()
 }

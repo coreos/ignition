@@ -19,20 +19,16 @@ package gce
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	putil "github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/util"
 )
 
 const (
-	initialBackoff = 100 * time.Millisecond
-	maxBackoff     = 30 * time.Second
-	userdataUrl    = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/user-data"
+	userdataUrl = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/user-data"
 )
 
 var (
@@ -43,32 +39,21 @@ type Creator struct{}
 
 func (Creator) Create(logger *log.Logger) providers.Provider {
 	return &provider{
-		logger:  logger,
-		backoff: initialBackoff,
-		client:  util.NewHttpClient(logger),
+		logger: logger,
+		client: util.NewHttpClient(logger),
 	}
 }
 
 type provider struct {
-	logger    *log.Logger
-	backoff   time.Duration
-	client    util.HttpClient
-	rawConfig []byte
+	logger *log.Logger
+	client util.HttpClient
 }
 
 func (p provider) FetchConfig() (types.Config, error) {
-	return config.Parse(p.rawConfig)
-}
+	data := p.client.FetchConfigWithHeader(userdataUrl, metadataHeader, http.StatusOK, http.StatusNotFound)
+	if data == nil {
+		return types.Config{}, providers.ErrNoProvider
+	}
 
-func (p *provider) IsOnline() bool {
-	p.rawConfig = p.client.FetchConfigWithHeader(userdataUrl, metadataHeader, http.StatusOK, http.StatusNotFound)
-	return (p.rawConfig != nil)
-}
-
-func (p provider) ShouldRetry() bool {
-	return true
-}
-
-func (p *provider) BackoffDuration() time.Duration {
-	return putil.ExpBackoff(&p.backoff, maxBackoff)
+	return config.Parse(data)
 }

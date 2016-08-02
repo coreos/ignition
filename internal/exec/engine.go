@@ -25,7 +25,6 @@ import (
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	putil "github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/util"
 )
 
@@ -113,10 +112,6 @@ func (e Engine) acquireConfig() (cfg types.Config, err error) {
 // returning an error if the provider is unavailable. This will also render the
 // config (see renderConfig) before returning.
 func (e Engine) fetchProviderConfig() (types.Config, error) {
-	if err := putil.WaitUntilOnline(e.Provider, e.OnlineTimeout); err != nil {
-		return types.Config{}, err
-	}
-
 	cfg, err := e.Provider.FetchConfig()
 	switch err {
 	case config.ErrDeprecated:
