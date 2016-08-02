@@ -24,10 +24,11 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/exec/stages"
-	"github.com/coreos/ignition/internal/exec/util"
+	eutil "github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/sgdisk"
 	"github.com/coreos/ignition/internal/systemd"
+	"github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -40,11 +41,14 @@ func init() {
 
 type creator struct{}
 
-func (creator) Create(logger *log.Logger, root string) stages.Stage {
-	return &stage{util.Util{
-		DestDir: root,
-		Logger:  logger,
-	}}
+func (creator) Create(logger *log.Logger, client *util.HttpClient, root string) stages.Stage {
+	return &stage{
+		Util: eutil.Util{
+			DestDir: root,
+			Logger:  logger,
+		},
+		client: client,
+	}
 }
 
 func (creator) Name() string {
@@ -52,7 +56,9 @@ func (creator) Name() string {
 }
 
 type stage struct {
-	util.Util
+	eutil.Util
+
+	client *util.HttpClient
 }
 
 func (stage) Name() string {

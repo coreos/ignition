@@ -23,8 +23,9 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/exec/stages"
-	"github.com/coreos/ignition/internal/exec/util"
+	eutil "github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -41,11 +42,14 @@ func init() {
 
 type creator struct{}
 
-func (creator) Create(logger *log.Logger, root string) stages.Stage {
-	return &stage{util.Util{
-		DestDir: root,
-		Logger:  logger,
-	}}
+func (creator) Create(logger *log.Logger, client *util.HttpClient, root string) stages.Stage {
+	return &stage{
+		Util: eutil.Util{
+			DestDir: root,
+			Logger:  logger,
+		},
+		client: client,
+	}
 }
 
 func (creator) Name() string {
@@ -53,7 +57,9 @@ func (creator) Name() string {
 }
 
 type stage struct {
-	util.Util
+	eutil.Util
+
+	client *util.HttpClient
 }
 
 func (stage) Name() string {
@@ -159,12 +165,12 @@ func (s stage) createFiles(fs types.Filesystem, files []types.File) error {
 		mnt = string(*fs.Path)
 	}
 
-	u := util.Util{
+	u := eutil.Util{
 		Logger:  s.Logger,
 		DestDir: mnt,
 	}
 	for _, f := range files {
-		file := util.RenderFile(s.Logger, f)
+		file := eutil.RenderFile(s.Logger, s.client, f)
 		if file == nil {
 			return fmt.Errorf("failed to resolve file %q", f.Path)
 		}
@@ -221,7 +227,7 @@ func (s stage) writeSystemdUnit(unit types.SystemdUnit) error {
 				continue
 			}
 
-			f := util.FileFromUnitDropin(unit, dropin)
+			f := eutil.FileFromUnitDropin(unit, dropin)
 			if err := s.Logger.LogOp(
 				func() error { return s.WriteFile(f) },
 				"writing dropin %q at %q", dropin.Name, f.Path,
@@ -234,7 +240,7 @@ func (s stage) writeSystemdUnit(unit types.SystemdUnit) error {
 			return nil
 		}
 
-		f := util.FileFromSystemdUnit(unit)
+		f := eutil.FileFromSystemdUnit(unit)
 		if err := s.Logger.LogOp(
 			func() error { return s.WriteFile(f) },
 			"writing unit %q at %q", unit.Name, f.Path,
@@ -254,7 +260,7 @@ func (s stage) writeNetworkdUnit(unit types.NetworkdUnit) error {
 			return nil
 		}
 
-		f := util.FileFromNetworkdUnit(unit)
+		f := eutil.FileFromNetworkdUnit(unit)
 		if err := s.Logger.LogOp(
 			func() error { return s.WriteFile(f) },
 			"writing unit %q at %q", unit.Name, f.Path,

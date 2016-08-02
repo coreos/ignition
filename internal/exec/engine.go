@@ -53,11 +53,15 @@ type Engine struct {
 	FetchFunc         providers.FuncFetchConfig
 	OemBaseConfig     types.Config
 	DefaultUserConfig types.Config
+
+	client util.HttpClient
 }
 
 // Run executes the stage of the given name. It returns true if the stage
 // successfully ran and false if there were any errors.
 func (e Engine) Run(stageName string) bool {
+	e.client = util.NewHttpClient(e.Logger)
+
 	cfg, err := e.acquireConfig()
 	switch err {
 	case nil:
@@ -71,7 +75,7 @@ func (e Engine) Run(stageName string) bool {
 
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
-	return stages.Get(stageName).Create(e.Logger, e.Root).Run(config.Append(baseConfig, config.Append(e.OemBaseConfig, cfg)))
+	return stages.Get(stageName).Create(e.Logger, &e.client, e.Root).Run(config.Append(baseConfig, config.Append(e.OemBaseConfig, cfg)))
 }
 
 // acquireConfig returns the configuration, first checking a local cache
@@ -112,8 +116,7 @@ func (e Engine) acquireConfig() (cfg types.Config, err error) {
 // returning an error if the provider is unavailable. This will also render the
 // config (see renderConfig) before returning.
 func (e Engine) fetchProviderConfig() (types.Config, error) {
-	client := util.NewHttpClient(e.Logger)
-	cfg, err := e.FetchFunc(e.Logger, &client)
+	cfg, err := e.FetchFunc(e.Logger, &e.client)
 	switch err {
 	case config.ErrDeprecated:
 		e.Logger.Warning("%v: the provided config format is deprecated and will not be supported in the future", err)
@@ -151,7 +154,7 @@ func (e Engine) renderConfig(cfg types.Config) (types.Config, error) {
 // fetchReferencedConfig fetches, renders, and attempts to verify the requested
 // config.
 func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
-	rawCfg, err := util.FetchResource(e.Logger, url.URL(cfgRef.Source))
+	rawCfg, err := util.FetchResource(e.Logger, &e.client, url.URL(cfgRef.Source))
 	if err != nil {
 		return types.Config{}, err
 	}

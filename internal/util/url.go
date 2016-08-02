@@ -46,10 +46,10 @@ const (
 )
 
 // FetchResource fetches a resource given a URL. The supported schemes are http, data, and oem.
-func FetchResource(l *log.Logger, u url.URL) ([]byte, error) {
+func FetchResource(l *log.Logger, c *HttpClient, u url.URL) ([]byte, error) {
 	var data []byte
 
-	dataReader, err := FetchResourceAsReader(l, u)
+	dataReader, err := FetchResourceAsReader(l, c, u)
 	if err != nil {
 		return nil, err
 	}
@@ -63,29 +63,27 @@ func FetchResource(l *log.Logger, u url.URL) ([]byte, error) {
 	return data, nil
 }
 
-// ReadUnmounter calls umountOEM() when closed, in addition to closing the ReadCloser it wraps.
-type ReadUnmounter struct {
+// readUnmounter calls umountOEM() when closed, in addition to closing the ReadCloser it wraps.
+type readUnmounter struct {
 	io.ReadCloser
 	logger *log.Logger
 }
 
-func (f ReadUnmounter) Close() error {
+func (f readUnmounter) Close() error {
 	defer umountOEM(f.logger)
 	return f.ReadCloser.Close()
 }
 
 // FetchResourceAsReader returns a ReadCloser to the data at the url specified. The caller is responsible for
 // closing the reader.
-func FetchResourceAsReader(l *log.Logger, u url.URL) (io.ReadCloser, error) {
+func FetchResourceAsReader(l *log.Logger, c *HttpClient, u url.URL) (io.ReadCloser, error) {
 	switch u.Scheme {
 	case "http", "https":
-		client := NewHttpClient(l)
-		dataReader, status, err := client.GetReader(u.String())
+		dataReader, status, err := c.GetReader(u.String())
 		if err != nil {
 			return nil, err
 		}
 
-		l.Debug("GET result: %s", http.StatusText(status))
 		switch status {
 		case http.StatusOK, http.StatusNoContent:
 			return dataReader, nil
@@ -136,7 +134,7 @@ func FetchResourceAsReader(l *log.Logger, u url.URL) (io.ReadCloser, error) {
 			return nil, ErrFailed
 		}
 
-		return ReadUnmounter{
+		return readUnmounter{
 			logger:     l,
 			ReadCloser: f,
 		}, nil
