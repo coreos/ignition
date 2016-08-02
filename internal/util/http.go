@@ -15,6 +15,7 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -24,6 +25,16 @@ import (
 
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/version"
+)
+
+const (
+	maxAttempts    = 15
+	initialBackoff = 100 * time.Millisecond
+	maxBackoff     = 5 * time.Second
+)
+
+var (
+	ErrTimeout = errors.New("unable to fetch resource in time")
 )
 
 // HttpClient is a simple wrapper around the Go HTTP client that standardizes
@@ -93,10 +104,11 @@ func (c HttpClient) GetReader(url string) (io.ReadCloser, int, error) {
 // default, User-Agent and Accept are added to the header but these can be
 // overridden.
 func (c HttpClient) GetReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, error) {
-	var body io.ReadCloser
-	var status int
-
 	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	req.Header.Set("User-Agent", "Ignition/"+version.Raw)
 	req.Header.Set("Accept", "*")
 	for key, values := range header {
@@ -106,16 +118,30 @@ func (c HttpClient) GetReaderWithHeader(url string, header http.Header) (io.Read
 		}
 	}
 
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return body, status, err
+	duration := initialBackoff
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		c.logger.Debug("GET %s: attempt #%d", url, attempt)
+		resp, err := c.client.Do(req)
+
+		if err == nil {
+			c.logger.Debug("GET result: %s", http.StatusText(resp.StatusCode))
+			switch resp.StatusCode {
+			case http.StatusOK, http.StatusNonAuthoritativeInfo, http.StatusNoContent:
+				return resp.Body, resp.StatusCode, nil
+			}
+			resp.Body.Close()
+		} else {
+			c.logger.Debug("GET error: %v", err)
+		}
+
+		duration = duration * 2
+		if duration > maxBackoff {
+			duration = maxBackoff
+		}
+		time.Sleep(duration)
 	}
 
-	status = resp.StatusCode
-	c.logger.Debug("GET result: %s", http.StatusText(status))
-	body = resp.Body
-
-	return body, status, err
+	return nil, 0, ErrTimeout
 }
 
 // FetchConfig calls FetchConfigWithHeader with an empty set of headers.
