@@ -20,35 +20,38 @@ package vmware
 import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/providers"
+	"github.com/coreos/ignition/internal/util"
 
 	"github.com/sigma/vmw-guestinfo/rpcvmx"
 	"github.com/sigma/vmw-guestinfo/vmcheck"
 )
 
-func (p provider) FetchConfig() (types.Config, error) {
+func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, error) {
+	if !vmcheck.IsVirtualWorld() {
+		return types.Config{}, providers.ErrNoProvider
+	}
+
 	info := rpcvmx.NewConfig()
 	data, err := info.String("coreos.config.data", "")
 	if err != nil {
-		p.logger.Debug("failed to fetch config: %v", err)
+		logger.Debug("failed to fetch config: %v", err)
 		return types.Config{}, err
 	}
 
 	encoding, err := info.String("coreos.config.data.encoding", "")
 	if err != nil {
-		p.logger.Debug("failed to fetch config encoding: %v", err)
+		logger.Debug("failed to fetch config encoding: %v", err)
 		return types.Config{}, err
 	}
 
 	decodedData, err := decodeData(data, encoding)
 	if err != nil {
-		p.logger.Debug("failed to decode config: %v", err)
+		logger.Debug("failed to decode config: %v", err)
 		return types.Config{}, err
 	}
 
-	p.logger.Debug("config successfully fetched")
+	logger.Debug("config successfully fetched")
 	return config.Parse(decodedData)
-}
-
-func (p *provider) IsOnline() bool {
-	return vmcheck.IsVirtualWorld()
 }

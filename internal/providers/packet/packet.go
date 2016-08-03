@@ -18,60 +18,21 @@
 package packet
 
 import (
-	"time"
-
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/providers"
-	putil "github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/util"
 
 	"github.com/packethost/packngo/metadata"
 )
 
-const (
-	initialBackoff = 100 * time.Millisecond
-	maxBackoff     = 30 * time.Second
-)
-
-type Creator struct{}
-
-func (Creator) Create(logger *log.Logger) providers.Provider {
-	return &provider{
-		logger:  logger,
-		backoff: initialBackoff,
-		client:  util.NewHttpClient(logger),
+func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, error) {
+	logger.Debug("fetching config from packet metadata")
+	data, err := metadata.GetUserData()
+	if err != nil {
+		logger.Err("failed to fetch config: %v", err)
+		return types.Config{}, err
 	}
-}
 
-type provider struct {
-	logger    *log.Logger
-	backoff   time.Duration
-	client    util.HttpClient
-	rawConfig []byte
-}
-
-func (p provider) FetchConfig() (types.Config, error) {
-	return config.Parse(p.rawConfig)
-}
-
-func (p *provider) IsOnline() bool {
-	return (p.logger.LogOp(func() error {
-		data, err := metadata.GetUserData()
-		if err != nil {
-			return err
-		}
-
-		p.rawConfig = data
-		return nil
-	}, "fetching config from packet metadata") == nil)
-}
-
-func (p provider) ShouldRetry() bool {
-	return true
-}
-
-func (p *provider) BackoffDuration() time.Duration {
-	return putil.ExpBackoff(&p.backoff, maxBackoff)
+	return config.Parse(data)
 }

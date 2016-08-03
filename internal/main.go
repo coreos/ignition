@@ -88,7 +88,7 @@ func main() {
 		OnlineTimeout:     flags.onlineTimeout,
 		Logger:            &logger,
 		ConfigCache:       flags.configCache,
-		Provider:          oemConfig.Provider().Create(&logger),
+		FetchFunc:         oemConfig.FetchFunc(),
 		OemBaseConfig:     oemConfig.BaseConfig(),
 		DefaultUserConfig: oemConfig.DefaultUserConfig(),
 	}

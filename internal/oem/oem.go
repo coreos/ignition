@@ -35,7 +35,7 @@ import (
 type Config struct {
 	name              string
 	flags             map[string]string
-	provider          providers.ProviderCreator
+	fetch             providers.FuncFetchConfig
 	baseConfig        types.Config
 	defaultUserConfig types.Config
 }
@@ -48,8 +48,8 @@ func (c Config) Flags() map[string]string {
 	return c.flags
 }
 
-func (c Config) Provider() providers.ProviderCreator {
-	return c.provider
+func (c Config) FetchFunc() providers.FuncFetchConfig {
+	return c.fetch
 }
 
 func (c Config) BaseConfig() types.Config {
@@ -64,32 +64,32 @@ var configs = registry.Create("oem configs")
 
 func init() {
 	configs.Register(Config{
-		name:     "azure",
-		provider: azure.Creator{},
+		name:  "azure",
+		fetch: azure.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "cloudsigma",
-		provider: noop.Creator{},
+		name:  "cloudsigma",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "cloudstack",
-		provider: noop.Creator{},
+		name:  "cloudstack",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "digitalocean",
-		provider: noop.Creator{},
+		name:  "digitalocean",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "brightbox",
-		provider: noop.Creator{},
+		name:  "brightbox",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "openstack",
-		provider: noop.Creator{},
+		name:  "openstack",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "ec2",
-		provider: ec2.Creator{},
+		name:  "ec2",
+		fetch: ec2.FetchConfig,
 		flags: map[string]string{
 			"online-timeout": "0",
 		},
@@ -103,12 +103,12 @@ func init() {
 		},
 	})
 	configs.Register(Config{
-		name:     "exoscale",
-		provider: noop.Creator{},
+		name:  "exoscale",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "gce",
-		provider: gce.Creator{},
+		name:  "gce",
+		fetch: gce.FetchConfig,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.SystemdUnit{
@@ -149,44 +149,44 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("GCE", "gce")}}},
 	})
 	configs.Register(Config{
-		name:     "hyperv",
-		provider: noop.Creator{},
+		name:  "hyperv",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "niftycloud",
-		provider: noop.Creator{},
+		name:  "niftycloud",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "packet",
-		provider: packet.Creator{},
+		name:  "packet",
+		fetch: packet.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "pxe",
-		provider: cmdline.Creator{},
+		name:  "pxe",
+		fetch: cmdline.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "rackspace",
-		provider: noop.Creator{},
+		name:  "rackspace",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "rackspace-onmetal",
-		provider: noop.Creator{},
+		name:  "rackspace-onmetal",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "vagrant",
-		provider: noop.Creator{},
+		name:  "vagrant",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "vmware",
-		provider: vmware.Creator{},
+		name:  "vmware",
+		fetch: vmware.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "xendom0",
-		provider: noop.Creator{},
+		name:  "xendom0",
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:     "interoute",
-		provider: noop.Creator{},
+		name:  "interoute",
+		fetch: noop.FetchConfig,
 	})
 }
 

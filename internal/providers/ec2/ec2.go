@@ -19,52 +19,23 @@ package ec2
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	putil "github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/util"
 )
 
 const (
-	initialBackoff = 100 * time.Millisecond
-	maxBackoff     = 30 * time.Second
-	userdataUrl    = "http://169.254.169.254/2009-04-04/user-data"
+	userdataUrl = "http://169.254.169.254/2009-04-04/user-data"
 )
 
-type Creator struct{}
-
-func (Creator) Create(logger *log.Logger) providers.Provider {
-	return &provider{
-		logger:  logger,
-		backoff: initialBackoff,
-		client:  util.NewHttpClient(logger),
+func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, error) {
+	data := client.FetchConfig(userdataUrl, http.StatusOK, http.StatusNotFound)
+	if data == nil {
+		return types.Config{}, providers.ErrNoProvider
 	}
-}
 
-type provider struct {
-	logger    *log.Logger
-	backoff   time.Duration
-	client    util.HttpClient
-	rawConfig []byte
-}
-
-func (p provider) FetchConfig() (types.Config, error) {
-	return config.Parse(p.rawConfig)
-}
-
-func (p *provider) IsOnline() bool {
-	p.rawConfig = p.client.FetchConfig(userdataUrl, http.StatusOK, http.StatusNotFound)
-	return (p.rawConfig != nil)
-}
-
-func (p provider) ShouldRetry() bool {
-	return true
-}
-
-func (p *provider) BackoffDuration() time.Duration {
-	return putil.ExpBackoff(&p.backoff, maxBackoff)
+	return config.Parse(data)
 }
