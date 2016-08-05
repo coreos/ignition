@@ -14,14 +14,16 @@
 
 package types
 
-// File represents regular files
-type File struct {
-	Node
-	Contents FileContents `json:"contents,omitempty"`
-}
+import (
+	"path/filepath"
+)
 
-type FileContents struct {
-	Compression  Compression  `json:"compression,omitempty"`
-	Source       Url          `json:"source,omitempty"`
-	Verification Verification `json:"verification,omitempty"`
+type Directory Node
+
+func (d *Directory) Depth() int {
+	count := 0
+	for p := filepath.Clean(string(d.Path)); p != "/"; count++ {
+		p = filepath.Dir(p)
+	}
+	return count
 }
