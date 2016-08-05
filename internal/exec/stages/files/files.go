@@ -263,7 +263,9 @@ func (s stage) createEntries(fs types.Filesystem, files []filesystemEntry) error
 	}
 
 	for _, e := range files {
-		e.create(s.Logger, s.client, u)
+		if err := e.create(s.Logger, s.client, u); err != nil {
+			return err
+		}
 	}
 
 	return nil
