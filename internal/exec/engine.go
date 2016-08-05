@@ -82,11 +82,13 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 	// First try read the config @ e.ConfigCache.
 	b, err := ioutil.ReadFile(e.ConfigCache)
 	if err == nil {
-		if err = json.Unmarshal(b, &cfg); err != nil {
-			e.Logger.Crit("failed to parse cached config: %v", err)
+		if err = json.Unmarshal(b, &cfg); err == nil {
+			e.client = util.NewHttpClientWithTimeouts(e.Logger, cfg.Ignition.Timeouts)
+			return
 		}
-		e.client = util.NewHttpClientWithTimeouts(e.Logger, cfg.Ignition.Timeouts)
-		return
+		e.Logger.Err("failed to parse cached config: %v", err)
+	} else {
+		e.Logger.Err("failed to read cached config: %v", err)
 	}
 
 	e.client = util.NewHttpClient(e.Logger)
