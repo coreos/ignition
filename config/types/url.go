@@ -28,8 +28,12 @@ func (u *Url) UnmarshalJSON(data []byte) error {
 	}
 
 	pu, err := url.Parse(tu)
+	if err != nil {
+		return err
+	}
+
 	*u = Url(*pu)
-	return err
+	return nil
 }
 
 func (u Url) MarshalJSON() ([]byte, error) {
