@@ -33,9 +33,10 @@ type Filesystem struct {
 }
 
 type FilesystemMount struct {
-	Device Path              `json:"device,omitempty"`
-	Format FilesystemFormat  `json:"format,omitempty"`
-	Create *FilesystemCreate `json:"create,omitempty"`
+	Device      Path              `json:"device,omitempty"`
+	Format      FilesystemFormat  `json:"format,omitempty"`
+	UseIfExists bool              `json:"useIfExists,omitempty"`
+	Create      *FilesystemCreate `json:"create,omitempty"`
 }
 
 type FilesystemCreate struct {

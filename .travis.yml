@@ -22,6 +22,7 @@ addons:
     # install cross compilers for cgo support.
     - gcc-aarch64-linux-gnu
     - libc6-dev-arm64-cross
+    - libblkid-dev
 
 install:
   -

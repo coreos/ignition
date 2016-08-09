@@ -260,6 +260,13 @@ func (s stage) createFilesystem(fs types.FilesystemMount) error {
 		return nil
 	}
 
+	if fs.UseIfExists {
+		if format, err := s.readFilesystemType(fs); err == nil && format == string(fs.Format) {
+			s.Logger.Info("filesystem at %q is already formatted. Skipping mkfs...", fs.Device)
+			return nil
+		}
+	}
+
 	mkfs := ""
 	args := []string(fs.Create.Options)
 	switch fs.Format {
@@ -294,4 +301,20 @@ func (s stage) createFilesystem(fs types.FilesystemMount) error {
 	}
 
 	return nil
+}
+
+func (s stage) readFilesystemType(fs types.FilesystemMount) (string, error) {
+	var fsType string
+	err := s.Logger.LogOp(
+		func() (err error) {
+			fsType, err = util.FilesystemType(fs.Device)
+			if err == nil {
+				s.Logger.Info("found %s filesystem at %q", fsType, fs.Device)
+			}
+			return
+		},
+		"determining filesystem type of %q", fs.Device,
+	)
+
+	return fsType, err
 }
