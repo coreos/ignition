@@ -15,13 +15,13 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
 	"os"
 )
 
 var (
 	ErrFileIllegalMode = errors.New("illegal file mode")
+	ErrNoFilesystem    = errors.New("no filesystem specified")
 )
 
 type File struct {
@@ -31,6 +31,13 @@ type File struct {
 	Mode       FileMode     `json:"mode,omitempty"`
 	User       FileUser     `json:"user,omitempty"`
 	Group      FileGroup    `json:"group,omitempty"`
+}
+
+func (f File) AssertValid() error {
+	if f.Filesystem == "" {
+		return ErrNoFilesystem
+	}
+	return nil
 }
 
 type FileUser struct {
@@ -48,16 +55,6 @@ type FileContents struct {
 }
 
 type FileMode os.FileMode
-type fileMode FileMode
-
-func (m *FileMode) UnmarshalJSON(data []byte) error {
-	tm := fileMode(*m)
-	if err := json.Unmarshal(data, &tm); err != nil {
-		return err
-	}
-	*m = FileMode(tm)
-	return m.AssertValid()
-}
 
 func (m FileMode) AssertValid() error {
 	if (m &^ 07777) != 0 {

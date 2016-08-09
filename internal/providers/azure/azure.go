@@ -26,6 +26,7 @@ import (
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/util"
 )
@@ -49,14 +50,13 @@ const (
 	CDS_DISC_OK
 )
 
-func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, error) {
+func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, report.Report, error) {
 	logger.Debug("waiting for config DVD...")
 	waitForCdrom(logger)
 
-	logger.Debug("creating temporary mount point")
 	mnt, err := ioutil.TempDir("", "ignition-azure")
 	if err != nil {
-		return types.Config{}, fmt.Errorf("failed to create temp directory: %v", err)
+		return types.Config{}, report.Report{}, fmt.Errorf("failed to create temp directory: %v", err)
 	}
 	defer os.Remove(mnt)
 
@@ -65,7 +65,7 @@ func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, error) {
 		func() error { return syscall.Mount(configDevice, mnt, "udf", syscall.MS_RDONLY, "") },
 		"mounting %q at %q", configDevice, mnt,
 	); err != nil {
-		return types.Config{}, fmt.Errorf("failed to mount device %q at %q: %v", configDevice, mnt, err)
+		return types.Config{}, report.Report{}, fmt.Errorf("failed to mount device %q at %q: %v", configDevice, mnt, err)
 	}
 	defer logger.LogOp(
 		func() error { return syscall.Unmount(mnt, 0) },
@@ -75,7 +75,7 @@ func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, error) {
 	logger.Debug("reading config")
 	rawConfig, err := ioutil.ReadFile(filepath.Join(mnt, configPath))
 	if err != nil && !os.IsNotExist(err) {
-		return types.Config{}, fmt.Errorf("failed to read config: %v", err)
+		return types.Config{}, report.Report{}, fmt.Errorf("failed to read config: %v", err)
 	}
 
 	return config.Parse(rawConfig)

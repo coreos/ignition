@@ -25,6 +25,7 @@ import (
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/util"
@@ -35,15 +36,15 @@ const (
 	cmdlineUrlFlag = "coreos.config.url"
 )
 
-func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, error) {
+func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, report.Report, error) {
 	url, err := readCmdline(logger)
 	if err != nil || url == nil {
-		return types.Config{}, err
+		return types.Config{}, report.Report{}, err
 	}
 
 	data := client.FetchConfig(url.String(), http.StatusOK)
 	if data == nil {
-		return types.Config{}, providers.ErrNoProvider
+		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
 
 	return config.Parse(data)

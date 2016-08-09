@@ -15,7 +15,6 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
 )
 
@@ -24,21 +23,6 @@ var (
 )
 
 type Compression string
-
-func (c *Compression) UnmarshalJSON(data []byte) error {
-	return c.unmarshal(func(tc interface{}) error {
-		return json.Unmarshal(data, tc)
-	})
-}
-
-func (c *Compression) unmarshal(unmarshal func(interface{}) error) error {
-	var tc string
-	if err := unmarshal(&tc); err != nil {
-		return err
-	}
-	*c = Compression(tc)
-	return c.AssertValid()
-}
 
 func (c Compression) AssertValid() error {
 	switch c {
