@@ -55,7 +55,37 @@ func TestNodeModeUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestFileAssertValid(t *testing.T) {
+func TestNodeAssertValid(t *testing.T) {
+	type in struct {
+		node Node
+	}
+	type out struct {
+		err error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{node: Node{}},
+			out: out{err: ErrNoFilesystem},
+		},
+		{
+			in:  in{node: Node{Filesystem: "foo"}},
+			out: out{},
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.node.AssertValid()
+		if !reflect.DeepEqual(test.out.err, err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
+}
+
+func TestNodeModeAssertValid(t *testing.T) {
 	type in struct {
 		mode NodeMode
 	}
