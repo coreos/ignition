@@ -80,11 +80,11 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 	switch vObj.Kind() {
 	case reflect.Ptr:
 		sub_report := validate(vObj.Elem(), ast, source)
-		sub_report.AddLines(line)
+		sub_report.AddPosition(line, col)
 		r.Merge(sub_report)
 	case reflect.Struct:
 		sub_report := validateStruct(vObj, ast, source)
-		sub_report.AddLines(line)
+		sub_report.AddPosition(line, col)
 		r.Merge(sub_report)
 	case reflect.Slice:
 		for i := 0; i < vObj.Len(); i++ {
@@ -93,7 +93,7 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 				sub_node = val[i]
 			}
 			sub_report := validate(vObj.Index(i), sub_node, source)
-			sub_report.AddLines(line)
+			sub_report.AddPosition(line, col)
 			r.Merge(sub_report)
 		}
 	}
@@ -121,7 +121,7 @@ func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) rep
 		// Default to zero value json.Node if the field's corrosponding node cannot be found.
 		var sub_node json.Node
 		// Default to passing a nil source if the field's corrosponding node cannot be found.
-		// This ensures the line numbers reported from all sub-structs are 0 and will be changed by AddLines
+		// This ensures the line numbers reported from all sub-structs are 0 and will be changed by AddPosition
 		var src io.ReadSeeker
 
 		// Try to determine the json.Node that corrosponds with the struct field
@@ -141,8 +141,8 @@ func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) rep
 		sub_report := validate(vObj.Field(i), sub_node, src)
 		// Default to deepest node if the node's type isn't an object,
 		// such as when a json string actually unmarshal to structs (like with version)
-		line, _, _ := posFromOffset(off, src)
-		sub_report.AddLines(line)
+		line, col, _ := posFromOffset(off, src)
+		sub_report.AddPosition(line, col)
 		r.Merge(sub_report)
 	}
 	if !isFromObject {
