@@ -54,7 +54,7 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 		return
 	}
 
-	off := ast.End
+	line, col, highlight := posFromOffset(ast.End, source)
 
 	// See if we A) can call AssertValid on vObj, and B) should call AssertValid. AssertValid should NOT be called
 	// when vObj is nil, as it will panic or when vObj is a pointer to a value with AssertValid implemented with a
@@ -65,7 +65,6 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 		((vObj.Kind() != reflect.Ptr) ||
 			(!vObj.IsNil() && !vObj.Elem().Type().Implements(reflect.TypeOf((*assertValidator)(nil)).Elem()))) {
 		if err := obj.AssertValid(); err != nil {
-			line, col, highlight := posFromOffset(off, source)
 			r.Add(report.Entry{
 				Kind:      report.EntryError,
 				Message:   err.Error(),
@@ -81,11 +80,11 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 	switch vObj.Kind() {
 	case reflect.Ptr:
 		sub_report := validate(vObj.Elem(), ast, source)
-		sub_report.AddLines(off)
+		sub_report.AddPosition(line, col)
 		r.Merge(sub_report)
 	case reflect.Struct:
 		sub_report := validateStruct(vObj, ast, source)
-		sub_report.AddLines(off)
+		sub_report.AddPosition(line, col)
 		r.Merge(sub_report)
 	case reflect.Slice:
 		for i := 0; i < vObj.Len(); i++ {
@@ -94,7 +93,7 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 				sub_node = val[i]
 			}
 			sub_report := validate(vObj.Index(i), sub_node, source)
-			sub_report.AddLines(off)
+			sub_report.AddPosition(line, col)
 			r.Merge(sub_report)
 		}
 	}
@@ -106,7 +105,7 @@ func ValidateWithoutSource(cfg types.Config) (report report.Report) {
 }
 
 func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) report.Report {
-	off := ast.Start
+	off := ast.End
 	r := report.Report{}
 
 	// isFromObject will be true if this struct was unmarshalled from a JSON object.
@@ -119,20 +118,31 @@ func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) rep
 	tags := []string{}
 
 	for i := 0; i < vObj.Type().NumField(); i++ {
-		// Default to deepest node if the node's type isn't an object,
-		// such as when a json string actually unmarshal to structs (like with version)
-		sub_node := ast
+		// Default to zero value json.Node if the field's corrosponding node cannot be found.
+		var sub_node json.Node
+		// Default to passing a nil source if the field's corrosponding node cannot be found.
+		// This ensures the line numbers reported from all sub-structs are 0 and will be changed by AddPosition
+		var src io.ReadSeeker
+
+		// Try to determine the json.Node that corrosponds with the struct field
 		if isFromObject {
 			tag := strings.SplitN(vObj.Type().Field(i).Tag.Get("json"), ",", 2)[0]
-			// save the tag so we have a list of all the tags in the struct
+			// Save the tag so we have a list of all the tags in the struct
 			tags = append(tags, tag)
-			sub_node = keys[tag]
 			// mark that this key was used
 			usedKeys[tag] = struct{}{}
-		}
 
-		sub_report := validate(vObj.Field(i), sub_node, source)
-		sub_report.AddLines(off)
+			if sub, ok := keys[tag]; ok {
+				// Found it
+				sub_node = sub
+				src = source
+			}
+		}
+		sub_report := validate(vObj.Field(i), sub_node, src)
+		// Default to deepest node if the node's type isn't an object,
+		// such as when a json string actually unmarshal to structs (like with version)
+		line, col, _ := posFromOffset(off, src)
+		sub_report.AddPosition(line, col)
 		r.Merge(sub_report)
 	}
 	if !isFromObject {
