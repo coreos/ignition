@@ -12,15 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package types
+package validate
 
 import (
 	"errors"
 	"reflect"
 	"testing"
+
+	// Import into the same namespace to keep config definitions clean
+	. "github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestAssertValid(t *testing.T) {
+func TestValidate(t *testing.T) {
 	type in struct {
 		cfg Config
 	}
@@ -96,9 +100,10 @@ func TestAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.cfg.AssertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		r := ValidateWithoutSource(test.in.cfg)
+		expectedReport := report.ReportFromError(test.out.err, report.EntryError)
+		if !reflect.DeepEqual(expectedReport, r) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, expectedReport, r)
 		}
 	}
 }

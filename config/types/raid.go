@@ -15,7 +15,6 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -24,16 +23,6 @@ type Raid struct {
 	Level   string `json:"level"`
 	Devices []Path `json:"devices,omitempty"`
 	Spares  int    `json:"spares,omitempty"`
-}
-type raid Raid
-
-func (n *Raid) UnmarshalJSON(data []byte) error {
-	tn := raid(*n)
-	if err := json.Unmarshal(data, &tn); err != nil {
-		return err
-	}
-	*n = Raid(tn)
-	return n.AssertValid()
 }
 
 func (n Raid) AssertValid() error {

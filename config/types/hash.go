@@ -47,7 +47,7 @@ func (h *Hash) UnmarshalJSON(data []byte) error {
 	h.Function = parts[0]
 	h.Sum = parts[1]
 
-	return h.AssertValid()
+	return nil
 }
 
 func (h Hash) MarshalJSON() ([]byte, error) {

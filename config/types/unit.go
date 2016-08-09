@@ -15,7 +15,6 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
 	"path/filepath"
 )
@@ -34,16 +33,6 @@ type SystemdUnitDropIn struct {
 }
 
 type SystemdUnitName string
-type systemdUnitName SystemdUnitName
-
-func (n *SystemdUnitName) UnmarshalJSON(data []byte) error {
-	tn := systemdUnitName(*n)
-	if err := json.Unmarshal(data, &tn); err != nil {
-		return err
-	}
-	*n = SystemdUnitName(tn)
-	return n.AssertValid()
-}
 
 func (n SystemdUnitName) AssertValid() error {
 	switch filepath.Ext(string(n)) {
@@ -55,16 +44,6 @@ func (n SystemdUnitName) AssertValid() error {
 }
 
 type SystemdUnitDropInName string
-type systemdUnitDropInName SystemdUnitDropInName
-
-func (n *SystemdUnitDropInName) UnmarshalJSON(data []byte) error {
-	tn := systemdUnitDropInName(*n)
-	if err := json.Unmarshal(data, &tn); err != nil {
-		return err
-	}
-	*n = SystemdUnitDropInName(tn)
-	return n.AssertValid()
-}
 
 func (n SystemdUnitDropInName) AssertValid() error {
 	switch filepath.Ext(string(n)) {
@@ -81,16 +60,6 @@ type NetworkdUnit struct {
 }
 
 type NetworkdUnitName string
-type networkdUnitName NetworkdUnitName
-
-func (n *NetworkdUnitName) UnmarshalJSON(data []byte) error {
-	tn := networkdUnitName(*n)
-	if err := json.Unmarshal(data, &tn); err != nil {
-		return err
-	}
-	*n = NetworkdUnitName(tn)
-	return n.AssertValid()
-}
 
 func (n NetworkdUnitName) AssertValid() error {
 	switch filepath.Ext(string(n)) {

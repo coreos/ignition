@@ -15,7 +15,6 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -23,16 +22,6 @@ type Disk struct {
 	Device     Path        `json:"device,omitempty"`
 	WipeTable  bool        `json:"wipeTable,omitempty"`
 	Partitions []Partition `json:"partitions,omitempty"`
-}
-type disk Disk
-
-func (n *Disk) UnmarshalJSON(data []byte) error {
-	tn := disk(*n)
-	if err := json.Unmarshal(data, &tn); err != nil {
-		return err
-	}
-	*n = Disk(tn)
-	return n.AssertValid()
 }
 
 func (n Disk) AssertValid() error {

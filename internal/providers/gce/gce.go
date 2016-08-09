@@ -22,6 +22,7 @@ import (
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/util"
@@ -35,10 +36,10 @@ var (
 	metadataHeader = http.Header{"Metadata-Flavor": []string{"Google"}}
 )
 
-func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, error) {
+func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, report.Report, error) {
 	data := client.FetchConfigWithHeader(userdataUrl, metadataHeader, http.StatusOK, http.StatusNotFound)
 	if data == nil {
-		return types.Config{}, providers.ErrNoProvider
+		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
 
 	return config.Parse(data)

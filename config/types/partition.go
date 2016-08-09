@@ -15,7 +15,6 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 )
@@ -29,16 +28,6 @@ type Partition struct {
 }
 
 type PartitionLabel string
-type partitionLabel PartitionLabel
-
-func (n *PartitionLabel) UnmarshalJSON(data []byte) error {
-	tn := partitionLabel(*n)
-	if err := json.Unmarshal(data, &tn); err != nil {
-		return err
-	}
-	*n = PartitionLabel(tn)
-	return n.AssertValid()
-}
 
 func (n PartitionLabel) AssertValid() error {
 	// http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_entries:
@@ -54,26 +43,7 @@ func (n PartitionLabel) AssertValid() error {
 
 type PartitionDimension uint64
 
-func (n *PartitionDimension) UnmarshalJSON(data []byte) error {
-	var pd uint64
-	if err := json.Unmarshal(data, &pd); err != nil {
-		return err
-	}
-	*n = PartitionDimension(pd)
-	return nil
-}
-
 type PartitionTypeGUID string
-type partitionTypeGUID PartitionTypeGUID
-
-func (d *PartitionTypeGUID) UnmarshalJSON(data []byte) error {
-	td := partitionTypeGUID(*d)
-	if err := json.Unmarshal(data, &td); err != nil {
-		return err
-	}
-	*d = PartitionTypeGUID(td)
-	return d.AssertValid()
-}
 
 func (d PartitionTypeGUID) AssertValid() error {
 	ok, err := regexp.MatchString("^(|[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12})$", string(d))

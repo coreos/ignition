@@ -20,18 +20,19 @@ package packet
 import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/util"
 
 	"github.com/packethost/packngo/metadata"
 )
 
-func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, error) {
+func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, report.Report, error) {
 	logger.Debug("fetching config from packet metadata")
 	data, err := metadata.GetUserData()
 	if err != nil {
 		logger.Err("failed to fetch config: %v", err)
-		return types.Config{}, err
+		return types.Config{}, report.Report{}, err
 	}
 
 	return config.Parse(data)
