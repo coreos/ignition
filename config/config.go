@@ -38,8 +38,8 @@ var (
 // Parse parses the raw config into a types.Config struct and generates a report of any
 // errors, warnings, info, and deprecations it encountered
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
-	switch majorVersion(rawConfig) {
-	case 1:
+	switch version(rawConfig) {
+	case types.IgnitionVersion{Major: 1}:
 		config, err := ParseFromV1(rawConfig)
 		if err != nil {
 			return types.Config{}, report.ReportFromError(err, report.EntryError), err
@@ -133,7 +133,7 @@ func ParseFromV1(rawConfig []byte) (types.Config, error) {
 	return TranslateFromV1(config)
 }
 
-func majorVersion(rawConfig []byte) int64 {
+func version(rawConfig []byte) types.IgnitionVersion {
 	var composite struct {
 		Version  *int `json:"ignitionVersion"`
 		Ignition struct {
@@ -141,18 +141,15 @@ func majorVersion(rawConfig []byte) int64 {
 		} `json:"ignition"`
 	}
 
-	if json.Unmarshal(rawConfig, &composite) != nil {
-		return 0
+	if json.Unmarshal(rawConfig, &composite) == nil {
+		if composite.Ignition.Version != nil {
+			return *composite.Ignition.Version
+		} else if composite.Version != nil {
+			return types.IgnitionVersion{Major: int64(*composite.Version)}
+		}
 	}
 
-	var major int64
-	if composite.Ignition.Version != nil {
-		major = composite.Ignition.Version.Major
-	} else if composite.Version != nil {
-		major = int64(*composite.Version)
-	}
-
-	return major
+	return types.IgnitionVersion{}
 }
 
 func isEmpty(userdata []byte) bool {
