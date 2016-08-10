@@ -17,9 +17,11 @@ package types
 import (
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestPathAssertValid(t *testing.T) {
+func TestPathValidate(t *testing.T) {
 	type in struct {
 		device Path
 	}
@@ -54,8 +56,8 @@ func TestPathAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.device.AssertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
+		err := test.in.device.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
 	}

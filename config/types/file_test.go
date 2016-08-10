@@ -17,9 +17,11 @@ package types
 import (
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestFileAssertValid(t *testing.T) {
+func TestFileValidate(t *testing.T) {
 	type in struct {
 		mode FileMode
 	}
@@ -54,8 +56,8 @@ func TestFileAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.mode.AssertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
+		err := test.in.mode.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
 	}

@@ -17,6 +17,8 @@ package types
 import (
 	"errors"
 	"os"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 var (
@@ -33,11 +35,11 @@ type File struct {
 	Group      FileGroup    `json:"group,omitempty"`
 }
 
-func (f File) AssertValid() error {
+func (f File) Validate() report.Report {
 	if f.Filesystem == "" {
-		return ErrNoFilesystem
+		return report.ReportFromError(ErrNoFilesystem, report.EntryError)
 	}
-	return nil
+	return report.Report{}
 }
 
 type FileUser struct {
@@ -56,9 +58,9 @@ type FileContents struct {
 
 type FileMode os.FileMode
 
-func (m FileMode) AssertValid() error {
+func (m FileMode) Validate() report.Report {
 	if (m &^ 07777) != 0 {
-		return ErrFileIllegalMode
+		return report.ReportFromError(ErrFileIllegalMode, report.EntryError)
 	}
-	return nil
+	return report.Report{}
 }

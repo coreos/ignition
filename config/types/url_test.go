@@ -18,9 +18,11 @@ import (
 	"net/url"
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestURLAssertValid(t *testing.T) {
+func TestURLValidate(t *testing.T) {
 	type in struct {
 		u string
 	}
@@ -59,9 +61,9 @@ func TestURLAssertValid(t *testing.T) {
 		if err != nil {
 			t.Errorf("URL failed to parse. This is an error with the test")
 		}
-		err = Url(*u).AssertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		r := Url(*u).Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), r) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, r)
 		}
 	}
 }

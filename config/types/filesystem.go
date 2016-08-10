@@ -16,6 +16,8 @@ package types
 
 import (
 	"errors"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 var (
@@ -41,24 +43,24 @@ type FilesystemCreate struct {
 	Options MkfsOptions `json:"options,omitempty"`
 }
 
-func (f Filesystem) AssertValid() error {
+func (f Filesystem) Validate() report.Report {
 	if f.Mount == nil && f.Path == nil {
-		return ErrFilesystemNoMountPath
+		return report.ReportFromError(ErrFilesystemNoMountPath, report.EntryError)
 	}
 	if f.Mount != nil && f.Path != nil {
-		return ErrFilesystemMountAndPath
+		return report.ReportFromError(ErrFilesystemMountAndPath, report.EntryError)
 	}
-	return nil
+	return report.Report{}
 }
 
 type FilesystemFormat string
 
-func (f FilesystemFormat) AssertValid() error {
+func (f FilesystemFormat) Validate() report.Report {
 	switch f {
 	case "ext4", "btrfs", "xfs":
-		return nil
+		return report.Report{}
 	default:
-		return ErrFilesystemInvalidFormat
+		return report.ReportFromError(ErrFilesystemInvalidFormat, report.EntryError)
 	}
 }
 
