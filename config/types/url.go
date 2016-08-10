@@ -16,7 +16,12 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 	"net/url"
+)
+
+var (
+	ErrInvalidScheme = errors.New("invalid url scheme")
 )
 
 type Url url.URL
@@ -43,4 +48,17 @@ func (u Url) MarshalJSON() ([]byte, error) {
 func (u Url) String() string {
 	tu := url.URL(u)
 	return (&tu).String()
+}
+
+func (u Url) AssertValid() error {
+	// Empty url is valid, indicates an empty file
+	if u.String() == "" {
+		return nil
+	}
+	switch url.URL(u).Scheme {
+	case "http", "https", "oem":
+		return nil
+	}
+
+	return ErrInvalidScheme
 }
