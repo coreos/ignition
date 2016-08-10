@@ -16,6 +16,8 @@ package types
 
 import (
 	"errors"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 var (
@@ -24,11 +26,11 @@ var (
 
 type Compression string
 
-func (c Compression) AssertValid() error {
+func (c Compression) Validate() report.Report {
 	switch c {
 	case "", "gzip":
 	default:
-		return ErrCompressionInvalid
+		return report.ReportFromError(ErrCompressionInvalid, report.EntryError)
 	}
-	return nil
+	return report.Report{}
 }

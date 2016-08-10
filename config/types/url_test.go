@@ -15,15 +15,16 @@
 package types
 
 import (
+	"net/url"
 	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestPathValidate(t *testing.T) {
+func TestURLValidate(t *testing.T) {
 	type in struct {
-		device Path
+		u string
 	}
 	type out struct {
 		err error
@@ -34,31 +35,35 @@ func TestPathValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{device: Path("/good/path")},
+			in:  in{u: ""},
 			out: out{},
 		},
 		{
-			in:  in{device: Path("/name")},
+			in:  in{u: "http://example.com"},
 			out: out{},
 		},
 		{
-			in:  in{device: Path("/this/is/a/fairly/long/path/to/a/device.")},
+			in:  in{u: "https://example.com"},
 			out: out{},
 		},
 		{
-			in:  in{device: Path("/this one has spaces")},
+			in:  in{u: "oem:///foobar"},
 			out: out{},
 		},
 		{
-			in:  in{device: Path("relative/path")},
-			out: out{err: ErrPathRelative},
+			in:  in{u: "bad://"},
+			out: out{err: ErrInvalidScheme},
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.device.Validate()
-		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		u, err := url.Parse(test.in.u)
+		if err != nil {
+			t.Errorf("URL failed to parse. This is an error with the test")
+		}
+		r := Url(*u).Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), r) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, r)
 		}
 	}
 }

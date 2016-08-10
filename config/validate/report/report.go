@@ -60,13 +60,7 @@ func (e entries) Swap(i, j int) {
 
 func (e entries) Less(i, j int) bool {
 	if e[i].Line != e[j].Line {
-		if e[i].Line == -1 {
-			return false
-		}
 		return e[i].Line < e[j].Line
-	}
-	if e[i].Column == -1 {
-		return false
 	}
 	return e[i].Column < e[j].Column
 }
@@ -78,13 +72,15 @@ const (
 	EntryDeprecated
 )
 
-// AddLines finds all Lines of -1 (indicating invalid) and sets them to def. This is useful for
-// when something had a custom unmarshaller and thus doesn't have an exact offset but you know the start of
-// it, which is still pretty good.
-func (r *Report) AddLines(def int) {
+// AddPosition updates all the entries with Line equal to 0 and sets the Line/Column fields to line/column. This is useful for
+// when a type has a custom unmarshaller and thus can't determine an exact offset of the error with the type. In this case
+// the offset for the entire chunk of json that got unmarshalled to the type can be used instead, which is still pretty good.
+func (r *Report) AddPosition(line, col int, highlight string) {
 	for i, e := range r.Entries {
 		if e.Line == 0 {
-			r.Entries[i].Line = def
+			r.Entries[i].Line = line
+			r.Entries[i].Column = col
+			r.Entries[i].Highlight = highlight
 		}
 	}
 }

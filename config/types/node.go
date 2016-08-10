@@ -15,9 +15,10 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
 	"os"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 var (
@@ -42,28 +43,18 @@ type NodeGroup struct {
 	Id int `json:"id,omitempty"`
 }
 
-func (n Node) AssertValid() error {
+func (n Node) Validate() report.Report {
 	if n.Filesystem == "" {
-		return ErrNoFilesystem
+		return report.ReportFromError(ErrNoFilesystem, report.EntryError)
 	}
-	return nil
+	return report.Report{}
 }
 
 type NodeMode os.FileMode
-type nodeMode NodeMode
 
-func (m *NodeMode) UnmarshalJSON(data []byte) error {
-	tm := nodeMode(*m)
-	if err := json.Unmarshal(data, &tm); err != nil {
-		return err
-	}
-	*m = NodeMode(tm)
-	return m.AssertValid()
-}
-
-func (m NodeMode) AssertValid() error {
+func (m NodeMode) Validate() report.Report {
 	if (m &^ 07777) != 0 {
-		return ErrFileIllegalMode
+		return report.ReportFromError(ErrFileIllegalMode, report.EntryError)
 	}
-	return nil
+	return report.Report{}
 }

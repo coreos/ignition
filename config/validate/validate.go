@@ -26,8 +26,8 @@ import (
 	"go4.org/errorutil"
 )
 
-type assertValidator interface {
-	AssertValid() error
+type validator interface {
+	Validate() report.Report
 }
 
 // wrapper for errorutil that handles missing sources sanely and resets the reader afterwards
@@ -43,37 +43,35 @@ func posFromOffset(offset int, source io.ReadSeeker) (int, int, string) {
 func Validate(cfg types.Config, ast json.Node, source io.ReadSeeker) report.Report {
 	v := reflect.ValueOf(cfg)
 	r := validate(v, ast, source)
-	r.Merge(applyRules(cfg))
 	return r
 }
 
-// Validate walks down a struct tree calling AssertValid on every node that implements it, building
+// Validate walks down a struct tree calling Validate on every node that implements it, building
 // A report of all the errors, warnings, info, and deprecations it encounters
 func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report.Report) {
 	if !vObj.IsValid() {
 		return
 	}
 
-	off := ast.End
+	line, col, highlight := posFromOffset(ast.End, source)
 
-	// See if we A) can call AssertValid on vObj, and B) should call AssertValid. AssertValid should NOT be called
-	// when vObj is nil, as it will panic or when vObj is a pointer to a value with AssertValid implemented with a
-	// value receiver. This is to prevent AssertValid being called twice, as otherwise it would be called on the
+	// See if we A) can call Validate on vObj, and B) should call Validate. Validate should NOT be called
+	// when vObj is nil, as it will panic or when vObj is a pointer to a value with Validate implemented with a
+	// value receiver. This is to prevent Validate being called twice, as otherwise it would be called on the
 	// pointer version (due to go's automatic deferencing) and once when the pointer is deferenced below. The only
-	// time AssertValid should be called on a pointer is when the function is implemented with a pointer reciever.
-	if obj, ok := vObj.Interface().(assertValidator); ok &&
+	// time Validate should be called on a pointer is when the function is implemented with a pointer reciever.
+	if obj, ok := vObj.Interface().(validator); ok &&
 		((vObj.Kind() != reflect.Ptr) ||
-			(!vObj.IsNil() && !vObj.Elem().Type().Implements(reflect.TypeOf((*assertValidator)(nil)).Elem()))) {
-		if err := obj.AssertValid(); err != nil {
-			line, col, highlight := posFromOffset(off, source)
-			r.Add(report.Entry{
-				Kind:      report.EntryError,
-				Message:   err.Error(),
-				Line:      line,
-				Column:    col,
-				Highlight: highlight,
-			})
-			// Dont recurse on invalid inner nodes, it mostly leads to bogus messages
+			(!vObj.IsNil() && !vObj.Elem().Type().Implements(reflect.TypeOf((*validator)(nil)).Elem()))) {
+		sub_r := obj.Validate()
+		if vObj.Type() != reflect.TypeOf(types.Config{}) {
+			// Config checks are done on the config as a whole and shouldn't get line numbers
+			sub_r.AddPosition(line, col, highlight)
+		}
+		r.Merge(sub_r)
+
+		// Dont recurse on invalid inner nodes, it mostly leads to bogus messages
+		if sub_r.IsFatal() {
 			return
 		}
 	}
@@ -81,11 +79,11 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 	switch vObj.Kind() {
 	case reflect.Ptr:
 		sub_report := validate(vObj.Elem(), ast, source)
-		sub_report.AddLines(off)
+		sub_report.AddPosition(line, col, "")
 		r.Merge(sub_report)
 	case reflect.Struct:
 		sub_report := validateStruct(vObj, ast, source)
-		sub_report.AddLines(off)
+		sub_report.AddPosition(line, col, "")
 		r.Merge(sub_report)
 	case reflect.Slice:
 		for i := 0; i < vObj.Len(); i++ {
@@ -94,7 +92,7 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 				sub_node = val[i]
 			}
 			sub_report := validate(vObj.Index(i), sub_node, source)
-			sub_report.AddLines(off)
+			sub_report.AddPosition(line, col, "")
 			r.Merge(sub_report)
 		}
 	}
@@ -106,7 +104,7 @@ func ValidateWithoutSource(cfg types.Config) (report report.Report) {
 }
 
 func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) report.Report {
-	off := ast.Start
+	off := ast.End
 	r := report.Report{}
 
 	// isFromObject will be true if this struct was unmarshalled from a JSON object.
@@ -119,20 +117,31 @@ func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) rep
 	tags := []string{}
 
 	for i := 0; i < vObj.Type().NumField(); i++ {
-		// Default to deepest node if the node's type isn't an object,
-		// such as when a json string actually unmarshal to structs (like with version)
-		sub_node := ast
+		// Default to zero value json.Node if the field's corrosponding node cannot be found.
+		var sub_node json.Node
+		// Default to passing a nil source if the field's corrosponding node cannot be found.
+		// This ensures the line numbers reported from all sub-structs are 0 and will be changed by AddPosition
+		var src io.ReadSeeker
+
+		// Try to determine the json.Node that corrosponds with the struct field
 		if isFromObject {
 			tag := strings.SplitN(vObj.Type().Field(i).Tag.Get("json"), ",", 2)[0]
-			// save the tag so we have a list of all the tags in the struct
+			// Save the tag so we have a list of all the tags in the struct
 			tags = append(tags, tag)
-			sub_node = keys[tag]
 			// mark that this key was used
 			usedKeys[tag] = struct{}{}
-		}
 
-		sub_report := validate(vObj.Field(i), sub_node, source)
-		sub_report.AddLines(off)
+			if sub, ok := keys[tag]; ok {
+				// Found it
+				sub_node = sub
+				src = source
+			}
+		}
+		sub_report := validate(vObj.Field(i), sub_node, src)
+		// Default to deepest node if the node's type isn't an object,
+		// such as when a json string actually unmarshal to structs (like with version)
+		line, col, _ := posFromOffset(off, src)
+		sub_report.AddPosition(line, col, "")
 		r.Merge(sub_report)
 	}
 	if !isFromObject {

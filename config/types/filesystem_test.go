@@ -17,9 +17,11 @@ package types
 import (
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestFilesystemFormatAssertValid(t *testing.T) {
+func TestFilesystemFormatValidate(t *testing.T) {
 	type in struct {
 		format FilesystemFormat
 	}
@@ -46,14 +48,14 @@ func TestFilesystemFormatAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.format.AssertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
+		err := test.in.format.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
 	}
 }
 
-func TestFilesystemAssertValid(t *testing.T) {
+func TestFilesystemValidate(t *testing.T) {
 	type in struct {
 		filesystem Filesystem
 	}
@@ -70,20 +72,8 @@ func TestFilesystemAssertValid(t *testing.T) {
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Mount: &FilesystemMount{Device: "/foo"}}},
-			out: out{err: ErrFilesystemInvalidFormat},
-		},
-		{
-			in:  in{filesystem: Filesystem{Mount: &FilesystemMount{Format: "ext4"}}},
-			out: out{err: ErrPathRelative},
-		},
-		{
 			in:  in{filesystem: Filesystem{Path: func(p Path) *Path { return &p }("/mount")}},
 			out: out{},
-		},
-		{
-			in:  in{filesystem: Filesystem{Path: func(p Path) *Path { return &p }("mount")}},
-			out: out{err: ErrPathRelative},
 		},
 		{
 			in:  in{filesystem: Filesystem{Path: func(p Path) *Path { return &p }("/mount"), Mount: &FilesystemMount{Device: "/foo", Format: "ext4"}}},
@@ -96,8 +86,8 @@ func TestFilesystemAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.filesystem.AssertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
+		err := test.in.filesystem.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
 	}

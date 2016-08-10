@@ -15,52 +15,18 @@
 package types
 
 import (
-	"encoding/json"
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestNodeModeUnmarshalJSON(t *testing.T) {
-	type in struct {
-		data string
-	}
-	type out struct {
-		mode NodeMode
-		err  error
-	}
-
-	tests := []struct {
-		in  in
-		out out
-	}{
-		{
-			in:  in{data: `420`},
-			out: out{mode: NodeMode(420)},
-		},
-		{
-			in:  in{data: `9999`},
-			out: out{mode: NodeMode(9999), err: ErrFileIllegalMode},
-		},
-	}
-
-	for i, test := range tests {
-		var mode NodeMode
-		err := json.Unmarshal([]byte(test.in.data), &mode)
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
-		}
-		if !reflect.DeepEqual(test.out.mode, mode) {
-			t.Errorf("#%d: bad mode: want %#o, got %#o", i, test.out.mode, mode)
-		}
-	}
-}
-
-func TestNodeAssertValid(t *testing.T) {
+func TestNodeValidate(t *testing.T) {
 	type in struct {
 		node Node
 	}
 	type out struct {
-		err error
+		report report.Report
 	}
 
 	tests := []struct {
@@ -69,7 +35,7 @@ func TestNodeAssertValid(t *testing.T) {
 	}{
 		{
 			in:  in{node: Node{}},
-			out: out{err: ErrNoFilesystem},
+			out: out{report: report.ReportFromError(ErrNoFilesystem, report.EntryError)},
 		},
 		{
 			in:  in{node: Node{Filesystem: "foo"}},
@@ -78,19 +44,19 @@ func TestNodeAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.node.AssertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		report := test.in.node.Validate()
+		if !reflect.DeepEqual(test.out.report, report) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.report, report)
 		}
 	}
 }
 
-func TestNodeModeAssertValid(t *testing.T) {
+func TestNodeModeValidate(t *testing.T) {
 	type in struct {
 		mode NodeMode
 	}
 	type out struct {
-		err error
+		report report.Report
 	}
 
 	tests := []struct {
@@ -115,14 +81,14 @@ func TestNodeModeAssertValid(t *testing.T) {
 		},
 		{
 			in:  in{mode: NodeMode(010000)},
-			out: out{err: ErrFileIllegalMode},
+			out: out{report: report.ReportFromError(ErrFileIllegalMode, report.EntryError)},
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.mode.AssertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		report := test.in.mode.Validate()
+		if !reflect.DeepEqual(test.out.report, report) {
+			t.Errorf("#%d: bad report: want %v, got %v", i, test.out.report, report)
 		}
 	}
 }

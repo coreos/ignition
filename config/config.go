@@ -65,7 +65,10 @@ func ParseFromLatest(rawConfig []byte) (types.Config, report.Report, error) {
 
 	// These errors are fatal and the config should not be further validated
 	if err = json.Unmarshal(rawConfig, &config); err == nil {
-		err = config.Ignition.Version.AssertValid()
+		versionReport := config.Ignition.Version.Validate()
+		if versionReport.IsFatal() {
+			return types.Config{}, versionReport, ErrInvalid
+		}
 	}
 
 	// Handle json syntax and type errors first, since they are fatal but have offset info

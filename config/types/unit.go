@@ -17,6 +17,8 @@ package types
 import (
 	"errors"
 	"path/filepath"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 type SystemdUnit struct {
@@ -34,23 +36,23 @@ type SystemdUnitDropIn struct {
 
 type SystemdUnitName string
 
-func (n SystemdUnitName) AssertValid() error {
+func (n SystemdUnitName) Validate() report.Report {
 	switch filepath.Ext(string(n)) {
 	case ".service", ".socket", ".device", ".mount", ".automount", ".swap", ".target", ".path", ".timer", ".snapshot", ".slice", ".scope":
-		return nil
+		return report.Report{}
 	default:
-		return errors.New("invalid systemd unit extension")
+		return report.ReportFromError(errors.New("invalid systemd unit extension"), report.EntryError)
 	}
 }
 
 type SystemdUnitDropInName string
 
-func (n SystemdUnitDropInName) AssertValid() error {
+func (n SystemdUnitDropInName) Validate() report.Report {
 	switch filepath.Ext(string(n)) {
 	case ".conf":
-		return nil
+		return report.Report{}
 	default:
-		return errors.New("invalid systemd unit drop-in extension")
+		return report.ReportFromError(errors.New("invalid systemd unit drop-in extension"), report.EntryError)
 	}
 }
 
@@ -61,11 +63,11 @@ type NetworkdUnit struct {
 
 type NetworkdUnitName string
 
-func (n NetworkdUnitName) AssertValid() error {
+func (n NetworkdUnitName) Validate() report.Report {
 	switch filepath.Ext(string(n)) {
 	case ".link", ".netdev", ".network":
-		return nil
+		return report.Report{}
 	default:
-		return errors.New("invalid networkd unit extension")
+		return report.ReportFromError(errors.New("invalid networkd unit extension"), report.EntryError)
 	}
 }

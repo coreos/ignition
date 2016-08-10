@@ -16,6 +16,8 @@ package types
 
 import (
 	"errors"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 var (
@@ -41,56 +43,25 @@ type FilesystemCreate struct {
 	Options MkfsOptions `json:"options,omitempty"`
 }
 
-func (f Filesystem) AssertValid() error {
-	hasMount := false
-	hasPath := false
-
-	if f.Mount != nil {
-		hasMount = true
-		if err := f.Mount.AssertValid(); err != nil {
-			return err
-		}
+func (f Filesystem) Validate() report.Report {
+	if f.Mount == nil && f.Path == nil {
+		return report.ReportFromError(ErrFilesystemNoMountPath, report.EntryError)
 	}
-
-	if f.Path != nil {
-		hasPath = true
-		if err := f.Path.AssertValid(); err != nil {
-			return err
-		}
+	if f.Mount != nil && f.Path != nil {
+		return report.ReportFromError(ErrFilesystemMountAndPath, report.EntryError)
 	}
-
-	if !hasMount && !hasPath {
-		return ErrFilesystemNoMountPath
-	} else if hasMount && hasPath {
-		return ErrFilesystemMountAndPath
-	}
-
-	return nil
-}
-
-func (f FilesystemMount) AssertValid() error {
-	if err := f.Device.AssertValid(); err != nil {
-		return err
-	}
-	if err := f.Format.AssertValid(); err != nil {
-		return err
-	}
-	return nil
+	return report.Report{}
 }
 
 type FilesystemFormat string
 
-func (f FilesystemFormat) AssertValid() error {
+func (f FilesystemFormat) Validate() report.Report {
 	switch f {
 	case "ext4", "btrfs", "xfs":
-		return nil
+		return report.Report{}
 	default:
-		return ErrFilesystemInvalidFormat
+		return report.ReportFromError(ErrFilesystemInvalidFormat, report.EntryError)
 	}
 }
 
 type MkfsOptions []string
-
-func (o MkfsOptions) AssertValid() error {
-	return nil
-}
