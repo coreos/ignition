@@ -42,38 +42,11 @@ type FilesystemCreate struct {
 }
 
 func (f Filesystem) AssertValid() error {
-	hasMount := false
-	hasPath := false
-
-	if f.Mount != nil {
-		hasMount = true
-		if err := f.Mount.AssertValid(); err != nil {
-			return err
-		}
-	}
-
-	if f.Path != nil {
-		hasPath = true
-		if err := f.Path.AssertValid(); err != nil {
-			return err
-		}
-	}
-
-	if !hasMount && !hasPath {
+	if f.Mount == nil && f.Path == nil {
 		return ErrFilesystemNoMountPath
-	} else if hasMount && hasPath {
+	}
+	if f.Mount != nil && f.Path != nil {
 		return ErrFilesystemMountAndPath
-	}
-
-	return nil
-}
-
-func (f FilesystemMount) AssertValid() error {
-	if err := f.Device.AssertValid(); err != nil {
-		return err
-	}
-	if err := f.Format.AssertValid(); err != nil {
-		return err
 	}
 	return nil
 }
@@ -90,7 +63,3 @@ func (f FilesystemFormat) AssertValid() error {
 }
 
 type MkfsOptions []string
-
-func (o MkfsOptions) AssertValid() error {
-	return nil
-}

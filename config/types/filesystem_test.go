@@ -70,20 +70,8 @@ func TestFilesystemAssertValid(t *testing.T) {
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Mount: &FilesystemMount{Device: "/foo"}}},
-			out: out{err: ErrFilesystemInvalidFormat},
-		},
-		{
-			in:  in{filesystem: Filesystem{Mount: &FilesystemMount{Format: "ext4"}}},
-			out: out{err: ErrPathRelative},
-		},
-		{
 			in:  in{filesystem: Filesystem{Path: func(p Path) *Path { return &p }("/mount")}},
 			out: out{},
-		},
-		{
-			in:  in{filesystem: Filesystem{Path: func(p Path) *Path { return &p }("mount")}},
-			out: out{err: ErrPathRelative},
 		},
 		{
 			in:  in{filesystem: Filesystem{Path: func(p Path) *Path { return &p }("/mount"), Mount: &FilesystemMount{Device: "/foo", Format: "ext4"}}},
