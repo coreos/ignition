@@ -103,6 +103,25 @@ func ValidateWithoutSource(cfg types.Config) (report report.Report) {
 	return Validate(cfg, json.Node{}, nil)
 }
 
+type field struct {
+	Type  reflect.StructField
+	Value reflect.Value
+}
+
+// getFields returns a field of all the fields in the struct, including the fields of
+// embedded structs.
+func getFields(vObj reflect.Value) []field {
+	ret := []field{}
+	for i := 0; i < vObj.Type().NumField(); i++ {
+		if vObj.Type().Field(i).Anonymous {
+			ret = append(ret, getFields(vObj.Field(i))...)
+		} else {
+			ret = append(ret, field{Type: vObj.Type().Field(i), Value: vObj.Field(i)})
+		}
+	}
+	return ret
+}
+
 func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) report.Report {
 	off := ast.End
 	r := report.Report{}
@@ -116,7 +135,7 @@ func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) rep
 	// Maintain a list of all the tags in the struct for fuzzy matching later.
 	tags := []string{}
 
-	for i := 0; i < vObj.Type().NumField(); i++ {
+	for _, f := range getFields(vObj) {
 		// Default to zero value json.Node if the field's corrosponding node cannot be found.
 		var sub_node json.Node
 		// Default to passing a nil source if the field's corrosponding node cannot be found.
@@ -125,7 +144,7 @@ func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) rep
 
 		// Try to determine the json.Node that corrosponds with the struct field
 		if isFromObject {
-			tag := strings.SplitN(vObj.Type().Field(i).Tag.Get("json"), ",", 2)[0]
+			tag := strings.SplitN(f.Type.Tag.Get("json"), ",", 2)[0]
 			// Save the tag so we have a list of all the tags in the struct
 			tags = append(tags, tag)
 			// mark that this key was used
@@ -137,7 +156,7 @@ func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) rep
 				src = source
 			}
 		}
-		sub_report := validate(vObj.Field(i), sub_node, src)
+		sub_report := validate(f.Value, sub_node, src)
 		// Default to deepest node if the node's type isn't an object,
 		// such as when a json string actually unmarshal to structs (like with version)
 		line, col, _ := posFromOffset(off, src)
