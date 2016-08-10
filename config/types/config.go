@@ -15,7 +15,11 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/coreos/go-semver/semver"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 var (
@@ -31,4 +35,53 @@ type Config struct {
 	Systemd  Systemd  `json:"systemd,omitempty"`
 	Networkd Networkd `json:"networkd,omitempty"`
 	Passwd   Passwd   `json:"passwd,omitempty"`
+}
+
+func (c Config) Validate() report.Report {
+	r := report.Report{}
+	rules := []rule{
+		checkFilesFilesystems,
+		checkDuplicateFilesystems,
+	}
+
+	for _, rule := range rules {
+		rule(c, &r)
+	}
+	return r
+}
+
+type rule func(cfg Config, report *report.Report)
+
+func checkFilesFilesystems(cfg Config, r *report.Report) {
+	filesystems := map[string]struct{}{"root": {}}
+	for _, filesystem := range cfg.Storage.Filesystems {
+		filesystems[filesystem.Name] = struct{}{}
+	}
+	for _, file := range cfg.Storage.Files {
+		if file.Filesystem == "" {
+			// Filesystem was not specified. This is an error, but its handled in types.File's Validate, not here
+			continue
+		}
+		_, ok := filesystems[file.Filesystem]
+		if !ok {
+			r.Add(report.Entry{
+				Kind: report.EntryWarning,
+				Message: fmt.Sprintf("File %q references nonexistent filesystem %q. (This is ok if it is defined in a referenced config)",
+					file.Path, file.Filesystem),
+			})
+		}
+	}
+}
+
+func checkDuplicateFilesystems(cfg Config, r *report.Report) {
+	filesystems := map[string]struct{}{"root": {}}
+	for _, filesystem := range cfg.Storage.Filesystems {
+		if _, ok := filesystems[filesystem.Name]; ok {
+			r.Add(report.Entry{
+				Kind:    report.EntryWarning,
+				Message: fmt.Sprintf("Filesystem %q shadows exising filesystem definition", filesystem.Name),
+			})
+		}
+		filesystems[filesystem.Name] = struct{}{}
+	}
 }

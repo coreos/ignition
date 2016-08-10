@@ -16,6 +16,8 @@ package types
 
 import (
 	"fmt"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 type Raid struct {
@@ -25,11 +27,11 @@ type Raid struct {
 	Spares  int    `json:"spares,omitempty"`
 }
 
-func (n Raid) AssertValid() error {
+func (n Raid) Validate() report.Report {
 	switch n.Level {
 	case "linear", "raid0", "0", "stripe":
 		if n.Spares != 0 {
-			return fmt.Errorf("spares unsupported for %q arrays", n.Level)
+			return report.ReportFromError(fmt.Errorf("spares unsupported for %q arrays", n.Level), report.EntryError)
 		}
 	case "raid1", "1", "mirror":
 	case "raid4", "4":
@@ -37,7 +39,7 @@ func (n Raid) AssertValid() error {
 	case "raid6", "6":
 	case "raid10", "10":
 	default:
-		return fmt.Errorf("unrecognized raid level: %q", n.Level)
+		return report.ReportFromError(fmt.Errorf("unrecognized raid level: %q", n.Level), report.EntryError)
 	}
-	return nil
+	return report.Report{}
 }

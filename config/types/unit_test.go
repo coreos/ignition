@@ -18,9 +18,11 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestSystemdUnitNameAssertValid(t *testing.T) {
+func TestSystemdUnitNameValidate(t *testing.T) {
 	type in struct {
 		unit SystemdUnitName
 	}
@@ -47,14 +49,14 @@ func TestSystemdUnitNameAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.unit.AssertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
+		err := test.in.unit.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
 	}
 }
 
-func TestNetworkdUnitNameAssertValid(t *testing.T) {
+func TestNetworkdUnitNameValidate(t *testing.T) {
 	type in struct {
 		unit NetworkdUnitName
 	}
@@ -85,8 +87,8 @@ func TestNetworkdUnitNameAssertValid(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.unit.AssertValid()
-		if !reflect.DeepEqual(test.out.err, err) {
+		err := test.in.unit.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
 	}

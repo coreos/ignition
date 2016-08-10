@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/url"
+
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 var (
@@ -50,15 +52,15 @@ func (u Url) String() string {
 	return (&tu).String()
 }
 
-func (u Url) AssertValid() error {
+func (u Url) Validate() report.Report {
 	// Empty url is valid, indicates an empty file
 	if u.String() == "" {
-		return nil
+		return report.Report{}
 	}
 	switch url.URL(u).Scheme {
 	case "http", "https", "oem":
-		return nil
+		return report.Report{}
 	}
 
-	return ErrInvalidScheme
+	return report.ReportFromError(ErrInvalidScheme, report.EntryError)
 }
