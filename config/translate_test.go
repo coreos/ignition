@@ -28,7 +28,6 @@ func TestTranslateFromV1(t *testing.T) {
 	}
 	type out struct {
 		config types.Config
-		err    error
 	}
 
 	tests := []struct {
@@ -420,10 +419,7 @@ func TestTranslateFromV1(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		config, err := TranslateFromV1(test.in.config)
-		if test.out.err != err {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
-		}
+		config := TranslateFromV1(test.in.config)
 		if !reflect.DeepEqual(test.out.config, config) {
 			t.Errorf("#%d: bad config: want %+v, got %+v", i, test.out.config, config)
 		}

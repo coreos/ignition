@@ -133,7 +133,7 @@ func ParseFromV1(rawConfig []byte) (types.Config, error) {
 		return types.Config{}, err
 	}
 
-	return TranslateFromV1(config)
+	return TranslateFromV1(config), nil
 }
 
 func version(rawConfig []byte) types.IgnitionVersion {

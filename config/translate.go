@@ -23,7 +23,7 @@ import (
 	"github.com/vincent-petithory/dataurl"
 )
 
-func TranslateFromV1(old v1.Config) (types.Config, error) {
+func TranslateFromV1(old v1.Config) types.Config {
 	config := types.Config{
 		Ignition: types.Ignition{
 			Version: types.IgnitionVersion{Major: 2},
@@ -161,5 +161,5 @@ func TranslateFromV1(old v1.Config) (types.Config, error) {
 		})
 	}
 
-	return config, nil
+	return config
 }
