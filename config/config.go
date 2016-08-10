@@ -20,6 +20,7 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/v1"
+	"github.com/coreos/ignition/config/v2_0"
 	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
 
@@ -46,6 +47,8 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 		}
 
 		return config, report.ReportFromError(ErrDeprecated, report.EntryDeprecated), nil
+	case types.IgnitionVersion{Major: 2, Minor: 0}:
+		return ParseFromV2_0(rawConfig)
 	default:
 		return ParseFromLatest(rawConfig)
 	}
@@ -134,6 +137,15 @@ func ParseFromV1(rawConfig []byte) (types.Config, error) {
 	}
 
 	return TranslateFromV1(config), nil
+}
+
+func ParseFromV2_0(rawConfig []byte) (types.Config, report.Report, error) {
+	cfg, report, err := v2_0.Parse(rawConfig)
+	if err != nil {
+		return types.Config{}, report, err
+	}
+
+	return TranslateFromV2_0(cfg), report, err
 }
 
 func version(rawConfig []byte) types.IgnitionVersion {
