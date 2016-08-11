@@ -51,6 +51,10 @@ func TestURLValidate(t *testing.T) {
 			out: out{},
 		},
 		{
+			in:  in{u: "data:,example%20file%0A"},
+			out: out{},
+		},
+		{
 			in:  in{u: "bad://"},
 			out: out{err: ErrInvalidScheme},
 		},
