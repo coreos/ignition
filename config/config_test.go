@@ -49,7 +49,7 @@ func TestParse(t *testing.T) {
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)}}},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
+			in:  in{config: []byte(`{"ignition": {"version": "2.2.0"}}`)},
 			out: out{err: ErrInvalid},
 		},
 		{
