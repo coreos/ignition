@@ -8,3 +8,5 @@ github.com/packethost/packngo/metadata                 c29c27e002d1fc25dce75fad8
 github.com/sigma/vmw-guestinfo                         95dd4126d6e8b4ef1970b3f3fe2e8cdd470d2903
 github.com/sigma/bdoor                                 babf2a4017b020d4ce04e8167076186e82645dd1
 github.com/vincent-petithory/dataurl                   9a301d65acbb728fcc3ace14f45f511a4cfeea9c
+golang.org/golang.org/x/net/context                    075e191f18186a8ff2becaf64478e30f4545cdad
+golang.org/golang.org/x/net/context/ctxhttp            075e191f18186a8ff2becaf64478e30f4545cdad
