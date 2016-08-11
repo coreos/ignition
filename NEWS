@@ -1,9 +1,11 @@
 11-Aug-2016 IGNITION v0.9.0
 
   Features
+
     - Add detailed configuration validation
 
   Bug Fixes
+
     - Add retry to all HTTP requests
     - Fix potential panic when parsing certain URLs
 
