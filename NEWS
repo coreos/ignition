@@ -1,3 +1,9 @@
+11-Aug-2016 IGNITION v0.9.1
+
+  Bug Fixes
+
+    - Properly validate data URLs
+
 11-Aug-2016 IGNITION v0.9.0
 
   Features
