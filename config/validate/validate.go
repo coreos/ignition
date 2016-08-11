@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	json "github.com/ajeddeloh/go-json"
-	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"go4.org/errorutil"
 )
@@ -40,9 +39,9 @@ func posFromOffset(offset int, source io.ReadSeeker) (int, int, string) {
 	return line, col, highlight
 }
 
-func Validate(cfg types.Config, ast json.Node, source io.ReadSeeker) report.Report {
-	v := reflect.ValueOf(cfg)
-	r := validate(v, ast, source)
+func Validate(cfg validator, ast json.Node, source io.ReadSeeker) report.Report {
+	r := cfg.Validate()
+	r.Merge(validateStruct(reflect.ValueOf(cfg), ast, source))
 	return r
 }
 
@@ -64,10 +63,7 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 		((vObj.Kind() != reflect.Ptr) ||
 			(!vObj.IsNil() && !vObj.Elem().Type().Implements(reflect.TypeOf((*validator)(nil)).Elem()))) {
 		sub_r := obj.Validate()
-		if vObj.Type() != reflect.TypeOf(types.Config{}) {
-			// Config checks are done on the config as a whole and shouldn't get line numbers
-			sub_r.AddPosition(line, col, highlight)
-		}
+		sub_r.AddPosition(line, col, highlight)
 		r.Merge(sub_r)
 
 		// Dont recurse on invalid inner nodes, it mostly leads to bogus messages
@@ -99,7 +95,7 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 	return
 }
 
-func ValidateWithoutSource(cfg types.Config) (report report.Report) {
+func ValidateWithoutSource(cfg validator) (report report.Report) {
 	return Validate(cfg, json.Node{}, nil)
 }
 
