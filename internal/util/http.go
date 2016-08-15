@@ -125,8 +125,7 @@ func (c HttpClient) GetReaderWithHeader(url string, header http.Header) (io.Read
 
 		if err == nil {
 			c.logger.Debug("GET result: %s", http.StatusText(resp.StatusCode))
-			switch resp.StatusCode {
-			case http.StatusOK, http.StatusNonAuthoritativeInfo, http.StatusNoContent:
+			if resp.StatusCode < 500 {
 				return resp.Body, resp.StatusCode, nil
 			}
 			resp.Body.Close()
