@@ -1,3 +1,9 @@
+15-Aug-2016 IGNITION v0.9.2
+
+  Bug Fixes
+
+    - Do not retry HTTP requests that result in non-5xx status codes
+
 11-Aug-2016 IGNITION v0.9.1
 
   Bug Fixes
