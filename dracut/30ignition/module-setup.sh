@@ -22,3 +22,7 @@ install() {
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
 }
+
+installkernel() {
+    instmods qemu_fw_cfg
+}
