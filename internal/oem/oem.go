@@ -25,6 +25,7 @@ import (
 	"github.com/coreos/ignition/internal/providers/file"
 	"github.com/coreos/ignition/internal/providers/gce"
 	"github.com/coreos/ignition/internal/providers/noop"
+	"github.com/coreos/ignition/internal/providers/openstack"
 	"github.com/coreos/ignition/internal/providers/packet"
 	"github.com/coreos/ignition/internal/providers/qemu"
 	"github.com/coreos/ignition/internal/providers/vmware"
@@ -87,7 +88,7 @@ func init() {
 	})
 	configs.Register(Config{
 		name:  "openstack",
-		fetch: noop.FetchConfig,
+		fetch: openstack.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "ec2",
