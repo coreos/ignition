@@ -27,6 +27,8 @@ import (
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
+
+	"golang.org/x/net/context"
 )
 
 var (
@@ -39,7 +41,7 @@ var (
 )
 
 func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
-	data := resource.FetchConfigWithHeader(logger, client, userdataUrl, metadataHeader)
+	data := resource.FetchConfigWithHeader(logger, client, context.Background(), userdataUrl, metadataHeader)
 	if data == nil {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}

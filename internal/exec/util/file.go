@@ -28,6 +28,8 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
+
+	"golang.org/x/net/context"
 )
 
 const (
@@ -81,7 +83,7 @@ func RenderFile(l *log.Logger, c *resource.HttpClient, f types.File) *File {
 	var err error
 	var expectedSum string
 
-	reader, err = resource.FetchAsReader(l, c, url.URL(f.Contents.Source))
+	reader, err = resource.FetchAsReader(l, c, context.Background(), url.URL(f.Contents.Source))
 	if err != nil {
 		l.Crit("Error fetching file %q: %v", f.Path, err)
 		return nil

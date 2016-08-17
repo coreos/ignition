@@ -28,6 +28,8 @@ import (
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/resource"
+
+	"golang.org/x/net/context"
 )
 
 const (
@@ -152,7 +154,7 @@ func (e Engine) renderConfig(cfg types.Config) (types.Config, error) {
 // fetchReferencedConfig fetches, renders, and attempts to verify the requested
 // config.
 func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
-	rawCfg, err := resource.Fetch(e.Logger, &e.client, url.URL(cfgRef.Source))
+	rawCfg, err := resource.Fetch(e.Logger, &e.client, context.Background(), url.URL(cfgRef.Source))
 	if err != nil {
 		return types.Config{}, err
 	}
