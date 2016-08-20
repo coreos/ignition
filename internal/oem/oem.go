@@ -21,6 +21,7 @@ import (
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/azure"
 	"github.com/coreos/ignition/internal/providers/cmdline"
+	"github.com/coreos/ignition/internal/providers/digitalocean"
 	"github.com/coreos/ignition/internal/providers/ec2"
 	"github.com/coreos/ignition/internal/providers/file"
 	"github.com/coreos/ignition/internal/providers/gce"
@@ -75,7 +76,13 @@ func init() {
 	})
 	configs.Register(Config{
 		name:  "digitalocean",
-		fetch: noop.FetchConfig,
+		fetch: digitalocean.FetchConfig,
+		baseConfig: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.SystemdUnit{{Enable: true, Name: "coreos-metadata-sshkeys@.service"}},
+			},
+		},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("DigitalOcean", "digitalocean")}}},
 	})
 	configs.Register(Config{
 		name:  "brightbox",
@@ -90,10 +97,7 @@ func init() {
 		fetch: ec2.FetchConfig,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{{
-					Name:   "coreos-metadata-sshkeys@.service",
-					Enable: true,
-				}},
+				Units: []types.SystemdUnit{{Enable: true, Name: "coreos-metadata-sshkeys@.service"}},
 			},
 		},
 	})
