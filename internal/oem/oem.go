@@ -22,6 +22,7 @@ import (
 	"github.com/coreos/ignition/internal/providers/azure"
 	"github.com/coreos/ignition/internal/providers/cmdline"
 	"github.com/coreos/ignition/internal/providers/ec2"
+	"github.com/coreos/ignition/internal/providers/file"
 	"github.com/coreos/ignition/internal/providers/gce"
 	"github.com/coreos/ignition/internal/providers/noop"
 	"github.com/coreos/ignition/internal/providers/packet"
@@ -192,6 +193,10 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 	configs.Register(Config{
 		name:  "qemu",
 		fetch: qemu.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "file",
+		fetch: file.FetchConfig,
 	})
 }
 
