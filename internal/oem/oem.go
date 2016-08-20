@@ -34,10 +34,9 @@ import (
 	"github.com/vincent-petithory/dataurl"
 )
 
-// Config represents a set of command line flags that map to a particular OEM.
+// Config represents a set of options that map to a particular OEM.
 type Config struct {
 	name              string
-	flags             map[string]string
 	fetch             providers.FuncFetchConfig
 	baseConfig        types.Config
 	defaultUserConfig types.Config
@@ -45,10 +44,6 @@ type Config struct {
 
 func (c Config) Name() string {
 	return c.name
-}
-
-func (c Config) Flags() map[string]string {
-	return c.flags
 }
 
 func (c Config) FetchFunc() providers.FuncFetchConfig {
@@ -93,9 +88,6 @@ func init() {
 	configs.Register(Config{
 		name:  "ec2",
 		fetch: ec2.FetchConfig,
-		flags: map[string]string{
-			"online-timeout": "0",
-		},
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.SystemdUnit{{
