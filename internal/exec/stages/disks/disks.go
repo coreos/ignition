@@ -260,7 +260,7 @@ func (s stage) createFilesystem(fs types.FilesystemMount) error {
 		"creating %q filesystem on %q",
 		fs.Format, string(fs.Device),
 	); err != nil {
-		return fmt.Errorf("failed to run %q: %v %v", mkfs, err, args)
+		return fmt.Errorf("mkfs failed: %v", err)
 	}
 
 	return nil
