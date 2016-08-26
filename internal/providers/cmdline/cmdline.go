@@ -19,7 +19,6 @@ package cmdline
 
 import (
 	"io/ioutil"
-	"net/http"
 	"net/url"
 	"strings"
 
@@ -28,7 +27,7 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/resource"
 )
 
 const (
@@ -36,13 +35,13 @@ const (
 	cmdlineUrlFlag = "coreos.config.url"
 )
 
-func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, report.Report, error) {
+func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
 	url, err := readCmdline(logger)
 	if err != nil || url == nil {
 		return types.Config{}, report.Report{}, err
 	}
 
-	data := client.FetchConfig(url.String(), http.StatusOK)
+	data := resource.FetchConfig(logger, client, *url)
 	if data == nil {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}

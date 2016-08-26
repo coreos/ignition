@@ -21,7 +21,7 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/resource"
 )
 
 const (
@@ -29,7 +29,7 @@ const (
 	fileName = "config.json"
 )
 
-func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, report.Report, error) {
+func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
 	rawConfig, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		logger.Err("couldn't read config %q: %v", fileName, err)

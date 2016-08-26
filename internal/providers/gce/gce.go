@@ -19,25 +19,27 @@ package gce
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/util"
-)
-
-const (
-	userdataUrl = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/user-data"
+	"github.com/coreos/ignition/internal/resource"
 )
 
 var (
+	userdataUrl = url.URL{
+		Scheme: "http",
+		Host:   "metadata.google.internal",
+		Path:   "computeMetadata/v1/instance/attributes/user-data",
+	}
 	metadataHeader = http.Header{"Metadata-Flavor": []string{"Google"}}
 )
 
-func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, report.Report, error) {
-	data := client.FetchConfigWithHeader(userdataUrl, metadataHeader, http.StatusOK, http.StatusNotFound)
+func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
+	data := resource.FetchConfigWithHeader(logger, client, userdataUrl, metadataHeader)
 	if data == nil {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}

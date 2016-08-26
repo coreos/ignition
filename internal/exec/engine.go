@@ -24,9 +24,10 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/exec/stages"
+	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/resource"
 )
 
 const (
@@ -55,13 +56,13 @@ type Engine struct {
 	OemBaseConfig     types.Config
 	DefaultUserConfig types.Config
 
-	client util.HttpClient
+	client resource.HttpClient
 }
 
 // Run executes the stage of the given name. It returns true if the stage
 // successfully ran and false if there were any errors.
 func (e Engine) Run(stageName string) bool {
-	e.client = util.NewHttpClient(e.Logger)
+	e.client = resource.NewHttpClient(e.Logger)
 
 	cfg, err := e.acquireConfig()
 	switch err {
@@ -152,7 +153,7 @@ func (e Engine) renderConfig(cfg types.Config) (types.Config, error) {
 // fetchReferencedConfig fetches, renders, and attempts to verify the requested
 // config.
 func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
-	rawCfg, err := util.FetchResource(e.Logger, &e.client, url.URL(cfgRef.Source))
+	rawCfg, err := resource.Fetch(e.Logger, &e.client, url.URL(cfgRef.Source))
 	if err != nil {
 		return types.Config{}, err
 	}

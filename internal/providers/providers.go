@@ -20,11 +20,11 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/resource"
 )
 
 var (
 	ErrNoProvider = errors.New("config provider was not online")
 )
 
-type FuncFetchConfig func(logger *log.Logger, client *util.HttpClient) (types.Config, report.Report, error)
+type FuncFetchConfig func(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error)
