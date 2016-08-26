@@ -61,8 +61,7 @@ func NewHttpClient(logger *log.Logger) HttpClient {
 
 // getReaderWithHeader performs an HTTP GET on the provided URL with the provided request header
 // and returns the response body Reader, HTTP status code, and error (if any). By
-// default, User-Agent and Accept are added to the header but these can be
-// overridden.
+// default, User-Agent is added to the header but this can be overridden.
 func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -70,7 +69,6 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 	}
 
 	req.Header.Set("User-Agent", "Ignition/"+version.Raw)
-	req.Header.Set("Accept", "application/vnd.coreos.ignition+json; version=2.0.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1")
 
 	for key, values := range header {
 		req.Header.Del(key)
