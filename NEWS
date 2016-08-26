@@ -1,3 +1,12 @@
+26-Aug-2016 IGNITION v0.10.1
+
+  Bug Fixes
+
+    - Fix handling of oem:// URLs
+    - Use stable symlinks when operating on devices
+    - Retry failed requests when fetching Packet userdata
+    - Log the raw configurations instead of the parsed result
+
 23-Aug-2016 IGNITION v0.10.0
 
   Features
