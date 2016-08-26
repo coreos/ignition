@@ -18,7 +18,7 @@
 package ec2
 
 import (
-	"net/http"
+	"net/url"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
@@ -28,12 +28,16 @@ import (
 	"github.com/coreos/ignition/internal/util"
 )
 
-const (
-	userdataUrl = "http://169.254.169.254/2009-04-04/user-data"
+var (
+	userdataUrl = url.URL{
+		Scheme: "http",
+		Host:   "169.254.169.254",
+		Path:   "2009-04-04/user-data",
+	}
 )
 
 func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, report.Report, error) {
-	data := client.FetchConfig(userdataUrl, http.StatusOK, http.StatusNotFound)
+	data := util.FetchConfig(logger, client, userdataUrl)
 	if data == nil {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}

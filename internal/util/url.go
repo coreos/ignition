@@ -45,11 +45,51 @@ const (
 	oemMountPath  = "/mnt/oem"               // Mountpoint where oem partition is mounted when present.
 )
 
-// FetchResource fetches a resource given a URL. The supported schemes are http, data, and oem.
+// FetchConfig fetches a raw config from the provided URL.
+func FetchConfig(l *log.Logger, c *HttpClient, u url.URL) []byte {
+	return FetchConfigWithHeader(l, c, u, http.Header{})
+}
+
+// FetchConfigWithHeader fetches a raw config from the provided URL and returns
+// the response body on success or nil on failure. The HTTP response must be
+// OK, otherwise an empty (v.s. nil) config is returned. The provided headers
+// are merged with a set of default headers.
+func FetchConfigWithHeader(l *log.Logger, c *HttpClient, u url.URL, h http.Header) []byte {
+	header := http.Header{
+		"Accept-Encoding": []string{"identity"},
+		"Accept":          []string{"application/vnd.coreos.ignition+json; version=2.0.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1"},
+	}
+	for key, values := range h {
+		header.Del(key)
+		for _, value := range values {
+			header.Add(key, value)
+		}
+	}
+
+	data, err := FetchResourceWithHeader(l, c, header, u)
+	switch err {
+	case nil:
+		return data
+	case ErrNotFound:
+		return []byte{}
+	default:
+		return nil
+	}
+}
+
+// FetchResource fetches a resource given a URL. The supported schemes are
+// http, data, and oem.
 func FetchResource(l *log.Logger, c *HttpClient, u url.URL) ([]byte, error) {
+	return FetchResourceWithHeader(l, c, http.Header{}, u)
+}
+
+// FetchResourceWithHeader fetches a resource given a URL. If the resource is
+// of the http or https scheme, the provided header will be used when
+// fetching. The supported schemes are http, data, and oem.
+func FetchResourceWithHeader(l *log.Logger, c *HttpClient, h http.Header, u url.URL) ([]byte, error) {
 	var data []byte
 
-	dataReader, err := FetchResourceAsReader(l, c, u)
+	dataReader, err := FetchResourceAsReaderWithHeader(l, c, h, u)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +103,8 @@ func FetchResource(l *log.Logger, c *HttpClient, u url.URL) ([]byte, error) {
 	return data, nil
 }
 
-// readUnmounter calls umountOEM() when closed, in addition to closing the ReadCloser it wraps.
+// readUnmounter calls umountOEM() when closed, in addition to closing the
+// ReadCloser it wraps.
 type readUnmounter struct {
 	io.ReadCloser
 	logger *log.Logger
@@ -74,12 +115,19 @@ func (f readUnmounter) Close() error {
 	return f.ReadCloser.Close()
 }
 
-// FetchResourceAsReader returns a ReadCloser to the data at the url specified. The caller is responsible for
-// closing the reader.
+// FetchResourceAsReader returns a ReadCloser to the data at the URL specified.
+// The caller is responsible for closing the reader.
 func FetchResourceAsReader(l *log.Logger, c *HttpClient, u url.URL) (io.ReadCloser, error) {
+	return FetchResourceAsReaderWithHeader(l, c, http.Header{}, u)
+}
+
+// FetchResourceAsReader returns a ReadCloser to the data at the URL specified.
+// If the URL is of the http or https scheme, the provided header will be used
+// when fetching. The caller is responsible for closing the reader.
+func FetchResourceAsReaderWithHeader(l *log.Logger, c *HttpClient, h http.Header, u url.URL) (io.ReadCloser, error) {
 	switch u.Scheme {
 	case "http", "https":
-		dataReader, status, err := c.GetReader(u.String())
+		dataReader, status, err := c.getReaderWithHeader(u.String(), h)
 		if err != nil {
 			return nil, err
 		}
@@ -152,7 +200,8 @@ func FetchResourceAsReader(l *log.Logger, c *HttpClient, u url.URL) (io.ReadClos
 	}
 }
 
-// mountOEM waits for the presence of and mounts the oem partition at oemMountPath.
+// mountOEM waits for the presence of and mounts the oem partition at
+// oemMountPath.
 func mountOEM(l *log.Logger) error {
 	dev := []string{oemDevicePath}
 	if err := systemd.WaitOnDevices(dev, "oem-cmdline"); err != nil {

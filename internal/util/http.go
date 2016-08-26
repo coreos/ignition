@@ -16,9 +16,7 @@ package util
 
 import (
 	"errors"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"time"
@@ -61,56 +59,19 @@ func NewHttpClient(logger *log.Logger) HttpClient {
 	}
 }
 
-// Get performs an HTTP GET on the provided URL and returns the response body,
-// HTTP status code, and error (if any).
-func (c HttpClient) Get(url string) ([]byte, int, error) {
-	return c.GetWithHeader(url, http.Header{})
-}
-
-// GetWithHeader performs an HTTP GET on the provided URL with the provided request header
-// and returns the response body, HTTP status code, and error (if any). By
-// default, User-Agent and Accept are added to the header but these can be
-// overridden.
-func (c HttpClient) GetWithHeader(url string, header http.Header) ([]byte, int, error) {
-	var body []byte
-	var status int
-
-	err := c.logger.LogOp(func() error {
-		var bodyReader io.ReadCloser
-		var err error
-
-		bodyReader, status, err = c.GetReaderWithHeader(url, header)
-		if err != nil {
-			return err
-		}
-		defer bodyReader.Close()
-
-		body, err = ioutil.ReadAll(bodyReader)
-
-		return err
-	}, "GET %q", url)
-
-	return body, status, err
-}
-
-// GetReader performs an HTTP GET on the provided URL and returns the response body Reader,
-// HTTP status code, and error (if any).
-func (c HttpClient) GetReader(url string) (io.ReadCloser, int, error) {
-	return c.GetReaderWithHeader(url, http.Header{})
-}
-
-// GetReaderWithHeader performs an HTTP GET on the provided URL with the provided request header
+// getReaderWithHeader performs an HTTP GET on the provided URL with the provided request header
 // and returns the response body Reader, HTTP status code, and error (if any). By
 // default, User-Agent and Accept are added to the header but these can be
 // overridden.
-func (c HttpClient) GetReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, error) {
+func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	req.Header.Set("User-Agent", "Ignition/"+version.Raw)
-	req.Header.Set("Accept", "*")
+	req.Header.Set("Accept", "application/vnd.coreos.ignition+json; version=2.0.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1")
+
 	for key, values := range header {
 		req.Header.Del(key)
 		for _, value := range values {
@@ -141,52 +102,4 @@ func (c HttpClient) GetReaderWithHeader(url string, header http.Header) (io.Read
 	}
 
 	return nil, 0, ErrTimeout
-}
-
-// FetchConfig calls FetchConfigWithHeader with an empty set of headers.
-func (c HttpClient) FetchConfig(url string, acceptedStatuses ...int) []byte {
-	return c.FetchConfigWithHeader(url, http.Header{}, acceptedStatuses...)
-}
-
-// FetchConfigWithHeader fetches a raw config from the provided URL and returns
-// the response body on success or nil on failure. The caller must also provide
-// a list of acceptable HTTP status codes and headers. If the response's status
-// code is not in the provided list, it is considered a failure. The HTTP
-// response must be OK, otherwise an empty (v.s. nil) config is returned. The
-// provided headers are merged with a set of default headers.
-func (c HttpClient) FetchConfigWithHeader(url string, header http.Header, acceptedStatuses ...int) []byte {
-	var config []byte
-
-	c.logger.LogOp(func() error {
-		reqHeader := http.Header{
-			"Accept-Encoding": []string{"identity"},
-			"Accept":          []string{"application/vnd.coreos.ignition+json; version=2.0.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1"},
-		}
-		for key, values := range header {
-			reqHeader.Del(key)
-			for _, value := range values {
-				reqHeader.Add(key, value)
-			}
-		}
-
-		data, status, err := c.GetWithHeader(url, reqHeader)
-		if err != nil {
-			return err
-		}
-
-		for _, acceptedStatus := range acceptedStatuses {
-			if status == acceptedStatus {
-				if status == http.StatusOK {
-					config = data
-				} else {
-					config = []byte{}
-				}
-				return nil
-			}
-		}
-
-		return fmt.Errorf("%s", http.StatusText(status))
-	}, "fetching config from %q", url)
-
-	return config
 }

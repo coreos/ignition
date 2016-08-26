@@ -19,7 +19,6 @@ package cmdline
 
 import (
 	"io/ioutil"
-	"net/http"
 	"net/url"
 	"strings"
 
@@ -42,7 +41,7 @@ func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, rep
 		return types.Config{}, report.Report{}, err
 	}
 
-	data := client.FetchConfig(url.String(), http.StatusOK)
+	data := util.FetchConfig(logger, client, *url)
 	if data == nil {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
