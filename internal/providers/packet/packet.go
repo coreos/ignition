@@ -18,21 +18,30 @@
 package packet
 
 import (
+	"net/url"
+
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/resource"
-
-	"github.com/packethost/packngo/metadata"
 )
 
-func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
-	logger.Debug("fetching config from packet metadata")
-	data, err := metadata.GetUserData()
+var (
+	userdataUrl = url.URL{
+		Scheme: "https",
+		Host:   "metadata.packet.net",
+		Path:   "userdata",
+	}
+)
+
+func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
+	// TODO: Packet's metadata service returns "Not Acceptable" when queried
+	// with the default headers. For now, just do a regular fetch.
+	data, err := resource.Fetch(logger, client, userdataUrl)
 	if err != nil {
-		logger.Err("failed to fetch config: %v", err)
-		return types.Config{}, report.Report{}, err
+		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
 
 	return config.Parse(data)
