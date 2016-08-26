@@ -20,11 +20,11 @@ package packet
 import (
 	"net/url"
 
-	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
+	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
 )
 
@@ -44,5 +44,5 @@ func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config,
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
 
-	return config.Parse(data)
+	return util.ParseConfig(logger, data)
 }
