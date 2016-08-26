@@ -25,7 +25,7 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/resource"
 )
 
 var (
@@ -36,8 +36,8 @@ var (
 	}
 )
 
-func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, report.Report, error) {
-	data := util.FetchConfig(logger, client, userdataUrl)
+func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
+	data := resource.FetchConfig(logger, client, userdataUrl)
 	if data == nil {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}

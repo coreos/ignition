@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package resource
 
 import (
 	"bytes"
@@ -66,7 +66,7 @@ func FetchConfigWithHeader(l *log.Logger, c *HttpClient, u url.URL, h http.Heade
 		}
 	}
 
-	data, err := FetchResourceWithHeader(l, c, header, u)
+	data, err := FetchWithHeader(l, c, header, u)
 	switch err {
 	case nil:
 		return data
@@ -77,19 +77,19 @@ func FetchConfigWithHeader(l *log.Logger, c *HttpClient, u url.URL, h http.Heade
 	}
 }
 
-// FetchResource fetches a resource given a URL. The supported schemes are
+// Fetch fetches a resource given a URL. The supported schemes are
 // http, data, and oem.
-func FetchResource(l *log.Logger, c *HttpClient, u url.URL) ([]byte, error) {
-	return FetchResourceWithHeader(l, c, http.Header{}, u)
+func Fetch(l *log.Logger, c *HttpClient, u url.URL) ([]byte, error) {
+	return FetchWithHeader(l, c, http.Header{}, u)
 }
 
-// FetchResourceWithHeader fetches a resource given a URL. If the resource is
+// FetchWithHeader fetches a resource given a URL. If the resource is
 // of the http or https scheme, the provided header will be used when
 // fetching. The supported schemes are http, data, and oem.
-func FetchResourceWithHeader(l *log.Logger, c *HttpClient, h http.Header, u url.URL) ([]byte, error) {
+func FetchWithHeader(l *log.Logger, c *HttpClient, h http.Header, u url.URL) ([]byte, error) {
 	var data []byte
 
-	dataReader, err := FetchResourceAsReaderWithHeader(l, c, h, u)
+	dataReader, err := FetchAsReaderWithHeader(l, c, h, u)
 	if err != nil {
 		return nil, err
 	}
@@ -115,16 +115,16 @@ func (f readUnmounter) Close() error {
 	return f.ReadCloser.Close()
 }
 
-// FetchResourceAsReader returns a ReadCloser to the data at the URL specified.
+// FetchAsReader returns a ReadCloser to the data at the URL specified.
 // The caller is responsible for closing the reader.
-func FetchResourceAsReader(l *log.Logger, c *HttpClient, u url.URL) (io.ReadCloser, error) {
-	return FetchResourceAsReaderWithHeader(l, c, http.Header{}, u)
+func FetchAsReader(l *log.Logger, c *HttpClient, u url.URL) (io.ReadCloser, error) {
+	return FetchAsReaderWithHeader(l, c, http.Header{}, u)
 }
 
-// FetchResourceAsReader returns a ReadCloser to the data at the URL specified.
+// FetchAsReader returns a ReadCloser to the data at the URL specified.
 // If the URL is of the http or https scheme, the provided header will be used
 // when fetching. The caller is responsible for closing the reader.
-func FetchResourceAsReaderWithHeader(l *log.Logger, c *HttpClient, h http.Header, u url.URL) (io.ReadCloser, error) {
+func FetchAsReaderWithHeader(l *log.Logger, c *HttpClient, h http.Header, u url.URL) (io.ReadCloser, error) {
 	switch u.Scheme {
 	case "http", "https":
 		dataReader, status, err := c.getReaderWithHeader(u.String(), h)

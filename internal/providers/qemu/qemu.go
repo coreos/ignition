@@ -26,14 +26,14 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/resource"
 )
 
 const (
 	firmwareConfigPath = "/sys/firmware/qemu_fw_cfg/by_name/opt/com.coreos/config/raw"
 )
 
-func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, report.Report, error) {
+func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
 	err := logger.LogCmd(exec.Command("modprobe", "qemu_fw_cfg"), "loading QEMU firmware config module")
 	if err != nil {
 		return types.Config{}, report.Report{}, err
