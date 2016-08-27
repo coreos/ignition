@@ -12,28 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package file
+package util
 
 import (
-	"io/ioutil"
-
+	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/providers/util"
-	"github.com/coreos/ignition/internal/resource"
 )
 
-const (
-	name     = "file"
-	fileName = "config.json"
-)
+func ParseConfig(logger *log.Logger, rawConfig []byte) (types.Config, report.Report, error) {
+	logger.Debug("parsing config: %s", string(rawConfig))
 
-func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
-	rawConfig, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		logger.Err("couldn't read config %q: %v", fileName, err)
-		return types.Config{}, report.Report{}, err
-	}
-	return util.ParseConfig(logger, rawConfig)
+	return config.Parse(rawConfig)
 }

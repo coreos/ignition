@@ -18,11 +18,11 @@
 package vmware
 
 import (
-	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
+	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
 
 	"github.com/sigma/vmw-guestinfo/rpcvmx"
@@ -54,5 +54,5 @@ func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, repo
 	}
 
 	logger.Debug("config successfully fetched")
-	return config.Parse(decodedData)
+	return util.ParseConfig(logger, decodedData)
 }

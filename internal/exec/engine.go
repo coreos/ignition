@@ -98,7 +98,6 @@ func (e Engine) acquireConfig() (cfg types.Config, err error) {
 		e.Logger.Crit("failed to fetch config: %s", err)
 		return
 	}
-	e.Logger.Debug("fetched config: %+v", cfg)
 
 	// Populate the config cache.
 	b, err = json.Marshal(cfg)

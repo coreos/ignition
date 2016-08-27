@@ -24,10 +24,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
 )
 
@@ -78,7 +78,7 @@ func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, repo
 		return types.Config{}, report.Report{}, fmt.Errorf("failed to read config: %v", err)
 	}
 
-	return config.Parse(rawConfig)
+	return util.ParseConfig(logger, rawConfig)
 }
 
 func waitForCdrom(logger *log.Logger) {
