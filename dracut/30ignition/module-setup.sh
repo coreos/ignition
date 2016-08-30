@@ -21,6 +21,9 @@ install() {
 
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
+
+    inst_rules \
+        60-cdrom_id.rules
 }
 
 installkernel() {
