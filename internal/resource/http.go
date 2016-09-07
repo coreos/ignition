@@ -23,6 +23,9 @@ import (
 
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/version"
+
+	"golang.org/x/net/context"
+	"golang.org/x/net/context/ctxhttp"
 )
 
 const (
@@ -32,7 +35,7 @@ const (
 )
 
 var (
-	ErrTimeout = errors.New("unable to fetch resource in time")
+	ErrAttemptsExhausted = errors.New("unable to fetch resource (no more attempts available)")
 )
 
 // HttpClient is a simple wrapper around the Go HTTP client that standardizes
@@ -62,7 +65,7 @@ func NewHttpClient(logger *log.Logger) HttpClient {
 // getReaderWithHeader performs an HTTP GET on the provided URL with the provided request header
 // and returns the response body Reader, HTTP status code, and error (if any). By
 // default, User-Agent is added to the header but this can be overridden.
-func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, error) {
+func (c HttpClient) getReaderWithHeader(ctx context.Context, url string, header http.Header) (io.ReadCloser, int, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, 0, err
@@ -80,7 +83,7 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 	duration := initialBackoff
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		c.logger.Debug("GET %s: attempt #%d", url, attempt)
-		resp, err := c.client.Do(req)
+		resp, err := ctxhttp.Do(ctx, c.client, req)
 
 		if err == nil {
 			c.logger.Debug("GET result: %s", http.StatusText(resp.StatusCode))
@@ -96,8 +99,13 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 		if duration > maxBackoff {
 			duration = maxBackoff
 		}
-		time.Sleep(duration)
+
+		select {
+		case <-time.After(duration):
+		case <-ctx.Done():
+			return nil, 0, ctx.Err()
+		}
 	}
 
-	return nil, 0, ErrTimeout
+	return nil, 0, ErrAttemptsExhausted
 }
