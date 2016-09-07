@@ -9,6 +9,7 @@ depends() {
 install() {
     inst_multiple \
         ignition \
+        coreos-metadata \
         useradd \
         usermod \
         groupadd \
@@ -21,6 +22,11 @@ install() {
 
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
+
+    inst_simple "$moddir/coreos-digitalocean-network.service" \
+        "$systemdsystemunitdir/coreos-digitalocean-network.service"
+
+    systemctl --root "$initdir" enable coreos-digitalocean-network.service
 
     inst_rules \
         60-cdrom_id.rules
