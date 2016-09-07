@@ -21,6 +21,7 @@ import (
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/azure"
 	"github.com/coreos/ignition/internal/providers/cmdline"
+	"github.com/coreos/ignition/internal/providers/digitalocean"
 	"github.com/coreos/ignition/internal/providers/ec2"
 	"github.com/coreos/ignition/internal/providers/file"
 	"github.com/coreos/ignition/internal/providers/gce"
@@ -34,10 +35,9 @@ import (
 	"github.com/vincent-petithory/dataurl"
 )
 
-// Config represents a set of command line flags that map to a particular OEM.
+// Config represents a set of options that map to a particular OEM.
 type Config struct {
 	name              string
-	flags             map[string]string
 	fetch             providers.FuncFetchConfig
 	baseConfig        types.Config
 	defaultUserConfig types.Config
@@ -45,10 +45,6 @@ type Config struct {
 
 func (c Config) Name() string {
 	return c.name
-}
-
-func (c Config) Flags() map[string]string {
-	return c.flags
 }
 
 func (c Config) FetchFunc() providers.FuncFetchConfig {
@@ -80,7 +76,13 @@ func init() {
 	})
 	configs.Register(Config{
 		name:  "digitalocean",
-		fetch: noop.FetchConfig,
+		fetch: digitalocean.FetchConfig,
+		baseConfig: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.SystemdUnit{{Enable: true, Name: "coreos-metadata-sshkeys@.service"}},
+			},
+		},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("DigitalOcean", "digitalocean")}}},
 	})
 	configs.Register(Config{
 		name:  "brightbox",
@@ -93,15 +95,9 @@ func init() {
 	configs.Register(Config{
 		name:  "ec2",
 		fetch: ec2.FetchConfig,
-		flags: map[string]string{
-			"online-timeout": "0",
-		},
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{{
-					Name:   "coreos-metadata-sshkeys@.service",
-					Enable: true,
-				}},
+				Units: []types.SystemdUnit{{Enable: true, Name: "coreos-metadata-sshkeys@.service"}},
 			},
 		},
 	})

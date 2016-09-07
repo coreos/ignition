@@ -51,7 +51,6 @@ var (
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
 	ConfigCache       string
-	OnlineTimeout     time.Duration
 	Logger            *log.Logger
 	Root              string
 	FetchFunc         providers.FuncFetchConfig
