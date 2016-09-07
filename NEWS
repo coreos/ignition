@@ -1,3 +1,10 @@
+07-Sep-2016 IGNITION v0.11.0
+
+  Features
+
+    - Add support for DigitalOcean
+    - Add experimental support for OpenStack
+
 26-Aug-2016 IGNITION v0.10.1
 
   Bug Fixes
