@@ -68,7 +68,7 @@ if [[ -n "${usr}" && -n "${usrhash}" ]]; then
 	DefaultDependencies=no
 	Before=sysroot-usr.mount
 	Requires=${device}
-	After=${device}
+	After=${device} ignition-disks.service
 
 	[Service]
 	Type=oneshot
