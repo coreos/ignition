@@ -230,7 +230,7 @@ func (s stage) writeSystemdUnit(unit types.SystemdUnit) error {
 			f := util.FileFromUnitDropin(unit, dropin)
 			if err := s.Logger.LogOp(
 				func() error { return s.WriteFile(f) },
-				"writing dropin %q at %q", dropin.Name, f.Path,
+				"writing drop-in %q at %q", dropin.Name, f.Path,
 			); err != nil {
 				return err
 			}
@@ -249,7 +249,7 @@ func (s stage) writeSystemdUnit(unit types.SystemdUnit) error {
 		}
 
 		return nil
-	}, "writing unit %q", unit.Name)
+	}, "processing unit %q", unit.Name)
 }
 
 // writeNetworkdUnit creates the specified unit. If the contents of the unit or
@@ -269,7 +269,7 @@ func (s stage) writeNetworkdUnit(unit types.NetworkdUnit) error {
 		}
 
 		return nil
-	}, "writing unit %q", unit.Name)
+	}, "processing unit %q", unit.Name)
 }
 
 // createPasswd creates the users and groups as described in config.Passwd.
