@@ -1,3 +1,9 @@
+20-Sep-2016 IGNITION v0.11.1
+
+  Bug Fixes
+
+    - Fix potential deadlock when waiting for multiple disks
+
 07-Sep-2016 IGNITION v0.11.0
 
   Features
