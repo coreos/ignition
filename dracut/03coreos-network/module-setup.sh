@@ -30,6 +30,13 @@ install() {
     inst_simple "$moddir/zz-default.network" \
         "$systemdutildir/network/zz-default.network"
 
+    # install net-lib.sh regardless of its parent module's status
+    inst_simple "$moddir/../40network/net-lib.sh" /lib/net-lib.sh ||
+    dfatal 'Could not install net-lib.sh from the network module'
+
+    # add a hook to generate networkd configuration from ip= arguments
+    inst_hook cmdline 99 "$moddir/parse-ip-for-networkd.sh"
+
     # user/group required for systemd-resolved
     getent passwd systemd-resolve >> "$initdir/etc/passwd"
     getent group systemd-resolve >> "$initdir/etc/group"
