@@ -42,4 +42,9 @@ if [ -n "$RANDOMIZE_DISK_GUID" ]; then
     add_requires "disk-uuid@${escaped_guid}.service"
 fi
 
-echo "OEM_ID=$(cmdline_arg coreos.oem.id pxe)" > /run/ignition.env
+oem_id=pxe
+if [[ $(systemd-detect-virt || true) == "qemu" ]]; then
+    oem_id=qemu
+fi
+
+echo "OEM_ID=$(cmdline_arg coreos.oem.id ${oem_id})" > /run/ignition.env
