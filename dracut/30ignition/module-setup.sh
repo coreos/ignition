@@ -13,6 +13,7 @@ install() {
         useradd \
         usermod \
         groupadd \
+        systemd-detect-virt \
         mkfs.btrfs \
         mkfs.ext4 \
         mkfs.xfs \
