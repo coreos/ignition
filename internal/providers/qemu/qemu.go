@@ -12,38 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The gce provider fetches a remote configuration from the gce user-data
-// metadata service URL.
+// The QEMU provider fetches a local configuration from the firmware config
+// interface (opt/com.coreos/config).
 
-package gce
+package qemu
 
 import (
-	"net/http"
-	"net/url"
+	"io/ioutil"
+	"os"
+	"os/exec"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
-
-	"golang.org/x/net/context"
 )
 
-var (
-	userdataUrl = url.URL{
-		Scheme: "http",
-		Host:   "metadata.google.internal",
-		Path:   "computeMetadata/v1/instance/attributes/user-data",
+const (
+	firmwareConfigPath = "/sys/firmware/qemu_fw_cfg/by_name/opt/com.coreos/config/raw"
+)
+
+func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
+	err := logger.LogCmd(exec.Command("modprobe", "qemu_fw_cfg"), "loading QEMU firmware config module")
+	if err != nil {
+		return types.Config{}, report.Report{}, err
 	}
-	metadataHeader = http.Header{"Metadata-Flavor": []string{"Google"}}
-)
 
-func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
-	data := resource.FetchConfigWithHeader(logger, client, context.Background(), userdataUrl, metadataHeader)
-	if data == nil {
-		return types.Config{}, report.Report{}, providers.ErrNoProvider
+	data, err := ioutil.ReadFile(firmwareConfigPath)
+	if os.IsNotExist(err) {
+		logger.Info("QEMU firmware config was not found. Ignoring...")
+	} else if err != nil {
+		logger.Err("couldn't read QEMU firmware config: %v", err)
+		return types.Config{}, report.Report{}, err
 	}
 
 	return util.ParseConfig(logger, data)

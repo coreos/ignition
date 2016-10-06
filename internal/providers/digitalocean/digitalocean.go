@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The gce provider fetches a remote configuration from the gce user-data
-// metadata service URL.
+// The digitalocean provider fetches a remote configuration from the
+// digitalocean user-data metadata service URL.
 
-package gce
+package digitalocean
 
 import (
-	"net/http"
 	"net/url"
 
 	"github.com/coreos/ignition/config/types"
@@ -34,14 +33,13 @@ import (
 var (
 	userdataUrl = url.URL{
 		Scheme: "http",
-		Host:   "metadata.google.internal",
-		Path:   "computeMetadata/v1/instance/attributes/user-data",
+		Host:   "169.254.169.254",
+		Path:   "metadata/v1/user-data",
 	}
-	metadataHeader = http.Header{"Metadata-Flavor": []string{"Google"}}
 )
 
 func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
-	data := resource.FetchConfigWithHeader(logger, client, context.Background(), userdataUrl, metadataHeader)
+	data := resource.FetchConfig(logger, client, context.Background(), userdataUrl)
 	if data == nil {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}

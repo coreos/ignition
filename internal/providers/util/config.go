@@ -1,4 +1,4 @@
-// Copyright 2015 CoreOS, Inc.
+// Copyright 2016 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,22 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The vmware provider fetches a configuration from the VMware Guest Info
-// interface.
-
-// +build !amd64
-
-package vmware
+package util
 
 import (
-	"errors"
-
+	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/resource"
 )
 
-func FetchConfig(_ *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
-	return types.Config{}, report.Report{}, errors.New("vmware provider is not supported on this architecture")
+func ParseConfig(logger *log.Logger, rawConfig []byte) (types.Config, report.Report, error) {
+	logger.Debug("parsing config: %s", string(rawConfig))
+
+	return config.Parse(rawConfig)
 }

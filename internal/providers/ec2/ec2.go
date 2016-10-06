@@ -18,25 +18,31 @@
 package ec2
 
 import (
-	"net/http"
+	"net/url"
 
-	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/providers/util"
+	"github.com/coreos/ignition/internal/resource"
+
+	"golang.org/x/net/context"
 )
 
-const (
-	userdataUrl = "http://169.254.169.254/2009-04-04/user-data"
+var (
+	userdataUrl = url.URL{
+		Scheme: "http",
+		Host:   "169.254.169.254",
+		Path:   "2009-04-04/user-data",
+	}
 )
 
-func FetchConfig(logger *log.Logger, client *util.HttpClient) (types.Config, report.Report, error) {
-	data := client.FetchConfig(userdataUrl, http.StatusOK, http.StatusNotFound)
+func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
+	data := resource.FetchConfig(logger, client, context.Background(), userdataUrl)
 	if data == nil {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
 
-	return config.Parse(data)
+	return util.ParseConfig(logger, data)
 }

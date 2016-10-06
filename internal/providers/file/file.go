@@ -12,39 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The gce provider fetches a remote configuration from the gce user-data
-// metadata service URL.
-
-package gce
+package file
 
 import (
-	"net/http"
-	"net/url"
+	"io/ioutil"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
-
-	"golang.org/x/net/context"
 )
 
-var (
-	userdataUrl = url.URL{
-		Scheme: "http",
-		Host:   "metadata.google.internal",
-		Path:   "computeMetadata/v1/instance/attributes/user-data",
-	}
-	metadataHeader = http.Header{"Metadata-Flavor": []string{"Google"}}
+const (
+	name     = "file"
+	fileName = "config.json"
 )
 
-func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
-	data := resource.FetchConfigWithHeader(logger, client, context.Background(), userdataUrl, metadataHeader)
-	if data == nil {
-		return types.Config{}, report.Report{}, providers.ErrNoProvider
+func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
+	rawConfig, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		logger.Err("couldn't read config %q: %v", fileName, err)
+		return types.Config{}, report.Report{}, err
 	}
-
-	return util.ParseConfig(logger, data)
+	return util.ParseConfig(logger, rawConfig)
 }

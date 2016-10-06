@@ -18,18 +18,18 @@
 package vmware
 
 import (
-	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/providers/util"
+	"github.com/coreos/ignition/internal/resource"
 
 	"github.com/sigma/vmw-guestinfo/rpcvmx"
 	"github.com/sigma/vmw-guestinfo/vmcheck"
 )
 
-func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, report.Report, error) {
+func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
 	if !vmcheck.IsVirtualWorld() {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
@@ -54,5 +54,5 @@ func FetchConfig(logger *log.Logger, _ *util.HttpClient) (types.Config, report.R
 	}
 
 	logger.Debug("config successfully fetched")
-	return config.Parse(decodedData)
+	return util.ParseConfig(logger, decodedData)
 }

@@ -24,9 +24,12 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/exec/stages"
+	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/resource"
+
+	"golang.org/x/net/context"
 )
 
 const (
@@ -48,19 +51,20 @@ var (
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
 	ConfigCache       string
-	OnlineTimeout     time.Duration
 	Logger            *log.Logger
 	Root              string
 	FetchFunc         providers.FuncFetchConfig
 	OemBaseConfig     types.Config
 	DefaultUserConfig types.Config
 
-	client util.HttpClient
+	client resource.HttpClient
 }
 
 // Run executes the stage of the given name. It returns true if the stage
 // successfully ran and false if there were any errors.
 func (e Engine) Run(stageName string) bool {
+	e.client = resource.NewHttpClient(e.Logger)
+
 	cfg, err := e.acquireConfig()
 	switch err {
 	case nil:
@@ -86,11 +90,8 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 		if err = json.Unmarshal(b, &cfg); err != nil {
 			e.Logger.Crit("failed to parse cached config: %v", err)
 		}
-		e.client = util.NewHttpClientWithTimeouts(e.Logger, cfg.Ignition.Timeouts)
 		return
 	}
-
-	e.client = util.NewHttpClient(e.Logger)
 
 	// (Re)Fetch the config if the cache is unreadable.
 	cfg, err = e.fetchProviderConfig()
@@ -98,7 +99,6 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 		e.Logger.Crit("failed to fetch config: %s", err)
 		return
 	}
-	e.Logger.Debug("fetched config: %+v", cfg)
 
 	// Populate the config cache.
 	b, err = json.Marshal(cfg)
@@ -134,9 +134,6 @@ func (e Engine) fetchProviderConfig() (types.Config, error) {
 // evaluated and appended to the provided config. If neither option is set, the
 // provided config will be returned unmodified.
 func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
-	// Apply any new timeout info before fetching other configs.
-	e.client = util.NewHttpClientWithTimeouts(e.Logger, cfg.Ignition.Timeouts)
-
 	if cfgRef := cfg.Ignition.Config.Replace; cfgRef != nil {
 		return e.fetchReferencedConfig(*cfgRef)
 	}
@@ -156,7 +153,7 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 // fetchReferencedConfig fetches, renders, and attempts to verify the requested
 // config.
 func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
-	rawCfg, err := util.FetchResource(e.Logger, &e.client, url.URL(cfgRef.Source))
+	rawCfg, err := resource.Fetch(e.Logger, &e.client, context.Background(), url.URL(cfgRef.Source))
 	if err != nil {
 		return types.Config{}, err
 	}
