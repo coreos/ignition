@@ -112,20 +112,12 @@ func init() {
 			Systemd: types.Systemd{
 				Units: []types.SystemdUnit{
 					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
-					{Enable: true, Name: "google-accounts-manager.service"},
-					{Enable: true, Name: "google-address-manager.service"},
-					{Enable: true, Name: "google-clock-sync-manager.service"},
-					{Enable: true, Name: "google-startup-scripts-onboot.service"},
-					{Enable: true, Name: "google-startup-scripts.service"},
+					{Enable: true, Name: "oem-gce.service"},
 				},
 			},
 			Storage: types.Storage{
 				Files: []types.File{
-					serviceFromOem("google-accounts-manager.service"),
-					serviceFromOem("google-address-manager.service"),
-					serviceFromOem("google-clock-sync-manager.service"),
-					serviceFromOem("google-startup-scripts-onboot.service"),
-					serviceFromOem("google-startup-scripts.service"),
+					serviceFromOem("oem-gce.service"),
 					{
 						Filesystem: "root",
 						Path:       "/etc/hosts",
