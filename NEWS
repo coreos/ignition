@@ -1,3 +1,13 @@
+07-Oct-2016 IGNITION v0.11.2
+
+  Bug Fixes
+
+    - Correctly set the partition typecode
+
+  Changes
+
+    - Update the services for the GCE OEM
+
 20-Sep-2016 IGNITION v0.11.1
 
   Bug Fixes
