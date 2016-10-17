@@ -17,10 +17,12 @@ package config
 import (
 	"bytes"
 	"errors"
+	"reflect"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/v1"
 	"github.com/coreos/ignition/config/validate"
+	astjson "github.com/coreos/ignition/config/validate/astjson"
 	"github.com/coreos/ignition/config/validate/report"
 
 	json "github.com/ajeddeloh/go-json"
@@ -110,14 +112,15 @@ func ParseFromLatest(rawConfig []byte) (types.Config, report.Report, error) {
 	// Unmarshal again to a json.Node to get offset information for building a report
 	var ast json.Node
 	var r report.Report
+	configValue := reflect.ValueOf(config)
 	if err := json.Unmarshal(rawConfig, &ast); err != nil {
 		r.Add(report.Entry{
 			Kind:    report.EntryWarning,
 			Message: "Ignition could not unmarshal your config for reporting line numbers. This should never happen. Please file a bug.",
 		})
-		r.Merge(validate.ValidateWithoutSource(config))
+		r.Merge(validate.ValidateWithoutSource(configValue))
 	} else {
-		r.Merge(validate.Validate(config, ast, bytes.NewReader(rawConfig)))
+		r.Merge(validate.Validate(configValue, astjson.FromJsonRoot(ast), bytes.NewReader(rawConfig)))
 	}
 
 	if r.IsFatal() {
