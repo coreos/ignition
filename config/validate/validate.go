@@ -20,40 +20,51 @@ import (
 	"reflect"
 	"strings"
 
-	json "github.com/ajeddeloh/go-json"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
-	"go4.org/errorutil"
 )
 
 type validator interface {
 	Validate() report.Report
 }
 
-// wrapper for errorutil that handles missing sources sanely and resets the reader afterwards
-func posFromOffset(offset int, source io.ReadSeeker) (int, int, string) {
-	if source == nil {
-		return 0, 0, ""
-	}
-	line, col, highlight := errorutil.HighlightBytePosition(source, int64(offset))
-	source.Seek(0, 0) // Reset the reader to the start so the next call isn't relative to this position
-	return line, col, highlight
-}
+// AstNode abstracts the differences between yaml and json nodes, providing a
+// common interface
+type AstNode interface {
+	// ValueLineCol returns the line, column, and highlight string of the value of
+	// this node in the source.
+	ValueLineCol(source io.ReadSeeker) (int, int, string)
 
-func Validate(cfg types.Config, ast json.Node, source io.ReadSeeker) report.Report {
-	v := reflect.ValueOf(cfg)
-	r := validate(v, ast, source)
-	return r
+	// KeyLineCol returns the line, column, and highlight string of the key for the
+	// value of this node in the source.
+	KeyLineCol(source io.ReadSeeker) (int, int, string)
+
+	// LiteralValue returns the value of this node.
+	LiteralValue() interface{}
+
+	// SliceChild returns the child node at the index specified. If this node is not
+	// a slice node, an empty AstNode and false is returned.
+	SliceChild(index int) (AstNode, bool)
+
+	// KeyValueMap returns a map of keys and values. If this node is not a mapping
+	// node, nil and false are returned.
+	KeyValueMap() (map[string]AstNode, bool)
+
+	// Tag returns the struct tag used in the config structure used to unmarshal.
+	Tag() string
 }
 
 // Validate walks down a struct tree calling Validate on every node that implements it, building
 // A report of all the errors, warnings, info, and deprecations it encounters
-func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report.Report) {
+func Validate(vObj reflect.Value, ast AstNode, source io.ReadSeeker) (r report.Report) {
 	if !vObj.IsValid() {
 		return
 	}
 
-	line, col, highlight := posFromOffset(ast.End, source)
+	line, col, highlight := 0, 0, ""
+	if ast != nil {
+		line, col, highlight = ast.ValueLineCol(source)
+	}
 
 	// See if we A) can call Validate on vObj, and B) should call Validate. Validate should NOT be called
 	// when vObj is nil, as it will panic or when vObj is a pointer to a value with Validate implemented with a
@@ -78,7 +89,7 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 
 	switch vObj.Kind() {
 	case reflect.Ptr:
-		sub_report := validate(vObj.Elem(), ast, source)
+		sub_report := Validate(vObj.Elem(), ast, source)
 		sub_report.AddPosition(line, col, "")
 		r.Merge(sub_report)
 	case reflect.Struct:
@@ -88,10 +99,12 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 	case reflect.Slice:
 		for i := 0; i < vObj.Len(); i++ {
 			sub_node := ast
-			if val, ok := ast.Value.([]json.Node); ok {
-				sub_node = val[i]
+			if ast != nil {
+				if n, ok := ast.SliceChild(i); ok {
+					sub_node = n
+				}
 			}
-			sub_report := validate(vObj.Index(i), sub_node, source)
+			sub_report := Validate(vObj.Index(i), sub_node, source)
 			sub_report.AddPosition(line, col, "")
 			r.Merge(sub_report)
 		}
@@ -99,8 +112,8 @@ func validate(vObj reflect.Value, ast json.Node, source io.ReadSeeker) (r report
 	return
 }
 
-func ValidateWithoutSource(cfg types.Config) (report report.Report) {
-	return Validate(cfg, json.Node{}, nil)
+func ValidateWithoutSource(cfg reflect.Value) (report report.Report) {
+	return Validate(cfg, nil, nil)
 }
 
 type field struct {
@@ -122,12 +135,14 @@ func getFields(vObj reflect.Value) []field {
 	return ret
 }
 
-func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) report.Report {
-	off := ast.End
+func validateStruct(vObj reflect.Value, ast AstNode, source io.ReadSeeker) report.Report {
 	r := report.Report{}
 
 	// isFromObject will be true if this struct was unmarshalled from a JSON object.
-	keys, isFromObject := ast.Value.(map[string]json.Node)
+	keys, isFromObject := map[string]AstNode{}, false
+	if ast != nil {
+		keys, isFromObject = ast.KeyValueMap()
+	}
 
 	// Maintain a set of key's that have been used.
 	usedKeys := map[string]struct{}{}
@@ -136,15 +151,15 @@ func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) rep
 	tags := []string{}
 
 	for _, f := range getFields(vObj) {
-		// Default to zero value json.Node if the field's corrosponding node cannot be found.
-		var sub_node json.Node
+		// Default to nil AstNode if the field's corrosponding node cannot be found.
+		var sub_node AstNode
 		// Default to passing a nil source if the field's corrosponding node cannot be found.
 		// This ensures the line numbers reported from all sub-structs are 0 and will be changed by AddPosition
 		var src io.ReadSeeker
 
 		// Try to determine the json.Node that corrosponds with the struct field
 		if isFromObject {
-			tag := strings.SplitN(f.Type.Tag.Get("json"), ",", 2)[0]
+			tag := strings.SplitN(f.Type.Tag.Get(ast.Tag()), ",", 2)[0]
 			// Save the tag so we have a list of all the tags in the struct
 			tags = append(tags, tag)
 			// mark that this key was used
@@ -156,10 +171,13 @@ func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) rep
 				src = source
 			}
 		}
-		sub_report := validate(f.Value, sub_node, src)
+		sub_report := Validate(f.Value, sub_node, src)
 		// Default to deepest node if the node's type isn't an object,
 		// such as when a json string actually unmarshal to structs (like with version)
-		line, col, _ := posFromOffset(off, src)
+		line, col := 0, 0
+		if ast != nil {
+			line, col, _ = ast.ValueLineCol(src)
+		}
 		sub_report.AddPosition(line, col, "")
 		r.Merge(sub_report)
 	}
@@ -172,7 +190,7 @@ func validateStruct(vObj reflect.Value, ast json.Node, source io.ReadSeeker) rep
 		if _, hasKey := usedKeys[k]; hasKey {
 			continue
 		}
-		line, col, highlight := posFromOffset(v.KeyEnd, source)
+		line, col, highlight := v.KeyLineCol(source)
 		typo := similar(k, tags)
 
 		r.Add(report.Entry{
