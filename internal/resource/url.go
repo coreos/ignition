@@ -47,7 +47,7 @@ const (
 )
 
 // FetchConfig fetches a raw config from the provided URL.
-func FetchConfig(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL) []byte {
+func FetchConfig(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL) ([]byte, error) {
 	return FetchConfigWithHeader(l, c, ctx, u, http.Header{})
 }
 
@@ -55,7 +55,7 @@ func FetchConfig(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL) [
 // the response body on success or nil on failure. The HTTP response must be
 // OK, otherwise an empty (v.s. nil) config is returned. The provided headers
 // are merged with a set of default headers.
-func FetchConfigWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL, h http.Header) []byte {
+func FetchConfigWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL, h http.Header) ([]byte, error) {
 	header := http.Header{
 		"Accept-Encoding": []string{"identity"},
 		"Accept":          []string{"application/vnd.coreos.ignition+json; version=2.0.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1"},
@@ -70,11 +70,11 @@ func FetchConfigWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u 
 	data, err := FetchWithHeader(l, c, ctx, u, header)
 	switch err {
 	case nil:
-		return data
+		return data, nil
 	case ErrNotFound:
-		return []byte{}
+		return []byte{}, nil
 	default:
-		return nil
+		return nil, err
 	}
 }
 
