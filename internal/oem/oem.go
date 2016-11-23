@@ -20,7 +20,6 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/azure"
-	"github.com/coreos/ignition/internal/providers/cmdline"
 	"github.com/coreos/ignition/internal/providers/digitalocean"
 	"github.com/coreos/ignition/internal/providers/ec2"
 	"github.com/coreos/ignition/internal/providers/file"
@@ -153,7 +152,7 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 	})
 	configs.Register(Config{
 		name:  "pxe",
-		fetch: cmdline.FetchConfig,
+		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "rackspace",

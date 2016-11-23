@@ -25,6 +25,7 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
 
@@ -38,8 +39,12 @@ const (
 
 func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
 	url, err := readCmdline(logger)
-	if err != nil || url == nil {
+	if err != nil {
 		return types.Config{}, report.Report{}, err
+	}
+
+	if url == nil {
+		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
 
 	data, err := resource.FetchConfig(logger, client, context.Background(), *url)
