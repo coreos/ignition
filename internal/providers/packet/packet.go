@@ -23,7 +23,6 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
 
@@ -43,7 +42,7 @@ func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config,
 	// with the default headers. For now, just do a regular fetch.
 	data, err := resource.Fetch(logger, client, context.Background(), userdataUrl)
 	if err != nil {
-		return types.Config{}, report.Report{}, providers.ErrNoProvider
+		return types.Config{}, report.Report{}, err
 	}
 
 	return util.ParseConfig(logger, data)
