@@ -1,3 +1,9 @@
+29-Nov-2016 IGNITION v0.12.0
+
+  Features
+
+    - Allow kernel command-line parameter to override OEM config
+
 07-Oct-2016 IGNITION v0.11.2
 
   Bug Fixes
