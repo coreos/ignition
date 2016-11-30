@@ -14,7 +14,7 @@ env:
    - GO15VENDOREXPERIMENT=1
   matrix:
    - TARGET=amd64
-   - TARGET=arm64 GIMME_ARCH=arm64 GIMME_CGO_ENABLED=1
+   - TARGET=arm64
 
 addons:
   apt:
@@ -23,13 +23,15 @@ addons:
     - gcc-aarch64-linux-gnu
     - libc6-dev-arm64-cross
 
-install:
-  -
+before_install:
+  - if [[ "${TARGET}" == "arm64" ]]; then
+        export GIMME_ARCH=arm64 GIMME_CGO_ENABLED=1;
+    fi
 
 script:
-  -     if [ "${TARGET}" == "amd64" ]; then
-                GOARCH="${TARGET}" ./test;
+  -     if [[ "${TARGET}" == "amd64" ]]; then
+            GOARCH="${TARGET}" ./test;
         elif [ "${TARGET}" == "arm64" ]; then
-                GOARCH="${TARGET}" ./build;
-                file "bin/${TARGET}/ignition" | egrep 'aarch64';
+            GOARCH="${TARGET}" ./build;
+            file "bin/${TARGET}/ignition" | egrep 'aarch64';
         fi
