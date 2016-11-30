@@ -27,6 +27,7 @@ import (
 	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
+	"github.com/coreos/ignition/internal/providers/cmdline"
 	"github.com/coreos/ignition/internal/resource"
 
 	"golang.org/x/net/context"
@@ -114,11 +115,18 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 	return
 }
 
-// fetchProviderConfig returns the configuration from the engine's provider
-// returning an error if the provider is unavailable. This will also render the
-// config (see renderConfig) before returning.
+// fetchProviderConfig returns the externally-provided configuration. It first
+// checks to see if the command-line option is present. If so, it uses that
+// source for the configuration. If the command-line option is not present, it
+// check's the engine's provider. An error is returned if the provider is
+// unavailable. This will also render the config (see renderConfig) before
+// returning.
 func (e Engine) fetchProviderConfig() (types.Config, error) {
-	cfg, r, err := e.FetchFunc(e.Logger, &e.client)
+	cfg, r, err := cmdline.FetchConfig(e.Logger, &e.client)
+	if err == providers.ErrNoProvider {
+		cfg, r, err = e.FetchFunc(e.Logger, &e.client)
+	}
+
 	e.logReport(r)
 	if err != nil {
 		return types.Config{}, err

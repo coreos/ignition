@@ -21,6 +21,8 @@ The configuration must be passed to Ignition through the designated data source.
 }
 ```
 
+This data source can be overriden by specifying a configuration URL via the kernel command-line options.
+
 ## Troubleshooting
 
 ### Gathering Logs

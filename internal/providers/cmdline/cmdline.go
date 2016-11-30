@@ -39,13 +39,17 @@ const (
 
 func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
 	url, err := readCmdline(logger)
-	if err != nil || url == nil {
+	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}
 
-	data := resource.FetchConfig(logger, client, context.Background(), *url)
-	if data == nil {
+	if url == nil {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
+	}
+
+	data, err := resource.FetchConfig(logger, client, context.Background(), *url)
+	if err != nil {
+		return types.Config{}, report.Report{}, err
 	}
 
 	return util.ParseConfig(logger, data)

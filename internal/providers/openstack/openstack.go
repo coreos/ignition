@@ -126,5 +126,5 @@ func fetchConfigFromConfigDrive(logger *log.Logger, ctx context.Context) ([]byte
 }
 
 func fetchConfigFromMetadataService(logger *log.Logger, client *resource.HttpClient, ctx context.Context) ([]byte, error) {
-	return resource.FetchConfig(logger, client, context.Background(), metadataServiceUrl), nil
+	return resource.FetchConfig(logger, client, context.Background(), metadataServiceUrl)
 }

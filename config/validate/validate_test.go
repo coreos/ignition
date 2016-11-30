@@ -100,7 +100,7 @@ func TestValidate(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		r := ValidateWithoutSource(test.in.cfg)
+		r := ValidateWithoutSource(reflect.ValueOf(test.in.cfg))
 		expectedReport := report.ReportFromError(test.out.err, report.EntryError)
 		if !reflect.DeepEqual(expectedReport, r) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, expectedReport, r)
