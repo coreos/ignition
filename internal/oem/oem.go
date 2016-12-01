@@ -149,6 +149,11 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 	configs.Register(Config{
 		name:  "packet",
 		fetch: packet.FetchConfig,
+		baseConfig: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.SystemdUnit{{Enable: true, Name: "coreos-metadata-sshkeys@.service"}},
+			},
+		},
 	})
 	configs.Register(Config{
 		name:  "pxe",
