@@ -25,8 +25,7 @@ import (
 )
 
 const (
-	name     = "file"
-	fileName = "config.json"
+	fileName = "config.ign"
 )
 
 func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
