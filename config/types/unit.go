@@ -24,6 +24,7 @@ import (
 type SystemdUnit struct {
 	Name     SystemdUnitName     `json:"name,omitempty"`
 	Enable   bool                `json:"enable,omitempty"`
+	Disable  bool                `json:"disable,omitempty"`
 	Mask     bool                `json:"mask,omitempty"`
 	Contents string              `json:"contents,omitempty"`
 	DropIns  []SystemdUnitDropIn `json:"dropins,omitempty"`

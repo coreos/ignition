@@ -277,6 +277,14 @@ func (s stage) createUnits(config types.Config) error {
 		if err := s.writeSystemdUnit(unit); err != nil {
 			return err
 		}
+		if unit.Disable {
+			if err := s.Logger.LogOp(
+				func() error { return s.DisableUnit(unit) },
+				"disabling unit %q", unit.Name,
+			); err != nil {
+				return err
+			}
+		}
 		if unit.Enable {
 			if err := s.Logger.LogOp(
 				func() error { return s.EnableUnit(unit) },
