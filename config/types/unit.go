@@ -15,8 +15,12 @@
 package types
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"path/filepath"
+
+	"github.com/coreos/go-systemd/unit"
 
 	"github.com/coreos/ignition/config/validate/report"
 )
@@ -29,9 +33,27 @@ type SystemdUnit struct {
 	DropIns  []SystemdUnitDropIn `json:"dropins,omitempty"`
 }
 
+func (u SystemdUnit) Validate() report.Report {
+	if err := validateUnitContent(u.Contents); err != nil {
+		if err != errEmptyUnit || (err == errEmptyUnit && len(u.DropIns) == 0) {
+			return report.ReportFromError(err, report.EntryError)
+		}
+	}
+
+	return report.Report{}
+}
+
 type SystemdUnitDropIn struct {
 	Name     SystemdUnitDropInName `json:"name,omitempty"`
 	Contents string                `json:"contents,omitempty"`
+}
+
+func (u SystemdUnitDropIn) Validate() report.Report {
+	if err := validateUnitContent(u.Contents); err != nil {
+		return report.ReportFromError(err, report.EntryError)
+	}
+
+	return report.Report{}
 }
 
 type SystemdUnitName string
@@ -61,6 +83,14 @@ type NetworkdUnit struct {
 	Contents string           `json:"contents,omitempty"`
 }
 
+func (u NetworkdUnit) Validate() report.Report {
+	if err := validateUnitContent(u.Contents); err != nil {
+		return report.ReportFromError(err, report.EntryError)
+	}
+
+	return report.Report{}
+}
+
 type NetworkdUnitName string
 
 func (n NetworkdUnitName) Validate() report.Report {
@@ -70,4 +100,20 @@ func (n NetworkdUnitName) Validate() report.Report {
 	default:
 		return report.ReportFromError(errors.New("invalid networkd unit extension"), report.EntryError)
 	}
+}
+
+var errEmptyUnit = fmt.Errorf("invalid or empty unit content")
+
+func validateUnitContent(content string) error {
+	c := bytes.NewBufferString(content)
+	unit, err := unit.Deserialize(c)
+	if err != nil {
+		return fmt.Errorf("invalid unit content: %s", err)
+	}
+
+	if len(unit) == 0 {
+		return errEmptyUnit
+	}
+
+	return nil
 }
