@@ -26,7 +26,7 @@ var (
 	MaxVersion = semver.Version{
 		Major:      2,
 		Minor:      1,
-		PreRelease: "dev",
+		PreRelease: "experimental",
 	}
 )
 
