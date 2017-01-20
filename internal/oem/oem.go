@@ -118,15 +118,19 @@ func init() {
 				Files: []types.File{
 					serviceFromOem("oem-gce.service"),
 					{
-						Filesystem: "root",
-						Path:       "/etc/hosts",
-						Mode:       0444,
-						Contents:   contentsFromString("169.254.169.254 metadata\n127.0.0.1 localhost\n"),
+						Node: types.Node{
+							Filesystem: "root",
+							Path:       "/etc/hosts",
+							Mode:       0444,
+						},
+						Contents: contentsFromString("169.254.169.254 metadata\n127.0.0.1 localhost\n"),
 					},
 					{
-						Filesystem: "root",
-						Path:       "/etc/profile.d/google-cloud-sdk.sh",
-						Mode:       0444,
+						Node: types.Node{
+							Filesystem: "root",
+							Path:       "/etc/profile.d/google-cloud-sdk.sh",
+							Mode:       0444,
+						},
 						Contents: contentsFromString(`#!/bin/sh
 alias gcloud="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config -v /var/run/docker.sock:/var/run/doker.sock google/cloud-sdk gcloud"
 alias gcutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config google/cloud-sdk gcutil"
@@ -249,9 +253,11 @@ WantedBy=multi-user.target
 
 func serviceFromOem(unit string) types.File {
 	return types.File{
-		Filesystem: "root",
-		Path:       types.Path("/etc/systemd/system/" + unit),
-		Mode:       0444,
-		Contents:   contentsFromOem("/units/" + unit),
+		Node: types.Node{
+			Filesystem: "root",
+			Path:       types.Path("/etc/systemd/system/" + unit),
+			Mode:       0444,
+		},
+		Contents: contentsFromOem("/units/" + unit),
 	}
 }

@@ -14,14 +14,26 @@
 
 package types
 
-// File represents regular files
-type File struct {
-	Node
-	Contents FileContents `json:"contents,omitempty"`
+import (
+	"errors"
+	"path/filepath"
+
+	"github.com/coreos/ignition/config/validate/report"
+)
+
+var (
+	ErrPathRelative = errors.New("path not absolute")
+)
+
+type Path string
+
+func (p Path) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + string(p) + `"`), nil
 }
 
-type FileContents struct {
-	Compression  Compression  `json:"compression,omitempty"`
-	Source       Url          `json:"source,omitempty"`
-	Verification Verification `json:"verification,omitempty"`
+func (p Path) Validate() report.Report {
+	if !filepath.IsAbs(string(p)) {
+		return report.ReportFromError(ErrPathRelative, report.EntryError)
+	}
+	return report.Report{}
 }

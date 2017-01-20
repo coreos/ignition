@@ -14,14 +14,9 @@
 
 package types
 
-// File represents regular files
-type File struct {
-	Node
-	Contents FileContents `json:"contents,omitempty"`
-}
-
-type FileContents struct {
-	Compression  Compression  `json:"compression,omitempty"`
-	Source       Url          `json:"source,omitempty"`
-	Verification Verification `json:"verification,omitempty"`
+type Storage struct {
+	Disks       []Disk       `json:"disks,omitempty"`
+	Arrays      []Raid       `json:"raid,omitempty"`
+	Filesystems []Filesystem `json:"filesystems,omitempty"`
+	Files       []File       `json:"files,omitempty"`
 }

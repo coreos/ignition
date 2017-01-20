@@ -14,14 +14,7 @@
 
 package types
 
-// File represents regular files
-type File struct {
-	Node
-	Contents FileContents `json:"contents,omitempty"`
-}
-
-type FileContents struct {
-	Compression  Compression  `json:"compression,omitempty"`
-	Source       Url          `json:"source,omitempty"`
-	Verification Verification `json:"verification,omitempty"`
+type Timeouts struct {
+	HttpResponseHeaders *int `json:"httpResponseHeaders,omitempty"`
+	HttpTotal           *int `json:"httpTotal,omitempty"`
 }

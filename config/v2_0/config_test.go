@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package v2_0
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/coreos/ignition/config/types"
-	v1 "github.com/coreos/ignition/config/v1"
-	v2_0 "github.com/coreos/ignition/config/v2_0/types"
+	"github.com/coreos/ignition/config/v2_0/types"
 )
 
 func TestParse(t *testing.T) {
@@ -38,19 +36,15 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion(v2_0.MaxVersion)}}},
+			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "1.0.0"}}`)},
-			out: out{err: v1.ErrVersion},
+			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)}}},
-		},
-		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.1.0-experimental"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)}}},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion{Major: 2, Minor: 0}}}},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},

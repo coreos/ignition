@@ -20,7 +20,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -75,10 +74,7 @@ func Validate(vObj reflect.Value, ast AstNode, source io.ReadSeeker) (r report.R
 		((vObj.Kind() != reflect.Ptr) ||
 			(!vObj.IsNil() && !vObj.Elem().Type().Implements(reflect.TypeOf((*validator)(nil)).Elem()))) {
 		sub_r := obj.Validate()
-		if vObj.Type() != reflect.TypeOf(types.Config{}) {
-			// Config checks are done on the config as a whole and shouldn't get line numbers
-			sub_r.AddPosition(line, col, highlight)
-		}
+		sub_r.AddPosition(line, col, highlight)
 		r.Merge(sub_r)
 
 		// Dont recurse on invalid inner nodes, it mostly leads to bogus messages

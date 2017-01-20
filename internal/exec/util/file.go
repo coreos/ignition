@@ -163,7 +163,7 @@ func (u Util) WriteFile(f *File) error {
 
 	path := u.JoinPath(string(f.Path))
 
-	if err := mkdirForFile(path); err != nil {
+	if err := MkdirForFile(path); err != nil {
 		return err
 	}
 
@@ -210,7 +210,7 @@ func (u Util) WriteFile(f *File) error {
 	return nil
 }
 
-// mkdirForFile helper creates the directory components of path.
-func mkdirForFile(path string) error {
+// MkdirForFile helper creates the directory components of path.
+func MkdirForFile(path string) error {
 	return os.MkdirAll(filepath.Dir(path), DefaultDirectoryPermissions)
 }
