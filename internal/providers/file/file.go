@@ -16,6 +16,7 @@ package file
 
 import (
 	"io/ioutil"
+	"os"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
@@ -25,14 +26,21 @@ import (
 )
 
 const (
-	name     = "file"
-	fileName = "config.json"
+	cfgFilenameEnvVar = "IGNITION_CONFIG_FILE"
+	defaultFilename   = "config.ign"
 )
 
 func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
-	rawConfig, err := ioutil.ReadFile(fileName)
+	filename := os.Getenv(cfgFilenameEnvVar)
+	if filename == "" {
+		filename = defaultFilename
+		logger.Info("using default filename")
+	}
+	logger.Info("using config file at %q", filename)
+
+	rawConfig, err := ioutil.ReadFile(filename)
 	if err != nil {
-		logger.Err("couldn't read config %q: %v", fileName, err)
+		logger.Err("couldn't read config %q: %v", filename, err)
 		return types.Config{}, report.Report{}, err
 	}
 	return util.ParseConfig(logger, rawConfig)

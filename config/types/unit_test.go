@@ -22,6 +22,44 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func TestSystemdUnitValidate(t *testing.T) {
+	type in struct {
+		unit SystemdUnit
+	}
+	type out struct {
+		err error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{unit: SystemdUnit{Contents: "[Foo]\nQux=Bar"}},
+			out: out{err: nil},
+		},
+		{
+			in:  in{unit: SystemdUnit{Contents: "[Foo"}},
+			out: out{err: errors.New("invalid unit content: unable to find end of section")},
+		},
+		{
+			in:  in{unit: SystemdUnit{Contents: ""}},
+			out: out{err: errors.New("invalid or empty unit content")},
+		},
+		{
+			in:  in{unit: SystemdUnit{Contents: "", DropIns: []SystemdUnitDropIn{{}}}},
+			out: out{err: nil},
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.unit.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
+}
+
 func TestSystemdUnitNameValidate(t *testing.T) {
 	type in struct {
 		unit SystemdUnitName
@@ -45,6 +83,40 @@ func TestSystemdUnitNameValidate(t *testing.T) {
 		{
 			in:  in{unit: SystemdUnitName("test.blah")},
 			out: out{err: errors.New("invalid systemd unit extension")},
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.unit.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
+}
+
+func TestSystemdUnitDropInValidate(t *testing.T) {
+	type in struct {
+		unit SystemdUnitDropIn
+	}
+	type out struct {
+		err error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{unit: SystemdUnitDropIn{Contents: "[Foo]\nQux=Bar"}},
+			out: out{err: nil},
+		},
+		{
+			in:  in{unit: SystemdUnitDropIn{Contents: "[Foo"}},
+			out: out{err: errors.New("invalid unit content: unable to find end of section")},
+		},
+		{
+			in:  in{unit: SystemdUnitDropIn{Contents: ""}},
+			out: out{err: errors.New("invalid or empty unit content")},
 		},
 	}
 
@@ -83,6 +155,40 @@ func TestNetworkdUnitNameValidate(t *testing.T) {
 		{
 			in:  in{unit: NetworkdUnitName("test.blah")},
 			out: out{err: errors.New("invalid networkd unit extension")},
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.unit.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
+}
+
+func TestNetworkdUnitValidate(t *testing.T) {
+	type in struct {
+		unit NetworkdUnit
+	}
+	type out struct {
+		err error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{unit: NetworkdUnit{Contents: "[Foo]\nQux=Bar"}},
+			out: out{err: nil},
+		},
+		{
+			in:  in{unit: NetworkdUnit{Contents: "[Foo"}},
+			out: out{err: errors.New("invalid unit content: unable to find end of section")},
+		},
+		{
+			in:  in{unit: NetworkdUnit{Contents: ""}},
+			out: out{err: errors.New("invalid or empty unit content")},
 		},
 	}
 

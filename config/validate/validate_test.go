@@ -93,9 +93,16 @@ func TestValidate(t *testing.T) {
 		{
 			in: in{cfg: Config{
 				Ignition: Ignition{Version: IgnitionVersion{Major: 2}},
-				Systemd:  Systemd{Units: []SystemdUnit{{Name: "foo.bar"}}},
+				Systemd:  Systemd{Units: []SystemdUnit{{Name: "foo.bar", Contents: "[Foo]\nfoo=qux"}}},
 			}},
 			out: out{err: errors.New("invalid systemd unit extension")},
+		},
+		{
+			in: in{cfg: Config{
+				Ignition: Ignition{Version: IgnitionVersion{Major: 2}},
+				Networkd: Networkd{Units: []NetworkdUnit{{Name: "foo.link", Contents: ""}}},
+			}},
+			out: out{err: errors.New("invalid or empty unit content")},
 		},
 	}
 
