@@ -20,4 +20,5 @@ type Storage struct {
 	Filesystems []Filesystem `json:"filesystems,omitempty"`
 	Files       []File       `json:"files,omitempty"`
 	Directories []Directory  `json:"directories,omitempty"`
+	Luks        []Luks       `json:"luks,omitempty"`
 }
