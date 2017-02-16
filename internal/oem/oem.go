@@ -29,6 +29,7 @@ import (
 	"github.com/coreos/ignition/internal/providers/openstack"
 	"github.com/coreos/ignition/internal/providers/packet"
 	"github.com/coreos/ignition/internal/providers/qemu"
+	"github.com/coreos/ignition/internal/providers/sakuracloud"
 	"github.com/coreos/ignition/internal/providers/vmware"
 	"github.com/coreos/ignition/internal/registry"
 
@@ -243,6 +244,18 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 	configs.Register(Config{
 		name:  "file",
 		fetch: file.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "sakuracloud",
+		fetch: sakuracloud.FetchConfig,
+		baseConfig: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.Unit{
+					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
+					{Enable: true, Name: "coreos-sakuracloud-network.service"},
+				},
+			},
+		},
 	})
 }
 
