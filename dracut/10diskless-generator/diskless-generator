@@ -68,7 +68,7 @@ Before=initrd-root-fs.target
 What=tmpfs
 Where=/sysroot
 Type=tmpfs
-Options=${rootflags:-mode=755}
+Options=mode=755${rootflags:+,$rootflags}
 EOF
 
 # Alternatively support using btrfs in ram instead of tmpfs
