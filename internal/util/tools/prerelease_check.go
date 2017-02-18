@@ -22,10 +22,6 @@ import (
 )
 
 func main() {
-	if types.MaxVersion.PreRelease != "" {
-		fmt.Fprintf(os.Stderr, "config version still has pre-release (%s)\n", types.MaxVersion.PreRelease)
-		os.Exit(1)
-	}
 	if types.MaxVersion.Metadata != "" {
 		fmt.Fprintf(os.Stderr, "config version still has metadata (%s)\n", types.MaxVersion.Metadata)
 		os.Exit(1)
