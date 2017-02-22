@@ -56,7 +56,7 @@ func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config,
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
 	dispatch := func(name string, fn func() ([]byte, error)) {
-		raw, err := fetchConfigFromConfigDrive(logger, ctx)
+		raw, err := fn()
 		if err != nil {
 			switch err {
 			case context.Canceled:
@@ -75,6 +75,7 @@ func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config,
 	go dispatch("config drive", func() ([]byte, error) {
 		return fetchConfigFromConfigDrive(logger, ctx)
 	})
+
 	go dispatch("metadata service", func() ([]byte, error) {
 		return fetchConfigFromMetadataService(logger, client, ctx)
 	})
