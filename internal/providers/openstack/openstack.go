@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	configDrivePath         = "/dev/disk/by-label/config-2"
+	diskByLabelPath         = "/dev/disk/by-label/"
 	configDriveUserdataPath = "/openstack/latest/user_data"
 )
 
@@ -72,8 +72,12 @@ func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config,
 		cancel()
 	}
 
-	go dispatch("config drive", func() ([]byte, error) {
-		return fetchConfigFromConfigDrive(logger, ctx)
+	go dispatch("config drive (config-2)", func() ([]byte, error) {
+		return fetchConfigFromDevice(logger, ctx, diskByLabelPath+"config-2")
+	})
+
+	go dispatch("config drive (CONFIG-2)", func() ([]byte, error) {
+		return fetchConfigFromDevice(logger, ctx, diskByLabelPath+"CONFIG-2")
 	})
 
 	go dispatch("metadata service", func() ([]byte, error) {
@@ -93,9 +97,9 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromConfigDrive(logger *log.Logger, ctx context.Context) ([]byte, error) {
-	for !fileExists(configDrivePath) {
-		logger.Debug("config drive (%q) not found. Waiting...", configDrivePath)
+func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string) ([]byte, error) {
+	for !fileExists(path) {
+		logger.Debug("config drive (%q) not found. Waiting...", path)
 		select {
 		case <-time.After(time.Second):
 		case <-ctx.Done():
@@ -110,13 +114,13 @@ func fetchConfigFromConfigDrive(logger *log.Logger, ctx context.Context) ([]byte
 	}
 	defer os.Remove(mnt)
 
-	cmd := exec.Command("/usr/bin/mount", "-o", "ro", "-t", "auto", configDrivePath, mnt)
+	cmd := exec.Command("/usr/bin/mount", "-o", "ro", "-t", "auto", path, mnt)
 	if err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
 		return nil, err
 	}
 	defer logger.LogOp(
 		func() error { return syscall.Unmount(mnt, 0) },
-		"unmounting %q at %q", configDrivePath, mnt,
+		"unmounting %q at %q", path, mnt,
 	)
 
 	if !fileExists(filepath.Join(mnt, configDriveUserdataPath)) {
