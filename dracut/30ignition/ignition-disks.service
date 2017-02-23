@@ -1,0 +1,22 @@
+[Unit]
+Description=Ignition (disks)
+DefaultDependencies=false
+
+Requires=local-fs-pre.target
+Before=local-fs-pre.target
+
+# setup networking
+Wants=systemd-networkd.service
+After=systemd-networkd.service
+
+# generate resolv.conf
+Wants=systemd-resolved.service
+After=systemd-resolved.service
+
+# prevent racing with sgdisk and its subsequent udev activity
+After=disk-uuid.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/bin/ignition --root=/sysroot --oem=${OEM_ID} --stage=disks

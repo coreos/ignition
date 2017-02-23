@@ -1,0 +1,27 @@
+[Unit]
+Description=Ignition (files)
+DefaultDependencies=false
+Before=initrd-parse-etc.service
+
+Requires=initrd-root-fs.target
+After=initrd-root-fs.target
+
+Requires=ignition-disks.service
+After=ignition-disks.service
+
+# setup the root filesystem before we try do things like create users on it.
+Requires=initrd-setup-root.service
+After=initrd-setup-root.service
+
+# setup networking
+Wants=systemd-networkd.service
+After=systemd-networkd.service
+
+# generate resolv.conf
+Wants=systemd-resolved.service
+After=systemd-resolved.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/bin/ignition --root=/sysroot --oem=${OEM_ID} --stage=files
