@@ -27,9 +27,6 @@ install() {
     inst_simple "$moddir/ignition-files.service" \
         "$systemdsystemunitdir/ignition-files.service"
 
-    inst_simple "$moddir/ignition.target" \
-        "$systemdsystemunitdir/ignition.target"
-
     inst_simple "$moddir/coreos-digitalocean-network.service" \
         "$systemdsystemunitdir/coreos-digitalocean-network.service"
 

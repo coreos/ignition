@@ -33,7 +33,8 @@ add_requires() {
 }
 
 if $(cmdline_bool coreos.first_boot 0); then
-    add_requires ignition.target
+    add_requires ignition-disks.service
+    add_requires ignition-files.service
 fi
 
 RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)
