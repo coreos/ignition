@@ -16,13 +16,19 @@ install() {
         systemd-detect-virt \
         mkfs.btrfs \
         mkfs.ext4 \
-        mkfs.xfs \
-        "$systemdsystemunitdir/ignition.target" \
-        "$systemdsystemunitdir/ignition-disks.service" \
-        "$systemdsystemunitdir/ignition-files.service"
+        mkfs.xfs
 
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
+
+    inst_simple "$moddir/ignition-disks.service" \
+        "$systemdsystemunitdir/ignition-disks.service"
+
+    inst_simple "$moddir/ignition-files.service" \
+        "$systemdsystemunitdir/ignition-files.service"
+
+    inst_simple "$moddir/ignition.target" \
+        "$systemdsystemunitdir/ignition.target"
 
     inst_simple "$moddir/coreos-digitalocean-network.service" \
         "$systemdsystemunitdir/coreos-digitalocean-network.service"
