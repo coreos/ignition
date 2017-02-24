@@ -30,6 +30,8 @@ install() {
     inst_simple "$moddir/coreos-digitalocean-network.service" \
         "$systemdsystemunitdir/coreos-digitalocean-network.service"
 
+    systemctl --root "$initdir" enable ignition-disks.service
+    systemctl --root "$initdir" enable ignition-files.service
     systemctl --root "$initdir" enable coreos-digitalocean-network.service
 
     inst_rules \

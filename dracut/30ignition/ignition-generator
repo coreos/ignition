@@ -17,25 +17,12 @@ cmdline_arg() {
     echo "${value}"
 }
 
-cmdline_bool() {
-    local value=$(cmdline_arg "$@")
-    case "$value" in
-        ""|0|no|off) return 1;;
-        *) return 0;;
-    esac
-}
-
 add_requires() {
     local name="$1"
     local requires_dir="${UNIT_DIR}/initrd.target.requires"
     mkdir -p "${requires_dir}"
     ln -sf "../${name}" "${requires_dir}/${name}"
 }
-
-if $(cmdline_bool coreos.first_boot 0); then
-    add_requires ignition-disks.service
-    add_requires ignition-files.service
-fi
 
 RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)
 if [ -n "$RANDOMIZE_DISK_GUID" ]; then
