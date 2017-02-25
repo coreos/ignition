@@ -7,7 +7,9 @@ Wants=systemd-udevd.service
 After=systemd-udevd.service
 Requires=%i.device
 After=%i.device
-Before=ignition-disks.service verity-setup.service
+Requires=ignition-disks.service
+After=ignition-disks.service
+Before=verity-setup.service
 
 [Service]
 Type=oneshot
