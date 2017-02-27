@@ -35,9 +35,7 @@ type SystemdUnit struct {
 
 func (u SystemdUnit) Validate() report.Report {
 	if err := validateUnitContent(u.Contents); err != nil {
-		if err != errEmptyUnit || (err == errEmptyUnit && len(u.DropIns) == 0) {
-			return report.ReportFromError(err, report.EntryError)
-		}
+		return report.ReportFromError(err, report.EntryError)
 	}
 
 	return report.Report{}
@@ -102,17 +100,11 @@ func (n NetworkdUnitName) Validate() report.Report {
 	}
 }
 
-var errEmptyUnit = fmt.Errorf("invalid or empty unit content")
-
 func validateUnitContent(content string) error {
 	c := bytes.NewBufferString(content)
-	unit, err := unit.Deserialize(c)
+	_, err := unit.Deserialize(c)
 	if err != nil {
 		return fmt.Errorf("invalid unit content: %s", err)
-	}
-
-	if len(unit) == 0 {
-		return errEmptyUnit
 	}
 
 	return nil
