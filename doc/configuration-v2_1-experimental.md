@@ -1,4 +1,6 @@
-# Configuration Specification #
+# Configuration Specification v2.1.0-experimental #
+
+*NOTE*: This pre-release version of the specification is experimental and is subject to change without notice or regard to backward compatibility.
 
 The Ignition configuration is a JSON document conforming to the following specification, with **_italicized_** entries being optional:
 
