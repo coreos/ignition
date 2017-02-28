@@ -1,6 +1,8 @@
 [Unit]
 Description=Ignition (files)
 DefaultDependencies=false
+ConditionPathExists=!/sysroot/etc/machine-id
+
 Before=initrd-parse-etc.service
 
 Requires=initrd-root-fs.target
@@ -25,3 +27,6 @@ After=systemd-resolved.service
 Type=oneshot
 EnvironmentFile=/run/ignition.env
 ExecStart=/usr/bin/ignition --root=/sysroot --oem=${OEM_ID} --stage=files
+
+[Install]
+RequiredBy=initrd.target
