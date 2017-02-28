@@ -43,10 +43,6 @@ func TestSystemdUnitValidate(t *testing.T) {
 			out: out{err: errors.New("invalid unit content: unable to find end of section")},
 		},
 		{
-			in:  in{unit: SystemdUnit{Contents: ""}},
-			out: out{err: errors.New("invalid or empty unit content")},
-		},
-		{
 			in:  in{unit: SystemdUnit{Contents: "", DropIns: []SystemdUnitDropIn{{}}}},
 			out: out{err: nil},
 		},
@@ -113,10 +109,6 @@ func TestSystemdUnitDropInValidate(t *testing.T) {
 		{
 			in:  in{unit: SystemdUnitDropIn{Contents: "[Foo"}},
 			out: out{err: errors.New("invalid unit content: unable to find end of section")},
-		},
-		{
-			in:  in{unit: SystemdUnitDropIn{Contents: ""}},
-			out: out{err: errors.New("invalid or empty unit content")},
 		},
 	}
 
@@ -185,10 +177,6 @@ func TestNetworkdUnitValidate(t *testing.T) {
 		{
 			in:  in{unit: NetworkdUnit{Contents: "[Foo"}},
 			out: out{err: errors.New("invalid unit content: unable to find end of section")},
-		},
-		{
-			in:  in{unit: NetworkdUnit{Contents: ""}},
-			out: out{err: errors.New("invalid or empty unit content")},
 		},
 	}
 
