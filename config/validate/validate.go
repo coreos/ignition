@@ -118,12 +118,18 @@ type field struct {
 }
 
 // getFields returns a field of all the fields in the struct, including the fields of
-// embedded structs.
+// embedded structs and structs inside interface{}'s
 func getFields(vObj reflect.Value) []field {
+	if vObj.Kind() != reflect.Struct {
+		return nil
+	}
 	ret := []field{}
 	for i := 0; i < vObj.Type().NumField(); i++ {
 		if vObj.Type().Field(i).Anonymous {
-			ret = append(ret, getFields(vObj.Field(i))...)
+			// in the case of an embedded type that is an alias to interface, extract the
+			// real type contained by the interface
+			realObj := reflect.ValueOf(vObj.Field(i).Interface())
+			ret = append(ret, getFields(realObj)...)
 		} else {
 			ret = append(ret, field{Type: vObj.Type().Field(i), Value: vObj.Field(i)})
 		}
