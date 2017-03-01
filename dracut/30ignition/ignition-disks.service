@@ -1,7 +1,6 @@
 [Unit]
 Description=Ignition (disks)
 DefaultDependencies=false
-ConditionKernelCommandLine=coreos.first_boot=1
 
 Requires=local-fs-pre.target
 Before=local-fs-pre.target
@@ -21,6 +20,3 @@ After=disk-uuid.service
 Type=oneshot
 EnvironmentFile=/run/ignition.env
 ExecStart=/usr/bin/ignition --root=/sysroot --oem=${OEM_ID} --stage=disks
-
-[Install]
-RequiredBy=initrd.target
