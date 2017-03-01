@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 [ $# == 2 ] || { echo "usage: $0 version commit" && exit 1; }
 
