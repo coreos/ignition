@@ -1,7 +1,7 @@
 [Unit]
 Description=Ignition (files)
 DefaultDependencies=false
-ConditionPathExists=!/sysroot/etc/machine-id
+ConditionKernelCommandLine=coreos.first_boot=1
 
 Before=initrd-parse-etc.service
 
