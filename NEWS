@@ -1,3 +1,23 @@
+01-Mar-2017 IGNITION v0.13.0
+
+  Bug Fixes
+
+    - Read from both the config-drive and metadata service when using the
+      OpenStack provider
+    - Properly reports errors encountered while creating files
+    - Fix GCE gcloud alias to properly invoke the container
+
+  Features
+
+    - Add support for experimental features via a newer config spec
+    - Allow file provider's config path to be overridden
+    - Perform basic syntactic validation on the contents of systemd units
+
+  Experimental (2.1.0-experimental)
+
+    - Add ability to explicitly create directories
+    - Add configuration for HTTP-related timeouts
+
 14-Dec-2016 IGNITION v0.12.1
 
   Bug Fixes
