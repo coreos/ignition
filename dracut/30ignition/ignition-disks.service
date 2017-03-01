@@ -14,6 +14,9 @@ After=systemd-networkd.service
 Wants=systemd-resolved.service
 After=systemd-resolved.service
 
+# prevent racing with sgdisk and its subsequent udev activity
+After=disk-uuid.service
+
 [Service]
 Type=oneshot
 EnvironmentFile=/run/ignition.env
