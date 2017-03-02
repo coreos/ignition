@@ -64,6 +64,21 @@ func init() {
 	configs.Register(Config{
 		name:  "azure",
 		fetch: azure.FetchConfig,
+		baseConfig: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.SystemdUnit{
+					{Enable: true, Name: "waagent.service"},
+					{Name: "etcd.service", DropIns: []types.SystemdUnitDropIn{
+						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_PEER_ELECTION_TIMEOUT=1200\n"},
+					}},
+					{Name: "etcd2.service", DropIns: []types.SystemdUnitDropIn{
+						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_ELECTION_TIMEOUT=1200\n"},
+					}},
+				},
+			},
+			Storage: types.Storage{Files: []types.File{serviceFromOem("waagent.service")}},
+		},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("Azure", "azure")}}},
 	})
 	configs.Register(Config{
 		name:  "cloudsigma",
