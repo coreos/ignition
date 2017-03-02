@@ -96,7 +96,24 @@ func init() {
 		fetch: ec2.FetchConfig,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{{Enable: true, Name: "coreos-metadata-sshkeys@.service"}},
+				Units: []types.SystemdUnit{
+					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
+					{Name: "etcd.service", DropIns: []types.SystemdUnitDropIn{
+						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_PEER_ELECTION_TIMEOUT=1200\n"},
+					}},
+					{Name: "etcd2.service", DropIns: []types.SystemdUnitDropIn{
+						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_ELECTION_TIMEOUT=1200\n"},
+					}},
+				},
+			},
+		},
+		defaultUserConfig: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.SystemdUnit{
+					{Mask: true, Name: "user-configdrive.service"},
+					{Mask: true, Name: "user-configvirtfs.service"},
+					userCloudInit("EC2-style", "ec2-compat"),
+				},
 			},
 		},
 	})
