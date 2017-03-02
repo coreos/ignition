@@ -27,6 +27,12 @@ install() {
     inst_simple "$moddir/ignition-files.service" \
         "$systemdsystemunitdir/ignition-files.service"
 
+    inst_simple "$moddir/ignition-quench.service" \
+        "$systemdsystemunitdir/ignition-quench.service"
+
+    inst_simple "$moddir/sysroot-boot.mount" \
+        "$systemdsystemunitdir/sysroot-boot.mount"
+
     inst_simple "$moddir/coreos-digitalocean-network.service" \
         "$systemdsystemunitdir/coreos-digitalocean-network.service"
 
