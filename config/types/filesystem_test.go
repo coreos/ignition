@@ -21,9 +21,9 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestFilesystemFormatValidate(t *testing.T) {
+func TestMountValidate(t *testing.T) {
 	type in struct {
-		format FilesystemFormat
+		format string
 	}
 	type out struct {
 		err error
@@ -34,21 +34,21 @@ func TestFilesystemFormatValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{format: FilesystemFormat("ext4")},
+			in:  in{format: "ext4"},
 			out: out{},
 		},
 		{
-			in:  in{format: FilesystemFormat("btrfs")},
+			in:  in{format: "btrfs"},
 			out: out{},
 		},
 		{
-			in:  in{format: FilesystemFormat("")},
+			in:  in{format: ""},
 			out: out{err: ErrFilesystemInvalidFormat},
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.format.Validate()
+		err := Mount{Format: test.in.format, Device: "/"}.Validate()
 		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
@@ -68,15 +68,15 @@ func TestFilesystemValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{filesystem: Filesystem{Mount: &FilesystemMount{Device: "/foo", Format: "ext4"}}},
+			in:  in{filesystem: Filesystem{Mount: &Mount{Device: "/foo", Format: "ext4"}}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Path: func(p Path) *Path { return &p }("/mount")}},
+			in:  in{filesystem: Filesystem{Path: func(p string) *string { return &p }("/mount")}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Path: func(p Path) *Path { return &p }("/mount"), Mount: &FilesystemMount{Device: "/foo", Format: "ext4"}}},
+			in:  in{filesystem: Filesystem{Path: func(p string) *string { return &p }("/mount"), Mount: &Mount{Device: "/foo", Format: "ext4"}}},
 			out: out{err: ErrFilesystemMountAndPath},
 		},
 		{

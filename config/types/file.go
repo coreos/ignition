@@ -14,14 +14,38 @@
 
 package types
 
-// File represents regular files
-type File struct {
-	Node
-	Contents FileContents `json:"contents,omitempty"`
+import (
+	"errors"
+	"fmt"
+
+	"github.com/coreos/ignition/config/validate/report"
+)
+
+var (
+	ErrCompressionInvalid = errors.New("invalid compression method")
+)
+
+func (fc FileContents) ValidateCompression() report.Report {
+	r := report.Report{}
+	switch fc.Compression {
+	case "", "gzip":
+	default:
+		r.Add(report.Entry{
+			Message: ErrCompressionInvalid.Error(),
+			Kind:    report.EntryError,
+		})
+	}
+	return r
 }
 
-type FileContents struct {
-	Compression  Compression  `json:"compression,omitempty"`
-	Source       Url          `json:"source,omitempty"`
-	Verification Verification `json:"verification,omitempty"`
+func (fc FileContents) ValidateSource() report.Report {
+	r := report.Report{}
+	err := validateURL(fc.Source)
+	if err != nil {
+		r.Add(report.Entry{
+			Message: fmt.Sprintf("invalid url: %q: ", fc.Source, err.Error()),
+			Kind:    report.EntryError,
+		})
+	}
+	return r
 }

@@ -173,16 +173,16 @@ func (s stage) createPartitions(config types.Config) error {
 	return nil
 }
 
-// createRaids creates the raid arrays described in config.Storage.Arrays.
+// createRaids creates the raid arrays described in config.Storage.Raid.
 func (s stage) createRaids(config types.Config) error {
-	if len(config.Storage.Arrays) == 0 {
+	if len(config.Storage.Raid) == 0 {
 		return nil
 	}
 	s.Logger.PushPrefix("createRaids")
 	defer s.Logger.PopPrefix()
 
 	devs := []string{}
-	for _, array := range config.Storage.Arrays {
+	for _, array := range config.Storage.Raid {
 		for _, dev := range array.Devices {
 			devs = append(devs, string(dev))
 		}
@@ -192,7 +192,7 @@ func (s stage) createRaids(config types.Config) error {
 		return err
 	}
 
-	for _, md := range config.Storage.Arrays {
+	for _, md := range config.Storage.Raid {
 		// FIXME(vc): this is utterly flummoxed by a preexisting md.Name, the magic of device-resident md metadata really interferes with us.
 		// It's as if what ignition really needs is to turn off automagic md probing/running before getting started.
 		args := []string{
@@ -224,7 +224,7 @@ func (s stage) createRaids(config types.Config) error {
 
 // createFilesystems creates the filesystems described in config.Storage.Filesystems.
 func (s stage) createFilesystems(config types.Config) error {
-	fss := make([]types.FilesystemMount, 0, len(config.Storage.Filesystems))
+	fss := make([]types.Mount, 0, len(config.Storage.Filesystems))
 	for _, fs := range config.Storage.Filesystems {
 		if fs.Mount != nil {
 			fss = append(fss, *fs.Mount)
@@ -255,13 +255,13 @@ func (s stage) createFilesystems(config types.Config) error {
 	return nil
 }
 
-func (s stage) createFilesystem(fs types.FilesystemMount) error {
+func (s stage) createFilesystem(fs types.Mount) error {
 	if fs.Create == nil {
 		return nil
 	}
 
 	mkfs := ""
-	args := []string(fs.Create.Options)
+	args := translateV2_1OptionSliceToStringSlice(fs.Create.Options)
 	switch fs.Format {
 	case "btrfs":
 		mkfs = "/sbin/mkfs.btrfs"
@@ -294,4 +294,12 @@ func (s stage) createFilesystem(fs types.FilesystemMount) error {
 	}
 
 	return nil
+}
+
+func translateV2_1OptionSliceToStringSlice(opts []types.Option) []string {
+	newOpts := make([]string, len(opts))
+	for i, o := range opts {
+		newOpts[i] = string(o)
+	}
+	return newOpts
 }

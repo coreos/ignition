@@ -40,7 +40,7 @@ const (
 type File struct {
 	io.ReadCloser
 	hash.Hash
-	Path        types.Path
+	Path        string
 	Mode        os.FileMode
 	Uid         int
 	Gid         int
@@ -83,7 +83,11 @@ func RenderFile(l *log.Logger, c *resource.HttpClient, f types.File) *File {
 	var err error
 	var expectedSum string
 
-	reader, err = resource.FetchAsReader(l, c, context.Background(), url.URL(f.Contents.Source))
+	// explicitly ignoring the error here because the config should already be
+	// validated by this point
+	u, _ := url.Parse(f.Contents.Source)
+
+	reader, err = resource.FetchAsReader(l, c, context.Background(), *u)
 	if err != nil {
 		l.Crit("Error fetching file %q: %v", f.Path, err)
 		return nil
@@ -97,7 +101,9 @@ func RenderFile(l *log.Logger, c *resource.HttpClient, f types.File) *File {
 
 	if fileHash != nil {
 		reader = newHashedReader(reader, fileHash)
-		expectedSum = f.Contents.Verification.Hash.Sum
+		// explicitly ignoring the error here because the config should already
+		// be validated by this point
+		_, expectedSum, _ = f.Contents.Verification.HashParts()
 	}
 
 	reader, err = decompressFileStream(l, f, reader)
@@ -111,8 +117,8 @@ func RenderFile(l *log.Logger, c *resource.HttpClient, f types.File) *File {
 		ReadCloser:  reader,
 		Hash:        fileHash,
 		Mode:        os.FileMode(f.Mode),
-		Uid:         f.User.Id,
-		Gid:         f.Group.Id,
+		Uid:         f.User.ID,
+		Gid:         f.Group.ID,
 		expectedSum: expectedSum,
 	}
 }

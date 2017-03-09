@@ -15,8 +15,11 @@
 package config
 
 import (
-	"reflect"
+	"net/url"
 	"testing"
+
+	"github.com/coreos/go-semver/semver"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/coreos/ignition/config/types"
 	v1 "github.com/coreos/ignition/config/v1/types"
@@ -37,7 +40,7 @@ func TestTranslateFromV1(t *testing.T) {
 	}{
 		{
 			in:  in{},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion(v2_0.MaxVersion)}}},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: v2_0.MaxVersion.String()}}},
 		},
 		{
 			in: in{config: v1.Config{
@@ -124,65 +127,65 @@ func TestTranslateFromV1(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: types.IgnitionVersion{Major: 2}},
+				Ignition: types.Ignition{Version: semver.Version{Major: 2}.String()},
 				Storage: types.Storage{
 					Disks: []types.Disk{
 						{
-							Device:    types.Path("/dev/sda"),
+							Device:    "/dev/sda",
 							WipeTable: true,
 							Partitions: []types.Partition{
 								{
-									Label:    types.PartitionLabel("ROOT"),
+									Label:    "ROOT",
 									Number:   7,
-									Size:     types.PartitionDimension(100),
-									Start:    types.PartitionDimension(50),
+									Size:     100,
+									Start:    50,
 									TypeGUID: "HI",
 								},
 								{
-									Label:    types.PartitionLabel("DATA"),
+									Label:    "DATA",
 									Number:   12,
-									Size:     types.PartitionDimension(1000),
-									Start:    types.PartitionDimension(300),
+									Size:     1000,
+									Start:    300,
 									TypeGUID: "LO",
 								},
 							},
 						},
 						{
-							Device:    types.Path("/dev/sdb"),
+							Device:    "/dev/sdb",
 							WipeTable: true,
 						},
 					},
-					Arrays: []types.Raid{
+					Raid: []types.Raid{
 						{
 							Name:    "fast",
 							Level:   "raid0",
-							Devices: []types.Path{types.Path("/dev/sdc"), types.Path("/dev/sdd")},
+							Devices: []types.Device{types.Device("/dev/sdc"), types.Device("/dev/sdd")},
 							Spares:  2,
 						},
 						{
 							Name:    "durable",
 							Level:   "raid1",
-							Devices: []types.Path{types.Path("/dev/sde"), types.Path("/dev/sdf")},
+							Devices: []types.Device{types.Device("/dev/sde"), types.Device("/dev/sdf")},
 							Spares:  3,
 						},
 					},
 					Filesystems: []types.Filesystem{
 						{
 							Name: "_translate-filesystem-0",
-							Mount: &types.FilesystemMount{
-								Device: types.Path("/dev/disk/by-partlabel/ROOT"),
-								Format: types.FilesystemFormat("btrfs"),
-								Create: &types.FilesystemCreate{
+							Mount: &types.Mount{
+								Device: "/dev/disk/by-partlabel/ROOT",
+								Format: "btrfs",
+								Create: &types.Create{
 									Force:   true,
-									Options: types.MkfsOptions([]string{"-L", "ROOT"}),
+									Options: []types.Option{"-L", "ROOT"},
 								},
 							},
 						},
 						{
 							Name: "_translate-filesystem-1",
-							Mount: &types.FilesystemMount{
-								Device: types.Path("/dev/disk/by-partlabel/DATA"),
-								Format: types.FilesystemFormat("ext4"),
+							Mount: &types.Mount{
+								Device: "/dev/disk/by-partlabel/DATA",
+								Format: "ext4",
 							},
 						},
 					},
@@ -190,45 +193,51 @@ func TestTranslateFromV1(t *testing.T) {
 						{
 							Node: types.Node{
 								Filesystem: "_translate-filesystem-0",
-								Path:       types.Path("/opt/file1"),
-								Mode:       types.NodeMode(0664),
-								User:       types.NodeUser{Id: 500},
-								Group:      types.NodeGroup{Id: 501},
+								Path:       "/opt/file1",
+								Mode:       0664,
+								User:       types.NodeUser{ID: 500},
+								Group:      types.NodeGroup{ID: 501},
 							},
-							Contents: types.FileContents{
-								Source: types.Url{
-									Scheme: "data",
-									Opaque: ",file1",
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: (&url.URL{
+										Scheme: "data",
+										Opaque: ",file1",
+									}).String(),
 								},
 							},
 						},
 						{
 							Node: types.Node{
 								Filesystem: "_translate-filesystem-0",
-								Path:       types.Path("/opt/file2"),
-								Mode:       types.NodeMode(0644),
-								User:       types.NodeUser{Id: 502},
-								Group:      types.NodeGroup{Id: 503},
+								Path:       "/opt/file2",
+								Mode:       0644,
+								User:       types.NodeUser{ID: 502},
+								Group:      types.NodeGroup{ID: 503},
 							},
-							Contents: types.FileContents{
-								Source: types.Url{
-									Scheme: "data",
-									Opaque: ",file2",
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: (&url.URL{
+										Scheme: "data",
+										Opaque: ",file2",
+									}).String(),
 								},
 							},
 						},
 						{
 							Node: types.Node{
 								Filesystem: "_translate-filesystem-1",
-								Path:       types.Path("/opt/file3"),
-								Mode:       types.NodeMode(0400),
-								User:       types.NodeUser{Id: 1000},
-								Group:      types.NodeGroup{Id: 1001},
+								Path:       "/opt/file3",
+								Mode:       0400,
+								User:       types.NodeUser{ID: 1000},
+								Group:      types.NodeGroup{ID: 1001},
 							},
-							Contents: types.FileContents{
-								Source: types.Url{
-									Scheme: "data",
-									Opaque: ",file3",
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: (&url.URL{
+										Scheme: "data",
+										Opaque: ",file3",
+									}).String(),
 								},
 							},
 						},
@@ -264,14 +273,14 @@ func TestTranslateFromV1(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: types.IgnitionVersion{Major: 2}},
+				Ignition: types.Ignition{Version: semver.Version{Major: 2}.String()},
 				Systemd: types.Systemd{
-					Units: []types.SystemdUnit{
+					Units: []types.Unit{
 						{
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							DropIns: []types.SystemdUnitDropIn{
+							Dropins: []types.Dropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
@@ -307,9 +316,9 @@ func TestTranslateFromV1(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: types.IgnitionVersion{Major: 2}},
+				Ignition: types.Ignition{Version: semver.Version{Major: 2}.String()},
 				Networkd: types.Networkd{
-					Units: []types.NetworkdUnit{
+					Units: []types.Networkdunit{
 						{
 							Name:     "test1.network",
 							Contents: "test1 contents",
@@ -370,25 +379,25 @@ func TestTranslateFromV1(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: types.IgnitionVersion{Major: 2}},
+				Ignition: types.Ignition{Version: semver.Version{Major: 2}.String()},
 				Passwd: types.Passwd{
-					Users: []types.User{
+					Users: []types.PasswdUser{
 						{
 							Name:              "user 1",
 							PasswordHash:      "password 1",
-							SSHAuthorizedKeys: []string{"key1", "key2"},
+							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key1", "key2"},
 						},
 						{
 							Name:              "user 2",
 							PasswordHash:      "password 2",
-							SSHAuthorizedKeys: []string{"key3", "key4"},
-							Create: &types.UserCreate{
-								Uid:          func(i uint) *uint { return &i }(123),
-								GECOS:        "gecos",
-								Homedir:      "/home/user 2",
+							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key3", "key4"},
+							Create: &types.Usercreate{
+								UID:          func(i int) *int { return &i }(123),
+								Gecos:        "gecos",
+								HomeDir:      "/home/user 2",
 								NoCreateHome: true,
 								PrimaryGroup: "wheel",
-								Groups:       []string{"wheel", "plugdev"},
+								Groups:       []types.UsercreateGroup{"wheel", "plugdev"},
 								NoUserGroup:  true,
 								System:       true,
 								NoLogInit:    true,
@@ -398,14 +407,14 @@ func TestTranslateFromV1(t *testing.T) {
 						{
 							Name:              "user 3",
 							PasswordHash:      "password 3",
-							SSHAuthorizedKeys: []string{"key5", "key6"},
-							Create:            &types.UserCreate{},
+							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key5", "key6"},
+							Create:            &types.Usercreate{},
 						},
 					},
-					Groups: []types.Group{
+					Groups: []types.PasswdGroup{
 						{
 							Name:         "group 1",
-							Gid:          func(i uint) *uint { return &i }(1000),
+							Gid:          func(i int) *int { return &i }(1000),
 							PasswordHash: "password 1",
 							System:       true,
 						},
@@ -421,9 +430,7 @@ func TestTranslateFromV1(t *testing.T) {
 
 	for i, test := range tests {
 		config := TranslateFromV1(test.in.config)
-		if !reflect.DeepEqual(test.out.config, config) {
-			t.Errorf("#%d: bad config: want %+v, got %+v", i, test.out.config, config)
-		}
+		assert.Equal(t, config, test.out.config, "#%d: bad config", i)
 	}
 }
 
@@ -441,7 +448,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 	}{
 		{
 			in:  in{},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)}}},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
 			in: in{config: v2_0.Config{
@@ -484,38 +491,32 @@ func TestTranslateFromV2_0(t *testing.T) {
 			}},
 			out: out{config: types.Config{
 				Ignition: types.Ignition{
-					Version: types.IgnitionVersion(types.MaxVersion),
+					Version: types.MaxVersion.String(),
 					Config: types.IgnitionConfig{
 						Append: []types.ConfigReference{
 							{
-								Source: types.Url{
+								Source: (&url.URL{
 									Scheme: "data",
 									Opaque: ",file1",
-								},
+								}).String(),
 							},
 							{
-								Source: types.Url{
+								Source: (&url.URL{
 									Scheme: "data",
 									Opaque: ",file2",
-								},
+								}).String(),
 								Verification: types.Verification{
-									Hash: &types.Hash{
-										Function: "func2",
-										Sum:      "sum2",
-									},
+									Hash: func(s string) *string { return &s }("func2-sum2"),
 								},
 							},
 						},
 						Replace: &types.ConfigReference{
-							Source: types.Url{
+							Source: (&url.URL{
 								Scheme: "data",
 								Opaque: ",file3",
-							},
+							}).String(),
 							Verification: types.Verification{
-								Hash: &types.Hash{
-									Function: "func3",
-									Sum:      "sum3",
-								},
+								Hash: func(s string) *string { return &s }("func3-sum3"),
 							},
 						},
 					},
@@ -633,115 +634,121 @@ func TestTranslateFromV2_0(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)},
+				Ignition: types.Ignition{Version: types.MaxVersion.String()},
 				Storage: types.Storage{
 					Disks: []types.Disk{
 						{
-							Device:    types.Path("/dev/sda"),
+							Device:    "/dev/sda",
 							WipeTable: true,
 							Partitions: []types.Partition{
 								{
-									Label:    types.PartitionLabel("ROOT"),
+									Label:    "ROOT",
 									Number:   7,
-									Size:     types.PartitionDimension(100),
-									Start:    types.PartitionDimension(50),
+									Size:     100,
+									Start:    50,
 									TypeGUID: "HI",
 								},
 								{
-									Label:    types.PartitionLabel("DATA"),
+									Label:    "DATA",
 									Number:   12,
-									Size:     types.PartitionDimension(1000),
-									Start:    types.PartitionDimension(300),
+									Size:     1000,
+									Start:    300,
 									TypeGUID: "LO",
 								},
 							},
 						},
 						{
-							Device:    types.Path("/dev/sdb"),
+							Device:    "/dev/sdb",
 							WipeTable: true,
 						},
 					},
-					Arrays: []types.Raid{
+					Raid: []types.Raid{
 						{
 							Name:    "fast",
 							Level:   "raid0",
-							Devices: []types.Path{types.Path("/dev/sdc"), types.Path("/dev/sdd")},
+							Devices: []types.Device{types.Device("/dev/sdc"), types.Device("/dev/sdd")},
 							Spares:  2,
 						},
 						{
 							Name:    "durable",
 							Level:   "raid1",
-							Devices: []types.Path{types.Path("/dev/sde"), types.Path("/dev/sdf")},
+							Devices: []types.Device{types.Device("/dev/sde"), types.Device("/dev/sdf")},
 							Spares:  3,
 						},
 					},
 					Filesystems: []types.Filesystem{
 						{
 							Name: "filesystem-0",
-							Mount: &types.FilesystemMount{
-								Device: types.Path("/dev/disk/by-partlabel/ROOT"),
-								Format: types.FilesystemFormat("btrfs"),
-								Create: &types.FilesystemCreate{
+							Mount: &types.Mount{
+								Device: "/dev/disk/by-partlabel/ROOT",
+								Format: "btrfs",
+								Create: &types.Create{
 									Force:   true,
-									Options: types.MkfsOptions([]string{"-L", "ROOT"}),
+									Options: []types.Option{"-L", "ROOT"},
 								},
 							},
 						},
 						{
 							Name: "filesystem-1",
-							Mount: &types.FilesystemMount{
-								Device: types.Path("/dev/disk/by-partlabel/DATA"),
-								Format: types.FilesystemFormat("ext4"),
+							Mount: &types.Mount{
+								Device: "/dev/disk/by-partlabel/DATA",
+								Format: "ext4",
 							},
 						},
 						{
 							Name: "filesystem-2",
-							Path: func(p types.Path) *types.Path { return &p }("/foo"),
+							Path: func(p string) *string { return &p }("/foo"),
 						},
 					},
 					Files: []types.File{
 						{
 							Node: types.Node{
 								Filesystem: "filesystem-0",
-								Path:       types.Path("/opt/file1"),
-								Mode:       types.NodeMode(0664),
-								User:       types.NodeUser{Id: 500},
-								Group:      types.NodeGroup{Id: 501},
+								Path:       "/opt/file1",
+								Mode:       0664,
+								User:       types.NodeUser{ID: 500},
+								Group:      types.NodeGroup{ID: 501},
 							},
-							Contents: types.FileContents{
-								Source: types.Url{
-									Scheme: "data",
-									Opaque: ",file1",
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: (&url.URL{
+										Scheme: "data",
+										Opaque: ",file1",
+									}).String(),
 								},
 							},
 						},
 						{
 							Node: types.Node{
 								Filesystem: "filesystem-0",
-								Path:       types.Path("/opt/file2"),
-								Mode:       types.NodeMode(0644),
-								User:       types.NodeUser{Id: 502},
-								Group:      types.NodeGroup{Id: 503},
+								Path:       "/opt/file2",
+								Mode:       0644,
+								User:       types.NodeUser{ID: 502},
+								Group:      types.NodeGroup{ID: 503},
 							},
-							Contents: types.FileContents{
-								Source: types.Url{
-									Scheme: "data",
-									Opaque: ",file2",
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: (&url.URL{
+										Scheme: "data",
+										Opaque: ",file2",
+									}).String(),
 								},
 							},
 						},
 						{
 							Node: types.Node{
 								Filesystem: "filesystem-1",
-								Path:       types.Path("/opt/file3"),
-								Mode:       types.NodeMode(0400),
-								User:       types.NodeUser{Id: 1000},
-								Group:      types.NodeGroup{Id: 1001},
+								Path:       "/opt/file3",
+								Mode:       0400,
+								User:       types.NodeUser{ID: 1000},
+								Group:      types.NodeGroup{ID: 1001},
 							},
-							Contents: types.FileContents{
-								Source: types.Url{
-									Scheme: "data",
-									Opaque: ",file3",
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: (&url.URL{
+										Scheme: "data",
+										Opaque: ",file3",
+									}).String(),
 								},
 							},
 						},
@@ -777,14 +784,14 @@ func TestTranslateFromV2_0(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)},
+				Ignition: types.Ignition{Version: types.MaxVersion.String()},
 				Systemd: types.Systemd{
-					Units: []types.SystemdUnit{
+					Units: []types.Unit{
 						{
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							DropIns: []types.SystemdUnitDropIn{
+							Dropins: []types.Dropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
@@ -820,9 +827,9 @@ func TestTranslateFromV2_0(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)},
+				Ignition: types.Ignition{Version: types.MaxVersion.String()},
 				Networkd: types.Networkd{
-					Units: []types.NetworkdUnit{
+					Units: []types.Networkdunit{
 						{
 							Name:     "test1.network",
 							Contents: "test1 contents",
@@ -883,25 +890,25 @@ func TestTranslateFromV2_0(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)},
+				Ignition: types.Ignition{Version: types.MaxVersion.String()},
 				Passwd: types.Passwd{
-					Users: []types.User{
+					Users: []types.PasswdUser{
 						{
 							Name:              "user 1",
 							PasswordHash:      "password 1",
-							SSHAuthorizedKeys: []string{"key1", "key2"},
+							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key1", "key2"},
 						},
 						{
 							Name:              "user 2",
 							PasswordHash:      "password 2",
-							SSHAuthorizedKeys: []string{"key3", "key4"},
-							Create: &types.UserCreate{
-								Uid:          func(i uint) *uint { return &i }(123),
-								GECOS:        "gecos",
-								Homedir:      "/home/user 2",
+							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key3", "key4"},
+							Create: &types.Usercreate{
+								UID:          func(i int) *int { return &i }(123),
+								Gecos:        "gecos",
+								HomeDir:      "/home/user 2",
 								NoCreateHome: true,
 								PrimaryGroup: "wheel",
-								Groups:       []string{"wheel", "plugdev"},
+								Groups:       []types.UsercreateGroup{"wheel", "plugdev"},
 								NoUserGroup:  true,
 								System:       true,
 								NoLogInit:    true,
@@ -911,14 +918,14 @@ func TestTranslateFromV2_0(t *testing.T) {
 						{
 							Name:              "user 3",
 							PasswordHash:      "password 3",
-							SSHAuthorizedKeys: []string{"key5", "key6"},
-							Create:            &types.UserCreate{},
+							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key5", "key6"},
+							Create:            &types.Usercreate{},
 						},
 					},
-					Groups: []types.Group{
+					Groups: []types.PasswdGroup{
 						{
 							Name:         "group 1",
-							Gid:          func(i uint) *uint { return &i }(1000),
+							Gid:          func(i int) *int { return &i }(1000),
 							PasswordHash: "password 1",
 							System:       true,
 						},
@@ -934,8 +941,6 @@ func TestTranslateFromV2_0(t *testing.T) {
 
 	for i, test := range tests {
 		config := TranslateFromV2_0(test.in.config)
-		if !reflect.DeepEqual(test.out.config, config) {
-			t.Errorf("#%d: bad config: want %+v, got %+v", i, test.out.config, config)
-		}
+		assert.Equal(t, config, test.out.config, "#%d: bad config", i)
 	}
 }

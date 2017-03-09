@@ -39,11 +39,11 @@ const (
 
 var (
 	baseConfig = types.Config{
-		Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)},
+		Ignition: types.Ignition{Version: types.MaxVersion.String()},
 		Storage: types.Storage{
 			Filesystems: []types.Filesystem{{
 				Name: "root",
-				Path: func(p types.Path) *types.Path { return &p }("/sysroot"),
+				Path: func(p string) *string { return &p }("/sysroot"),
 			}},
 		},
 	}
@@ -161,7 +161,11 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 // fetchReferencedConfig fetches, renders, and attempts to verify the requested
 // config.
 func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
-	rawCfg, err := resource.Fetch(e.Logger, &e.client, context.Background(), url.URL(cfgRef.Source))
+	u, err := url.Parse(cfgRef.Source)
+	if err != nil {
+		return types.Config{}, err
+	}
+	rawCfg, err := resource.Fetch(e.Logger, &e.client, context.Background(), *u)
 	if err != nil {
 		return types.Config{}, err
 	}

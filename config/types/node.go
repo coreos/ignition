@@ -16,7 +16,7 @@ package types
 
 import (
 	"errors"
-	"os"
+	"path/filepath"
 
 	"github.com/coreos/ignition/config/validate/report"
 )
@@ -26,35 +26,43 @@ var (
 	ErrFileIllegalMode = errors.New("illegal file mode")
 )
 
-// Node represents all common info for files (special types, e.g. directories, included).
-type Node struct {
-	Filesystem string    `json:"filesystem,omitempty"`
-	Path       Path      `json:"path,omitempty"`
-	Mode       NodeMode  `json:"mode,omitempty"`
-	User       NodeUser  `json:"user,omitempty"`
-	Group      NodeGroup `json:"group,omitempty"`
-}
-
-type NodeUser struct {
-	Id int `json:"id,omitempty"`
-}
-
-type NodeGroup struct {
-	Id int `json:"id,omitempty"`
-}
-
-func (n Node) Validate() report.Report {
+func (n Node) ValidateFilesystem() report.Report {
+	r := report.Report{}
 	if n.Filesystem == "" {
-		return report.ReportFromError(ErrNoFilesystem, report.EntryError)
+		r.Add(report.Entry{
+			Message: ErrNoFilesystem.Error(),
+			Kind:    report.EntryError,
+		})
 	}
-	return report.Report{}
+	return r
 }
 
-type NodeMode os.FileMode
-
-func (m NodeMode) Validate() report.Report {
-	if (m &^ 07777) != 0 {
-		return report.ReportFromError(ErrFileIllegalMode, report.EntryError)
+func (n Node) ValidateMode() report.Report {
+	r := report.Report{}
+	if n.Mode < 0 || n.Mode > 07777 {
+		r.Add(report.Entry{
+			Message: ErrFileIllegalMode.Error(),
+			Kind:    report.EntryError,
+		})
 	}
-	return report.Report{}
+	return r
+}
+
+func (n Node) ValidatePath() report.Report {
+	r := report.Report{}
+	if err := validatePath(n.Path); err != nil {
+		r.Add(report.Entry{
+			Message: err.Error(),
+			Kind:    report.EntryError,
+		})
+	}
+	return r
+}
+
+func (n Node) Depth() int {
+	count := 0
+	for p := filepath.Clean(string(n.Path)); p != "/"; count++ {
+		p = filepath.Dir(p)
+	}
+	return count
 }

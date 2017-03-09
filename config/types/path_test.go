@@ -17,13 +17,11 @@ package types
 import (
 	"reflect"
 	"testing"
-
-	"github.com/coreos/ignition/config/validate/report"
 )
 
 func TestPathValidate(t *testing.T) {
 	type in struct {
-		device Path
+		device string
 	}
 	type out struct {
 		err error
@@ -34,30 +32,30 @@ func TestPathValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{device: Path("/good/path")},
+			in:  in{device: "/good/path"},
 			out: out{},
 		},
 		{
-			in:  in{device: Path("/name")},
+			in:  in{device: "/name"},
 			out: out{},
 		},
 		{
-			in:  in{device: Path("/this/is/a/fairly/long/path/to/a/device.")},
+			in:  in{device: "/this/is/a/fairly/long/path/to/a/device."},
 			out: out{},
 		},
 		{
-			in:  in{device: Path("/this one has spaces")},
+			in:  in{device: "/this one has spaces"},
 			out: out{},
 		},
 		{
-			in:  in{device: Path("relative/path")},
+			in:  in{device: "relative/path"},
 			out: out{err: ErrPathRelative},
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.device.Validate()
-		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
+		err := validatePath(test.in.device)
+		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
 	}

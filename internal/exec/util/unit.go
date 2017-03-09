@@ -29,31 +29,31 @@ const (
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func FileFromSystemdUnit(unit types.SystemdUnit) *File {
+func FileFromSystemdUnit(unit types.Unit) *File {
 	return &File{
-		Path:       types.Path(filepath.Join(SystemdUnitsPath(), string(unit.Name))),
+		Path:       filepath.Join(SystemdUnitsPath(), string(unit.Name)),
 		ReadCloser: ioutil.NopCloser(bytes.NewReader([]byte(unit.Contents))),
 		Mode:       DefaultFilePermissions,
 	}
 }
 
-func FileFromNetworkdUnit(unit types.NetworkdUnit) *File {
+func FileFromNetworkdUnit(unit types.Networkdunit) *File {
 	return &File{
-		Path:       types.Path(filepath.Join(NetworkdUnitsPath(), string(unit.Name))),
+		Path:       filepath.Join(NetworkdUnitsPath(), string(unit.Name)),
 		ReadCloser: ioutil.NopCloser(bytes.NewReader([]byte(unit.Contents))),
 		Mode:       DefaultFilePermissions,
 	}
 }
 
-func FileFromUnitDropin(unit types.SystemdUnit, dropin types.SystemdUnitDropIn) *File {
+func FileFromUnitDropin(unit types.Unit, dropin types.Dropin) *File {
 	return &File{
-		Path:       types.Path(filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name))),
+		Path:       filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
 		ReadCloser: ioutil.NopCloser(bytes.NewReader([]byte(dropin.Contents))),
 		Mode:       DefaultFilePermissions,
 	}
 }
 
-func (u Util) MaskUnit(unit types.SystemdUnit) error {
+func (u Util) MaskUnit(unit types.Unit) error {
 	path := u.JoinPath(SystemdUnitsPath(), string(unit.Name))
 	if err := MkdirForFile(path); err != nil {
 		return err
@@ -64,7 +64,7 @@ func (u Util) MaskUnit(unit types.SystemdUnit) error {
 	return os.Symlink("/dev/null", path)
 }
 
-func (u Util) EnableUnit(unit types.SystemdUnit) error {
+func (u Util) EnableUnit(unit types.Unit) error {
 	path := u.JoinPath(presetPath)
 	if err := MkdirForFile(path); err != nil {
 		return err

@@ -15,51 +15,15 @@
 package types
 
 import (
-	"encoding/json"
 	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestHashUnmarshalJSON(t *testing.T) {
+func TestHashParts(t *testing.T) {
 	type in struct {
 		data string
-	}
-	type out struct {
-		hash Hash
-		err  error
-	}
-
-	tests := []struct {
-		in  in
-		out out
-	}{
-		{
-			in:  in{data: `"sha512-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"`},
-			out: out{hash: Hash{Function: "sha512", Sum: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}},
-		},
-		{
-			in:  in{data: `"xor01234567"`},
-			out: out{err: ErrHashMalformed},
-		},
-	}
-
-	for i, test := range tests {
-		var hash Hash
-		err := json.Unmarshal([]byte(test.in.data), &hash)
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
-		}
-		if !reflect.DeepEqual(test.out.hash, hash) {
-			t.Errorf("#%d: bad hash: want %+v, got %+v", i, test.out.hash, hash)
-		}
-	}
-}
-
-func TestHashValidate(t *testing.T) {
-	type in struct {
-		hash Hash
 	}
 	type out struct {
 		err error
@@ -70,25 +34,57 @@ func TestHashValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{hash: Hash{}},
+			in: in{data: `"sha512-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"`},
+		},
+		{
+			in:  in{data: `"sha512:01234567"`},
+			out: out{err: ErrHashMalformed},
+		},
+	}
+
+	for i, test := range tests {
+		fun, sum, err := Verification{Hash: &test.in.data}.HashParts()
+		if err != test.out.err {
+			t.Fatalf("#%d: bad error: want %+v, got %+v", i, test.out.err, err)
+		}
+		if err == nil && fun+"-"+sum != test.in.data {
+			t.Fatalf("#%d: bad hash: want %+v, got %+v", i, test.in.data, fun+"-"+sum)
+		}
+	}
+}
+
+func TestHashValidate(t *testing.T) {
+	type in struct {
+		v Verification
+	}
+	type out struct {
+		err error
+	}
+
+	h1 := "xor-abcdef"
+	h2 := "sha512-123"
+	h3 := "sha512-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{v: Verification{Hash: &h1}},
 			out: out{err: ErrHashUnrecognized},
 		},
 		{
-			in:  in{hash: Hash{Function: "xor"}},
-			out: out{err: ErrHashUnrecognized},
-		},
-		{
-			in:  in{hash: Hash{Function: "sha512", Sum: "123"}},
+			in:  in{v: Verification{Hash: &h2}},
 			out: out{err: ErrHashWrongSize},
 		},
 		{
-			in:  in{hash: Hash{Function: "sha512", Sum: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}},
+			in:  in{v: Verification{Hash: &h3}},
 			out: out{},
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.hash.Validate()
+		err := test.in.v.Validate()
 		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}

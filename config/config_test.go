@@ -15,6 +15,7 @@
 package config
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -28,8 +29,9 @@ func TestParse(t *testing.T) {
 		config []byte
 	}
 	type out struct {
-		config types.Config
-		err    error
+		config         types.Config
+		err            error
+		checkOnStrings bool
 	}
 
 	tests := []struct {
@@ -38,7 +40,7 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion(v2_0.MaxVersion)}}},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: v2_0.MaxVersion.String()}}},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "1.0.0"}}`)},
@@ -46,15 +48,19 @@ func TestParse(t *testing.T) {
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)}}},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.1.0-experimental"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)}}},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
 			out: out{err: ErrInvalid},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "invalid.semver"}}`)},
+			out: out{err: fmt.Errorf("invalid.semver is not in dotted-tri format"), checkOnStrings: true},
 		},
 		{
 			in:  in{config: []byte(`{}`)},
@@ -96,12 +102,13 @@ func TestParse(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		config, _, err := Parse(test.in.config)
-		if test.out.err != err {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		config, report, err := Parse(test.in.config)
+		if (!test.out.checkOnStrings && test.out.err != err) ||
+			(test.out.checkOnStrings && test.out.err.Error() != err.Error()) {
+			t.Errorf("#%d: bad error: want %v, got %v, report: %+v", i, test.out.err, err, report)
 		}
 		if test.out.err == nil && !reflect.DeepEqual(test.out.config, config) {
-			t.Errorf("#%d: bad config: want %+v, got %+v", i, test.out.config, config)
+			t.Errorf("#%d: bad config: want %+v, got %+v, report: %+v", i, test.out.config, config, report)
 		}
 	}
 }

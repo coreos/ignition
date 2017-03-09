@@ -16,6 +16,7 @@ package oem
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/providers"
@@ -66,19 +67,19 @@ func init() {
 		fetch: azure.FetchConfig,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{
+				Units: []types.Unit{
 					{Enable: true, Name: "waagent.service"},
-					{Name: "etcd.service", DropIns: []types.SystemdUnitDropIn{
+					{Name: "etcd.service", Dropins: []types.Dropin{
 						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_PEER_ELECTION_TIMEOUT=1200\n"},
 					}},
-					{Name: "etcd2.service", DropIns: []types.SystemdUnitDropIn{
+					{Name: "etcd2.service", Dropins: []types.Dropin{
 						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_ELECTION_TIMEOUT=1200\n"},
 					}},
 				},
 			},
 			Storage: types.Storage{Files: []types.File{serviceFromOem("waagent.service")}},
 		},
-		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("Azure", "azure")}}},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("Azure", "azure")}}},
 	})
 	configs.Register(Config{
 		name:  "cloudsigma",
@@ -93,32 +94,32 @@ func init() {
 		fetch: digitalocean.FetchConfig,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{{Enable: true, Name: "coreos-metadata-sshkeys@.service"}},
+				Units: []types.Unit{{Enable: true, Name: "coreos-metadata-sshkeys@.service"}},
 			},
 		},
-		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("DigitalOcean", "digitalocean")}}},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("DigitalOcean", "digitalocean")}}},
 	})
 	configs.Register(Config{
 		name:              "brightbox",
 		fetch:             noop.FetchConfig,
-		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("BrightBox", "ec2-compat")}}},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("BrightBox", "ec2-compat")}}},
 	})
 	configs.Register(Config{
 		name:              "openstack",
 		fetch:             openstack.FetchConfig,
-		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("OpenStack", "ec2-compat")}}},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("OpenStack", "ec2-compat")}}},
 	})
 	configs.Register(Config{
 		name:  "ec2",
 		fetch: ec2.FetchConfig,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{
+				Units: []types.Unit{
 					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
-					{Name: "etcd.service", DropIns: []types.SystemdUnitDropIn{
+					{Name: "etcd.service", Dropins: []types.Dropin{
 						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_PEER_ELECTION_TIMEOUT=1200\n"},
 					}},
-					{Name: "etcd2.service", DropIns: []types.SystemdUnitDropIn{
+					{Name: "etcd2.service", Dropins: []types.Dropin{
 						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_ELECTION_TIMEOUT=1200\n"},
 					}},
 				},
@@ -126,7 +127,7 @@ func init() {
 		},
 		defaultUserConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{
+				Units: []types.Unit{
 					{Mask: true, Name: "user-configdrive.service"},
 					{Mask: true, Name: "user-configvirtfs.service"},
 					userCloudInit("EC2", "ec2-compat"),
@@ -143,7 +144,7 @@ func init() {
 		fetch: gce.FetchConfig,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{
+				Units: []types.Unit{
 					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
 					{Enable: true, Name: "oem-gce.service"},
 				},
@@ -157,7 +158,9 @@ func init() {
 							Path:       "/etc/hosts",
 							Mode:       0444,
 						},
-						Contents: contentsFromString("169.254.169.254 metadata\n127.0.0.1 localhost\n"),
+						FileEmbedded1: types.FileEmbedded1{
+							Contents: contentsFromString("169.254.169.254 metadata\n127.0.0.1 localhost\n"),
+						},
 					},
 					{
 						Node: types.Node{
@@ -165,16 +168,18 @@ func init() {
 							Path:       "/etc/profile.d/google-cloud-sdk.sh",
 							Mode:       0444,
 						},
-						Contents: contentsFromString(`#!/bin/sh
+						FileEmbedded1: types.FileEmbedded1{
+							Contents: contentsFromString(`#!/bin/sh
 alias gcloud="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config -v /var/run/docker.sock:/var/run/doker.sock -v /usr/bin/docker:/usr/bin/docker google/cloud-sdk gcloud"
 alias gcutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config google/cloud-sdk gcutil"
 alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config google/cloud-sdk gsutil"
 `),
+						},
 					},
 				},
 			},
 		},
-		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("GCE", "gce")}}},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("GCE", "gce")}}},
 	})
 	configs.Register(Config{
 		name:  "hyperv",
@@ -189,14 +194,14 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 		fetch: packet.FetchConfig,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{
+				Units: []types.Unit{
 					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
 					{Enable: true, Name: "packet-phone-home.service"},
 				},
 			},
 			Storage: types.Storage{Files: []types.File{serviceFromOem("packet-phone-home.service")}},
 		},
-		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("Packet", "packet")}}},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("Packet", "packet")}}},
 	})
 	configs.Register(Config{
 		name:  "pxe",
@@ -218,10 +223,10 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 		name:  "vmware",
 		fetch: vmware.FetchConfig,
 		baseConfig: types.Config{
-			Systemd: types.Systemd{Units: []types.SystemdUnit{{Enable: true, Name: "vmtoolsd.service"}}},
+			Systemd: types.Systemd{Units: []types.Unit{{Enable: true, Name: "vmtoolsd.service"}}},
 			Storage: types.Storage{Files: []types.File{serviceFromOem("vmtoolsd.service")}},
 		},
-		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("VMware", "vmware")}}},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("VMware", "vmware")}}},
 	})
 	configs.Register(Config{
 		name:  "xendom0",
@@ -260,23 +265,23 @@ func Names() (names []string) {
 
 func contentsFromString(data string) types.FileContents {
 	return types.FileContents{
-		Source: types.Url{
+		Source: (&url.URL{
 			Scheme: "data",
 			Opaque: "," + dataurl.EscapeString(data),
-		},
+		}).String(),
 	}
 }
 
 func contentsFromOem(path string) types.FileContents {
 	return types.FileContents{
-		Source: types.Url{
+		Source: (&url.URL{
 			Scheme: "oem",
 			Path:   path,
-		},
+		}).String(),
 	}
 }
 
-func userCloudInit(name string, oem string) types.SystemdUnit {
+func userCloudInit(name string, oem string) types.Unit {
 	contents := `[Unit]
 Description=Cloudinit from %s metadata
 
@@ -288,7 +293,7 @@ ExecStart=/usr/bin/coreos-cloudinit --oem=%s
 WantedBy=multi-user.target
 `
 
-	return types.SystemdUnit{
+	return types.Unit{
 		Name:     "oem-cloudinit.service",
 		Enable:   true,
 		Contents: fmt.Sprintf(contents, name, oem),
@@ -299,9 +304,11 @@ func serviceFromOem(unit string) types.File {
 	return types.File{
 		Node: types.Node{
 			Filesystem: "root",
-			Path:       types.Path("/etc/systemd/system/" + unit),
+			Path:       "/etc/systemd/system/" + unit,
 			Mode:       0444,
 		},
-		Contents: contentsFromOem("/units/" + unit),
+		FileEmbedded1: types.FileEmbedded1{
+			Contents: contentsFromOem("/units/" + unit),
+		},
 	}
 }

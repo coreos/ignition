@@ -20,18 +20,15 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-type Raid struct {
-	Name    string `json:"name"`
-	Level   string `json:"level"`
-	Devices []Path `json:"devices,omitempty"`
-	Spares  int    `json:"spares,omitempty"`
-}
-
-func (n Raid) Validate() report.Report {
+func (n Raid) ValidateLevel() report.Report {
+	r := report.Report{}
 	switch n.Level {
 	case "linear", "raid0", "0", "stripe":
 		if n.Spares != 0 {
-			return report.ReportFromError(fmt.Errorf("spares unsupported for %q arrays", n.Level), report.EntryError)
+			r.Add(report.Entry{
+				Message: fmt.Sprintf("spares unsupported for %q arrays", n.Level),
+				Kind:    report.EntryError,
+			})
 		}
 	case "raid1", "1", "mirror":
 	case "raid4", "4":
@@ -39,7 +36,23 @@ func (n Raid) Validate() report.Report {
 	case "raid6", "6":
 	case "raid10", "10":
 	default:
-		return report.ReportFromError(fmt.Errorf("unrecognized raid level: %q", n.Level), report.EntryError)
+		r.Add(report.Entry{
+			Message: fmt.Sprintf("unrecognized raid level: %q", n.Level),
+			Kind:    report.EntryError,
+		})
 	}
-	return report.Report{}
+	return r
+}
+
+func (n Raid) ValidateDevices() report.Report {
+	r := report.Report{}
+	for d := range n.Devices {
+		if err := validatePath(string(d)); err != nil {
+			r.Add(report.Entry{
+				Message: fmt.Sprintf("array %q: device path not absolute: %q", n.Name, d),
+				Kind:    report.EntryError,
+			})
+		}
+	}
+	return r
 }
