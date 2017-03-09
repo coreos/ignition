@@ -31,7 +31,7 @@ if [ -n "$RANDOMIZE_DISK_GUID" ]; then
 fi
 
 oem_id=pxe
-if [[ $(systemd-detect-virt || true) == "qemu" ]]; then
+if [[ $(systemd-detect-virt || true) =~ ^(kvm|qemu)$ ]]; then
     oem_id=qemu
 fi
 
