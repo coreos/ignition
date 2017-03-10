@@ -210,6 +210,11 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 	configs.Register(Config{
 		name:  "vmware",
 		fetch: vmware.FetchConfig,
+		baseConfig: types.Config{
+			Systemd: types.Systemd{Units: []types.SystemdUnit{{Enable: true, Name: "vmtoolsd.service"}}},
+			Storage: types.Storage{Files: []types.File{serviceFromOem("vmtoolsd.service")}},
+		},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("VMware", "vmware")}}},
 	})
 	configs.Register(Config{
 		name:  "xendom0",
