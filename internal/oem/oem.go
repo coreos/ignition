@@ -104,8 +104,9 @@ func init() {
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("BrightBox", "ec2-compat")}}},
 	})
 	configs.Register(Config{
-		name:  "openstack",
-		fetch: openstack.FetchConfig,
+		name:              "openstack",
+		fetch:             openstack.FetchConfig,
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("OpenStack", "ec2-compat")}}},
 	})
 	configs.Register(Config{
 		name:  "ec2",
@@ -128,7 +129,7 @@ func init() {
 				Units: []types.SystemdUnit{
 					{Mask: true, Name: "user-configdrive.service"},
 					{Mask: true, Name: "user-configvirtfs.service"},
-					userCloudInit("EC2-style", "ec2-compat"),
+					userCloudInit("EC2", "ec2-compat"),
 				},
 			},
 		},
