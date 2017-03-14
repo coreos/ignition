@@ -194,6 +194,7 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 					{Enable: true, Name: "packet-phone-home.service"},
 				},
 			},
+			Storage: types.Storage{Files: []types.File{serviceFromOem("packet-phone-home.service")}},
 		},
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("Packet", "packet")}}},
 	})
