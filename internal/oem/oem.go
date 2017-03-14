@@ -99,8 +99,9 @@ func init() {
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("DigitalOcean", "digitalocean")}}},
 	})
 	configs.Register(Config{
-		name:  "brightbox",
-		fetch: noop.FetchConfig,
+		name:              "brightbox",
+		fetch:             noop.FetchConfig,
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("BrightBox", "ec2-compat")}}},
 	})
 	configs.Register(Config{
 		name:  "openstack",
