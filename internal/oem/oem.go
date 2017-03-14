@@ -187,9 +187,13 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 		fetch: packet.FetchConfig,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.SystemdUnit{{Enable: true, Name: "coreos-metadata-sshkeys@.service"}},
+				Units: []types.SystemdUnit{
+					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
+					{Enable: true, Name: "packet-phone-home.service"},
+				},
 			},
 		},
+		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.SystemdUnit{userCloudInit("Packet", "packet")}}},
 	})
 	configs.Register(Config{
 		name:  "pxe",
