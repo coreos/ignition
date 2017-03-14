@@ -36,6 +36,7 @@ type Partition struct {
 	Length   uint64 // 512-byte sectors
 	Label    string
 	TypeGUID string
+	GUID     string
 }
 
 // Begin begins an sgdisk operation
@@ -74,6 +75,9 @@ func (op *Operation) Commit() error {
 			opts = append(opts, fmt.Sprintf("--change-name=%d:%s", p.Number, p.Label))
 			if p.TypeGUID != "" {
 				opts = append(opts, fmt.Sprintf("--typecode=%d:%s", p.Number, p.TypeGUID))
+			}
+			if p.GUID != "" {
+				opts = append(opts, fmt.Sprintf("--partition-guid=%d:%s", p.Number, p.GUID))
 			}
 		}
 		opts = append(opts, op.dev)

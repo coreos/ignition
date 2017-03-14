@@ -202,6 +202,9 @@
             },
             "typeGuid": {
               "type": "string"
+            },
+            "guid": {
+              "type": "string"
             }
           }
         },

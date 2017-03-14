@@ -99,6 +99,7 @@ type NodeUser struct {
 type Option string
 
 type Partition struct {
+	GUID     string `json:"guid,omitempty"`
 	Label    string `json:"label,omitempty"`
 	Number   int    `json:"number,omitempty"`
 	Size     int    `json:"size,omitempty"`
