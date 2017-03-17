@@ -1,3 +1,14 @@
+13-Mar-2017 IGNITION v0.14.0
+
+  Changes
+
+    - Update the services for the Azure OEM
+    - Update the services for the BrightBox OEM
+    - Update the services for the EC2 OEM
+    - Update the services for the OpenStack OEM
+    - Update the services for the Packet OEM
+    - Update the services for the VMware OEM
+
 01-Mar-2017 IGNITION v0.13.0
 
   Bug Fixes
