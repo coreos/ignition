@@ -149,6 +149,20 @@ func FetchAsReaderWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, 
 		}
 		return ioutil.NopCloser(bytes.NewReader(url.Data)), nil
 
+	case "file":
+		path := filepath.Clean(u.Path)
+		if !filepath.IsAbs(path) {
+			l.Err("file path is not absolute: %q", u.Path)
+			return nil, ErrPathNotAbsolute
+		}
+
+		f, err := os.Open(path)
+		if err != nil {
+			l.Err("failed to read file config: %v", err)
+			return nil, ErrFailed
+		}
+		return f, nil
+
 	case "oem":
 		path := filepath.Clean(u.Path)
 		if !filepath.IsAbs(path) {
