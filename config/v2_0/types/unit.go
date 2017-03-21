@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"path/filepath"
+	"path"
 
 	"github.com/coreos/go-systemd/unit"
 
@@ -57,7 +57,7 @@ func (u SystemdUnitDropIn) Validate() report.Report {
 type SystemdUnitName string
 
 func (n SystemdUnitName) Validate() report.Report {
-	switch filepath.Ext(string(n)) {
+	switch path.Ext(string(n)) {
 	case ".service", ".socket", ".device", ".mount", ".automount", ".swap", ".target", ".path", ".timer", ".snapshot", ".slice", ".scope":
 		return report.Report{}
 	default:
@@ -68,7 +68,7 @@ func (n SystemdUnitName) Validate() report.Report {
 type SystemdUnitDropInName string
 
 func (n SystemdUnitDropInName) Validate() report.Report {
-	switch filepath.Ext(string(n)) {
+	switch path.Ext(string(n)) {
 	case ".conf":
 		return report.Report{}
 	default:
@@ -92,7 +92,7 @@ func (u NetworkdUnit) Validate() report.Report {
 type NetworkdUnitName string
 
 func (n NetworkdUnitName) Validate() report.Report {
-	switch filepath.Ext(string(n)) {
+	switch path.Ext(string(n)) {
 	case ".link", ".netdev", ".network":
 		return report.Report{}
 	default:
