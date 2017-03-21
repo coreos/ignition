@@ -15,15 +15,15 @@
 package types
 
 import (
-	"path/filepath"
+	"path"
 )
 
 type Directory Node
 
 func (d *Directory) Depth() int {
 	count := 0
-	for p := filepath.Clean(string(d.Path)); p != "/"; count++ {
-		p = filepath.Dir(p)
+	for p := path.Clean(string(d.Path)); p != "/"; count++ {
+		p = path.Dir(p)
 	}
 	return count
 }
