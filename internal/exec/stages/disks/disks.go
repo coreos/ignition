@@ -20,6 +20,7 @@ package disks
 
 import (
 	"fmt"
+	"net/url"
 	"os/exec"
 
 	"github.com/coreos/ignition/config/types"
@@ -29,6 +30,9 @@ import (
 	"github.com/coreos/ignition/internal/resource"
 	"github.com/coreos/ignition/internal/sgdisk"
 	"github.com/coreos/ignition/internal/systemd"
+	"github.com/martinjungblut/cryptsetup"
+
+	"golang.org/x/net/context"
 )
 
 const (
@@ -73,6 +77,11 @@ func (s stage) Run(config types.Config) bool {
 
 	if err := s.createRaids(config); err != nil {
 		s.Logger.Crit("failed to create raids: %v", err)
+		return false
+	}
+
+	if err := s.createLukss(config); err != nil {
+		s.Logger.Crit("failed to create Luks: %v", err)
 		return false
 	}
 
@@ -217,6 +226,82 @@ func (s stage) createRaids(config types.Config) error {
 		); err != nil {
 			return fmt.Errorf("mdadm failed: %v", err)
 		}
+	}
+
+	return nil
+}
+
+// createLukss creates any LUKS partitions described in config.Storage.Luks
+func (s stage) createLukss(config types.Config) error {
+	lukss := make([]types.Luks, 0, len(config.Storage.Luks))
+	for _, luks := range config.Storage.Luks {
+		if len(luks.Device) > 0 {
+			lukss = append(lukss, luks)
+		}
+	}
+
+	if len(lukss) == 0 {
+		return nil
+	}
+	s.Logger.PushPrefix("createLuks")
+	defer s.Logger.PopPrefix()
+
+	devs := []string{}
+	for _, luks := range lukss {
+		devs = append(devs, string(luks.Device))
+	}
+
+	if err := s.waitOnDevicesAndCreateAliases(devs, "luks"); err != nil {
+		return err
+	}
+
+	for _, luks := range lukss {
+		if err := s.createLuks(luks); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s stage) createLuks(luks types.Luks) error {
+	if luks.Key == "" {
+		return fmt.Errorf("No key")
+	}
+
+	keyUrl, err := url.Parse(luks.Key)
+	if err != nil {
+		return fmt.Errorf("Unable to parse key URL: %v", err)
+	}
+
+	key, err := resource.Fetch(s.Logger, s.client, context.Background(), *keyUrl)
+
+	err, device := cryptsetup.Init(string(luks.Device))
+	if err != nil {
+		return fmt.Errorf("Unable to initialise cryptsetup: %v", err)
+	}
+	params := cryptsetup.LUKSParams{Hash: "sha256",
+		Data_alignment: 0,
+		Data_device:    ""}
+
+	err = device.FormatLUKS("aes", "xts-plain64", "", "", 256/8, params)
+	if err != nil {
+		return fmt.Errorf("Error setting up LUKS on device %s: %v", string(luks.Device), err)
+	}
+
+	err = device.AddPassphraseToKeyslot(cryptsetup.CRYPT_ANY_SLOT, "", string(key))
+	if err != nil {
+		return fmt.Errorf("Error adding passphrase to device %s: %v", string(luks.Device), err)
+	}
+
+	err = device.Load()
+	if err != nil {
+		return fmt.Errorf("Error reading LUKS data from device %s: %v", string(luks.Device), err)
+	}
+
+	err = device.Activate(luks.Name, cryptsetup.CRYPT_ANY_SLOT, string(key), 0)
+	if err != nil {
+		return fmt.Errorf("Error activating LUKS device %s: %v", string(luks.Device), err)
 	}
 
 	return nil
