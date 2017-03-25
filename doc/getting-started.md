@@ -46,7 +46,7 @@ When Ignition enables systemd services, it doesn't directly create the symlinks 
 Ignition is not typically run more than once during a machine's lifetime in a given role, so this situation requiring manual systemd intervention does not commonly arise.
 
 [conditions]: https://www.freedesktop.org/software/systemd/man/systemd.unit.html#ConditionArchitecture=
-[configspec]: configuration.md
+[configspec]: configuration-v2_0.md
 [examples]: examples.md
 [mime]: http://www.iana.org/assignments/media-types/application/vnd.coreos.ignition+json
 [platforms]: supported-platforms.md
