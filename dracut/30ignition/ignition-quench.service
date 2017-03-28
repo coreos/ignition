@@ -9,8 +9,8 @@ After=ignition-disks.service
 Requires=ignition-files.service
 After=ignition-files.service
 
-Requires=sysroot-boot.mount
-After=sysroot-boot.mount
+Requires=sysroot-boot.service
+After=sysroot-boot.service
 
 [Service]
 Type=oneshot

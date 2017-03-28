@@ -14,9 +14,15 @@ install() {
         usermod \
         groupadd \
         systemd-detect-virt \
+        mountpoint \
         mkfs.btrfs \
         mkfs.ext4 \
         mkfs.xfs
+
+    inst_script "$moddir/retry-umount.sh" \
+        "/usr/sbin/retry-umount"
+    # This should really not be necessary
+    chmod +x "${initdir}/usr/sbin/retry-umount"
 
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
@@ -30,8 +36,8 @@ install() {
     inst_simple "$moddir/ignition-quench.service" \
         "$systemdsystemunitdir/ignition-quench.service"
 
-    inst_simple "$moddir/sysroot-boot.mount" \
-        "$systemdsystemunitdir/sysroot-boot.mount"
+    inst_simple "$moddir/sysroot-boot.service" \
+        "$systemdsystemunitdir/sysroot-boot.service"
 
     inst_simple "$moddir/coreos-digitalocean-network.service" \
         "$systemdsystemunitdir/coreos-digitalocean-network.service"
