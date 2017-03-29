@@ -7,6 +7,10 @@ _prompt_for_timeout() {
     local timeout=300
     local interval=15
 
+    if [[ -e /.emergency-shell-confirmed ]]; then
+        return
+    fi
+
     # Regularly prompt with time remaining.  This ensures the prompt doesn't
     # get lost among kernel and systemd messages, and makes it clear what's
     # going on if the user just connected a serial console.
@@ -26,6 +30,7 @@ _prompt_for_timeout() {
 
         local anything
         if read -t $interval anything; then
+            > /.emergency-shell-confirmed
             return
         fi
         timeout=$(( $timeout - $interval ))
