@@ -39,4 +39,7 @@ _prompt_for_timeout() {
     exit 0
 }
 
-_prompt_for_timeout
+# If we're invoked from a dracut breakpoint rather than
+# dracut-emergency.service, we won't have a controlling terminal and stdio
+# won't be connected to it. Explicitly read/write /dev/console.
+_prompt_for_timeout < /dev/console > /dev/console
