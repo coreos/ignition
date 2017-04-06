@@ -256,7 +256,12 @@ func (s stage) createFilesystems(config types.Config) error {
 }
 
 func (s stage) createFilesystem(fs types.FilesystemMount) error {
-	if fs.Create == nil {
+	isRequired, err := s.requiresCreateFilesystem(fs)
+	if err != nil {
+		return err
+	}
+
+	if !isRequired {
 		return nil
 	}
 
@@ -270,7 +275,6 @@ func (s stage) createFilesystem(fs types.FilesystemMount) error {
 		}
 	case "ext4":
 		mkfs = "/sbin/mkfs.ext4"
-		args = append(args, "-p")
 		if fs.Create.Force {
 			args = append(args, "-F")
 		}
@@ -294,4 +298,30 @@ func (s stage) createFilesystem(fs types.FilesystemMount) error {
 	}
 
 	return nil
+}
+
+func (s stage) requiresCreateFilesystem(fs types.FilesystemMount) (bool, error) {
+	if fs.Create == nil {
+		return false, nil
+	}
+
+	if fs.Create.Force {
+		return true, nil
+	}
+
+	blk, err := util.BlockDevice(fs.Device)
+	if err != nil {
+		return false, err
+	}
+
+	if blk == nil {
+		return true, nil
+	}
+
+	s.Logger.Info("%s already contains a filesystem, skipping format")
+	if blk.Type != string(fs.Format) {
+		s.Logger.Warning("%s contains a %s filesystem, wanted %s", fs.Device, blk.Type, fs.Format)
+	}
+
+	return false, nil
 }
