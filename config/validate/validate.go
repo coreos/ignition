@@ -173,13 +173,24 @@ func validateStruct(vObj reflect.Value, ast AstNode, source io.ReadSeeker) repor
 				src = source
 			}
 		}
-		sub_report := Validate(f.Value, sub_node, src)
+
 		// Default to deepest node if the node's type isn't an object,
 		// such as when a json string actually unmarshal to structs (like with version)
 		line, col := 0, 0
 		if ast != nil {
 			line, col, _ = ast.ValueLineCol(src)
 		}
+
+		// If there's a Validate<Name> func for the given field, call it
+		funct := vObj.MethodByName("Validate" + f.Type.Name)
+		if funct.IsValid() {
+			res := funct.Call(nil)
+			sub_report := res[0].Interface().(report.Report)
+			sub_report.AddPosition(line, col, "")
+			r.Merge(sub_report)
+		}
+
+		sub_report := Validate(f.Value, sub_node, src)
 		sub_report.AddPosition(line, col, "")
 		r.Merge(sub_report)
 	}

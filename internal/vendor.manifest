@@ -9,3 +9,4 @@ github.com/sigma/bdoor                                 babf2a4017b020d4ce04e8167
 github.com/vincent-petithory/dataurl                   9a301d65acbb728fcc3ace14f45f511a4cfeea9c
 golang.org/golang.org/x/net/context                    075e191f18186a8ff2becaf64478e30f4545cdad
 golang.org/golang.org/x/net/context/ctxhttp            075e191f18186a8ff2becaf64478e30f4545cdad
+github.com/stretchr/testify                            4d4bfba8f1d1027c4fdbe371823030df51419987

@@ -18,6 +18,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/go-semver/semver"
+
 	"github.com/coreos/ignition/config/types"
 )
 
@@ -49,7 +51,7 @@ func TestAppend(t *testing.T) {
 				oldConfig: types.Config{},
 				newConfig: types.Config{
 					Ignition: types.Ignition{
-						Version: types.IgnitionVersion{Major: 2},
+						Version: semver.Version{Major: 2}.String(),
 					},
 				},
 			},
@@ -59,14 +61,14 @@ func TestAppend(t *testing.T) {
 			in: in{
 				oldConfig: types.Config{
 					Ignition: types.Ignition{
-						Version: types.IgnitionVersion{Major: 2},
+						Version: semver.Version{Major: 2}.String(),
 					},
 				},
 				newConfig: types.Config{},
 			},
 			out: out{config: types.Config{
 				Ignition: types.Ignition{
-					Version: types.IgnitionVersion{Major: 2},
+					Version: semver.Version{Major: 2}.String(),
 				},
 			}},
 		},
@@ -142,7 +144,7 @@ func TestAppend(t *testing.T) {
 				oldConfig: types.Config{},
 				newConfig: types.Config{
 					Systemd: types.Systemd{
-						Units: []types.SystemdUnit{
+						Units: []types.Unit{
 							{Name: "test1.service"},
 							{Name: "test2.service"},
 						},
@@ -151,7 +153,7 @@ func TestAppend(t *testing.T) {
 			},
 			out: out{config: types.Config{
 				Systemd: types.Systemd{
-					Units: []types.SystemdUnit{
+					Units: []types.Unit{
 						{Name: "test1.service"},
 						{Name: "test2.service"},
 					},
@@ -164,14 +166,14 @@ func TestAppend(t *testing.T) {
 			in: in{
 				oldConfig: types.Config{
 					Passwd: types.Passwd{
-						Users: []types.User{
+						Users: []types.PasswdUser{
 							{Name: "oldUser"},
 						},
 					},
 				},
 				newConfig: types.Config{
 					Passwd: types.Passwd{
-						Users: []types.User{
+						Users: []types.PasswdUser{
 							{Name: "newUser"},
 						},
 					},
@@ -179,7 +181,7 @@ func TestAppend(t *testing.T) {
 			},
 			out: out{config: types.Config{
 				Passwd: types.Passwd{
-					Users: []types.User{
+					Users: []types.PasswdUser{
 						{Name: "oldUser"},
 						{Name: "newUser"},
 					},

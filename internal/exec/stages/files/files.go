@@ -133,10 +133,10 @@ func (tmp fileEntry) create(l *log.Logger, c *resource.HttpClient, u util.Util) 
 	return nil
 }
 
-type dirEntry types.Directory
+type dirEntry types.Node
 
 func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) error {
-	d := types.Directory(tmp)
+	d := types.Node(tmp)
 	err := l.LogOp(func() error {
 		path := filepath.Clean(u.JoinPath(string(d.Path)))
 
@@ -163,7 +163,7 @@ func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) e
 			if err := os.Chmod(newPath, os.FileMode(d.Mode)); err != nil {
 				return err
 			}
-			if err := os.Chown(newPath, d.User.Id, d.Group.Id); err != nil {
+			if err := os.Chown(newPath, d.User.ID, d.Group.ID); err != nil {
 				return err
 			}
 		}
@@ -177,7 +177,7 @@ func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) e
 }
 
 // ByDirectorySegments is used to sort directories so /foo gets created before /foo/bar if they are both specified.
-type ByDirectorySegments []types.Directory
+type ByDirectorySegments []types.Node
 
 func (lst ByDirectorySegments) Len() int { return len(lst) }
 
@@ -254,7 +254,7 @@ func (s stage) createEntries(fs types.Filesystem, files []filesystemEntry) error
 			"unmounting %q at %q", dev, mnt,
 		)
 	} else {
-		mnt = string(*fs.Path)
+		mnt = *fs.Path
 	}
 
 	u := util.Util{
@@ -305,9 +305,9 @@ func (s stage) createUnits(config types.Config) error {
 // writeSystemdUnit creates the specified unit and any dropins for that unit.
 // If the contents of the unit or are empty, the unit is not created. The same
 // applies to the unit's dropins.
-func (s stage) writeSystemdUnit(unit types.SystemdUnit) error {
+func (s stage) writeSystemdUnit(unit types.Unit) error {
 	return s.Logger.LogOp(func() error {
-		for _, dropin := range unit.DropIns {
+		for _, dropin := range unit.Dropins {
 			if dropin.Contents == "" {
 				continue
 			}
@@ -339,7 +339,7 @@ func (s stage) writeSystemdUnit(unit types.SystemdUnit) error {
 
 // writeNetworkdUnit creates the specified unit. If the contents of the unit or
 // are empty, the unit is not created.
-func (s stage) writeNetworkdUnit(unit types.NetworkdUnit) error {
+func (s stage) writeNetworkdUnit(unit types.Networkdunit) error {
 	return s.Logger.LogOp(func() error {
 		if unit.Contents == "" {
 			return nil

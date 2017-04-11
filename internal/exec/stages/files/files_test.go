@@ -33,8 +33,8 @@ func TestMapEntriesToFilesystems(t *testing.T) {
 		err   error
 	}
 
-	fs1 := types.Path("/fs1")
-	fs2 := types.Path("/fs2")
+	fs1 := "/fs1"
+	fs2 := "/fs2"
 
 	tests := []struct {
 		in  in
@@ -131,14 +131,14 @@ func TestDirectorySort(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		dirs := make([]types.Directory, len(test.in.data))
+		dirs := make([]types.Node, len(test.in.data))
 		for j := range dirs {
-			dirs[j].Path = types.Path(test.in.data[j])
+			dirs[j].Path = test.in.data[j]
 		}
 		sort.Sort(ByDirectorySegments(dirs))
 		outpaths := make([]string, len(test.in.data))
 		for j, dir := range dirs {
-			outpaths[j] = string(dir.Path)
+			outpaths[j] = dir.Path
 		}
 		if !reflect.DeepEqual(test.out.data, outpaths) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.data, outpaths)

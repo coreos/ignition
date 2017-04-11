@@ -21,39 +21,38 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestNodeValidate(t *testing.T) {
-	type in struct {
-		node Node
+func TestNodeValidatePath(t *testing.T) {
+	node := Node{Path: "not/absolute"}
+	rep := report.ReportFromError(ErrPathRelative, report.EntryError)
+	if receivedRep := node.ValidatePath(); !reflect.DeepEqual(rep, receivedRep) {
+		t.Errorf("bad error: want %v, got %v", rep, receivedRep)
 	}
-	type out struct {
-		report report.Report
-	}
+}
 
+func TestNodeValidateFilesystem(t *testing.T) {
 	tests := []struct {
-		in  in
-		out out
+		node Node
+		r    report.Report
 	}{
 		{
-			in:  in{node: Node{}},
-			out: out{report: report.ReportFromError(ErrNoFilesystem, report.EntryError)},
+			node: Node{Filesystem: "foo", Path: "/"},
+			r:    report.Report{},
 		},
 		{
-			in:  in{node: Node{Filesystem: "foo"}},
-			out: out{},
+			node: Node{Path: "/"},
+			r:    report.ReportFromError(ErrNoFilesystem, report.EntryError),
 		},
 	}
-
 	for i, test := range tests {
-		report := test.in.node.Validate()
-		if !reflect.DeepEqual(test.out.report, report) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.report, report)
+		if receivedRep := test.node.ValidateFilesystem(); !reflect.DeepEqual(test.r, receivedRep) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.r, receivedRep)
 		}
 	}
 }
 
-func TestNodeModeValidate(t *testing.T) {
+func TestNodeValidateMode(t *testing.T) {
 	type in struct {
-		mode NodeMode
+		mode int
 	}
 	type out struct {
 		report report.Report
@@ -64,29 +63,29 @@ func TestNodeModeValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{mode: NodeMode(0)},
+			in:  in{mode: 0},
 			out: out{},
 		},
 		{
-			in:  in{mode: NodeMode(0644)},
+			in:  in{mode: 0644},
 			out: out{},
 		},
 		{
-			in:  in{mode: NodeMode(01755)},
+			in:  in{mode: 01755},
 			out: out{},
 		},
 		{
-			in:  in{mode: NodeMode(07777)},
+			in:  in{mode: 07777},
 			out: out{},
 		},
 		{
-			in:  in{mode: NodeMode(010000)},
+			in:  in{mode: 010000},
 			out: out{report: report.ReportFromError(ErrFileIllegalMode, report.EntryError)},
 		},
 	}
 
 	for i, test := range tests {
-		report := test.in.mode.Validate()
+		report := Node{Filesystem: "foo", Path: "/", Mode: test.in.mode}.ValidateMode()
 		if !reflect.DeepEqual(test.out.report, report) {
 			t.Errorf("#%d: bad report: want %v, got %v", i, test.out.report, report)
 		}

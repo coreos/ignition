@@ -26,7 +26,7 @@ import (
 )
 
 // CreateUser creates the user as described.
-func (u Util) CreateUser(c types.User) error {
+func (u Util) CreateUser(c types.PasswdUser) error {
 	if c.Create == nil {
 		return nil
 	}
@@ -40,17 +40,17 @@ func (u Util) CreateUser(c types.User) error {
 		args = append(args, "--password", "*")
 	}
 
-	if cu.Uid != nil {
+	if cu.UID != nil {
 		args = append(args, "--uid",
-			strconv.FormatUint(uint64(*cu.Uid), 10))
+			strconv.FormatUint(uint64(*cu.UID), 10))
 	}
 
-	if cu.GECOS != "" {
-		args = append(args, "--comment", fmt.Sprintf("%q", cu.GECOS))
+	if cu.Gecos != "" {
+		args = append(args, "--comment", fmt.Sprintf("%q", cu.Gecos))
 	}
 
-	if cu.Homedir != "" {
-		args = append(args, "--home-dir", cu.Homedir)
+	if cu.HomeDir != "" {
+		args = append(args, "--home-dir", cu.HomeDir)
 	}
 
 	if cu.NoCreateHome {
@@ -64,7 +64,7 @@ func (u Util) CreateUser(c types.User) error {
 	}
 
 	if len(cu.Groups) > 0 {
-		args = append(args, "--groups", strings.Join(cu.Groups, ","))
+		args = append(args, "--groups", strings.Join(translateV2_1UsercreateGroupSliceToStringSlice(cu.Groups), ","))
 	}
 
 	if cu.NoUserGroup {
@@ -89,8 +89,17 @@ func (u Util) CreateUser(c types.User) error {
 		"creating user %q", c.Name)
 }
 
+// golang--
+func translateV2_1UsercreateGroupSliceToStringSlice(groups []types.UsercreateGroup) []string {
+	newGroups := make([]string, len(groups))
+	for i, g := range groups {
+		newGroups[i] = string(g)
+	}
+	return newGroups
+}
+
 // Add the provided SSH public keys to the user's authorized keys.
-func (u Util) AuthorizeSSHKeys(c types.User) error {
+func (u Util) AuthorizeSSHKeys(c types.PasswdUser) error {
 	if len(c.SSHAuthorizedKeys) == 0 {
 		return nil
 	}
@@ -109,7 +118,7 @@ func (u Util) AuthorizeSSHKeys(c types.User) error {
 
 		// TODO(vc): introduce key names to config?
 		// TODO(vc): validate c.SSHAuthorizedKeys well-formedness.
-		ks := strings.Join(c.SSHAuthorizedKeys, "\n")
+		ks := strings.Join(translateV2_1SSHAuthorizedKeySliceToStringSlice(c.SSHAuthorizedKeys), "\n")
 		// XXX(vc): for now ensure the addition is always
 		// newline-terminated.  A future version of akd will handle this
 		// for us in addition to validating the ssh keys for
@@ -130,8 +139,17 @@ func (u Util) AuthorizeSSHKeys(c types.User) error {
 	}, "adding ssh keys to user %q", c.Name)
 }
 
+// golang--
+func translateV2_1SSHAuthorizedKeySliceToStringSlice(keys []types.SSHAuthorizedKey) []string {
+	newKeys := make([]string, len(keys))
+	for i, k := range keys {
+		newKeys[i] = string(k)
+	}
+	return newKeys
+}
+
 // SetPasswordHash sets the password hash of the specified user.
-func (u Util) SetPasswordHash(c types.User) error {
+func (u Util) SetPasswordHash(c types.PasswdUser) error {
 	if c.PasswordHash == "" {
 		return nil
 	}
@@ -148,7 +166,7 @@ func (u Util) SetPasswordHash(c types.User) error {
 }
 
 // CreateGroup creates the group as described.
-func (u Util) CreateGroup(g types.Group) error {
+func (u Util) CreateGroup(g types.PasswdGroup) error {
 	args := []string{"--root", u.DestDir}
 
 	if g.Gid != nil {
