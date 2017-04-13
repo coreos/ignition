@@ -52,7 +52,7 @@ func (f Filesystem) ValidatePath() report.Report {
 func (m Mount) Validate() report.Report {
 	r := report.Report{}
 	switch m.Format {
-	case "ext4", "btrfs", "xfs":
+	case "ext4", "btrfs", "xfs", "swap":
 	default:
 		r.Add(report.Entry{
 			Message: ErrFilesystemInvalidFormat.Error(),

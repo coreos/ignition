@@ -280,6 +280,11 @@ func (s stage) createFilesystem(fs types.Mount) error {
 		if fs.Create.Force {
 			args = append(args, "-f")
 		}
+	case "swap":
+		mkfs = "/sbin/mkswap"
+		if fs.Create.Force {
+			args = append(args, "-f")
+		}
 	default:
 		return fmt.Errorf("unsupported filesystem format: %q", fs.Format)
 	}
