@@ -24,11 +24,13 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/systemd"
 
+	"github.com/pin/tftp"
 	"github.com/vincent-petithory/dataurl"
 	"golang.org/x/net/context"
 )
@@ -86,8 +88,12 @@ func Fetch(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL) ([]byte
 
 // FetchWithHeader fetches a resource given a URL. If the resource is
 // of the http or https scheme, the provided header will be used when
-// fetching. The supported schemes are http, data, and oem.
+// fetching. The supported schemes are http, data, tftp, and oem.
 func FetchWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL, h http.Header) ([]byte, error) {
+	if u.Scheme == "tftp" {
+		return FetchFromTftp(l, ctx, u)
+	}
+
 	var data []byte
 
 	dataReader, err := FetchAsReaderWithHeader(l, c, ctx, u, h)
@@ -102,6 +108,27 @@ func FetchWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u url.UR
 	}
 
 	return data, nil
+}
+
+// FetchFromTftp fetches a resource from a tftp server.
+func FetchFromTftp(l *log.Logger, ctx context.Context, u url.URL) ([]byte, error) {
+	if !strings.ContainsRune(u.Host, ':') {
+		u.Host = u.Host + ":69"
+	}
+	c, err := tftp.NewClient(u.Host)
+	if err != nil {
+		return nil, err
+	}
+	wt, err := c.Receive(u.Path, "octet")
+	if err != nil {
+		return nil, err
+	}
+	buf := &bytes.Buffer{}
+	_, err = wt.WriteTo(buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // readUnmounter calls umountOEM() when closed, in addition to closing the
