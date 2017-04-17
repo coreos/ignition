@@ -15,10 +15,20 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 
 	"github.com/coreos/ignition/config/validate/report"
+)
+
+const (
+	guidRegexStr = "^(|[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12})$"
+)
+
+var (
+	ErrLabelTooLong         = errors.New("partition labels may not exceed 36 characters")
+	ErrDoesntMatchGUIDRegex = errors.New("doesn't match the form \"01234567-89AB-CDEF-EDCB-A98765432101\"")
 )
 
 func (p Partition) ValidateLabel() report.Report {
@@ -30,7 +40,7 @@ func (p Partition) ValidateLabel() report.Report {
 	// with udev naming /dev/disk/by-partlabel/*.
 	if len(p.Label) > 36 {
 		r.Add(report.Entry{
-			Message: fmt.Sprintf("partition %q: partition labels may not exceed 36 characters", p.Label),
+			Message: ErrLabelTooLong.Error(),
 			Kind:    report.EntryError,
 		})
 	}
@@ -38,16 +48,24 @@ func (p Partition) ValidateLabel() report.Report {
 }
 
 func (p Partition) ValidateTypeGUID() report.Report {
+	return validateGUID(p.TypeGUID)
+}
+
+func (p Partition) ValidateGUID() report.Report {
+	return validateGUID(p.GUID)
+}
+
+func validateGUID(guid string) report.Report {
 	r := report.Report{}
-	ok, err := regexp.MatchString("^(|[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12})$", p.TypeGUID)
+	ok, err := regexp.MatchString(guidRegexStr, guid)
 	if err != nil {
 		r.Add(report.Entry{
-			Message: fmt.Sprintf("partition %q: error matching type-guid regexp: %v", p.Label, err),
+			Message: fmt.Sprintf("error matching guid regexp: %v", err),
 			Kind:    report.EntryError,
 		})
 	} else if !ok {
 		r.Add(report.Entry{
-			Message: fmt.Sprintf("partition %q: partition type-guid must have the form \"01234567-89AB-CDEF-EDCB-A98765432101\", got: %q", p.Label, p.TypeGUID),
+			Message: ErrDoesntMatchGUIDRegex.Error(),
 			Kind:    report.EntryError,
 		})
 	}

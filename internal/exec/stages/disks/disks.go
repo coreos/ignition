@@ -157,6 +157,7 @@ func (s stage) createPartitions(config types.Config) error {
 					Offset:   uint64(part.Start),
 					Label:    string(part.Label),
 					TypeGUID: string(part.TypeGUID),
+					GUID:     string(part.GUID),
 				})
 			}
 
