@@ -75,6 +75,16 @@ type IgnitionConfig struct {
 	Replace *ConfigReference  `json:"replace,omitempty"`
 }
 
+type Link struct {
+	Node
+	LinkEmbedded1
+}
+
+type LinkEmbedded1 struct {
+	Hard   bool   `json:"hard,omitempty"`
+	Target string `json:"target,omitempty"`
+}
+
 type Mount struct {
 	Create *Create `json:"create,omitempty"`
 	Device string  `json:"device,omitempty"`
@@ -149,6 +159,7 @@ type Storage struct {
 	Disks       []Disk       `json:"disks,omitempty"`
 	Files       []File       `json:"files,omitempty"`
 	Filesystems []Filesystem `json:"filesystems,omitempty"`
+	Links       []Link       `json:"links,omitempty"`
 	Raid        []Raid       `json:"raid,omitempty"`
 }
 

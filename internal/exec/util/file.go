@@ -162,6 +162,19 @@ func decompressFileStream(l *log.Logger, f types.File, contents io.ReadCloser) (
 	}
 }
 
+func (u Util) WriteLink(s types.Link) error {
+	path := u.JoinPath(s.Path)
+
+	if err := MkdirForFile(path); err != nil {
+		return err
+	}
+
+	if s.Hard {
+		return os.Link(s.Target, path)
+	}
+	return os.Symlink(s.Target, path)
+}
+
 // WriteFile creates and writes the file described by f using the provided context.
 func (u Util) WriteFile(f *File) error {
 	defer f.Close()
