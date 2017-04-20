@@ -194,11 +194,11 @@ func TestTranslateFromV1(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "_translate-filesystem-0",
 								Path:       "/opt/file1",
-								Mode:       0664,
 								User:       types.NodeUser{ID: 500},
 								Group:      types.NodeGroup{ID: 501},
 							},
 							FileEmbedded1: types.FileEmbedded1{
+								Mode: 0664,
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -211,11 +211,11 @@ func TestTranslateFromV1(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "_translate-filesystem-0",
 								Path:       "/opt/file2",
-								Mode:       0644,
 								User:       types.NodeUser{ID: 502},
 								Group:      types.NodeGroup{ID: 503},
 							},
 							FileEmbedded1: types.FileEmbedded1{
+								Mode: 0644,
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -228,11 +228,11 @@ func TestTranslateFromV1(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "_translate-filesystem-1",
 								Path:       "/opt/file3",
-								Mode:       0400,
 								User:       types.NodeUser{ID: 1000},
 								Group:      types.NodeGroup{ID: 1001},
 							},
 							FileEmbedded1: types.FileEmbedded1{
+								Mode: 0400,
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -705,11 +705,11 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file1",
-								Mode:       0664,
 								User:       types.NodeUser{ID: 500},
 								Group:      types.NodeGroup{ID: 501},
 							},
 							FileEmbedded1: types.FileEmbedded1{
+								Mode: 0664,
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -722,11 +722,11 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file2",
-								Mode:       0644,
 								User:       types.NodeUser{ID: 502},
 								Group:      types.NodeGroup{ID: 503},
 							},
 							FileEmbedded1: types.FileEmbedded1{
+								Mode: 0644,
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -739,11 +739,11 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/file3",
-								Mode:       0400,
 								User:       types.NodeUser{ID: 1000},
 								Group:      types.NodeGroup{ID: 1001},
 							},
 							FileEmbedded1: types.FileEmbedded1{
+								Mode: 0400,
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",

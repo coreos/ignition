@@ -22,8 +22,7 @@ import (
 )
 
 var (
-	ErrNoFilesystem    = errors.New("no filesystem specified")
-	ErrFileIllegalMode = errors.New("illegal file mode")
+	ErrNoFilesystem = errors.New("no filesystem specified")
 )
 
 func (n Node) ValidateFilesystem() report.Report {
@@ -31,17 +30,6 @@ func (n Node) ValidateFilesystem() report.Report {
 	if n.Filesystem == "" {
 		r.Add(report.Entry{
 			Message: ErrNoFilesystem.Error(),
-			Kind:    report.EntryError,
-		})
-	}
-	return r
-}
-
-func (n Node) ValidateMode() report.Report {
-	r := report.Report{}
-	if n.Mode < 0 || n.Mode > 07777 {
-		r.Add(report.Entry{
-			Message: ErrFileIllegalMode.Error(),
 			Kind:    report.EntryError,
 		})
 	}

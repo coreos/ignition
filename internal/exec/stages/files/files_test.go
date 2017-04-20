@@ -131,7 +131,7 @@ func TestDirectorySort(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		dirs := make([]types.Node, len(test.in.data))
+		dirs := make([]types.Directory, len(test.in.data))
 		for j := range dirs {
 			dirs[j].Path = test.in.data[j]
 		}

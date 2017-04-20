@@ -133,10 +133,10 @@ func (tmp fileEntry) create(l *log.Logger, c *resource.HttpClient, u util.Util) 
 	return nil
 }
 
-type dirEntry types.Node
+type dirEntry types.Directory
 
 func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) error {
-	d := types.Node(tmp)
+	d := types.Directory(tmp)
 	err := l.LogOp(func() error {
 		path := filepath.Clean(u.JoinPath(string(d.Path)))
 
@@ -177,7 +177,7 @@ func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) e
 }
 
 // ByDirectorySegments is used to sort directories so /foo gets created before /foo/bar if they are both specified.
-type ByDirectorySegments []types.Node
+type ByDirectorySegments []types.Directory
 
 func (lst ByDirectorySegments) Len() int { return len(lst) }
 
