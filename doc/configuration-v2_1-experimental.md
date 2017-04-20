@@ -38,7 +38,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_name_** (string): the identifier for the filesystem, internal to Ignition. This is only required if the filesystem needs to be referenced in the "files" section.
     * **_mount_** (object): contains the set of mount and formatting options for the filesystem. A non-null entry indicates that the filesystem should be mounted before it is used by Ignition.
       * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-      * **format** (string): the filesystem format (ext4, btrfs, or xfs).
+      * **format** (string): the filesystem format (ext4, btrfs, xfs, or swap).
       * **_create_** (object): contains the set of options to be used when creating the filesystem. A non-null entry indicates that the filesystem shall be created.
         * **_force_** (boolean): whether or not the create operation shall overwrite an existing filesystem.
         * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
