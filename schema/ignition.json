@@ -175,6 +175,9 @@
             {
               "type": "object",
               "properties": {
+                "mode": {
+                  "type": "integer"
+                },
                 "contents": {
                   "$ref": "#/definitions/storage/definitions/file-contents"
                 }
@@ -183,7 +186,20 @@
           ]
         },
         "directory": {
-          "$ref": "#/definitions/storage/definitions/node"
+          "allOf": [
+              {
+                "$ref": "#/definitions/storage/definitions/node"
+              },
+              {
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "type": "integer"
+                    }
+                }
+              }
+          ]
+        },
         },
         "partition": {
           "type": "object",
@@ -255,9 +271,6 @@
             },
             "path": {
               "type": "string"
-            },
-            "mode": {
-              "type": "integer"
             },
             "user": {
               "type": "object",
