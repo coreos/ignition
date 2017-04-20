@@ -113,6 +113,12 @@
           "items": {
             "$ref": "#/definitions/storage/definitions/directory"
           }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/link"
+          }
         }
       },
       "definitions": {
@@ -200,6 +206,23 @@
               }
           ]
         },
+        "link": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/storage/definitions/node"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "string"
+                },
+                "hard": {
+                  "type": "boolean"
+                }
+              }
+            }
+          ]
         },
         "partition": {
           "type": "object",
