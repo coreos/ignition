@@ -156,9 +156,9 @@ func init() {
 						Node: types.Node{
 							Filesystem: "root",
 							Path:       "/etc/hosts",
-							Mode:       0444,
 						},
 						FileEmbedded1: types.FileEmbedded1{
+							Mode:     0444,
 							Contents: contentsFromString("169.254.169.254 metadata\n127.0.0.1 localhost\n"),
 						},
 					},
@@ -166,9 +166,9 @@ func init() {
 						Node: types.Node{
 							Filesystem: "root",
 							Path:       "/etc/profile.d/google-cloud-sdk.sh",
-							Mode:       0444,
 						},
 						FileEmbedded1: types.FileEmbedded1{
+							Mode: 0444,
 							Contents: contentsFromString(`#!/bin/sh
 alias gcloud="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config -v /var/run/docker.sock:/var/run/doker.sock -v /usr/bin/docker:/usr/bin/docker google/cloud-sdk gcloud"
 alias gcutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config google/cloud-sdk gcutil"
@@ -305,9 +305,9 @@ func serviceFromOem(unit string) types.File {
 		Node: types.Node{
 			Filesystem: "root",
 			Path:       "/etc/systemd/system/" + unit,
-			Mode:       0444,
 		},
 		FileEmbedded1: types.FileEmbedded1{
+			Mode:     0444,
 			Contents: contentsFromOem("/units/" + unit),
 		},
 	}

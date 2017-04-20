@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2017 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,46 +15,14 @@
 package types
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-var (
-	ErrCompressionInvalid = errors.New("invalid compression method")
-)
-
-func (f File) ValidateMode() report.Report {
+func (d Directory) ValidateMode() report.Report {
 	r := report.Report{}
-	if err := validateMode(f.Mode); err != nil {
+	if err := validateMode(d.Mode); err != nil {
 		r.Add(report.Entry{
 			Message: err.Error(),
-			Kind:    report.EntryError,
-		})
-	}
-	return r
-}
-
-func (fc FileContents) ValidateCompression() report.Report {
-	r := report.Report{}
-	switch fc.Compression {
-	case "", "gzip":
-	default:
-		r.Add(report.Entry{
-			Message: ErrCompressionInvalid.Error(),
-			Kind:    report.EntryError,
-		})
-	}
-	return r
-}
-
-func (fc FileContents) ValidateSource() report.Report {
-	r := report.Report{}
-	err := validateURL(fc.Source)
-	if err != nil {
-		r.Add(report.Entry{
-			Message: fmt.Sprintf("invalid url %q: %v", fc.Source, err),
 			Kind:    report.EntryError,
 		})
 	}

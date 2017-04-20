@@ -64,6 +64,15 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_id_** (integer): the user ID of the owner.
     * **_group_** (object): specifies the group of the owner.
       * **_id_** (integer): the group ID of the owner.
+  * **_links_** (list of objects): the list of links to be created
+    * **filesystem** (string): the internal identifier of the filesystem in which to write the link. This matches the last filesystem with the given identifier.
+    * **path** (string): the absolute path to the link
+    * **_user_** (object): specifies the symbolic links's owner.
+      * **_id_** (integer): the user ID of the owner.
+    * **_group_** (object): specifies the group of the owner.
+      * **_id_** (integer): the group ID of the owner.
+    * **target** (string): the target path of the link
+    * **_hard_** (boolean): a symbolic link is created if this is false, a hard one if this is true.
 * **_systemd_** (object): describes the desired state of the systemd units.
   * **_units_** (list of objects): the list of systemd units.
     * **name** (string): the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service").

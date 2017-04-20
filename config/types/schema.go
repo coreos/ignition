@@ -22,6 +22,15 @@ type Create struct {
 
 type Device string
 
+type Directory struct {
+	Node
+	DirectoryEmbedded1
+}
+
+type DirectoryEmbedded1 struct {
+	Mode int `json:"mode,omitempty"`
+}
+
 type Disk struct {
 	Device     string      `json:"device,omitempty"`
 	Partitions []Partition `json:"partitions,omitempty"`
@@ -46,6 +55,7 @@ type FileContents struct {
 
 type FileEmbedded1 struct {
 	Contents FileContents `json:"contents,omitempty"`
+	Mode     int          `json:"mode,omitempty"`
 }
 
 type Filesystem struct {
@@ -63,6 +73,16 @@ type Ignition struct {
 type IgnitionConfig struct {
 	Append  []ConfigReference `json:"append,omitempty"`
 	Replace *ConfigReference  `json:"replace,omitempty"`
+}
+
+type Link struct {
+	Node
+	LinkEmbedded1
+}
+
+type LinkEmbedded1 struct {
+	Hard   bool   `json:"hard,omitempty"`
+	Target string `json:"target,omitempty"`
 }
 
 type Mount struct {
@@ -83,7 +103,6 @@ type Networkdunit struct {
 type Node struct {
 	Filesystem string    `json:"filesystem,omitempty"`
 	Group      NodeGroup `json:"group,omitempty"`
-	Mode       int       `json:"mode,omitempty"`
 	Path       string    `json:"path,omitempty"`
 	User       NodeUser  `json:"user,omitempty"`
 }
@@ -136,10 +155,11 @@ type Raid struct {
 type SSHAuthorizedKey string
 
 type Storage struct {
-	Directories []Node       `json:"directories,omitempty"`
+	Directories []Directory  `json:"directories,omitempty"`
 	Disks       []Disk       `json:"disks,omitempty"`
 	Files       []File       `json:"files,omitempty"`
 	Filesystems []Filesystem `json:"filesystems,omitempty"`
+	Links       []Link       `json:"links,omitempty"`
 	Raid        []Raid       `json:"raid,omitempty"`
 }
 

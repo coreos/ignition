@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2017 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,42 +15,21 @@
 package types
 
 import (
-	"errors"
-	"path/filepath"
+	"fmt"
 
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-var (
-	ErrNoFilesystem = errors.New("no filesystem specified")
-)
-
-func (n Node) ValidateFilesystem() report.Report {
+func (s Link) Validate() report.Report {
 	r := report.Report{}
-	if n.Filesystem == "" {
-		r.Add(report.Entry{
-			Message: ErrNoFilesystem.Error(),
-			Kind:    report.EntryError,
-		})
+	if !s.Hard {
+		err := validatePath(s.Target)
+		if err != nil {
+			r.Add(report.Entry{
+				Message: fmt.Sprintf("problem with target path %q: %v", s.Target, err),
+				Kind:    report.EntryError,
+			})
+		}
 	}
 	return r
-}
-
-func (n Node) ValidatePath() report.Report {
-	r := report.Report{}
-	if err := validatePath(n.Path); err != nil {
-		r.Add(report.Entry{
-			Message: err.Error(),
-			Kind:    report.EntryError,
-		})
-	}
-	return r
-}
-
-func (n Node) Depth() int {
-	count := 0
-	for p := filepath.Clean(string(n.Path)); p != "/"; count++ {
-		p = filepath.Dir(p)
-	}
-	return count
 }

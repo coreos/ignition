@@ -133,10 +133,10 @@ func (tmp fileEntry) create(l *log.Logger, c *resource.HttpClient, u util.Util) 
 	return nil
 }
 
-type dirEntry types.Node
+type dirEntry types.Directory
 
 func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) error {
-	d := types.Node(tmp)
+	d := types.Directory(tmp)
 	err := l.LogOp(func() error {
 		path := filepath.Clean(u.JoinPath(string(d.Path)))
 
@@ -176,8 +176,23 @@ func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) e
 	return nil
 }
 
+type linkEntry types.Link
+
+func (tmp linkEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) error {
+	s := types.Link(tmp)
+
+	if err := l.LogOp(
+		func() error { return u.WriteLink(s) },
+		"writing link %q -> %q", s.Path, s.Target,
+	); err != nil {
+		return fmt.Errorf("failed to create link %q: %v", s.Path, err)
+	}
+
+	return nil
+}
+
 // ByDirectorySegments is used to sort directories so /foo gets created before /foo/bar if they are both specified.
-type ByDirectorySegments []types.Node
+type ByDirectorySegments []types.Directory
 
 func (lst ByDirectorySegments) Len() int { return len(lst) }
 
@@ -219,6 +234,15 @@ func (s stage) mapEntriesToFilesystems(config types.Config) (map[types.Filesyste
 			entryMap[fs] = append(entryMap[fs], fileEntry(f))
 		} else {
 			s.Logger.Crit("the filesystem (%q), was not defined", f.Filesystem)
+			return nil, ErrFilesystemUndefined
+		}
+	}
+
+	for _, sy := range config.Storage.Links {
+		if fs, ok := filesystems[sy.Filesystem]; ok {
+			entryMap[fs] = append(entryMap[fs], linkEntry(sy))
+		} else {
+			s.Logger.Crit("the filesystem (%q), was not defined", sy.Filesystem)
 			return nil, ErrFilesystemUndefined
 		}
 	}

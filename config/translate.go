@@ -89,11 +89,11 @@ func TranslateFromV1(old v1.Config) types.Config {
 				Node: types.Node{
 					Filesystem: filesystem.Name,
 					Path:       string(oldFile.Path),
-					Mode:       int(oldFile.Mode),
 					User:       types.NodeUser{ID: oldFile.Uid},
 					Group:      types.NodeGroup{ID: oldFile.Gid},
 				},
 				FileEmbedded1: types.FileEmbedded1{
+					Mode: int(oldFile.Mode),
 					Contents: types.FileContents{
 						Source: (&url.URL{
 							Scheme: "data",
@@ -305,11 +305,11 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 			Node: types.Node{
 				Filesystem: oldFile.Filesystem,
 				Path:       string(oldFile.Path),
-				Mode:       int(oldFile.Mode),
 				User:       types.NodeUser{ID: oldFile.User.Id},
 				Group:      types.NodeGroup{ID: oldFile.Group.Id},
 			},
 			FileEmbedded1: types.FileEmbedded1{
+				Mode: int(oldFile.Mode),
 				Contents: types.FileContents{
 					Compression:  string(oldFile.Contents.Compression),
 					Source:       oldFile.Contents.Source.String(),
