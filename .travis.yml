@@ -5,7 +5,6 @@ language: go
 go_import_path: github.com/coreos/ignition
 
 go:
-  - 1.5.4
   - 1.6.3
   - 1.7
 
