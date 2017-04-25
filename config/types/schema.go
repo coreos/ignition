@@ -16,9 +16,11 @@ type ConfigReference struct {
 }
 
 type Create struct {
-	Force   bool     `json:"force,omitempty"`
-	Options []Option `json:"options,omitempty"`
+	Force   bool           `json:"force,omitempty"`
+	Options []CreateOption `json:"options,omitempty"`
 }
+
+type CreateOption string
 
 type Device string
 
@@ -86,10 +88,13 @@ type LinkEmbedded1 struct {
 }
 
 type Mount struct {
-	Create *Create `json:"create,omitempty"`
-	Device string  `json:"device,omitempty"`
-	Format string  `json:"format,omitempty"`
+	Create  *Create       `json:"create,omitempty"`
+	Device  string        `json:"device,omitempty"`
+	Format  string        `json:"format,omitempty"`
+	Options []MountOption `json:"options,omitempty"`
 }
+
+type MountOption string
 
 type Networkd struct {
 	Units []Networkdunit `json:"units,omitempty"`
@@ -116,8 +121,6 @@ type NodeUser struct {
 	ID   *int   `json:"id,omitempty"`
 	Name string `json:"name,omitempty"`
 }
-
-type Option string
 
 type Partition struct {
 	GUID     string `json:"guid,omitempty"`

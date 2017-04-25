@@ -256,6 +256,12 @@
             "format": {
               "type": "string"
             },
+            "options": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
             "create": {
               "type": ["object", "null"],
               "properties": {

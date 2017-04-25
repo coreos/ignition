@@ -290,27 +290,34 @@ func (s stage) createFilesystem(fs types.Mount) error {
 	}
 
 	mkfs := ""
-	args := translateV2_1OptionSliceToStringSlice(fs.Create.Options)
+	var force bool
+	var args []string
+	if fs.Create == nil {
+		args = translateMountOptionSliceToStringSlice(fs.Options)
+	} else {
+		force = fs.Create.Force
+		args = translateCreateOptionSliceToStringSlice(fs.Create.Options)
+	}
 	switch fs.Format {
 	case "btrfs":
 		mkfs = "/sbin/mkfs.btrfs"
-		if fs.Create.Force {
+		if force {
 			args = append(args, "--force")
 		}
 	case "ext4":
 		mkfs = "/sbin/mkfs.ext4"
 		args = append(args, "-p")
-		if fs.Create.Force {
+		if force {
 			args = append(args, "-F")
 		}
 	case "xfs":
 		mkfs = "/sbin/mkfs.xfs"
-		if fs.Create.Force {
+		if force {
 			args = append(args, "-f")
 		}
 	case "swap":
 		mkfs = "/sbin/mkswap"
-		if fs.Create.Force {
+		if force {
 			args = append(args, "-f")
 		}
 	default:
@@ -330,7 +337,17 @@ func (s stage) createFilesystem(fs types.Mount) error {
 	return nil
 }
 
-func translateV2_1OptionSliceToStringSlice(opts []types.Option) []string {
+// golang--
+func translateMountOptionSliceToStringSlice(opts []types.MountOption) []string {
+	newOpts := make([]string, len(opts))
+	for i, o := range opts {
+		newOpts[i] = string(o)
+	}
+	return newOpts
+}
+
+// golang--
+func translateCreateOptionSliceToStringSlice(opts []types.CreateOption) []string {
 	newOpts := make([]string, len(opts))
 	for i, o := range opts {
 		newOpts[i] = string(o)
