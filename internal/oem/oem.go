@@ -86,13 +86,11 @@ func init() {
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.Unit{
-					{Enabled: yes, Name: "waagent.service"},
 					{Name: "etcd2.service", Dropins: []types.Dropin{
 						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_ELECTION_TIMEOUT=1200\n"},
 					}},
 				},
 			},
-			Storage: types.Storage{Files: []types.File{serviceFromOem("waagent.service")}},
 		},
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("Azure", "azure")}}},
 	})

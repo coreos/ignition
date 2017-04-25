@@ -26,6 +26,7 @@ import (
 	_ "github.com/coreos/ignition/internal/exec/stages/files"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/oem"
+	"github.com/coreos/ignition/internal/util/oem/azure"
 	"github.com/coreos/ignition/internal/version"
 )
 
@@ -76,6 +77,15 @@ func main() {
 		}
 	}
 
+	azureProvisioner := azure.NewAzureProvisioner(&logger)
+
+	if flags.oem.String() == "azure" && flags.stage == "disks" {
+		err := azureProvisioner.ReportProvisioningStarting()
+		if err != nil {
+			logger.Err("unable to report start of provisioning: %v", err)
+		}
+	}
+
 	oemConfig := oem.MustGet(flags.oem.String())
 	engine := exec.Engine{
 		Root:         flags.root,
@@ -86,6 +96,18 @@ func main() {
 	}
 
 	if !engine.Run(flags.stage.String()) {
+		if flags.oem.String() == "azure" {
+			err := azureProvisioner.ReportProvisioningFailed("something went wrong")
+			if err != nil {
+				logger.Err("unable to report failure of provisioning: %v", err)
+			}
+		}
 		os.Exit(1)
+	}
+	if flags.oem.String() == "azure" && flags.stage == "files" {
+		err := azureProvisioner.ReportProvisioningSucceeded()
+		if err != nil {
+			logger.Err("unable to report success of provisioning: %v", err)
+		}
 	}
 }
