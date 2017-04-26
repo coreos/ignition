@@ -1,6 +1,8 @@
 # Ignition #
 
-Ignition is the utility used by CoreOS Container Linux to manipulate disks during the initramfs. This includes partitioning disks, formatting partitions, writing files (regular files, systemd units, networkd units, etc.), and configuring users. On first boot, Ignition reads its configuration from a source of truth (remote URL, network metadata service, hypervisor bridge, etc.) and applies the configuration.
+Ignition is a utility designed specifically for use with CoreOS Container Linux to manipulate disks during the initramfs. This includes partitioning disks, formatting partitions, writing files (regular files, systemd units, networkd units, etc.), and configuring users. On first boot, Ignition reads its configuration from a source of truth (remote URL, network metadata service, hypervisor bridge, etc.) and applies the configuration.
+
+For more information on how Ignition works with Container Linux, see [What is Ignition?][provisioning]
 
 ## Usage ##
 
@@ -10,3 +12,4 @@ Use the [bug tracker][issues] to report bugs.
 
 [getting started]: doc/getting-started.md
 [issues]: https://github.com/coreos/bugs/issues/new?labels=component/ignition
+[provisioning]: https://coreos.com/ignition/docs/latest/what-is-ignition.html
