@@ -13,6 +13,10 @@ After=ignition-disks.service
 Requires=initrd-setup-root.service
 After=initrd-setup-root.service
 
+# run sysusers first, so we can reference created users and groups
+Requires=ignition-sysusers.service
+After=ignition-sysusers.service
+
 # setup networking
 Wants=systemd-networkd.service
 After=systemd-networkd.service

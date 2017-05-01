@@ -1,0 +1,14 @@
+[Unit]
+Description=Create System Users
+Documentation=man:sysusers.d(5) man:systemd-sysusers.service(8)
+DefaultDependencies=no
+
+# setup the root filesystem before we create users/groups on it
+Requires=initrd-setup-root.service
+After=initrd-setup-root.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/systemd-sysusers --root=/sysroot
+TimeoutSec=90s
