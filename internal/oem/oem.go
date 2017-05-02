@@ -101,7 +101,7 @@ func init() {
 	})
 	configs.Register(Config{
 		name:              "brightbox",
-		fetch:             noop.FetchConfig,
+		fetch:             openstack.FetchConfig,
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("BrightBox", "ec2-compat")}}},
 	})
 	configs.Register(Config{
