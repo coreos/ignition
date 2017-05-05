@@ -59,7 +59,7 @@ func (u Url) Validate() report.Report {
 		return report.Report{}
 	}
 	switch url.URL(u).Scheme {
-	case "http", "https", "oem":
+	case "http", "https", "oem", "data":
 		return report.Report{}
 	case "data":
 		if _, err := dataurl.DecodeString(u.String()); err != nil {
