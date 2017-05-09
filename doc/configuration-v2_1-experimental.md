@@ -40,6 +40,8 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
       * **format** (string): the filesystem format (ext4, btrfs, xfs, or swap).
       * **_wipeFilesystem_** (boolean): whether or not to wipe the device before filesystem creation, see [the documentation on filesystems](filesystems.md) for more information.
+      * **_label_** (string): the label of the filesystem.
+      * **_uuid_** (string): the uuid of the filesystem.
       * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
       * **_create_** (object, DEPRECATED): contains the set of options to be used when creating the filesystem.
         * **_force_** (boolean, DEPRECATED): whether or not the create operation shall overwrite an existing filesystem.

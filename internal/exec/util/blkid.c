@@ -15,9 +15,9 @@
 #include <blkid/blkid.h>
 #include "blkid.h"
 
-result_t filesystem_type(const char *device, char type[], size_t type_len)
+result_t blkid_lookup(const char *device, const char *field_name, char buf[], size_t buf_len)
 {
-	const char *type_name = "\0";
+	const char *field_val = "\0";
 
 	blkid_probe pr = blkid_new_probe_from_filename(device);
 	if (!pr)
@@ -26,14 +26,13 @@ result_t filesystem_type(const char *device, char type[], size_t type_len)
 	if (blkid_do_probe(pr) != 0)
 		return RESULT_PROBE_FAILED;
 
-	if (blkid_probe_has_value(pr, "TYPE"))
-		if (blkid_probe_lookup_value(pr, "TYPE", &type_name, NULL))
+	if (blkid_probe_has_value(pr, field_name))
+		if (blkid_probe_lookup_value(pr, field_name, &field_val, NULL))
 			return RESULT_LOOKUP_FAILED;
 
-	strncpy(type, type_name, type_len);
+	strncpy(buf, field_val, buf_len);
 
 	blkid_free_probe(pr);
 
 	return RESULT_OK;
 }
-

@@ -24,7 +24,7 @@ typedef enum {
 	RESULT_LOOKUP_FAILED,
 } result_t;
 
-result_t filesystem_type(const char *device, char type[], size_t type_len);
+result_t blkid_lookup(const char *device, const char *field_name, char buf[], size_t buf_len);
 
 #endif // _BLKID_H_
 

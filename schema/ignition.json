@@ -263,7 +263,13 @@
                 }
             },
             "wipeFilesystem": {
-                "type": "boolean"
+              "type": "boolean"
+            },
+            "label": {
+              "type": ["string", "null"]
+            },
+            "uuid": {
+              "type": ["string", "null"]
             },
             "create": {
               "type": ["object", "null"],

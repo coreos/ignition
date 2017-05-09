@@ -22,19 +22,41 @@ package util
 import "C"
 
 import (
+	"bytes"
 	"fmt"
 	"unsafe"
 )
 
+const (
+	field_name_type  = "TYPE"
+	field_name_uuid  = "UUID"
+	field_name_label = "LABEL"
+)
+
 func FilesystemType(device string) (string, error) {
-	var fsType [16]byte
+	return filesystemLookup(device, field_name_type)
+}
+
+func FilesystemUUID(device string) (string, error) {
+	return filesystemLookup(device, field_name_uuid)
+}
+
+func FilesystemLabel(device string) (string, error) {
+	return filesystemLookup(device, field_name_label)
+}
+
+func filesystemLookup(device string, fieldName string) (string, error) {
+	var buf [256]byte
 
 	cDevice := C.CString(device)
 	defer C.free(unsafe.Pointer(cDevice))
+	cFieldName := C.CString(fieldName)
+	defer C.free(unsafe.Pointer(cFieldName))
 
-	switch C.filesystem_type(cDevice, (*C.char)(unsafe.Pointer(&fsType[0])), C.size_t(len(fsType))) {
+	switch C.blkid_lookup(cDevice, cFieldName, (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf))) {
 	case C.RESULT_OK:
-		return string(trimZerosTail(fsType[:])), nil
+		// trim off tailing NULLs
+		return string(buf[:bytes.IndexByte(buf[:], 0)]), nil
 	case C.RESULT_OPEN_FAILED:
 		return "", fmt.Errorf("failed to open %q", device)
 	case C.RESULT_PROBE_FAILED:
@@ -45,13 +67,4 @@ func FilesystemType(device string) (string, error) {
 	default:
 		return "", fmt.Errorf("unknown error")
 	}
-}
-
-func trimZerosTail(b []byte) []byte {
-	for i := range b {
-		if b[i] == 0 {
-			return b[:i]
-		}
-	}
-	return b
 }
