@@ -72,10 +72,8 @@ This example Ignition configuration will locate the device with the "ROOT" files
       "mount": {
         "device": "/dev/disk/by-label/ROOT",
         "format": "btrfs",
-        "create": {
-          "force": true,
-          "options": [ "--label=ROOT" ]
-        }
+        "wipeFilesystem": true,
+        "options": [ "--label=ROOT" ]
       }
     }]
   }
@@ -92,10 +90,8 @@ This example Ignition configuration will locate the device with the "ROOT" files
       "mount": {
         "device": "/dev/disk/by-label/ROOT",
         "format": "xfs",
-        "create": {
-          "force": true,
-          "options": [ "-L", "ROOT" ]
-        }
+        "wipeFilesystem": true,
+        "options": [ "-L", "ROOT" ]
       }
     }]
   }

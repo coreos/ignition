@@ -22,11 +22,12 @@ import (
 )
 
 var (
-	ErrFilesystemInvalidFormat = errors.New("invalid filesystem format")
-	ErrFilesystemNoMountPath   = errors.New("filesystem is missing mount or path")
-	ErrFilesystemMountAndPath  = errors.New("filesystem has both mount and path defined")
-	ErrUsedCreateAndMountOpts  = errors.New("cannot use both create object and mount-level options fields")
-	ErrWarningCreateDeprecated = errors.New("the create object has been deprecated in favor of mount-level options")
+	ErrFilesystemInvalidFormat     = errors.New("invalid filesystem format")
+	ErrFilesystemNoMountPath       = errors.New("filesystem is missing mount or path")
+	ErrFilesystemMountAndPath      = errors.New("filesystem has both mount and path defined")
+	ErrUsedCreateAndMountOpts      = errors.New("cannot use both create object and mount-level options field")
+	ErrUsedCreateAndWipeFilesystem = errors.New("cannot use both create object and wipeFilesystem field")
+	ErrWarningCreateDeprecated     = errors.New("the create object has been deprecated in favor of mount-level options")
 )
 
 func (f Filesystem) Validate() report.Report {
@@ -45,6 +46,12 @@ func (f Filesystem) Validate() report.Report {
 			})
 		}
 		if f.Mount.Create != nil {
+			if f.Mount.WipeFilesystem {
+				r.Add(report.Entry{
+					Message: ErrUsedCreateAndWipeFilesystem.Error(),
+					Kind:    report.EntryError,
+				})
+			}
 			if len(f.Mount.Options) > 0 {
 				r.Add(report.Entry{
 					Message: ErrUsedCreateAndMountOpts.Error(),

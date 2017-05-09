@@ -262,6 +262,9 @@
                     "type": "string"
                 }
             },
+            "wipeFilesystem": {
+                "type": "boolean"
+            },
             "create": {
               "type": ["object", "null"],
               "properties": {

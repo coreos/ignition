@@ -88,10 +88,11 @@ type LinkEmbedded1 struct {
 }
 
 type Mount struct {
-	Create  *Create       `json:"create,omitempty"`
-	Device  string        `json:"device,omitempty"`
-	Format  string        `json:"format,omitempty"`
-	Options []MountOption `json:"options,omitempty"`
+	Create         *Create       `json:"create,omitempty"`
+	Device         string        `json:"device,omitempty"`
+	Format         string        `json:"format,omitempty"`
+	Options        []MountOption `json:"options,omitempty"`
+	WipeFilesystem bool          `json:"wipeFilesystem,omitempty"`
 }
 
 type MountOption string
