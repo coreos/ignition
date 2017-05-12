@@ -318,6 +318,7 @@ func (akd *SSHAuthorizedKeysDir) Sync() error {
 			if err != nil {
 				return err
 			}
+			kb = append(kb, '\n')
 			if _, err := sf.Write(kb); err != nil {
 				return err
 			}

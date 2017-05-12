@@ -488,6 +488,7 @@ func TestSync(t *testing.T) {
 			return
 		}
 		bytes = append(bytes, b...)
+		bytes = append(bytes, '\n')
 	}
 
 	if err := akd.Sync(); err != nil {
