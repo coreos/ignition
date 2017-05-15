@@ -8,7 +8,7 @@ Each of these examples is written in version 2.0.0 of the config. Ensure that an
 
 This config will write a single service unit (shown below) with the contents of an example service. This unit will be enabled as a dependency of multi-user.target and therefore start on boot.
 
-```json
+```json ignition
 {
   "ignition": { "version": "2.0.0" },
   "systemd": {
@@ -36,7 +36,7 @@ WantedBy=multi-user.target
 
 This config will add a [systemd unit drop-in](https://coreos.com/os/docs/latest/using-systemd-drop-in-units.html) to modify the existing service `systemd-networkd` and sets its environment variable `SYSTEMD_LOG_LEVEL` to `debug`.
 
-```json
+```json ignition
 {
   "ignition": { "version": "2.0.0" },
   "systemd": {
@@ -64,7 +64,7 @@ This example Ignition configuration will locate the device with the "ROOT" files
 
 ### Btrfs
 
-```json
+```json ignition
 {
   "ignition": { "version": "2.0.0" },
   "storage": {
@@ -84,7 +84,7 @@ This example Ignition configuration will locate the device with the "ROOT" files
 
 ### XFS
 
-```json
+```json ignition
 {
   "ignition": { "version": "2.0.0" },
   "storage": {
@@ -108,7 +108,7 @@ The create options are forwarded to the underlying `mkfs.$format` utility. The r
 
 In many cases it is useful to write files to the root filesystem. This example writes a single file to `/foo/bar` on the root filesystem. The contents of the file ("example file") are specified inline in the config using the [data URL scheme][rfc2397].
 
-```json
+```json ignition
 {
   "ignition": { "version": "2.0.0" },
   "storage": {
@@ -123,7 +123,7 @@ In many cases it is useful to write files to the root filesystem. This example w
 
 The config makes use of the universally-defined "root" filesystem. This filesystem is defined within Ignition itself and roughly looks like the following. The "root" filesystem allows additional configs to reference the root filesystem, regardless of its type (e.g. btrfs, tmpfs, ext4).
 
-```json
+```json ignition
 {
   "ignition": { "version": "2.0.0" },
   "storage": {
@@ -139,7 +139,7 @@ The config makes use of the universally-defined "root" filesystem. This filesyst
 
 There are cases where it is desirable to write a file to disk, but with the contents of a remote resource. The following config demonstrates how to do this in addition to validating the contents of the file.
 
-```json
+```json ignition
 {
   "ignition": { "version": "2.0.0" },
   "storage": {
@@ -161,7 +161,7 @@ The SHA512 sum of the file can be determined using `sha512sum`.
 
 In many scenarios, it may be useful to have an external data volume. This config will set up a RAID0 ext4 volume, `data`, between two separate disks. It also writes a mount unit (shown below) which will automatically mount the volume to `/var/lib/data`.
 
-```json
+```json ignition
 {
   "ignition": { "version": "2.0.0" },
   "storage": {
@@ -229,7 +229,7 @@ WantedBy=local-fs.target
 
 In some cloud environments, there is a limit on the size of the config which may be provided to a machine. To work around this, Ignition allows configs to be replaced with the contents of an alternate, remote config. The following demonstrates this, using a SHA512 sum to verify the contents of the config.
 
-```json
+```json ignition
 {
   "ignition": {
     "version": "2.0.0",
@@ -249,7 +249,7 @@ The SHA512 sum of the config can be determined using `sha512sum`.
 
 Setting the hostname of a system is as simple as writing `/etc/hostname`:
 
-```json
+```json ignition
 {
   "ignition": { "version": "2.0.0" },
   "storage": {
@@ -267,7 +267,7 @@ Setting the hostname of a system is as simple as writing `/etc/hostname`:
 
 Users can be added to an OS with the `passwd.users` key which takes a list of objects that specify a given user. If you wanted to configure a user "systemUser" and a user "jenkins" you would do that as follows:
 
-```json
+```json ignition
 "passwd": {
   "users": [
     {

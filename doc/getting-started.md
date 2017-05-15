@@ -10,7 +10,7 @@ Ignition will choose where to look for configuration based on the underlying pla
 
 The configuration must be passed to Ignition through the designated data source. Please refer to Ignition [config examples][examples] to learn about writing config files. The provided configuration will be appended to the universal base configuration:
 
-```json
+```json ignition
 {
   "storage": {
     "filesystems": [{
