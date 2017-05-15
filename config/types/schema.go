@@ -140,10 +140,22 @@ type PasswdGroup struct {
 
 type PasswdUser struct {
 	Create            *Usercreate        `json:"create,omitempty"`
+	Gecos             string             `json:"gecos,omitempty"`
+	Groups            []PasswdUserGroup  `json:"groups,omitempty"`
+	HomeDir           string             `json:"homeDir,omitempty"`
 	Name              string             `json:"name,omitempty"`
+	NoCreateHome      bool               `json:"noCreateHome,omitempty"`
+	NoLogInit         bool               `json:"noLogInit,omitempty"`
+	NoUserGroup       bool               `json:"noUserGroup,omitempty"`
 	PasswordHash      string             `json:"passwordHash,omitempty"`
+	PrimaryGroup      string             `json:"primaryGroup,omitempty"`
 	SSHAuthorizedKeys []SSHAuthorizedKey `json:"sshAuthorizedKeys,omitempty"`
+	Shell             string             `json:"shell,omitempty"`
+	System            bool               `json:"system,omitempty"`
+	UID               *int               `json:"uid,omitempty"`
 }
+
+type PasswdUserGroup string
 
 type Raid struct {
 	Devices []Device `json:"devices,omitempty"`

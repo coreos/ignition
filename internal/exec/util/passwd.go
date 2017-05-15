@@ -25,14 +25,61 @@ import (
 	keys "github.com/coreos/update-ssh-keys/authorized_keys_d"
 )
 
-// CreateUser creates the user as described.
-func (u Util) CreateUser(c types.PasswdUser) error {
-	if c.Create == nil {
-		return nil
+// EnsureUser ensures that the user exists as described. If the user does not
+// yet exist, they will be created, otherwise the existing user will be
+// modified.
+func (u Util) EnsureUser(c types.PasswdUser) error {
+	exists, err := u.CheckIfUserExists(c)
+	if err != nil {
+		return err
 	}
-
-	cu := c.Create
+	if c.Create != nil {
+		cu := c.Create
+		c.Gecos = cu.Gecos
+		c.Groups = translateV2_1UsercreateGroupSliceToPasswdUserGroupSlice(cu.Groups)
+		c.HomeDir = cu.HomeDir
+		c.NoCreateHome = cu.NoCreateHome
+		c.NoLogInit = cu.NoLogInit
+		c.NoUserGroup = cu.NoUserGroup
+		c.PrimaryGroup = cu.PrimaryGroup
+		c.Shell = cu.Shell
+		c.System = cu.System
+		c.UID = cu.UID
+	}
 	args := []string{"--root", u.DestDir}
+
+	var cmd string
+	if exists {
+		cmd = "usermod"
+
+		if c.HomeDir != "" {
+			args = append(args, "--home", c.HomeDir, "--move-home")
+		}
+	} else {
+		cmd = "useradd"
+
+		if c.HomeDir != "" {
+			args = append(args, "--home-dir", c.HomeDir)
+		}
+
+		if c.NoCreateHome {
+			args = append(args, "--no-create-home")
+		} else {
+			args = append(args, "--create-home")
+		}
+
+		if c.NoUserGroup {
+			args = append(args, "--no-user-group")
+		}
+
+		if c.System {
+			args = append(args, "--system")
+		}
+
+		if c.NoLogInit {
+			args = append(args, "--no-log-init")
+		}
+	}
 
 	if c.PasswordHash != "" {
 		args = append(args, "--password", c.PasswordHash)
@@ -40,58 +87,58 @@ func (u Util) CreateUser(c types.PasswdUser) error {
 		args = append(args, "--password", "*")
 	}
 
-	if cu.UID != nil {
+	if c.UID != nil {
 		args = append(args, "--uid",
-			strconv.FormatUint(uint64(*cu.UID), 10))
+			strconv.FormatUint(uint64(*c.UID), 10))
 	}
 
-	if cu.Gecos != "" {
-		args = append(args, "--comment", fmt.Sprintf("%q", cu.Gecos))
+	if c.Gecos != "" {
+		args = append(args, "--comment", fmt.Sprintf("%q", c.Gecos))
 	}
 
-	if cu.HomeDir != "" {
-		args = append(args, "--home-dir", cu.HomeDir)
+	if c.PrimaryGroup != "" {
+		args = append(args, "--gid", c.PrimaryGroup)
 	}
 
-	if cu.NoCreateHome {
-		args = append(args, "--no-create-home")
-	} else {
-		args = append(args, "--create-home")
+	if len(c.Groups) > 0 {
+		args = append(args, "--groups", strings.Join(translateV2_1PasswdUserGroupSliceToStringSlice(c.Groups), ","))
 	}
 
-	if cu.PrimaryGroup != "" {
-		args = append(args, "--gid", cu.PrimaryGroup)
-	}
-
-	if len(cu.Groups) > 0 {
-		args = append(args, "--groups", strings.Join(translateV2_1UsercreateGroupSliceToStringSlice(cu.Groups), ","))
-	}
-
-	if cu.NoUserGroup {
-		args = append(args, "--no-user-group")
-	}
-
-	if cu.System {
-		args = append(args, "--system")
-	}
-
-	if cu.NoLogInit {
-		args = append(args, "--no-log-init")
-	}
-
-	if cu.Shell != "" {
-		args = append(args, "--shell", cu.Shell)
+	if c.Shell != "" {
+		args = append(args, "--shell", c.Shell)
 	}
 
 	args = append(args, c.Name)
 
-	_, err := u.LogCmd(exec.Command("useradd", args...),
-		"creating user %q", c.Name)
+	_, err = u.LogCmd(exec.Command(cmd, args...),
+		"creating or modifying user %q", c.Name)
 	return err
 }
 
 // golang--
-func translateV2_1UsercreateGroupSliceToStringSlice(groups []types.UsercreateGroup) []string {
+func translateV2_1UsercreateGroupSliceToPasswdUserGroupSlice(groups []types.UsercreateGroup) []types.PasswdUserGroup {
+	newGroups := make([]types.PasswdUserGroup, len(groups))
+	for i, g := range groups {
+		newGroups[i] = types.PasswdUserGroup(g)
+	}
+	return newGroups
+}
+
+func (u Util) CheckIfUserExists(c types.PasswdUser) (bool, error) {
+	code, err := u.LogCmd(exec.Command("chroot", u.DestDir, "id", c.Name),
+		"checking if user %q exists", c.Name)
+	if err != nil {
+		if code == 1 {
+			return false, nil
+		}
+		u.Logger.Info("error encountered (%+T): %v", err, err)
+		return false, err
+	}
+	return true, nil
+}
+
+// golang--
+func translateV2_1PasswdUserGroupSliceToStringSlice(groups []types.PasswdUserGroup) []string {
 	newGroups := make([]string, len(groups))
 	for i, g := range groups {
 		newGroups[i] = string(g)
