@@ -194,8 +194,8 @@ func TestTranslateFromV1(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "_translate-filesystem-0",
 								Path:       "/opt/file1",
-								User:       types.NodeUser{ID: 500},
-								Group:      types.NodeGroup{ID: 501},
+								User:       types.NodeUser{ID: intToPtr(500)},
+								Group:      types.NodeGroup{ID: intToPtr(501)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: 0664,
@@ -211,8 +211,8 @@ func TestTranslateFromV1(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "_translate-filesystem-0",
 								Path:       "/opt/file2",
-								User:       types.NodeUser{ID: 502},
-								Group:      types.NodeGroup{ID: 503},
+								User:       types.NodeUser{ID: intToPtr(502)},
+								Group:      types.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: 0644,
@@ -228,8 +228,8 @@ func TestTranslateFromV1(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "_translate-filesystem-1",
 								Path:       "/opt/file3",
-								User:       types.NodeUser{ID: 1000},
-								Group:      types.NodeGroup{ID: 1001},
+								User:       types.NodeUser{ID: intToPtr(1000)},
+								Group:      types.NodeGroup{ID: intToPtr(1001)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: 0400,
@@ -705,8 +705,8 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file1",
-								User:       types.NodeUser{ID: 500},
-								Group:      types.NodeGroup{ID: 501},
+								User:       types.NodeUser{ID: intToPtr(500)},
+								Group:      types.NodeGroup{ID: intToPtr(501)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: 0664,
@@ -722,8 +722,8 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file2",
-								User:       types.NodeUser{ID: 502},
-								Group:      types.NodeGroup{ID: 503},
+								User:       types.NodeUser{ID: intToPtr(502)},
+								Group:      types.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: 0644,
@@ -739,8 +739,8 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/file3",
-								User:       types.NodeUser{ID: 1000},
-								Group:      types.NodeGroup{ID: 1001},
+								User:       types.NodeUser{ID: intToPtr(1000)},
+								Group:      types.NodeGroup{ID: intToPtr(1001)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: 0400,

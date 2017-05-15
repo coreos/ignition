@@ -299,7 +299,10 @@
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "integer"
+                  "type": ["integer", "null"]
+                },
+                "name": {
+                    "type": "string"
                 }
               }
             },
@@ -307,7 +310,10 @@
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "integer"
+                  "type": ["integer", "null"]
+                },
+                "name": {
+                    "type": "string"
                 }
               }
             }

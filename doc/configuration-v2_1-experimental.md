@@ -54,23 +54,29 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
     * **_user_** (object): specifies the file's owner.
       * **_id_** (integer): the user ID of the owner.
+      * **_name_** (string): the user name of the owner.
     * **_group_** (object): specifies the group of the owner.
       * **_id_** (integer): the group ID of the owner.
+      * **_name_** (string): the group name of the owner.
   * **_directories_** (list of objects): the list of directories to be created.
     * **filesystem** (string): the internal identifier of the filesystem in which to create the directory. This matches the last filesystem with the given identifier.
     * **path** (string): the absolute path to the directory.
     * **_mode_** (integer): the directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0755 -> 493).
     * **_user_** (object): specifies the directory's owner.
       * **_id_** (integer): the user ID of the owner.
+      * **_name_** (string): the user name of the owner.
     * **_group_** (object): specifies the group of the owner.
       * **_id_** (integer): the group ID of the owner.
+      * **_name_** (string): the group name of the owner.
   * **_links_** (list of objects): the list of links to be created
     * **filesystem** (string): the internal identifier of the filesystem in which to write the link. This matches the last filesystem with the given identifier.
     * **path** (string): the absolute path to the link
     * **_user_** (object): specifies the symbolic links's owner.
       * **_id_** (integer): the user ID of the owner.
+      * **_name_** (string): the user name of the owner.
     * **_group_** (object): specifies the group of the owner.
       * **_id_** (integer): the group ID of the owner.
+      * **_name_** (string): the group name of the owner.
     * **target** (string): the target path of the link
     * **_hard_** (boolean): a symbolic link is created if this is false, a hard one if this is true.
 * **_systemd_** (object): describes the desired state of the systemd units.

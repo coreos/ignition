@@ -49,3 +49,69 @@ func TestNodeValidateFilesystem(t *testing.T) {
 		}
 	}
 }
+
+func intToPtr(x int) *int {
+	return &x
+}
+
+func TestNodeValidateUser(t *testing.T) {
+	tests := []struct {
+		in  NodeUser
+		out report.Report
+	}{
+		{
+			in:  NodeUser{intToPtr(0), ""},
+			out: report.Report{},
+		},
+		{
+			in:  NodeUser{intToPtr(1000), ""},
+			out: report.Report{},
+		},
+		{
+			in:  NodeUser{nil, "core"},
+			out: report.Report{},
+		},
+		{
+			in:  NodeUser{intToPtr(1000), "core"},
+			out: report.ReportFromError(ErrBothIDAndNameSet, report.EntryError),
+		},
+	}
+
+	for i, test := range tests {
+		report := test.in.Validate()
+		if !reflect.DeepEqual(test.out, report) {
+			t.Errorf("#%d: bad report: want %v got %v", i, test.out, report)
+		}
+	}
+}
+
+func TestNodeValidateGroup(t *testing.T) {
+	tests := []struct {
+		in  NodeGroup
+		out report.Report
+	}{
+		{
+			in:  NodeGroup{intToPtr(0), ""},
+			out: report.Report{},
+		},
+		{
+			in:  NodeGroup{intToPtr(1000), ""},
+			out: report.Report{},
+		},
+		{
+			in:  NodeGroup{nil, "core"},
+			out: report.Report{},
+		},
+		{
+			in:  NodeGroup{intToPtr(1000), "core"},
+			out: report.ReportFromError(ErrBothIDAndNameSet, report.EntryError),
+		},
+	}
+
+	for i, test := range tests {
+		report := test.in.Validate()
+		if !reflect.DeepEqual(test.out, report) {
+			t.Errorf("#%d: bad report: want %v got %v", i, test.out, report)
+		}
+	}
+}

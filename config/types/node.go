@@ -22,7 +22,8 @@ import (
 )
 
 var (
-	ErrNoFilesystem = errors.New("no filesystem specified")
+	ErrNoFilesystem     = errors.New("no filesystem specified")
+	ErrBothIDAndNameSet = errors.New("cannot set both id and name")
 )
 
 func (n Node) ValidateFilesystem() report.Report {
@@ -53,4 +54,25 @@ func (n Node) Depth() int {
 		p = filepath.Dir(p)
 	}
 	return count
+}
+
+func (nu NodeUser) Validate() report.Report {
+	r := report.Report{}
+	if nu.ID != nil && nu.Name != "" {
+		r.Add(report.Entry{
+			Message: ErrBothIDAndNameSet.Error(),
+			Kind:    report.EntryError,
+		})
+	}
+	return r
+}
+func (ng NodeGroup) Validate() report.Report {
+	r := report.Report{}
+	if ng.ID != nil && ng.Name != "" {
+		r.Add(report.Entry{
+			Message: ErrBothIDAndNameSet.Error(),
+			Kind:    report.EntryError,
+		})
+	}
+	return r
 }
