@@ -4,7 +4,7 @@ Each of these examples is written in version 2.0.0 of the config. Ensure that an
 
 ## Services
 
-### Starting Services
+### Start Services
 
 This config will write a single service unit (shown below) with the contents of an example service. This unit will be enabled as a dependency of multi-user.target and therefore start on boot.
 
@@ -32,7 +32,7 @@ ExecStart=/usr/bin/echo Hello World
 WantedBy=multi-user.target
 ```
 
-### Modifying Services
+### Modify Services
 
 This config will add a [systemd unit drop-in](https://coreos.com/os/docs/latest/using-systemd-drop-in-units.html) to modify the existing service `systemd-networkd` and sets its environment variable `SYSTEMD_LOG_LEVEL` to `debug`.
 
@@ -225,7 +225,7 @@ Type=ext4
 WantedBy=local-fs.target
 ```
 
-## Replacing the Config with a Remote Config
+## Replace the Config with a Remote Config
 
 In some cloud environments, there is a limit on the size of the config which may be provided to a machine. To work around this, Ignition allows configs to be replaced with the contents of an alternate, remote config. The following demonstrates this, using a SHA512 sum to verify the contents of the config.
 
@@ -245,7 +245,7 @@ In some cloud environments, there is a limit on the size of the config which may
 
 The SHA512 sum of the config can be determined using `sha512sum`.
 
-## Setting the hostname
+## Set the Hostname
 
 Setting the hostname of a system is as simple as writing `/etc/hostname`:
 
@@ -263,7 +263,7 @@ Setting the hostname of a system is as simple as writing `/etc/hostname`:
 }
 ```
 
-## Adding users
+## Add Users
 
 Users can be added to an OS with the `passwd.users` key which takes a list of objects that specify a given user. If you wanted to configure a user "systemUser" and a user "jenkins" you would do that as follows:
 
