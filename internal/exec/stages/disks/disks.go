@@ -212,7 +212,7 @@ func (s stage) createRaids(config types.Config) error {
 			args = append(args, util.DeviceAlias(string(dev)))
 		}
 
-		if err := s.Logger.LogCmd(
+		if _, err := s.Logger.LogCmd(
 			exec.Command("/sbin/mdadm", args...),
 			"creating %q", md.Name,
 		); err != nil {
@@ -274,7 +274,7 @@ func (s stage) createFilesystems(config types.Config) error {
 	// be the slow one, so this should be good enough.
 	//
 	// Test case: boot failure in coreos.ignition.*.btrfsroot kola test.
-	if err := s.Logger.LogCmd(
+	if _, err := s.Logger.LogCmd(
 		exec.Command("/bin/udevadm", "settle"),
 		"waiting for udev to settle",
 	); err != nil {
@@ -319,7 +319,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 
 	devAlias := util.DeviceAlias(string(fs.Device))
 	args = append(args, devAlias)
-	if err := s.Logger.LogCmd(
+	if _, err := s.Logger.LogCmd(
 		exec.Command(mkfs, args...),
 		"creating %q filesystem on %q",
 		fs.Format, devAlias,

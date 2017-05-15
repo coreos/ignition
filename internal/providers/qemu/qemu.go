@@ -34,7 +34,7 @@ const (
 )
 
 func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
-	err := logger.LogCmd(exec.Command("modprobe", "qemu_fw_cfg"), "loading QEMU firmware config module")
+	_, err := logger.LogCmd(exec.Command("modprobe", "qemu_fw_cfg"), "loading QEMU firmware config module")
 	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}

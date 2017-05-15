@@ -20,6 +20,7 @@ import (
 	"log/syslog"
 	"os/exec"
 	"strings"
+	"syscall"
 )
 
 type LoggerOps interface {
@@ -131,7 +132,8 @@ func quotedCmd(cmd *exec.Cmd) string {
 
 // LogCmd runs and logs the supplied cmd as an operation with distinct start/finish/fail log messages uniformly combined with the supplied format string.
 // The exact command path and arguments being executed are also logged for debugging assistance.
-func (l *Logger) LogCmd(cmd *exec.Cmd, format string, a ...interface{}) error {
+func (l *Logger) LogCmd(cmd *exec.Cmd, format string, a ...interface{}) (int, error) {
+	code := -1
 	f := func() error {
 		cmdLine := quotedCmd(cmd)
 		l.Debug("executing: %s", cmdLine)
@@ -141,11 +143,15 @@ func (l *Logger) LogCmd(cmd *exec.Cmd, format string, a ...interface{}) error {
 		cmd.Stdout = stdout
 		cmd.Stderr = stderr
 		if err := cmd.Run(); err != nil {
+			if exitErr, ok := err.(*exec.ExitError); ok {
+				code = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
+			}
 			return fmt.Errorf("%v: Cmd: %s Stdout: %q Stderr: %q", err, cmdLine, stdout.Bytes(), stderr.Bytes())
 		}
 		return nil
 	}
-	return l.LogOp(f, format, a...)
+	err := l.LogOp(f, format, a...)
+	return code, err
 }
 
 // LogOp calls and logs the supplied function as an operation with distinct start/finish/fail log messages uniformly combined with the supplied format string.

@@ -85,8 +85,9 @@ func (u Util) CreateUser(c types.PasswdUser) error {
 
 	args = append(args, c.Name)
 
-	return u.LogCmd(exec.Command("useradd", args...),
+	_, err := u.LogCmd(exec.Command("useradd", args...),
 		"creating user %q", c.Name)
+	return err
 }
 
 // golang--
@@ -161,8 +162,9 @@ func (u Util) SetPasswordHash(c types.PasswdUser) error {
 
 	args = append(args, c.Name)
 
-	return u.LogCmd(exec.Command("usermod", args...),
+	_, err := u.LogCmd(exec.Command("usermod", args...),
 		"setting password for %q", c.Name)
+	return err
 }
 
 // CreateGroup creates the group as described.
@@ -186,6 +188,7 @@ func (u Util) CreateGroup(g types.PasswdGroup) error {
 
 	args = append(args, g.Name)
 
-	return u.LogCmd(exec.Command("groupadd", args...),
+	_, err := u.LogCmd(exec.Command("groupadd", args...),
 		"adding group %q", g.Name)
+	return err
 }
