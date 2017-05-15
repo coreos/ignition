@@ -56,7 +56,7 @@ func TestMapEntriesToFilesystems(t *testing.T) {
 					{Node: types.Node{Filesystem: "fs1", Path: "/bar"}},
 				},
 			}}},
-			out: out{files: map[types.Filesystem][]filesystemEntry{types.Filesystem{Name: "fs1"}: {
+			out: out{files: map[types.Filesystem][]filesystemEntry{{Name: "fs1"}: {
 				fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/foo"}}),
 				fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/bar"}}),
 			}}},
@@ -70,8 +70,8 @@ func TestMapEntriesToFilesystems(t *testing.T) {
 				},
 			}}},
 			out: out{files: map[types.Filesystem][]filesystemEntry{
-				types.Filesystem{Name: "fs1", Path: &fs1}: {fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/foo"}})},
-				types.Filesystem{Name: "fs2", Path: &fs2}: {fileEntry(types.File{Node: types.Node{Filesystem: "fs2", Path: "/bar"}})},
+				{Name: "fs1", Path: &fs1}: {fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/foo"}})},
+				{Name: "fs2", Path: &fs2}: {fileEntry(types.File{Node: types.Node{Filesystem: "fs2", Path: "/bar"}})},
 			}},
 		},
 		{
@@ -83,7 +83,7 @@ func TestMapEntriesToFilesystems(t *testing.T) {
 				},
 			}}},
 			out: out{files: map[types.Filesystem][]filesystemEntry{
-				types.Filesystem{Name: "fs1", Path: &fs1}: {
+				{Name: "fs1", Path: &fs1}: {
 					fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/foo"}}),
 					fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/bar"}}),
 				},
