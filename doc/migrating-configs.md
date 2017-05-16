@@ -12,13 +12,13 @@ One of the more notable changes was the representation of the config version, mo
 
 The following shows the changes to the version section:
 
-```json
+```json ignition
 {
   "ignitionVersion": 1
 }
 ```
 
-```json
+```json ignition
 {
   "ignition": {
     "version": "2.0.0"
@@ -32,7 +32,7 @@ The `files` section was moved out from under `filesystems` and is now directly u
 
 The following shows this particular change to the files section:
 
-```json
+```json ignition
 {
   "storage": {
     "filesystems": [
@@ -50,7 +50,7 @@ The following shows this particular change to the files section:
 }
 ```
 
-```json
+```json ignition
 {
   "storage": {
     "filesystems": [
@@ -76,7 +76,7 @@ The `contents` section was changed from a simple string to an object. This allow
 
 The following shows the changes to the file contents (snipped for clarity):
 
-```json
+```json ignition
 ...
 
 "files": [
@@ -89,7 +89,7 @@ The following shows the changes to the file contents (snipped for clarity):
 ...
 ```
 
-```json
+```json ignition
 ...
 
 "files": [
@@ -110,7 +110,7 @@ The `uid` and `gid` sections have been moved into new `id` sections under new `u
 
 The following shows the changes to the file uid and gid:
 
-```json
+```json ignition
 ...
 
 "files": [
@@ -125,7 +125,7 @@ The following shows the changes to the file uid and gid:
 
 ```
 
-```json
+```json ignition
 ...
 
 "files": [
