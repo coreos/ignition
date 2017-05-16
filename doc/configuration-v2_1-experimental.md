@@ -87,11 +87,21 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **name** (string): the name of the file. This must be suffixed with a valid unit type (e.g. "00-eth0.network").
     * **_contents_** (string): the contents of the networkd file.
 * **_passwd_** (object): describes the desired additions to the passwd database.
-  * **_users_** (list of objects): the list of accounts to be added.
+  * **_users_** (list of objects): the list of accounts that shall exist.
     * **name** (string): the username for the account.
     * **_passwordHash_** (string): the encrypted password for the account.
     * **_sshAuthorizedKeys_** (list of strings): a list of SSH keys to be added to the user's authorized_keys.
-    * **_create_** (object): contains the set of options to be used when creating the user. A non-null entry indicates that the user account shall be created.
+    * **_uid_** (integer): the user ID of the account.
+    * **_gecos_** (string): the GECOS field of the account.
+    * **_homeDir_** (string): the home directory of the account.
+    * **_noCreateHome_** (boolean): whether or not to create the user's home directory. This only has an effect if the account doesn't exist yet.
+    * **_primaryGroup_** (string): the name of the primary group of the account.
+    * **_groups_** (list of strings): the list of supplementary groups of the account.
+    * **_noUserGroup_** (boolean): whether or not to create a group with the same name as the user. This only has an effect if the account doesn't exist yet.
+    * **_noLogInit_** (boolean): whether or not to add the user to the lastlog and faillog databases. This only has an effect if the account doesn't exist yet.
+    * **_shell_** (string): the login shell of the new account.
+    * **_system_** (bool): whether or not to make the account a system account. This only has an effect if the account doesn't exist yet.
+    * **_create_** (object, DEPRECATED): contains the set of options to be used when creating the user. A non-null entry indicates that the user account shall be created. This object has been marked for deprecation, please use the **_users_** level fields instead.
       * **_uid_** (integer): the user ID of the new account.
       * **_gecos_** (string): the GECOS field of the new account.
       * **_homeDir_** (string): the home directory of the new account.

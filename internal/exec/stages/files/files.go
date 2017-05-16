@@ -403,7 +403,7 @@ func (s stage) createUsers(config types.Config) error {
 	defer s.Logger.PopPrefix()
 
 	for _, u := range config.Passwd.Users {
-		if err := s.CreateUser(u); err != nil {
+		if err := s.EnsureUser(u); err != nil {
 			return fmt.Errorf("failed to create user %q: %v",
 				u.Name, err)
 		}

@@ -115,7 +115,7 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 	defer os.Remove(mnt)
 
 	cmd := exec.Command("/usr/bin/mount", "-o", "ro", "-t", "auto", path, mnt)
-	if err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
+	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
 		return nil, err
 	}
 	defer logger.LogOp(

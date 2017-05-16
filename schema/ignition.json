@@ -418,6 +418,39 @@
                 "type": "string"
               }
             },
+            "uid": {
+              "type": ["integer", "null"]
+            },
+            "gecos": {
+              "type": "string"
+            },
+            "homeDir": {
+              "type": "string"
+            },
+            "noCreateHome": {
+              "type": "boolean"
+            },
+            "primaryGroup": {
+              "type": "string"
+            },
+            "groups": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "noUserGroup": {
+              "type": "boolean"
+            },
+            "system": {
+              "type": "boolean"
+            },
+            "noLogInit": {
+              "type": "boolean"
+            },
+            "shell": {
+              "type": "string"
+            },
             "create": {
               "$ref": "#/definitions/passwd/definitions/usercreate"
             }
