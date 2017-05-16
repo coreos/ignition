@@ -24,6 +24,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
@@ -112,13 +113,42 @@ func RenderFile(l *log.Logger, c *resource.HttpClient, f types.File) *File {
 		return nil
 	}
 
+	if f.User.Name != "" {
+		u, err := Util{DestDir: "/sysroot"}.userLookup(f.User.Name)
+		if err != nil {
+			l.Crit("No such user %q: %v", f.User.Name, err)
+			return nil
+		}
+		uid, err := strconv.ParseInt(u.Uid, 0, 0)
+		if err != nil {
+			l.Crit("Couldn't parse uid %q: %v", u.Uid, err)
+			return nil
+		}
+		tmp := int(uid)
+		f.User.ID = &tmp
+	}
+	if f.Group.Name != "" {
+		g, err := Util{DestDir: "/sysroot"}.groupLookup(f.Group.Name)
+		if err != nil {
+			l.Crit("No such group %q: %v", f.Group.Name, err)
+			return nil
+		}
+		gid, err := strconv.ParseInt(g.Gid, 0, 0)
+		if err != nil {
+			l.Crit("Couldn't parse gid %q: %v", g.Gid, err)
+			return nil
+		}
+		tmp := int(gid)
+		f.Group.ID = &tmp
+	}
+
 	return &File{
 		Path:        f.Path,
 		ReadCloser:  reader,
 		Hash:        fileHash,
 		Mode:        os.FileMode(f.Mode),
-		Uid:         f.User.ID,
-		Gid:         f.Group.ID,
+		Uid:         *f.User.ID,
+		Gid:         *f.Group.ID,
 		expectedSum: expectedSum,
 	}
 }

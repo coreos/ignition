@@ -69,6 +69,7 @@ func TestUserLookup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("temp base error: %v", err)
 	}
+	defer os.RemoveAll(td)
 
 	logger := log.New()
 	defer logger.Close()
@@ -93,5 +94,38 @@ func TestUserLookup(t *testing.T) {
 
 	if usr.Gid != "4242" {
 		t.Fatalf("unexpected gid: %q", usr.Gid)
+	}
+}
+
+func TestGroupLookup(t *testing.T) {
+	if os.Geteuid() != 0 {
+		t.Skip("test requires root for chroot(), skipping")
+	}
+
+	td, err := tempBase()
+	if err != nil {
+		t.Fatalf("temp base error: %v", err)
+	}
+	defer os.RemoveAll(td)
+
+	logger := log.New()
+	defer logger.Close()
+
+	u := &Util{
+		DestDir: td,
+		Logger:  &logger,
+	}
+
+	grp, err := u.groupLookup("foo")
+	if err != nil {
+		t.Fatalf("lookup error: %v", err)
+	}
+
+	if grp.Name != "foo" {
+		t.Fatalf("unexpected name: %q", grp.Name)
+	}
+
+	if grp.Gid != "4242" {
+		t.Fatalf("unexpected gid: %q", grp.Gid)
 	}
 }

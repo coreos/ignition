@@ -16,7 +16,7 @@
 
 package util
 
-// #include "user_lookup.h"
+// #include "user_group_lookup.h"
 import "C"
 
 import (
@@ -26,7 +26,7 @@ import (
 
 // userLookup looks up the user in u.DestDir.
 func (u Util) userLookup(name string) (*user.User, error) {
-	res := &C.user_lookup_res_t{}
+	res := &C.lookup_res_t{}
 
 	if ret, err := C.user_lookup(C.CString(u.DestDir),
 		C.CString(name), res); ret < 0 {
@@ -47,4 +47,27 @@ func (u Util) userLookup(name string) (*user.User, error) {
 	C.user_lookup_res_free(res)
 
 	return usr, nil
+}
+
+// groupLookup looks up the group in u.DestDir.
+func (u Util) groupLookup(name string) (*user.Group, error) {
+	res := &C.lookup_res_t{}
+
+	if ret, err := C.group_lookup(C.CString(u.DestDir),
+		C.CString(name), res); ret < 0 {
+		return nil, fmt.Errorf("lookup failed: %v", err)
+	}
+
+	if res.name == nil {
+		return nil, fmt.Errorf("user %q not found", name)
+	}
+
+	grp := &user.Group{
+		Name: C.GoString(res.name),
+		Gid:  fmt.Sprintf("%d", int(res.gid)),
+	}
+
+	C.group_lookup_res_free(res)
+
+	return grp, nil
 }

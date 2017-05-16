@@ -163,7 +163,7 @@ func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) e
 			if err := os.Chmod(newPath, os.FileMode(d.Mode)); err != nil {
 				return err
 			}
-			if err := os.Chown(newPath, d.User.ID, d.Group.ID); err != nil {
+			if err := os.Chown(newPath, *d.User.ID, *d.Group.ID); err != nil {
 				return err
 			}
 		}

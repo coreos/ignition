@@ -108,11 +108,13 @@ type Node struct {
 }
 
 type NodeGroup struct {
-	ID int `json:"id,omitempty"`
+	ID   *int   `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 type NodeUser struct {
-	ID int `json:"id,omitempty"`
+	ID   *int   `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 type Option string

@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-typedef struct user_lookup_res {
+typedef struct lookup_res {
 	int	uid;
 	int	gid;
 	char	*home;
 	char	*name;
-} user_lookup_res_t;
+} lookup_res_t;
 
-int user_lookup(const char *, const char *, user_lookup_res_t *);
-void user_lookup_res_free(user_lookup_res_t *);
+int user_lookup(const char *, const char *, lookup_res_t *);
+int group_lookup(const char *, const char *, lookup_res_t *);
+void user_lookup_res_free(lookup_res_t *);
+void group_lookup_res_free(lookup_res_t *);

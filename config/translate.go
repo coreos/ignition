@@ -26,6 +26,10 @@ import (
 	"github.com/vincent-petithory/dataurl"
 )
 
+func intToPtr(x int) *int {
+	return &x
+}
+
 func TranslateFromV1(old v1.Config) types.Config {
 	config := types.Config{
 		Ignition: types.Ignition{
@@ -89,8 +93,8 @@ func TranslateFromV1(old v1.Config) types.Config {
 				Node: types.Node{
 					Filesystem: filesystem.Name,
 					Path:       string(oldFile.Path),
-					User:       types.NodeUser{ID: oldFile.Uid},
-					Group:      types.NodeGroup{ID: oldFile.Gid},
+					User:       types.NodeUser{ID: intToPtr(oldFile.Uid)},
+					Group:      types.NodeGroup{ID: intToPtr(oldFile.Gid)},
 				},
 				FileEmbedded1: types.FileEmbedded1{
 					Mode: int(oldFile.Mode),
@@ -305,8 +309,8 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 			Node: types.Node{
 				Filesystem: oldFile.Filesystem,
 				Path:       string(oldFile.Path),
-				User:       types.NodeUser{ID: oldFile.User.Id},
-				Group:      types.NodeGroup{ID: oldFile.Group.Id},
+				User:       types.NodeUser{ID: intToPtr(oldFile.User.Id)},
+				Group:      types.NodeGroup{ID: intToPtr(oldFile.Group.Id)},
 			},
 			FileEmbedded1: types.FileEmbedded1{
 				Mode: int(oldFile.Mode),
