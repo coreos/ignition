@@ -10,3 +10,4 @@ github.com/vincent-petithory/dataurl                   9a301d65acbb728fcc3ace14f
 golang.org/golang.org/x/net/context                    075e191f18186a8ff2becaf64478e30f4545cdad
 golang.org/golang.org/x/net/context/ctxhttp            075e191f18186a8ff2becaf64478e30f4545cdad
 github.com/stretchr/testify                            4d4bfba8f1d1027c4fdbe371823030df51419987
+github.com/pin/tftp                                    9ea92f6b1029bc1bf3072bba195c84bb9b0370e3
