@@ -384,12 +384,12 @@ func TestTranslateFromV1(t *testing.T) {
 					Users: []types.PasswdUser{
 						{
 							Name:              "user 1",
-							PasswordHash:      "password 1",
+							PasswordHash:      strToPtr("password 1"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key1", "key2"},
 						},
 						{
 							Name:              "user 2",
-							PasswordHash:      "password 2",
+							PasswordHash:      strToPtr("password 2"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key3", "key4"},
 							Create: &types.Usercreate{
 								UID:          func(i int) *int { return &i }(123),
@@ -406,7 +406,7 @@ func TestTranslateFromV1(t *testing.T) {
 						},
 						{
 							Name:              "user 3",
-							PasswordHash:      "password 3",
+							PasswordHash:      strToPtr("password 3"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key5", "key6"},
 							Create:            &types.Usercreate{},
 						},
@@ -506,7 +506,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 									Opaque: ",file2",
 								}).String(),
 								Verification: types.Verification{
-									Hash: func(s string) *string { return &s }("func2-sum2"),
+									Hash: strToPtr("func2-sum2"),
 								},
 							},
 						},
@@ -516,7 +516,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 								Opaque: ",file3",
 							}).String(),
 							Verification: types.Verification{
-								Hash: func(s string) *string { return &s }("func3-sum3"),
+								Hash: strToPtr("func3-sum3"),
 							},
 						},
 					},
@@ -895,12 +895,12 @@ func TestTranslateFromV2_0(t *testing.T) {
 					Users: []types.PasswdUser{
 						{
 							Name:              "user 1",
-							PasswordHash:      "password 1",
+							PasswordHash:      strToPtr("password 1"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key1", "key2"},
 						},
 						{
 							Name:              "user 2",
-							PasswordHash:      "password 2",
+							PasswordHash:      strToPtr("password 2"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key3", "key4"},
 							Create: &types.Usercreate{
 								UID:          func(i int) *int { return &i }(123),
@@ -917,7 +917,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 						},
 						{
 							Name:              "user 3",
-							PasswordHash:      "password 3",
+							PasswordHash:      strToPtr("password 3"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key5", "key6"},
 							Create:            &types.Usercreate{},
 						},

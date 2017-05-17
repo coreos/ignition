@@ -149,7 +149,7 @@ type PasswdUser struct {
 	NoCreateHome      bool               `json:"noCreateHome,omitempty"`
 	NoLogInit         bool               `json:"noLogInit,omitempty"`
 	NoUserGroup       bool               `json:"noUserGroup,omitempty"`
-	PasswordHash      string             `json:"passwordHash,omitempty"`
+	PasswordHash      *string            `json:"passwordHash,omitempty"`
 	PrimaryGroup      string             `json:"primaryGroup,omitempty"`
 	SSHAuthorizedKeys []SSHAuthorizedKey `json:"sshAuthorizedKeys,omitempty"`
 	Shell             string             `json:"shell,omitempty"`

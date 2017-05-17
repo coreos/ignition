@@ -81,9 +81,15 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 		}
 	}
 
-	if c.PasswordHash != "" {
-		args = append(args, "--password", c.PasswordHash)
-	} else {
+	if c.PasswordHash != nil {
+		if *c.PasswordHash != "" {
+			args = append(args, "--password", *c.PasswordHash)
+		} else {
+			args = append(args, "--password", "*")
+		}
+	} else if !exists {
+		// Set the user's password to "*" if they don't exist yet and one wasn't
+		// set to disable password logins
 		args = append(args, "--password", "*")
 	}
 
@@ -198,13 +204,18 @@ func translateV2_1SSHAuthorizedKeySliceToStringSlice(keys []types.SSHAuthorizedK
 
 // SetPasswordHash sets the password hash of the specified user.
 func (u Util) SetPasswordHash(c types.PasswdUser) error {
-	if c.PasswordHash == "" {
+	if c.PasswordHash == nil {
 		return nil
+	}
+
+	pwhash := *c.PasswordHash
+	if *c.PasswordHash == "" {
+		pwhash = "*"
 	}
 
 	args := []string{
 		"--root", u.DestDir,
-		"--password", c.PasswordHash,
+		"--password", pwhash,
 	}
 
 	args = append(args, c.Name)
