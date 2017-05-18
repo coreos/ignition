@@ -30,6 +30,13 @@ func intToPtr(x int) *int {
 	return &x
 }
 
+func strToPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
 func TranslateFromV1(old v1.Config) types.Config {
 	config := types.Config{
 		Ignition: types.Ignition{
@@ -139,7 +146,7 @@ func TranslateFromV1(old v1.Config) types.Config {
 	for _, oldUser := range old.Passwd.Users {
 		user := types.PasswdUser{
 			Name:              oldUser.Name,
-			PasswordHash:      oldUser.PasswordHash,
+			PasswordHash:      strToPtr(oldUser.PasswordHash),
 			SSHAuthorizedKeys: translateStringSliceToV2_1SSHAuthorizedKeySlice(oldUser.SSHAuthorizedKeys),
 		}
 
@@ -353,7 +360,7 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 	for _, oldUser := range old.Passwd.Users {
 		user := types.PasswdUser{
 			Name:              oldUser.Name,
-			PasswordHash:      oldUser.PasswordHash,
+			PasswordHash:      strToPtr(oldUser.PasswordHash),
 			SSHAuthorizedKeys: translateStringSliceToV2_1SSHAuthorizedKeySlice(oldUser.SSHAuthorizedKeys),
 		}
 
