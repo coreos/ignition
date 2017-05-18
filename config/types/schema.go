@@ -66,6 +66,8 @@ type Filesystem struct {
 	Path  *string `json:"path,omitempty"`
 }
 
+type Group string
+
 type Ignition struct {
 	Config   IgnitionConfig `json:"config,omitempty"`
 	Timeouts Timeouts       `json:"timeouts,omitempty"`
@@ -149,7 +151,7 @@ type PasswdGroup struct {
 type PasswdUser struct {
 	Create            *Usercreate        `json:"create,omitempty"`
 	Gecos             string             `json:"gecos,omitempty"`
-	Groups            []PasswdUserGroup  `json:"groups,omitempty"`
+	Groups            []Group            `json:"groups,omitempty"`
 	HomeDir           string             `json:"homeDir,omitempty"`
 	Name              string             `json:"name,omitempty"`
 	NoCreateHome      bool               `json:"noCreateHome,omitempty"`
@@ -162,8 +164,6 @@ type PasswdUser struct {
 	System            bool               `json:"system,omitempty"`
 	UID               *int               `json:"uid,omitempty"`
 }
-
-type PasswdUserGroup string
 
 type Raid struct {
 	Devices []Device `json:"devices,omitempty"`
