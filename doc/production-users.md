@@ -7,7 +7,3 @@ This document tracks people and use cases for Ignition in production. By creatin
 https://coreos.com/tectonic
 
 *This is a meta user; feel free to document specific Tectonic deployments.*
-
-## Adobe
-
-Environment: AWS
