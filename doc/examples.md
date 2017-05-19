@@ -279,15 +279,11 @@ Users can be added to an OS with the `passwd.users` key which takes a list of ob
     },
     {
       "name": "jenkins",
-      "create": {
-        "uid": 1000
-      }
+      "uid": 1000
     },
   ]
 }
 ```
-
-In this example "systemUser" must be created by the OS prior to Ignition being run, since Ignition is only updating that user. The user "jenkins" is being *created* by Ignition.
 
 To add more users, configure them within the `users` list structure (`[...]`).
 
