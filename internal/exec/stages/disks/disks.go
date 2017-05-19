@@ -285,36 +285,67 @@ func (s stage) createFilesystems(config types.Config) error {
 }
 
 func (s stage) createFilesystem(fs types.Mount) error {
-	if fs.Create == nil {
+	info, err := s.readFilesystemInfo(fs)
+	if err != nil {
+		return err
+	}
+	if info.format == fs.Format &&
+		(fs.Label == nil || info.label == *fs.Label) &&
+		(fs.UUID == nil || info.uuid == *fs.UUID) &&
+		!fs.WipeFilesystem {
+		s.Logger.Info("filesystem at %q is already formatted. Skipping mkfs...", fs.Device)
 		return nil
 	}
 
 	mkfs := ""
-	args := translateV2_1OptionSliceToStringSlice(fs.Create.Options)
+	var force bool
+	var args []string
+	if fs.Create == nil {
+		force = fs.WipeFilesystem
+		args = translateMountOptionSliceToStringSlice(fs.Options)
+	} else {
+		force = fs.Create.Force
+		args = translateCreateOptionSliceToStringSlice(fs.Create.Options)
+	}
 	switch fs.Format {
 	case "btrfs":
 		mkfs = "/sbin/mkfs.btrfs"
-		if fs.Create.Force {
+		if force {
 			args = append(args, "--force")
+		}
+		if fs.UUID != nil {
+			args = append(args, []string{"-U", *fs.UUID}...)
 		}
 	case "ext4":
 		mkfs = "/sbin/mkfs.ext4"
 		args = append(args, "-p")
-		if fs.Create.Force {
+		if force {
 			args = append(args, "-F")
+		}
+		if fs.UUID != nil {
+			args = append(args, []string{"-U", *fs.UUID}...)
 		}
 	case "xfs":
 		mkfs = "/sbin/mkfs.xfs"
-		if fs.Create.Force {
+		if force {
 			args = append(args, "-f")
+		}
+		if fs.UUID != nil {
+			args = append(args, []string{"-m", "uuid=" + *fs.UUID}...)
 		}
 	case "swap":
 		mkfs = "/sbin/mkswap"
-		if fs.Create.Force {
+		if force {
 			args = append(args, "-f")
+		}
+		if fs.UUID != nil {
+			args = append(args, []string{"-U", *fs.UUID}...)
 		}
 	default:
 		return fmt.Errorf("unsupported filesystem format: %q", fs.Format)
+	}
+	if fs.Label != nil {
+		args = append(args, []string{"-L", *fs.Label}...)
 	}
 
 	devAlias := util.DeviceAlias(string(fs.Device))
@@ -330,10 +361,52 @@ func (s stage) createFilesystem(fs types.Mount) error {
 	return nil
 }
 
-func translateV2_1OptionSliceToStringSlice(opts []types.Option) []string {
+// golang--
+func translateMountOptionSliceToStringSlice(opts []types.MountOption) []string {
 	newOpts := make([]string, len(opts))
 	for i, o := range opts {
 		newOpts[i] = string(o)
 	}
 	return newOpts
+}
+
+// golang--
+func translateCreateOptionSliceToStringSlice(opts []types.CreateOption) []string {
+	newOpts := make([]string, len(opts))
+	for i, o := range opts {
+		newOpts[i] = string(o)
+	}
+	return newOpts
+}
+
+type filesystemInfo struct {
+	format string
+	uuid   string
+	label  string
+}
+
+func (s stage) readFilesystemInfo(fs types.Mount) (filesystemInfo, error) {
+	res := filesystemInfo{}
+	err := s.Logger.LogOp(
+		func() error {
+			var err error
+			res.format, err = util.FilesystemType(fs.Device)
+			if err != nil {
+				return err
+			}
+			res.uuid, err = util.FilesystemUUID(fs.Device)
+			if err != nil {
+				return err
+			}
+			res.label, err = util.FilesystemLabel(fs.Device)
+			if err != nil {
+				return err
+			}
+			s.Logger.Info("found %s filesystem at %q with uuid %q and label %q", res.format, fs.Device, res.uuid, res.label)
+			return nil
+		},
+		"determining filesystem type of %q", fs.Device,
+	)
+
+	return res, err
 }

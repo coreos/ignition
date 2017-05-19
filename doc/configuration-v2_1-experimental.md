@@ -39,9 +39,13 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_mount_** (object): contains the set of mount and formatting options for the filesystem. A non-null entry indicates that the filesystem should be mounted before it is used by Ignition.
       * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
       * **format** (string): the filesystem format (ext4, btrfs, xfs, or swap).
-      * **_create_** (object): contains the set of options to be used when creating the filesystem. A non-null entry indicates that the filesystem shall be created.
-        * **_force_** (boolean): whether or not the create operation shall overwrite an existing filesystem.
-        * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
+      * **_wipeFilesystem_** (boolean): whether or not to wipe the device before filesystem creation, see [the documentation on filesystems](filesystems.md) for more information.
+      * **_label_** (string): the label of the filesystem.
+      * **_uuid_** (string): the uuid of the filesystem.
+      * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
+      * **_create_** (object, DEPRECATED): contains the set of options to be used when creating the filesystem.
+        * **_force_** (boolean, DEPRECATED): whether or not the create operation shall overwrite an existing filesystem.
+        * **_options_** (list of strings, DEPRECATED): any additional options to be passed to the format-specific mkfs utility.
     * **_path_** (string): the mount-point of the filesystem. A non-null entry indicates that the filesystem has already been mounted by the system at the specified path. This is really only useful for "/sysroot".
   * **_files_** (list of objects): the list of files to be written.
     * **filesystem** (string): the internal identifier of the filesystem in which to write the file. This matches the last filesystem with the given identifier.

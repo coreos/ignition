@@ -256,6 +256,21 @@
             "format": {
               "type": "string"
             },
+            "options": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "wipeFilesystem": {
+              "type": "boolean"
+            },
+            "label": {
+              "type": ["string", "null"]
+            },
+            "uuid": {
+              "type": ["string", "null"]
+            },
             "create": {
               "type": ["object", "null"],
               "properties": {

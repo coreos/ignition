@@ -16,9 +16,11 @@ type ConfigReference struct {
 }
 
 type Create struct {
-	Force   bool     `json:"force,omitempty"`
-	Options []Option `json:"options,omitempty"`
+	Force   bool           `json:"force,omitempty"`
+	Options []CreateOption `json:"options,omitempty"`
 }
+
+type CreateOption string
 
 type Device string
 
@@ -64,6 +66,8 @@ type Filesystem struct {
 	Path  *string `json:"path,omitempty"`
 }
 
+type Group string
+
 type Ignition struct {
 	Config   IgnitionConfig `json:"config,omitempty"`
 	Timeouts Timeouts       `json:"timeouts,omitempty"`
@@ -86,10 +90,16 @@ type LinkEmbedded1 struct {
 }
 
 type Mount struct {
-	Create *Create `json:"create,omitempty"`
-	Device string  `json:"device,omitempty"`
-	Format string  `json:"format,omitempty"`
+	Create         *Create       `json:"create,omitempty"`
+	Device         string        `json:"device,omitempty"`
+	Format         string        `json:"format,omitempty"`
+	Label          *string       `json:"label,omitempty"`
+	Options        []MountOption `json:"options,omitempty"`
+	UUID           *string       `json:"uuid,omitempty"`
+	WipeFilesystem bool          `json:"wipeFilesystem,omitempty"`
 }
+
+type MountOption string
 
 type Networkd struct {
 	Units []Networkdunit `json:"units,omitempty"`
@@ -117,8 +127,6 @@ type NodeUser struct {
 	Name string `json:"name,omitempty"`
 }
 
-type Option string
-
 type Partition struct {
 	GUID     string `json:"guid,omitempty"`
 	Label    string `json:"label,omitempty"`
@@ -143,7 +151,7 @@ type PasswdGroup struct {
 type PasswdUser struct {
 	Create            *Usercreate        `json:"create,omitempty"`
 	Gecos             string             `json:"gecos,omitempty"`
-	Groups            []PasswdUserGroup  `json:"groups,omitempty"`
+	Groups            []Group            `json:"groups,omitempty"`
 	HomeDir           string             `json:"homeDir,omitempty"`
 	Name              string             `json:"name,omitempty"`
 	NoCreateHome      bool               `json:"noCreateHome,omitempty"`
@@ -156,8 +164,6 @@ type PasswdUser struct {
 	System            bool               `json:"system,omitempty"`
 	UID               *int               `json:"uid,omitempty"`
 }
-
-type PasswdUserGroup string
 
 type Raid struct {
 	Devices []Device `json:"devices,omitempty"`

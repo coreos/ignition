@@ -192,10 +192,10 @@ func TranslateFromV1(old v1.Config) types.Config {
 }
 
 // golang--
-func translateV1MkfsOptionsToV2_1OptionSlice(opts v1.MkfsOptions) []types.Option {
-	newOpts := make([]types.Option, len(opts))
+func translateV1MkfsOptionsToV2_1OptionSlice(opts v1.MkfsOptions) []types.CreateOption {
+	newOpts := make([]types.CreateOption, len(opts))
 	for i, o := range opts {
-		newOpts[i] = types.Option(o)
+		newOpts[i] = types.CreateOption(o)
 	}
 	return newOpts
 }
@@ -405,10 +405,10 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 }
 
 // golang--
-func translateV2_0MkfsOptionsToV2_1OptionSlice(opts v2_0.MkfsOptions) []types.Option {
-	newOpts := make([]types.Option, len(opts))
+func translateV2_0MkfsOptionsToV2_1OptionSlice(opts v2_0.MkfsOptions) []types.CreateOption {
+	newOpts := make([]types.CreateOption, len(opts))
 	for i, o := range opts {
-		newOpts[i] = types.Option(o)
+		newOpts[i] = types.CreateOption(o)
 	}
 	return newOpts
 }

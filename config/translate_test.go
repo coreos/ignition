@@ -177,7 +177,7 @@ func TestTranslateFromV1(t *testing.T) {
 								Format: "btrfs",
 								Create: &types.Create{
 									Force:   true,
-									Options: []types.Option{"-L", "ROOT"},
+									Options: []types.CreateOption{"-L", "ROOT"},
 								},
 							},
 						},
@@ -684,7 +684,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 								Format: "btrfs",
 								Create: &types.Create{
 									Force:   true,
-									Options: []types.Option{"-L", "ROOT"},
+									Options: []types.CreateOption{"-L", "ROOT"},
 								},
 							},
 						},
