@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/version"
 
@@ -29,28 +30,39 @@ import (
 )
 
 const (
-	maxAttempts    = 15
 	initialBackoff = 100 * time.Millisecond
 	maxBackoff     = 5 * time.Second
+
+	defaultHttpResponseHeaderTimeout = 10
+	defaultHttpTotalTimeout          = 0
 )
 
 var (
-	ErrAttemptsExhausted = errors.New("unable to fetch resource (no more attempts available)")
+	ErrTimeout = errors.New("unable to fetch resource in time")
 )
 
 // HttpClient is a simple wrapper around the Go HTTP client that standardizes
 // the process and logging of fetching payloads.
 type HttpClient struct {
-	client *http.Client
-	logger *log.Logger
+	client  *http.Client
+	logger  *log.Logger
+	timeout time.Duration
 }
 
-// NewHttpClient creates a new client with the given logger.
-func NewHttpClient(logger *log.Logger) HttpClient {
+// NewHttpClient creates a new client with the given logger and timeouts.
+func NewHttpClient(logger *log.Logger, timeouts types.Timeouts) HttpClient {
+	responseHeader := defaultHttpResponseHeaderTimeout
+	total := defaultHttpTotalTimeout
+	if timeouts.HTTPResponseHeaders != nil {
+		responseHeader = *timeouts.HTTPResponseHeaders
+	}
+	if timeouts.HTTPTotal != nil {
+		total = *timeouts.HTTPTotal
+	}
 	return HttpClient{
 		client: &http.Client{
 			Transport: &http.Transport{
-				ResponseHeaderTimeout: 10 * time.Second,
+				ResponseHeaderTimeout: time.Duration(responseHeader) * time.Second,
 				Dial: (&net.Dialer{
 					Timeout:   30 * time.Second,
 					KeepAlive: 30 * time.Second,
@@ -58,14 +70,15 @@ func NewHttpClient(logger *log.Logger) HttpClient {
 				TLSHandshakeTimeout: 10 * time.Second,
 			},
 		},
-		logger: logger,
+		logger:  logger,
+		timeout: time.Duration(total) * time.Second,
 	}
 }
 
 // getReaderWithHeader performs an HTTP GET on the provided URL with the provided request header
 // and returns the response body Reader, HTTP status code, and error (if any). By
 // default, User-Agent is added to the header but this can be overridden.
-func (c HttpClient) getReaderWithHeader(ctx context.Context, url string, header http.Header) (io.ReadCloser, int, error) {
+func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, 0, err
@@ -80,8 +93,13 @@ func (c HttpClient) getReaderWithHeader(ctx context.Context, url string, header 
 		}
 	}
 
+	ctx := context.Background()
+	if c.timeout != 0 {
+		ctx, _ = context.WithTimeout(ctx, c.timeout)
+	}
+
 	duration := initialBackoff
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
+	for attempt := 1; ; attempt++ {
 		c.logger.Debug("GET %s: attempt #%d", url, attempt)
 		resp, err := ctxhttp.Do(ctx, c.client, req)
 
@@ -100,12 +118,11 @@ func (c HttpClient) getReaderWithHeader(ctx context.Context, url string, header 
 			duration = maxBackoff
 		}
 
+		// Wait before next attempt or exit if we timeout while waiting
 		select {
 		case <-time.After(duration):
 		case <-ctx.Done():
-			return nil, 0, ctx.Err()
+			return nil, 0, ErrTimeout
 		}
 	}
-
-	return nil, 0, ErrAttemptsExhausted
 }

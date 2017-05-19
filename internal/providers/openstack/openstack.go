@@ -131,5 +131,5 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 }
 
 func fetchConfigFromMetadataService(logger *log.Logger, client *resource.HttpClient, ctx context.Context) ([]byte, error) {
-	return resource.FetchConfig(logger, client, context.Background(), metadataServiceUrl)
+	return resource.FetchConfig(logger, client, metadataServiceUrl)
 }

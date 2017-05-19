@@ -32,7 +32,6 @@ import (
 
 	"github.com/pin/tftp"
 	"github.com/vincent-petithory/dataurl"
-	"golang.org/x/net/context"
 )
 
 var (
@@ -49,15 +48,15 @@ const (
 )
 
 // FetchConfig fetches a raw config from the provided URL.
-func FetchConfig(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL) ([]byte, error) {
-	return FetchConfigWithHeader(l, c, ctx, u, http.Header{})
+func FetchConfig(l *log.Logger, c *HttpClient, u url.URL) ([]byte, error) {
+	return FetchConfigWithHeader(l, c, u, http.Header{})
 }
 
 // FetchConfigWithHeader fetches a raw config from the provided URL and returns
 // the response body on success or nil on failure. The HTTP response must be
 // OK, otherwise an empty (v.s. nil) config is returned. The provided headers
 // are merged with a set of default headers.
-func FetchConfigWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL, h http.Header) ([]byte, error) {
+func FetchConfigWithHeader(l *log.Logger, c *HttpClient, u url.URL, h http.Header) ([]byte, error) {
 	header := http.Header{
 		"Accept-Encoding": []string{"identity"},
 		"Accept":          []string{"application/vnd.coreos.ignition+json; version=2.0.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1"},
@@ -69,7 +68,7 @@ func FetchConfigWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u 
 		}
 	}
 
-	data, err := FetchWithHeader(l, c, ctx, u, header)
+	data, err := FetchWithHeader(l, c, u, header)
 	switch err {
 	case nil:
 		return data, nil
@@ -82,21 +81,21 @@ func FetchConfigWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u 
 
 // Fetch fetches a resource given a URL. The supported schemes are
 // http, data, and oem.
-func Fetch(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL) ([]byte, error) {
-	return FetchWithHeader(l, c, ctx, u, http.Header{})
+func Fetch(l *log.Logger, c *HttpClient, u url.URL) ([]byte, error) {
+	return FetchWithHeader(l, c, u, http.Header{})
 }
 
 // FetchWithHeader fetches a resource given a URL. If the resource is
 // of the http or https scheme, the provided header will be used when
 // fetching. The supported schemes are http, data, tftp, and oem.
-func FetchWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL, h http.Header) ([]byte, error) {
+func FetchWithHeader(l *log.Logger, c *HttpClient, u url.URL, h http.Header) ([]byte, error) {
 	if u.Scheme == "tftp" {
-		return FetchFromTftp(l, ctx, u)
+		return FetchFromTftp(l, u)
 	}
 
 	var data []byte
 
-	dataReader, err := FetchAsReaderWithHeader(l, c, ctx, u, h)
+	dataReader, err := FetchAsReaderWithHeader(l, c, u, h)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +110,7 @@ func FetchWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u url.UR
 }
 
 // FetchFromTftp fetches a resource from a tftp server.
-func FetchFromTftp(l *log.Logger, ctx context.Context, u url.URL) ([]byte, error) {
+func FetchFromTftp(l *log.Logger, u url.URL) ([]byte, error) {
 	if !strings.ContainsRune(u.Host, ':') {
 		u.Host = u.Host + ":69"
 	}
@@ -145,17 +144,17 @@ func (f readUnmounter) Close() error {
 
 // FetchAsReader returns a ReadCloser to the data at the URL specified.
 // The caller is responsible for closing the reader.
-func FetchAsReader(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL) (io.ReadCloser, error) {
-	return FetchAsReaderWithHeader(l, c, ctx, u, http.Header{})
+func FetchAsReader(l *log.Logger, c *HttpClient, u url.URL) (io.ReadCloser, error) {
+	return FetchAsReaderWithHeader(l, c, u, http.Header{})
 }
 
 // FetchAsReader returns a ReadCloser to the data at the URL specified.
 // If the URL is of the http or https scheme, the provided header will be used
 // when fetching. The caller is responsible for closing the reader.
-func FetchAsReaderWithHeader(l *log.Logger, c *HttpClient, ctx context.Context, u url.URL, h http.Header) (io.ReadCloser, error) {
+func FetchAsReaderWithHeader(l *log.Logger, c *HttpClient, u url.URL, h http.Header) (io.ReadCloser, error) {
 	switch u.Scheme {
 	case "http", "https":
-		dataReader, status, err := c.getReaderWithHeader(ctx, u.String(), h)
+		dataReader, status, err := c.getReaderWithHeader(u.String(), h)
 		if err != nil {
 			return nil, err
 		}
