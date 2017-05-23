@@ -29,12 +29,10 @@ import (
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/cmdline"
 	"github.com/coreos/ignition/internal/resource"
-
-	"golang.org/x/net/context"
 )
 
 const (
-	DefaultOnlineTimeout = time.Minute
+	DefaultFetchTimeout = time.Minute
 )
 
 var (
@@ -52,6 +50,7 @@ var (
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
 	ConfigCache       string
+	FetchTimeout      time.Duration
 	Logger            *log.Logger
 	Root              string
 	FetchFunc         providers.FuncFetchConfig
@@ -64,8 +63,6 @@ type Engine struct {
 // Run executes the stage of the given name. It returns true if the stage
 // successfully ran and false if there were any errors.
 func (e Engine) Run(stageName string) bool {
-	e.client = resource.NewHttpClient(e.Logger)
-
 	cfg, err := e.acquireConfig()
 	switch err {
 	case nil:
@@ -91,8 +88,12 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 		if err = json.Unmarshal(b, &cfg); err != nil {
 			e.Logger.Crit("failed to parse cached config: %v", err)
 		}
+		e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
 		return
 	}
+
+	timeout := int(e.FetchTimeout.Seconds())
+	e.client = resource.NewHttpClient(e.Logger, types.Timeouts{HTTPTotal: &timeout})
 
 	// (Re)Fetch the config if the cache is unreadable.
 	cfg, err = e.fetchProviderConfig()
@@ -142,6 +143,8 @@ func (e Engine) fetchProviderConfig() (types.Config, error) {
 // evaluated and appended to the provided config. If neither option is set, the
 // provided config will be returned unmodified.
 func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
+	// Apply any new timeout info before fetching other configs.
+	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
 	if cfgRef := cfg.Ignition.Config.Replace; cfgRef != nil {
 		return e.fetchReferencedConfig(*cfgRef)
 	}
@@ -165,7 +168,7 @@ func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Confi
 	if err != nil {
 		return types.Config{}, err
 	}
-	rawCfg, err := resource.Fetch(e.Logger, &e.client, context.Background(), *u)
+	rawCfg, err := resource.Fetch(e.Logger, &e.client, *u)
 	if err != nil {
 		return types.Config{}, err
 	}
