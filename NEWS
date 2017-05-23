@@ -1,3 +1,39 @@
+23-Jun-2017 IGNITION v0.15.0
+
+  Experimental (2.1.0-experimental)
+
+    - Define the Ignition Config schema in a JSON Schema file. Generate golang
+      structs from this file
+    - Add partition GUID to the filesystem object, create or modify the
+      partition as appropriate
+    - Add support for swap filesystems
+    - Add support for links, both symbolic and hard
+    - Deprecate the user level create object, add relevant fields directly to
+      the user object
+    - Add support for referencing users and groups by name when creating files,
+      directories, and links
+    - Deprecate the filesystem level create object, add relevant fields directly
+      to the filesystem object
+    - Add support for reusing existing filesystems, toggled via the new
+      `wipeFilesystem` field in the filesystem object
+    - Add filesystem UUID and label to the filesystem object
+    - Correctly handle timeouts, instead of ignoring timeout settings in the
+      Ignition config
+
+  Bug Fixes
+
+    - Fix file path validation on Windows
+    - On Brightbox correctly fetch the config, instead of failing with a noop
+    - Fix a race with udev events which could cause filesystem creation to fail
+
+  Changes
+
+    - Modify existing users, instead of attempting to create them
+
+  Features
+
+    - Support for TFTP URLs
+
 13-Mar-2017 IGNITION v0.14.0
 
   Changes
