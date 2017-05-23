@@ -80,7 +80,7 @@ func FetchConfigWithHeader(l *log.Logger, c *HttpClient, u url.URL, h http.Heade
 }
 
 // Fetch fetches a resource given a URL. The supported schemes are
-// http, data, and oem.
+// http, data, tftp, and oem.
 func Fetch(l *log.Logger, c *HttpClient, u url.URL) ([]byte, error) {
 	return FetchWithHeader(l, c, u, http.Header{})
 }

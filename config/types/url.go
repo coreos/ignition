@@ -36,7 +36,7 @@ func validateURL(s string) error {
 	}
 
 	switch u.Scheme {
-	case "http", "https", "oem":
+	case "http", "https", "oem", "tftp":
 		return nil
 	case "data":
 		if _, err := dataurl.DecodeString(s); err != nil {
