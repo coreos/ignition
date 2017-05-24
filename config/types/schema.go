@@ -196,6 +196,7 @@ type Unit struct {
 	Contents string   `json:"contents,omitempty"`
 	Dropins  []Dropin `json:"dropins,omitempty"`
 	Enable   bool     `json:"enable,omitempty"`
+	Enabled  *bool    `json:"enabled,omitempty"`
 	Mask     bool     `json:"mask,omitempty"`
 	Name     string   `json:"name,omitempty"`
 }

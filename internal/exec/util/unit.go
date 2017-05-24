@@ -78,6 +78,14 @@ func (u Util) MaskUnit(unit types.Unit) error {
 }
 
 func (u Util) EnableUnit(unit types.Unit) error {
+	return u.appendLineToPreset(fmt.Sprintf("enable %s", unit.Name))
+}
+
+func (u Util) DisableUnit(unit types.Unit) error {
+	return u.appendLineToPreset(fmt.Sprintf("disable %s", unit.Name))
+}
+
+func (u Util) appendLineToPreset(data string) error {
 	path := u.JoinPath(presetPath)
 	if err := MkdirForFile(path); err != nil {
 		return err
@@ -88,6 +96,6 @@ func (u Util) EnableUnit(unit types.Unit) error {
 	}
 	defer file.Close()
 
-	_, err = file.WriteString(fmt.Sprintf("enable %s\n", unit.Name))
+	_, err = file.WriteString(data + "\n")
 	return err
 }
