@@ -17,6 +17,7 @@ package resource
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -34,6 +35,12 @@ import (
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/systemd"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pin/tftp"
 	"github.com/vincent-petithory/dataurl"
 )
@@ -80,6 +87,11 @@ type Fetcher struct {
 	// resources. If left nil, one will be created and used, but this means any
 	// timeouts Ignition was configured to used will be ignored.
 	Client *HttpClient
+
+	// The AWS Session to use when fetching resources from S3. If left nil, the
+	// first S3 object that is fetched will initialize the field. This can be
+	// used to set credentials.
+	AWSSession *session.Session
 }
 
 type FetchOptions struct {
@@ -140,6 +152,8 @@ func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
 		return f.FetchFromDataURL(u, dest, opts)
 	case "oem":
 		return f.FetchFromOEM(u, dest, opts)
+	case "s3":
+		return f.FetchFromS3(u, dest, opts)
 	case "":
 		return nil
 	default:
@@ -288,6 +302,88 @@ func (f *Fetcher) FetchFromOEM(u url.URL, dest *os.File, opts FetchOptions) erro
 	defer fi.Close()
 
 	return f.decompressCopyHashAndVerify(dest, fi, opts)
+}
+
+// FetchFromS3 gets data from an S3 bucket as described by u and writes it into
+// dest, returning an error if one is encountered. It will attempt to acquire
+// IAM credentials from the EC2 metadata service, and if this fails will attempt
+// to fetch the object with anonymous credentials.
+func (f *Fetcher) FetchFromS3(u url.URL, dest *os.File, opts FetchOptions) error {
+	if opts.Compression != "" {
+		return ErrCompressionUnsupported
+	}
+	ctx := context.Background()
+	if f.Client != nil && f.Client.timeout != 0 {
+		var cancelFn context.CancelFunc
+		ctx, cancelFn = context.WithTimeout(ctx, f.Client.timeout)
+		defer cancelFn()
+	}
+
+	if f.AWSSession == nil {
+		var err error
+		f.AWSSession, err = session.NewSession(&aws.Config{
+			Credentials: credentials.AnonymousCredentials,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	sess := f.AWSSession.Copy()
+
+	// Determine the region this bucket is in
+	region, err := s3manager.GetBucketRegion(ctx, sess, u.Host, "us-east-1")
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
+			return fmt.Errorf("couldn't determine the region for bucket %q: %v", u.Host, err)
+		}
+		return err
+	}
+
+	sess.Config.Region = aws.String(region)
+
+	input := &s3.GetObjectInput{
+		Bucket: &u.Host,
+		Key:    &u.Path,
+	}
+	err = f.fetchFromS3WithCreds(ctx, dest, input, sess)
+	if err != nil {
+		return err
+	}
+	if opts.Hash != nil {
+		opts.Hash.Reset()
+		_, err = dest.Seek(0, os.SEEK_SET)
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(opts.Hash, dest)
+		if err != nil {
+			return err
+		}
+		calculatedSum := opts.Hash.Sum(nil)
+		if !bytes.Equal(calculatedSum, opts.ExpectedSum) {
+			return ErrHashMismatch{
+				Calculated: hex.EncodeToString(calculatedSum),
+				Expected:   hex.EncodeToString(opts.ExpectedSum),
+			}
+		}
+		f.Logger.Debug("file matches expected sum of: %s", hex.EncodeToString(opts.ExpectedSum))
+	}
+	return nil
+}
+
+func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest *os.File, input *s3.GetObjectInput, sess *session.Session) error {
+	downloader := s3manager.NewDownloader(sess)
+	_, err := downloader.DownloadWithContext(ctx, dest, input)
+	if err != nil {
+		if awserrval, ok := err.(awserr.Error); ok && awserrval.Code() == "EC2RoleRequestError" {
+			// If this error was due to an EC2 role request error, try again
+			// with the anonymous credentials.
+			sess.Config.Credentials = credentials.AnonymousCredentials
+			return f.fetchFromS3WithCreds(ctx, dest, input, sess)
+		}
+		return err
+	}
+	return nil
 }
 
 // uncompress will wrap the given io.Reader in a decompresser specified in the

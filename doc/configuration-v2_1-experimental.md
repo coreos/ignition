@@ -51,8 +51,8 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **filesystem** (string): the internal identifier of the filesystem in which to write the file. This matches the last filesystem with the given identifier.
     * **path** (string): the absolute path to the file.
     * **_contents_** (object): options related to the contents of the file.
-      * **_compression_** (string): the type of compression used on the contents (null or gzip)
-      * **_source_** (string): the URL of the file contents. Supported schemes are http, https, tftp, and [data][rfc2397]. Note: When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
+      * **_source_** (string): the URL of the file contents. Supported schemes are http, https, tftp, s3, and [data][rfc2397]. When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_verification_** (object): options related to the verification of the file contents.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is sha512.
     * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).

@@ -25,6 +25,10 @@ import (
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 var (
@@ -47,8 +51,14 @@ func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
 }
 
 func NewFetcher(l *log.Logger, c *resource.HttpClient) (resource.Fetcher, error) {
+	sess, err := session.NewSession(&aws.Config{})
+	if err != nil {
+		return resource.Fetcher{}, err
+	}
+	sess.Config.Credentials = ec2rolecreds.NewCredentials(sess)
 	return resource.Fetcher{
-		Logger: l,
-		Client: c,
+		Logger:     l,
+		Client:     c,
+		AWSSession: sess,
 	}, nil
 }
