@@ -46,7 +46,7 @@ func (n Raid) ValidateLevel() report.Report {
 
 func (n Raid) ValidateDevices() report.Report {
 	r := report.Report{}
-	for d := range n.Devices {
+	for _, d := range n.Devices {
 		if err := validatePath(string(d)); err != nil {
 			r.Add(report.Entry{
 				Message: fmt.Sprintf("array %q: device path not absolute: %q", n.Name, d),
