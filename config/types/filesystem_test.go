@@ -92,3 +92,87 @@ func TestFilesystemValidate(t *testing.T) {
 		}
 	}
 }
+
+func TestLabelValidate(t *testing.T) {
+	type in struct {
+		mount Mount
+	}
+	type out struct {
+		err error
+	}
+
+	strToPtr := func(p string) *string { return &p }
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{mount: Mount{Format: "ext4", Label: nil}},
+			out: out{},
+		},
+		{
+			in:  in{mount: Mount{Format: "ext4", Label: strToPtr("data")}},
+			out: out{},
+		},
+		{
+			in:  in{mount: Mount{Format: "ext4", Label: strToPtr("thislabelistoolong")}},
+			out: out{err: ErrExt4LabelTooLong},
+		},
+		{
+			in:  in{mount: Mount{Format: "btrfs", Label: nil}},
+			out: out{},
+		},
+		{
+			in:  in{mount: Mount{Format: "btrfs", Label: strToPtr("thislabelisnottoolong")}},
+			out: out{},
+		},
+		{
+			in:  in{mount: Mount{Format: "btrfs", Label: strToPtr("thislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolong")}},
+			out: out{err: ErrBtrfsLabelTooLong},
+		},
+		{
+			in:  in{mount: Mount{Format: "xfs", Label: nil}},
+			out: out{},
+		},
+		{
+			in:  in{mount: Mount{Format: "xfs", Label: strToPtr("data")}},
+			out: out{},
+		},
+		{
+			in:  in{mount: Mount{Format: "xfs", Label: strToPtr("thislabelistoolong")}},
+			out: out{err: ErrXfsLabelTooLong},
+		},
+		{
+			in:  in{mount: Mount{Format: "swap", Label: nil}},
+			out: out{},
+		},
+		{
+			in:  in{mount: Mount{Format: "swap", Label: strToPtr("data")}},
+			out: out{},
+		},
+		{
+			in:  in{mount: Mount{Format: "swap", Label: strToPtr("thislabelistoolong")}},
+			out: out{err: ErrSwapLabelTooLong},
+		},
+		{
+			in:  in{mount: Mount{Format: "vfat", Label: nil}},
+			out: out{},
+		},
+		{
+			in:  in{mount: Mount{Format: "vfat", Label: strToPtr("data")}},
+			out: out{},
+		},
+		{
+			in:  in{mount: Mount{Format: "vfat", Label: strToPtr("thislabelistoolong")}},
+			out: out{err: ErrVfatLabelTooLong},
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.mount.ValidateLabel()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
+}

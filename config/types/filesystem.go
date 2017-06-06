@@ -32,6 +32,7 @@ var (
 	ErrBtrfsLabelTooLong           = errors.New("filesystem labels cannot be longer than 256 characters when using btrfs")
 	ErrXfsLabelTooLong             = errors.New("filesystem labels cannot be longer than 12 characters when using xfs")
 	ErrSwapLabelTooLong            = errors.New("filesystem labels cannot be longer than 15 characters when using swap")
+	ErrVfatLabelTooLong            = errors.New("filesystem labels cannot be longer than 11 characters when using vfat")
 )
 
 func (f Filesystem) Validate() report.Report {
@@ -85,7 +86,7 @@ func (f Filesystem) ValidatePath() report.Report {
 func (m Mount) Validate() report.Report {
 	r := report.Report{}
 	switch m.Format {
-	case "ext4", "btrfs", "xfs", "swap":
+	case "ext4", "btrfs", "xfs", "swap", "vfat":
 	default:
 		r.Add(report.Entry{
 			Message: ErrFilesystemInvalidFormat.Error(),
@@ -143,6 +144,14 @@ func (m Mount) ValidateLabel() report.Report {
 		if len(*m.Label) > 15 {
 			r.Add(report.Entry{
 				Message: ErrSwapLabelTooLong.Error(),
+				Kind:    report.EntryError,
+			})
+		}
+	case "vfat":
+		if len(*m.Label) > 11 {
+			// source: man mkfs.fat
+			r.Add(report.Entry{
+				Message: ErrVfatLabelTooLong.Error(),
 				Kind:    report.EntryError,
 			})
 		}
