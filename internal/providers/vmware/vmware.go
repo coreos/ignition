@@ -46,13 +46,13 @@ func decodeData(data string, encoding string) ([]byte, error) {
 		return decodeGzipData(string(gz))
 	}
 
-	return nil, fmt.Errorf("Unsupported encoding %q", encoding)
+	return nil, fmt.Errorf("unsupported encoding %q", encoding)
 }
 
 func decodeBase64Data(data string) ([]byte, error) {
 	decodedData, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to decode base64: %q", err)
+		return nil, fmt.Errorf("unable to decode base64: %q", err)
 	}
 
 	return decodedData, nil
