@@ -9,5 +9,6 @@ github.com/sigma/bdoor                                 babf2a4017b020d4ce04e8167
 github.com/sigma/vmw-guestinfo                         95dd4126d6e8b4ef1970b3f3fe2e8cdd470d2903
 github.com/stretchr/testify                            4d4bfba8f1d1027c4fdbe371823030df51419987
 github.com/vincent-petithory/dataurl                   9a301d65acbb728fcc3ace14f45f511a4cfeea9c
+github.com/vmware/vmw-ovflib                           1f217b9dc714d5f340d0a3cc3e9d49255c536f68
 golang.org/golang.org/x/net/context                    075e191f18186a8ff2becaf64478e30f4545cdad
 golang.org/golang.org/x/net/context/ctxhttp            075e191f18186a8ff2becaf64478e30f4545cdad
