@@ -17,7 +17,8 @@ install() {
         mountpoint \
         mkfs.btrfs \
         mkfs.ext4 \
-        mkfs.xfs
+        mkfs.xfs \
+        mkfs.vfat
 
     inst_script "$moddir/retry-umount.sh" \
         "/usr/sbin/retry-umount"
