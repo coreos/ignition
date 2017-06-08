@@ -1,0 +1,67 @@
+hash: 63a932a2012cb51d42bc08301e4f9dcea3720dfd5631ae9d09cbddaeb26d9df0
+updated: 2017-06-12T11:51:47.664146667-07:00
+imports:
+- name: github.com/ajeddeloh/go-json
+  version: 73d058cf8437a1989030afe571eeab9f90eebbbd
+- name: github.com/coreos/go-semver
+  version: 294930c1e79c64e7dbe360054274fdad492c8cf5
+  subpackages:
+  - semver
+- name: github.com/coreos/go-systemd
+  version: 7c9533367ef925dc1078d75e5b7141e10da2c4e8
+  subpackages:
+  - dbus
+  - unit
+- name: github.com/coreos/update-ssh-keys
+  version: 96fe9efc1f6eb103d34fdfa5902cb3bb47ebaa81
+  subpackages:
+  - authorized_keys_d
+  - authorized_keys_d/as_user
+  - src/authorized_keys_d
+  - src/authorized_keys_d/as_user
+- name: github.com/godbus/dbus
+  version: 012f3c27dcbdbe5d1285634e604e4ef869d83f7d
+- name: github.com/pin/tftp
+  version: 9ea92f6b1029bc1bf3072bba195c84bb9b0370e3
+  subpackages:
+  - netascii
+- name: github.com/sigma/bdoor
+  version: babf2a4017b020d4ce04e8167076186e82645dd1
+  repo: https://github.com/sigma/bdoor
+- name: github.com/sigma/vmw-guestinfo
+  version: 95dd4126d6e8b4ef1970b3f3fe2e8cdd470d2903
+  subpackages:
+  - rpcvmx
+  - vmcheck
+- name: github.com/vincent-petithory/dataurl
+  version: 9a301d65acbb728fcc3ace14f45f511a4cfeea9c
+- name: github.com/vmware/vmw-guestinfo
+  version: 0b8dbcdd226303bf776dcac49c2d5f3b8a8190fd
+  subpackages:
+  - bdoor
+  - message
+  - rpcout
+- name: github.com/vmware/vmw-ovflib
+  version: 1f217b9dc714d5f340d0a3cc3e9d49255c536f68
+- name: go4.org
+  version: 03efcb870d84809319ea509714dd6d19a1498483
+  subpackages:
+  - errorutil
+- name: golang.org/x/net
+  version: 075e191f18186a8ff2becaf64478e30f4545cdad
+  subpackages:
+  - context
+  - context/ctxhttp
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: 4d4bfba8f1d1027c4fdbe371823030df51419987
+  subpackages:
+  - assert
