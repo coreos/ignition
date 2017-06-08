@@ -28,6 +28,7 @@ import (
 	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
+	internalUtil "github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -118,6 +119,14 @@ type fileEntry types.File
 
 func (tmp fileEntry) create(l *log.Logger, c *resource.HttpClient, u util.Util) error {
 	f := types.File(tmp)
+
+	if f.User.ID == nil {
+		f.User.ID = internalUtil.IntToPtr(0)
+	}
+	if f.Group.ID == nil {
+		f.Group.ID = internalUtil.IntToPtr(0)
+	}
+
 	file := util.RenderFile(l, c, f)
 	if file == nil {
 		return fmt.Errorf("failed to resolve file %q", f.Path)
@@ -137,6 +146,14 @@ type dirEntry types.Directory
 
 func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) error {
 	d := types.Directory(tmp)
+
+	if d.User.ID == nil {
+		d.User.ID = internalUtil.IntToPtr(0)
+	}
+	if d.Group.ID == nil {
+		d.Group.ID = internalUtil.IntToPtr(0)
+	}
+
 	err := l.LogOp(func() error {
 		path := filepath.Clean(u.JoinPath(string(d.Path)))
 
@@ -180,6 +197,13 @@ type linkEntry types.Link
 
 func (tmp linkEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) error {
 	s := types.Link(tmp)
+
+	if s.User.ID == nil {
+		s.User.ID = internalUtil.IntToPtr(0)
+	}
+	if s.Group.ID == nil {
+		s.Group.ID = internalUtil.IntToPtr(0)
+	}
 
 	if err := l.LogOp(
 		func() error { return u.WriteLink(s) },
