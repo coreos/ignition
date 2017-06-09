@@ -28,6 +28,11 @@ var (
 	ErrUsedCreateAndMountOpts      = errors.New("cannot use both create object and mount-level options field")
 	ErrUsedCreateAndWipeFilesystem = errors.New("cannot use both create object and wipeFilesystem field")
 	ErrWarningCreateDeprecated     = errors.New("the create object has been deprecated in favor of mount-level options")
+	ErrExt4LabelTooLong            = errors.New("filesystem labels cannot be longer than 16 characters when using ext4")
+	ErrBtrfsLabelTooLong           = errors.New("filesystem labels cannot be longer than 256 characters when using btrfs")
+	ErrXfsLabelTooLong             = errors.New("filesystem labels cannot be longer than 12 characters when using xfs")
+	ErrSwapLabelTooLong            = errors.New("filesystem labels cannot be longer than 15 characters when using swap")
+	ErrVfatLabelTooLong            = errors.New("filesystem labels cannot be longer than 11 characters when using vfat")
 )
 
 func (f Filesystem) Validate() report.Report {
@@ -81,7 +86,7 @@ func (f Filesystem) ValidatePath() report.Report {
 func (m Mount) Validate() report.Report {
 	r := report.Report{}
 	switch m.Format {
-	case "ext4", "btrfs", "xfs", "swap":
+	case "ext4", "btrfs", "xfs", "swap", "vfat":
 	default:
 		r.Add(report.Entry{
 			Message: ErrFilesystemInvalidFormat.Error(),
@@ -98,6 +103,58 @@ func (m Mount) ValidateDevice() report.Report {
 			Message: err.Error(),
 			Kind:    report.EntryError,
 		})
+	}
+	return r
+}
+
+func (m Mount) ValidateLabel() report.Report {
+	r := report.Report{}
+	if m.Label == nil {
+		return r
+	}
+	switch m.Format {
+	case "ext4":
+		if len(*m.Label) > 16 {
+			// source: man mkfs.ext4
+			r.Add(report.Entry{
+				Message: ErrExt4LabelTooLong.Error(),
+				Kind:    report.EntryError,
+			})
+		}
+	case "btrfs":
+		if len(*m.Label) > 256 {
+			// source: man mkfs.btrfs
+			r.Add(report.Entry{
+				Message: ErrBtrfsLabelTooLong.Error(),
+				Kind:    report.EntryError,
+			})
+		}
+	case "xfs":
+		if len(*m.Label) > 12 {
+			// source: man mkfs.xfs
+			r.Add(report.Entry{
+				Message: ErrXfsLabelTooLong.Error(),
+				Kind:    report.EntryError,
+			})
+		}
+	case "swap":
+		// mkswap's man page does not state a limit on label size, but through
+		// experimentation it appears that mkswap will truncate long labels to
+		// 15 characters, so let's enforce that.
+		if len(*m.Label) > 15 {
+			r.Add(report.Entry{
+				Message: ErrSwapLabelTooLong.Error(),
+				Kind:    report.EntryError,
+			})
+		}
+	case "vfat":
+		if len(*m.Label) > 11 {
+			// source: man mkfs.fat
+			r.Add(report.Entry{
+				Message: ErrVfatLabelTooLong.Error(),
+				Kind:    report.EntryError,
+			})
+		}
 	}
 	return r
 }

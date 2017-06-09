@@ -316,6 +316,9 @@ func (s stage) createFilesystem(fs types.Mount) error {
 		if fs.UUID != nil {
 			args = append(args, []string{"-U", *fs.UUID}...)
 		}
+		if fs.Label != nil {
+			args = append(args, []string{"-L", *fs.Label}...)
+		}
 	case "ext4":
 		mkfs = "/sbin/mkfs.ext4"
 		args = append(args, "-p")
@@ -325,6 +328,9 @@ func (s stage) createFilesystem(fs types.Mount) error {
 		if fs.UUID != nil {
 			args = append(args, []string{"-U", *fs.UUID}...)
 		}
+		if fs.Label != nil {
+			args = append(args, []string{"-L", *fs.Label}...)
+		}
 	case "xfs":
 		mkfs = "/sbin/mkfs.xfs"
 		if force {
@@ -332,6 +338,9 @@ func (s stage) createFilesystem(fs types.Mount) error {
 		}
 		if fs.UUID != nil {
 			args = append(args, []string{"-m", "uuid=" + *fs.UUID}...)
+		}
+		if fs.Label != nil {
+			args = append(args, []string{"-L", *fs.Label}...)
 		}
 	case "swap":
 		mkfs = "/sbin/mkswap"
@@ -341,11 +350,21 @@ func (s stage) createFilesystem(fs types.Mount) error {
 		if fs.UUID != nil {
 			args = append(args, []string{"-U", *fs.UUID}...)
 		}
+		if fs.Label != nil {
+			args = append(args, []string{"-L", *fs.Label}...)
+		}
+	case "vfat":
+		mkfs = "/sbin/mkfs.vfat"
+		// There is no force flag for mkfs.vfat, it always destroys any data on
+		// the device at which it is pointed.
+		if fs.UUID != nil {
+			args = append(args, []string{"-i", *fs.UUID}...)
+		}
+		if fs.Label != nil {
+			args = append(args, []string{"-n", *fs.Label}...)
+		}
 	default:
 		return fmt.Errorf("unsupported filesystem format: %q", fs.Format)
-	}
-	if fs.Label != nil {
-		args = append(args, []string{"-L", *fs.Label}...)
 	}
 
 	devAlias := util.DeviceAlias(string(fs.Device))
