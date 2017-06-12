@@ -68,7 +68,7 @@ func init() {
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.Unit{
-					{Enable: true, Name: "waagent.service"},
+					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
 					{Name: "etcd.service", Dropins: []types.Dropin{
 						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_PEER_ELECTION_TIMEOUT=1200\n"},
 					}},
@@ -77,7 +77,6 @@ func init() {
 					}},
 				},
 			},
-			Storage: types.Storage{Files: []types.File{serviceFromOem("waagent.service")}},
 		},
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("Azure", "azure")}}},
 	})
