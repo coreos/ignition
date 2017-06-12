@@ -8,17 +8,5 @@ Odds are good that you don't want to invoke Ignition directly. In fact, it isn't
 
 Use the [bug tracker][issues] to report bugs.
 
-## Development
-
-Development requires a Go 1.7+ environment and the `blkid.h` headers.
-
-```sh
-# Debian/Ubuntu
-sudo apt-get install libblkid-dev
-
-# RPM-based
-sudo dnf install libblkid-devel
-```
-
 [getting started]: doc/getting-started.md
 [issues]: https://github.com/coreos/bugs/issues/new?labels=component/ignition
