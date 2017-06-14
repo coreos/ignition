@@ -29,6 +29,7 @@ import (
 	"github.com/coreos/ignition/internal/providers/openstack"
 	"github.com/coreos/ignition/internal/providers/packet"
 	"github.com/coreos/ignition/internal/providers/qemu"
+	"github.com/coreos/ignition/internal/providers/virtualbox"
 	"github.com/coreos/ignition/internal/providers/vmware"
 	"github.com/coreos/ignition/internal/registry"
 
@@ -212,6 +213,10 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 	configs.Register(Config{
 		name:  "vagrant",
 		fetch: noop.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "virtualbox",
+		fetch: virtualbox.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "vmware",
