@@ -43,4 +43,9 @@ install() {
 
     # point /etc/resolv.conf @ systemd-resolved's resolv.conf
     ln -s ../run/systemd/resolve/resolv.conf "$initdir/etc/resolv.conf"
+
+    # the systemd-networkd dracut module enables networkd by default, but
+    # we only want it when pulled in
+    systemctl --root "$initdir" disable systemd-networkd.service
+    systemctl --root "$initdir" disable systemd-networkd.socket
 }
