@@ -18,7 +18,10 @@
 package virtualbox
 
 import (
+	"bytes"
+	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
@@ -35,18 +38,14 @@ const (
 func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
 	logger.Debug("Attempting to read config drive")
 	rawConfig, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		logger.Debug("Failed to read config drive, assuming no config")
+	if os.IsNotExist(err) {
+		logger.Debug("Path to ignition config does not exist, assuming no config")
 		return types.Config{}, report.Report{}, config.ErrEmpty
+	} else if err != nil {
+		logger.Debug("Error reading ignition config")
+		return types.Config{}, report.Report{}, fmt.Errorf("Error reading config => {%s}", err)
 	}
-	nilLocation := -1
-	for i := 0; i < len(rawConfig); i++ {
-		// Check for trailing NUL bytes
-		if rawConfig[i] == byte(0) {
-			nilLocation = i
-			break
-		}
-	}
+	nilLocation := bytes.IndexByte(rawConfig, byte(0))
 	if nilLocation != -1 {
 		trimmedConfig := rawConfig[:nilLocation]
 		return util.ParseConfig(logger, trimmedConfig)
