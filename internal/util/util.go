@@ -21,3 +21,7 @@ func IntToPtr(i int) *int {
 func BoolToPtr(b bool) *bool {
 	return &b
 }
+
+func StringToPtr(s string) *string {
+	return &s
+}

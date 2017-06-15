@@ -30,22 +30,11 @@ import (
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/cmdline"
 	"github.com/coreos/ignition/internal/resource"
+	internalUtil "github.com/coreos/ignition/internal/util"
 )
 
 const (
 	DefaultFetchTimeout = time.Minute
-)
-
-var (
-	baseConfig = types.Config{
-		Ignition: types.Ignition{Version: types.MaxVersion.String()},
-		Storage: types.Storage{
-			Filesystems: []types.Filesystem{{
-				Name: "root",
-				Path: func(p string) *string { return &p }("/sysroot"),
-			}},
-		},
-	}
 )
 
 // Engine represents the entity that fetches and executes a configuration.
@@ -75,6 +64,17 @@ func (e Engine) Run(stageName string) bool {
 
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
+
+	baseConfig := types.Config{
+		Ignition: types.Ignition{Version: types.MaxVersion.String()},
+		Storage: types.Storage{
+			Filesystems: []types.Filesystem{{
+				Name: "root",
+				Path: internalUtil.StringToPtr(e.Root),
+			}},
+		},
+	}
+
 	return stages.Get(stageName).Create(e.Logger, e.Root, f).Run(config.Append(baseConfig, config.Append(e.OEMConfig.BaseConfig(), cfg)))
 }
 
