@@ -18,7 +18,6 @@
 package virtualbox
 
 import (
-	"fmt"
 	"io/ioutil"
 
 	"github.com/coreos/ignition/config"
@@ -42,16 +41,15 @@ func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, repo
 	}
 	nilLocation := -1
 	for i := 0; i < len(rawConfig); i++ {
-		// All configs must be nil terminated
+		// Check for trailing NUL bytes
 		if rawConfig[i] == byte(0) {
 			nilLocation = i
 			break
 		}
 	}
-	if nilLocation == -1 {
-		logger.Debug("Nil terminator not found; invalid config")
-		return types.Config{}, report.Report{}, fmt.Errorf("Invalid config (no nil terminator)")
+	if nilLocation != -1 {
+		trimmedConfig := rawConfig[:nilLocation]
+		return util.ParseConfig(logger, trimmedConfig)
 	}
-	trimmedConfig := rawConfig[:nilLocation]
-	return util.ParseConfig(logger, trimmedConfig)
+	return util.ParseConfig(logger, rawConfig)
 }
