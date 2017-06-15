@@ -18,9 +18,8 @@
 package virtualbox
 
 import (
-	"bytes"
+	"fmt"
 	"io/ioutil"
-	"time"
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
@@ -38,16 +37,21 @@ func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, repo
 	logger.Debug("Attempting to read config drive")
 	rawConfig, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		logger.Debug("Failed to read config drive, waiting 30 seconds")
-		time.Sleep(30 * time.Second)
-		rawConfig, err = ioutil.ReadFile(configPath)
-	}
-	if err != nil {
-		logger.Debug("Failed to read config drive twice, assuming no config")
+		logger.Debug("Failed to read config drive, assuming no config")
 		return types.Config{}, report.Report{}, config.ErrEmpty
 	}
-
-	rawConfig = bytes.Trim(rawConfig, "\x00")
-
-	return util.ParseConfig(logger, rawConfig)
+	nilLocation := -1
+	for i := 0; i < len(rawConfig); i++ {
+		// All configs must be nil terminated
+		if rawConfig[i] == byte(0) {
+			nilLocation = i
+			break
+		}
+	}
+	if nilLocation == -1 {
+		logger.Debug("Nil terminator not found; invalid config")
+		return types.Config{}, report.Report{}, fmt.Errorf("Invalid config (no nil terminator)")
+	}
+	trimmedConfig := rawConfig[:nilLocation]
+	return util.ParseConfig(logger, trimmedConfig)
 }
