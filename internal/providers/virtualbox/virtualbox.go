@@ -19,7 +19,6 @@ package virtualbox
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -36,14 +35,14 @@ const (
 )
 
 func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
-	logger.Debug("Attempting to read config drive")
+	logger.Info("Attempting to read config drive")
 	rawConfig, err := ioutil.ReadFile(configPath)
 	if os.IsNotExist(err) {
-		logger.Debug("Path to ignition config does not exist, assuming no config")
+		logger.Info("Path to ignition config does not exist, assuming no config")
 		return types.Config{}, report.Report{}, config.ErrEmpty
 	} else if err != nil {
-		logger.Debug("Error reading ignition config")
-		return types.Config{}, report.Report{}, fmt.Errorf("Error reading config => {%s}", err)
+		logger.Err("Error reading ignition config: %v", err)
+		return types.Config{}, report.Report{}, err
 	}
 	nilLocation := bytes.IndexByte(rawConfig, byte(0))
 	if nilLocation != -1 {
