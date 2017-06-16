@@ -338,7 +338,6 @@ func (s stage) createUnits(config types.Config) error {
 					return err
 				}
 			} else {
-				s.Logger.Warning("ALEX FALSE")
 				if err := s.Logger.LogOp(
 					func() error { return s.DisableUnit(unit) },
 					"disabling unit %q", unit.Name,
