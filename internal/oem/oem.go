@@ -223,10 +223,6 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("VMware", "vmware")}}},
 	})
 	configs.Register(Config{
-		name:  "xendom0",
-		fetch: noop.FetchConfig,
-	})
-	configs.Register(Config{
 		name:  "interoute",
 		fetch: noop.FetchConfig,
 	})
