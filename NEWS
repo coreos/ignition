@@ -1,4 +1,24 @@
-23-Jun-2017 IGNITION v0.15.0
+16-Jun-2017 IGNITION v0.16.0
+
+  Experimental (2.1.0-experimental)
+
+    - Fix TFTP URL validation
+    - Fix nil pointer dereference when uid or gid for a file is unspecified
+    - Add support for VFAT filesystem creation
+    - Fix raid device validation
+
+  Changes
+
+    - Validate length of filesystem labels
+    - Remove all OEM etcd v0 drop-in units
+    - Remove xendom0 OEM
+
+  Features
+
+    - Add support for VMware's OVF environment
+    - Add support for VirtualBox OEM
+
+23-May-2017 IGNITION v0.15.0
 
   Experimental (2.1.0-experimental)
 
