@@ -1,6 +1,6 @@
 # Development
 
-A Go 1.7+ environment and the `blkid.h` headers are required.
+A Go 1.7+ [environment](https://golang.org/doc/install) and the `blkid.h` headers are required.
 
 ```sh
 # Debian/Ubuntu
@@ -8,6 +8,20 @@ sudo apt-get install libblkid-dev
 
 # RPM-based
 sudo dnf install libblkid-devel
+```
+
+## Generate
+
+Install [schematyper](https://github.com/idubinskiy/schematyper) to generate Go structs from JSON schema definitions.
+
+```sh
+go get -u github.com/idubinskiy/schematyper
+```
+
+Use the tool to generate `config/types/schema.go` whenever the `schema/ignition.json` is modified.
+
+```sh
+./generate
 ```
 
 ## Vendor
