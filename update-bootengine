@@ -6,7 +6,7 @@
 
 set -e
 
-USAGE="Usage: $0 [-k 4.6.0] [-m] [-c /build/amd64-generic] [-o bootengine.cpio]
+USAGE="Usage: $0 [-k 4.6.0] [-m] [-c /build/amd64-usr] [-o bootengine.cpio]
 Options:
     -k VERSION  Kernel version of modules to include
     -m          Setup mounts for /dev /proc /sys and /run
