@@ -18,6 +18,9 @@
 package ec2
 
 import (
+	"bytes"
+	"compress/gzip"
+	"io/ioutil"
 	"net/url"
 
 	"github.com/coreos/ignition/config/types"
@@ -41,5 +44,19 @@ func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config,
 		return types.Config{}, report.Report{}, err
 	}
 
-	return util.ParseConfig(logger, data)
+	return util.ParseConfig(logger, decompressIfGzipped(data))
+}
+
+func decompressIfGzipped(data []byte) []byte {
+	if reader, err := gzip.NewReader(bytes.NewReader(data)); err == nil {
+		uncompressedData, err := ioutil.ReadAll(reader)
+		reader.Close()
+		if err == nil {
+			return uncompressedData
+		} else {
+			return data
+		}
+	} else {
+		return data
+	}
 }
