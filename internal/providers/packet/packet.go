@@ -22,7 +22,6 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
 )
@@ -35,13 +34,15 @@ var (
 	}
 )
 
-func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
+func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
 	// TODO: Packet's metadata service returns "Not Acceptable" when queried
 	// with the default headers. For now, just do a regular fetch.
-	data, err := resource.Fetch(logger, client, userdataUrl)
+	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{
+		Headers: resource.ConfigHeaders,
+	})
 	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}
 
-	return util.ParseConfig(logger, data)
+	return util.ParseConfig(f.Logger, data)
 }

@@ -19,6 +19,7 @@ import (
 	"net/url"
 
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/azure"
 	"github.com/coreos/ignition/internal/providers/digitalocean"
@@ -32,6 +33,7 @@ import (
 	"github.com/coreos/ignition/internal/providers/virtualbox"
 	"github.com/coreos/ignition/internal/providers/vmware"
 	"github.com/coreos/ignition/internal/registry"
+	"github.com/coreos/ignition/internal/resource"
 
 	"github.com/vincent-petithory/dataurl"
 )
@@ -40,6 +42,7 @@ import (
 type Config struct {
 	name              string
 	fetch             providers.FuncFetchConfig
+	newFetcher        providers.FuncNewFetcher
 	baseConfig        types.Config
 	defaultUserConfig types.Config
 }
@@ -50,6 +53,18 @@ func (c Config) Name() string {
 
 func (c Config) FetchFunc() providers.FuncFetchConfig {
 	return c.fetch
+}
+
+func (c Config) NewFetcherFunc() providers.FuncNewFetcher {
+	if c.newFetcher != nil {
+		return c.newFetcher
+	}
+	return func(l *log.Logger, c *resource.HttpClient) (resource.Fetcher, error) {
+		return resource.Fetcher{
+			Logger: l,
+			Client: c,
+		}, nil
+	}
 }
 
 func (c Config) BaseConfig() types.Config {
@@ -108,8 +123,9 @@ func init() {
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("OpenStack", "ec2-compat")}}},
 	})
 	configs.Register(Config{
-		name:  "ec2",
-		fetch: ec2.FetchConfig,
+		name:       "ec2",
+		fetch:      ec2.FetchConfig,
+		newFetcher: ec2.NewFetcher,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.Unit{

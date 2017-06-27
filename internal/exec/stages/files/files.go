@@ -45,13 +45,13 @@ func init() {
 
 type creator struct{}
 
-func (creator) Create(logger *log.Logger, client *resource.HttpClient, root string) stages.Stage {
+func (creator) Create(logger *log.Logger, root string, f resource.Fetcher) stages.Stage {
 	return &stage{
 		Util: util.Util{
 			DestDir: root,
 			Logger:  logger,
+			Fetcher: f,
 		},
-		client: client,
 	}
 }
 
@@ -127,16 +127,16 @@ func (tmp fileEntry) create(l *log.Logger, c *resource.HttpClient, u util.Util) 
 		f.Group.ID = internalUtil.IntToPtr(0)
 	}
 
-	file := util.RenderFile(l, c, f)
-	if file == nil {
+	fetchOp := u.PrepareFetch(l, c, f)
+	if fetchOp == nil {
 		return fmt.Errorf("failed to resolve file %q", f.Path)
 	}
 
 	if err := l.LogOp(
-		func() error { return u.WriteFile(file) },
+		func() error { return u.PerformFetch(fetchOp) },
 		"writing file %q", string(f.Path),
 	); err != nil {
-		return fmt.Errorf("failed to create file %q: %v", file.Path, err)
+		return fmt.Errorf("failed to create file %q: %v", fetchOp.Path, err)
 	}
 
 	return nil
@@ -305,13 +305,8 @@ func (s stage) createEntries(fs types.Filesystem, files []filesystemEntry) error
 		mnt = *fs.Path
 	}
 
-	u := util.Util{
-		Logger:  s.Logger,
-		DestDir: mnt,
-	}
-
 	for _, e := range files {
-		if err := e.create(s.Logger, s.client, u); err != nil {
+		if err := e.create(s.Logger, s.client, s.Util); err != nil {
 			return err
 		}
 	}
@@ -360,9 +355,13 @@ func (s stage) writeSystemdUnit(unit types.Unit) error {
 				continue
 			}
 
-			f := util.FileFromUnitDropin(unit, dropin)
+			f, err := util.FileFromUnitDropin(unit, dropin)
+			if err != nil {
+				s.Logger.Crit("error converting dropin: %v", err)
+				return err
+			}
 			if err := s.Logger.LogOp(
-				func() error { return s.WriteFile(f) },
+				func() error { return s.PerformFetch(f) },
 				"writing drop-in %q at %q", dropin.Name, f.Path,
 			); err != nil {
 				return err
@@ -373,9 +372,13 @@ func (s stage) writeSystemdUnit(unit types.Unit) error {
 			return nil
 		}
 
-		f := util.FileFromSystemdUnit(unit)
+		f, err := util.FileFromSystemdUnit(unit)
+		if err != nil {
+			s.Logger.Crit("error converting unit: %v", err)
+			return err
+		}
 		if err := s.Logger.LogOp(
-			func() error { return s.WriteFile(f) },
+			func() error { return s.PerformFetch(f) },
 			"writing unit %q at %q", unit.Name, f.Path,
 		); err != nil {
 			return err
@@ -393,9 +396,13 @@ func (s stage) writeNetworkdUnit(unit types.Networkdunit) error {
 			return nil
 		}
 
-		f := util.FileFromNetworkdUnit(unit)
+		f, err := util.FileFromNetworkdUnit(unit)
+		if err != nil {
+			s.Logger.Crit("error converting unit: %v", err)
+			return err
+		}
 		if err := s.Logger.LogOp(
-			func() error { return s.WriteFile(f) },
+			func() error { return s.PerformFetch(f) },
 			"writing unit %q at %q", unit.Name, f.Path,
 		); err != nil {
 			return err

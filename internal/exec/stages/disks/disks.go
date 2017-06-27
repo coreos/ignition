@@ -41,13 +41,13 @@ func init() {
 
 type creator struct{}
 
-func (creator) Create(logger *log.Logger, client *resource.HttpClient, root string) stages.Stage {
+func (creator) Create(logger *log.Logger, root string, f resource.Fetcher) stages.Stage {
 	return &stage{
 		Util: util.Util{
 			DestDir: root,
 			Logger:  logger,
+			Fetcher: f,
 		},
-		client: client,
 	}
 }
 

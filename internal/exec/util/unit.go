@@ -15,13 +15,14 @@
 package util
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 
 	"github.com/coreos/ignition/config/types"
+
+	"github.com/vincent-petithory/dataurl"
 )
 
 const (
@@ -29,28 +30,40 @@ const (
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func FileFromSystemdUnit(unit types.Unit) *File {
-	return &File{
-		Path:       filepath.Join(SystemdUnitsPath(), string(unit.Name)),
-		ReadCloser: ioutil.NopCloser(bytes.NewReader([]byte(unit.Contents))),
-		Mode:       DefaultFilePermissions,
+func FileFromSystemdUnit(unit types.Unit) (*FetchOp, error) {
+	u, err := url.Parse(dataurl.EncodeBytes([]byte(unit.Contents)))
+	if err != nil {
+		return nil, err
 	}
+	return &FetchOp{
+		Path: filepath.Join(SystemdUnitsPath(), string(unit.Name)),
+		Url:  *u,
+		Mode: DefaultFilePermissions,
+	}, nil
 }
 
-func FileFromNetworkdUnit(unit types.Networkdunit) *File {
-	return &File{
-		Path:       filepath.Join(NetworkdUnitsPath(), string(unit.Name)),
-		ReadCloser: ioutil.NopCloser(bytes.NewReader([]byte(unit.Contents))),
-		Mode:       DefaultFilePermissions,
+func FileFromNetworkdUnit(unit types.Networkdunit) (*FetchOp, error) {
+	u, err := url.Parse(dataurl.EncodeBytes([]byte(unit.Contents)))
+	if err != nil {
+		return nil, err
 	}
+	return &FetchOp{
+		Path: filepath.Join(NetworkdUnitsPath(), string(unit.Name)),
+		Url:  *u,
+		Mode: DefaultFilePermissions,
+	}, nil
 }
 
-func FileFromUnitDropin(unit types.Unit, dropin types.Dropin) *File {
-	return &File{
-		Path:       filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
-		ReadCloser: ioutil.NopCloser(bytes.NewReader([]byte(dropin.Contents))),
-		Mode:       DefaultFilePermissions,
+func FileFromUnitDropin(unit types.Unit, dropin types.Dropin) (*FetchOp, error) {
+	u, err := url.Parse(dataurl.EncodeBytes([]byte(dropin.Contents)))
+	if err != nil {
+		return nil, err
 	}
+	return &FetchOp{
+		Path: filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
+		Url:  *u,
+		Mode: DefaultFilePermissions,
+	}, nil
 }
 
 func (u Util) MaskUnit(unit types.Unit) error {
