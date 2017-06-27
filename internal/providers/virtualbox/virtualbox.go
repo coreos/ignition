@@ -25,7 +25,6 @@ import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
 )
@@ -34,16 +33,16 @@ const (
 	configPath = "/dev/disk/by-partuuid/99570a8a-f826-4eb0-ba4e-9dd72d55ea13"
 )
 
-func FetchConfig(logger *log.Logger, _ *resource.HttpClient) (types.Config, report.Report, error) {
-	logger.Debug("Attempting to read config drive")
+func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+	f.Logger.Debug("Attempting to read config drive")
 	rawConfig, err := ioutil.ReadFile(configPath)
 	if os.IsNotExist(err) {
-		logger.Info("Path to ignition config does not exist, assuming no config")
+		f.Logger.Info("Path to ignition config does not exist, assuming no config")
 		return types.Config{}, report.Report{}, config.ErrEmpty
 	} else if err != nil {
-		logger.Err("Error reading ignition config: %v", err)
+		f.Logger.Err("Error reading ignition config: %v", err)
 		return types.Config{}, report.Report{}, err
 	}
 	trimmedConfig := bytes.TrimRight(rawConfig, "\x00")
-	return util.ParseConfig(logger, trimmedConfig)
+	return util.ParseConfig(f.Logger, trimmedConfig)
 }

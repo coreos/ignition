@@ -35,11 +35,20 @@ var (
 	}
 )
 
-func FetchConfig(logger *log.Logger, client *resource.HttpClient) (types.Config, report.Report, error) {
-	data, err := resource.FetchConfig(logger, client, userdataUrl)
+func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{
+		Headers: resource.ConfigHeaders,
+	})
 	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}
 
-	return util.ParseConfig(logger, data)
+	return util.ParseConfig(f.Logger, data)
+}
+
+func NewFetcher(l *log.Logger, c *resource.HttpClient) (resource.Fetcher, error) {
+	return resource.Fetcher{
+		Logger: l,
+		Client: c,
+	}, nil
 }
