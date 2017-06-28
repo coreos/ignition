@@ -113,14 +113,30 @@ func init() {
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("DigitalOcean", "digitalocean")}}},
 	})
 	configs.Register(Config{
-		name:              "brightbox",
-		fetch:             openstack.FetchConfig,
-		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("BrightBox", "ec2-compat")}}},
+		name:  "brightbox",
+		fetch: openstack.FetchConfig,
+		defaultUserConfig: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.Unit{
+					{Mask: true, Name: "user-configdrive.service"},
+					{Mask: true, Name: "user-configvirtfs.service"},
+					userCloudInit("BrightBox", "ec2-compat"),
+				},
+			},
+		},
 	})
 	configs.Register(Config{
-		name:              "openstack",
-		fetch:             openstack.FetchConfig,
-		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("OpenStack", "ec2-compat")}}},
+		name:  "openstack",
+		fetch: openstack.FetchConfig,
+		defaultUserConfig: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.Unit{
+					{Mask: true, Name: "user-configdrive.service"},
+					{Mask: true, Name: "user-configvirtfs.service"},
+					userCloudInit("OpenStack", "ec2-compat"),
+				},
+			},
+		},
 	})
 	configs.Register(Config{
 		name:       "ec2",
