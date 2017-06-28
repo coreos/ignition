@@ -159,7 +159,7 @@ In many scenarios, it may be useful to have an external data volume. This config
 
 ```json ignition
 {
-  "ignition": { "version": "2.0.0" },
+  "ignition": { "version": "2.1.0-experimental" },
   "storage": {
     "disks": [
       {
@@ -169,7 +169,8 @@ In many scenarios, it may be useful to have an external data volume. This config
           "label": "raid.1.1",
           "number": 1,
           "size": 20480,
-          "start": 0
+          "start": 0,
+          "typeGuid": "A19D880F-05FC-4D3B-A006-743F0F84911E"
         }]
       },
       {
@@ -179,7 +180,8 @@ In many scenarios, it may be useful to have an external data volume. This config
           "label": "raid.1.2",
           "number": 1,
           "size": 20480,
-          "start": 0
+          "start": 0,
+          "typeGuid": "A19D880F-05FC-4D3B-A006-743F0F84911E"
         }]
       }
     ],
@@ -197,6 +199,20 @@ In many scenarios, it may be useful to have an external data volume. This config
         "format": "ext4",
         "create": { "options": [ "-L", "DATA" ] }
       }
+    }, {
+      "name": "oem",
+      "mount": {
+        "device": "/dev/disk/by-partlabel/OEM",
+	"format": "ext4"
+      }
+    }],
+    "files": [{
+      "filesystem": "oem",
+      "path": "/grub.cfg",
+      "contents": {
+        "source": "data:,set%20oem_id%3D%22digitalocean%22%0Aset%20linux_append%3D%22rd.auto%22%0A"
+      },
+      "mode": 420
     }]
   },
   "systemd": {
