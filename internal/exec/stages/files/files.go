@@ -321,11 +321,29 @@ func (s stage) createUnits(config types.Config) error {
 			return err
 		}
 		if unit.Enable {
+			s.Logger.Warning("the enable field has been deprecated in favor of enabled")
 			if err := s.Logger.LogOp(
 				func() error { return s.EnableUnit(unit) },
 				"enabling unit %q", unit.Name,
 			); err != nil {
 				return err
+			}
+		}
+		if unit.Enabled != nil {
+			if *unit.Enabled {
+				if err := s.Logger.LogOp(
+					func() error { return s.EnableUnit(unit) },
+					"enabling unit %q", unit.Name,
+				); err != nil {
+					return err
+				}
+			} else {
+				if err := s.Logger.LogOp(
+					func() error { return s.DisableUnit(unit) },
+					"disabling unit %q", unit.Name,
+				); err != nil {
+					return err
+				}
 			}
 		}
 		if unit.Mask {
