@@ -16,12 +16,12 @@ package config
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/config/types"
 	v1 "github.com/coreos/ignition/config/v1"
 	v2_0 "github.com/coreos/ignition/config/v2_0/types"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParse(t *testing.T) {
@@ -51,11 +51,11 @@ func TestParse(t *testing.T) {
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.1.0-experimental"}}`)},
+			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
+			in:  in{config: []byte(`{"ignition": {"version": "2.2.0"}}`)},
 			out: out{err: ErrInvalid},
 		},
 		{
@@ -107,8 +107,6 @@ func TestParse(t *testing.T) {
 			(test.out.checkOnStrings && test.out.err.Error() != err.Error()) {
 			t.Errorf("#%d: bad error: want %v, got %v, report: %+v", i, test.out.err, err, report)
 		}
-		if test.out.err == nil && !reflect.DeepEqual(test.out.config, config) {
-			t.Errorf("#%d: bad config: want %+v, got %+v, report: %+v", i, test.out.config, config, report)
-		}
+		assert.Equal(t, test.out.config, config, "#%d: bad config, report: %+v", i, report)
 	}
 }
