@@ -15,13 +15,10 @@
 package v2_1
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
-	"github.com/coreos/ignition/config/types"
-	v1 "github.com/coreos/ignition/config/v1"
-	v2_0 "github.com/coreos/ignition/config/v2_0/types"
+	"github.com/coreos/ignition/config/v2_1/types"
 )
 
 func TestParse(t *testing.T) {
@@ -40,27 +37,23 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: v2_0.MaxVersion.String()}}},
+			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "1.0.0"}}`)},
-			out: out{err: v1.ErrVersion},
-		},
-		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
-		},
-		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.1.0-experimental"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.2.0"}}`)},
 			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "invalid.semver"}}`)},
-			out: out{err: fmt.Errorf("invalid.semver is not in dotted-tri format"), checkOnStrings: true},
+			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte(`{}`)},
