@@ -264,20 +264,23 @@ Setting the hostname of a system is as simple as writing `/etc/hostname`:
 Users can be added to an OS with the `passwd.users` key which takes a list of objects that specify a given user. If you wanted to configure a user "systemUser" and a user "jenkins" you would do that as follows:
 
 ```json ignition
-"passwd": {
-  "users": [
-    {
-      "name": "systemUser",
-      "passwordHash": "$superSecretPasswordHash.",
-      "sshAuthorizedKeys": [
-        "ssh-rsa veryLongRSAPublicKey"
-      ]
-    },
-    {
-      "name": "jenkins",
-      "uid": 1000
-    },
-  ]
+{
+  "ignition": { "version": "2.0.0" },
+  "passwd": {
+    "users": [
+      {
+        "name": "systemUser",
+        "passwordHash": "$superSecretPasswordHash.",
+        "sshAuthorizedKeys": [
+          "ssh-rsa veryLongRSAPublicKey"
+        ]
+      },
+      {
+        "name": "jenkins",
+        "uid": 1000
+      }
+    ]
+  }
 }
 ```
 
