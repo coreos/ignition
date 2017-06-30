@@ -56,7 +56,7 @@ var (
 	// config is being fetched
 	ConfigHeaders = http.Header{
 		"Accept-Encoding": []string{"identity"},
-		"Accept":          []string{"application/vnd.coreos.ignition+json; version=2.0.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1"},
+		"Accept":          []string{"application/vnd.coreos.ignition+json; version=2.1.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1"},
 	}
 )
 

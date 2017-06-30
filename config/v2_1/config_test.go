@@ -12,16 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package v2_1
 
 import (
-	"fmt"
+	"reflect"
 	"testing"
 
-	"github.com/coreos/ignition/config/types"
-	v1 "github.com/coreos/ignition/config/v1"
-	v2_0 "github.com/coreos/ignition/config/v2_0/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/coreos/ignition/config/v2_1/types"
 )
 
 func TestParse(t *testing.T) {
@@ -40,15 +37,11 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: v2_0.MaxVersion.String()}}},
+			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "1.0.0"}}`)},
-			out: out{err: v1.ErrVersion},
-		},
-		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
@@ -60,7 +53,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "invalid.semver"}}`)},
-			out: out{err: fmt.Errorf("invalid.semver is not in dotted-tri format"), checkOnStrings: true},
+			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte(`{}`)},
@@ -107,6 +100,8 @@ func TestParse(t *testing.T) {
 			(test.out.checkOnStrings && test.out.err.Error() != err.Error()) {
 			t.Errorf("#%d: bad error: want %v, got %v, report: %+v", i, test.out.err, err, report)
 		}
-		assert.Equal(t, test.out.config, config, "#%d: bad config, report: %+v", i, report)
+		if test.out.err == nil && !reflect.DeepEqual(test.out.config, config) {
+			t.Errorf("#%d: bad config: want %+v, got %+v, report: %+v", i, test.out.config, config, report)
+		}
 	}
 }
