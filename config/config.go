@@ -33,11 +33,12 @@ import (
 )
 
 var (
-	ErrCloudConfig = errors.New("not a config (found coreos-cloudconfig)")
-	ErrEmpty       = errors.New("not a config (empty)")
-	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
-	ErrDeprecated  = errors.New("config format deprecated")
-	ErrInvalid     = errors.New("config is not valid")
+	ErrCloudConfig    = errors.New("not a config (found coreos-cloudconfig)")
+	ErrEmpty          = errors.New("not a config (empty)")
+	ErrScript         = errors.New("not a config (found coreos-cloudinit script)")
+	ErrDeprecated     = errors.New("config format deprecated")
+	ErrInvalid        = errors.New("config is not valid")
+	ErrUnknownVersion = errors.New("unsupported config version")
 )
 
 // Parse parses the raw config into a types.Config struct and generates a report of any
@@ -55,24 +56,25 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 		}
 
 		return config, report.ReportFromError(ErrDeprecated, report.EntryDeprecated), nil
+	case types.MaxVersion:
+		return ParseFromLatest(rawConfig)
 	case semver.Version{Major: 2, Minor: 1}:
 		return ParseFromV2_1(rawConfig)
 	case semver.Version{Major: 2, Minor: 0}:
 		return ParseFromV2_0(rawConfig)
 	default:
-		return ParseFromLatest(rawConfig)
+		if isEmpty(rawConfig) {
+			return types.Config{}, report.Report{}, ErrEmpty
+		} else if isCloudConfig(rawConfig) {
+			return types.Config{}, report.Report{}, ErrCloudConfig
+		} else if isScript(rawConfig) {
+			return types.Config{}, report.Report{}, ErrScript
+		}
+		return types.Config{}, report.Report{}, ErrUnknownVersion
 	}
 }
 
 func ParseFromLatest(rawConfig []byte) (types.Config, report.Report, error) {
-	if isEmpty(rawConfig) {
-		return types.Config{}, report.Report{}, ErrEmpty
-	} else if isCloudConfig(rawConfig) {
-		return types.Config{}, report.Report{}, ErrCloudConfig
-	} else if isScript(rawConfig) {
-		return types.Config{}, report.Report{}, ErrScript
-	}
-
 	var err error
 	var config types.Config
 
