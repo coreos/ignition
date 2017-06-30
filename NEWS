@@ -1,3 +1,23 @@
+30-Jun-2017 IGNITION v0.17.0
+
+  Features
+
+    - Add support for S3 fetching and IAM role credential use in EC2
+    - Add enabled flag to services to allow disabling services
+    - Add new vagrant-virtualbox oem
+
+  Changes
+
+    - Mark 2.1.0 as stable
+    - No longer accept 2.1.0-experimental configs
+    - Create new 2.2.0-experimental spec from 2.1.0
+
+  Bug Fixes
+
+    - Mask user-configdrive.service and user-configvirtfs.service on brightbox
+      and openstack to prevent cloudinit from running a second time
+    - Use value given in root flag everywhere, instead of hard coding /sysroot
+
 16-Jun-2017 IGNITION v0.16.0
 
   Experimental (2.1.0-experimental)
