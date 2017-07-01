@@ -42,6 +42,9 @@ if $(cmdline_bool coreos.first_boot 0); then
     if [[ $(cmdline_arg coreos.first_boot) = "detected" ]]; then
         add_requires ignition-quench.service
     fi
+    if [[ $(cmdline_arg coreos.oem.id) == "packet" ]]; then
+        add_requires coreos-static-network.service
+    fi
 
     # On EC2, shut down systemd-networkd if ignition fails so that the instance
     # fails EC2 instance checks.
