@@ -1,3 +1,10 @@
+05-Jun-2017 IGNITION v0.17.1
+
+  Bug Fixes
+
+    - Fix failure when user data was not provided on EC2 and GCE
+    - Fix failure to fetch user data on packet.net
+
 30-Jun-2017 IGNITION v0.17.0
 
   Features
