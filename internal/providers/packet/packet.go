@@ -35,10 +35,12 @@ var (
 )
 
 func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
-	// TODO: Packet's metadata service returns "Not Acceptable" when queried
-	// with the default headers. For now, just do a regular fetch.
+	// Packet's metadata service returns "Not Acceptable" when queried
+	// with the default Accept header.
+	headers := resource.ConfigHeaders
+	headers.Set("Accept", "*/*")
 	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{
-		Headers: resource.ConfigHeaders,
+		Headers: headers,
 	})
 	if err != nil {
 		return types.Config{}, report.Report{}, err
