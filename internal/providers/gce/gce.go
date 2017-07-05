@@ -42,7 +42,7 @@ func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
 	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{
 		Headers: headers,
 	})
-	if err != nil {
+	if err != nil && err != resource.ErrNotFound {
 		return types.Config{}, report.Report{}, err
 	}
 
