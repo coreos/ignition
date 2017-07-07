@@ -9,7 +9,7 @@ Odds are good that you don't want to invoke Ignition directly. In fact, it isn't
 ## Contact
 
 - Mailing list: [coreos-dev](https://groups.google.com/forum/?hl=en#!forum/coreos-dev)
-- IRC: #[coreos](irc://irc.freenode.org:6667/#etcd) on freenode.org
+- IRC: #[coreos](irc://irc.freenode.org:6667/#coreos) on freenode.org
 - Bugs: [issues][issues]
 
 ## Contributing
