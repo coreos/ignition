@@ -347,4 +347,4 @@ The following shows the changes to the file uid and gid:
 [semver]: http://semver.org
 [rfc2397]: https://tools.ietf.org/html/rfc2397
 [operator-notes]: operator-notes.md
-[filesystems]: filesystems.md
+[filesystems]: operator-notes.md#filesystem-reuse-semantics
