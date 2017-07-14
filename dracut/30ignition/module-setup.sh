@@ -3,7 +3,7 @@
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
 depends() {
-    echo systemd
+    echo qemu systemd
 }
 
 install() {
@@ -48,8 +48,4 @@ install() {
 
     inst_rules \
         60-cdrom_id.rules
-}
-
-installkernel() {
-    instmods qemu_fw_cfg
 }
