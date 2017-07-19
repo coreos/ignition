@@ -305,8 +305,14 @@ func (s stage) createEntries(fs types.Filesystem, files []filesystemEntry) error
 		mnt = *fs.Path
 	}
 
+	u := util.Util{
+		DestDir: mnt,
+		Fetcher: s.Util.Fetcher,
+		Logger:  s.Logger,
+	}
+
 	for _, e := range files {
-		if err := e.create(s.Logger, s.client, s.Util); err != nil {
+		if err := e.create(s.Logger, s.client, u); err != nil {
 			return err
 		}
 	}
