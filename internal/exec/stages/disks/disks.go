@@ -292,6 +292,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 	if info.format == fs.Format &&
 		(fs.Label == nil || info.label == *fs.Label) &&
 		(fs.UUID == nil || info.uuid == *fs.UUID) &&
+		(fs.Create == nil || !fs.Create.Force) &&
 		!fs.WipeFilesystem {
 		s.Logger.Info("filesystem at %q is already formatted. Skipping mkfs...", fs.Device)
 		return nil
