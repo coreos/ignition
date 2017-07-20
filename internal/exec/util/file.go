@@ -59,7 +59,7 @@ func newHashedReader(reader io.ReadCloser, hasher hash.Hash) io.ReadCloser {
 // FetchOp. This includes operations such as parsing the source URL, generating
 // a hasher, and performing user/group name lookups. If an error is encountered,
 // the issue will be logged and nil will be returned.
-func (u Util) PrepareFetch(l *log.Logger, c *resource.HttpClient, f types.File) *FetchOp {
+func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 	var err error
 	var expectedSum []byte
 
