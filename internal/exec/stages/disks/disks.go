@@ -19,6 +19,7 @@
 package disks
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 
@@ -33,6 +34,10 @@ import (
 
 const (
 	name = "disks"
+)
+
+var (
+	ErrBadFilesystem = errors.New("filesystem is not of the correct type")
 )
 
 func init() {
@@ -289,31 +294,40 @@ func (s stage) createFilesystem(fs types.Mount) error {
 	if err != nil {
 		return err
 	}
-	if info.format == fs.Format &&
-		(fs.Label == nil || info.label == *fs.Label) &&
-		(fs.UUID == nil || info.uuid == *fs.UUID) &&
-		(fs.Create == nil || !fs.Create.Force) &&
-		!fs.WipeFilesystem {
-		s.Logger.Info("filesystem at %q is already formatted. Skipping mkfs...", fs.Device)
-		return nil
+
+	if fs.Create != nil {
+		// If we are using 2.0.0 semantics...
+
+		if !fs.Create.Force && info.format != "" {
+			s.Logger.Err("filesystem detected at %q (found %s) and force was not requested", fs.Device, info.format)
+			return ErrBadFilesystem
+		}
+	} else if !fs.WipeFilesystem {
+		// If the filesystem isn't forcefully being created, then we need
+		// to check if it is of the correct type or that no filesystem exists.
+
+		if info.format == fs.Format &&
+			(fs.Label == nil || info.label == *fs.Label) &&
+			(fs.UUID == nil || info.uuid == *fs.UUID) {
+			s.Logger.Info("filesystem at %q is already correctly formatted. Skipping mkfs...", fs.Device)
+			return nil
+		} else if info.format != "" {
+			s.Logger.Err("filesystem at %q is not of the correct type (found %s) and a filesystem wipe was not requested", fs.Device, info.format)
+			return ErrBadFilesystem
+		}
 	}
 
 	mkfs := ""
-	var force bool
 	var args []string
 	if fs.Create == nil {
-		force = fs.WipeFilesystem
 		args = translateMountOptionSliceToStringSlice(fs.Options)
 	} else {
-		force = fs.Create.Force
 		args = translateCreateOptionSliceToStringSlice(fs.Create.Options)
 	}
 	switch fs.Format {
 	case "btrfs":
 		mkfs = "/sbin/mkfs.btrfs"
-		if force {
-			args = append(args, "--force")
-		}
+		args = append(args, "--force")
 		if fs.UUID != nil {
 			args = append(args, []string{"-U", *fs.UUID}...)
 		}
@@ -322,10 +336,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 		}
 	case "ext4":
 		mkfs = "/sbin/mkfs.ext4"
-		args = append(args, "-p")
-		if force {
-			args = append(args, "-F")
-		}
+		args = append(args, "-F")
 		if fs.UUID != nil {
 			args = append(args, []string{"-U", *fs.UUID}...)
 		}
@@ -334,9 +345,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 		}
 	case "xfs":
 		mkfs = "/sbin/mkfs.xfs"
-		if force {
-			args = append(args, "-f")
-		}
+		args = append(args, "-f")
 		if fs.UUID != nil {
 			args = append(args, []string{"-m", "uuid=" + *fs.UUID}...)
 		}
@@ -345,9 +354,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 		}
 	case "swap":
 		mkfs = "/sbin/mkswap"
-		if force {
-			args = append(args, "-f")
-		}
+		args = append(args, "-f")
 		if fs.UUID != nil {
 			args = append(args, []string{"-U", *fs.UUID}...)
 		}
