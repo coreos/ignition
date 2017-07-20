@@ -61,8 +61,6 @@ func (creator) Name() string {
 
 type stage struct {
 	util.Util
-
-	client *resource.HttpClient
 }
 
 func (stage) Name() string {
@@ -112,12 +110,12 @@ func (s stage) createFilesystemsEntries(config types.Config) error {
 
 // filesystemEntry represent a thing that knows how to create itself.
 type filesystemEntry interface {
-	create(l *log.Logger, c *resource.HttpClient, u util.Util) error
+	create(l *log.Logger, u util.Util) error
 }
 
 type fileEntry types.File
 
-func (tmp fileEntry) create(l *log.Logger, c *resource.HttpClient, u util.Util) error {
+func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	f := types.File(tmp)
 
 	if f.User.ID == nil {
@@ -127,7 +125,7 @@ func (tmp fileEntry) create(l *log.Logger, c *resource.HttpClient, u util.Util) 
 		f.Group.ID = internalUtil.IntToPtr(0)
 	}
 
-	fetchOp := u.PrepareFetch(l, c, f)
+	fetchOp := u.PrepareFetch(l, f)
 	if fetchOp == nil {
 		return fmt.Errorf("failed to resolve file %q", f.Path)
 	}
@@ -144,7 +142,7 @@ func (tmp fileEntry) create(l *log.Logger, c *resource.HttpClient, u util.Util) 
 
 type dirEntry types.Directory
 
-func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) error {
+func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 	d := types.Directory(tmp)
 
 	if d.User.ID == nil {
@@ -195,7 +193,7 @@ func (tmp dirEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) e
 
 type linkEntry types.Link
 
-func (tmp linkEntry) create(l *log.Logger, _ *resource.HttpClient, u util.Util) error {
+func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	s := types.Link(tmp)
 
 	if s.User.ID == nil {
@@ -312,7 +310,7 @@ func (s stage) createEntries(fs types.Filesystem, files []filesystemEntry) error
 	}
 
 	for _, e := range files {
-		if err := e.create(s.Logger, s.client, u); err != nil {
+		if err := e.create(s.Logger, u); err != nil {
 			return err
 		}
 	}
