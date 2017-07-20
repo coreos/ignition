@@ -34,6 +34,7 @@ import (
 	"github.com/coreos/ignition/internal/providers/vmware"
 	"github.com/coreos/ignition/internal/registry"
 	"github.com/coreos/ignition/internal/resource"
+	"github.com/coreos/ignition/internal/util"
 
 	"github.com/vincent-petithory/dataurl"
 )
@@ -76,6 +77,7 @@ func (c Config) DefaultUserConfig() types.Config {
 }
 
 var configs = registry.Create("oem configs")
+var yes = util.BoolToPtr(true)
 
 func init() {
 	configs.Register(Config{
@@ -84,7 +86,7 @@ func init() {
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.Unit{
-					{Enable: true, Name: "waagent.service"},
+					{Enabled: yes, Name: "waagent.service"},
 					{Name: "etcd2.service", Dropins: []types.Dropin{
 						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_ELECTION_TIMEOUT=1200\n"},
 					}},
@@ -107,7 +109,7 @@ func init() {
 		fetch: digitalocean.FetchConfig,
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
-				Units: []types.Unit{{Enable: true, Name: "coreos-metadata-sshkeys@.service"}},
+				Units: []types.Unit{{Enabled: yes, Name: "coreos-metadata-sshkeys@.service"}},
 			},
 		},
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("DigitalOcean", "digitalocean")}}},
@@ -145,7 +147,7 @@ func init() {
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.Unit{
-					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
+					{Enabled: yes, Name: "coreos-metadata-sshkeys@.service"},
 					{Name: "etcd2.service", Dropins: []types.Dropin{
 						{Name: "10-oem.conf", Contents: "[Service]\nEnvironment=ETCD_ELECTION_TIMEOUT=1200\n"},
 					}},
@@ -172,8 +174,8 @@ func init() {
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.Unit{
-					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
-					{Enable: true, Name: "oem-gce.service"},
+					{Enabled: yes, Name: "coreos-metadata-sshkeys@.service"},
+					{Enabled: yes, Name: "oem-gce.service"},
 				},
 			},
 			Storage: types.Storage{
@@ -222,8 +224,8 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 		baseConfig: types.Config{
 			Systemd: types.Systemd{
 				Units: []types.Unit{
-					{Enable: true, Name: "coreos-metadata-sshkeys@.service"},
-					{Enable: true, Name: "packet-phone-home.service"},
+					{Enabled: yes, Name: "coreos-metadata-sshkeys@.service"},
+					{Enabled: yes, Name: "packet-phone-home.service"},
 				},
 			},
 			Storage: types.Storage{Files: []types.File{serviceFromOem("packet-phone-home.service")}},
@@ -258,7 +260,7 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 		name:  "vmware",
 		fetch: vmware.FetchConfig,
 		baseConfig: types.Config{
-			Systemd: types.Systemd{Units: []types.Unit{{Enable: true, Name: "vmtoolsd.service"}}},
+			Systemd: types.Systemd{Units: []types.Unit{{Enabled: yes, Name: "vmtoolsd.service"}}},
 			Storage: types.Storage{Files: []types.File{serviceFromOem("vmtoolsd.service")}},
 		},
 		defaultUserConfig: types.Config{Systemd: types.Systemd{Units: []types.Unit{userCloudInit("VMware", "vmware")}}},
@@ -326,7 +328,7 @@ WantedBy=multi-user.target
 
 	return types.Unit{
 		Name:     "oem-cloudinit.service",
-		Enable:   true,
+		Enabled:  yes,
 		Contents: fmt.Sprintf(contents, name, oem),
 	}
 }
