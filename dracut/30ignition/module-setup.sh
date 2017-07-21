@@ -23,8 +23,6 @@ install() {
 
     inst_script "$moddir/retry-umount.sh" \
         "/usr/sbin/retry-umount"
-    # This should really not be necessary
-    chmod +x "${initdir}/usr/sbin/retry-umount"
 
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
