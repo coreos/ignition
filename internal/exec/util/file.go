@@ -136,7 +136,8 @@ func (u Util) WriteLink(s types.Link) error {
 	}
 
 	if s.Hard {
-		return os.Link(s.Target, path)
+		targetPath := u.JoinPath(s.Target)
+		return os.Link(targetPath, path)
 	}
 	return os.Symlink(s.Target, path)
 }
