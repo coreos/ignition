@@ -1,5 +1,5 @@
-# Once amd64-generic is gone we can replace this with 'rw' in the
-# default kernel options built into out kernel image.
+# Older bootloaders pass 'ro' on the kernel command line, which overrides
+# the 'rootflags=rw' argument built into the kernel image.
 
 [Unit]
 Description=Remount Root File System

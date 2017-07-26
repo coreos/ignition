@@ -5,6 +5,10 @@
 # This script implements systemd-fstab-generator's add_root_mount()
 # function but for handling usr= cmdline args instead of root=
 # TODO(marineam): Write a patch to do this in systemd-fstab-generator
+#
+# grub passes mount.usr= instead of usr=, and mount.usr= is handled
+# by systemd-fstab-generator. This module is only needed for old
+# bootloaders that pass usr=.
 
 set -e
 
