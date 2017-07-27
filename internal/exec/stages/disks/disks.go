@@ -313,7 +313,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 			s.Logger.Info("filesystem at %q is already correctly formatted. Skipping mkfs...", fs.Device)
 			return nil
 		} else if info.format != "" {
-			s.Logger.Err("filesystem at %q is not of the correct type (found %s) and a filesystem wipe was not requested", fs.Device, info.format)
+			s.Logger.Err("filesystem at %q is not of the correct type, label, or UUID (found %s, %q, %s) and a filesystem wipe was not requested", fs.Device, info.format, info.label, info.uuid)
 			return ErrBadFilesystem
 		}
 	}
