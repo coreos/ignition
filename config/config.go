@@ -33,19 +33,23 @@ import (
 )
 
 var (
-	ErrCloudConfig    = errors.New("not a config (found coreos-cloudconfig)")
-	ErrEmpty          = errors.New("not a config (empty)")
-	ErrScript         = errors.New("not a config (found coreos-cloudinit script)")
-	ErrDeprecated     = errors.New("config format deprecated")
-	ErrInvalid        = errors.New("config is not valid")
-	ErrUnknownVersion = errors.New("unsupported config version")
+	ErrCloudConfig           = errors.New("not a config (found coreos-cloudconfig)")
+	ErrEmpty                 = errors.New("not a config (empty)")
+	ErrScript                = errors.New("not a config (found coreos-cloudinit script)")
+	ErrDeprecated            = errors.New("config format deprecated")
+	ErrInvalid               = errors.New("config is not valid")
+	ErrUnknownVersion        = errors.New("unsupported config version")
+	ErrVersionIndeterminable = errors.New("unable to determine version")
 )
 
 // Parse parses the raw config into a types.Config struct and generates a report of any
 // errors, warnings, info, and deprecations it encountered
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
-	version, err := version(rawConfig)
-	if err != nil {
+	version, err := Version(rawConfig)
+	if err != nil && err != ErrVersionIndeterminable {
+		// If we can't determine the version, ignore this error so that in the
+		// default case of the switch statement we can check for empty configs,
+		// cloud configs, and other such things.
 		return types.Config{}, report.ReportFromError(err, report.EntryError), err
 	}
 	switch version {
@@ -170,7 +174,7 @@ func ParseFromV2_1(rawConfig []byte) (types.Config, report.Report, error) {
 	return TranslateFromV2_1(cfg), report, err
 }
 
-func version(rawConfig []byte) (semver.Version, error) {
+func Version(rawConfig []byte) (semver.Version, error) {
 	var composite struct {
 		Version  *int `json:"ignitionVersion"`
 		Ignition struct {
@@ -190,7 +194,7 @@ func version(rawConfig []byte) (semver.Version, error) {
 		}
 	}
 
-	return semver.Version{}, nil
+	return semver.Version{}, ErrVersionIndeterminable
 }
 
 func isEmpty(userdata []byte) bool {
