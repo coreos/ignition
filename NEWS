@@ -1,3 +1,17 @@
+28-Jul-2017 IGNITION v0.17.2
+
+  Bug Fixes
+
+    - Fix failure to create files/directories/links on correct filesystem
+    - Fix failure to force filesystem creation when legacy force flag was set
+    - Prevent VFAT filesystem creation from unconditionally overwriting existing
+      filesystem
+    - Fix deprecation warning on enable field in OEM systemd units
+    - Fix failure where hard link targets would be on incorrect filesystem,
+      causing creation to fail
+    - Fix incorrect filesystem UUID check when deciding whether to reuse
+      existing filesystem, causing Ignition to fail
+
 05-Jul-2017 IGNITION v0.17.1
 
   Bug Fixes
