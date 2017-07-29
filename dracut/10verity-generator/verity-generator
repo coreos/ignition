@@ -75,6 +75,11 @@ if [[ -n "${usr}" && -n "${usrhash}" ]]; then
 	Type=oneshot
 	RemainAfterExit=yes
 	ExecStart=/bin/sh -c '/sbin/veritysetup create usr --hash-offset="\$(e2size ${usr})" "${usr}" "${usr}" "${usrhash}"'
+	# If there's a hash mismatch during table initialization,
+	# veritysetup reports it on stderr but still exits 0, and
+	# dev-mapper-usr.device ends up waiting indefinitely. Manually
+	# check the target status and fail if invalid.
+	ExecStart=/bin/bash -c 'read off len tgt status addl <<<\$(dmsetup status usr); [[ "\$\${status}" == V ]]'
 	ExecStop=/sbin/veritysetup remove usr
 	EOF
 
