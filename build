@@ -21,3 +21,10 @@ export CGO_ENABLED=1
 
 echo "Building ${NAME}..."
 go build -ldflags "${GLDFLAGS}" -o ${GOBIN}/${NAME} ${REPO_PATH}/internal
+
+for D in tests/stubs/*; do
+	if [ -d "${D}" ]; then
+		echo "Building ${D}"
+		go install ${REPO_PATH}/${D}
+	fi
+done
