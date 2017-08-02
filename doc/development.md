@@ -38,3 +38,53 @@ Edit the `glide.yaml` file to update a dependency or add a new dependency. Then 
 ```sh
 make vendor
 ```
+
+## Running Blackbox Tests on Container Linux
+
+Build both the Ignition & test binaries inside of a docker container, for this
+example it will be building from the ignition-builder-1.8 image and targeting
+the amd64 architecture.
+
+```sh
+docker run --rm -e TARGET=amd64 -e ACTION=COMPILE -v "$PWD":/usr/src/myapp -w /usr/src/myapp quay.io/coreos/ignition-builder-1.8 ./test
+sudo -E PATH=$PWD/bin/amd64:$PATH ./tests.test
+```
+
+## Test Host System Dependencies
+
+The following packages are required by the Blackbox Test:
+
+* `util-linux`
+* `kpartx`
+* `dosfstools`
+* `e2fsprogs`
+* `btrfs-progs`
+* `xfsprogs`
+* `uuid-runtime`
+* `gdisk`
+* `coreutils`
+
+## Writing Blackbox Tests
+
+To add a blackbox test create a function which yields a `Test` object. A `Test`
+object consists of the following fields:
+
+Name: `string`
+
+In: `[]Disk` object, which describes the Disks that should be created before
+Ignition is run.
+
+Out: `[]Disk` object, which describes the Disks that should be present after
+Ignition is run.
+
+MntDevices: `MntDevice` object, which describes any disk related variable
+replacements that need to be done to the Ignition config before Ignition is
+run. This is done so that disks which are created during the test run can be
+referenced inside of an Ignition config.
+
+Config: `string`
+
+The test should be added to the init function inside of the test file. If the
+test module is being created then an `init` function should be created which
+registers the tests and the package must be imported inside of
+`tests/registry/registry.go` to allow for discovery.
