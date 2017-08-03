@@ -192,12 +192,7 @@ type linkEntry types.Link
 func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	s := types.Link(tmp)
 
-	if s.User.ID == nil {
-		s.User.ID = internalUtil.IntToPtr(0)
-	}
-	if s.Group.ID == nil {
-		s.Group.ID = internalUtil.IntToPtr(0)
-	}
+	s.User.ID, s.Group.ID = u.GetUserGroupID(l, s.User, s.Group)
 
 	if err := l.LogOp(
 		func() error { return u.WriteLink(s) },
