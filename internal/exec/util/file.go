@@ -27,6 +27,7 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
+	internalUtil "github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -84,34 +85,7 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 		}
 	}
 
-	if f.User.Name != "" {
-		user, err := u.userLookup(f.User.Name)
-		if err != nil {
-			l.Crit("No such user %q: %v", f.User.Name, err)
-			return nil
-		}
-		uid, err := strconv.ParseInt(user.Uid, 0, 0)
-		if err != nil {
-			l.Crit("Couldn't parse uid %q: %v", user.Uid, err)
-			return nil
-		}
-		tmp := int(uid)
-		f.User.ID = &tmp
-	}
-	if f.Group.Name != "" {
-		g, err := u.groupLookup(f.Group.Name)
-		if err != nil {
-			l.Crit("No such group %q: %v", f.Group.Name, err)
-			return nil
-		}
-		gid, err := strconv.ParseInt(g.Gid, 0, 0)
-		if err != nil {
-			l.Crit("Couldn't parse gid %q: %v", g.Gid, err)
-			return nil
-		}
-		tmp := int(gid)
-		f.Group.ID = &tmp
-	}
+	f.User.ID, f.Group.ID = u.GetUserGroupID(l, f.User, f.Group)
 
 	return &FetchOp{
 		Path: f.Path,
@@ -189,6 +163,46 @@ func (u Util) PerformFetch(f *FetchOp) error {
 	}
 
 	return nil
+}
+
+func (u Util) GetUserGroupID(l *log.Logger, user types.NodeUser, group types.NodeGroup) (*int, *int) {
+	if user.Name != "" {
+		usr, err := u.userLookup(user.Name)
+		if err != nil {
+			l.Crit("No such user %q: %v", user.Name, err)
+			return nil, nil
+		}
+		uid, err := strconv.ParseInt(usr.Uid, 0, 0)
+		if err != nil {
+			l.Crit("Couldn't parse uid %q: %v", usr.Uid, err)
+			return nil, nil
+		}
+		tmp := int(uid)
+		user.ID = &tmp
+	}
+	if group.Name != "" {
+		g, err := u.groupLookup(group.Name)
+		if err != nil {
+			l.Crit("No such group %q: %v", group.Name, err)
+			return nil, nil
+		}
+		gid, err := strconv.ParseInt(g.Gid, 0, 0)
+		if err != nil {
+			l.Crit("Couldn't parse gid %q: %v", g.Gid, err)
+			return nil, nil
+		}
+		tmp := int(gid)
+		group.ID = &tmp
+	}
+
+	if user.ID == nil {
+		user.ID = internalUtil.IntToPtr(0)
+	}
+	if group.ID == nil {
+		group.ID = internalUtil.IntToPtr(0)
+	}
+
+	return user.ID, group.ID
 }
 
 // MkdirForFile helper creates the directory components of path.
