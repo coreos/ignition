@@ -86,6 +86,9 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 	}
 
 	f.User.ID, f.Group.ID = u.GetUserGroupID(l, f.User, f.Group)
+	if f.User.ID == nil || f.Group.ID == nil {
+		return nil
+	}
 
 	return &FetchOp{
 		Path: f.Path,

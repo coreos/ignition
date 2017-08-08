@@ -146,6 +146,9 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 	d := types.Directory(tmp)
 
 	d.User.ID, d.Group.ID = u.GetUserGroupID(l, d.User, d.Group)
+	if d.User.ID == nil || d.Group.ID == nil {
+		return fmt.Errorf("failed to resolve directory %q", d.Path)
+	}
 
 	err := l.LogOp(func() error {
 		path := filepath.Clean(u.JoinPath(string(d.Path)))
@@ -193,6 +196,9 @@ func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	s := types.Link(tmp)
 
 	s.User.ID, s.Group.ID = u.GetUserGroupID(l, s.User, s.Group)
+	if s.User.ID == nil || s.Group.ID == nil {
+		return fmt.Errorf("failed to resolve link %q", s.Path)
+	}
 
 	if err := l.LogOp(
 		func() error { return u.WriteLink(s) },
