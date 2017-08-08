@@ -145,12 +145,7 @@ type dirEntry types.Directory
 func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 	d := types.Directory(tmp)
 
-	if d.User.ID == nil {
-		d.User.ID = internalUtil.IntToPtr(0)
-	}
-	if d.Group.ID == nil {
-		d.Group.ID = internalUtil.IntToPtr(0)
-	}
+	d.User.ID, d.Group.ID = u.GetUserGroupID(l, d.User, d.Group)
 
 	err := l.LogOp(func() error {
 		path := filepath.Clean(u.JoinPath(string(d.Path)))
@@ -158,8 +153,8 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 		// Build a list of paths to create. Since os.MkdirAll only sets the mode for new directories and not the
 		// ownership, we need to determine which directories will be created so we don't chown something that already
 		// exists.
-		newPaths := []string{}
-		for p := path; p != "/"; p = filepath.Dir(p) {
+		newPaths := []string{path}
+		for p := filepath.Dir(path); p != "/"; p = filepath.Dir(p) {
 			_, err := os.Stat(p)
 			if err == nil {
 				break
@@ -182,6 +177,7 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 				return err
 			}
 		}
+
 		return nil
 	}, "creating directory %q", string(d.Path))
 	if err != nil {
@@ -196,12 +192,7 @@ type linkEntry types.Link
 func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	s := types.Link(tmp)
 
-	if s.User.ID == nil {
-		s.User.ID = internalUtil.IntToPtr(0)
-	}
-	if s.Group.ID == nil {
-		s.Group.ID = internalUtil.IntToPtr(0)
-	}
+	s.User.ID, s.Group.ID = u.GetUserGroupID(l, s.User, s.Group)
 
 	if err := l.LogOp(
 		func() error { return u.WriteLink(s) },
