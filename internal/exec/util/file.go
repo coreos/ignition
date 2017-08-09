@@ -121,7 +121,7 @@ func (u Util) WriteLink(s types.Link) error {
 		return err
 	}
 
-	if err := os.Chown(path, *s.User.ID, *s.Group.ID); err != nil {
+	if err := os.Lchown(path, *s.User.ID, *s.Group.ID); err != nil {
 		return err
 	}
 
