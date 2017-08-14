@@ -15,12 +15,18 @@
 package blackbox
 
 import (
+	"bytes"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/pin/tftp"
 
 	"github.com/coreos/ignition/tests/register"
 	"github.com/coreos/ignition/tests/types"
@@ -29,6 +35,7 @@ import (
 	_ "github.com/coreos/ignition/tests/registry"
 )
 
+// HTTP Server
 func (server *HTTPServer) Config(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{
 	"ignition": { "version": "2.0.0" },
@@ -57,9 +64,47 @@ func (server *HTTPServer) Start() {
 	go s.ListenAndServe()
 }
 
+// TFTP Server
+func (server *TFTPServer) ReadHandler(filename string, rf io.ReaderFrom) error {
+	var buf *bytes.Reader
+	if strings.Contains(filename, "contents") {
+		buf = bytes.NewReader([]byte(`asdf
+fdsa`))
+	} else if strings.Contains(filename, "config") {
+		buf = bytes.NewReader([]byte(`{
+        "ignition": { "version": "2.0.0" },
+        "storage": {
+                "files": [{
+                  "filesystem": "root",
+                  "path": "/foo/bar",
+                  "contents": { "source": "data:,example%20file%0A" }
+                }]
+        }
+}`))
+	}
+
+	_, err := rf.ReadFrom(buf)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		return err
+	}
+	return nil
+}
+
+type TFTPServer struct{}
+
+func (server *TFTPServer) Start() {
+	s := tftp.NewServer(server.ReadHandler, nil)
+	s.SetTimeout(5 * time.Second)
+	go s.ListenAndServe(":69")
+}
+
 func TestMain(m *testing.M) {
-	server := &HTTPServer{}
-	server.Start()
+	httpServer := &HTTPServer{}
+	httpServer.Start()
+	tftpServer := &TFTPServer{}
+	tftpServer.Start()
+
 	os.Exit(m.Run())
 }
 
