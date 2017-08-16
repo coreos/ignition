@@ -1,0 +1,35 @@
+# Since dracut 24, arrays are not auto-assembled. We need to auto-assemble
+# only arrays that might contain the root filesystem. Arrays that contain
+# the root filesystem should have a name suffixed with -hasroot so we can find them.
+
+# We only want to only assemble the array with the root partition since a user could
+# specify different behavior for assembling other arrays (e.g. in mdadm.conf) and
+# mdadm can't find that until we switch_root.
+
+# These rules complement the rules in 65-md-raid-assemble-root, only adding the
+# incremental assembly. 65-md-raid-assemble-root has rules for ACTION=remove. See
+# the dracut 90mdraid module's module-setup.sh for the sed line that removes the
+# add|change line we are adding back here.
+
+SUBSYSTEM!="block", GOTO="root_md_inc_end"
+
+# handle potential components of arrays (the ones supported by md)
+ENV{ID_FS_TYPE}!="linux_raid_member", GOTO="root_md_inc_end"
+
+# Ignition may want to clobber partitions used in a raid array, so
+# skip assembling them when Ignition is going to run.
+IMPORT{cmdline}="coreos.first_boot"
+# Possible values for not running Ignition from 30ignition/ignition-generator
+ENV{coreos.first_boot}=="", GOTO="root_md_inc"
+ENV{coreos.first_boot}=="0", GOTO="root_md_inc"
+ENV{coreos.first_boot}=="no", GOTO="root_md_inc"
+ENV{coreos.first_boot}=="off", GOTO="root_md_inc"
+GOTO="root_md_inc_end"
+
+LABEL="root_md_inc"
+
+# Only auto-assemble drives in arrays with a name ending with -hasroot
+IMPORT{program}="/sbin/mdadm --examine --export $devnode"
+ENV{MD_NAME}=="*-hasroot", ACTION=="add|change", IMPORT{program}="/sbin/mdadm --incremental --export $devnode --offroot ${DEVLINKS}"
+
+LABEL="root_md_inc_end"
