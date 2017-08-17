@@ -199,7 +199,7 @@ func init() {
 						FileEmbedded1: types.FileEmbedded1{
 							Mode: 0444,
 							Contents: contentsFromString(`#!/bin/sh
-alias gcloud="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config -v /var/run/docker.sock:/var/run/doker.sock -v /usr/bin/docker:/usr/bin/docker google/cloud-sdk gcloud"
+alias gcloud="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config -v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker google/cloud-sdk gcloud"
 alias gcutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config google/cloud-sdk gcutil"
 alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) > /dev/null;docker run -t -i --net="host" -v $HOME/.config:/.config google/cloud-sdk gsutil"
 `),
