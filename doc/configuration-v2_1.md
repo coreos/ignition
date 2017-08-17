@@ -3,7 +3,7 @@
 The Ignition configuration is a JSON document conforming to the following specification, with **_italicized_** entries being optional:
 
 * **ignition** (object): metadata about the configuration itself.
-  * **version** (string): the semantic version number of the spec. The spec version must be compatible with the latest version (`2.0.0`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version.
+  * **version** (string): the semantic version number of the spec. The spec version must be compatible with the latest version (`2.1.0`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version.
   * **_config_** (objects): options related to the configuration.
     * **_append_** (list of objects): a list of the configs to be appended to the current config.
       * **source** (string): the URL of the config. Supported schemes are http, https, s3, and tftp. Note: When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
@@ -23,8 +23,8 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_partitions_** (list of objects): the list of partitions and their configuration for this particular disk.
       * **_label_** (string): the PARTLABEL for the partition.
       * **_number_** (integer): the partition number, which dictates it's position in the partition table (one-indexed). If zero, use the next available partition slot.
-      * **_size_** (integer): the size of the partition (in sectors). If zero, the partition will fill the remainder of the disk.
-      * **_start_** (integer): the start of the partition (in sectors). If zero, the partition will be positioned at the earliest available part of the disk.
+      * **_size_** (integer): the size of the partition (in device logical sectors, 512 or 4096 bytes). If zero, the partition will fill the remainder of the disk.
+      * **_start_** (integer): the start of the partition (in device logical sectors). If zero, the partition will be positioned at the earliest available part of the disk.
       * **_typeGuid_** (string): the GPT [partition type GUID][part-types]. If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
       * **_guid_** (string): the GPT unique partition GUID.
   * **_raid_** (list of objects): the list of RAID arrays to be configured.
