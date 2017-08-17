@@ -32,8 +32,8 @@ type Operation struct {
 
 type Partition struct {
 	Number   int
-	Offset   uint64 // 512-byte sectors
-	Length   uint64 // 512-byte sectors
+	Offset   uint64 // device logical sectors (probably 512 bytes or 4 KiB)
+	Length   uint64 // device logical sectors (probably 512 bytes or 4 KiB)
 	Label    string
 	TypeGUID string
 	GUID     string
