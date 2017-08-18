@@ -33,7 +33,6 @@ DRACUT_ARGS=(
     --omit lvm
     --omit multipath
     --omit network
-    --omit terminfo
     )
 
 SETUP_MOUNTS=
