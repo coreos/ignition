@@ -64,7 +64,11 @@ func TestParse(t *testing.T) {
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.2.0"}}`)},
-			out: out{err: ErrUnknownVersion},
+			out: out{err: ErrInvalid},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"},}`)},
+			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "invalid.semver"}}`)},
@@ -72,7 +76,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			in:  in{config: []byte(`{}`)},
-			out: out{err: ErrUnknownVersion},
+			out: out{err: ErrInvalid},
 		},
 		{
 			in:  in{config: []byte{}},
