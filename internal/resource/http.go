@@ -47,10 +47,15 @@ type HttpClient struct {
 	client  *http.Client
 	logger  *log.Logger
 	timeout time.Duration
+	// returnThreshold is the value that causes the retry logic to end when an
+	// HTTP status code is acquired below this
+	returnThreshold int
 }
 
-// NewHttpClient creates a new client with the given logger and timeouts.
-func NewHttpClient(logger *log.Logger, timeouts types.Timeouts) HttpClient {
+// NewHttpClient creates a new client with the given logger, timeouts, and returnThreshold.
+// If the returnThreshold is 0, a default value of 500 is used. HTTP status
+// codes below this value cause the retry logic to end.
+func NewHttpClient(logger *log.Logger, timeouts types.Timeouts, returnThreshold int) HttpClient {
 	responseHeader := defaultHttpResponseHeaderTimeout
 	total := defaultHttpTotalTimeout
 	if timeouts.HTTPResponseHeaders != nil {
@@ -58,6 +63,9 @@ func NewHttpClient(logger *log.Logger, timeouts types.Timeouts) HttpClient {
 	}
 	if timeouts.HTTPTotal != nil {
 		total = *timeouts.HTTPTotal
+	}
+	if returnThreshold == 0 {
+		returnThreshold = 500
 	}
 	return HttpClient{
 		client: &http.Client{
@@ -70,8 +78,9 @@ func NewHttpClient(logger *log.Logger, timeouts types.Timeouts) HttpClient {
 				TLSHandshakeTimeout: 10 * time.Second,
 			},
 		},
-		logger:  logger,
-		timeout: time.Duration(total) * time.Second,
+		logger:          logger,
+		timeout:         time.Duration(total) * time.Second,
+		returnThreshold: returnThreshold,
 	}
 }
 
@@ -123,7 +132,7 @@ func (c HttpClient) performRequest(req *http.Request) (io.ReadCloser, int, error
 
 		if err == nil {
 			c.logger.Debug("GET result: %s", http.StatusText(resp.StatusCode))
-			if resp.StatusCode < 500 {
+			if resp.StatusCode < c.returnThreshold {
 				return resp.Body, resp.StatusCode, nil
 			}
 			resp.Body.Close()

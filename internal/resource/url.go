@@ -228,7 +228,7 @@ func (f *Fetcher) FetchFromTFTP(u url.URL, dest *os.File, opts FetchOptions) err
 func (f *Fetcher) FetchFromHTTP(u url.URL, dest *os.File, opts FetchOptions) error {
 	if f.Client == nil {
 		f.Logger.Warning("Fetcher http client not initialized, ignoring any possible timeouts")
-		c := NewHttpClient(f.Logger, types.Timeouts{})
+		c := NewHttpClient(f.Logger, types.Timeouts{}, 0)
 		f.Client = &c
 	}
 	dataReader, status, err := f.Client.Get(u.String(), opts.Headers)

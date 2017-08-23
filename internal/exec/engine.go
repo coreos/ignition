@@ -89,7 +89,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 		}
 		// Create an http client and fetcher with the timeouts from the cached
 		// config
-		e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
+		e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts, 0)
 		f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
 		if err != nil {
 			e.Logger.Crit("failed to generate fetcher: %s", err)
@@ -101,7 +101,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 	// Create a new http client and fetcher with the timeouts set via the flags,
 	// since we don't have a config with timeout values we can use
 	timeout := int(e.FetchTimeout.Seconds())
-	e.client = resource.NewHttpClient(e.Logger, types.Timeouts{HTTPTotal: &timeout})
+	e.client = resource.NewHttpClient(e.Logger, types.Timeouts{HTTPTotal: &timeout}, 0)
 	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
 	if err != nil {
 		e.Logger.Crit("failed to generate fetcher: %s", err)
@@ -117,7 +117,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 
 	// Regenerate the http client and fetcher to use the timeouts from the
 	// newly fetched config
-	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
+	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts, 0)
 	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
 	if err != nil {
 		e.Logger.Crit("failed to generate fetcher: %s", err)
@@ -166,7 +166,7 @@ func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, error) {
 // provided config will be returned unmodified.
 func (e *Engine) renderConfig(cfg types.Config, f resource.Fetcher) (types.Config, error) {
 	// Apply any new timeout info before fetching other configs.
-	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
+	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts, 0)
 	if cfgRef := cfg.Ignition.Config.Replace; cfgRef != nil {
 		return e.fetchReferencedConfig(*cfgRef, f)
 	}
