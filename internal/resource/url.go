@@ -231,7 +231,7 @@ func (f *Fetcher) FetchFromHTTP(u url.URL, dest *os.File, opts FetchOptions) err
 		c := NewHttpClient(f.Logger, types.Timeouts{})
 		f.Client = &c
 	}
-	dataReader, status, err := f.Client.getReaderWithHeader(u.String(), opts.Headers)
+	dataReader, status, err := f.Client.Get(u.String(), opts.Headers)
 	if err != nil {
 		return err
 	}

@@ -75,15 +75,29 @@ func NewHttpClient(logger *log.Logger, timeouts types.Timeouts) HttpClient {
 	}
 }
 
-// getReaderWithHeader performs an HTTP GET on the provided URL with the provided request header
+// Get performs an HTTP GET on the provided URL with the provided request header
 // and returns the response body Reader, HTTP status code, and error (if any). By
 // default, User-Agent is added to the header but this can be overridden.
-func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, error) {
+func (c HttpClient) Get(url string, header http.Header) (io.ReadCloser, int, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, 0, err
 	}
+	return c.performRequestWithHeader(req, header)
+}
 
+// Post performs an HTTP POST on the provided URL with the provided request header
+// and returns the response body Reader, HTTP status code, and error (if any). By
+// default, User-Agent is added to the header but this can be overridden.
+func (c HttpClient) Post(url string, header http.Header, body io.Reader) (io.ReadCloser, int, error) {
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, 0, err
+	}
+	return c.performRequestWithHeader(req, header)
+}
+
+func (c HttpClient) performRequestWithHeader(req *http.Request, header http.Header) (io.ReadCloser, int, error) {
 	req.Header.Set("User-Agent", "Ignition/"+version.Raw)
 
 	for key, values := range header {
@@ -93,6 +107,10 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 		}
 	}
 
+	return c.performRequest(req)
+}
+
+func (c HttpClient) performRequest(req *http.Request) (io.ReadCloser, int, error) {
 	ctx := context.Background()
 	if c.timeout != 0 {
 		ctx, _ = context.WithTimeout(ctx, c.timeout)
@@ -100,7 +118,7 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 
 	duration := initialBackoff
 	for attempt := 1; ; attempt++ {
-		c.logger.Debug("GET %s: attempt #%d", url, attempt)
+		c.logger.Debug("GET %s: attempt #%d", req.URL, attempt)
 		resp, err := ctxhttp.Do(ctx, c.client, req)
 
 		if err == nil {
