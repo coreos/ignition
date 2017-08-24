@@ -200,8 +200,6 @@ func (s stage) createRaids(config types.Config) error {
 	}
 
 	for _, md := range config.Storage.Raid {
-		// FIXME(vc): this is utterly flummoxed by a preexisting md.Name, the magic of device-resident md metadata really interferes with us.
-		// It's as if what ignition really needs is to turn off automagic md probing/running before getting started.
 		args := []string{
 			"--create", md.Name,
 			"--force",
