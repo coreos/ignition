@@ -1,0 +1,38 @@
+# Since dracut 24, arrays are not auto-assembled. We need to auto-assemble
+# only arrays that might contain the root filesystem. Arrays that contain
+# the root filesystem should have the GUID that corresponds to root on raid
+
+# We only want to only assemble the array with the root partition since a user could
+# specify different behavior for assembling other arrays (e.g. in mdadm.conf) and
+# mdadm can't find that until we switch_root.
+
+# These rules complement the rules in 65-md-raid-assemble-root, only adding the
+# incremental assembly. 65-md-raid-assemble-root has rules for ACTION=remove. See
+# the dracut 90mdraid module's module-setup.sh for the sed line that removes the
+# add|change line we are adding back here.
+
+# In the future we may want to add support for things like lvm which should get their
+# own partition type GUID which should be handled here.
+
+SUBSYSTEM!="block", GOTO="start_root_end"
+
+# Ignition may want to clobber partitions used in a raid array, so
+# skip assembling them when Ignition is going to run.
+IMPORT{cmdline}="coreos.first_boot"
+# Possible values for not running Ignition from 30ignition/ignition-generator
+ENV{coreos.first_boot}=="", GOTO="start_root"
+ENV{coreos.first_boot}=="0", GOTO="start_root"
+ENV{coreos.first_boot}=="no", GOTO="start_root"
+ENV{coreos.first_boot}=="off", GOTO="start_root"
+GOTO="start_root_end"
+
+LABEL="start_root"
+
+# Get the part type GUID. It's probably already in the environment, as 60-persistant-storage.rules should add it,
+# but this ensures ID_PART_ENTRY_TYPE is in the environment and is set by the builtin blkid.
+IMPORT{builtin}="blkid"
+# If it's the root-on-raid GUID, start the raid
+ENV{ID_PART_ENTRY_TYPE}=="be9067b9-ea49-4f15-b4f6-f36f8c9e1818", ACTION=="add|change", IMPORT{program}="/sbin/mdadm --incremental --export $devnode --offroot ${DEVLINKS}"
+# Handle other (future) cases here
+
+LABEL="start_root_end"
