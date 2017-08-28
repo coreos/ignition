@@ -15,8 +15,8 @@ install() {
         $systemdsystemunitdir/systemd-resolved.service \
         /etc/systemd/resolved.conf
 
-    inst_simple "$moddir/10-down.conf" \
-        "$systemdsystemunitdir/systemd-networkd.service.d/10-down.conf"
+    inst_simple "$moddir/network-cleanup.service" \
+        "$systemdsystemunitdir/network-cleanup.service"
 
     inst_simple "$moddir/10-nodeps.conf" \
         "$systemdsystemunitdir/systemd-resolved.service.d/10-nodeps.conf"
@@ -48,4 +48,6 @@ install() {
     # we only want it when pulled in
     systemctl --root "$initdir" disable systemd-networkd.service
     systemctl --root "$initdir" disable systemd-networkd.socket
+
+    systemctl --root "$initdir" enable network-cleanup.service
 }
