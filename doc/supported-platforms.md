@@ -11,6 +11,7 @@ Ignition is currently only supported for the following platforms:
 * [Packet] - Ignition will read its configuration from the instance userdata. SSH keys are handled by coreos-metadata.
 * [QEMU] - Ignition will read its configuration from the 'opt/com.coreos/config' key on the QEMU Firmware Configuration Device.
 * [DigitalOcean] - Ignition will read its configuration from the droplet userdata. SSH keys and network configuration are handled by coreos-metadata.
+* [Oracle Cloud] - Ignition will read its configuration from the instance userdata. SSH keys are handled by coreos-metadata.
 
 Ignition is under active development so expect this list to expand in the coming months.
 
@@ -23,3 +24,4 @@ Ignition is under active development so expect this list to expand in the coming
 [Packet]: https://github.com/coreos/docs/blob/master/os/booting-on-packet.md
 [QEMU]: https://github.com/qemu/qemu/blob/d75aa4372f0414c9960534026a562b0302fcff29/docs/specs/fw_cfg.txt
 [DigitalOcean]: https://github.com/coreos/docs/blob/master/os/booting-on-digitalocean.md
+[Oracle Cloud]: https://cloud.oracle.com/en_US/iaas

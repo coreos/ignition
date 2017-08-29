@@ -29,6 +29,7 @@ import (
 	"github.com/coreos/ignition/internal/providers/gce"
 	"github.com/coreos/ignition/internal/providers/noop"
 	"github.com/coreos/ignition/internal/providers/openstack"
+	"github.com/coreos/ignition/internal/providers/oracleoci"
 	"github.com/coreos/ignition/internal/providers/packet"
 	"github.com/coreos/ignition/internal/providers/qemu"
 	"github.com/coreos/ignition/internal/providers/virtualbox"
@@ -277,6 +278,10 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 	configs.Register(Config{
 		name:  "file",
 		fetch: file.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "oracle-oci",
+		fetch: oracleoci.FetchConfig,
 	})
 }
 
