@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"sync"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/exec/stages"
@@ -81,13 +82,8 @@ func (s stage) Run(config types.Config) bool {
 		return true
 	}
 
-	if err := s.createPartitions(config); err != nil {
-		s.Logger.Crit("create partitions failed: %v", err)
-		return false
-	}
-
-	if err := s.createRaids(config); err != nil {
-		s.Logger.Crit("failed to create raids: %v", err)
+	if err := s.createPartitionsAndRaids(config); err != nil {
+		s.Logger.Crit("failed to create partitions and raids: %v", err)
 		return false
 	}
 
@@ -170,50 +166,29 @@ func (s stage) waitOnDevicesAndCreateAliases(devs []string, ctxt string) error {
 	return nil
 }
 
-// createPartitions creates the partitions described in config.Storage.Disks.
-func (s stage) createPartitions(config types.Config) error {
-	if len(config.Storage.Disks) == 0 {
+// createPartitionsAndRaids creates the partitions and raid devices described in config.Storage.Partitions
+// and config.Storage.Raid.
+func (s stage) createPartitionsAndRaids(config types.Config) error {
+	if len(config.Storage.Disks) == 0 && len(config.Storage.Raid) == 0 {
 		return nil
 	}
-	s.Logger.PushPrefix("createPartitions")
+	s.Logger.PushPrefix("createPartitionsAndRaids")
 	defer s.Logger.PopPrefix()
 
-	devs := []string{}
-	for _, disk := range config.Storage.Disks {
-		devs = append(devs, string(disk.Device))
-	}
-
-	if err := s.waitOnDevicesAndCreateAliases(devs, "disks"); err != nil {
-		return err
-	}
+	errChan := make(chan error)
+	// Mutex for preventing udev races by only doing one thing at a time. Also makes logs easier to read.
+	mutex := sync.Mutex{}
 
 	for _, dev := range config.Storage.Disks {
-		devAlias := util.DeviceAlias(string(dev.Device))
+		go s.createPartitions(errChan, &mutex, dev)
+	}
+	for _, dev := range config.Storage.Raid {
+		go s.createRaid(errChan, &mutex, dev)
+	}
 
-		err := s.Logger.LogOp(func() error {
-			op := sgdisk.Begin(s.Logger, devAlias)
-			if dev.WipeTable {
-				s.Logger.Info("wiping partition table requested on %q", devAlias)
-				op.WipeTable(true)
-			}
-
-			for _, part := range dev.Partitions {
-				op.CreatePartition(sgdisk.Partition{
-					Number:   part.Number,
-					Length:   uint64(part.Size),
-					Offset:   uint64(part.Start),
-					Label:    string(part.Label),
-					TypeGUID: string(part.TypeGUID),
-					GUID:     string(part.GUID),
-				})
-			}
-
-			if err := op.Commit(); err != nil {
-				return fmt.Errorf("commit failure: %v", err)
-			}
-			return nil
-		}, "partitioning %q", devAlias)
-		if err != nil {
+	// wait for all the goroutines to finish
+	for i := 0; i < len(config.Storage.Disks)+len(config.Storage.Raid); i++ {
+		if err := <-errChan; err != nil {
 			return err
 		}
 	}
@@ -221,52 +196,92 @@ func (s stage) createPartitions(config types.Config) error {
 	return nil
 }
 
-// createRaids creates the raid arrays described in config.Storage.Raid.
-func (s stage) createRaids(config types.Config) error {
-	if len(config.Storage.Raid) == 0 {
-		return nil
+// createPartitions creates all the partitions for the disk specified by the types.Disk struct.
+func (s stage) createPartitions(done chan error, mutex *sync.Mutex, disk types.Disk) {
+	devs := []string{disk.Device}
+	if err := s.waitOnDevicesAndCreateAliases(devs, "disks"); err != nil {
+		done <- err
+		return
 	}
-	s.Logger.PushPrefix("createRaids")
-	defer s.Logger.PopPrefix()
+	// This should only be unlocked if we were successful to prevent ignition from continuing
+	// to create partitions or raid devices if it failed
+	mutex.Lock()
 
-	devs := []string{}
-	for _, array := range config.Storage.Raid {
-		for _, dev := range array.Devices {
-			devs = append(devs, string(dev))
+	devAlias := util.DeviceAlias(string(disk.Device))
+
+	err := s.Logger.LogOp(func() error {
+		op := sgdisk.Begin(s.Logger, devAlias)
+		if disk.WipeTable {
+			s.Logger.Info("wiping partition table requested on %q", devAlias)
+			op.WipeTable(true)
 		}
+
+		for _, part := range disk.Partitions {
+			op.CreatePartition(sgdisk.Partition{
+				Number:   part.Number,
+				Length:   uint64(part.Size),
+				Offset:   uint64(part.Start),
+				Label:    string(part.Label),
+				TypeGUID: string(part.TypeGUID),
+				GUID:     string(part.GUID),
+			})
+		}
+
+		if err := op.Commit(); err != nil {
+			return fmt.Errorf("commit failure: %v", err)
+		}
+		return nil
+	}, "partitioning %q", devAlias)
+	if err != nil {
+		done <- err
+		return
+	}
+	done <- nil
+	mutex.Unlock()
+}
+
+// createRaid creates the raid array specified by the types.Raid struct.
+func (s stage) createRaid(done chan error, mutex *sync.Mutex, array types.Raid) {
+	// go--
+	devs := []string{}
+	for _, dev := range array.Devices {
+		devs = append(devs, string(dev))
 	}
 
 	if err := s.waitOnDevicesAndCreateAliases(devs, "raids"); err != nil {
-		return err
+		done <- err
+		return
+	}
+	// This should only be unlocked if we were successful to prevent ignition from continuing
+	// to create partitions or raid devices if it failed
+	mutex.Lock()
+
+	args := []string{
+		"--create", array.Name,
+		"--force",
+		"--run",
+		"--homehost", "any",
+		"--level", array.Level,
+		"--raid-devices", fmt.Sprintf("%d", len(array.Devices)-array.Spares),
 	}
 
-	for _, md := range config.Storage.Raid {
-		args := []string{
-			"--create", md.Name,
-			"--force",
-			"--run",
-			"--homehost", "any",
-			"--level", md.Level,
-			"--raid-devices", fmt.Sprintf("%d", len(md.Devices)-md.Spares),
-		}
-
-		if md.Spares > 0 {
-			args = append(args, "--spare-devices", fmt.Sprintf("%d", md.Spares))
-		}
-
-		for _, dev := range md.Devices {
-			args = append(args, util.DeviceAlias(string(dev)))
-		}
-
-		if _, err := s.Logger.LogCmd(
-			exec.Command("/sbin/mdadm", args...),
-			"creating %q", md.Name,
-		); err != nil {
-			return fmt.Errorf("mdadm failed: %v", err)
-		}
+	if array.Spares > 0 {
+		args = append(args, "--spare-devices", fmt.Sprintf("%d", array.Spares))
 	}
 
-	return nil
+	for _, dev := range array.Devices {
+		args = append(args, util.DeviceAlias(string(dev)))
+	}
+
+	if _, err := s.Logger.LogCmd(
+		exec.Command("/sbin/mdadm", args...),
+		"creating %q", array.Name,
+	); err != nil {
+		done <- fmt.Errorf("mdadm failed: %v", err)
+		return
+	}
+	done <- nil
+	mutex.Unlock()
 }
 
 // createFilesystems creates the filesystems described in config.Storage.Filesystems.
