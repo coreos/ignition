@@ -1,0 +1,14 @@
+[Match]
+KernelCommandLine=coreos.oem.id=oracle-oci
+# ixgbevf (in VMs) doesn't reset the NIC on MTU change
+# https://github.com/coreos/bugs/issues/2031
+Driver=ixgbevf
+
+[Network]
+DHCP=yes
+
+[DHCP]
+UseMTU=true
+UseDomains=true
+# Root is on iSCSI
+CriticalConnection=true
