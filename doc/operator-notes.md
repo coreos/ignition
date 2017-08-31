@@ -30,3 +30,20 @@ In the second two cases, where there is a preexisting filesystem, Ignition's beh
 If `wipeFilesystem` is set to true, Ignition will always wipe any preexisting filesystem and create the desired filesystem. Note this will result in any data on the old filesystem being lost.
 
 If `wipeFilesystem` is set to false, Ignition will then attempt to reuse the existing filesystem. If the filesystem is of the correct type, has a matching label, and has a matching UUID, then Ignition will reuse the filesystem. If the label or UUID is not set in the Ignition config, they don't need to match for Ignition to reuse the filesystem. Any preexisting data will be left on the device and will be available to the installation. If the preexisting filesystem is *not* of the correct type, then Ignition will fail, and the machine will fail to boot.
+
+## Raid Reuse Semantics
+Just like filesystems and partitions, there are three possibilities for raid arrays when Ignition runs:
+
+- All of the devices specified by the RAID array are present and unused
+- All of the devices specified by the RAID array are present, but some or all are used
+- Some devices specified are missing
+
+An unused device is
+ * A partition with no filesystem, lvm metadata, RAID metadata etc
+ * A whole-disk device with no GPT partition table
+
+In the first case, Ignition will always create the raid array.
+In the second case, the `overwriteDevices` flag controls Ignition's behavior. If set, Ignition will create the array, overwrite the devices. If not, Ignition will try to start the devices as an array.
+In the third case Ignition will try to start the devices as an array. If overwriteDevices is set, Ignition will fail. 
+
+In the cases that Ignition tries to start the array, Ignition will fail if the array fails to start. Ignition will also fail if the array starts but has the wrong name or level.

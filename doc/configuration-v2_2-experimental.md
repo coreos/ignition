@@ -34,6 +34,8 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **level** (string): the redundancy level of the array (e.g. linear, raid1, raid5, etc.).
     * **devices** (list of strings): the list of devices (referenced by their absolute path) in the array.
     * **_spares_** (integer): the number of spares (if applicable) in the array.
+    * **_options_** (list of strings): any additional arguments to be passed to mdadm when creating the array
+    * **overwriteDevices** (boolean): whether or not to wipe the devices before raid creation.
   * **_filesystems_** (list of objects): the list of filesystems to be configured and/or used in the "files" section. Either "mount" or "path" needs to be specified.
     * **_name_** (string): the identifier for the filesystem, internal to Ignition. This is only required if the filesystem needs to be referenced in the "files" section.
     * **_mount_** (object): contains the set of mount and formatting options for the filesystem. A non-null entry indicates that the filesystem should be mounted before it is used by Ignition.
