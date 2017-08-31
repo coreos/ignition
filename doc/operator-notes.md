@@ -30,3 +30,34 @@ In the second two cases, where there is a preexisting filesystem, Ignition's beh
 If `wipeFilesystem` is set to true, Ignition will always wipe any preexisting filesystem and create the desired filesystem. Note this will result in any data on the old filesystem being lost.
 
 If `wipeFilesystem` is set to false, Ignition will then attempt to reuse the existing filesystem. If the filesystem is of the correct type, has a matching label, and has a matching UUID, then Ignition will reuse the filesystem. If the label or UUID is not set in the Ignition config, they don't need to match for Ignition to reuse the filesystem. Any preexisting data will be left on the device and will be available to the installation. If the preexisting filesystem is *not* of the correct type, then Ignition will fail, and the machine will fail to boot.
+
+## Partition Reuse Semantics
+Similar to the filesystemd use semantics, there are three possibilties for partitions when Ignition runs
+
+- The is no preexisting partition
+- There is a preexisting partition of the correct size, starting sector, label, type_guid and guid.
+- There is a preexisting partition of an incorrect size, starting sector, label, type_guid or guid.
+
+In the first case, Ignition will always create the desired partition. Using a partition number of 0 specifies to use the next available partition number and will ensure there is no preexisting partition.
+
+In the second two cases, the wipePartition flag controls Ignition's behavior. If it is set to true, Ignition will first delete the partition with the specified number and then attempt to create the new partition. The partition number must be specified and non-zero if wipePartition is set to true.
+
+If wipePartition is false, Ignition will attempt to reuse the existing partition. If the partition has a matching label, uuid, type_guid, start sector, and size, Ignition will reuse the partition. If any of those are not specified, zero, or empty, they do not need to match for Ignition to reuse the partition. If the partition does not match the Ignition configuration, Ignition will fail, and the machine will fail to boot.
+
+## Raid Reuse Semantics
+Just like filesystems and partitions, there are three possibilities for raid arrays when Ignition runs
+
+- The devices specified by the RAID array are unused
+- The devices specified by the RAID array are used in an existing RAID array with the correct level, devices, and name
+- The devices specified by the RAID array are used are either not a member of an existing array or are a member of an exisiting RAID array with incorrect level, devices, or name
+
+An unused device is
+ * Not part of an exising RAID array
+ * A partition with no filesystem present
+ * A whole-disk device with not partition table
+
+In the first case, Ignition will always create the raid array.
+
+In the second and third case the overwriteDevices flag controls Ignition's behavior. If it is set to true, Ignition will use the devices specified whether or not they are currently in a RAID array or have an existing filesystem or partition table.
+
+If overwriteDevices is false, Ignition will attempt to use an existing RAID device. The existing RAID device must have the same name and raid level. Additionally it must be composed of exactly the devices specified and all of those devices must share the same array uuid. The number of spares is allowed to differ. If Ignition cannot reuse the existing RAID device, it will fail and the machine will fail to boot.
