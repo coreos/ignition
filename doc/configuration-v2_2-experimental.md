@@ -29,6 +29,8 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_start_** (integer): the start of the partition (in device logical sectors). If zero, the partition will be positioned at the earliest available part of the disk.
       * **_typeGuid_** (string): the GPT [partition type GUID][part-types]. If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
       * **_guid_** (string): the GPT unique partition GUID.
+      * **_wipePartitionEntry_** (boolean) whether or not Ignition is allowed to wipe an existing partition entry for this partition number.
+      * **_shouldExist_** (boolean) whether or not a partition `number` should exist. If ommited, it defaults to true. If false, `number` must be specified and non-zero and `label`, `start`, `size`, `guid`, and `typeGuid` must all be omitted.
   * **_raid_** (list of objects): the list of RAID arrays to be configured.
     * **name** (string): the name to use for the resulting md device.
     * **level** (string): the redundancy level of the array (e.g. linear, raid1, raid5, etc.).
