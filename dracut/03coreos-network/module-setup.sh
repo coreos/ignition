@@ -15,14 +15,20 @@ install() {
         $systemdsystemunitdir/systemd-resolved.service \
         /etc/systemd/resolved.conf
 
-    inst_simple "$moddir/10-down.conf" \
-        "$systemdsystemunitdir/systemd-networkd.service.d/10-down.conf"
+    inst_simple "$moddir/network-cleanup.service" \
+        "$systemdsystemunitdir/network-cleanup.service"
 
     inst_simple "$moddir/10-nodeps.conf" \
         "$systemdsystemunitdir/systemd-resolved.service.d/10-nodeps.conf"
 
     inst_simple "$moddir/yy-digitalocean.network" \
         "$systemdutildir/network/yy-digitalocean.network"
+
+    inst_simple "$moddir/yy-oracle-oci.network" \
+        "$systemdutildir/network/yy-oracle-oci.network"
+
+    inst_simple "$moddir/yy-oracle-oci-bm.network" \
+        "$systemdutildir/network/yy-oracle-oci-bm.network"
 
     inst_simple "$moddir/yy-pxe.network" \
         "$systemdutildir/network/yy-pxe.network"
@@ -48,4 +54,6 @@ install() {
     # we only want it when pulled in
     systemctl --root "$initdir" disable systemd-networkd.service
     systemctl --root "$initdir" disable systemd-networkd.socket
+
+    systemctl --root "$initdir" enable network-cleanup.service
 }
