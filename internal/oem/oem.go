@@ -282,6 +282,16 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 	configs.Register(Config{
 		name:  "oracle-oci",
 		fetch: oracleoci.FetchConfig,
+		baseConfig: types.Config{
+			Systemd: types.Systemd{
+				Units: []types.Unit{
+					{Enabled: yes, Name: "coreos-metadata-sshkeys@.service"},
+					{Enabled: yes, Name: "iscsid.service"},
+					{Enabled: yes, Name: "oracle-oci-root-setup.service"},
+				},
+			},
+			Storage: types.Storage{Files: []types.File{serviceFromOem("oracle-oci-root-setup.service")}},
+		},
 	})
 }
 
