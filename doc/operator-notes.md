@@ -62,3 +62,40 @@ If tooling is being used to generate Ignition configs, the tooling _should_ gene
 
 [selinux]: https://selinuxproject.org/page/Main_Page
 [restorecon]: https://linux.die.net/man/8/restorecon
+
+## Partition Reuse Semantics
+
+The `wipePartitionEntry` and `shouldExist` flags control what Ignition will do when it encounters an existing partition. `wipePartitionEntry` specifies whether Ignition is permitted to delete partition entries in the partition table.  `shouldExist` specifies whether a partition with that number should exist or not (it is invalid to specify a partition should not exist and specify its attributes, such as `size` or `label`).
+
+The following table shows the possible combinations of whether or not a partition with the specified number is present, `shouldExist`, and `wipePartitionEntry`, and the action Ignition will take
+
+| Partition present | shouldExist | wipePartitionEntry | Action Ignition takes
+| ----------------- | ----------- | ------------------ | ---------------------
+| false             | false       | false              | Do nothing
+| false             | false       | true               | Do nothing
+| false             | true        | false              | Create specified partition
+| false             | true        | true               | Create specified partition
+| true              | false       | false              | Fail
+| true              | false       | true               | Delete existing partition
+| true              | true        | false              | Check if existing partition matches the specified one, fail if it does not
+| true              | true        | true               | Check if existing partition matches the specified one, delete existing partition and create specified partition if it does not match
+
+### Partition Matching
+A partition matches if all of the specified attributes (`label`, `start`, `size`, `uuid`, and `typeGuid`) are the same. Specifying `uuid` or `typeGuid` as an empty string is the same as not specifying them. When 0 is specified for start or size, Ignition checks if the existing partition's start / size match what they would be if all of the partitions specified were to be deleted (if allowed by wipPartitionEntry), then recreated if `shouldExist` is true.
+
+### Partition number 0
+Specifying `number` as 0 will use the next available partition number. Partition number 0 is disallowed on disks with partitions that specify `shouldExist` as false. If `number` is not specified it will be treated as 0.
+
+### Partition start 0
+Specifying `start` as 0 will use the starting sector of the largest available block. It will *not* use the first available block large enough.
+
+### Unspecified partition start
+If `start` is not specified and a partition with the same number exists, it will use the value of the existing partition, unless wipePartitionEntry is set.
+If `start` is not specified and there is no existing partition, or wipePartitionEntry is set, `start` act as if it were set to 0 and use the starting sector of the largest available block.
+
+### Partition size 0
+Specifying `size` as 0 means the partition should span to the end of the largest available block. It will *not* use the size of first available block.
+
+### Unspecified partition size
+If `size` is not specified and a partition with the same number exists, it will use the value of the existing partition, unless wipePartitionEntry is set.
+If `size` is not specified and there is no existing partition, or wipePartitionEntry is set, `size` act as if it were set to 0 and use the size of the largest block.
