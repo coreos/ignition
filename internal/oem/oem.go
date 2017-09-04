@@ -22,6 +22,7 @@ import (
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/azure"
+	"github.com/coreos/ignition/internal/providers/cloudstack"
 	"github.com/coreos/ignition/internal/providers/digitalocean"
 	"github.com/coreos/ignition/internal/providers/ec2"
 	"github.com/coreos/ignition/internal/providers/file"
@@ -102,7 +103,7 @@ func init() {
 	})
 	configs.Register(Config{
 		name:  "cloudstack",
-		fetch: noop.FetchConfig,
+		fetch: cloudstack.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "digitalocean",
