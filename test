@@ -8,7 +8,7 @@ SRC=$(find . -name '*.go' \
   -not -path "./vendor/*")
 
 PKG=$(cd gopath/src/${REPO_PATH}; go list ./... | \
-	grep --invert-match vendor)
+	grep --invert-match vendor | grep --invert-match tests)
 
 # https://github.com/golang/go/issues/15067
 PKG_VET=$(cd gopath/src/${REPO_PATH}; go list ./... | \
@@ -28,7 +28,16 @@ fi
 echo "Checking govet..."
 go vet $PKG_VET
 
-echo "Running tests..."
-go test -timeout 60s -cover $@ ${PKG} --race
+if [ "${ACTION:-TEST}" != "COMPILE" ]; then
+    echo "Running tests..."
+    go test -timeout 60s -cover $@ ${PKG} --race
+else
+    PKG=$(cd gopath/src/${REPO_PATH}; go list ./... | \
+    	grep --invert-match vendor)
+    echo "Compiling tests..."
+    for p in ${PKG}; do
+		go test -c $p
+	done
+fi
 
 echo "Success"
