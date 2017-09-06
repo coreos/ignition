@@ -18,25 +18,18 @@ import (
 	"fmt"
 	"os/exec"
 
+	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 )
 
 const sgdiskPath = "/sbin/sgdisk"
 
 type Operation struct {
-	logger *log.Logger
-	dev    string
-	wipe   bool
-	parts  []Partition
-}
-
-type Partition struct {
-	Number   int
-	Offset   uint64 // device logical sectors (probably 512 bytes or 4 KiB)
-	Length   uint64 // device logical sectors (probably 512 bytes or 4 KiB)
-	Label    string
-	TypeGUID string
-	GUID     string
+	logger    *log.Logger
+	dev       string
+	wipe      bool
+	parts     []types.Partition
+	deletions []int
 }
 
 // Begin begins an sgdisk operation
@@ -45,9 +38,12 @@ func Begin(logger *log.Logger, dev string) *Operation {
 }
 
 // CreatePartition adds the supplied partition to the list of partitions to be created as part of an operation.
-func (op *Operation) CreatePartition(p Partition) {
-	// XXX(vc): no checking is performed here, since we perform checking at json parsing, Commit() will just fail on badness.
+func (op *Operation) CreatePartition(p types.Partition) {
 	op.parts = append(op.parts, p)
+}
+
+func (op *Operation) DeletePartition(num int) {
+	op.deletions = append(op.deletions, num)
 }
 
 // WipeTable toggles if the table is to be wiped first when commiting this operation.
@@ -68,23 +64,34 @@ func (op *Operation) Commit() error {
 		}
 	}
 
-	if len(op.parts) != 0 {
-		opts := []string{}
-		for _, p := range op.parts {
-			opts = append(opts, fmt.Sprintf("--new=%d:%d:+%d", p.Number, p.Offset, p.Length))
-			opts = append(opts, fmt.Sprintf("--change-name=%d:%s", p.Number, p.Label))
-			if p.TypeGUID != "" {
-				opts = append(opts, fmt.Sprintf("--typecode=%d:%s", p.Number, p.TypeGUID))
-			}
-			if p.GUID != "" {
-				opts = append(opts, fmt.Sprintf("--partition-guid=%d:%s", p.Number, p.GUID))
-			}
+	opts := []string{}
+
+	// Do all deletions before creations
+	for _, partition := range op.deletions {
+		opts = append(opts, fmt.Sprintf("--delete=%d", partition))
+	}
+
+	for _, p := range op.parts {
+		opts = append(opts, fmt.Sprintf("--new=%d:%d:+%d", p.Number, p.Start, p.Size))
+		if p.Label != nil {
+			opts = append(opts, fmt.Sprintf("--change-name=%d:%s", p.Number, *p.Label))
 		}
-		opts = append(opts, op.dev)
-		cmd := exec.Command(sgdiskPath, opts...)
-		if _, err := op.logger.LogCmd(cmd, "creating %d partitions on %q", len(op.parts), op.dev); err != nil {
-			return fmt.Errorf("create partitions failed: %v", err)
+		if p.TypeGUID != "" {
+			opts = append(opts, fmt.Sprintf("--typecode=%d:%s", p.Number, p.TypeGUID))
 		}
+		if p.GUID != "" {
+			opts = append(opts, fmt.Sprintf("--partition-guid=%d:%s", p.Number, p.GUID))
+		}
+	}
+
+	if len(opts) == 0 {
+		return nil
+	}
+
+	opts = append(opts, op.dev)
+	cmd := exec.Command(sgdiskPath, opts...)
+	if _, err := op.logger.LogCmd(cmd, "creating %d partitions on %q", len(op.parts), op.dev); err != nil {
+		return fmt.Errorf("create partitions failed: %v", err)
 	}
 
 	return nil
