@@ -267,22 +267,28 @@
           "type": "object",
           "properties": {
             "label": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "number": {
               "type": "integer"
             },
             "size": {
-              "type": "integer"
+              "type": ["integer", "null"]
             },
             "start": {
-              "type": "integer"
+              "type": ["integer", "null"]
             },
             "typeGuid": {
               "type": "string"
             },
             "guid": {
               "type": "string"
+            },
+            "wipePartitionEntry": {
+              "type": "boolean"
+            },
+            "shouldExist": {
+              "type": ["boolean", "null"]
             }
           }
         },
