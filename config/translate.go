@@ -23,6 +23,7 @@ import (
 	v1 "github.com/coreos/ignition/config/v1/types"
 	v2_0 "github.com/coreos/ignition/config/v2_0/types"
 	v2_1 "github.com/coreos/ignition/config/v2_1/types"
+	"github.com/coreos/ignition/internal/util"
 
 	"github.com/vincent-petithory/dataurl"
 )
@@ -57,10 +58,10 @@ func TranslateFromV1(old v1.Config) types.Config {
 
 		for _, oldPartition := range oldDisk.Partitions {
 			disk.Partitions = append(disk.Partitions, types.Partition{
-				Label:    string(oldPartition.Label),
+				Label:    util.StringToPtr(string(oldPartition.Label)),
 				Number:   oldPartition.Number,
-				Size:     int(oldPartition.Size),
-				Start:    int(oldPartition.Start),
+				Size:     util.IntToPtr(int(oldPartition.Size)),
+				Start:    util.IntToPtr(int(oldPartition.Start)),
 				TypeGUID: string(oldPartition.TypeGUID),
 			})
 		}
@@ -264,10 +265,10 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 
 		for _, oldPartition := range oldDisk.Partitions {
 			disk.Partitions = append(disk.Partitions, types.Partition{
-				Label:    string(oldPartition.Label),
+				Label:    util.StringToPtr(string(oldPartition.Label)),
 				Number:   oldPartition.Number,
-				Size:     int(oldPartition.Size),
-				Start:    int(oldPartition.Start),
+				Size:     util.IntToPtr(int(oldPartition.Size)),
+				Start:    util.IntToPtr(int(oldPartition.Start)),
 				TypeGUID: string(oldPartition.TypeGUID),
 			})
 		}
@@ -556,10 +557,10 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 		for _, x := range old {
 			res = append(res, types.Partition{
 				GUID:     x.GUID,
-				Label:    x.Label,
+				Label:    util.StringToPtr(x.Label),
 				Number:   x.Number,
-				Size:     x.Size,
-				Start:    x.Start,
+				Size:     util.IntToPtr(x.Size),
+				Start:    util.IntToPtr(x.Start),
 				TypeGUID: x.TypeGUID,
 			})
 		}
