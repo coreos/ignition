@@ -27,9 +27,6 @@ install() {
     inst_simple "$moddir/yy-oracle-oci.network" \
         "$systemdutildir/network/yy-oracle-oci.network"
 
-    inst_simple "$moddir/yy-oracle-oci-bm.network" \
-        "$systemdutildir/network/yy-oracle-oci-bm.network"
-
     inst_simple "$moddir/yy-pxe.network" \
         "$systemdutildir/network/yy-pxe.network"
 
