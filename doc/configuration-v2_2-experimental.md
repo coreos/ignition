@@ -16,7 +16,7 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is sha512.
   * **_timeouts_** (object): options relating to http timeouts when fetching files over http or https.
-    * **_httpResponseHeaders_** (integer) the time to wait (in seconds) for the server's repsonse headers (but not the body) after making a request. 0 indicates no timeout. Default is 10 seconds.
+    * **_httpResponseHeaders_** (integer) the time to wait (in seconds) for the server's response headers (but not the body) after making a request. 0 indicates no timeout. Default is 10 seconds.
     * **_httpTotal_** (integer) the time limit (in seconds) for the operation (connection, request, and response), including retries. 0 indicates no timeout. Default is 0.
 * **_storage_** (object): describes the desired state of the system's storage devices.
   * **_disks_** (list of objects): the list of disks to be configured and their options.
@@ -75,7 +75,7 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_links_** (list of objects): the list of links to be created
     * **filesystem** (string): the internal identifier of the filesystem in which to write the link. This matches the last filesystem with the given identifier.
     * **path** (string): the absolute path to the link
-    * **_user_** (object): specifies the symbolic links's owner.
+    * **_user_** (object): specifies the symbolic link's owner.
       * **_id_** (integer): the user ID of the owner.
       * **_name_** (string): the user name of the owner.
     * **_group_** (object): specifies the group of the owner.
