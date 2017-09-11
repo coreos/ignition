@@ -288,9 +288,15 @@ alias gsutil="(docker images google/cloud-sdk || docker pull google/cloud-sdk) >
 					{Enabled: yes, Name: "coreos-metadata-sshkeys@.service"},
 					{Enabled: yes, Name: "iscsid.service"},
 					{Enabled: yes, Name: "oracle-oci-root-setup.service"},
+					{Enabled: yes, Name: "oracle-oci-iptables.service"},
 				},
 			},
-			Storage: types.Storage{Files: []types.File{serviceFromOem("oracle-oci-root-setup.service")}},
+			Storage: types.Storage{
+				Files: []types.File{
+					serviceFromOem("oracle-oci-root-setup.service"),
+					serviceFromOem("oracle-oci-iptables.service"),
+				},
+			},
 		},
 	})
 }
