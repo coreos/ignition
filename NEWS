@@ -1,3 +1,31 @@
+08-Sep-2017 IGNITION v0.18.0
+
+  Features
+
+    - On VMWare allow guest variables to override values specified in the OVF
+      environment
+    - Add partial support for CloudStack
+    - Add blackbox tests
+    - Add support for Oracle OCI provider
+
+  Changes
+
+    - Chmod pre-existing directories to match defined permissions in config
+    - Chown pre-existing links to match defined owner in config
+    - Add "--homehost any" arguments to mdadm raid creation to ensure consistent
+      device name under /dev/md
+    - On GCE, don't bind-mount docker binary into Google Cloud SDK container
+    - On GCE, remove gcutil alias
+
+  Bug Fixes
+
+    - Properly error out when a user or group set by name in the config cannot
+      be resolved to an id
+    - Fix typo in gcloud alias preventing connection to the docker daemon in
+      some cases
+    - Fix partition number validation where multiple partitions on a disk were
+      unable to specify 0 for the next available partition number
+
 28-Jul-2017 IGNITION v0.17.2
 
   Bug Fixes
