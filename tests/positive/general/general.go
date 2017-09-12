@@ -21,8 +21,10 @@ import (
 
 func init() {
 	register.Register(register.PositiveTest, ReformatFilesystemAndWriteFile())
-	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfig())
-	register.Register(register.PositiveTest, AppendConfigWithRemoteConfig())
+	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTP())
+	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTP())
+	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigTFTP())
+	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigTFTP())
 	register.Register(register.PositiveTest, VersionOnlyConfig())
 	register.Register(register.PositiveTest, EmptyUserdata())
 }
@@ -69,8 +71,8 @@ func ReformatFilesystemAndWriteFile() types.Test {
 	return types.Test{name, in, out, mntDevices, config}
 }
 
-func ReplaceConfigWithRemoteConfig() types.Test {
-	name := "Replacing the Config with a Remote Config"
+func ReplaceConfigWithRemoteConfigHTTP() types.Test {
+	name := "Replacing the Config with a Remote Config from HTTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	var mntDevices []types.MntDevice
@@ -98,8 +100,37 @@ func ReplaceConfigWithRemoteConfig() types.Test {
 	return types.Test{name, in, out, mntDevices, config}
 }
 
-func AppendConfigWithRemoteConfig() types.Test {
-	name := "Appending to the Config with a Remote Config"
+func ReplaceConfigWithRemoteConfigTFTP() types.Test {
+	name := "Replacing the Config with a Remote Config from TFTP"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	var mntDevices []types.MntDevice
+	config := `{
+          "ignition": {
+            "version": "2.1.0",
+            "config": {
+              "replace": {
+                "source": "tftp://127.0.0.1:69/config",
+                        "verification": { "hash": "sha512-fa00083efe3f00eb984e6dc27cc8673585cce4319e39099ce014103619ae7ab7dc3555e51401c7df472bdd125c552e528f54d717b8147129c99836d3dedc9760" }
+              }
+            }
+          }
+        }`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{name, in, out, mntDevices, config}
+}
+
+func AppendConfigWithRemoteConfigHTTP() types.Test {
+	name := "Appending to the Config with a Remote Config from HTTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	var mntDevices []types.MntDevice
@@ -121,6 +152,49 @@ func AppendConfigWithRemoteConfig() types.Test {
         }]
       }
 	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "bar2",
+				Directory: "foo",
+			},
+			Contents: "another example file\n",
+		},
+	})
+
+	return types.Test{name, in, out, mntDevices, config}
+}
+
+func AppendConfigWithRemoteConfigTFTP() types.Test {
+	name := "Appending to the Config with a Remote Config from TFTP"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	var mntDevices []types.MntDevice
+	config := `{
+          "ignition": {
+            "version": "2.1.0",
+            "config": {
+              "append": [{
+                "source": "tftp://127.0.0.1:69/config",
+                        "verification": { "hash": "sha512-fa00083efe3f00eb984e6dc27cc8673585cce4319e39099ce014103619ae7ab7dc3555e51401c7df472bdd125c552e528f54d717b8147129c99836d3dedc9760" }
+              }]
+            }
+          },
+      "storage": {
+        "files": [{
+          "filesystem": "root",
+          "path": "/foo/bar2",
+          "contents": { "source": "data:,another%20example%20file%0A" }
+        }]
+      }
+        }`
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

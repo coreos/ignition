@@ -20,11 +20,12 @@ import (
 )
 
 func init() {
-	register.Register(register.PositiveTest, CreateFileFromRemoteContents())
+	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTP())
+	register.Register(register.PositiveTest, CreateFileFromRemoteContentsTFTP())
 }
 
-func CreateFileFromRemoteContents() types.Test {
-	name := "Create Files from Remote Contents"
+func CreateFileFromRemoteContentsHTTP() types.Test {
+	name := "Create Files from Remote Contents - HTTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	var mntDevices []types.MntDevice
@@ -40,6 +41,36 @@ func CreateFileFromRemoteContents() types.Test {
 	    }]
 	  }
 	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+
+	return types.Test{name, in, out, mntDevices, config}
+}
+
+func CreateFileFromRemoteContentsTFTP() types.Test {
+	name := "Create Files from Remote Contents - TFTP"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	var mntDevices []types.MntDevice
+	config := `{
+          "ignition": { "version": "2.1.0" },
+          "storage": {
+            "files": [{
+              "filesystem": "root",
+              "path": "/foo/bar",
+              "contents": {
+                "source": "tftp://127.0.0.1:69/contents"
+              }
+            }]
+          }
+        }`
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
