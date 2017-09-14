@@ -99,7 +99,7 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 	}
 
 	if c.Gecos != "" {
-		args = append(args, "--comment", fmt.Sprintf("%q", c.Gecos))
+		args = append(args, "--comment", c.Gecos)
 	}
 
 	if c.PrimaryGroup != "" {
