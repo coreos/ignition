@@ -48,6 +48,10 @@ func TestValidateLabel(t *testing.T) {
 			in{"1111111111111111111111111111111111111"},
 			out{report.ReportFromError(ErrLabelTooLong, report.EntryError)},
 		},
+		{
+			in{"test:"},
+			out{report.ReportFromError(ErrLabelContainsColon, report.EntryError)},
+		},
 	}
 	for i, test := range tests {
 		r := Partition{Label: test.in.label}.ValidateLabel()
