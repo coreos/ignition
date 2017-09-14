@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/coreos/ignition/config/validate/report"
 )
@@ -29,6 +30,7 @@ const (
 var (
 	ErrLabelTooLong         = errors.New("partition labels may not exceed 36 characters")
 	ErrDoesntMatchGUIDRegex = errors.New("doesn't match the form \"01234567-89AB-CDEF-EDCB-A98765432101\"")
+	ErrLabelContainsColon   = errors.New("partition label will be truncated to text before the colon")
 )
 
 func (p Partition) ValidateLabel() report.Report {
@@ -42,6 +44,14 @@ func (p Partition) ValidateLabel() report.Report {
 		r.Add(report.Entry{
 			Message: ErrLabelTooLong.Error(),
 			Kind:    report.EntryError,
+		})
+	}
+
+	// sgdisk uses colons for delimitting compound arguments and does not allow escaping them.
+	if strings.Contains(p.Label, ":") {
+		r.Add(report.Entry{
+			Message: ErrLabelContainsColon.Error(),
+			Kind:    report.EntryWarning,
 		})
 	}
 	return r
