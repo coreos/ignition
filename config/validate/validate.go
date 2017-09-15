@@ -185,6 +185,10 @@ func validateStruct(vObj reflect.Value, ast AstNode, source io.ReadSeeker, check
 		// If there's a Validate<Name> func for the given field, call it
 		funct := vObj.MethodByName("Validate" + f.Type.Name)
 		if funct.IsValid() {
+			if sub_node != nil {
+				// if sub_node is non-nil, we can get better line/col info
+				line, col, _ = sub_node.ValueLineCol(src)
+			}
 			res := funct.Call(nil)
 			sub_report := res[0].Interface().(report.Report)
 			sub_report.AddPosition(line, col, "")
