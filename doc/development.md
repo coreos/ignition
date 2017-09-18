@@ -55,7 +55,6 @@ sudo -E PATH=$PWD/bin/amd64:$PATH ./tests.test
 The following packages are required by the Blackbox Test:
 
 * `util-linux`
-* `kpartx`
 * `dosfstools`
 * `e2fsprogs`
 * `btrfs-progs`

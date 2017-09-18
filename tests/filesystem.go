@@ -21,7 +21,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -115,28 +114,15 @@ func runIgnition(t *testing.T, stage, root, configDir string, expectFail bool) b
 	return err == nil
 }
 
-// pickDevice will return the device corresponding to a partition with a given
-// label in the given imageFile
-func pickDevice(t *testing.T, partitions []*types.Partition, fileName string, label string) string {
-	number := -1
+// pickPartition will return the partition device corresponding to a
+// partition with a given label on the given loop device
+func pickPartition(t *testing.T, device string, partitions []*types.Partition, label string) string {
 	for _, p := range partitions {
 		if p.Label == label {
-			number = p.Number
+			return fmt.Sprintf("%sp%d", device, p.Number)
 		}
 	}
-	if number == -1 {
-		return ""
-	}
-
-	args := []string{"-l", fileName}
-	kpartxOut := mustRun(t, "kpartx", args...)
-	re := regexp.MustCompile("/dev/(?P<device>[\\w\\d]+)")
-	match := re.FindSubmatch(kpartxOut)
-	if len(match) < 2 {
-		t.Log(string(kpartxOut))
-		t.Fatal("couldn't find device")
-	}
-	return fmt.Sprintf("/dev/mapper/%sp%d", string(match[1]), number)
+	return ""
 }
 
 func writeIgnitionConfig(t *testing.T, config string) string {
@@ -195,35 +181,26 @@ func createVolume(t *testing.T, imageFile string, size int64, cylinders int, hea
 }
 
 // setDevices will create devices for each of the partitions in the imageFile,
-// and then will format each partition according to what's descrived in the
+// and then will format each partition according to what's described in the
 // partitions argument.
 func setDevices(t *testing.T, imageFile string, partitions []*types.Partition) string {
-	loopDevice := kpartxAdd(t, imageFile)
+	out := mustRun(t, "losetup", "-Pf", "--show", imageFile)
+	loopDevice := strings.TrimSpace(string(out))
 
 	for _, partition := range partitions {
 		if partition.TypeCode == "blank" || partition.FilesystemType == "" {
 			continue
 		}
-
-		partition.Device = fmt.Sprintf(
-			"/dev/mapper/%sp%d", loopDevice, partition.Number)
+		partition.Device = fmt.Sprintf("%sp%d", loopDevice, partition.Number)
 		formatPartition(t, partition)
 	}
-	return fmt.Sprintf("/dev/%s", loopDevice)
+	return loopDevice
 }
 
-func destroyDevices(t *testing.T, imageFile string, partitions []*types.Partition) {
-	args := []string{"-d", imageFile}
-	_ = mustRun(t, "kpartx", args...)
-
-	/*
-		// add additional cleanup as kpartx -d isn't removing all device mappers
-		for _, partition := range partitions {
-			args := []string{"remove", partition.Device}
-			_ = mustRun(t, "dmsetup", args...)
-		}
-	*/
+func destroyDevice(t *testing.T, loopDevice string) {
+	_ = mustRun(t, "losetup", "-d", loopDevice)
 }
+
 func formatPartition(t *testing.T, partition *types.Partition) {
 	var mkfs string
 	var opts, label, uuid []string
@@ -333,24 +310,6 @@ func createPartitionTable(t *testing.T, imageFile string, partitions []*types.Pa
 		}
 	}
 	_ = mustRun(t, "sgdisk", opts...)
-}
-
-// kpartxAdd will use kpartx to add partition mappings for all of the partitions
-// contained in the imageFile. This creates devices such as /dev/mapper/loop1p1
-// corresponding to partitions in the imageFile. The loop device name (e.g.
-// "loop1") will be returned.
-func kpartxAdd(t *testing.T, imageFile string) string {
-	args := []string{"-avs", imageFile}
-	_ = mustRun(t, "kpartx", args...)
-	args = []string{"-l", imageFile}
-	kpartxOut := mustRun(t, "kpartx", args...)
-	re := regexp.MustCompile("/dev/(?P<device>[\\w\\d]+)")
-	match := re.FindSubmatch(kpartxOut)
-	if len(match) < 2 {
-		t.Log(string(kpartxOut))
-		t.Fatal("couldn't find device")
-	}
-	return string(match[1])
 }
 
 func mountRootPartition(t *testing.T, partitions []*types.Partition) bool {
