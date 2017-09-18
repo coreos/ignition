@@ -152,6 +152,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	defer os.Setenv("TMPDIR", originalTmpDir)
 	defer os.RemoveAll(tmpDirectory)
 
+	oemLookasideDir := filepath.Join(os.TempDir(), "oem-lookaside")
 	var rootLocation string
 
 	// Setup
@@ -236,8 +237,12 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	}
 
 	// Ignition
-	disks := runIgnition(t, "disks", rootLocation, tmpDirectory, negativeTests)
-	files := runIgnition(t, "files", rootLocation, tmpDirectory, negativeTests)
+	appendEnv := []string{
+		"IGNITION_OEM_DEVICE=" + test.In[0].Partitions.GetPartition("OEM").Device,
+		"IGNITION_OEM_LOOKASIDE_DIR=" + oemLookasideDir,
+	}
+	disks := runIgnition(t, "disks", rootLocation, tmpDirectory, appendEnv, negativeTests)
+	files := runIgnition(t, "files", rootLocation, tmpDirectory, appendEnv, negativeTests)
 	if negativeTests && disks && files {
 		t.Fatal("Expected failure and ignition succeeded")
 	}
