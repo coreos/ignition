@@ -129,7 +129,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 
 	if os.Getenv("TMPDIR") == "" {
 		originalTmpDir := os.Getenv("TMPDIR")
-		tmpDirectory, err := ioutil.TempDir("/var/tmp", "")
+		tmpDirectory, err := ioutil.TempDir("/var/tmp", "ignition-blackbox-")
 		if err != nil {
 			t.Fatalf("failed to create a temp dir: %v", err)
 		}
