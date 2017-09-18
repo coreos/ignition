@@ -81,6 +81,8 @@ fdsa`))
                 }]
         }
 }`))
+	} else {
+		return fmt.Errorf("no such file %q", filename)
 	}
 
 	_, err := rf.ReadFrom(buf)
