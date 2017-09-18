@@ -129,7 +129,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 
 	if os.Getenv("TMPDIR") == "" {
 		originalTmpDir := os.Getenv("TMPDIR")
-		tmpDirectory, err := ioutil.TempDir("/var/tmp", "")
+		tmpDirectory, err := ioutil.TempDir("/var/tmp", "ignition-blackbox-")
 		if err != nil {
 			t.Fatalf("failed to create a temp dir: %v", err)
 		}
@@ -175,7 +175,8 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 
 		// Creation
 		createVolume(t, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
-		loopDevice := setDevices(t, disk.ImageFile, disk.Partitions)
+		disk.Device = setDevices(t, disk.ImageFile, disk.Partitions)
+		test.Out[i].Device = disk.Device
 		rootMounted := mountRootPartition(t, disk.Partitions)
 		if rootMounted && strings.Contains(test.Config, "passwd") {
 			prepareRootPartitionForPasswd(t, disk.Partitions)
@@ -186,7 +187,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 
 		// Mount device name substitution
 		for _, d := range test.MntDevices {
-			device := pickDevice(t, disk.Partitions, disk.ImageFile, d.Label)
+			device := pickPartition(t, disk.Device, disk.Partitions, d.Label)
 			// The device may not be on this disk, if it's not found here let's
 			// assume we'll find it on another one and keep going
 			if device != "" {
@@ -196,7 +197,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 
 		// Replace any instance of $<image-file> with the actual loop device
 		// that got assigned to it
-		test.Config = strings.Replace(test.Config, "$"+imageFileName, loopDevice, -1)
+		test.Config = strings.Replace(test.Config, "$"+imageFileName, disk.Device, -1)
 
 		if rootLocation == "" {
 			rootLocation = getRootLocation(disk.Partitions)
@@ -211,7 +212,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		// Cleanup
 		defer removeFile(t, disk.ImageFile)
 		defer removeMountFolders(t, disk.Partitions)
-		defer destroyDevices(t, disk.ImageFile, disk.Partitions)
+		defer destroyDevice(t, disk.Device)
 		defer unmountRootPartition(t, disk.Partitions)
 	}
 

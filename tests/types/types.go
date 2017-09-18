@@ -48,6 +48,7 @@ type Node struct {
 
 type Disk struct {
 	ImageFile  string
+	Device     string
 	Partitions Partitions
 }
 

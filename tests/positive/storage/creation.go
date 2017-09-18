@@ -148,8 +148,7 @@ func CreateNewPartitions() types.Test {
 			]
 		}
 	}`
-	// We need dummy partitions to get the test to pass on Fedora (kpartx acts
-	// weird during test setup without them), the UUIDs in the input partitions
+	// Create dummy partitions. The UUIDs in the input partitions
 	// are intentionally different so if Ignition doesn't do the right thing the
 	// validation will fail.
 	in = append(in, types.Disk{
