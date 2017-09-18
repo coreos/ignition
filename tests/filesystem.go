@@ -16,6 +16,7 @@ package blackbox
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -86,8 +87,8 @@ func getRootLocation(partitions []*types.Partition) string {
 }
 
 // returns true if no error, false if error
-func runIgnition(t *testing.T, stage, root, cwd string, expectFail bool) bool {
-	args := []string{"-clear-cache", "-oem", "file", "-stage", stage, "-root", root}
+func runIgnition(t *testing.T, stage, root, cwd, profile string, expectFail bool) bool {
+	args := []string{"-clear-cache", "-oem", "file", "-profile", profile, "-stage", stage, "-root", root}
 	cmd := exec.Command("ignition", args...)
 	t.Log("ignition", args)
 	cmd.Dir = cwd
@@ -107,6 +108,26 @@ func pickPartition(t *testing.T, device string, partitions []*types.Partition, l
 		}
 	}
 	return ""
+}
+
+func writeIgnitionProfile(t *testing.T, path string, partitions types.Partitions) {
+	var profile struct {
+		OEM struct {
+			Device            string   `json:"device"`
+			SearchDirectories []string `json:"search-dirs"`
+		} `json:"oem"`
+	}
+
+	profile.OEM.Device = partitions.GetPartition("OEM").Device
+
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	if err := json.NewEncoder(f).Encode(profile); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func calculateImageSize(partitions []*types.Partition) int64 {
