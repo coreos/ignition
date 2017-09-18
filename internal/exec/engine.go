@@ -27,6 +27,7 @@ import (
 	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/oem"
+	"github.com/coreos/ignition/internal/profile"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/cmdline"
 	"github.com/coreos/ignition/internal/resource"
@@ -42,6 +43,7 @@ type Engine struct {
 	ConfigCache  string
 	FetchTimeout time.Duration
 	Logger       *log.Logger
+	Profile      profile.Profile
 	Root         string
 	OEMConfig    oem.Config
 
@@ -90,7 +92,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 		// Create an http client and fetcher with the timeouts from the cached
 		// config
 		e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
-		f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
+		f, err = e.OEMConfig.NewFetcherFunc()(e.Profile, e.Logger, &e.client)
 		if err != nil {
 			e.Logger.Crit("failed to generate fetcher: %s", err)
 			return
@@ -102,7 +104,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 	// since we don't have a config with timeout values we can use
 	timeout := int(e.FetchTimeout.Seconds())
 	e.client = resource.NewHttpClient(e.Logger, types.Timeouts{HTTPTotal: &timeout})
-	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
+	f, err = e.OEMConfig.NewFetcherFunc()(e.Profile, e.Logger, &e.client)
 	if err != nil {
 		e.Logger.Crit("failed to generate fetcher: %s", err)
 		return
@@ -118,7 +120,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 	// Regenerate the http client and fetcher to use the timeouts from the
 	// newly fetched config
 	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
-	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
+	f, err = e.OEMConfig.NewFetcherFunc()(e.Profile, e.Logger, &e.client)
 	if err != nil {
 		e.Logger.Crit("failed to generate fetcher: %s", err)
 		return

@@ -20,6 +20,7 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/profile"
 	"github.com/coreos/ignition/internal/resource"
 )
 
@@ -28,4 +29,4 @@ var (
 )
 
 type FuncFetchConfig func(f resource.Fetcher) (types.Config, report.Report, error)
-type FuncNewFetcher func(logger *log.Logger, client *resource.HttpClient) (resource.Fetcher, error)
+type FuncNewFetcher func(profile profile.Profile, logger *log.Logger, client *resource.HttpClient) (resource.Fetcher, error)

@@ -33,6 +33,7 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/profile"
 	"github.com/coreos/ignition/internal/systemd"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -73,13 +74,14 @@ func (e ErrHashMismatch) Error() string {
 }
 
 const (
-	oemDevicePath = "/dev/disk/by-label/OEM" // Device link where oem partition is found.
-	oemDirPath    = "/usr/share/oem"         // OEM dir within root fs to consider for pxe scenarios.
-	oemMountPath  = "/mnt/oem"               // Mountpoint where oem partition is mounted when present.
+	oemMountPath = "/mnt/oem" // Mountpoint where oem partition is mounted when present.
 )
 
 // Fetcher holds settings for fetching resources from URLs
 type Fetcher struct {
+	// OS-specific profile
+	Profile profile.Profile
+
 	// The logger object to use when logging information.
 	Logger *log.Logger
 
@@ -272,19 +274,21 @@ func (f *Fetcher) FetchFromOEM(u url.URL, dest *os.File, opts FetchOptions) erro
 		return ErrPathNotAbsolute
 	}
 
-	// check if present under oemDirPath, if so use it.
-	absPath := filepath.Join(oemDirPath, path)
+	// check if present in SearchDirectories, if so use it.
+	for _, dir := range f.Profile.OEM.SearchDirectories {
+		absPath := filepath.Join(dir, path)
 
-	if fi, err := os.Open(absPath); err == nil {
-		defer fi.Close()
-		return f.decompressCopyHashAndVerify(dest, fi, opts)
-	} else if !os.IsNotExist(err) {
-		f.Logger.Err("failed to read oem config: %v", err)
-		return ErrFailed
+		if fi, err := os.Open(absPath); err == nil {
+			defer fi.Close()
+			return f.decompressCopyHashAndVerify(dest, fi, opts)
+		} else if !os.IsNotExist(err) {
+			f.Logger.Err("failed to read oem config: %v", err)
+			return ErrFailed
+		}
 	}
 
 	f.Logger.Info("oem config not found in %q, trying %q",
-		oemDirPath, oemMountPath)
+		strings.Join(f.Profile.OEM.SearchDirectories, ":"), oemMountPath)
 
 	// try oemMountPath, requires mounting it.
 	if err := f.mountOEM(); err != nil {
@@ -293,7 +297,7 @@ func (f *Fetcher) FetchFromOEM(u url.URL, dest *os.File, opts FetchOptions) erro
 	}
 	defer f.umountOEM()
 
-	absPath = filepath.Join(oemMountPath, path)
+	absPath := filepath.Join(oemMountPath, path)
 	fi, err := os.Open(absPath)
 	if err != nil {
 		f.Logger.Err("failed to read oem config: %v", err)
@@ -433,8 +437,8 @@ func (f *Fetcher) decompressCopyHashAndVerify(dest io.Writer, src io.Reader, opt
 // mountOEM waits for the presence of and mounts the oem partition at
 // oemMountPath.
 func (f *Fetcher) mountOEM() error {
-	dev := []string{oemDevicePath}
-	if err := systemd.WaitOnDevices(dev, "oem-cmdline"); err != nil {
+	dev := f.Profile.OEM.Device
+	if err := systemd.WaitOnDevices([]string{dev}, "oem-cmdline"); err != nil {
 		f.Logger.Err("failed to wait for oem device: %v", err)
 		return err
 	}
@@ -446,12 +450,12 @@ func (f *Fetcher) mountOEM() error {
 
 	if err := f.Logger.LogOp(
 		func() error {
-			return syscall.Mount(dev[0], oemMountPath, "ext4", 0, "")
+			return syscall.Mount(dev, oemMountPath, "ext4", 0, "")
 		},
-		"mounting %q at %q", oemDevicePath, oemMountPath,
+		"mounting %q at %q", dev, oemMountPath,
 	); err != nil {
 		return fmt.Errorf("failed to mount device %q at %q: %v",
-			oemDevicePath, oemMountPath, err)
+			dev, oemMountPath, err)
 	}
 
 	return nil

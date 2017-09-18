@@ -26,6 +26,7 @@ import (
 	_ "github.com/coreos/ignition/internal/exec/stages/files"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/oem"
+	"github.com/coreos/ignition/internal/profile"
 	"github.com/coreos/ignition/internal/version"
 )
 
@@ -35,6 +36,7 @@ func main() {
 		configCache  string
 		fetchTimeout time.Duration
 		oem          oem.Name
+		profile      string
 		root         string
 		stage        stages.Name
 		version      bool
@@ -44,6 +46,7 @@ func main() {
 	flag.StringVar(&flags.configCache, "config-cache", "/run/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.fetchTimeout, "fetch-timeout", exec.DefaultFetchTimeout, "initial duration for which to wait for config")
 	flag.Var(&flags.oem, "oem", fmt.Sprintf("current oem. %v", oem.Names()))
+	flag.StringVar(&flags.profile, "profile", "", "path to OS-specific Ignition profile")
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
@@ -76,6 +79,12 @@ func main() {
 		}
 	}
 
+	prof, err := profile.New(flags.profile)
+	if err != nil {
+		logger.Crit("unable to parse profile: %v", err)
+		os.Exit(1)
+	}
+
 	oemConfig := oem.MustGet(flags.oem.String())
 	engine := exec.Engine{
 		Root:         flags.root,
@@ -83,6 +92,7 @@ func main() {
 		Logger:       &logger,
 		ConfigCache:  flags.configCache,
 		OEMConfig:    oemConfig,
+		Profile:      prof,
 	}
 
 	if !engine.Run(flags.stage.String()) {
