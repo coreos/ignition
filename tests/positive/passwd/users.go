@@ -27,7 +27,6 @@ func AddPasswdUsers() types.Test {
 	name := "Adding users"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {
 			"version": "2.0.0"
@@ -151,5 +150,10 @@ ENCRYPT_METHOD SHA512
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
