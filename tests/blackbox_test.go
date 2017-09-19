@@ -232,17 +232,13 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	}
 
 	// Ignition config
-	configDir := filepath.Join(tmpDirectory, "config")
-	if err := os.Mkdir(configDir, 0777); err != nil {
-		t.Fatal(err)
-	}
-	if err := ioutil.WriteFile(filepath.Join(configDir, "config.ign"), []byte(test.Config), 0666); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(tmpDirectory, "config.ign"), []byte(test.Config), 0666); err != nil {
 		t.Fatal(err)
 	}
 
 	// Ignition
-	disks := runIgnition(t, "disks", rootLocation, configDir, negativeTests)
-	files := runIgnition(t, "files", rootLocation, configDir, negativeTests)
+	disks := runIgnition(t, "disks", rootLocation, tmpDirectory, negativeTests)
+	files := runIgnition(t, "files", rootLocation, tmpDirectory, negativeTests)
 	if negativeTests && disks && files {
 		t.Fatal("Expected failure and ignition succeeded")
 	}
