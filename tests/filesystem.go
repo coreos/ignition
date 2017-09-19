@@ -110,7 +110,7 @@ func pickPartition(t *testing.T, device string, partitions []*types.Partition, l
 	return ""
 }
 
-func writeIgnitionProfile(t *testing.T, path string, partitions types.Partitions) {
+func writeIgnitionProfile(t *testing.T, path string, partitions types.Partitions, oemDirs []string) {
 	var profile struct {
 		OEM struct {
 			Device            string   `json:"device"`
@@ -119,6 +119,7 @@ func writeIgnitionProfile(t *testing.T, path string, partitions types.Partitions
 	}
 
 	profile.OEM.Device = partitions.GetPartition("OEM").Device
+	profile.OEM.SearchDirectories = oemDirs
 
 	f, err := os.Create(path)
 	if err != nil {
@@ -368,31 +369,35 @@ func generateUUID(t *testing.T) string {
 	return strings.TrimSpace(string(out))
 }
 
-func createFiles(t *testing.T, partitions []*types.Partition) {
+func createFilesForPartitions(t *testing.T, partitions []*types.Partition) {
 	for _, partition := range partitions {
 		if partition.Files == nil {
 			continue
 		}
-		for _, file := range partition.Files {
-			err := os.MkdirAll(filepath.Join(
-				partition.MountPath, file.Directory), 0755)
+		createFilesFromSlice(t, partition.MountPath, partition.Files)
+	}
+}
+
+func createFilesFromSlice(t *testing.T, basedir string, files []types.File) {
+	for _, file := range files {
+		err := os.MkdirAll(filepath.Join(
+			basedir, file.Directory), 0755)
+		if err != nil {
+			t.Fatal("mkdirall", err)
+		}
+		f, err := os.Create(filepath.Join(
+			basedir, file.Directory, file.Name))
+		if err != nil {
+			t.Fatal("create", err, f)
+		}
+		defer f.Close()
+		if file.Contents != "" {
+			writer := bufio.NewWriter(f)
+			writeStringOut, err := writer.WriteString(file.Contents)
 			if err != nil {
-				t.Fatal("mkdirall", err)
+				t.Fatal("writeString", err, string(writeStringOut))
 			}
-			f, err := os.Create(filepath.Join(
-				partition.MountPath, file.Directory, file.Name))
-			if err != nil {
-				t.Fatal("create", err, f)
-			}
-			defer f.Close()
-			if file.Contents != "" {
-				writer := bufio.NewWriter(f)
-				writeStringOut, err := writer.WriteString(file.Contents)
-				if err != nil {
-					t.Fatal("writeString", err, string(writeStringOut))
-				}
-				writer.Flush()
-			}
+			writer.Flush()
 		}
 	}
 }
@@ -427,4 +432,18 @@ func setExpectedPartitionsDrive(actual []*types.Partition, expected []*types.Par
 			}
 		}
 	}
+}
+
+func createOEMDirs(t *testing.T, dirs [][]types.File) []string {
+	var dirPaths []string
+	for i, files := range dirs {
+		dirPath := filepath.Join(os.TempDir(), fmt.Sprintf("oem-%d", i))
+		dirPaths = append(dirPaths, dirPath)
+		err := os.Mkdir(dirPath, 0777)
+		if err != nil {
+			t.Fatal(err)
+		}
+		createFilesFromSlice(t, dirPath, files)
+	}
+	return dirPaths
 }

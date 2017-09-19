@@ -80,6 +80,7 @@ type Test struct {
 	In         []Disk
 	Out        []Disk
 	MntDevices []MntDevice
+	OEMDirs    [][]File
 	Config     string
 }
 

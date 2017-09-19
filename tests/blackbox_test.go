@@ -157,6 +157,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	var rootLocation string
 
 	// Setup
+	oemDirs := createOEMDirs(t, test.OEMDirs)
 	for i, disk := range test.In {
 		// Set image file path
 		disk.ImageFile = filepath.Join(os.TempDir(), fmt.Sprintf("hd%d", i))
@@ -188,7 +189,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 			prepareRootPartitionForPasswd(t, disk.Partitions)
 		}
 		mountPartitions(t, disk.Partitions)
-		createFiles(t, disk.Partitions)
+		createFilesForPartitions(t, disk.Partitions)
 		unmountPartitions(t, disk.Partitions)
 
 		// Mount device name substitution
@@ -237,7 +238,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		t.Fatal(err)
 	}
 	profilePath := filepath.Join(tmpDirectory, "profile")
-	writeIgnitionProfile(t, profilePath, test.In[0].Partitions)
+	writeIgnitionProfile(t, profilePath, test.In[0].Partitions, oemDirs)
 
 	// Ignition
 	disks := runIgnition(t, "disks", rootLocation, tmpDirectory, profilePath, negativeTests)
