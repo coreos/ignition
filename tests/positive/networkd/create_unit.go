@@ -27,7 +27,6 @@ func CreateNetworkdUnit() types.Test {
 	name := "Create a networkd unit"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": { "version": "2.1.0" },
 		"networkd": {
@@ -47,5 +46,10 @@ func CreateNetworkdUnit() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

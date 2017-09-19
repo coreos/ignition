@@ -28,7 +28,6 @@ func ValidateFileHashFromDataURL() types.Test {
 	name := "Validate File Hash from Data URL"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.0.0" },
 	  "storage": {
@@ -52,14 +51,18 @@ func ValidateFileHashFromDataURL() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func ValidateFileHashFromHTTPURL() types.Test {
 	name := "Validate File Hash from HTTP URL"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.0.0" },
 	  "storage": {
@@ -83,5 +86,10 @@ func ValidateFileHashFromHTTPURL() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

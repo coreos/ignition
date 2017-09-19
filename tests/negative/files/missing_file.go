@@ -29,7 +29,6 @@ func MissingRemoteContentsHTTP() types.Test {
 	name := "Missing File from Remote Contents - HTTP"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.1.0" },
 	  "storage": {
@@ -42,14 +41,18 @@ func MissingRemoteContentsHTTP() types.Test {
 	    }]
 	  }
 	}`
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func MissingRemoteContentsTFTP() types.Test {
 	name := "Missing File from Remote Contents - TFTP"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
           "ignition": { "version": "2.1.0" },
           "storage": {
@@ -62,14 +65,18 @@ func MissingRemoteContentsTFTP() types.Test {
             }]
           }
         }`
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func MissingRemoteContentsOEM() types.Test {
 	name := "Create Files from Remote Contents - OEM"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.1.0" },
 	  "storage": {
@@ -82,5 +89,10 @@ func MissingRemoteContentsOEM() types.Test {
 	    }]
 	  }
 	}`
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

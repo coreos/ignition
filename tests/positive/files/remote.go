@@ -29,7 +29,6 @@ func CreateFileFromRemoteContentsHTTP() types.Test {
 	name := "Create Files from Remote Contents - HTTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.0.0" },
 	  "storage": {
@@ -52,14 +51,18 @@ func CreateFileFromRemoteContentsHTTP() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func CreateFileFromRemoteContentsTFTP() types.Test {
 	name := "Create Files from Remote Contents - TFTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
           "ignition": { "version": "2.1.0" },
           "storage": {
@@ -82,14 +85,18 @@ func CreateFileFromRemoteContentsTFTP() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func CreateFileFromRemoteContentsOEM() types.Test {
 	name := "Create Files from Remote Contents - OEM"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.1.0" },
 	  "storage": {
@@ -120,5 +127,10 @@ func CreateFileFromRemoteContentsOEM() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

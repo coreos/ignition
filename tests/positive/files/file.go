@@ -31,7 +31,6 @@ func CreateFileOnRoot() types.Test {
 	name := "Create Files on the Root Filesystem"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.0.0" },
 	  "storage": {
@@ -52,14 +51,18 @@ func CreateFileOnRoot() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func UserGroupByID_2_0_0() types.Test {
 	name := "2.0.0 User/Group by id"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.0.0" },
 	  "storage": {
@@ -84,14 +87,18 @@ func UserGroupByID_2_0_0() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func UserGroupByID_2_1_0() types.Test {
 	name := "2.1.0 User/Group by id"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.0.0" },
 	  "storage": {
@@ -116,14 +123,18 @@ func UserGroupByID_2_1_0() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func UserGroupByName_2_1_0() types.Test {
 	name := "2.1.0 User/Group by name"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.0.0" },
 	  "storage": {
@@ -148,5 +159,10 @@ func UserGroupByName_2_1_0() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

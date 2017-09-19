@@ -52,7 +52,13 @@ func ReplaceConfigWithInvalidHash() types.Test {
 	  }
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func AppendConfigWithInvalidHash() types.Test {
@@ -84,14 +90,19 @@ func AppendConfigWithInvalidHash() types.Test {
       }
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func ReplaceConfigWithMissingFileHTTP() types.Test {
 	name := "Replace Config with Missing File - HTTP"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": {
 	    "version": "2.1.0",
@@ -103,14 +114,18 @@ func ReplaceConfigWithMissingFileHTTP() types.Test {
 	  }
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func ReplaceConfigWithMissingFileTFTP() types.Test {
 	name := "Replace Config with Missing File - TFTP"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": {
 	    "version": "2.1.0",
@@ -122,14 +137,18 @@ func ReplaceConfigWithMissingFileTFTP() types.Test {
 	  }
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func ReplaceConfigWithMissingFileOEM() types.Test {
 	name := "Replace Config with Missing File - OEM"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": {
 	    "version": "2.1.0",
@@ -141,14 +160,18 @@ func ReplaceConfigWithMissingFileOEM() types.Test {
 	  }
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func AppendConfigWithMissingFileHTTP() types.Test {
 	name := "Append Config with Missing File - HTTP"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": {
 	    "version": "2.1.0",
@@ -160,14 +183,18 @@ func AppendConfigWithMissingFileHTTP() types.Test {
 	  }
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func AppendConfigWithMissingFileTFTP() types.Test {
 	name := "Append Config with Missing File - TFTP"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": {
 	    "version": "2.1.0",
@@ -179,14 +206,18 @@ func AppendConfigWithMissingFileTFTP() types.Test {
 	  }
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func AppendConfigWithMissingFileOEM() types.Test {
 	name := "Append Config with Missing File - OEM"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": {
 	    "version": "2.1.0",
@@ -198,5 +229,10 @@ func AppendConfigWithMissingFileOEM() types.Test {
 	  }
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
