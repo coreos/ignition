@@ -24,6 +24,7 @@ import (
 	_ "github.com/coreos/ignition/tests/positive/files"
 	_ "github.com/coreos/ignition/tests/positive/general"
 	_ "github.com/coreos/ignition/tests/positive/networkd"
+	_ "github.com/coreos/ignition/tests/positive/oem"
 	_ "github.com/coreos/ignition/tests/positive/passwd"
 	_ "github.com/coreos/ignition/tests/positive/regression"
 	_ "github.com/coreos/ignition/tests/positive/storage"
