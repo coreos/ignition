@@ -126,7 +126,7 @@ func CreateNewPartitions() types.Test {
 		"storage": {
 		    "disks": [
 			    {
-					"device": "$blackbox_ignition_secondary_disk.img",
+					"device": "$disk1",
 					"wipeTable": true,
 					"partitions": [
 						{
@@ -152,7 +152,6 @@ func CreateNewPartitions() types.Test {
 	// are intentionally different so if Ignition doesn't do the right thing the
 	// validation will fail.
 	in = append(in, types.Disk{
-		ImageFile: "blackbox_ignition_secondary_disk.img",
 		Partitions: types.Partitions{
 			{
 				Label:    "important-data",
@@ -171,7 +170,6 @@ func CreateNewPartitions() types.Test {
 		},
 	})
 	out = append(out, types.Disk{
-		ImageFile: "blackbox_ignition_secondary_disk.img",
 		Partitions: types.Partitions{
 			{
 				Label:    "important-data",
@@ -204,7 +202,7 @@ func AppendPartition() types.Test {
 		},
 		"storage": {
 			"disks": [{
-				"device": "$blackbox_ignition_secondary_disk.img",
+				"device": "$disk1",
 				"wipeTable": false,
 				"partitions": [{
 					"label": "additional-partition",
@@ -218,7 +216,6 @@ func AppendPartition() types.Test {
 	}`
 
 	in = append(in, types.Disk{
-		ImageFile: "blackbox_ignition_secondary_disk.img",
 		Partitions: types.Partitions{
 			{
 				Label:    "important-data",
@@ -237,7 +234,6 @@ func AppendPartition() types.Test {
 		},
 	})
 	out = append(out, types.Disk{
-		ImageFile: "blackbox_ignition_secondary_disk.img",
 		Partitions: types.Partitions{
 			{
 				Label:    "important-data",

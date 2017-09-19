@@ -50,7 +50,6 @@ func ReuseExistingFilesystem() types.Test {
 		}
 	}`
 	in = append(in, types.Disk{
-		ImageFile: "blackbox_ignition_secondary_disk.img",
 		Partitions: types.Partitions{
 			{
 				Label:           "important-data",
@@ -72,7 +71,6 @@ func ReuseExistingFilesystem() types.Test {
 		},
 	})
 	out = append(out, types.Disk{
-		ImageFile: "blackbox_ignition_secondary_disk.img",
 		Partitions: types.Partitions{
 			{
 				Label:           "important-data",

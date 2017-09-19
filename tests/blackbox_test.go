@@ -127,34 +127,38 @@ func TestIgnitionBlackBoxNegative(t *testing.T) {
 func outer(t *testing.T, test types.Test, negativeTests bool) {
 	t.Log(test.Name)
 
-	if os.Getenv("TMPDIR") == "" {
-		originalTmpDir := os.Getenv("TMPDIR")
-		tmpDirectory, err := ioutil.TempDir("/var/tmp", "ignition-blackbox-")
+	originalTmpDir := os.Getenv("TMPDIR")
+	if originalTmpDir == "" {
+		err := os.Setenv("TMPDIR", "/var/tmp")
 		if err != nil {
-			t.Fatalf("failed to create a temp dir: %v", err)
+			t.Fatalf("couldn't initialize TMPDIR: %v", err)
 		}
-		// the tmpDirectory must be 0755 or the tests will fail as the tool will
-		// not have permissions to perform some actions in the mounted folders
-		err = os.Chmod(tmpDirectory, 0755)
-		if err != nil {
-			t.Fatalf("failed to change mode of temp dir: %v", err)
-		}
-		err = os.Setenv("TMPDIR", tmpDirectory)
-		if err != nil {
-			t.Fatalf("failed to set TMPDIR environment var: %v", err)
-		}
-		defer os.Setenv("TMPDIR", originalTmpDir)
-		defer os.RemoveAll(tmpDirectory)
 	}
+
+	tmpDirectory, err := ioutil.TempDir("", "ignition-blackbox-")
+	if err != nil {
+		t.Fatalf("failed to create a temp dir: %v", err)
+	}
+	// the tmpDirectory must be 0755 or the tests will fail as the tool will
+	// not have permissions to perform some actions in the mounted folders
+	err = os.Chmod(tmpDirectory, 0755)
+	if err != nil {
+		t.Fatalf("failed to change mode of temp dir: %v", err)
+	}
+	err = os.Setenv("TMPDIR", tmpDirectory)
+	if err != nil {
+		t.Fatalf("failed to set TMPDIR environment var: %v", err)
+	}
+	defer os.Setenv("TMPDIR", originalTmpDir)
+	defer os.RemoveAll(tmpDirectory)
 
 	var rootLocation string
 
 	// Setup
 	for i, disk := range test.In {
-		// Move the ImageFile inside the temp dir
-		imageFileName := disk.ImageFile // create a copy for doing device replaces later
-		disk.ImageFile = filepath.Join(os.Getenv("TMPDIR"), disk.ImageFile)
-		test.Out[i].ImageFile = filepath.Join(os.Getenv("TMPDIR"), test.Out[i].ImageFile)
+		// Set image file path
+		disk.ImageFile = filepath.Join(os.TempDir(), fmt.Sprintf("hd%d", i))
+		test.Out[i].ImageFile = disk.ImageFile
 
 		// There may be more partitions created by Ignition, so look at the
 		// expected output instead of the input to determine image size
@@ -174,7 +178,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		setOffsets(test.Out[i].Partitions)
 
 		// Creation
-		createVolume(t, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
+		createVolume(t, i, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
 		disk.Device = setDevices(t, disk.ImageFile, disk.Partitions)
 		test.Out[i].Device = disk.Device
 		rootMounted := mountRootPartition(t, disk.Partitions)
@@ -195,9 +199,9 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 			}
 		}
 
-		// Replace any instance of $<image-file> with the actual loop device
+		// Replace any instance of $disk<num> with the actual loop device
 		// that got assigned to it
-		test.Config = strings.Replace(test.Config, "$"+imageFileName, disk.Device, -1)
+		test.Config = strings.Replace(test.Config, fmt.Sprintf("$disk%d", i), disk.Device, -1)
 
 		if rootLocation == "" {
 			rootLocation = getRootLocation(disk.Partitions)
@@ -210,8 +214,6 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		setExpectedPartitionsDrive(test.In[i].Partitions, disk.Partitions)
 
 		// Cleanup
-		defer removeFile(t, disk.ImageFile)
-		defer removeMountFolders(t, disk.Partitions)
 		defer destroyDevice(t, disk.Device)
 		defer unmountRootPartition(t, disk.Partitions)
 	}
@@ -228,11 +230,14 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		}
 	}
 
+	// Ignition config
+	if err := ioutil.WriteFile(filepath.Join(tmpDirectory, "config.ign"), []byte(test.Config), 0666); err != nil {
+		t.Fatal(err)
+	}
+
 	// Ignition
-	configDir := writeIgnitionConfig(t, test.Config)
-	defer removeFile(t, filepath.Join(configDir, "config.ign"))
-	disks := runIgnition(t, "disks", rootLocation, configDir, negativeTests)
-	files := runIgnition(t, "files", rootLocation, configDir, negativeTests)
+	disks := runIgnition(t, "disks", rootLocation, tmpDirectory, negativeTests)
+	files := runIgnition(t, "files", rootLocation, tmpDirectory, negativeTests)
 	if negativeTests && disks && files {
 		t.Fatal("Expected failure and ignition succeeded")
 	}

@@ -17,7 +17,6 @@ package blackbox
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -86,27 +85,12 @@ func getRootLocation(partitions []*types.Partition) string {
 	return ""
 }
 
-func removeFile(t *testing.T, imageFile string) {
-	err := os.Remove(imageFile)
-	if err != nil {
-		t.Log(err)
-	}
-}
-
-func removeMountFolders(t *testing.T, partitions []*types.Partition) {
-	for _, p := range partitions {
-		if p.MountPath != "" {
-			removeFile(t, p.MountPath)
-		}
-	}
-}
-
 // returns true if no error, false if error
-func runIgnition(t *testing.T, stage, root, configDir string, expectFail bool) bool {
+func runIgnition(t *testing.T, stage, root, cwd string, expectFail bool) bool {
 	args := []string{"-clear-cache", "-oem", "file", "-stage", stage, "-root", root}
 	cmd := exec.Command("ignition", args...)
 	t.Log("ignition", args)
-	cmd.Dir = configDir
+	cmd.Dir = cwd
 	out, err := cmd.CombinedOutput()
 	if err != nil && !expectFail {
 		t.Fatal(args, err, string(out))
@@ -125,19 +109,6 @@ func pickPartition(t *testing.T, device string, partitions []*types.Partition, l
 	return ""
 }
 
-func writeIgnitionConfig(t *testing.T, config string) string {
-	tmpDir, err := ioutil.TempDir("", "config")
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = ioutil.WriteFile(
-		filepath.Join(tmpDir, "config.ign"), []byte(config), 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return tmpDir
-}
-
 func calculateImageSize(partitions []*types.Partition) int64 {
 	// 63 is the number of sectors cgpt uses when generating a hybrid MBR
 	size := int64(63 * 512)
@@ -150,7 +121,7 @@ func calculateImageSize(partitions []*types.Partition) int64 {
 
 // createVolume will create the image file of the specified size, create a
 // partition table in it, and generate mount paths for every partition
-func createVolume(t *testing.T, imageFile string, size int64, cylinders int, heads int, sectorsPerTrack int, partitions []*types.Partition) {
+func createVolume(t *testing.T, index int, imageFile string, size int64, cylinders int, heads int, sectorsPerTrack int, partitions []*types.Partition) {
 	// attempt to create the file, will leave already existing files alone.
 	// os.Truncate requires the file to already exist
 	out, err := os.Create(imageFile)
@@ -172,11 +143,10 @@ func createVolume(t *testing.T, imageFile string, size int64, cylinders int, hea
 			continue
 		}
 
-		mntPath, err := ioutil.TempDir("", fmt.Sprintf("hd1p%d", counter))
-		if err != nil {
+		partition.MountPath = filepath.Join(os.TempDir(), fmt.Sprintf("hd%dp%d", index, counter))
+		if err := os.Mkdir(partition.MountPath, 0777); err != nil {
 			t.Fatal(err)
 		}
-		partition.MountPath = mntPath
 	}
 }
 
