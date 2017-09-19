@@ -18,10 +18,6 @@ import (
 	"fmt"
 )
 
-const (
-	RootDeviceImageFile = "blackbox_ignition_test.img"
-)
-
 type File struct {
 	Node
 	Contents string
@@ -119,7 +115,6 @@ func (ps Partitions) AddRemovedNodes(label string, ns []Node) {
 func GetBaseDisk() []Disk {
 	return []Disk{
 		{
-			ImageFile: RootDeviceImageFile,
 			Partitions: Partitions{
 				{
 					Number:         1,

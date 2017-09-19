@@ -156,10 +156,9 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 
 	// Setup
 	for i, disk := range test.In {
-		// Move the ImageFile inside the temp dir
-		imageFileName := disk.ImageFile // create a copy for doing device replaces later
-		disk.ImageFile = filepath.Join(os.TempDir(), disk.ImageFile)
-		test.Out[i].ImageFile = filepath.Join(os.TempDir(), test.Out[i].ImageFile)
+		// Set image file path
+		disk.ImageFile = filepath.Join(os.TempDir(), fmt.Sprintf("hd%d", i))
+		test.Out[i].ImageFile = disk.ImageFile
 
 		// There may be more partitions created by Ignition, so look at the
 		// expected output instead of the input to determine image size
@@ -200,9 +199,9 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 			}
 		}
 
-		// Replace any instance of $<image-file> with the actual loop device
+		// Replace any instance of $disk<num> with the actual loop device
 		// that got assigned to it
-		test.Config = strings.Replace(test.Config, "$"+imageFileName, disk.Device, -1)
+		test.Config = strings.Replace(test.Config, fmt.Sprintf("$disk%d", i), disk.Device, -1)
 
 		if rootLocation == "" {
 			rootLocation = getRootLocation(disk.Partitions)
