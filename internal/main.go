@@ -24,6 +24,7 @@ import (
 	"github.com/coreos/ignition/internal/exec/stages"
 	_ "github.com/coreos/ignition/internal/exec/stages/disks"
 	_ "github.com/coreos/ignition/internal/exec/stages/files"
+	_ "github.com/coreos/ignition/internal/exec/stages/noop"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/oem"
 	"github.com/coreos/ignition/internal/version"
@@ -38,6 +39,7 @@ func main() {
 		root         string
 		stage        stages.Name
 		version      bool
+		validate     string
 	}{}
 
 	flag.BoolVar(&flags.clearCache, "clear-cache", false, "clear any cached config")
@@ -47,12 +49,19 @@ func main() {
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
+	flag.StringVar(&flags.validate, "validate", "", "path to ignition config to validate")
 
 	flag.Parse()
 
 	if flags.version {
 		fmt.Printf("%s\n", version.String)
 		return
+	}
+
+	if flags.validate != "" {
+		flags.oem = "file"
+		flags.configCache = ""
+		flags.stage = "noop"
 	}
 
 	if flags.oem == "" {
