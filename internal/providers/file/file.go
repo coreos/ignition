@@ -15,6 +15,7 @@
 package file
 
 import (
+	"flag"
 	"io/ioutil"
 	"os"
 
@@ -31,6 +32,9 @@ const (
 
 func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
 	filename := os.Getenv(cfgFilenameEnvVar)
+	if f := flag.Lookup("validate"); f != nil && f.Value.String() != "" {
+		filename = f.Value.String()
+	}
 	if filename == "" {
 		filename = defaultFilename
 		f.Logger.Info("using default filename")
