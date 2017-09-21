@@ -21,6 +21,36 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func TestValidateSize(t *testing.T) {
+	type in Partition
+	type out struct {
+		report report.Report
+	}
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in{Size: 0, Start: 0},
+			out{report.Report{}},
+		},
+		{
+			in{Size: 1, Start: 1},
+			out{report.Report{}},
+		},
+		{
+			in{Size: 0, Start: 1},
+			out{report.ReportFromError(ErrSizeZero, report.EntryError)},
+		},
+	}
+	for i, test := range tests {
+		r := Partition(test.in).ValidateSize()
+		if !reflect.DeepEqual(r, test.out.report) {
+			t.Errorf("#%d: wanted %v, got %v", i, test.out.report, r)
+		}
+	}
+}
+
 func TestValidateLabel(t *testing.T) {
 	type in struct {
 		label string
