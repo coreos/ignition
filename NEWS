@@ -1,3 +1,24 @@
+22-Sep-2017 IGNITION v0.19.0
+
+  Features
+
+    - Add support for CloudStack network metadata
+    - Add blackbox tests for TFTP URLs
+    - Remove dependency on kpartx for blackbox tests
+
+  Changes
+
+    - Stop adding extra quotes around GECOS field when creating users
+
+  Bug Fixes
+
+    - Fix regression in validation logic causing inaccurate line and column
+      reporting
+    - Fix regression in validation logic where JSON syntax errors were not
+      reported correctly
+    - Add warning if a non-existent filesystem is specified when creating links
+      and directories
+
 08-Sep-2017 IGNITION v0.18.0
 
   Features
