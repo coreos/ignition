@@ -40,8 +40,8 @@ func regexpSearch(t *testing.T, itemName, pattern string, data []byte) string {
 	return string(match[1])
 }
 
-func validatePartitions(t *testing.T, expected []*types.Partition, imageFile string) {
-	for _, e := range expected {
+func validateDisk(t *testing.T, d types.Disk, imageFile string) {
+	for _, e := range d.Partitions {
 		if e.TypeCode == "blank" || e.FilesystemType == "swap" {
 			continue
 		}
@@ -60,8 +60,8 @@ func validatePartitions(t *testing.T, expected []*types.Partition, imageFile str
 		actualSectors := regexpSearch(t, "partition size", "Partition size: (?P<sectors>\\d+) sectors", sgdiskInfo)
 		actualLabel := regexpSearch(t, "partition name", "Partition name: '(?P<name>[\\d\\w-_]+)'", sgdiskInfo)
 
-		// have to align the size to the nearest sector first
-		expectedSectors := align(e.Length, 512)
+		// have to align the size to the nearest sector alignment boundary first
+		expectedSectors := types.Align(e.Length, d.Alignment)
 
 		if e.TypeGUID != "" && e.TypeGUID != actualTypeGUID {
 			t.Error("TypeGUID does not match!", e.TypeGUID, actualTypeGUID)

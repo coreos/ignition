@@ -163,6 +163,7 @@ func CreateNewPartitions() types.Test {
 	// are intentionally different so if Ignition doesn't do the right thing the
 	// validation will fail.
 	in = append(in, types.Disk{
+		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{
 			{
 				Label:    "important-data",
@@ -181,6 +182,7 @@ func CreateNewPartitions() types.Test {
 		},
 	})
 	out = append(out, types.Disk{
+		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{
 			{
 				Label:    "important-data",
@@ -231,6 +233,7 @@ func AppendPartition() types.Test {
 	}`
 
 	in = append(in, types.Disk{
+		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{
 			{
 				Label:    "important-data",
@@ -249,6 +252,7 @@ func AppendPartition() types.Test {
 		},
 	})
 	out = append(out, types.Disk{
+		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{
 			{
 				Label:    "important-data",

@@ -168,7 +168,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 
 		// There may be more partitions created by Ignition, so look at the
 		// expected output instead of the input to determine image size
-		imageSize := calculateImageSize(test.Out[i].Partitions)
+		imageSize := test.Out[i].CalculateImageSize()
 
 		// Finish data setup
 		for _, part := range disk.Partitions {
@@ -177,11 +177,12 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 			}
 			updateTypeGUID(t, part)
 		}
-		setOffsets(disk.Partitions)
+
+		disk.SetOffsets()
 		for _, part := range test.Out[i].Partitions {
 			updateTypeGUID(t, part)
 		}
-		setOffsets(test.Out[i].Partitions)
+		test.Out[i].SetOffsets()
 
 		// Creation
 		createVolume(t, i, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
@@ -258,7 +259,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 			// Validation
 			mountPartitions(t, disk.Partitions)
 			t.Log(disk.ImageFile)
-			validatePartitions(t, disk.Partitions, disk.ImageFile)
+			validateDisk(t, disk, disk.ImageFile)
 			validateFilesystems(t, disk.Partitions, disk.ImageFile)
 			validateFilesDirectoriesAndLinks(t, disk.Partitions)
 			unmountPartitions(t, disk.Partitions)
