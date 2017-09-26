@@ -18,6 +18,10 @@
       reported correctly
     - Add warning if a non-existent filesystem is specified when creating links
       and directories
+    - Fix udev race causing systemd units depending on the Ignition disks stage and 
+      a device unit to fail when no filesystems are created
+    - Fix udev race where symlinks are deleted before Ignition can create its own
+      copy
 
 08-Sep-2017 IGNITION v0.18.0
 
