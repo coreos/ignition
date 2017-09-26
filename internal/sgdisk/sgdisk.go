@@ -16,6 +16,7 @@ package sgdisk
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 
 	"github.com/coreos/ignition/config/types"
@@ -51,20 +52,66 @@ func (op *Operation) WipeTable(wipe bool) {
 	op.wipe = wipe
 }
 
-// Commit commits an partitioning operation.
-func (op *Operation) Commit() error {
-	if op.wipe {
-		cmd := exec.Command(sgdiskPath, "--zap-all", op.dev)
-		if _, err := op.logger.LogCmd(cmd, "wiping table on %q", op.dev); err != nil {
-			op.logger.Info("potential error encountered while wiping table... retrying")
-			cmd = exec.Command(sgdiskPath, "--zap-all", op.dev)
-			if _, err := op.logger.LogCmd(cmd, "wiping table on %q", op.dev); err != nil {
-				return fmt.Errorf("wipe failed: %v", err)
-			}
-		}
+// Pretend is like Commit() but uses the --pretend flag and returns the output
+// on stdout for parsing. Unfortunately sgdisk does not have a machine readable
+// output format, so parsing stdout is harder than it needs to be. It also adds
+// the --print flag to dump the partition table.
+//
+// Note: because sgdisk does not do any escaping on its output, callers should ensure
+//       the partitions' labels do not have any nasty characters that will interfere
+//       with parsing (e.g. \n)
+//
+// TODO(ajeddeloh): add machine readable output flag if sgdisk adds one
+func (op *Operation) Pretend() (string, error) {
+	opts := []string{"--pretend"}
+	opts = append(opts, op.buildOptions()...)
+
+	cmd := exec.Command(sgdiskPath, opts...)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", err
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return "", err
 	}
 
+	if err := cmd.Start(); err != nil {
+		return "", err
+	}
+	output, err := ioutil.ReadAll(stdout)
+	if err != nil {
+		return "", err
+	}
+
+	errors, err := ioutil.ReadAll(stderr)
+	if err != nil {
+		return "", err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return "", fmt.Errorf("Failed to pretend to create partitions. Err: %v. Stderr: %v", err, string(errors))
+	}
+
+	return string(output), nil
+}
+
+// Commit commits an partitioning operation.
+func (op *Operation) Commit() error {
+	cmd := exec.Command(sgdiskPath, op.buildOptions()...)
+	if _, err := op.logger.LogCmd(cmd, "creating %d partitions on %q", len(op.parts), op.dev); err != nil {
+		return fmt.Errorf("create partitions failed: %v", err)
+	}
+
+	return nil
+}
+
+func (op Operation) buildOptions() []string {
 	opts := []string{}
+
+	if op.wipe {
+		opts = append(opts, "--zap-all")
+	}
 
 	// Do all deletions before creations
 	for _, partition := range op.deletions {
@@ -89,10 +136,5 @@ func (op *Operation) Commit() error {
 	}
 
 	opts = append(opts, op.dev)
-	cmd := exec.Command(sgdiskPath, opts...)
-	if _, err := op.logger.LogCmd(cmd, "creating %d partitions on %q", len(op.parts), op.dev); err != nil {
-		return fmt.Errorf("create partitions failed: %v", err)
-	}
-
-	return nil
+	return opts
 }
