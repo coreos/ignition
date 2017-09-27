@@ -7,4 +7,4 @@ rules:
   - name: commit description
     description: all commits must have a description with each line having no more than 72 characters
     expression: |-
-      .commits all((.description lines all(. length < 73) and (.description lines length > 0)) or (.title test "^Revert"))
+      .commits all((.description lines all(. length < 73) and (.description lines length > 0)) or (.title test "^Revert") or (.title test "^news"))
