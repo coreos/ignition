@@ -106,7 +106,7 @@ Version 2.0.0 of the configuration specification included an object named `creat
 ```json ignition
 {
   "ignition": {
-    "version": "2.1.0"
+    "version": "2.0.0"
   },
   "storage": {
     "filesystems": [
@@ -161,7 +161,7 @@ Similar to the `create` object in the `filesystems` section, version 2.0.0 of th
 ```json ignition
 {
   "ignition": {
-    "version": "2.1.0"
+    "version": "2.0.0"
   },
   "passwd": {
     "users": [
@@ -172,7 +172,7 @@ Similar to the `create` object in the `filesystems` section, version 2.0.0 of th
           "gecos": "user creation test",
           "noCreateHome": true,
           "noUserGroup": true
-        },
+        }
       }
     ]
   }

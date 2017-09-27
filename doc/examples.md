@@ -195,7 +195,7 @@ In many scenarios, it may be useful to have an external data volume. This config
       "mount": {
         "device": "/dev/md/data",
         "format": "ext4",
-        "create": { "options": [ "-L", "DATA" ] }
+        "label": "DATA"
       }
     }]
   },
