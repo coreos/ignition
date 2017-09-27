@@ -21,6 +21,7 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/util"
 )
 
 const sgdiskPath = "/sbin/sgdisk"
@@ -31,6 +32,7 @@ type Operation struct {
 	wipe      bool
 	parts     []types.Partition
 	deletions []int
+	infos     []int
 }
 
 // Begin begins an sgdisk operation
@@ -40,11 +42,21 @@ func Begin(logger *log.Logger, dev string) *Operation {
 
 // CreatePartition adds the supplied partition to the list of partitions to be created as part of an operation.
 func (op *Operation) CreatePartition(p types.Partition) {
+	if p.Start == nil {
+		p.Start = util.IntToPtr(0)
+	}
+	if p.Size == nil {
+		p.Size = util.IntToPtr(0)
+	}
 	op.parts = append(op.parts, p)
 }
 
 func (op *Operation) DeletePartition(num int) {
 	op.deletions = append(op.deletions, num)
+}
+
+func (op *Operation) Info(num int) {
+	op.infos = append(op.infos, num)
 }
 
 // WipeTable toggles if the table is to be wiped first when commiting this operation.
@@ -54,8 +66,7 @@ func (op *Operation) WipeTable(wipe bool) {
 
 // Pretend is like Commit() but uses the --pretend flag and returns the output
 // on stdout for parsing. Unfortunately sgdisk does not have a machine readable
-// output format, so parsing stdout is harder than it needs to be. It also adds
-// the --print flag to dump the partition table.
+// output format, so parsing stdout is harder than it needs to be.
 //
 // Note: because sgdisk does not do any escaping on its output, callers should ensure
 //       the partitions' labels do not have any nasty characters that will interfere
@@ -65,6 +76,7 @@ func (op *Operation) WipeTable(wipe bool) {
 func (op *Operation) Pretend() (string, error) {
 	opts := []string{"--pretend"}
 	opts = append(opts, op.buildOptions()...)
+	op.logger.Info("running sgdisk with options: %v", opts)
 
 	cmd := exec.Command(sgdiskPath, opts...)
 	stdout, err := cmd.StdoutPipe()
@@ -98,7 +110,9 @@ func (op *Operation) Pretend() (string, error) {
 
 // Commit commits an partitioning operation.
 func (op *Operation) Commit() error {
-	cmd := exec.Command(sgdiskPath, op.buildOptions()...)
+	opts := op.buildOptions()
+	op.logger.Info("running sgdisk with options: %v", opts)
+	cmd := exec.Command(sgdiskPath, opts...)
 	if _, err := op.logger.LogCmd(cmd, "creating %d partitions on %q", len(op.parts), op.dev); err != nil {
 		return fmt.Errorf("create partitions failed: %v", err)
 	}
@@ -119,7 +133,7 @@ func (op Operation) buildOptions() []string {
 	}
 
 	for _, p := range op.parts {
-		opts = append(opts, fmt.Sprintf("--new=%d:%d:+%d", p.Number, p.Start, p.Size))
+		opts = append(opts, fmt.Sprintf("--new=%d:%d:+%d", p.Number, *p.Start, *p.Size))
 		if p.Label != nil {
 			opts = append(opts, fmt.Sprintf("--change-name=%d:%s", p.Number, *p.Label))
 		}
@@ -129,6 +143,10 @@ func (op Operation) buildOptions() []string {
 		if p.GUID != "" {
 			opts = append(opts, fmt.Sprintf("--partition-guid=%d:%s", p.Number, p.GUID))
 		}
+	}
+
+	for _, partition := range op.infos {
+		opts = append(opts, fmt.Sprintf("--info=%d", partition))
 	}
 
 	if len(opts) == 0 {
