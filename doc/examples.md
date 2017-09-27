@@ -60,9 +60,9 @@ Environment=SYSTEMD_LOG_LEVEL=debug
 
 ## Reformat the Root Filesystem
 
-This example Ignition configuration will locate the device with the "ROOT" filesystem label (the root filesystem) and reformat it to btrfs, recreating the filesystem label. The `force` option is set to ensure that `mkfs.btrfs` ignores any existing filesystem.
-
 ### Btrfs
+
+This example Ignition configuration will locate the device with the "ROOT" filesystem label (the root filesystem) and reformat it to btrfs, recreating the filesystem label. The `wipeFilesystem` option is set to ensure that Ignition ignores any existing filesystem.
 
 ```json ignition
 {
@@ -81,6 +81,8 @@ This example Ignition configuration will locate the device with the "ROOT" files
 ```
 
 ### XFS
+
+This example Ignition configuration will locate the device with the "ROOT" filesystem label (the root filesystem) and reformat it to XFS, recreating the filesystem label. The `wipeFilesystem` option is set to ensure that Ignition ignores any existing filesystem.
 
 ```json ignition
 {
