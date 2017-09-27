@@ -73,7 +73,7 @@ This example Ignition configuration will locate the device with the "ROOT" files
         "device": "/dev/disk/by-label/ROOT",
         "format": "btrfs",
         "wipeFilesystem": true,
-        "options": [ "--label=ROOT" ]
+        "label": "ROOT"
       }
     }]
   }
@@ -91,14 +91,12 @@ This example Ignition configuration will locate the device with the "ROOT" files
         "device": "/dev/disk/by-label/ROOT",
         "format": "xfs",
         "wipeFilesystem": true,
-        "options": [ "-L", "ROOT" ]
+        "label": "ROOT"
       }
     }]
   }
 }
 ```
-
-The create options are forwarded to the underlying `mkfs.$format` utility. The respective `mkfs.$format` manual pages document the available options.
 
 ## Create Files on the Root Filesystem
 
