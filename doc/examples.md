@@ -60,9 +60,9 @@ Environment=SYSTEMD_LOG_LEVEL=debug
 
 ## Reformat the Root Filesystem
 
-This example Ignition configuration will locate the device with the "ROOT" filesystem label (the root filesystem) and reformat it to btrfs, recreating the filesystem label. The `force` option is set to ensure that `mkfs.btrfs` ignores any existing filesystem.
-
 ### Btrfs
+
+This example Ignition configuration will locate the device with the "ROOT" filesystem label (the root filesystem) and reformat it to btrfs, recreating the filesystem label. The `wipeFilesystem` option is set to ensure that Ignition ignores any existing filesystem.
 
 ```json ignition
 {
@@ -73,7 +73,7 @@ This example Ignition configuration will locate the device with the "ROOT" files
         "device": "/dev/disk/by-label/ROOT",
         "format": "btrfs",
         "wipeFilesystem": true,
-        "options": [ "--label=ROOT" ]
+        "label": "ROOT"
       }
     }]
   }
@@ -81,6 +81,8 @@ This example Ignition configuration will locate the device with the "ROOT" files
 ```
 
 ### XFS
+
+This example Ignition configuration will locate the device with the "ROOT" filesystem label (the root filesystem) and reformat it to XFS, recreating the filesystem label. The `wipeFilesystem` option is set to ensure that Ignition ignores any existing filesystem.
 
 ```json ignition
 {
@@ -91,14 +93,12 @@ This example Ignition configuration will locate the device with the "ROOT" files
         "device": "/dev/disk/by-label/ROOT",
         "format": "xfs",
         "wipeFilesystem": true,
-        "options": [ "-L", "ROOT" ]
+        "label": "ROOT"
       }
     }]
   }
 }
 ```
-
-The create options are forwarded to the underlying `mkfs.$format` utility. The respective `mkfs.$format` manual pages document the available options.
 
 ## Create Files on the Root Filesystem
 
@@ -195,7 +195,7 @@ In many scenarios, it may be useful to have an external data volume. This config
       "mount": {
         "device": "/dev/md/data",
         "format": "ext4",
-        "create": { "options": [ "-L", "DATA" ] }
+        "label": "DATA"
       }
     }]
   },
