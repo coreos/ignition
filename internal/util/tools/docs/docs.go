@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Reads all markdown files in the specified directory and validates the
-// Container Linux Configs wrapped in code fences.
+// Ignition configs wrapped in code fences.
 
 package main
 
@@ -25,11 +25,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/coreos/container-linux-config-transpiler/config"
+	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 const (
-	infoString = "yaml container-linux-config"
+	infoString = "json ignition"
 )
 
 func main() {
@@ -59,12 +60,12 @@ func main() {
 		}
 
 		fileLines := strings.Split(string(fileContents), "\n")
-		yamlSections := findYamlSections(fileLines)
+		jsonSections := findJsonSections(fileLines)
 
-		for _, yaml := range yamlSections {
-			_, _, report := config.Parse([]byte(strings.Join(yaml, "\n")))
-			reportStr := report.String()
-			if reportStr != "" {
+		for _, json := range jsonSections {
+			_, r, _ := config.Parse([]byte(strings.Join(json, "\n")))
+			reportStr := r.String()
+			if reportStr != "" && !isDeprecatedConfig(r) {
 				return fmt.Errorf("non-empty parsing report in %s: %s", info.Name(), reportStr)
 			}
 		}
@@ -76,15 +77,27 @@ func main() {
 	}
 }
 
-func findYamlSections(fileLines []string) [][]string {
-	var yamlSections [][]string
+// isDeprecatedConfig returns if a report is from a deprecated config format.
+func isDeprecatedConfig(r report.Report) bool {
+	if len(r.Entries) != 1 {
+		return false
+	}
+	if r.Entries[0].Kind == report.EntryDeprecated && r.Entries[0].Message == config.ErrDeprecated.Error() {
+		return true
+	}
+	return false
+}
+
+func findJsonSections(fileLines []string) [][]string {
+	var jsonSections [][]string
 	var currentSection []string
 	inASection := false
 	for _, line := range fileLines {
 		if line == "```" {
 			inASection = false
-			if len(currentSection) > 0 {
-				yamlSections = append(yamlSections, currentSection)
+			if len(currentSection) > 0 && currentSection[0] != "..." {
+				// Ignore empty sections and sections that are not full configs
+				jsonSections = append(jsonSections, currentSection)
 			}
 			currentSection = nil
 		}
@@ -95,5 +108,5 @@ func findYamlSections(fileLines []string) [][]string {
 			inASection = true
 		}
 	}
-	return yamlSections
+	return jsonSections
 }
