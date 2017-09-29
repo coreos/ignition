@@ -120,15 +120,14 @@ In many cases it is useful to write files to the root filesystem. This example w
 The config makes use of the universally-defined "root" filesystem. This filesystem is defined within Ignition itself and roughly looks like the following. The "root" filesystem allows additional configs to reference the root filesystem, regardless of its type (e.g. btrfs, tmpfs, ext4).
 
 ```json ignition
-{
-  "ignition": { "version": "2.1.0" },
-  "storage": {
-    "filesystems": [{
-      "name": "root",
-      "path": "/sysroot"
-    }]
-  }
+...
+"storage": {
+  "filesystems": [{
+    "name": "root",
+    "path": "/sysroot"
+  }]
 }
+...
 ```
 
 ## Create Files from Remote Contents
