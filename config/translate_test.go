@@ -1745,7 +1745,7 @@ func TestTranslateFromV2_1(t *testing.T) {
 							HomeDir:           "/home/user 2",
 							NoCreateHome:      true,
 							PrimaryGroup:      "wheel",
-							Groups:            []types.PasswdUserGroup{"wheel", "plugdev"},
+							Groups:            []types.Group{"wheel", "plugdev"},
 							NoUserGroup:       true,
 							System:            true,
 							NoLogInit:         true,

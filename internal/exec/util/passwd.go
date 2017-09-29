@@ -121,10 +121,10 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 }
 
 // golang--
-func translateV2_1UsercreateGroupSliceToPasswdUserGroupSlice(groups []types.UsercreateGroup) []types.PasswdUserGroup {
-	newGroups := make([]types.PasswdUserGroup, len(groups))
+func translateV2_1UsercreateGroupSliceToPasswdUserGroupSlice(groups []types.UsercreateGroup) []types.Group {
+	newGroups := make([]types.Group, len(groups))
 	for i, g := range groups {
-		newGroups[i] = types.PasswdUserGroup(g)
+		newGroups[i] = types.Group(g)
 	}
 	return newGroups
 }
@@ -143,7 +143,7 @@ func (u Util) CheckIfUserExists(c types.PasswdUser) (bool, error) {
 }
 
 // golang--
-func translateV2_1PasswdUserGroupSliceToStringSlice(groups []types.PasswdUserGroup) []string {
+func translateV2_1PasswdUserGroupSliceToStringSlice(groups []types.Group) []string {
 	newGroups := make([]string, len(groups))
 	for i, g := range groups {
 		newGroups[i] = string(g)
