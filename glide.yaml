@@ -11,12 +11,6 @@ import:
   subpackages:
   - dbus
   - unit
-- package: github.com/coreos/update-ssh-keys
-  version: 96fe9efc1f6eb103d34fdfa5902cb3bb47ebaa81
-  subpackages:
-  - authorized_keys_d
-  - src/authorized_keys_d
-  - src/authorized_keys_d/as_user
 - package: github.com/pin/tftp
   version: 9ea92f6b1029bc1bf3072bba195c84bb9b0370e3
 - package: github.com/vmware/vmw-ovflib

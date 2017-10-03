@@ -1,5 +1,5 @@
-hash: 6eec76e4402bfa71b48e3a91a7319e9dc8351be41dfe67bdb41e6d6471384f06
-updated: 2017-10-03T13:10:39.249933306-04:00
+hash: 7dc01753342ffed171e5a83b1c588d8c666ad129e40d8e07a83be27829b79527
+updated: 2017-10-03T13:21:00.109956451-04:00
 imports:
 - name: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
@@ -42,13 +42,6 @@ imports:
   subpackages:
   - dbus
   - unit
-- name: github.com/coreos/update-ssh-keys
-  version: 96fe9efc1f6eb103d34fdfa5902cb3bb47ebaa81
-  subpackages:
-  - authorized_keys_d
-  - authorized_keys_d/as_user
-  - src/authorized_keys_d
-  - src/authorized_keys_d/as_user
 - name: github.com/go-ini/ini
   version: c787282c39ac1fc618827141a1f762240def08a3
 - name: github.com/godbus/dbus
