@@ -171,6 +171,7 @@ func (f *Fetcher) FetchFromTFTP(u url.URL, dest *os.File, opts FetchOptions) err
 	if err != nil {
 		return err
 	}
+	c.SetRetries(10)
 	wt, err := c.Receive(u.Path, "octet")
 	if err != nil {
 		return err
