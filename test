@@ -33,7 +33,7 @@ if [ "${ACTION:-TEST}" != "COMPILE" ]; then
     go test -ldflags "-extldflags -fno-PIC" -timeout 60s -cover $@ ${PKG} --race
 else
     PKG=$(cd gopath/src/${REPO_PATH}; go list ./... | \
-    	grep --invert-match vendor)
+    	grep --invert-match vendor | grep tests)
     echo "Compiling tests..."
     for p in ${PKG}; do
 		go test -c $p
