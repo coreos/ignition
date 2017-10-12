@@ -92,6 +92,7 @@ func runIgnition(t *testing.T, stage, root, cwd string, expectFail bool) bool {
 	t.Log("ignition", args)
 	cmd.Dir = cwd
 	out, err := cmd.CombinedOutput()
+	t.Logf("PID: %d", cmd.Process.Pid)
 	if err != nil && !expectFail {
 		t.Fatal(args, err, string(out))
 	}
