@@ -21,8 +21,7 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/config/types"
-
-	keys "github.com/coreos/update-ssh-keys/authorized_keys_d"
+	keys "github.com/coreos/ignition/internal/authorized_keys_d"
 )
 
 // EnsureUser ensures that the user exists as described. If the user does not
