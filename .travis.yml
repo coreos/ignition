@@ -22,6 +22,15 @@ addons:
     - gcc-aarch64-linux-gnu
     - libc6-dev-arm64-cross
     - libblkid-dev
+    # things needed for blackbox tests
+    - util-linux
+    - gdisk
+    - dosfstools
+    - e2fsprogs
+    - btrfs-tools
+    - xfsprogs
+    - uuid-runtime
+    - coreutils
 
 install:
   # since libblkid-dev:arm64 cannot be installed, spoof it
@@ -38,6 +47,8 @@ install:
 script:
   -     if [ "${TARGET}" == "amd64" ]; then
                 GOARCH="${TARGET}" ./test;
+                GOARCH="${TARGET}" ACTION=COMPILE ./test;
+                sudo -E PATH=$PWD/bin/amd64:$PATH ./tests.test;
         elif [ "${TARGET}" == "arm64" ]; then
                 export CGO_LDFLAGS="-L ${PWD}";
                 GOARCH="${TARGET}" ./build;
