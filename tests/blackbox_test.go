@@ -163,6 +163,9 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		// There may be more partitions created by Ignition, so look at the
 		// expected output instead of the input to determine image size
 		imageSize := test.Out[i].CalculateImageSize()
+		if insize := disk.CalculateImageSize(); insize > imageSize {
+			imageSize = insize
+		}
 
 		// Finish data setup
 		for _, part := range disk.Partitions {

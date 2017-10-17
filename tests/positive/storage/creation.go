@@ -23,7 +23,11 @@ func init() {
 	register.Register(register.PositiveTest, ForceNewFilesystemOfSameType())
 	register.Register(register.PositiveTest, WipeFilesystemWithSameType())
 	register.Register(register.PositiveTest, CreateNewPartitions())
+	register.Register(register.PositiveTest, CreateNewPartitionsWithNumber0())
 	register.Register(register.PositiveTest, AppendPartition())
+	register.Register(register.PositiveTest, AppendPartitionWithNumber0())
+	register.Register(register.PositiveTest, DeletePartitions())
+	register.Register(register.PositiveTest, ResizePartitionsBigger())
 }
 
 func ForceNewFilesystemOfSameType() types.Test {
@@ -83,7 +87,7 @@ func WipeFilesystemWithSameType() types.Test {
 		},
 	}
 	config := `{
-		"ignition": { "version": "2.1.0" },
+		"ignition": { "version": "2.2.0-experimental" },
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -122,7 +126,7 @@ func CreateNewPartitions() types.Test {
 	out := types.GetBaseDisk()
 	var mntDevices []types.MntDevice
 	config := `{
-		"ignition": {"version": "2.1.0"},
+		"ignition": {"version": "2.2.0-experimental"},
 		"storage": {
 		    "disks": [
 			    {
@@ -191,6 +195,79 @@ func CreateNewPartitions() types.Test {
 	return types.Test{name, in, out, mntDevices, config}
 }
 
+func CreateNewPartitionsWithNumber0() types.Test {
+	name := "Create new partitions with number 0"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	var mntDevices []types.MntDevice
+	config := `{
+		"ignition": {"version": "2.2.0-experimental"},
+		"storage": {
+		    "disks": [
+			    {
+					"device": "$disk1",
+					"wipeTable": true,
+					"partitions": [
+						{
+							"label": "important-data",
+							"size": 65536,
+							"typeGuid": "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+							"guid": "8A7A6E26-5E8F-4CCA-A654-46215D4696AC"
+						},
+						{
+							"label": "ephemeral-data",
+							"size": 131072,
+							"typeGuid": "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+							"guid": "A51034E6-26B3-48DF-BEED-220562AC7AD1"
+						}
+					]
+				}
+			]
+		}
+	}`
+	// Create dummy partitions. The UUIDs in the input partitions
+	// are intentionally different so if Ignition doesn't do the right thing the
+	// validation will fail.
+	in = append(in, types.Disk{
+		Partitions: types.Partitions{
+			{
+				Label:    "important-data",
+				Number:   1,
+				Length:   65536,
+				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+			},
+			{
+				Label:    "ephemeral-data",
+				Number:   2,
+				Length:   131072,
+				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+			},
+		},
+	})
+	out = append(out, types.Disk{
+		Partitions: types.Partitions{
+			{
+				Label:    "important-data",
+				Number:   1,
+				Length:   65536,
+				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+			},
+			{
+				Label:    "ephemeral-data",
+				Number:   2,
+				Length:   131072,
+				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+				GUID:     "A51034E6-26B3-48DF-BEED-220562AC7AD1",
+			},
+		},
+	})
+
+	return types.Test{name, in, out, mntDevices, config}
+}
+
 func AppendPartition() types.Test {
 	name := "Append partition to an existing partition table"
 	in := types.GetBaseDisk()
@@ -198,7 +275,7 @@ func AppendPartition() types.Test {
 	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {
-			"version": "2.1.0"
+			"version": "2.2.0-experimental"
 		},
 		"storage": {
 			"disks": [{
@@ -258,6 +335,254 @@ func AppendPartition() types.Test {
 			},
 		},
 	})
+
+	return types.Test{name, in, out, mntDevices, config}
+}
+
+func AppendPartitionWithNumber0() types.Test {
+	name := "Append partition to an existing partition table with number specified as 0"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	var mntDevices []types.MntDevice
+	config := `{
+		"ignition": {
+			"version": "2.2.0-experimental"
+		},
+		"storage": {
+			"disks": [{
+				"device": "$disk1",
+				"wipeTable": false,
+				"partitions": [{
+					"label": "additional-partition",
+					"number": 0,
+					"size": 65536,
+					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
+					"guid": "3ED3993F-0016-422B-B134-09FCBA6F66EF"
+				}]
+			}]
+		}
+	}`
+
+	in = append(in, types.Disk{
+		Partitions: types.Partitions{
+			{
+				Label:    "important-data",
+				Number:   1,
+				Length:   65536,
+				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+			},
+			{
+				Label:    "ephemeral-data",
+				Number:   2,
+				Length:   131072,
+				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+			},
+		},
+	})
+	out = append(out, types.Disk{
+		Partitions: types.Partitions{
+			{
+				Label:    "important-data",
+				Number:   1,
+				Length:   65536,
+				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+			},
+			{
+				Label:    "ephemeral-data",
+				Number:   2,
+				Length:   131072,
+				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+			},
+			{
+				Label:    "additional-partition",
+				Number:   3,
+				Length:   65536,
+				TypeGUID: "F39C522B-9966-4429-A8F8-417CD5D83E5E",
+				GUID:     "3ED3993F-0016-422B-B134-09FCBA6F66EF",
+			},
+		},
+	})
+
+	return types.Test{name, in, out, mntDevices, config}
+}
+
+func DeletePartitions() types.Test {
+	name := "Delete partition of an existing partition table"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	var mntDevices []types.MntDevice
+	config := `{
+		"ignition": {
+			"version": "2.2.0-experimental"
+		},
+		"storage": {
+			"disks": [{
+				"device": "$disk1",
+				"wipeTable": false,
+				"partitions": [{
+					"number": 1,
+					"shouldExist": false,
+					"wipePartitionEntry": true
+				},
+				{
+					"number": 2,
+					"shouldExist": false,
+					"wipePartitionEntry": true
+				}]
+			}]
+		}
+	}`
+
+	in = append(in, types.Disk{
+		Partitions: types.Partitions{
+			{
+				Label:    "important-data",
+				Number:   1,
+				Length:   65536,
+				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+			},
+			{
+				Label:    "ephemeral-data",
+				Number:   2,
+				Length:   131072,
+				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+			},
+		},
+	})
+	out = append(out, types.Disk{})
+
+	return types.Test{name, in, out, mntDevices, config}
+}
+
+func ResizePartitionsBigger() types.Test {
+	name := "Resize partition to be bigger"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	var mntDevices []types.MntDevice
+	config := `{
+		"ignition": {
+			"version": "2.2.0-experimental"
+		},
+		"storage": {
+			"disks": [{
+				"device": "$disk1",
+				"wipeTable": false,
+				"partitions": [{
+					"number": 1,
+					"label": "important-data",
+					"size": 131072,
+					"typeGuid": "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+					"guid": "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+					"wipePartitionEntry": true
+				},
+				{
+					"number": 2,
+					"label": "ephemeral-data",
+					"size": 131072,
+					"typeGuid": "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+					"guid": "A51034E6-26B3-48DF-BEED-220562AC7AD1",
+					"wipePartitionEntry": true
+				}]
+			}]
+		}
+	}`
+
+	in = append(in, types.Disk{
+		Partitions: types.Partitions{
+			{
+				Label:    "important-data",
+				Number:   1,
+				Length:   65536,
+				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+			},
+			{
+				Label:    "ephemeral-data",
+				Number:   2,
+				Length:   131072,
+				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+			},
+		},
+	})
+	out = append(out, types.Disk{
+		Partitions: types.Partitions{
+			{
+				Label:    "important-data",
+				Number:   1,
+				Length:   131072,
+				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+			},
+			{
+				Label:    "ephemeral-data",
+				Number:   2,
+				Length:   131072,
+				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+				GUID:     "A51034E6-26B3-48DF-BEED-220562AC7AD1",
+			},
+		},
+	})
+
+	return types.Test{name, in, out, mntDevices, config}
+}
+
+func MatchPartitions() types.Test {
+	name := "Resize partition to be bigger"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	var mntDevices []types.MntDevice
+	config := `{
+		"ignition": {
+			"version": "2.2.0-experimental"
+		},
+		"storage": {
+			"disks": [{
+				"device": "$disk1",
+				"wipeTable": false,
+				"partitions": [{
+					"number": 1,
+					"label": "important-data",
+					"size": 131072,
+					"typeGuid": "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+					"guid": "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+				},
+				{
+					"number": 2,
+					"label": "ephemeral-data",
+					"size": 131072,
+					"typeGuid": "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+					"guid": "A51034E6-26B3-48DF-BEED-220562AC7AD1",
+				}]
+			}]
+		}
+	}`
+
+	in = append(in, types.Disk{
+		Partitions: types.Partitions{
+			{
+				Label:    "important-data",
+				Number:   1,
+				Length:   131072,
+				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+			},
+			{
+				Label:    "ephemeral-data",
+				Number:   2,
+				Length:   131072,
+				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+			},
+		},
+	})
+	out = append(out, in[len(in)-1])
 
 	return types.Test{name, in, out, mntDevices, config}
 }
