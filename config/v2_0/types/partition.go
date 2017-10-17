@@ -43,6 +43,13 @@ func (n PartitionLabel) Validate() report.Report {
 	return report.Report{}
 }
 
+func (p Partition) ValidateSize() report.Report {
+	if p.Size == 0 && p.Start != 0 {
+		return report.ReportFromError(fmt.Errorf("size can only be zero if start is zero"), report.EntryError)
+	}
+	return report.Report{}
+}
+
 type PartitionDimension uint64
 
 type PartitionTypeGUID string

@@ -29,6 +29,7 @@ const (
 var (
 	ErrLabelTooLong         = errors.New("partition labels may not exceed 36 characters")
 	ErrDoesntMatchGUIDRegex = errors.New("doesn't match the form \"01234567-89AB-CDEF-EDCB-A98765432101\"")
+	ErrSizeZero             = errors.New("size can only be zero if start is zero")
 )
 
 func (p Partition) ValidateLabel() report.Report {
@@ -45,6 +46,13 @@ func (p Partition) ValidateLabel() report.Report {
 		})
 	}
 	return r
+}
+
+func (p Partition) ValidateSize() report.Report {
+	if p.Size == 0 && p.Start != 0 {
+		return report.ReportFromError(ErrSizeZero, report.EntryError)
+	}
+	return report.Report{}
 }
 
 func (p Partition) ValidateTypeGUID() report.Report {
