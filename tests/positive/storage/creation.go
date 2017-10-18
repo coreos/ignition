@@ -24,6 +24,7 @@ func init() {
 	register.Register(register.PositiveTest, WipeFilesystemWithSameType())
 	register.Register(register.PositiveTest, CreateNewPartitions())
 	register.Register(register.PositiveTest, AppendPartition())
+	register.Register(register.PositiveTest, PartitionSizeStart0())
 }
 
 func ForceNewFilesystemOfSameType() types.Test {
@@ -284,4 +285,48 @@ func AppendPartition() types.Test {
 		Out:    out,
 		Config: config,
 	}
+}
+
+func PartitionSizeStart0() types.Test {
+	name := "Create a partition with size and start 0"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	var mntDevices []types.MntDevice
+	config := `{
+		"ignition": {
+			"version": "2.1.0"
+		},
+		"storage": {
+			"disks": [{
+				"device": "$disk1",
+				"wipeTable": false,
+				"partitions": [{
+					"label": "fills-disk",
+					"number": 1,
+					"start": 0,
+					"size": 0,
+					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
+					"guid": "3ED3993F-0016-422B-B134-09FCBA6F66EF"
+				}]
+			}]
+		}
+	}`
+
+	in = append(in, types.Disk{
+		Alignment: types.IgnitionAlignment,
+	})
+	out = append(out, types.Disk{
+		Alignment: types.IgnitionAlignment,
+		Partitions: types.Partitions{
+			{
+				Label:    "fills-disk",
+				Number:   1,
+				Length:   65536,
+				TypeGUID: "F39C522B-9966-4429-A8F8-417CD5D83E5E",
+				GUID:     "3ED3993F-0016-422B-B134-09FCBA6F66EF",
+			},
+		},
+	})
+
+	return types.Test{name, in, out, mntDevices, config}
 }
