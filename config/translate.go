@@ -483,10 +483,10 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 			UID:          old.UID,
 		}
 	}
-	translatePasswdUserGroupSlice := func(old []v2_1.PasswdUserGroup) []types.PasswdUserGroup {
-		var res []types.PasswdUserGroup
+	translatePasswdUserGroupSlice := func(old []v2_1.PasswdUserGroup) []types.Group {
+		var res []types.Group
 		for _, g := range old {
-			res = append(res, types.PasswdUserGroup(g))
+			res = append(res, types.Group(g))
 		}
 		return res
 	}
