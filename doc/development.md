@@ -62,6 +62,7 @@ The following packages are required by the Blackbox Test:
 * `uuid-runtime`
 * `gdisk`
 * `coreutils`
+* `shadow-utils`
 
 ## Writing Blackbox Tests
 
