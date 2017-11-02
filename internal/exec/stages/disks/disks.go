@@ -22,7 +22,10 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"regexp"
+	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/exec/stages"
@@ -31,6 +34,7 @@ import (
 	"github.com/coreos/ignition/internal/resource"
 	"github.com/coreos/ignition/internal/sgdisk"
 	"github.com/coreos/ignition/internal/systemd"
+	putil "github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -38,7 +42,8 @@ const (
 )
 
 var (
-	ErrBadFilesystem = errors.New("filesystem is not of the correct type")
+	ErrBadFilesystem   = errors.New("filesystem is not of the correct type")
+	ErrBadSgdiskOutput = errors.New("sgdisk had unexpected output")
 )
 
 func init() {
@@ -170,6 +175,229 @@ func (s stage) waitOnDevicesAndCreateAliases(devs []string, ctxt string) error {
 	return nil
 }
 
+// partitionMatches determines if the existing partition matches the spec given. See doc/operator notes for what
+// what it means for an existing partition to match the spec. spec must have non-zero Start an Size. existing must
+// also have non-zero start and size and non-nil start and size and label.
+func partitionMatches(existing, spec types.Partition) error {
+	if spec.Number != existing.Number {
+		// sanity check
+		return fmt.Errorf("partition numbers did not match (specified %q, got %q). This should not happen.", spec.Number, existing.Number)
+	}
+	if spec.Start != nil && *spec.Start != *existing.Start {
+		return fmt.Errorf("starting sector did not match (specified %q, got %q)", *spec.Start, *existing.Start)
+	}
+	if spec.Size != nil && *spec.Size != *existing.Size {
+		return fmt.Errorf("size did not match (specified %q, got %q)", *spec.Size, *existing.Size)
+	}
+	if spec.GUID != "" && spec.GUID != existing.GUID {
+		return fmt.Errorf("GUID did not match (specified %q, got %q)", spec.GUID, existing.GUID)
+	}
+	if spec.TypeGUID != "" && spec.TypeGUID != existing.TypeGUID {
+		return fmt.Errorf("type GUID did not match (specified %q, got %q)", spec.TypeGUID, existing.TypeGUID)
+	}
+	if spec.Label != nil && *spec.Label != *existing.Label {
+		return fmt.Errorf("label did not match (specified %q, got %q)", *spec.Label, *existing.Label)
+	}
+	return nil
+}
+
+func getPartitionDeviceName(diskDev string, part int) string {
+	asRunes := []rune(diskDev)
+	if unicode.IsDigit(asRunes[len(asRunes)-1]) {
+		return fmt.Sprintf("%sp%d", diskDev, part)
+	} else {
+		return fmt.Sprintf("%s%d", diskDev, part)
+	}
+}
+
+// getReadStartAnsSize returns a map of partition numbers to a struct that contains what their real start
+// and end sector should be. It runs sgdisk --pretend to determine what the partitions would look like if
+// everything specified were to be (re)created.
+func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, existanceMap map[int]types.Partition) (map[int]sgdiskOutput, error) {
+	op := sgdisk.Begin(s.Logger, devAlias)
+	for _, part := range dev.Partitions {
+		_, exists := existanceMap[part.Number]
+		if exists {
+			// delete all existing partitions
+			s.Logger.Info("Deleting partition %v", part.Number)
+			op.DeletePartition(part.Number)
+		}
+		if partitionShouldExist(part) {
+			// Clear the label so it doesn't interfere with the sgdisk parsing in case
+			// it has control characters in it
+			part.Label = nil
+			op.CreatePartition(part)
+		}
+	}
+
+	// We only care to examine partitions that have start or size 0
+	partitionsToInspect := []int{}
+	for _, part := range dev.Partitions {
+		if ((part.Start != nil && *part.Start == 0) || (part.Size != nil && *part.Size == 0)) && part.Number != 0 {
+			op.Info(part.Number)
+			partitionsToInspect = append(partitionsToInspect, part.Number)
+		}
+	}
+
+	output, err := op.Pretend()
+	if err != nil {
+		return nil, err
+	}
+	return parseSgdiskPretend(output, partitionsToInspect)
+}
+
+type sgdiskOutput struct {
+	start int
+	end   int
+}
+
+// parseSgdiskPretend parses the output of running sgdisk pretend with --info specified for each partition
+// number specified in partitionNumbers. E.g. if paritionNumbers is [1,4,5], it is expected that the sgdisk
+// output was from running `sgdisk --pretend <commands> --info=1 --info=4 --info=5`. It assumes the the
+// partition labels are well behaved (i.e. contain no control characters). It returns a list of partitions
+// matching the partition numbers specified, but with the start and size information as determined by sgdisk.
+func parseSgdiskPretend(sgdiskOut string, partitionNumbers []int) (map[int]sgdiskOutput, error) {
+	if len(partitionNumbers) == 0 {
+		return nil, nil
+	}
+	startRegex := regexp.MustCompile("^First sector: (\\d*) \\(.*\\)$")
+	endRegex := regexp.MustCompile("^Last sector: (\\d*) \\(.*\\)$")
+	const (
+		START             = iota
+		END               = iota
+		FAIL_ON_START_END = iota
+	)
+
+	output := map[int]sgdiskOutput{}
+	state := START
+	i := 0
+	current := sgdiskOutput{}
+	var err error
+
+	lines := strings.Split(sgdiskOut, "\n")
+	for _, line := range lines {
+		switch state {
+		case START:
+			matches := startRegex.FindStringSubmatch(line)
+			if len(matches) == 2 {
+				if current.start, err = strconv.Atoi(matches[1]); err != nil {
+					return nil, err
+				}
+				state = END
+			} else if len(matches) != 0 {
+				return nil, ErrBadSgdiskOutput
+			}
+		case END:
+			matches := endRegex.FindStringSubmatch(line)
+			if len(matches) == 2 {
+				if current.end, err = strconv.Atoi(matches[1]); err != nil {
+					return nil, err
+				}
+				output[partitionNumbers[i]] = current
+
+				i++
+				if i == len(partitionNumbers) {
+					// No more partitions to get info on. If the sgdisk output has more something went wrong.
+					state = FAIL_ON_START_END
+				} else {
+					// Setup the next types.Partition
+					current = sgdiskOutput{}
+					state = START
+				}
+			} else if len(matches) != 0 {
+				return nil, ErrBadSgdiskOutput
+			}
+		case FAIL_ON_START_END:
+			if len(startRegex.FindStringSubmatch(line)) != 0 ||
+				len(endRegex.FindStringSubmatch(line)) != 0 {
+				return nil, ErrBadSgdiskOutput
+			}
+		}
+	}
+
+	if state != FAIL_ON_START_END {
+		// We stopped parsing in the middle of a info block. Something is wrong
+		return nil, ErrBadSgdiskOutput
+	}
+
+	return output, nil
+}
+
+// partitionShouldExist returns whether a bool is indicating if a partition should exist or not.
+// nil (unspecified in json) is treated the same as true.
+func partitionShouldExist(part types.Partition) bool {
+	return part.ShouldExist == nil || *part.ShouldExist
+}
+
+// partitionDisk partitions devAlias according to the spec given by dev
+func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
+	if dev.WipeTable {
+		op := sgdisk.Begin(s.Logger, devAlias)
+		s.Logger.Info("wiping partition table requested on %q", devAlias)
+		op.WipeTable(true)
+		op.Commit()
+	}
+	op := sgdisk.Begin(s.Logger, devAlias)
+
+	originalParts, err := s.getPartitionMap(devAlias)
+	if err != nil {
+		return err
+	}
+
+	// get a list of parititions that have size and start 0 replaced with the real sizes
+	// that would be used if all specified partitions were to be created anew.
+	partsWithRealSizes, err := s.getRealStartAndSize(dev, devAlias, originalParts)
+	if err != nil {
+		return err
+	}
+
+	for _, part := range dev.Partitions {
+		shouldExist := partitionShouldExist(part)
+		info, exists := originalParts[part.Number]
+		var matchErr error
+		matches := false
+
+		// replace start/size 0 with the actual values they would be
+		if startAndEnd, ok := partsWithRealSizes[part.Number]; ok {
+			part.Start = putil.IntToPtr(startAndEnd.start)
+			part.Size = putil.IntToPtr(1 + startAndEnd.end - startAndEnd.start)
+		}
+
+		if exists {
+			matchErr = partitionMatches(info, part)
+			matches = (matchErr == nil)
+		}
+
+		// This is a translation of the matrix in the operator notes.
+		switch {
+		case !exists && !shouldExist:
+			s.Logger.Info("partition %d specified as nonexistant and no partition was found. Success.", part.Number)
+		case !exists && shouldExist:
+			op.CreatePartition(part)
+		case exists && !shouldExist && !part.WipePartitionEntry:
+			return fmt.Errorf("partition %d exists but is specified as nonexistant and wipePartitionEntry is false", part.Number)
+		case exists && !shouldExist && part.WipePartitionEntry:
+			op.DeletePartition(part.Number)
+		case exists && shouldExist && matches:
+			s.Logger.Info("partition %d found with correct specifications", part.Number)
+		case exists && shouldExist && !part.WipePartitionEntry && !matches:
+			return fmt.Errorf("Partition %d didn't match: %v", part.Number, matchErr)
+		case exists && shouldExist && part.WipePartitionEntry && !matches:
+			s.Logger.Info("partition %d did not meet specifications, wiping partition entry and recreating", part.Number)
+			op.DeletePartition(part.Number)
+			op.CreatePartition(part)
+		default:
+			// unfortunatey, golang doesn't check that all cases are handled exhaustively
+			return fmt.Errorf("Unreachable code reached when processing partition %d. golang--", part.Number)
+		}
+	}
+
+	if err := op.Commit(); err != nil {
+		return fmt.Errorf("commit failure: %v", err)
+	}
+	return nil
+}
+
 // createPartitions creates the partitions described in config.Storage.Disks.
 func (s stage) createPartitions(config types.Config) error {
 	if len(config.Storage.Disks) == 0 {
@@ -191,27 +419,7 @@ func (s stage) createPartitions(config types.Config) error {
 		devAlias := util.DeviceAlias(string(dev.Device))
 
 		err := s.Logger.LogOp(func() error {
-			op := sgdisk.Begin(s.Logger, devAlias)
-			if dev.WipeTable {
-				s.Logger.Info("wiping partition table requested on %q", devAlias)
-				op.WipeTable(true)
-			}
-
-			for _, part := range dev.Partitions {
-				op.CreatePartition(sgdisk.Partition{
-					Number:   part.Number,
-					Length:   uint64(part.Size),
-					Offset:   uint64(part.Start),
-					Label:    string(part.Label),
-					TypeGUID: string(part.TypeGUID),
-					GUID:     string(part.GUID),
-				})
-			}
-
-			if err := op.Commit(); err != nil {
-				return fmt.Errorf("commit failure: %v", err)
-			}
-			return nil
+			return s.partitionDisk(dev, devAlias)
 		}, "partitioning %q", devAlias)
 		if err != nil {
 			return err
@@ -449,6 +657,28 @@ func (s stage) readFilesystemInfo(fs types.Mount) (filesystemInfo, error) {
 	)
 
 	return res, err
+}
+
+// getPartitionMap returns a map of partitions on device, indexed by partition number
+func (s stage) getPartitionMap(device string) (map[int]types.Partition, error) {
+	parts := []types.Partition{}
+	err := s.Logger.LogOp(
+		func() error {
+			p, err := util.DumpPartitionTable(device)
+			if err != nil {
+				return err
+			}
+			parts = p
+			return nil
+		}, "reading partition table of %q", device)
+	if err != nil {
+		return nil, err
+	}
+	m := map[int]types.Partition{}
+	for _, part := range parts {
+		m[part.Number] = part
+	}
+	return m, nil
 }
 
 // canonicalizeFilesystemUUID does the minimum amount of canonicalization

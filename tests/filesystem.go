@@ -92,6 +92,7 @@ func runIgnition(t *testing.T, stage, root, cwd string, expectFail bool) bool {
 	t.Log("ignition", args)
 	cmd.Dir = cwd
 	out, err := cmd.CombinedOutput()
+	t.Logf("PID: %d", cmd.Process.Pid)
 	if err != nil && !expectFail {
 		t.Fatal(args, err, string(out))
 	}
@@ -107,16 +108,6 @@ func pickPartition(t *testing.T, device string, partitions []*types.Partition, l
 		}
 	}
 	return ""
-}
-
-func calculateImageSize(partitions []*types.Partition) int64 {
-	// 63 is the number of sectors cgpt uses when generating a hybrid MBR
-	size := int64(63 * 512)
-	for _, p := range partitions {
-		size += int64(align(p.Length, 512) * 512)
-	}
-	size = size + int64(4096*512) // extra room to allow for alignments
-	return size
 }
 
 // createVolume will create the image file of the specified size, create a
@@ -225,27 +216,6 @@ func formatPartition(t *testing.T, partition *types.Partition) {
 			"-m", "0", "-r", "0", "-e", "remount-ro", partition.Device,
 		}
 		_ = mustRun(t, "tune2fs", opts...)
-	}
-}
-
-func align(count int, alignment int) int {
-	offset := count % alignment
-	if offset != 0 {
-		count += alignment - offset
-	}
-	return count
-}
-
-func setOffsets(partitions []*types.Partition) {
-	// 34 is the first non-reserved GPT sector
-	offset := 34
-	for _, p := range partitions {
-		if p.Length == 0 || p.TypeCode == "blank" {
-			continue
-		}
-		offset = align(offset, 4096)
-		p.Offset = offset
-		offset += p.Length
 	}
 }
 

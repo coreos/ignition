@@ -18,6 +18,14 @@ import (
 	"fmt"
 )
 
+const (
+	sectorSize               = 512
+	oneMegAlignmentInSectors = 2048
+	twoMegAlignmentInSectors = 4096
+	gptHeaderSize            = 34
+	gptHybridMBRHeaderSize   = 63
+)
+
 type File struct {
 	Node
 	Contents string
@@ -45,6 +53,7 @@ type Node struct {
 type Disk struct {
 	ImageFile  string
 	Device     string
+	Align1M    bool // whether to use 1M alignment instead of 2M
 	Partitions Partitions
 }
 
@@ -112,9 +121,50 @@ func (ps Partitions) AddRemovedNodes(label string, ns []Node) {
 	p.RemovedNodes = append(p.RemovedNodes, ns...)
 }
 
+func (d Disk) SetOffsets() {
+	alignment := d.GetAlignment()
+	offset := gptHeaderSize
+	for _, p := range d.Partitions {
+		if p.Length == 0 || p.TypeCode == "blank" {
+			continue
+		}
+		offset = Align(offset, alignment)
+		p.Offset = offset
+		offset += p.Length
+	}
+}
+
+func (d Disk) GetAlignment() int {
+	alignment := twoMegAlignmentInSectors
+	if d.Align1M {
+		alignment = oneMegAlignmentInSectors
+	}
+	return alignment
+}
+
+func (d Disk) CalculateImageSize() int64 {
+	alignment := d.GetAlignment()
+	size := int64(Align(gptHybridMBRHeaderSize, alignment))
+	for _, p := range d.Partitions {
+		size += int64(Align(p.Length, alignment))
+	}
+	// convert to sectors and add secondary GPT header
+	// subtract one because LBA0 (protective MBR) is not included in the secondary GPT header
+	return sectorSize * (size + gptHeaderSize - 1)
+}
+
+func Align(count int, alignment int) int {
+	offset := count % alignment
+	if offset != 0 {
+		count += alignment - offset
+	}
+	return count
+}
+
 func GetBaseDisk() []Disk {
 	return []Disk{
 		{
+			Align1M: false,
 			Partitions: Partitions{
 				{
 					Number:         1,

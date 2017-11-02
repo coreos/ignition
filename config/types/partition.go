@@ -38,7 +38,7 @@ func (p Partition) ValidateLabel() report.Report {
 
 	// XXX(vc): note GPT calls it a name, we're using label for consistency
 	// with udev naming /dev/disk/by-partlabel/*.
-	if len(p.Label) > 36 {
+	if p.Label != nil && len(*p.Label) > 36 {
 		r.Add(report.Entry{
 			Message: ErrLabelTooLong.Error(),
 			Kind:    report.EntryError,

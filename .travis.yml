@@ -26,11 +26,22 @@ addons:
 install:
   # since libblkid-dev:arm64 cannot be installed, spoof it
   -     if [ "${TARGET}" == "arm64" ]; then
-                echo "void blkid_new_probe_from_filename(void) {}" >> stub.c;
-                echo "void blkid_do_probe(void) {}"                >> stub.c;
-                echo "void blkid_probe_has_value(void) {}"         >> stub.c;
-                echo "void blkid_probe_lookup_value(void) {}"      >> stub.c;
-                echo "void blkid_free_probe(void) {}"              >> stub.c;
+                echo "void blkid_new_probe_from_filename(void) {}"   >> stub.c;
+                echo "void blkid_do_probe(void) {}"                  >> stub.c;
+                echo "void blkid_probe_has_value(void) {}"           >> stub.c;
+                echo "void blkid_probe_lookup_value(void) {}"        >> stub.c;
+                echo "void blkid_free_probe(void) {}"                >> stub.c;
+                echo "void blkid_probe_get_partitions(void) {}"      >> stub.c;
+                echo "void blkid_partlist_get_table(void) {}"        >> stub.c;
+                echo "void blkid_partlist_get_partition(void) {}"    >> stub.c;
+                echo "void blkid_partlist_numof_partitions(void) {}" >> stub.c;
+                echo "void blkid_partition_get_name(void) {}"        >> stub.c;
+                echo "void blkid_partition_get_uuid(void) {}"        >> stub.c;
+                echo "void blkid_partition_get_type_string(void) {}" >> stub.c;
+                echo "void blkid_partition_get_start(void) {}"       >> stub.c;
+                echo "void blkid_partition_get_size(void) {}"        >> stub.c;
+                echo "void blkid_partition_get_partno(void) {}"      >> stub.c;
+                echo "void blkid_parttable_get_type(void) {}"        >> stub.c;
                 aarch64-linux-gnu-gcc-4.8 -c -o stub.o stub.c;
                 aarch64-linux-gnu-gcc-ar-4.8 cq libblkid.a stub.o;
         fi

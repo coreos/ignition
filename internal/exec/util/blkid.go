@@ -25,6 +25,9 @@ import (
 	"bytes"
 	"fmt"
 	"unsafe"
+
+	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -45,6 +48,71 @@ func FilesystemLabel(device string) (string, error) {
 	return filesystemLookup(device, field_name_label)
 }
 
+// cResultToErr takes a result_t from the blkid c code and a device it was operating on
+// and returns a golang error describing the result code.
+func cResultToErr(res C.result_t, device string) error {
+	switch res {
+	case C.RESULT_OK:
+		return nil
+	case C.RESULT_OPEN_FAILED:
+		return fmt.Errorf("failed to open %q", device)
+	case C.RESULT_PROBE_FAILED:
+		return fmt.Errorf("failed to probe %q", device)
+	case C.RESULT_LOOKUP_FAILED:
+		return fmt.Errorf("failed to lookup attribute on %q", device)
+	case C.RESULT_NO_PARTITION_TABLE:
+		return fmt.Errorf("no partition table found on %q", device)
+	case C.RESULT_BAD_INDEX:
+		return fmt.Errorf("bad partition index specified for device %q", device)
+	case C.RESULT_GET_PARTLIST_FAILED:
+		return fmt.Errorf("failed to get list of partitions on %q", device)
+	case C.RESULT_DISK_HAS_NO_TYPE:
+		return fmt.Errorf("%q has no type string, despite having a partition table", device)
+	case C.RESULT_DISK_NOT_GPT:
+		return fmt.Errorf("%q is not a gpt disk", device)
+	case C.RESULT_BAD_PARAMS:
+		return fmt.Errorf("internal error. bad params passed while handling %q", device)
+	default:
+		return fmt.Errorf("Unknown error while handling %q", device)
+	}
+}
+
+// DumpPartitionTable returns a list of all partitions on device (e.g. /dev/vda). The list
+// of partitions returned is unordered.
+func DumpPartitionTable(device string) ([]types.Partition, error) {
+	output := []types.Partition{}
+
+	// REVIEWERS: this will get gc'd by go since its declared here, yes?
+	var cInfo C.struct_partition_info
+	cInfoRef := (*C.struct_partition_info)(unsafe.Pointer(&cInfo))
+
+	cDevice := C.CString(device)
+	defer C.free(unsafe.Pointer(cDevice))
+
+	numParts := 0
+	cNumPartsRef := (*C.int)(unsafe.Pointer(&numParts))
+	if err := cResultToErr(C.blkid_get_num_partitions(cDevice, cNumPartsRef), device); err != nil {
+		return []types.Partition{}, err
+	}
+
+	for i := 0; i < numParts; i++ {
+		if err := cResultToErr(C.blkid_get_partition(cDevice, C.int(i), cInfoRef), device); err != nil {
+			return []types.Partition{}, err
+		}
+		current := types.Partition{
+			Label:    util.StringToPtr(C.GoString(&cInfo.label[0])),
+			GUID:     C.GoString(&cInfo.uuid[0]),
+			TypeGUID: C.GoString(&cInfo.type_guid[0]),
+			Number:   int(cInfo.number),
+			Start:    util.IntToPtr(int(cInfo.start)),
+			Size:     util.IntToPtr(int(cInfo.size)),
+		}
+
+		output = append(output, current)
+	}
+	return output, nil
+}
+
 func filesystemLookup(device string, fieldName string) (string, error) {
 	var buf [256]byte
 
@@ -53,18 +121,8 @@ func filesystemLookup(device string, fieldName string) (string, error) {
 	cFieldName := C.CString(fieldName)
 	defer C.free(unsafe.Pointer(cFieldName))
 
-	switch C.blkid_lookup(cDevice, cFieldName, (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf))) {
-	case C.RESULT_OK:
-		// trim off tailing NULLs
-		return string(buf[:bytes.IndexByte(buf[:], 0)]), nil
-	case C.RESULT_OPEN_FAILED:
-		return "", fmt.Errorf("failed to open %q", device)
-	case C.RESULT_PROBE_FAILED:
-		// If the probe failed, there's no filesystem created yet on this device
-		return "", nil
-	case C.RESULT_LOOKUP_FAILED:
-		return "", fmt.Errorf("failed to lookup filesystem type of %q", device)
-	default:
-		return "", fmt.Errorf("unknown error")
+	if err := cResultToErr(C.blkid_lookup(cDevice, cFieldName, (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf))), device); err != nil {
+		return "", err
 	}
+	return string(buf[:bytes.IndexByte(buf[:], 0)]), nil
 }

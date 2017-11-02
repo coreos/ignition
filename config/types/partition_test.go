@@ -19,11 +19,12 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/internal/util"
 )
 
 func TestValidateLabel(t *testing.T) {
 	type in struct {
-		label string
+		label *string
 	}
 	type out struct {
 		report report.Report
@@ -33,19 +34,23 @@ func TestValidateLabel(t *testing.T) {
 		out out
 	}{
 		{
-			in{"root"},
+			in{nil},
 			out{report.Report{}},
 		},
 		{
-			in{""},
+			in{util.StringToPtr("root")},
 			out{report.Report{}},
 		},
 		{
-			in{"111111111111111111111111111111111111"},
+			in{util.StringToPtr("")},
 			out{report.Report{}},
 		},
 		{
-			in{"1111111111111111111111111111111111111"},
+			in{util.StringToPtr("111111111111111111111111111111111111")},
+			out{report.Report{}},
+		},
+		{
+			in{util.StringToPtr("1111111111111111111111111111111111111")},
 			out{report.ReportFromError(ErrLabelTooLong, report.EntryError)},
 		},
 	}
