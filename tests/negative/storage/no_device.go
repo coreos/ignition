@@ -30,7 +30,6 @@ func NoDevice() types.Test {
 	name := "No Device"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {"version": "2.1.0"},
 		"storage": {
@@ -43,14 +42,18 @@ func NoDevice() types.Test {
 		}
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func NoDeviceWithForce() types.Test {
 	name := "No Device w/ Force"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {"version": "2.0.0"},
 		"storage": {
@@ -66,14 +69,18 @@ func NoDeviceWithForce() types.Test {
 		}
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func NoDeviceWithWipeFilesystemTrue() types.Test {
 	name := "No Device w/ wipeFilesystem true"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {"version": "2.1.0"},
 		"storage": {
@@ -87,14 +94,18 @@ func NoDeviceWithWipeFilesystemTrue() types.Test {
 		}
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func NoDeviceWithWipeFilesystemFalse() types.Test {
 	name := "No Device w/ wipeFilesystem false"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {"version": "2.1.0"},
 		"storage": {
@@ -108,5 +119,10 @@ func NoDeviceWithWipeFilesystemFalse() types.Test {
 		}
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

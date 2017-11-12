@@ -57,7 +57,13 @@ func ReformatToBTRFS_2_0_0() types.Test {
 	}`
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "btrfs"
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func ReformatToXFS_2_0_0() types.Test {
@@ -87,7 +93,13 @@ func ReformatToXFS_2_0_0() types.Test {
 	}`
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "xfs"
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func ReformatToVFAT_2_0_0() types.Test {
@@ -118,7 +130,13 @@ func ReformatToVFAT_2_0_0() types.Test {
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "vfat"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func ReformatToEXT4_2_0_0() types.Test {
@@ -150,7 +168,13 @@ func ReformatToEXT4_2_0_0() types.Test {
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func ReformatToBTRFS_2_1_0() types.Test {
@@ -180,7 +204,13 @@ func ReformatToBTRFS_2_1_0() types.Test {
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "btrfs"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func ReformatToXFS_2_1_0() types.Test {
@@ -210,7 +240,13 @@ func ReformatToXFS_2_1_0() types.Test {
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "xfs"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func ReformatToVFAT_2_1_0() types.Test {
@@ -240,7 +276,13 @@ func ReformatToVFAT_2_1_0() types.Test {
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "vfat"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "2e24ec82"
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func ReformatToEXT4_2_1_0() types.Test {
@@ -271,7 +313,13 @@ func ReformatToEXT4_2_1_0() types.Test {
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func ReformatToSWAP_2_1_0() types.Test {
@@ -302,5 +350,11 @@ func ReformatToSWAP_2_1_0() types.Test {
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "swap"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }

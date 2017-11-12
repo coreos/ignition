@@ -27,7 +27,6 @@ func InvalidFilesystem() types.Test {
 	name := "Invalid Filesystem"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {"version": "2.0.0"},
 		"storage": {
@@ -38,5 +37,10 @@ func InvalidFilesystem() types.Test {
 			}]}
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

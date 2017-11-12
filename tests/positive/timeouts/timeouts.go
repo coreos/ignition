@@ -53,7 +53,6 @@ func IncreaseHTTPResponseHeadersTimeout() types.Test {
 	name := "Increase HTTP Response Headers Timeout"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := fmt.Sprintf(`{
 		"ignition": {
 			"version": "2.1.0",
@@ -83,14 +82,18 @@ func IncreaseHTTPResponseHeadersTimeout() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func ConfirmHTTPBackoffWorks() types.Test {
 	name := "Confirm HTTP Backoff Works"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := fmt.Sprintf(`{
 		"ignition": {
 			"version": "2.1.0"
@@ -117,5 +120,10 @@ func ConfirmHTTPBackoffWorks() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

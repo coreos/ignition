@@ -22,13 +22,13 @@ import (
 func init() {
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTP())
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsTFTP())
+	register.Register(register.PositiveTest, CreateFileFromRemoteContentsOEM())
 }
 
 func CreateFileFromRemoteContentsHTTP() types.Test {
 	name := "Create Files from Remote Contents - HTTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.0.0" },
 	  "storage": {
@@ -51,14 +51,18 @@ func CreateFileFromRemoteContentsHTTP() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func CreateFileFromRemoteContentsTFTP() types.Test {
 	name := "Create Files from Remote Contents - TFTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
           "ignition": { "version": "2.1.0" },
           "storage": {
@@ -81,5 +85,52 @@ func CreateFileFromRemoteContentsTFTP() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func CreateFileFromRemoteContentsOEM() types.Test {
+	name := "Create Files from Remote Contents - OEM"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.0.0" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": {
+	        "source": "oem:///source"
+	      }
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddFiles("OEM", []types.File{
+		{
+			Node: types.Node{
+				Name: "source",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

@@ -20,6 +20,7 @@ import (
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/profile"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/azure"
 	"github.com/coreos/ignition/internal/providers/cloudstack"
@@ -62,10 +63,11 @@ func (c Config) NewFetcherFunc() providers.FuncNewFetcher {
 	if c.newFetcher != nil {
 		return c.newFetcher
 	}
-	return func(l *log.Logger, c *resource.HttpClient) (resource.Fetcher, error) {
+	return func(p profile.Profile, l *log.Logger, c *resource.HttpClient) (resource.Fetcher, error) {
 		return resource.Fetcher{
-			Logger: l,
-			Client: c,
+			Profile: p,
+			Logger:  l,
+			Client:  c,
 		}, nil
 	}
 }

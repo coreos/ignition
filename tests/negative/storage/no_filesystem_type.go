@@ -47,7 +47,13 @@ func NoFilesystemType() types.Test {
 		}
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func NoFilesystemTypeWithForce() types.Test {
@@ -75,7 +81,13 @@ func NoFilesystemTypeWithForce() types.Test {
 		}
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func NoFilesystemTypeWithWipeFilesystem() types.Test {
@@ -101,5 +113,11 @@ func NoFilesystemTypeWithWipeFilesystem() types.Test {
 		}
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }

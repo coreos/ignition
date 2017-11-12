@@ -16,6 +16,7 @@ package blackbox
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -86,8 +87,8 @@ func getRootLocation(partitions []*types.Partition) string {
 }
 
 // returns true if no error, false if error
-func runIgnition(t *testing.T, stage, root, cwd string, expectFail bool) bool {
-	args := []string{"-clear-cache", "-oem", "file", "-stage", stage, "-root", root}
+func runIgnition(t *testing.T, stage, root, cwd, profile string, expectFail bool) bool {
+	args := []string{"-clear-cache", "-oem", "file", "-profile", profile, "-stage", stage, "-root", root}
 	cmd := exec.Command("ignition", args...)
 	t.Log("ignition", args)
 	cmd.Dir = cwd
@@ -107,6 +108,27 @@ func pickPartition(t *testing.T, device string, partitions []*types.Partition, l
 		}
 	}
 	return ""
+}
+
+func writeIgnitionProfile(t *testing.T, path string, partitions types.Partitions, oemDirs []string) {
+	var profile struct {
+		OEM struct {
+			Device            string   `json:"device"`
+			SearchDirectories []string `json:"search-dirs"`
+		} `json:"oem"`
+	}
+
+	profile.OEM.Device = partitions.GetPartition("OEM").Device
+	profile.OEM.SearchDirectories = oemDirs
+
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	if err := json.NewEncoder(f).Encode(profile); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func calculateImageSize(partitions []*types.Partition) int64 {
@@ -347,31 +369,35 @@ func generateUUID(t *testing.T) string {
 	return strings.TrimSpace(string(out))
 }
 
-func createFiles(t *testing.T, partitions []*types.Partition) {
+func createFilesForPartitions(t *testing.T, partitions []*types.Partition) {
 	for _, partition := range partitions {
 		if partition.Files == nil {
 			continue
 		}
-		for _, file := range partition.Files {
-			err := os.MkdirAll(filepath.Join(
-				partition.MountPath, file.Directory), 0755)
+		createFilesFromSlice(t, partition.MountPath, partition.Files)
+	}
+}
+
+func createFilesFromSlice(t *testing.T, basedir string, files []types.File) {
+	for _, file := range files {
+		err := os.MkdirAll(filepath.Join(
+			basedir, file.Directory), 0755)
+		if err != nil {
+			t.Fatal("mkdirall", err)
+		}
+		f, err := os.Create(filepath.Join(
+			basedir, file.Directory, file.Name))
+		if err != nil {
+			t.Fatal("create", err, f)
+		}
+		defer f.Close()
+		if file.Contents != "" {
+			writer := bufio.NewWriter(f)
+			writeStringOut, err := writer.WriteString(file.Contents)
 			if err != nil {
-				t.Fatal("mkdirall", err)
+				t.Fatal("writeString", err, string(writeStringOut))
 			}
-			f, err := os.Create(filepath.Join(
-				partition.MountPath, file.Directory, file.Name))
-			if err != nil {
-				t.Fatal("create", err, f)
-			}
-			defer f.Close()
-			if file.Contents != "" {
-				writer := bufio.NewWriter(f)
-				writeStringOut, err := writer.WriteString(file.Contents)
-				if err != nil {
-					t.Fatal("writeString", err, string(writeStringOut))
-				}
-				writer.Flush()
-			}
+			writer.Flush()
 		}
 	}
 }
@@ -406,4 +432,18 @@ func setExpectedPartitionsDrive(actual []*types.Partition, expected []*types.Par
 			}
 		}
 	}
+}
+
+func createOEMDirs(t *testing.T, dirs [][]types.File) []string {
+	var dirPaths []string
+	for i, files := range dirs {
+		dirPath := filepath.Join(os.TempDir(), fmt.Sprintf("oem-%d", i))
+		dirPaths = append(dirPaths, dirPath)
+		err := os.Mkdir(dirPath, 0777)
+		if err != nil {
+			t.Fatal(err)
+		}
+		createFilesFromSlice(t, dirPath, files)
+	}
+	return dirPaths
 }
