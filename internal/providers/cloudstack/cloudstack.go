@@ -42,7 +42,6 @@ import (
 )
 
 const (
-	diskByLabelPath         = "/dev/disk/by-label/"
 	configDriveUserdataPath = "/cloudstack/userdata/user_data.txt"
 	LeaseRetryInterval      = 500 * time.Millisecond
 )
@@ -99,7 +98,7 @@ func labelExists(label string) bool {
 }
 
 func getPath(label string) (string, error) {
-	path := diskByLabelPath + label
+	path := filepath.Join(distro.DiskByLabelDir(), label)
 
 	if fileExists(path) {
 		return path, nil

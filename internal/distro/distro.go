@@ -17,6 +17,17 @@ package distro
 // Distro-specific settings that can be overridden at link time with e.g.
 // -X github.com/coreos/ignition/internal/distro.mdadmCmd=/opt/bin/mdadm
 var (
+	// Device node directories and paths
+	diskByIDDir       = "/dev/disk/by-id"
+	diskByLabelDir    = "/dev/disk/by-label"
+	diskByPartUUIDDir = "/dev/disk/by-partuuid"
+	oemDevicePath     = "/dev/disk/by-label/OEM"
+
+	// File paths
+	kernelCmdlinePath = "/proc/cmdline"
+	// initramfs directory to check before retrieving file from OEM partition
+	oemLookasideDir = "/usr/share/oem"
+
 	// Helper programs
 	mdadmCmd   = "/usr/sbin/mdadm"
 	mountCmd   = "/usr/bin/mount"
@@ -30,6 +41,14 @@ var (
 	vfatMkfsCmd  = "/usr/sbin/mkfs.vfat"
 	xfsMkfsCmd   = "/usr/sbin/mkfs.xfs"
 )
+
+func DiskByIDDir() string       { return diskByIDDir }
+func DiskByLabelDir() string    { return diskByLabelDir }
+func DiskByPartUUIDDir() string { return diskByPartUUIDDir }
+func OEMDevicePath() string     { return oemDevicePath }
+
+func KernelCmdlinePath() string { return kernelCmdlinePath }
+func OEMLookasideDir() string   { return oemLookasideDir }
 
 func MdadmCmd() string   { return mdadmCmd }
 func MountCmd() string   { return mountCmd }

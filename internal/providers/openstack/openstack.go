@@ -40,7 +40,6 @@ import (
 )
 
 const (
-	diskByLabelPath         = "/dev/disk/by-label/"
 	configDriveUserdataPath = "/openstack/latest/user_data"
 )
 
@@ -74,11 +73,11 @@ func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
 	}
 
 	go dispatch("config drive (config-2)", func() ([]byte, error) {
-		return fetchConfigFromDevice(f.Logger, ctx, diskByLabelPath+"config-2")
+		return fetchConfigFromDevice(f.Logger, ctx, filepath.Join(distro.DiskByLabelDir(), "config-2"))
 	})
 
 	go dispatch("config drive (CONFIG-2)", func() ([]byte, error) {
-		return fetchConfigFromDevice(f.Logger, ctx, diskByLabelPath+"CONFIG-2")
+		return fetchConfigFromDevice(f.Logger, ctx, filepath.Join(distro.DiskByLabelDir(), "CONFIG-2"))
 	})
 
 	go dispatch("metadata service", func() ([]byte, error) {
