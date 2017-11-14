@@ -34,6 +34,7 @@ import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
 
@@ -176,7 +177,7 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, label string
 	}
 	defer os.Remove(mnt)
 
-	cmd := exec.Command("/bin/mount", "-o", "ro", "-t", "auto", path, mnt)
+	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", path, mnt)
 	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
 		return nil, err
 	}
