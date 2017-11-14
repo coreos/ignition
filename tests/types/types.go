@@ -76,11 +76,12 @@ type MntDevice struct {
 }
 
 type Test struct {
-	Name       string
-	In         []Disk
-	Out        []Disk
-	MntDevices []MntDevice
-	Config     string
+	Name              string
+	In                []Disk
+	Out               []Disk
+	MntDevices        []MntDevice
+	OEMLookasideFiles []File
+	Config            string
 }
 
 func (ps Partitions) GetPartition(label string) *Partition {

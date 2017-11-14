@@ -158,6 +158,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	var rootLocation string
 
 	// Setup
+	createFilesFromSlice(t, oemLookasideDir, test.OEMLookasideFiles)
 	for i, disk := range test.In {
 		// Set image file path
 		disk.ImageFile = filepath.Join(os.TempDir(), fmt.Sprintf("hd%d", i))
@@ -189,7 +190,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 			prepareRootPartitionForPasswd(t, disk.Partitions)
 		}
 		mountPartitions(t, disk.Partitions)
-		createFiles(t, disk.Partitions)
+		createFilesForPartitions(t, disk.Partitions)
 		unmountPartitions(t, disk.Partitions)
 
 		// Mount device name substitution
