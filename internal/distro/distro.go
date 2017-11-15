@@ -14,6 +14,10 @@
 
 package distro
 
+import (
+	"os"
+)
+
 // Distro-specific settings that can be overridden at link time with e.g.
 // -X github.com/coreos/ignition/internal/distro.mdadmCmd=/opt/bin/mdadm
 var (
@@ -45,10 +49,10 @@ var (
 func DiskByIDDir() string       { return diskByIDDir }
 func DiskByLabelDir() string    { return diskByLabelDir }
 func DiskByPartUUIDDir() string { return diskByPartUUIDDir }
-func OEMDevicePath() string     { return oemDevicePath }
+func OEMDevicePath() string     { return fromEnv("OEM_DEVICE", oemDevicePath) }
 
 func KernelCmdlinePath() string { return kernelCmdlinePath }
-func OEMLookasideDir() string   { return oemLookasideDir }
+func OEMLookasideDir() string   { return fromEnv("OEM_LOOKASIDE_DIR", oemLookasideDir) }
 
 func MdadmCmd() string   { return mdadmCmd }
 func MountCmd() string   { return mountCmd }
@@ -60,3 +64,11 @@ func Ext4MkfsCmd() string  { return ext4MkfsCmd }
 func SwapMkfsCmd() string  { return swapMkfsCmd }
 func VfatMkfsCmd() string  { return vfatMkfsCmd }
 func XfsMkfsCmd() string   { return xfsMkfsCmd }
+
+func fromEnv(nameSuffix, defaultValue string) string {
+	value := os.Getenv("IGNITION_" + nameSuffix)
+	if value != "" {
+		return value
+	}
+	return defaultValue
+}
