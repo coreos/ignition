@@ -81,6 +81,12 @@ replacements that need to be done to the Ignition config before Ignition is
 run. This is done so that disks which are created during the test run can be
 referenced inside of an Ignition config.
 
+OEMLookasideFiles: `[]File` object which describes the Files that should be
+written into the OEM lookaside directory before Ignition is run.
+
+SystemDirFiles: `[]File` object which describes the Files that should be
+written into Ignition's system config directory before Ignition is run.
+
 Config: `string`
 
 The test should be added to the init function inside of the test file. If the
