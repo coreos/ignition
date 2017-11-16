@@ -27,7 +27,6 @@ func CreateSystemdService() types.Test {
 	name := "Create a systemd service"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": { "version": "2.0.0" },
 		"systemd": {
@@ -55,5 +54,10 @@ func CreateSystemdService() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

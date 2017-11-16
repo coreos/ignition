@@ -34,6 +34,7 @@ import (
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
 
@@ -41,7 +42,6 @@ import (
 )
 
 const (
-	diskByLabelPath         = "/dev/disk/by-label/"
 	configDriveUserdataPath = "/cloudstack/userdata/user_data.txt"
 	LeaseRetryInterval      = 500 * time.Millisecond
 )
@@ -98,7 +98,7 @@ func labelExists(label string) bool {
 }
 
 func getPath(label string) (string, error) {
-	path := diskByLabelPath + label
+	path := filepath.Join(distro.DiskByLabelDir(), label)
 
 	if fileExists(path) {
 		return path, nil
@@ -176,7 +176,7 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, label string
 	}
 	defer os.Remove(mnt)
 
-	cmd := exec.Command("/bin/mount", "-o", "ro", "-t", "auto", path, mnt)
+	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", path, mnt)
 	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
 		return nil, err
 	}

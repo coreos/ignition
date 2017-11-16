@@ -25,6 +25,8 @@ func init() {
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTP())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigTFTP())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigTFTP())
+	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigOEM())
+	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigOEM())
 	register.Register(register.PositiveTest, VersionOnlyConfig())
 	register.Register(register.PositiveTest, EmptyUserdata())
 }
@@ -68,14 +70,19 @@ func ReformatFilesystemAndWriteFile() types.Test {
 		},
 	}
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	name := "Replacing the Config with a Remote Config from HTTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": {
 	    "version": "2.0.0",
@@ -97,14 +104,18 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func ReplaceConfigWithRemoteConfigTFTP() types.Test {
 	name := "Replacing the Config with a Remote Config from TFTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
           "ignition": {
             "version": "2.1.0",
@@ -126,14 +137,68 @@ func ReplaceConfigWithRemoteConfigTFTP() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ReplaceConfigWithRemoteConfigOEM() types.Test {
+	name := "Replacing the Config with a Remote Config from OEM"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+          "ignition": {
+            "version": "2.1.0",
+            "config": {
+              "replace": {
+                "source": "oem:///config",
+                        "verification": { "hash": "sha512-73395ffef4b1aefac56b6406f7aed307199d960cc8ad9317e0e8b6497a64f879b33fd59eca533f5f139aa4237f7d81de08c6f7f17db9dd2c072e9ecccb0fed42" }
+              }
+            }
+          }
+        }`
+	in[0].Partitions.AddFiles("OEM", []types.File{
+		{
+			Node: types.Node{
+				Name: "config",
+			},
+			Contents: `{
+	"ignition": { "version": "2.1.0" },
+	"storage": {
+		"files": [{
+		  "filesystem": "root",
+		  "path": "/foo/bar",
+		  "contents": { "source": "data:,example%20file%0A" }
+		}]
+	}
+}`,
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func AppendConfigWithRemoteConfigHTTP() types.Test {
 	name := "Appending to the Config with a Remote Config from HTTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": {
 	    "version": "2.0.0",
@@ -169,14 +234,18 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func AppendConfigWithRemoteConfigTFTP() types.Test {
 	name := "Appending to the Config with a Remote Config from TFTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
           "ignition": {
             "version": "2.1.0",
@@ -212,27 +281,104 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func AppendConfigWithRemoteConfigOEM() types.Test {
+	name := "Appending to the Config with a Remote Config from OEM"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+          "ignition": {
+            "version": "2.1.0",
+            "config": {
+              "append": [{
+                "source": "oem:///config",
+                        "verification": { "hash": "sha512-73395ffef4b1aefac56b6406f7aed307199d960cc8ad9317e0e8b6497a64f879b33fd59eca533f5f139aa4237f7d81de08c6f7f17db9dd2c072e9ecccb0fed42" }
+              }]
+            }
+          },
+      "storage": {
+        "files": [{
+          "filesystem": "root",
+          "path": "/foo/bar2",
+          "contents": { "source": "data:,another%20example%20file%0A" }
+        }]
+      }
+        }`
+	in[0].Partitions.AddFiles("OEM", []types.File{
+		{
+			Node: types.Node{
+				Name: "config",
+			},
+			Contents: `{
+	"ignition": { "version": "2.1.0" },
+	"storage": {
+		"files": [{
+		  "filesystem": "root",
+		  "path": "/foo/bar",
+		  "contents": { "source": "data:,example%20file%0A" }
+		}]
+	}
+}`,
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "bar2",
+				Directory: "foo",
+			},
+			Contents: "another example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func VersionOnlyConfig() types.Test {
 	name := "Version Only Config"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {"version": "2.1.0"}
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func EmptyUserdata() types.Test {
 	name := "Empty Userdata"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := ``
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

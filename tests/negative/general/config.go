@@ -22,6 +22,12 @@ import (
 func init() {
 	register.Register(register.NegativeTest, ReplaceConfigWithInvalidHash())
 	register.Register(register.NegativeTest, AppendConfigWithInvalidHash())
+	register.Register(register.NegativeTest, ReplaceConfigWithMissingFileHTTP())
+	register.Register(register.NegativeTest, ReplaceConfigWithMissingFileTFTP())
+	register.Register(register.NegativeTest, ReplaceConfigWithMissingFileOEM())
+	register.Register(register.NegativeTest, AppendConfigWithMissingFileHTTP())
+	register.Register(register.NegativeTest, AppendConfigWithMissingFileTFTP())
+	register.Register(register.NegativeTest, AppendConfigWithMissingFileOEM())
 }
 
 func ReplaceConfigWithInvalidHash() types.Test {
@@ -46,7 +52,13 @@ func ReplaceConfigWithInvalidHash() types.Test {
 	  }
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func AppendConfigWithInvalidHash() types.Test {
@@ -78,5 +90,149 @@ func AppendConfigWithInvalidHash() types.Test {
       }
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
+}
+
+func ReplaceConfigWithMissingFileHTTP() types.Test {
+	name := "Replace Config with Missing File - HTTP"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "2.1.0",
+	    "config": {
+	      "replace": {
+	        "source": "http://127.0.0.1:8080/asdf"
+	      }
+	    }
+	  }
+	}`
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ReplaceConfigWithMissingFileTFTP() types.Test {
+	name := "Replace Config with Missing File - TFTP"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "2.1.0",
+	    "config": {
+	      "replace": {
+	        "source": "tftp://127.0.0.1:69/asdf"
+	      }
+	    }
+	  }
+	}`
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ReplaceConfigWithMissingFileOEM() types.Test {
+	name := "Replace Config with Missing File - OEM"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "2.1.0",
+	    "config": {
+	      "replace": {
+	        "source": "oem:///asdf"
+	      }
+	    }
+	  }
+	}`
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func AppendConfigWithMissingFileHTTP() types.Test {
+	name := "Append Config with Missing File - HTTP"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "2.1.0",
+	    "config": {
+	      "append": {
+	        "source": "http://127.0.0.1:8080/asdf"
+	      }
+	    }
+	  }
+	}`
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func AppendConfigWithMissingFileTFTP() types.Test {
+	name := "Append Config with Missing File - TFTP"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "2.1.0",
+	    "config": {
+	      "append": {
+	        "source": "tftp://127.0.0.1:69/asdf"
+	      }
+	    }
+	  }
+	}`
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func AppendConfigWithMissingFileOEM() types.Test {
+	name := "Append Config with Missing File - OEM"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "2.1.0",
+	    "config": {
+	      "append": {
+	        "source": "oem:///asdf"
+	      }
+	    }
+	  }
+	}`
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

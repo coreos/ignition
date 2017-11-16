@@ -54,14 +54,19 @@ func InvalidHash() types.Test {
 			}]}
 	}`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func InvalidHashFromHTTPURL() types.Test {
 	name := "Invalid File Hash from HTTP URL"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := `{
 	  "ignition": { "version": "2.0.0" },
 	  "storage": {
@@ -85,5 +90,10 @@ func InvalidHashFromHTTPURL() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

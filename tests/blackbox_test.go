@@ -81,6 +81,8 @@ fdsa`))
                 }]
         }
 }`))
+	} else {
+		return fmt.Errorf("no such file %q", filename)
 	}
 
 	_, err := rf.ReadFrom(buf)
@@ -152,9 +154,11 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	defer os.Setenv("TMPDIR", originalTmpDir)
 	defer os.RemoveAll(tmpDirectory)
 
+	oemLookasideDir := filepath.Join(os.TempDir(), "oem-lookaside")
 	var rootLocation string
 
 	// Setup
+	createFilesFromSlice(t, oemLookasideDir, test.OEMLookasideFiles)
 	for i, disk := range test.In {
 		// Set image file path
 		disk.ImageFile = filepath.Join(os.TempDir(), fmt.Sprintf("hd%d", i))
@@ -186,7 +190,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 			prepareRootPartitionForPasswd(t, disk.Partitions)
 		}
 		mountPartitions(t, disk.Partitions)
-		createFiles(t, disk.Partitions)
+		createFilesForPartitions(t, disk.Partitions)
 		unmountPartitions(t, disk.Partitions)
 
 		// Mount device name substitution
@@ -236,8 +240,12 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	}
 
 	// Ignition
-	disks := runIgnition(t, "disks", rootLocation, tmpDirectory, negativeTests)
-	files := runIgnition(t, "files", rootLocation, tmpDirectory, negativeTests)
+	appendEnv := []string{
+		"IGNITION_OEM_DEVICE=" + test.In[0].Partitions.GetPartition("OEM").Device,
+		"IGNITION_OEM_LOOKASIDE_DIR=" + oemLookasideDir,
+	}
+	disks := runIgnition(t, "disks", rootLocation, tmpDirectory, appendEnv, negativeTests)
+	files := runIgnition(t, "files", rootLocation, tmpDirectory, appendEnv, negativeTests)
 	if negativeTests && disks && files {
 		t.Fatal("Expected failure and ignition succeeded")
 	}

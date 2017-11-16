@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
@@ -121,7 +122,7 @@ func (s stage) Run(config types.Config) bool {
 	// Additionally, partitioning (and possibly creating raid) suffers
 	// the same problem. To be safe, always settle.
 	if _, err := s.Logger.LogCmd(
-		exec.Command("/bin/udevadm", "settle"),
+		exec.Command(distro.UdevadmCmd(), "settle"),
 		"waiting for udev to settle",
 	); err != nil {
 		s.Logger.Crit("udevadm settle failed: %v", err)
@@ -259,7 +260,7 @@ func (s stage) createRaids(config types.Config) error {
 		}
 
 		if _, err := s.Logger.LogCmd(
-			exec.Command("/sbin/mdadm", args...),
+			exec.Command(distro.MdadmCmd(), args...),
 			"creating %q", md.Name,
 		); err != nil {
 			return fmt.Errorf("mdadm failed: %v", err)
@@ -339,7 +340,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 	}
 	switch fs.Format {
 	case "btrfs":
-		mkfs = "/sbin/mkfs.btrfs"
+		mkfs = distro.BtrfsMkfsCmd()
 		args = append(args, "--force")
 		if fs.UUID != nil {
 			args = append(args, []string{"-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID)}...)
@@ -348,7 +349,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 			args = append(args, []string{"-L", *fs.Label}...)
 		}
 	case "ext4":
-		mkfs = "/sbin/mkfs.ext4"
+		mkfs = distro.Ext4MkfsCmd()
 		args = append(args, "-F")
 		if fs.UUID != nil {
 			args = append(args, []string{"-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID)}...)
@@ -357,7 +358,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 			args = append(args, []string{"-L", *fs.Label}...)
 		}
 	case "xfs":
-		mkfs = "/sbin/mkfs.xfs"
+		mkfs = distro.XfsMkfsCmd()
 		args = append(args, "-f")
 		if fs.UUID != nil {
 			args = append(args, []string{"-m", "uuid=" + canonicalizeFilesystemUUID(fs.Format, *fs.UUID)}...)
@@ -366,7 +367,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 			args = append(args, []string{"-L", *fs.Label}...)
 		}
 	case "swap":
-		mkfs = "/sbin/mkswap"
+		mkfs = distro.SwapMkfsCmd()
 		args = append(args, "-f")
 		if fs.UUID != nil {
 			args = append(args, []string{"-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID)}...)
@@ -375,7 +376,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 			args = append(args, []string{"-L", *fs.Label}...)
 		}
 	case "vfat":
-		mkfs = "/sbin/mkfs.vfat"
+		mkfs = distro.VfatMkfsCmd()
 		// There is no force flag for mkfs.vfat, it always destroys any data on
 		// the device at which it is pointed.
 		if fs.UUID != nil {

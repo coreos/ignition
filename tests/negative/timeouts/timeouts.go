@@ -40,7 +40,6 @@ func DecreaseHTTPResponseHeadersTimeout() types.Test {
 	name := "Decrease HTTP Response Headers Timeout"
 	in := types.GetBaseDisk()
 	out := in
-	var mntDevices []types.MntDevice
 	config := fmt.Sprintf(`{
 		"ignition": {
 			"version": "2.1.0",
@@ -62,5 +61,10 @@ func DecreaseHTTPResponseHeadersTimeout() types.Test {
 		}
 	}`, respondDelayServer.URL)
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

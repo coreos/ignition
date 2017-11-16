@@ -69,7 +69,13 @@ func ForceNewFilesystemOfSameType() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func WipeFilesystemWithSameType() types.Test {
@@ -113,14 +119,19 @@ func WipeFilesystemWithSameType() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }
 
 func CreateNewPartitions() types.Test {
 	name := "Create new partitions"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {"version": "2.1.0"},
 		"storage": {
@@ -188,14 +199,18 @@ func CreateNewPartitions() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
 
 func AppendPartition() types.Test {
 	name := "Append partition to an existing partition table"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {
 			"version": "2.1.0"
@@ -259,5 +274,10 @@ func AppendPartition() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }

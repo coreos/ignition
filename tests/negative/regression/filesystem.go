@@ -47,5 +47,11 @@ func VFATIgnoresWipeFilesystem() types.Test {
                         }
         }`
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:       name,
+		In:         in,
+		Out:        out,
+		MntDevices: mntDevices,
+		Config:     config,
+	}
 }

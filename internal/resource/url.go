@@ -32,6 +32,7 @@ import (
 	"syscall"
 
 	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/systemd"
 
@@ -73,9 +74,7 @@ func (e ErrHashMismatch) Error() string {
 }
 
 const (
-	oemDevicePath = "/dev/disk/by-label/OEM" // Device link where oem partition is found.
-	oemDirPath    = "/usr/share/oem"         // OEM dir within root fs to consider for pxe scenarios.
-	oemMountPath  = "/mnt/oem"               // Mountpoint where oem partition is mounted when present.
+	oemMountPath = "/mnt/oem" // Mountpoint where oem partition is mounted when present.
 )
 
 // Fetcher holds settings for fetching resources from URLs
@@ -272,8 +271,8 @@ func (f *Fetcher) FetchFromOEM(u url.URL, dest *os.File, opts FetchOptions) erro
 		return ErrPathNotAbsolute
 	}
 
-	// check if present under oemDirPath, if so use it.
-	absPath := filepath.Join(oemDirPath, path)
+	// check if present in OEM lookaside dir, if so use it.
+	absPath := filepath.Join(distro.OEMLookasideDir(), path)
 
 	if fi, err := os.Open(absPath); err == nil {
 		defer fi.Close()
@@ -284,7 +283,7 @@ func (f *Fetcher) FetchFromOEM(u url.URL, dest *os.File, opts FetchOptions) erro
 	}
 
 	f.Logger.Info("oem config not found in %q, trying %q",
-		oemDirPath, oemMountPath)
+		distro.OEMLookasideDir(), oemMountPath)
 
 	// try oemMountPath, requires mounting it.
 	if err := f.mountOEM(); err != nil {
@@ -433,7 +432,7 @@ func (f *Fetcher) decompressCopyHashAndVerify(dest io.Writer, src io.Reader, opt
 // mountOEM waits for the presence of and mounts the oem partition at
 // oemMountPath.
 func (f *Fetcher) mountOEM() error {
-	dev := []string{oemDevicePath}
+	dev := []string{distro.OEMDevicePath()}
 	if err := systemd.WaitOnDevices(dev, "oem-cmdline"); err != nil {
 		f.Logger.Err("failed to wait for oem device: %v", err)
 		return err
@@ -448,10 +447,10 @@ func (f *Fetcher) mountOEM() error {
 		func() error {
 			return syscall.Mount(dev[0], oemMountPath, "ext4", 0, "")
 		},
-		"mounting %q at %q", oemDevicePath, oemMountPath,
+		"mounting %q at %q", distro.OEMDevicePath(), oemMountPath,
 	); err != nil {
 		return fmt.Errorf("failed to mount device %q at %q: %v",
-			oemDevicePath, oemMountPath, err)
+			distro.OEMDevicePath(), oemMountPath, err)
 	}
 
 	return nil
