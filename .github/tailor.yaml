@@ -1,6 +1,6 @@
 rules:
   - name: commit title
-    description: all commit titles must have a scope, be lowercase, and be no more than 72 characters
+    description: all commit titles must have a scope and be no more than 72 characters
     expression:  |-
       .commits all(((.title test "^[a-z/*_-]+: [[:alnum:] -'./_-]+$") and (.title length < 73)) or (.title test "^Revert"))
 
