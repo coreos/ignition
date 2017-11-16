@@ -25,11 +25,13 @@ import (
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/util"
+	"github.com/coreos/ignition/internal/resource"
 )
 
 const (
 	baseFilename    = "base.ign"
 	defaultFilename = "default.ign"
+	userFilename    = "user.ign"
 )
 
 func FetchBaseConfig(logger *log.Logger) (types.Config, report.Report, error) {
@@ -38,6 +40,10 @@ func FetchBaseConfig(logger *log.Logger) (types.Config, report.Report, error) {
 
 func FetchDefaultConfig(logger *log.Logger) (types.Config, report.Report, error) {
 	return fetchConfig(logger, defaultFilename)
+}
+
+func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+	return fetchConfig(f.Logger, userFilename)
 }
 
 func fetchConfig(logger *log.Logger, filename string) (types.Config, report.Report, error) {

@@ -154,13 +154,26 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 // fetchProviderConfig returns the externally-provided configuration. It first
 // checks to see if the command-line option is present. If so, it uses that
 // source for the configuration. If the command-line option is not present, it
-// check's the engine's provider. An error is returned if the provider is
-// unavailable. This will also render the config (see renderConfig) before
+// checks for a user config in the system config dir. If that is also missing,
+// it checks the config engine's provider. An error is returned if the provider
+// is unavailable. This will also render the config (see renderConfig) before
 // returning.
 func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, error) {
-	cfg, r, err := cmdline.FetchConfig(f)
-	if err == providers.ErrNoProvider {
-		cfg, r, err = e.OEMConfig.FetchFunc()(f)
+	fetchers := []providers.FuncFetchConfig{
+		cmdline.FetchConfig,
+		system.FetchConfig,
+		e.OEMConfig.FetchFunc(),
+	}
+
+	var cfg types.Config
+	var r report.Report
+	var err error
+	for _, fetcher := range fetchers {
+		cfg, r, err = fetcher(f)
+		if err != providers.ErrNoProvider {
+			// successful, or failed on another error
+			break
+		}
 	}
 
 	e.logReport(r)
