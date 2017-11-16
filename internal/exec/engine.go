@@ -51,6 +51,16 @@ type Engine struct {
 // Run executes the stage of the given name. It returns true if the stage
 // successfully ran and false if there were any errors.
 func (e Engine) Run(stageName string) bool {
+	baseConfig := types.Config{
+		Ignition: types.Ignition{Version: types.MaxVersion.String()},
+		Storage: types.Storage{
+			Filesystems: []types.Filesystem{{
+				Name: "root",
+				Path: internalUtil.StringToPtr(e.Root),
+			}},
+		},
+	}
+
 	cfg, f, err := e.acquireConfig()
 	switch err {
 	case nil:
@@ -64,16 +74,6 @@ func (e Engine) Run(stageName string) bool {
 
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
-
-	baseConfig := types.Config{
-		Ignition: types.Ignition{Version: types.MaxVersion.String()},
-		Storage: types.Storage{
-			Filesystems: []types.Filesystem{{
-				Name: "root",
-				Path: internalUtil.StringToPtr(e.Root),
-			}},
-		},
-	}
 
 	return stages.Get(stageName).Create(e.Logger, e.Root, f).Run(config.Append(baseConfig, config.Append(e.OEMConfig.BaseConfig(), cfg)))
 }
