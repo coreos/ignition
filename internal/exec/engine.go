@@ -29,6 +29,7 @@ import (
 	"github.com/coreos/ignition/internal/oem"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/cmdline"
+	"github.com/coreos/ignition/internal/providers/system"
 	"github.com/coreos/ignition/internal/resource"
 	internalUtil "github.com/coreos/ignition/internal/util"
 )
@@ -61,12 +62,24 @@ func (e Engine) Run(stageName string) bool {
 		},
 	}
 
+	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger)
+	e.logReport(r)
+	if err != nil && err != providers.ErrNoProvider {
+		e.Logger.Crit("failed to acquire system base config: %v", err)
+		return false
+	}
+
 	cfg, f, err := e.acquireConfig()
 	switch err {
 	case nil:
 	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
 		e.Logger.Info("%v: ignoring user-provided config", err)
-		cfg = e.OEMConfig.DefaultUserConfig()
+		cfg, r, err = system.FetchDefaultConfig(e.Logger)
+		e.logReport(r)
+		if err != nil && err != providers.ErrNoProvider {
+			e.Logger.Crit("failed to acquire default config: %v", err)
+			return false
+		}
 	default:
 		e.Logger.Crit("failed to acquire config: %v", err)
 		return false
@@ -75,7 +88,7 @@ func (e Engine) Run(stageName string) bool {
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
 
-	return stages.Get(stageName).Create(e.Logger, e.Root, f).Run(config.Append(baseConfig, config.Append(e.OEMConfig.BaseConfig(), cfg)))
+	return stages.Get(stageName).Create(e.Logger, e.Root, f).Run(config.Append(baseConfig, config.Append(systemBaseConfig, cfg)))
 }
 
 // acquireConfig returns the configuration, first checking a local cache
