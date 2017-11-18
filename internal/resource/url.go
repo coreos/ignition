@@ -170,6 +170,7 @@ func (f *Fetcher) FetchFromTFTP(u url.URL, dest *os.File, opts FetchOptions) err
 	if err != nil {
 		return err
 	}
+	c.SetRetries(10)
 	wt, err := c.Receive(u.Path, "octet")
 	if err != nil {
 		return err
@@ -320,8 +321,10 @@ func (f *Fetcher) FetchFromS3(u url.URL, dest *os.File, opts FetchOptions) error
 
 	if f.AWSSession == nil {
 		var err error
+		maxRetries := int(10)
 		f.AWSSession, err = session.NewSession(&aws.Config{
 			Credentials: credentials.AnonymousCredentials,
+			MaxRetries:  &maxRetries,
 		})
 		if err != nil {
 			return err
