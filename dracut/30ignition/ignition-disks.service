@@ -5,6 +5,9 @@ DefaultDependencies=false
 Requires=local-fs-pre.target
 Before=local-fs-pre.target
 
+Requires=ignition-setup.service
+After=ignition-setup.service
+
 # setup networking
 Wants=systemd-networkd.service
 After=systemd-networkd.service
