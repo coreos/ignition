@@ -29,6 +29,7 @@ import (
 	"github.com/coreos/ignition/internal/oem"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/cmdline"
+	"github.com/coreos/ignition/internal/providers/system"
 	"github.com/coreos/ignition/internal/resource"
 	internalUtil "github.com/coreos/ignition/internal/util"
 )
@@ -51,20 +52,6 @@ type Engine struct {
 // Run executes the stage of the given name. It returns true if the stage
 // successfully ran and false if there were any errors.
 func (e Engine) Run(stageName string) bool {
-	cfg, f, err := e.acquireConfig()
-	switch err {
-	case nil:
-	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
-		e.Logger.Info("%v: ignoring user-provided config", err)
-		cfg = e.OEMConfig.DefaultUserConfig()
-	default:
-		e.Logger.Crit("failed to acquire config: %v", err)
-		return false
-	}
-
-	e.Logger.PushPrefix(stageName)
-	defer e.Logger.PopPrefix()
-
 	baseConfig := types.Config{
 		Ignition: types.Ignition{Version: types.MaxVersion.String()},
 		Storage: types.Storage{
@@ -75,7 +62,33 @@ func (e Engine) Run(stageName string) bool {
 		},
 	}
 
-	return stages.Get(stageName).Create(e.Logger, e.Root, f).Run(config.Append(baseConfig, config.Append(e.OEMConfig.BaseConfig(), cfg)))
+	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger)
+	e.logReport(r)
+	if err != nil && err != providers.ErrNoProvider {
+		e.Logger.Crit("failed to acquire system base config: %v", err)
+		return false
+	}
+
+	cfg, f, err := e.acquireConfig()
+	switch err {
+	case nil:
+	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
+		e.Logger.Info("%v: ignoring user-provided config", err)
+		cfg, r, err = system.FetchDefaultConfig(e.Logger)
+		e.logReport(r)
+		if err != nil && err != providers.ErrNoProvider {
+			e.Logger.Crit("failed to acquire default config: %v", err)
+			return false
+		}
+	default:
+		e.Logger.Crit("failed to acquire config: %v", err)
+		return false
+	}
+
+	e.Logger.PushPrefix(stageName)
+	defer e.Logger.PopPrefix()
+
+	return stages.Get(stageName).Create(e.Logger, e.Root, f).Run(config.Append(baseConfig, config.Append(systemBaseConfig, cfg)))
 }
 
 // acquireConfig returns the configuration, first checking a local cache
@@ -141,13 +154,26 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 // fetchProviderConfig returns the externally-provided configuration. It first
 // checks to see if the command-line option is present. If so, it uses that
 // source for the configuration. If the command-line option is not present, it
-// check's the engine's provider. An error is returned if the provider is
-// unavailable. This will also render the config (see renderConfig) before
+// checks for a user config in the system config dir. If that is also missing,
+// it checks the config engine's provider. An error is returned if the provider
+// is unavailable. This will also render the config (see renderConfig) before
 // returning.
 func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, error) {
-	cfg, r, err := cmdline.FetchConfig(f)
-	if err == providers.ErrNoProvider {
-		cfg, r, err = e.OEMConfig.FetchFunc()(f)
+	fetchers := []providers.FuncFetchConfig{
+		cmdline.FetchConfig,
+		system.FetchConfig,
+		e.OEMConfig.FetchFunc(),
+	}
+
+	var cfg types.Config
+	var r report.Report
+	var err error
+	for _, fetcher := range fetchers {
+		cfg, r, err = fetcher(f)
+		if err != providers.ErrNoProvider {
+			// successful, or failed on another error
+			break
+		}
 	}
 
 	e.logReport(r)

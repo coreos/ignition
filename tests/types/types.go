@@ -81,6 +81,7 @@ type Test struct {
 	Out               []Disk
 	MntDevices        []MntDevice
 	OEMLookasideFiles []File
+	SystemDirFiles    []File
 	Config            string
 }
 

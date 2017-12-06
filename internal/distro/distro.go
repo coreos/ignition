@@ -29,6 +29,8 @@ var (
 
 	// File paths
 	kernelCmdlinePath = "/proc/cmdline"
+	// initramfs directory containing distro-provided base config
+	systemConfigDir = "/usr/lib/ignition"
 	// initramfs directory to check before retrieving file from OEM partition
 	oemLookasideDir = "/usr/share/oem"
 
@@ -52,6 +54,7 @@ func DiskByPartUUIDDir() string { return diskByPartUUIDDir }
 func OEMDevicePath() string     { return fromEnv("OEM_DEVICE", oemDevicePath) }
 
 func KernelCmdlinePath() string { return kernelCmdlinePath }
+func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
 func OEMLookasideDir() string   { return fromEnv("OEM_LOOKASIDE_DIR", oemLookasideDir) }
 
 func MdadmCmd() string   { return mdadmCmd }

@@ -155,10 +155,12 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	defer os.RemoveAll(tmpDirectory)
 
 	oemLookasideDir := filepath.Join(os.TempDir(), "oem-lookaside")
+	systemConfigDir := filepath.Join(os.TempDir(), "system")
 	var rootLocation string
 
 	// Setup
 	createFilesFromSlice(t, oemLookasideDir, test.OEMLookasideFiles)
+	createFilesFromSlice(t, systemConfigDir, test.SystemDirFiles)
 	for i, disk := range test.In {
 		// Set image file path
 		disk.ImageFile = filepath.Join(os.TempDir(), fmt.Sprintf("hd%d", i))
@@ -243,6 +245,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	appendEnv := []string{
 		"IGNITION_OEM_DEVICE=" + test.In[0].Partitions.GetPartition("OEM").Device,
 		"IGNITION_OEM_LOOKASIDE_DIR=" + oemLookasideDir,
+		"IGNITION_SYSTEM_CONFIG_DIR=" + systemConfigDir,
 	}
 	disks := runIgnition(t, "disks", rootLocation, tmpDirectory, appendEnv, negativeTests)
 	files := runIgnition(t, "files", rootLocation, tmpDirectory, appendEnv, negativeTests)
