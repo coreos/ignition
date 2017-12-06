@@ -59,6 +59,37 @@ EOF
     fi
 fi
 
+# Write ignition-setup.service customized for PXE/ISO or regular boot
+pxe=
+nopxe=
+usr=$(cmdline_arg mount.usr "$(cmdline_arg usr)")
+if [[ -z "${usr}" && -f /usr.squashfs ]]; then
+    # PXE-booted system, with or without persistent root
+    # (see 10diskless-generator)
+    pxe=1
+else
+    nopxe=1
+fi
+cat > ${UNIT_DIR}/ignition-setup.service <<EOF
+[Unit]
+Description=Ignition (setup)
+DefaultDependencies=false
+
+Requires=local-fs-pre.target
+Before=local-fs-pre.target
+
+# prevent racing with sgdisk and its subsequent udev activity
+After=disk-uuid.service
+
+# pull in OEM device if it should exist
+${nopxe:+Requires=dev-disk-by\x2dlabel-OEM.device
+After=dev-disk-by\x2dlabel-OEM.device}
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ignition-setup ${nopxe:+normal} ${pxe:+pxe}
+EOF
+
 RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)
 if [ -n "$RANDOMIZE_DISK_GUID" ]; then
     escaped_guid=$(systemd-escape --path "/dev/disk/by-diskuuid/$RANDOMIZE_DISK_GUID")

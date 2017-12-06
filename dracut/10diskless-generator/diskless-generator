@@ -106,7 +106,7 @@ EOF
 fi
 
 # When /usr is provided by the initrd then OEM may be also, but as tmpfs.
-# The contents are of /usr/share/oem are copied into place by 80setup-root
+# The contents are of /usr/share/oem are copied into place by 99setup-root
 if [[ "${copy_oem}" -eq 1 && -d /usr/share/oem ]]; then
     add_requires sysroot-usr-share-oem.mount
     cat >"${UNIT_DIR}/sysroot-usr-share-oem.mount" <<EOF
