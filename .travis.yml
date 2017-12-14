@@ -5,12 +5,10 @@ language: go
 go_import_path: github.com/coreos/ignition
 
 go:
-  - 1.7
   - 1.8
+  - 1.9
 
 env:
-  global:
-   - GO15VENDOREXPERIMENT=1
   matrix:
    - TARGET=amd64
    - TARGET=arm64 GIMME_ARCH=arm64 GIMME_CGO_ENABLED=1
