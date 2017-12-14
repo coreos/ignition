@@ -66,6 +66,9 @@ func NewHttpClient(logger *log.Logger, timeouts types.Timeouts) HttpClient {
 				Dial: (&net.Dialer{
 					Timeout:   30 * time.Second,
 					KeepAlive: 30 * time.Second,
+					Resolver: &net.Resolver{
+						PreferGo: true,
+					},
 				}).Dial,
 				TLSHandshakeTimeout: 10 * time.Second,
 			},
