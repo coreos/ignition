@@ -1,3 +1,19 @@
+13-Dec-2017 IGNITION v0.20.0
+
+  Features
+
+    - Add validate flag for validating Ignition configs without running any
+      stages
+    - Add support for reading user configs from initramfs
+
+  Changes
+
+    - Move update-ssh-keys from dependency into internal library
+    - Move constants such as paths for invoked binaries into dedicated package
+      to allow for easy overriding at link time
+    - Read base and default configs from initramfs instead of hardcoding them
+    - Use the golang DNS resolver instead of the default glibc DNS resolver
+
 22-Sep-2017 IGNITION v0.19.0
 
   Features
