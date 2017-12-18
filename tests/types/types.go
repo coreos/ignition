@@ -18,6 +18,15 @@ import (
 	"fmt"
 )
 
+const (
+	sectorSize             = 512 // in bytes
+	gptHeaderSize          = 34  // in sectors
+	gptHybridMBRHeaderSize = 63  // in sectors
+
+	IgnitionAlignment = 2048 // 1MB in sectors
+	DefaultAlignment  = 4096 // 2MB in sectors
+)
+
 type File struct {
 	Node
 	Contents string
@@ -45,6 +54,7 @@ type Node struct {
 type Disk struct {
 	ImageFile  string
 	Device     string
+	Alignment  int
 	Partitions Partitions
 }
 
@@ -114,9 +124,45 @@ func (ps Partitions) AddRemovedNodes(label string, ns []Node) {
 	p.RemovedNodes = append(p.RemovedNodes, ns...)
 }
 
+// SetOffsets sets the starting offsets for all of the partitions on the disk,
+// according to its alignment.
+func (d Disk) SetOffsets() {
+	offset := gptHeaderSize
+	for _, p := range d.Partitions {
+		if p.Length == 0 || p.TypeCode == "blank" {
+			continue
+		}
+		offset = Align(offset, d.Alignment)
+		p.Offset = offset
+		offset += p.Length
+	}
+}
+
+// CalculateImageSize determines the size of the disk, assuming the partitions are all aligned and completely
+// fill the disk.
+func (d Disk) CalculateImageSize() int64 {
+	size := int64(Align(gptHybridMBRHeaderSize, d.Alignment))
+	for _, p := range d.Partitions {
+		size += int64(Align(p.Length, d.Alignment))
+	}
+	// convert to sectors and add secondary GPT header
+	// subtract one because LBA0 (protective MBR) is not included in the secondary GPT header
+	return sectorSize * (size + gptHeaderSize - 1)
+}
+
+// Align returns count aligned to the next multiple of alignment, or count itself if it is already aligned.
+func Align(count int, alignment int) int {
+	offset := count % alignment
+	if offset != 0 {
+		count += alignment - offset
+	}
+	return count
+}
+
 func GetBaseDisk() []Disk {
 	return []Disk{
 		{
+			Alignment: DefaultAlignment,
 			Partitions: Partitions{
 				{
 					Number:         1,
