@@ -54,7 +54,7 @@ func (u Unit) ValidateName() report.Report {
 	return r
 }
 
-func (d Dropin) Validate() report.Report {
+func (d SystemdDropin) Validate() report.Report {
 	r := report.Report{}
 
 	if err := validateUnitContent(d.Contents); err != nil {

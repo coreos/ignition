@@ -374,14 +374,14 @@ func (s stage) writeSystemdUnit(unit types.Unit) error {
 				continue
 			}
 
-			f, err := util.FileFromUnitDropin(unit, dropin)
+			f, err := util.FileFromSystemdUnitDropin(unit, dropin)
 			if err != nil {
-				s.Logger.Crit("error converting dropin: %v", err)
+				s.Logger.Crit("error converting systemd dropin: %v", err)
 				return err
 			}
 			if err := s.Logger.LogOp(
 				func() error { return s.PerformFetch(f) },
-				"writing drop-in %q at %q", dropin.Name, f.Path,
+				"writing systemd drop-in %q at %q", dropin.Name, f.Path,
 			); err != nil {
 				return err
 			}

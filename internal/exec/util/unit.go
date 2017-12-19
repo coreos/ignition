@@ -54,7 +54,7 @@ func FileFromNetworkdUnit(unit types.Networkdunit) (*FetchOp, error) {
 	}, nil
 }
 
-func FileFromUnitDropin(unit types.Unit, dropin types.Dropin) (*FetchOp, error) {
+func FileFromSystemdUnitDropin(unit types.Unit, dropin types.SystemdDropin) (*FetchOp, error) {
 	u, err := url.Parse(dataurl.EncodeBytes([]byte(dropin.Contents)))
 	if err != nil {
 		return nil, err
