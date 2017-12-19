@@ -21,6 +21,9 @@ install() {
     inst_simple "$moddir/10-nodeps.conf" \
         "$systemdsystemunitdir/systemd-resolved.service.d/10-nodeps.conf"
 
+    inst_simple "$moddir/yy-azure-sriov.network" \
+        "$systemdutildir/network/yy-azure-sriov.network"
+
     inst_simple "$moddir/yy-digitalocean.network" \
         "$systemdutildir/network/yy-digitalocean.network"
 
