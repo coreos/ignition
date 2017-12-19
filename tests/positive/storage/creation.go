@@ -291,7 +291,6 @@ func PartitionSizeStart0() types.Test {
 	name := "Create a partition with size and start 0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	var mntDevices []types.MntDevice
 	config := `{
 		"ignition": {
 			"version": "2.1.0"
@@ -328,5 +327,10 @@ func PartitionSizeStart0() types.Test {
 		},
 	})
 
-	return types.Test{name, in, out, mntDevices, config}
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
 }
