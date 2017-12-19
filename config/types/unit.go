@@ -98,6 +98,28 @@ func (u Networkdunit) Validate() report.Report {
 	return r
 }
 
+func (d NetworkdDropin) Validate() report.Report {
+	r := report.Report{}
+
+	if err := validateUnitContent(d.Contents); err != nil {
+		r.Add(report.Entry{
+			Message: err.Error(),
+			Kind:    report.EntryError,
+		})
+	}
+
+	switch path.Ext(d.Name) {
+	case ".conf":
+	default:
+		r.Add(report.Entry{
+			Message: fmt.Sprintf("invalid networkd unit drop-in extension: %q", path.Ext(d.Name)),
+			Kind:    report.EntryError,
+		})
+	}
+
+	return r
+}
+
 func validateUnitContent(content string) error {
 	c := bytes.NewBufferString(content)
 	_, err := unit.Deserialize(c)

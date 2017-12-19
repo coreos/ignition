@@ -187,3 +187,33 @@ func TestNetworkdUnitValidate(t *testing.T) {
 		}
 	}
 }
+
+func TestNetworkdUnitDropInValidate(t *testing.T) {
+	type in struct {
+		unit NetworkdDropin
+	}
+	type out struct {
+		err error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{unit: NetworkdDropin{Name: "test.conf", Contents: "[Foo]\nQux=Bar"}},
+			out: out{err: nil},
+		},
+		{
+			in:  in{unit: NetworkdDropin{Name: "test.conf", Contents: "[Foo"}},
+			out: out{err: errors.New("invalid unit content: unable to find end of section")},
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.unit.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
+}

@@ -66,6 +66,18 @@ func FileFromSystemdUnitDropin(unit types.Unit, dropin types.SystemdDropin) (*Fe
 	}, nil
 }
 
+func FileFromNetworkdUnitDropin(unit types.Networkdunit, dropin types.NetworkdDropin) (*FetchOp, error) {
+	u, err := url.Parse(dataurl.EncodeBytes([]byte(dropin.Contents)))
+	if err != nil {
+		return nil, err
+	}
+	return &FetchOp{
+		Path: filepath.Join(NetworkdDropinsPath(string(unit.Name)), string(dropin.Name)),
+		Url:  *u,
+		Mode: DefaultFilePermissions,
+	}, nil
+}
+
 func (u Util) MaskUnit(unit types.Unit) error {
 	path := u.JoinPath(SystemdUnitsPath(), string(unit.Name))
 	if err := MkdirForFile(path); err != nil {

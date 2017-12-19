@@ -97,6 +97,9 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_units_** (list of objects): the list of networkd files.
     * **name** (string): the name of the file. This must be suffixed with a valid unit type (e.g. "00-eth0.network").
     * **_contents_** (string): the contents of the networkd file.
+    * **_dropins_** (list of objects): the list of drop-ins for the unit.
+      * **name** (string): the name of the drop-in. This must be suffixed with ".conf".
+      * **_contents_** (string): the contents of the drop-in.
 * **_passwd_** (object): describes the desired additions to the passwd database.
   * **_users_** (list of objects): the list of accounts that shall exist.
     * **name** (string): the username for the account.
