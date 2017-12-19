@@ -39,11 +39,6 @@ type Disk struct {
 	WipeTable  bool        `json:"wipeTable,omitempty"`
 }
 
-type Dropin struct {
-	Contents string `json:"contents,omitempty"`
-	Name     string `json:"name,omitempty"`
-}
-
 type File struct {
 	Node
 	FileEmbedded1
@@ -105,9 +100,15 @@ type Networkd struct {
 	Units []Networkdunit `json:"units,omitempty"`
 }
 
-type Networkdunit struct {
+type NetworkdDropin struct {
 	Contents string `json:"contents,omitempty"`
 	Name     string `json:"name,omitempty"`
+}
+
+type Networkdunit struct {
+	Contents string           `json:"contents,omitempty"`
+	Dropins  []NetworkdDropin `json:"dropins,omitempty"`
+	Name     string           `json:"name,omitempty"`
 }
 
 type Node struct {
@@ -187,18 +188,23 @@ type Systemd struct {
 	Units []Unit `json:"units,omitempty"`
 }
 
+type SystemdDropin struct {
+	Contents string `json:"contents,omitempty"`
+	Name     string `json:"name,omitempty"`
+}
+
 type Timeouts struct {
 	HTTPResponseHeaders *int `json:"httpResponseHeaders,omitempty"`
 	HTTPTotal           *int `json:"httpTotal,omitempty"`
 }
 
 type Unit struct {
-	Contents string   `json:"contents,omitempty"`
-	Dropins  []Dropin `json:"dropins,omitempty"`
-	Enable   bool     `json:"enable,omitempty"`
-	Enabled  *bool    `json:"enabled,omitempty"`
-	Mask     bool     `json:"mask,omitempty"`
-	Name     string   `json:"name,omitempty"`
+	Contents string          `json:"contents,omitempty"`
+	Dropins  []SystemdDropin `json:"dropins,omitempty"`
+	Enable   bool            `json:"enable,omitempty"`
+	Enabled  *bool           `json:"enabled,omitempty"`
+	Mask     bool            `json:"mask,omitempty"`
+	Name     string          `json:"name,omitempty"`
 }
 
 type Usercreate struct {
