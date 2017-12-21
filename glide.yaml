@@ -33,6 +33,8 @@ import:
   - context/ctxhttp
 - package: github.com/aws/aws-sdk-go
   version: v1.8.39
+- package: github.com/spf13/cobra
+  version: 0.0.1
 testImport:
 - package: github.com/stretchr/testify
   version: 4d4bfba8f1d1027c4fdbe371823030df51419987
