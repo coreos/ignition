@@ -405,6 +405,23 @@
             },
             "contents": {
               "type": "string"
+            },
+            "dropins": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/networkd/definitions/dropin"
+              }
+            }
+          }
+        },
+        "dropin": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "contents": {
+              "type": "string"
             }
           }
         }

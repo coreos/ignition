@@ -281,7 +281,7 @@ func TestTranslateFromV1(t *testing.T) {
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							Dropins: []types.Dropin{
+							Dropins: []types.SystemdDropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
@@ -792,7 +792,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							Dropins: []types.Dropin{
+							Dropins: []types.SystemdDropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
@@ -1592,7 +1592,7 @@ func TestTranslateFromV2_1(t *testing.T) {
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							Dropins: []types.Dropin{
+							Dropins: []types.SystemdDropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",

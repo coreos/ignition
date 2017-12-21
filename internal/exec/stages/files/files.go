@@ -374,14 +374,14 @@ func (s stage) writeSystemdUnit(unit types.Unit) error {
 				continue
 			}
 
-			f, err := util.FileFromUnitDropin(unit, dropin)
+			f, err := util.FileFromSystemdUnitDropin(unit, dropin)
 			if err != nil {
-				s.Logger.Crit("error converting dropin: %v", err)
+				s.Logger.Crit("error converting systemd dropin: %v", err)
 				return err
 			}
 			if err := s.Logger.LogOp(
 				func() error { return s.PerformFetch(f) },
-				"writing drop-in %q at %q", dropin.Name, f.Path,
+				"writing systemd drop-in %q at %q", dropin.Name, f.Path,
 			); err != nil {
 				return err
 			}
@@ -407,10 +407,28 @@ func (s stage) writeSystemdUnit(unit types.Unit) error {
 	}, "processing unit %q", unit.Name)
 }
 
-// writeNetworkdUnit creates the specified unit. If the contents of the unit or
-// are empty, the unit is not created.
+// writeNetworkdUnit creates the specified unit and any dropins for that unit.
+// If the contents of the unit or are empty, the unit is not created. The same
+// applies to the unit's dropins.
 func (s stage) writeNetworkdUnit(unit types.Networkdunit) error {
 	return s.Logger.LogOp(func() error {
+		for _, dropin := range unit.Dropins {
+			if dropin.Contents == "" {
+				continue
+			}
+
+			f, err := util.FileFromNetworkdUnitDropin(unit, dropin)
+			if err != nil {
+				s.Logger.Crit("error converting networkd dropin: %v", err)
+				return err
+			}
+			if err := s.Logger.LogOp(
+				func() error { return s.PerformFetch(f) },
+				"writing networkd drop-in %q at %q", dropin.Name, f.Path,
+			); err != nil {
+				return err
+			}
+		}
 		if unit.Contents == "" {
 			return nil
 		}

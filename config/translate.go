@@ -132,7 +132,7 @@ func TranslateFromV1(old v1.Config) types.Config {
 		}
 
 		for _, oldDropIn := range oldUnit.DropIns {
-			unit.Dropins = append(unit.Dropins, types.Dropin{
+			unit.Dropins = append(unit.Dropins, types.SystemdDropin{
 				Name:     string(oldDropIn.Name),
 				Contents: oldDropIn.Contents,
 			})
@@ -346,7 +346,7 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 		}
 
 		for _, oldDropIn := range oldUnit.DropIns {
-			unit.Dropins = append(unit.Dropins, types.Dropin{
+			unit.Dropins = append(unit.Dropins, types.SystemdDropin{
 				Name:     string(oldDropIn.Name),
 				Contents: oldDropIn.Contents,
 			})
@@ -675,10 +675,10 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 		}
 		return res
 	}
-	translateSystemdDropinSlice := func(old []v2_1.Dropin) []types.Dropin {
-		var res []types.Dropin
+	translateSystemdDropinSlice := func(old []v2_1.Dropin) []types.SystemdDropin {
+		var res []types.SystemdDropin
 		for _, x := range old {
-			res = append(res, types.Dropin{
+			res = append(res, types.SystemdDropin{
 				Contents: x.Contents,
 				Name:     x.Name,
 			})
