@@ -1,0 +1,15 @@
+# Ignore SR-IOV interface on Azure, since it'll be transparently bonded
+# to the synthetic interface
+
+[Match]
+KernelCommandLine=coreos.oem.id=azure
+# With NetworkManager, Azure uses a udev rule matching DRIVERS=="hv_pci".
+# This won't work with networkd because it only checks the driver of the
+# device itself, not its parents. All we can do instead is blacklist the
+# VF driver currently used in Azure. If other drivers come into use, the
+# symptom will be a VF interface in the output of "networkctl" which never
+# finishes configuring.
+Driver=mlx4_en
+
+[Link]
+Unmanaged=yes
