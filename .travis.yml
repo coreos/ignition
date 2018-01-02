@@ -41,8 +41,8 @@ script:
                 GOARCH="${TARGET}" ./build && file "bin/${TARGET}/ignition" | egrep 'aarch64';
         fi
   -     if [ "${TARGET}" == "amd64" ]; then
-                GOARCH="${TARGET}" ACTION=COMPILE ./test;
+                GOARCH="${TARGET}" ./build_blackbox_tests;
         elif [ "${TARGET}" == "arm64" ]; then
                 export CGO_LDFLAGS="-L ${PWD}";
-                GOARCH="${TARGET}" ACTION=COMPILE ./test && file "tests.test" | egrep 'aarch64';
+                GOARCH="${TARGET}" ./build_blackbox_tests && file "tests.test" | egrep 'aarch64';
         fi
