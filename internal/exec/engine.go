@@ -122,20 +122,17 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 	}
 
 	// (Re)Fetch the config if the cache is unreadable.
-	cfg, err = e.fetchProviderConfig(f)
+	cfg, f, err = e.fetchProviderConfig(f)
 	if err != nil {
 		e.Logger.Crit("failed to fetch config: %s", err)
 		return
 	}
-
-	// Regenerate the http client and fetcher to use the timeouts from the
-	// newly fetched config
-	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
-	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
-	if err != nil {
-		e.Logger.Crit("failed to generate fetcher: %s", err)
+	// Update the engine's HTTP client to the new fetcher HTTP client
+	if f.Client == nil {
+		e.Logger.Crit("fetcher HTTP client uninitialized")
 		return
 	}
+	e.client = *f.Client
 
 	// Populate the config cache.
 	b, err = json.Marshal(cfg)
@@ -158,7 +155,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 // it checks the config engine's provider. An error is returned if the provider
 // is unavailable. This will also render the config (see renderConfig) before
 // returning.
-func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, error) {
+func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, resource.Fetcher, error) {
 	fetchers := []providers.FuncFetchConfig{
 		cmdline.FetchConfig,
 		system.FetchConfig,
@@ -178,8 +175,13 @@ func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, error) {
 
 	e.logReport(r)
 	if err != nil {
-		return types.Config{}, err
+		return types.Config{}, f, err
 	}
+
+	// Replace the HTTP client in the fetcher to be configured with the
+	// timeouts of the config
+	client := resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
+	f.Client = &client
 
 	return e.renderConfig(cfg, f)
 }
@@ -189,28 +191,48 @@ func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, error) {
 // set, the referenced and evaluted config will be returned. Otherwise, if
 // "ignition.config.append" is set, each of the referenced configs will be
 // evaluated and appended to the provided config. If neither option is set, the
-// provided config will be returned unmodified.
-func (e *Engine) renderConfig(cfg types.Config, f resource.Fetcher) (types.Config, error) {
+// provided config will be returned unmodified. An updated fetcher will be
+// returned with any new timeouts set.
+func (e *Engine) renderConfig(cfg types.Config, f resource.Fetcher) (types.Config, resource.Fetcher, error) {
 	// Apply any new timeout info before fetching other configs.
 	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
 	if cfgRef := cfg.Ignition.Config.Replace; cfgRef != nil {
-		return e.fetchReferencedConfig(*cfgRef, f)
+		newCfg, err := e.fetchReferencedConfig(*cfgRef, f)
+		if err != nil {
+			return types.Config{}, f, err
+		}
+
+		// Replace the HTTP client in the fetcher to be configured with the
+		// timeouts of the new config
+		client := resource.NewHttpClient(e.Logger, newCfg.Ignition.Timeouts)
+		f.Client = &client
+
+		return e.renderConfig(newCfg, f)
 	}
 
 	appendedCfg := cfg
 	for _, cfgRef := range cfg.Ignition.Config.Append {
 		newCfg, err := e.fetchReferencedConfig(cfgRef, f)
 		if err != nil {
-			return newCfg, err
+			return types.Config{}, f, err
+		}
+
+		// Replace the HTTP client in the fetcher to be configured with any new
+		// timeouts so that they're in effect when fetching the next config
+		client := resource.NewHttpClient(e.Logger, config.Append(appendedCfg, newCfg).Ignition.Timeouts)
+		f.Client = &client
+
+		newCfg, f, err = e.renderConfig(newCfg, f)
+		if err != nil {
+			return types.Config{}, f, err
 		}
 
 		appendedCfg = config.Append(appendedCfg, newCfg)
 	}
-	return appendedCfg, nil
+	return appendedCfg, f, nil
 }
 
-// fetchReferencedConfig fetches, renders, and attempts to verify the requested
-// config.
+// fetchReferencedConfig fetches and parses the requested config.
 func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.Fetcher) (types.Config, error) {
 	u, err := url.Parse(cfgRef.Source)
 	if err != nil {
@@ -222,6 +244,7 @@ func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.F
 	if err != nil {
 		return types.Config{}, err
 	}
+	e.Logger.Debug("fetched new config: %s", string(rawCfg))
 
 	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
 		return types.Config{}, err
@@ -233,7 +256,7 @@ func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.F
 		return types.Config{}, err
 	}
 
-	return e.renderConfig(cfg, f)
+	return cfg, nil
 }
 
 func (e Engine) logReport(r report.Report) {
