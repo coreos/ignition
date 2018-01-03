@@ -15,10 +15,10 @@
 package config
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/coreos/go-semver/semver"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/coreos/ignition/config/types"
 )
@@ -188,12 +188,37 @@ func TestAppend(t *testing.T) {
 				},
 			}},
 		},
+
+		// when the newconfig doesn't set a value
+		{
+			in: in{
+				oldConfig: types.Config{
+					Ignition: types.Ignition{
+						Timeouts: types.Timeouts{
+							HTTPTotal: intToPtr(1),
+						},
+					},
+				},
+				newConfig: types.Config{
+					Ignition: types.Ignition{
+						Timeouts: types.Timeouts{
+							HTTPTotal: nil,
+						},
+					},
+				},
+			},
+			out: out{types.Config{
+				Ignition: types.Ignition{
+					Timeouts: types.Timeouts{
+						HTTPTotal: intToPtr(1),
+					},
+				},
+			}},
+		},
 	}
 
 	for i, test := range tests {
 		config := Append(test.in.oldConfig, test.in.newConfig)
-		if !reflect.DeepEqual(test.out.config, config) {
-			t.Errorf("#%d: bad config: want %+v, got %+v", i, test.out.config, config)
-		}
+		assert.Equal(t, test.out.config, config, "#%d: bad config", i)
 	}
 }
