@@ -32,7 +32,7 @@ LABEL="start_root"
 # but this ensures ID_PART_ENTRY_TYPE is in the environment and is set by the builtin blkid.
 IMPORT{builtin}="blkid"
 # If it's the root-on-raid GUID, start the raid
-ENV{ID_PART_ENTRY_TYPE}=="be9067b9-ea49-4f15-b4f6-f36f8c9e1818", ACTION=="add|change", IMPORT{program}="/sbin/mdadm --incremental --export $devnode --offroot ${DEVLINKS}"
+ENV{ID_PART_ENTRY_TYPE}=="be9067b9-ea49-4f15-b4f6-f36f8c9e1818", ACTION=="add|change", IMPORT{program}="/sbin/mdadm --incremental --export --offroot $devnode"
 # Handle other (future) cases here
 
 LABEL="start_root_end"
