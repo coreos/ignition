@@ -18,6 +18,7 @@ package registry
 import (
 	_ "github.com/coreos/ignition/tests/negative/files"
 	_ "github.com/coreos/ignition/tests/negative/general"
+	_ "github.com/coreos/ignition/tests/negative/networkd"
 	_ "github.com/coreos/ignition/tests/negative/regression"
 	_ "github.com/coreos/ignition/tests/negative/storage"
 	_ "github.com/coreos/ignition/tests/negative/timeouts"
