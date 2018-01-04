@@ -35,10 +35,15 @@ var (
 	oemLookasideDir = "/usr/share/oem"
 
 	// Helper programs
-	mdadmCmd   = "/usr/sbin/mdadm"
-	mountCmd   = "/usr/bin/mount"
-	sgdiskCmd  = "/usr/sbin/sgdisk"
-	udevadmCmd = "/usr/bin/udevadm"
+	chrootCmd   = "/usr/bin/chroot"
+	groupaddCmd = "/usr/sbin/groupadd"
+	idCmd       = "/usr/bin/id"
+	mdadmCmd    = "/usr/sbin/mdadm"
+	mountCmd    = "/usr/bin/mount"
+	sgdiskCmd   = "/usr/sbin/sgdisk"
+	udevadmCmd  = "/usr/bin/udevadm"
+	usermodCmd  = "/usr/sbin/usermod"
+	useraddCmd  = "/usr/sbin/useradd"
 
 	// Filesystem tools
 	btrfsMkfsCmd = "/usr/sbin/mkfs.btrfs"
@@ -57,10 +62,15 @@ func KernelCmdlinePath() string { return kernelCmdlinePath }
 func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
 func OEMLookasideDir() string   { return fromEnv("OEM_LOOKASIDE_DIR", oemLookasideDir) }
 
-func MdadmCmd() string   { return mdadmCmd }
-func MountCmd() string   { return mountCmd }
-func SgdiskCmd() string  { return sgdiskCmd }
-func UdevadmCmd() string { return udevadmCmd }
+func ChrootCmd() string   { return chrootCmd }
+func GroupaddCmd() string { return groupaddCmd }
+func IdCmd() string       { return idCmd }
+func MdadmCmd() string    { return mdadmCmd }
+func MountCmd() string    { return mountCmd }
+func SgdiskCmd() string   { return sgdiskCmd }
+func UdevadmCmd() string  { return udevadmCmd }
+func UsermodCmd() string  { return usermodCmd }
+func UseraddCmd() string  { return useraddCmd }
 
 func BtrfsMkfsCmd() string { return btrfsMkfsCmd }
 func Ext4MkfsCmd() string  { return ext4MkfsCmd }
