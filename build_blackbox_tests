@@ -2,11 +2,19 @@
 
 set -eu
 
+# Use the stubs, not the system user{mod,add} binaries. Since we don't know how exactly the bb
+# tests will be run and where the stubs will be located, rely on the bb test caller setting up
+# their PATH to include them. We don't need to include `id` because it gets copied into the
+# system
+GLDFLAGS="-X github.com/coreos/ignition/internal/distro.useraddCmd=useradd-stub "
+GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.usermodCmd=usermod-stub "
+
 if [ "${HELPERS:-CL}" == "HOST" ]; then
-	GLDFLAGS="-X github.com/coreos/ignition/internal/distro.mdadmCmd=$(sudo which mdadm) "
+	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.mdadmCmd=$(sudo which mdadm) "
 	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.mountCmd=$(sudo which mount) "
 	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.sgdiskCmd=$(sudo which sgdisk) "
 	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.udevadmCmd=$(sudo which udevadm) "
+	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.chrootCmd=$(sudo which chroot) "
 
 	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.btrfsMkfsCmd=$(sudo which mkfs.btrfs) "
 	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.ext4MkfsCmd=$(sudo which mkfs.ext4) "
