@@ -21,7 +21,7 @@ import (
 
 func TestModeValidate(t *testing.T) {
 	type in struct {
-		mode int
+		mode *int
 	}
 	type out struct {
 		err error
@@ -32,23 +32,27 @@ func TestModeValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{mode: 0},
+			in:  in{mode: nil},
 			out: out{},
 		},
 		{
-			in:  in{mode: 0644},
+			in:  in{mode: intToPtr(0)},
 			out: out{},
 		},
 		{
-			in:  in{mode: 01755},
+			in:  in{mode: intToPtr(0644)},
 			out: out{},
 		},
 		{
-			in:  in{mode: 07777},
+			in:  in{mode: intToPtr(01755)},
 			out: out{},
 		},
 		{
-			in:  in{mode: 010000},
+			in:  in{mode: intToPtr(07777)},
+			out: out{},
+		},
+		{
+			in:  in{mode: intToPtr(010000)},
 			out: out{ErrFileIllegalMode},
 		},
 	}

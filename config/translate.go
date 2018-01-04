@@ -109,7 +109,7 @@ func TranslateFromV1(old v1.Config) types.Config {
 					Group:      types.NodeGroup{ID: intToPtr(oldFile.Gid)},
 				},
 				FileEmbedded1: types.FileEmbedded1{
-					Mode: int(oldFile.Mode),
+					Mode: intToPtr(int(oldFile.Mode)),
 					Contents: types.FileContents{
 						Source: (&url.URL{
 							Scheme: "data",
@@ -325,7 +325,7 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 				Group:      types.NodeGroup{ID: intToPtr(oldFile.Group.Id)},
 			},
 			FileEmbedded1: types.FileEmbedded1{
-				Mode: int(oldFile.Mode),
+				Mode: intToPtr(int(oldFile.Mode)),
 				Contents: types.FileContents{
 					Compression:  string(oldFile.Contents.Compression),
 					Source:       oldFile.Contents.Source.String(),
@@ -545,7 +545,7 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 			res = append(res, types.Directory{
 				Node: translateNode(x.Node),
 				DirectoryEmbedded1: types.DirectoryEmbedded1{
-					Mode: x.DirectoryEmbedded1.Mode,
+					Mode: intToPtr(x.DirectoryEmbedded1.Mode),
 				},
 			})
 		}
@@ -589,7 +589,7 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 							Hash: x.Contents.Verification.Hash,
 						},
 					},
-					Mode: x.Mode,
+					Mode: intToPtr(x.Mode),
 				},
 			})
 		}
