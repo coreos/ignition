@@ -38,7 +38,6 @@ func main() {
 		root         string
 		stage        stages.Name
 		version      bool
-		validate     string
 	}{}
 
 	flag.BoolVar(&flags.clearCache, "clear-cache", false, "clear any cached config")
@@ -48,30 +47,11 @@ func main() {
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
-	flag.StringVar(&flags.validate, "validate", "", "validate specified config then exit")
 
 	flag.Parse()
 
 	if flags.version {
 		fmt.Printf("%s\n", version.String)
-		return
-	}
-
-	if flags.validate != "" {
-		report, err := exec.Validate(flags.validate)
-		if len(report.Entries) != 0 {
-			fmt.Println(report)
-		}
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			os.Exit(1)
-		}
-		if len(report.Entries) == 0 {
-			// Just silently exit if everything passed without even warnings
-			return
-		}
-		// Print this to be clear that despite any warnings the config is valid
-		fmt.Println("Config is valid")
 		return
 	}
 
