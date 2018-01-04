@@ -33,6 +33,12 @@ func (f File) ValidateMode() report.Report {
 			Kind:    report.EntryError,
 		})
 	}
+	if f.Mode == nil {
+		r.Add(report.Entry{
+			Message: "file permissions unset, defaulting to 0000",
+			Kind:    report.EntryWarning,
+		})
+	}
 	return r
 }
 

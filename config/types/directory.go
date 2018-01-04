@@ -26,5 +26,11 @@ func (d Directory) ValidateMode() report.Report {
 			Kind:    report.EntryError,
 		})
 	}
+	if d.Mode == nil {
+		r.Add(report.Entry{
+			Message: "directory permissions unset, defaulting to 0000",
+			Kind:    report.EntryWarning,
+		})
+	}
 	return r
 }
