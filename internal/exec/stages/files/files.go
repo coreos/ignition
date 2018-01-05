@@ -131,8 +131,14 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	}
 
 	if err := l.LogOp(
-		func() error { return u.PerformFetch(fetchOp) },
-		"writing file %q", string(f.Path),
+		func() error {
+			err := u.DeletePathOnOverwrite(f.Node)
+			if err != nil {
+				return err
+			}
+
+			return u.PerformFetch(fetchOp)
+		}, "writing file %q", string(f.Path),
 	); err != nil {
 		return fmt.Errorf("failed to create file %q: %v", fetchOp.Path, err)
 	}
@@ -152,6 +158,11 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 
 	err := l.LogOp(func() error {
 		path := filepath.Clean(u.JoinPath(string(d.Path)))
+
+		err := u.DeletePathOnOverwrite(d.Node)
+		if err != nil {
+			return err
+		}
 
 		// Build a list of paths to create. Since os.MkdirAll only sets the mode for new directories and not the
 		// ownership, we need to determine which directories will be created so we don't chown something that already
@@ -205,8 +216,14 @@ func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	}
 
 	if err := l.LogOp(
-		func() error { return u.WriteLink(s) },
-		"writing link %q -> %q", s.Path, s.Target,
+		func() error {
+			err := u.DeletePathOnOverwrite(s.Node)
+			if err != nil {
+				return err
+			}
+
+			return u.WriteLink(s)
+		}, "writing link %q -> %q", s.Path, s.Target,
 	); err != nil {
 		return fmt.Errorf("failed to create link %q: %v", s.Path, err)
 	}
