@@ -310,6 +310,9 @@
             "path": {
               "type": "string"
             },
+            "overwrite": {
+              "type": ["boolean", "null"]
+            },
             "user": {
               "type": "object",
               "properties": {
