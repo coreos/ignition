@@ -295,6 +295,12 @@
             "start": {
               "type": ["integer", "null"]
             },
+            "size-mb": {
+              "type": ["integer", "null"]
+            },
+            "start-mb": {
+              "type": ["integer", "null"]
+            },
             "typeGuid": {
               "type": "string"
             },
