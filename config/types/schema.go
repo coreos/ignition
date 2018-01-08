@@ -30,7 +30,7 @@ type Directory struct {
 }
 
 type DirectoryEmbedded1 struct {
-	Mode int `json:"mode,omitempty"`
+	Mode *int `json:"mode,omitempty"`
 }
 
 type Disk struct {
@@ -52,7 +52,7 @@ type FileContents struct {
 
 type FileEmbedded1 struct {
 	Contents FileContents `json:"contents,omitempty"`
-	Mode     int          `json:"mode,omitempty"`
+	Mode     *int         `json:"mode,omitempty"`
 }
 
 type Filesystem struct {

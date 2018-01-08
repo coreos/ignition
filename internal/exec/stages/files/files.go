@@ -168,12 +168,16 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 			newPaths = append(newPaths, p)
 		}
 
-		if err := os.MkdirAll(path, os.FileMode(d.Mode)); err != nil {
+		if d.Mode == nil {
+			d.Mode = internalUtil.IntToPtr(0)
+		}
+
+		if err := os.MkdirAll(path, os.FileMode(*d.Mode)); err != nil {
 			return err
 		}
 
 		for _, newPath := range newPaths {
-			if err := os.Chmod(newPath, os.FileMode(d.Mode)); err != nil {
+			if err := os.Chmod(newPath, os.FileMode(*d.Mode)); err != nil {
 				return err
 			}
 			if err := os.Chown(newPath, *d.User.ID, *d.Group.ID); err != nil {

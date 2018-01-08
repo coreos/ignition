@@ -90,10 +90,14 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 		return nil
 	}
 
+	if f.Mode == nil {
+		f.Mode = internalUtil.IntToPtr(0)
+	}
+
 	return &FetchOp{
 		Path: f.Path,
 		Hash: hasher,
-		Mode: os.FileMode(f.Mode),
+		Mode: os.FileMode(*f.Mode),
 		Uid:  *f.User.ID,
 		Gid:  *f.Group.ID,
 		Url:  *uri,

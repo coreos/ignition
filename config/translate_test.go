@@ -199,7 +199,7 @@ func TestTranslateFromV1(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(501)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: 0664,
+								Mode: intToPtr(0664),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -216,7 +216,7 @@ func TestTranslateFromV1(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: 0644,
+								Mode: intToPtr(0644),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -233,7 +233,7 @@ func TestTranslateFromV1(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(1001)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: 0400,
+								Mode: intToPtr(0400),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -710,7 +710,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(501)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: 0664,
+								Mode: intToPtr(0664),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -727,7 +727,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: 0644,
+								Mode: intToPtr(0644),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -744,7 +744,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(1001)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: 0400,
+								Mode: intToPtr(0400),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -1332,7 +1332,7 @@ func TestTranslateFromV2_1(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(501)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: 0664,
+								Mode: intToPtr(0664),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -1352,7 +1352,7 @@ func TestTranslateFromV2_1(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: 0644,
+								Mode: intToPtr(0644),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -1370,7 +1370,7 @@ func TestTranslateFromV2_1(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(1001)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: 0400,
+								Mode: intToPtr(0400),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -1436,7 +1436,7 @@ func TestTranslateFromV2_1(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(501)},
 							},
 							DirectoryEmbedded1: types.DirectoryEmbedded1{
-								Mode: 0664,
+								Mode: intToPtr(0664),
 							},
 						},
 						{
@@ -1447,7 +1447,7 @@ func TestTranslateFromV2_1(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(503)},
 							},
 							DirectoryEmbedded1: types.DirectoryEmbedded1{
-								Mode: 0644,
+								Mode: intToPtr(0644),
 							},
 						},
 						{
@@ -1458,7 +1458,7 @@ func TestTranslateFromV2_1(t *testing.T) {
 								Group:      types.NodeGroup{ID: intToPtr(1001)},
 							},
 							DirectoryEmbedded1: types.DirectoryEmbedded1{
-								Mode: 0400,
+								Mode: intToPtr(0400),
 							},
 						},
 					},

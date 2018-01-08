@@ -182,7 +182,7 @@
               "type": "object",
               "properties": {
                 "mode": {
-                  "type": "integer"
+                  "type": ["integer", "null"]
                 },
                 "contents": {
                   "$ref": "#/definitions/storage/definitions/file-contents"
@@ -200,7 +200,7 @@
                 "type": "object",
                 "properties": {
                     "mode": {
-                        "type": "integer"
+                        "type": ["integer", "null"]
                     }
                 }
               }
