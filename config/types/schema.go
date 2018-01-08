@@ -168,11 +168,14 @@ type PasswdUser struct {
 }
 
 type Raid struct {
-	Devices []Device `json:"devices,omitempty"`
-	Level   string   `json:"level,omitempty"`
-	Name    string   `json:"name,omitempty"`
-	Spares  int      `json:"spares,omitempty"`
+	Devices []Device     `json:"devices,omitempty"`
+	Level   string       `json:"level,omitempty"`
+	Name    string       `json:"name,omitempty"`
+	Options []RaidOption `json:"options,omitempty"`
+	Spares  int          `json:"spares,omitempty"`
 }
+
+type RaidOption string
 
 type SSHAuthorizedKey string
 
