@@ -24,6 +24,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/tests/types"
 )
 
@@ -36,44 +37,32 @@ func mustRun(t *testing.T, command string, args ...string) []byte {
 }
 
 func prepareRootPartitionForPasswd(t *testing.T, partitions []*types.Partition) {
-	for _, p := range partitions {
-		if p.Label == "ROOT" {
-			dirs := []string{
-				filepath.Join(p.MountPath, "home"),
-				filepath.Join(p.MountPath, "usr", "bin"),
-				filepath.Join(p.MountPath, "usr", "sbin"),
-				filepath.Join(p.MountPath, "usr", "lib64"),
-				filepath.Join(p.MountPath, "etc"),
-			}
-			for _, dir := range dirs {
-				_ = os.MkdirAll(dir, 0755)
-			}
-
-			symlinks := []string{"lib64", "bin", "sbin"}
-			for _, symlink := range symlinks {
-				_ = os.Symlink(
-					filepath.Join(p.MountPath, "usr", symlink),
-					filepath.Join(p.MountPath, symlink))
-			}
-
-			copies := [][2]string{
-				{"/etc/ld.so.cache", filepath.Join(p.MountPath, "etc")},
-				{"/lib64/libblkid.so.1", filepath.Join(p.MountPath, "usr", "lib64")},
-				{"/lib64/libpthread.so.0", filepath.Join(p.MountPath, "usr", "lib64")},
-				{"/lib64/libc.so.6", filepath.Join(p.MountPath, "usr", "lib64")},
-				{"/lib64/libuuid.so.1", filepath.Join(p.MountPath, "usr", "lib64")},
-				{"/lib64/ld-linux-x86-64.so.2", filepath.Join(p.MountPath, "usr", "lib64")},
-				{"/lib64/libnss_files.so.2", filepath.Join(p.MountPath, "usr", "lib64")},
-				{"bin/amd64/id", filepath.Join(p.MountPath, "usr", "bin")},
-				{"bin/amd64/useradd", filepath.Join(p.MountPath, "usr", "sbin")},
-				{"bin/amd64/usermod", filepath.Join(p.MountPath, "usr", "sbin")},
-			}
-
-			for _, cp := range copies {
-				_, _ = exec.Command("cp", cp[0], cp[1]).CombinedOutput()
-			}
-		}
+	mountPath := getRootLocation(partitions)
+	if mountPath == "" {
+		return
 	}
+	dirs := []string{
+		filepath.Join(mountPath, "home"),
+		filepath.Join(mountPath, "usr", "bin"),
+		filepath.Join(mountPath, "usr", "sbin"),
+		filepath.Join(mountPath, "usr", "lib64"),
+		filepath.Join(mountPath, "etc"),
+	}
+	for _, dir := range dirs {
+		_ = os.MkdirAll(dir, 0755)
+	}
+
+	symlinks := []string{"lib64", "bin", "sbin"}
+	for _, symlink := range symlinks {
+		_ = os.Symlink(
+			filepath.Join(mountPath, "usr", symlink),
+			filepath.Join(mountPath, symlink))
+	}
+
+	// TODO: use the architecture, not hardcode amd64
+	_, _ = exec.Command("cp", "bin/amd64/id-stub", filepath.Join(mountPath, distro.IdCmd())).CombinedOutput()
+	// TODO: needed for user_group_lookup.c
+	_, _ = exec.Command("cp", "/lib64/libnss_files.so.2", filepath.Join(mountPath, "usr", "lib64")).CombinedOutput()
 }
 
 func getRootLocation(partitions []*types.Partition) string {
