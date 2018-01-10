@@ -23,6 +23,8 @@ func init() {
 	register.Register(register.PositiveTest, CreateFileOnRoot())
 	register.Register(register.PositiveTest, UserGroupByID_2_0_0())
 	register.Register(register.PositiveTest, UserGroupByID_2_1_0())
+	register.Register(register.PositiveTest, ForceFileCreation())
+	register.Register(register.PositiveTest, ForceFileCreationNoOverwrite())
 	// TODO: Investigate why ignition's C code hates our environment
 	// register.Register(register.PositiveTest, UserGroupByName_2_1_0())
 }
@@ -156,6 +158,93 @@ func UserGroupByName_2_1_0() types.Test {
 				Group:     500,
 			},
 			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ForceFileCreation() types.Test {
+	name := "Force File Creation"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.2.0-experimental" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": {
+	        "source": "http://127.0.0.1:8080/contents"
+	      },
+		  "overwrite": true
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: "hello, world",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ForceFileCreationNoOverwrite() types.Test {
+	name := "Force File Creation No Overwrite"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.2.0-experimental" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": {
+	        "source": "http://127.0.0.1:8080/contents"
+	      }
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: "hello, world",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: "asdf\nfdsa",
 		},
 	})
 
