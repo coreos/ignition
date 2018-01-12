@@ -16,6 +16,7 @@ package util
 
 import (
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -43,6 +44,7 @@ type FetchOp struct {
 	Gid          int
 	Url          url.URL
 	FetchOptions resource.FetchOptions
+	Overwrite    *bool
 }
 
 // newHashedReader returns a new ReadCloser that also writes to the provided hash.
@@ -95,12 +97,13 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 	}
 
 	return &FetchOp{
-		Path: f.Path,
-		Hash: hasher,
-		Mode: os.FileMode(*f.Mode),
-		Uid:  *f.User.ID,
-		Gid:  *f.Group.ID,
-		Url:  *uri,
+		Path:      f.Path,
+		Hash:      hasher,
+		Mode:      os.FileMode(*f.Mode),
+		Uid:       *f.User.ID,
+		Gid:       *f.Group.ID,
+		Url:       *uri,
+		Overwrite: f.Overwrite,
 		FetchOptions: resource.FetchOptions{
 			Hash:        hasher,
 			Compression: f.Contents.Compression,
@@ -138,6 +141,32 @@ func (u Util) PerformFetch(f *FetchOp) error {
 	var err error
 
 	path := u.JoinPath(string(f.Path))
+
+	if f.Overwrite != nil && *f.Overwrite == false {
+		// Both directories and links will fail to be created if the target path
+		// already exists. Because files are downloaded into a temporary file
+		// and then renamed to the target path, we don't have the same
+		// guarantees here. If the user explicitly doesn't want us to overwrite
+		// preexisting nodes, check the target path and fail if something's
+		// there.
+		_, err := os.Stat(path)
+		switch {
+		case os.IsNotExist(err):
+			break
+		case err != nil:
+			return err
+		default:
+			return fmt.Errorf("error creating %q: something else exists at that path", f.Path)
+		}
+	}
+	if f.Overwrite == nil {
+		// For files, overwrite defaults to true. If overwrite wasn't specified,
+		// delete the path.
+		err := os.RemoveAll(path)
+		if err != nil {
+			return err
+		}
+	}
 
 	if err := MkdirForFile(path); err != nil {
 		return err
@@ -224,4 +253,11 @@ func (u Util) GetUserGroupID(l *log.Logger, user types.NodeUser, group types.Nod
 // MkdirForFile helper creates the directory components of path.
 func MkdirForFile(path string) error {
 	return os.MkdirAll(filepath.Dir(path), DefaultDirectoryPermissions)
+}
+
+func (u Util) DeletePathOnOverwrite(n types.Node) error {
+	if n.Overwrite == nil || !*n.Overwrite {
+		return nil
+	}
+	return os.RemoveAll(u.JoinPath(string(n.Path)))
 }

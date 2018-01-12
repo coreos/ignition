@@ -21,6 +21,8 @@ import (
 
 func init() {
 	register.Register(register.PositiveTest, CreateDirectoryOnRoot())
+	register.Register(register.PositiveTest, ForceDirCreation())
+	register.Register(register.PositiveTest, ForceDirCreationOverNonemptyDir())
 }
 
 func CreateDirectoryOnRoot() types.Test {
@@ -44,6 +46,95 @@ func CreateDirectoryOnRoot() types.Test {
 			},
 		},
 	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ForceDirCreation() types.Test {
+	name := "Force Directory Creation"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.2.0-experimental" },
+	  "storage": {
+	    "directories": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+		  "overwrite": true
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: "hello, world",
+		},
+	})
+	out[0].Partitions.AddDirectories("ROOT", []types.Directory{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ForceDirCreationOverNonemptyDir() types.Test {
+	name := "Force Directory Creation Over Nonempty Directory"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.2.0-experimental" },
+	  "storage": {
+	    "directories": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+		  "overwrite": true
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddDirectories("ROOT", []types.Directory{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+		},
+	})
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo/bar",
+				Name:      "baz",
+			},
+			Contents: "hello, world",
+		},
+	})
+	out[0].Partitions.AddDirectories("ROOT", []types.Directory{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+		},
+	})
+	// TODO: add ability to ensure that foo/bar/baz doesn't exist here.
 
 	return types.Test{
 		Name:   name,

@@ -1,4 +1,4 @@
-// Copyright 2017 CoreOS, Inc.
+// Copyright 2018 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,51 +20,37 @@ import (
 )
 
 func init() {
-	register.Register(register.PositiveTest, CreateHardLinkOnRoot())
-	register.Register(register.PositiveTest, CreateSymlinkOnRoot())
-	register.Register(register.PositiveTest, ForceLinkCreation())
-	register.Register(register.PositiveTest, ForceHardLinkCreation())
+	register.Register(register.NegativeTest, ForceFileCreation())
+	register.Register(register.NegativeTest, ForceDirCreation())
+	register.Register(register.NegativeTest, ForceLinkCreation())
+	register.Register(register.NegativeTest, ForceHardLinkCreation())
+	register.Register(register.NegativeTest, ForceFileCreationOverNonemptyDir())
+	register.Register(register.NegativeTest, ForceLinkCreationOverNonemptyDir())
 }
 
-func CreateHardLinkOnRoot() types.Test {
-	name := "Create a Hard Link on the Root Filesystem"
+func ForceFileCreation() types.Test {
+	name := "Force File Creation"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "2.2.0-experimental" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
-	      "path": "/foo/target",
+	      "path": "/foo/bar",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
-	      }
-	    }],
-	    "links": [{
-	      "filesystem": "root",
-	      "path": "/foo/bar",
-		  "target": "/foo/target",
-		  "hard": true
+	      },
+		  "overwrite": false
 	    }]
 	  }
 	}`
-	out[0].Partitions.AddFiles("ROOT", []types.File{
-		{
-			Node: types.Node{
-				Directory: "foo",
-				Name:      "target",
-			},
-			Contents: "asdf\nfdsa",
-		},
-	})
-	out[0].Partitions.AddLinks("ROOT", []types.Link{
+	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
 				Directory: "foo",
 				Name:      "bar",
 			},
-			Target: "/foo/target",
-			Hard:   true,
 		},
 	})
 
@@ -76,37 +62,26 @@ func CreateHardLinkOnRoot() types.Test {
 	}
 }
 
-func CreateSymlinkOnRoot() types.Test {
-	name := "Create a Symlink on the Root Filesystem"
+func ForceDirCreation() types.Test {
+	name := "Force Directory Creation"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "2.2.0-experimental" },
 	  "storage": {
-	    "links": [{
+	    "directories": [{
 	      "filesystem": "root",
-	      "path": "/foo/bar",
-	      "target": "/foo/target",
-	      "hard": false
+	      "path": "/foo/bar"
 	    }]
 	  }
 	}`
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
-				Name:      "target",
 				Directory: "foo",
-			},
-		},
-	})
-	out[0].Partitions.AddLinks("ROOT", []types.Link{
-		{
-			Node: types.Node{
 				Name:      "bar",
-				Directory: "foo",
 			},
-			Target: "/foo/target",
-			Hard:   false,
+			Contents: "hello, world",
 		},
 	})
 
@@ -135,8 +110,7 @@ func ForceLinkCreation() types.Test {
 	    "links": [{
 	      "filesystem": "root",
 	      "path": "/foo/bar",
-	      "target": "/foo/target",
-	      "overwrite": true
+	      "target": "/foo/target"
 	    }]
 	  }
 	}`
@@ -147,24 +121,6 @@ func ForceLinkCreation() types.Test {
 				Name:      "bar",
 			},
 			Contents: "asdf\nfdsa",
-		},
-	})
-	out[0].Partitions.AddFiles("ROOT", []types.File{
-		{
-			Node: types.Node{
-				Directory: "foo",
-				Name:      "target",
-			},
-			Contents: "asdf\nfdsa",
-		},
-	})
-	out[0].Partitions.AddLinks("ROOT", []types.Link{
-		{
-			Node: types.Node{
-				Directory: "foo",
-				Name:      "bar",
-			},
-			Target: "/foo/target",
 		},
 	})
 
@@ -194,8 +150,7 @@ func ForceHardLinkCreation() types.Test {
 	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "target": "/foo/target",
-		  "hard": true,
-	      "overwrite": true
+		  "hard": true
 	    }]
 	  }
 	}`
@@ -208,23 +163,94 @@ func ForceHardLinkCreation() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	out[0].Partitions.AddFiles("ROOT", []types.File{
-		{
-			Node: types.Node{
-				Directory: "foo",
-				Name:      "target",
-			},
-			Contents: "asdf\nfdsa",
-		},
-	})
-	out[0].Partitions.AddLinks("ROOT", []types.Link{
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ForceFileCreationOverNonemptyDir() types.Test {
+	name := "Force File Creation Over Non-Empty Directory"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.2.0-experimental" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": {
+	        "source": "http://127.0.0.1:8080/contents"
+	      },
+		  "overwrite": false
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddDirectories("ROOT", []types.Directory{
 		{
 			Node: types.Node{
 				Directory: "foo",
 				Name:      "bar",
 			},
-			Target: "/foo/target",
-			Hard:   true,
+		},
+	})
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo/bar",
+				Name:      "baz",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ForceLinkCreationOverNonemptyDir() types.Test {
+	name := "Force Link Creation Over Nonempty Directory"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.2.0-experimental" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/target",
+	      "contents": {
+	        "source": "http://127.0.0.1:8080/contents"
+	      }
+	    }],
+	    "links": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "target": "/foo/target"
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddDirectories("ROOT", []types.Directory{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+		},
+	})
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo/bar",
+				Name:      "baz",
+			},
+			Contents: "asdf\nfdsa",
 		},
 	})
 
