@@ -1,3 +1,10 @@
+12-Jan-2018 IGNITION v0.20.1
+
+  Changes
+
+    - Add support for fetching S3 objects from non-default AWS partitions when
+      running in one such partition
+
 13-Dec-2017 IGNITION v0.20.0
 
   Features
