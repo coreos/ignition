@@ -186,6 +186,9 @@
                 },
                 "contents": {
                   "$ref": "#/definitions/storage/definitions/file-contents"
+                },
+                "append": {
+                    "type": "boolean"
                 }
               }
             }
