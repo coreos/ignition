@@ -123,6 +123,11 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 		return fmt.Errorf("failed to resolve file %q", f.Path)
 	}
 
+	msg := "writing file %q"
+	if f.Append {
+		msg = "appending to file %q"
+	}
+
 	if err := l.LogOp(
 		func() error {
 			err := u.DeletePathOnOverwrite(f.Node)
@@ -131,7 +136,7 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 			}
 
 			return u.PerformFetch(fetchOp)
-		}, "writing file %q", string(f.Path),
+		}, msg, string(f.Path),
 	); err != nil {
 		return fmt.Errorf("failed to create file %q: %v", fetchOp.Path, err)
 	}

@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"syscall"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
@@ -42,6 +43,7 @@ type FetchOp struct {
 	Mode         *int
 	FetchOptions resource.FetchOptions
 	Overwrite    *bool
+	Append       bool
 	Node         types.Node
 }
 
@@ -92,6 +94,7 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 		Url:       *uri,
 		Mode:      f.Mode,
 		Overwrite: f.Overwrite,
+		Append:    f.Append,
 		FetchOptions: resource.FetchOptions{
 			Hash:        hasher,
 			Compression: f.Contents.Compression,
@@ -152,9 +155,9 @@ func (u Util) PerformFetch(f *FetchOp) error {
 			return fmt.Errorf("error creating %q: something else exists at that path", f.Path)
 		}
 	}
-	if f.Overwrite == nil {
-		// For files, overwrite defaults to true. If overwrite wasn't specified,
-		// delete the path.
+	if f.Overwrite == nil && !f.Append {
+		// For files, overwrite defaults to true if append is false. If
+		// overwrite wasn't specified, delete the path.
 		err := os.RemoveAll(path)
 		if err != nil {
 			return err
@@ -184,31 +187,77 @@ func (u Util) PerformFetch(f *FetchOp) error {
 		return err
 	}
 
-	// XXX(vc): Note that we assume to be operating on the file we just wrote, this is only guaranteed
-	// by using syscall.Fchown() and syscall.Fchmod()
+	if f.Append {
+		// Make sure that we're appending to a file
+		finfo, err := os.Lstat(path)
+		switch {
+		case os.IsNotExist(err):
+			// No problem, we'll create it.
+			break
+		case err != nil:
+			return err
+		default:
+			if !finfo.Mode().IsRegular() {
+				return fmt.Errorf("can only append to files: %q", f.Path)
+			}
+		}
 
-	// Ensure the ownership and mode are as requested (since WriteFile can be affected by sticky bit)
+		// Default to the appended file's owner for the uid and gid
+		defaultUid, defaultGid, mode := getFileOwnerAndMode(path)
+		uid, gid, err := u.ResolveNodeUidAndGid(f.Node, defaultUid, defaultGid)
+		if err != nil {
+			return err
+		}
+		if f.Mode != nil {
+			mode = os.FileMode(*f.Mode)
+		}
 
-	mode := os.FileMode(0)
-	if f.Mode != nil {
-		mode = os.FileMode(*f.Mode)
-	}
+		targetFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, mode)
+		if err != nil {
+			return err
+		}
+		defer targetFile.Close()
 
-	uid, gid, err := u.ResolveNodeUidAndGid(f.Node, 0, 0)
-	if err != nil {
-		return err
-	}
+		if _, err = tmp.Seek(0, os.SEEK_SET); err != nil {
+			return err
+		}
+		if _, err = io.Copy(targetFile, tmp); err != nil {
+			return err
+		}
 
-	if err = os.Chown(tmp.Name(), uid, gid); err != nil {
-		return err
-	}
+		if err = os.Chown(targetFile.Name(), uid, gid); err != nil {
+			return err
+		}
+		if err = os.Chmod(targetFile.Name(), mode); err != nil {
+			return err
+		}
+	} else {
+		// XXX(vc): Note that we assume to be operating on the file we just wrote, this is only guaranteed
+		// by using syscall.Fchown() and syscall.Fchmod()
 
-	if err = os.Chmod(tmp.Name(), mode); err != nil {
-		return err
-	}
+		// Ensure the ownership and mode are as requested (since WriteFile can be affected by sticky bit)
 
-	if err = os.Rename(tmp.Name(), path); err != nil {
-		return err
+		mode := os.FileMode(0)
+		if f.Mode != nil {
+			mode = os.FileMode(*f.Mode)
+		}
+
+		uid, gid, err := u.ResolveNodeUidAndGid(f.Node, 0, 0)
+		if err != nil {
+			return err
+		}
+
+		if err = os.Chown(tmp.Name(), uid, gid); err != nil {
+			return err
+		}
+
+		if err = os.Chmod(tmp.Name(), mode); err != nil {
+			return err
+		}
+
+		if err = os.Rename(tmp.Name(), path); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -217,6 +266,17 @@ func (u Util) PerformFetch(f *FetchOp) error {
 // MkdirForFile helper creates the directory components of path.
 func MkdirForFile(path string) error {
 	return os.MkdirAll(filepath.Dir(path), DefaultDirectoryPermissions)
+}
+
+// getFileOwner will return the uid and gid for the file at a given path. If the
+// file doesn't exist, or some other error is encountered when running stat on
+// the path, 0, 0, and 0 will be returned.
+func getFileOwnerAndMode(path string) (int, int, os.FileMode) {
+	finfo, err := os.Stat(path)
+	if err != nil {
+		return 0, 0, 0
+	}
+	return int(finfo.Sys().(*syscall.Stat_t).Uid), int(finfo.Sys().(*syscall.Stat_t).Gid), finfo.Mode()
 }
 
 // ResolveNodeUidAndGid attempts to convert a types.Node into a concrete uid and
