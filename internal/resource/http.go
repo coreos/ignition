@@ -103,17 +103,17 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 
 	duration := initialBackoff
 	for attempt := 1; ; attempt++ {
-		c.logger.Debug("GET %s: attempt #%d", url, attempt)
+		c.logger.Info("GET %s: attempt #%d", url, attempt)
 		resp, err := ctxhttp.Do(ctx, c.client, req)
 
 		if err == nil {
-			c.logger.Debug("GET result: %s", http.StatusText(resp.StatusCode))
+			c.logger.Info("GET result: %s", http.StatusText(resp.StatusCode))
 			if resp.StatusCode < 500 {
 				return resp.Body, resp.StatusCode, nil
 			}
 			resp.Body.Close()
 		} else {
-			c.logger.Debug("GET error: %v", err)
+			c.logger.Info("GET error: %v", err)
 		}
 
 		duration = duration * 2
