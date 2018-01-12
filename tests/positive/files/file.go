@@ -25,6 +25,8 @@ func init() {
 	register.Register(register.PositiveTest, UserGroupByID_2_1_0())
 	register.Register(register.PositiveTest, ForceFileCreation())
 	register.Register(register.PositiveTest, ForceFileCreationNoOverwrite())
+	register.Register(register.PositiveTest, AppendToAFile())
+	register.Register(register.PositiveTest, AppendToNonexistentFile())
 	// TODO: Investigate why ignition's C code hates our environment
 	// register.Register(register.PositiveTest, UserGroupByName_2_1_0())
 }
@@ -245,6 +247,83 @@ func ForceFileCreationNoOverwrite() types.Test {
 				Name:      "bar",
 			},
 			Contents: "asdf\nfdsa",
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func AppendToAFile() types.Test {
+	name := "Append to a file"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.2.0-experimental" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": { "source": "data:,example%20file%0A" },
+	      "user": {"id": 500},
+	      "group": {"id": 500}
+	    },{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": { "source": "data:,hello%20world%0A" },
+	      "group": {"id": 0},
+	      "append": true
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+				User:      500,
+				Group:     0,
+			},
+			Contents: "example file\nhello world\n",
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func AppendToNonexistentFile() types.Test {
+	name := "Append to a non-existent file"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.2.0-experimental" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": { "source": "data:,hello%20world%0A" },
+	      "group": {"id": 500},
+	      "append": true
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+				Group:     500,
+			},
+			Contents: "hello world\n",
 		},
 	})
 
