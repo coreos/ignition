@@ -118,13 +118,6 @@ type fileEntry types.File
 func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	f := types.File(tmp)
 
-	if f.User.ID == nil {
-		f.User.ID = internalUtil.IntToPtr(0)
-	}
-	if f.Group.ID == nil {
-		f.Group.ID = internalUtil.IntToPtr(0)
-	}
-
 	fetchOp := u.PrepareFetch(l, f)
 	if fetchOp == nil {
 		return fmt.Errorf("failed to resolve file %q", f.Path)
@@ -151,15 +144,15 @@ type dirEntry types.Directory
 func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 	d := types.Directory(tmp)
 
-	d.User.ID, d.Group.ID = u.GetUserGroupID(l, d.User, d.Group)
-	if d.User.ID == nil || d.Group.ID == nil {
-		return fmt.Errorf("failed to resolve directory %q", d.Path)
-	}
-
 	err := l.LogOp(func() error {
 		path := filepath.Clean(u.JoinPath(string(d.Path)))
 
 		err := u.DeletePathOnOverwrite(d.Node)
+		if err != nil {
+			return err
+		}
+
+		uid, gid, err := u.ResolveNodeUidAndGid(d.Node, 0, 0)
 		if err != nil {
 			return err
 		}
@@ -191,7 +184,7 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 			if err := os.Chmod(newPath, os.FileMode(*d.Mode)); err != nil {
 				return err
 			}
-			if err := os.Chown(newPath, *d.User.ID, *d.Group.ID); err != nil {
+			if err := os.Chown(newPath, uid, gid); err != nil {
 				return err
 			}
 		}
@@ -209,11 +202,6 @@ type linkEntry types.Link
 
 func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	s := types.Link(tmp)
-
-	s.User.ID, s.Group.ID = u.GetUserGroupID(l, s.User, s.Group)
-	if s.User.ID == nil || s.Group.ID == nil {
-		return fmt.Errorf("failed to resolve link %q", s.Path)
-	}
 
 	if err := l.LogOp(
 		func() error {
