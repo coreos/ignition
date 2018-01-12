@@ -176,9 +176,9 @@ func AppendConfigWithMissingFileHTTP() types.Test {
 	  "ignition": {
 	    "version": "2.1.0",
 	    "config": {
-	      "append": {
+	      "append": [{
 	        "source": "http://127.0.0.1:8080/asdf"
-	      }
+	      }]
 	    }
 	  }
 	}`
@@ -199,9 +199,9 @@ func AppendConfigWithMissingFileTFTP() types.Test {
 	  "ignition": {
 	    "version": "2.1.0",
 	    "config": {
-	      "append": {
+	      "append": [{
 	        "source": "tftp://127.0.0.1:69/asdf"
-	      }
+	      }]
 	    }
 	  }
 	}`
@@ -222,9 +222,9 @@ func AppendConfigWithMissingFileOEM() types.Test {
 	  "ignition": {
 	    "version": "2.1.0",
 	    "config": {
-	      "append": {
+	      "append": [{
 	        "source": "oem:///asdf"
-	      }
+	      }]
 	    }
 	  }
 	}`
