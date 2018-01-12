@@ -112,11 +112,11 @@ type Networkdunit struct {
 }
 
 type Node struct {
-	Filesystem string    `json:"filesystem,omitempty"`
-	Group      NodeGroup `json:"group,omitempty"`
-	Overwrite  *bool     `json:"overwrite,omitempty"`
-	Path       string    `json:"path,omitempty"`
-	User       NodeUser  `json:"user,omitempty"`
+	Filesystem string     `json:"filesystem,omitempty"`
+	Group      *NodeGroup `json:"group,omitempty"`
+	Overwrite  *bool      `json:"overwrite,omitempty"`
+	Path       string     `json:"path,omitempty"`
+	User       *NodeUser  `json:"user,omitempty"`
 }
 
 type NodeGroup struct {
