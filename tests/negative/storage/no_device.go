@@ -43,10 +43,11 @@ func NoDevice() types.Test {
 	}`
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:              name,
+		In:                in,
+		Out:               out,
+		Config:            config,
+		ConfigShouldBeBad: true,
 	}
 }
 
@@ -64,16 +65,17 @@ func NoDeviceWithForce() types.Test {
 						"force": true
 					}
 				},
-				"name": "foobar",
+				"name": "foobar"
 			}]
 		}
 	}`
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:              name,
+		In:                in,
+		Out:               out,
+		Config:            config,
+		ConfigShouldBeBad: true,
 	}
 }
 
@@ -95,10 +97,11 @@ func NoDeviceWithWipeFilesystemTrue() types.Test {
 	}`
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:              name,
+		In:                in,
+		Out:               out,
+		Config:            config,
+		ConfigShouldBeBad: true,
 	}
 }
 
@@ -120,9 +123,10 @@ func NoDeviceWithWipeFilesystemFalse() types.Test {
 	}`
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:              name,
+		In:                in,
+		Out:               out,
+		Config:            config,
+		ConfigShouldBeBad: true,
 	}
 }

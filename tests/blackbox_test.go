@@ -28,6 +28,7 @@ import (
 
 	"github.com/pin/tftp"
 
+	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/tests/register"
 	"github.com/coreos/ignition/tests/types"
 
@@ -234,6 +235,18 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	for _, d := range test.MntDevices {
 		if strings.Contains(test.Config, d.Substitution) {
 			t.Fatalf("Didn't find a drive with label: %s", d.Substitution)
+		}
+	}
+
+	// If we're not expecting the config to be bad, make sure it passes
+	// validation.
+	if !test.ConfigShouldBeBad {
+		_, rpt, err := config.Parse([]byte(test.Config))
+		if rpt.IsFatal() {
+			t.Fatalf("test has bad config: %s", rpt.String())
+		}
+		if err != nil {
+			t.Fatalf("error parsing config: %v", err)
 		}
 	}
 

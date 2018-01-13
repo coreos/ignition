@@ -93,6 +93,7 @@ type Test struct {
 	OEMLookasideFiles []File
 	SystemDirFiles    []File
 	Config            string
+	ConfigShouldBeBad bool
 }
 
 func (ps Partitions) GetPartition(label string) *Partition {

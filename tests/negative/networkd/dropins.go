@@ -41,9 +41,10 @@ func NetworkdDropinInvalidExtension() types.Test {
 	}`
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:              name,
+		In:                in,
+		Out:               out,
+		Config:            config,
+		ConfigShouldBeBad: true,
 	}
 }

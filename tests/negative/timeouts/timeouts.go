@@ -70,7 +70,7 @@ func DecreaseHTTPResponseHeadersTimeout() types.Test {
 			"version": "2.1.0",
 			"timeouts": {
 				"httpResponseHeaders": 1,
-				"httpTotal": 10,
+				"httpTotal": 10
 			}
 		},
 		"storage": {
