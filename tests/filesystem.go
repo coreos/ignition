@@ -83,7 +83,7 @@ func runIgnition(t *testing.T, stage, root, cwd string, appendEnv []string, expe
 	cmd.Env = append(os.Environ(), appendEnv...)
 	out, err := cmd.CombinedOutput()
 	t.Logf("PID: %d", cmd.Process.Pid)
-	if err != nil && !expectFail {
+	if (err != nil && !expectFail) || strings.Contains(string(out), "panic") {
 		t.Fatal(args, err, string(out))
 	}
 	return err == nil
