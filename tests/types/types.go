@@ -30,12 +30,12 @@ const (
 type File struct {
 	Node
 	Contents string
-	Mode     string
+	Mode     int
 }
 
 type Directory struct {
 	Node
-	Mode string
+	Mode int
 }
 
 type Link struct {

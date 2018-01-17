@@ -159,6 +159,7 @@ func validateFile(t *testing.T, partition *types.Partition, file types.File) {
 		}
 	}
 
+	validateMode(t, path, file.Mode)
 	validateNode(t, fileInfo, file.Node)
 }
 
@@ -222,19 +223,16 @@ func validateLink(t *testing.T, partition *types.Partition, link types.Link) {
 	validateNode(t, linkInfo, link.Node)
 }
 
-func validateMode(t *testing.T, path string, mode string) {
-	if mode != "" {
+func validateMode(t *testing.T, path string, mode int) {
+	if mode != 0 {
 		fileInfo, err := os.Stat(path)
 		if err != nil {
 			t.Error("Error running stat on node", path, err)
 			return
 		}
 
-		// converts to a string containing the base-10 mode
-		actualMode := strconv.Itoa(int(fileInfo.Mode()) & 07777)
-
-		if mode != actualMode {
-			t.Error("Node Mode does not match", path, mode, actualMode)
+		if fileInfo.Mode() != os.FileMode(mode) {
+			t.Error("Node Mode does not match", path, mode, fileInfo.Mode())
 		}
 	}
 }

@@ -83,7 +83,7 @@ func runIgnition(t *testing.T, stage, root, cwd string, appendEnv []string, expe
 	cmd.Env = append(os.Environ(), appendEnv...)
 	out, err := cmd.CombinedOutput()
 	t.Logf("PID: %d", cmd.Process.Pid)
-	if err != nil && !expectFail {
+	if (err != nil && !expectFail) || strings.Contains(string(out), "panic") {
 		t.Fatal(args, err, string(out))
 	}
 	return err == nil
@@ -309,10 +309,9 @@ func generateUUID(t *testing.T) string {
 
 func createFilesForPartitions(t *testing.T, partitions []*types.Partition) {
 	for _, partition := range partitions {
-		if partition.Files == nil {
-			continue
-		}
+		createDirectoriesFromSlice(t, partition.MountPath, partition.Directories)
 		createFilesFromSlice(t, partition.MountPath, partition.Files)
+		createLinksFromSlice(t, partition.MountPath, partition.Links)
 	}
 }
 
@@ -336,6 +335,39 @@ func createFilesFromSlice(t *testing.T, basedir string, files []types.File) {
 				t.Fatal("writeString", err, string(writeStringOut))
 			}
 			writer.Flush()
+		}
+	}
+}
+
+func createDirectoriesFromSlice(t *testing.T, basedir string, dirs []types.Directory) {
+	for _, dir := range dirs {
+		err := os.MkdirAll(filepath.Join(
+			basedir, dir.Directory), 0755)
+		if err != nil {
+			t.Fatal("mkdirall", err)
+		}
+		err = os.Mkdir(filepath.Join(
+			basedir, dir.Directory, dir.Name), os.FileMode(dir.Mode))
+		if err != nil {
+			t.Fatal("mkdir", err)
+		}
+	}
+}
+
+func createLinksFromSlice(t *testing.T, basedir string, links []types.Link) {
+	for _, link := range links {
+		err := os.MkdirAll(filepath.Join(
+			basedir, link.Directory), 0755)
+		if err != nil {
+			t.Fatal("mkdirall", err)
+		}
+		if link.Hard {
+			err = os.Link(link.Target, filepath.Join(basedir, link.Directory, link.Name))
+		} else {
+			err = os.Symlink(link.Target, filepath.Join(basedir, link.Directory, link.Name))
+		}
+		if err != nil {
+			t.Fatal("link", err)
 		}
 	}
 }

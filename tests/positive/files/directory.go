@@ -109,14 +109,6 @@ func ForceDirCreationOverNonemptyDir() types.Test {
 	    }]
 	  }
 	}`
-	in[0].Partitions.AddDirectories("ROOT", []types.Directory{
-		{
-			Node: types.Node{
-				Directory: "foo",
-				Name:      "bar",
-			},
-		},
-	})
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
