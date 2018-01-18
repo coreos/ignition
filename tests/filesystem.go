@@ -16,6 +16,7 @@ package blackbox
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -28,15 +29,15 @@ import (
 	"github.com/coreos/ignition/tests/types"
 )
 
-func mustRun(t *testing.T, command string, args ...string) []byte {
-	out, err := exec.Command(command, args...).CombinedOutput()
+func mustRun(t *testing.T, ctx context.Context, command string, args ...string) []byte {
+	out, err := exec.CommandContext(ctx, command, args...).CombinedOutput()
 	if err != nil {
 		t.Fatal(command, err, string(out))
 	}
 	return out
 }
 
-func prepareRootPartitionForPasswd(t *testing.T, partitions []*types.Partition) {
+func prepareRootPartitionForPasswd(t *testing.T, ctx context.Context, partitions []*types.Partition) {
 	mountPath := getRootLocation(partitions)
 	if mountPath == "" {
 		return
@@ -60,9 +61,9 @@ func prepareRootPartitionForPasswd(t *testing.T, partitions []*types.Partition) 
 	}
 
 	// TODO: use the architecture, not hardcode amd64
-	_, _ = exec.Command("cp", "bin/amd64/id-stub", filepath.Join(mountPath, distro.IdCmd())).CombinedOutput()
+	_, _ = exec.CommandContext(ctx, "cp", "bin/amd64/id-stub", filepath.Join(mountPath, distro.IdCmd())).CombinedOutput()
 	// TODO: needed for user_group_lookup.c
-	_, _ = exec.Command("cp", "/lib64/libnss_files.so.2", filepath.Join(mountPath, "usr", "lib64")).CombinedOutput()
+	_, _ = exec.CommandContext(ctx, "cp", "/lib64/libnss_files.so.2", filepath.Join(mountPath, "usr", "lib64")).CombinedOutput()
 }
 
 func getRootLocation(partitions []*types.Partition) string {
@@ -75,9 +76,9 @@ func getRootLocation(partitions []*types.Partition) string {
 }
 
 // returns true if no error, false if error
-func runIgnition(t *testing.T, stage, root, cwd string, appendEnv []string, expectFail bool) bool {
+func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, appendEnv []string, expectFail bool) bool {
 	args := []string{"-clear-cache", "-oem", "file", "-stage", stage, "-root", root, "-log-to-stdout"}
-	cmd := exec.Command("ignition", args...)
+	cmd := exec.CommandContext(ctx, "ignition", args...)
 	t.Log("ignition", args)
 	cmd.Dir = cwd
 	cmd.Env = append(os.Environ(), appendEnv...)
@@ -103,7 +104,7 @@ func pickPartition(t *testing.T, device string, partitions []*types.Partition, l
 
 // createVolume will create the image file of the specified size, create a
 // partition table in it, and generate mount paths for every partition
-func createVolume(t *testing.T, index int, imageFile string, size int64, cylinders int, heads int, sectorsPerTrack int, partitions []*types.Partition) {
+func createVolume(t *testing.T, ctx context.Context, index int, imageFile string, size int64, cylinders int, heads int, sectorsPerTrack int, partitions []*types.Partition) {
 	// attempt to create the file, will leave already existing files alone.
 	// os.Truncate requires the file to already exist
 	out, err := os.Create(imageFile)
@@ -118,7 +119,7 @@ func createVolume(t *testing.T, index int, imageFile string, size int64, cylinde
 		t.Fatal("truncate", err)
 	}
 
-	createPartitionTable(t, imageFile, partitions)
+	createPartitionTable(t, ctx, imageFile, partitions)
 
 	for counter, partition := range partitions {
 		if partition.TypeCode == "blank" || partition.FilesystemType == "" {
@@ -135,8 +136,8 @@ func createVolume(t *testing.T, index int, imageFile string, size int64, cylinde
 // setDevices will create devices for each of the partitions in the imageFile,
 // and then will format each partition according to what's described in the
 // partitions argument.
-func setDevices(t *testing.T, imageFile string, partitions []*types.Partition) string {
-	out := mustRun(t, "losetup", "-Pf", "--show", imageFile)
+func setDevices(t *testing.T, ctx context.Context, imageFile string, partitions []*types.Partition) string {
+	out := mustRun(t, ctx, "losetup", "-Pf", "--show", imageFile)
 	loopDevice := strings.TrimSpace(string(out))
 
 	for _, partition := range partitions {
@@ -144,16 +145,16 @@ func setDevices(t *testing.T, imageFile string, partitions []*types.Partition) s
 			continue
 		}
 		partition.Device = fmt.Sprintf("%sp%d", loopDevice, partition.Number)
-		formatPartition(t, partition)
+		formatPartition(t, ctx, partition)
 	}
 	return loopDevice
 }
 
-func destroyDevice(t *testing.T, loopDevice string) {
-	_ = mustRun(t, "losetup", "-d", loopDevice)
+func destroyDevice(t *testing.T, ctx context.Context, loopDevice string) {
+	_ = mustRun(t, ctx, "losetup", "-d", loopDevice)
 }
 
-func formatPartition(t *testing.T, partition *types.Partition) {
+func formatPartition(t *testing.T, ctx context.Context, partition *types.Partition) {
 	var mkfs string
 	var opts, label, uuid []string
 
@@ -198,7 +199,7 @@ func formatPartition(t *testing.T, partition *types.Partition) {
 	}
 	opts = append(opts, partition.Device)
 
-	_ = mustRun(t, mkfs, opts...)
+	_ = mustRun(t, ctx, mkfs, opts...)
 
 	if (partition.FilesystemType == "ext2" || partition.FilesystemType == "ext4") && partition.TypeCode == "coreos-usr" {
 		// this is done to mirror the functionality from disk_util
@@ -206,11 +207,11 @@ func formatPartition(t *testing.T, partition *types.Partition) {
 			"-U", "clear", "-T", "20091119110000", "-c", "0", "-i", "0",
 			"-m", "0", "-r", "0", "-e", "remount-ro", partition.Device,
 		}
-		_ = mustRun(t, "tune2fs", opts...)
+		_ = mustRun(t, ctx, "tune2fs", opts...)
 	}
 }
 
-func createPartitionTable(t *testing.T, imageFile string, partitions []*types.Partition) {
+func createPartitionTable(t *testing.T, ctx context.Context, imageFile string, partitions []*types.Partition) {
 	opts := []string{imageFile}
 	hybrids := []int{}
 	for _, p := range partitions {
@@ -240,28 +241,28 @@ func createPartitionTable(t *testing.T, imageFile string, partitions []*types.Pa
 			opts = append(opts, fmt.Sprintf("-h=%s", intJoin(hybrids, ":")))
 		}
 	}
-	_ = mustRun(t, "sgdisk", opts...)
+	_ = mustRun(t, ctx, "sgdisk", opts...)
 }
 
-func mountRootPartition(t *testing.T, partitions []*types.Partition) bool {
+func mountRootPartition(t *testing.T, ctx context.Context, partitions []*types.Partition) bool {
 	for _, partition := range partitions {
 		if partition.Label != "ROOT" {
 			continue
 		}
 		args := []string{partition.Device, partition.MountPath}
-		_ = mustRun(t, "mount", args...)
+		_ = mustRun(t, ctx, "mount", args...)
 		return true
 	}
 	return false
 }
 
-func mountPartitions(t *testing.T, partitions []*types.Partition) {
+func mountPartitions(t *testing.T, ctx context.Context, partitions []*types.Partition) {
 	for _, partition := range partitions {
 		if partition.FilesystemType == "" || partition.FilesystemType == "swap" || partition.Label == "ROOT" {
 			continue
 		}
 		args := []string{partition.Device, partition.MountPath}
-		_ = mustRun(t, "mount", args...)
+		_ = mustRun(t, ctx, "mount", args...)
 	}
 }
 
@@ -303,8 +304,8 @@ func removeEmpty(strings []string) []string {
 	return r
 }
 
-func generateUUID(t *testing.T) string {
-	out := mustRun(t, "uuidgen")
+func generateUUID(t *testing.T, ctx context.Context) string {
+	out := mustRun(t, ctx, "uuidgen")
 	return strings.TrimSpace(string(out))
 }
 
@@ -373,23 +374,23 @@ func createLinksFromSlice(t *testing.T, basedir string, links []types.Link) {
 	}
 }
 
-func unmountRootPartition(t *testing.T, partitions []*types.Partition) {
+func unmountRootPartition(t *testing.T, ctx context.Context, partitions []*types.Partition) {
 	for _, partition := range partitions {
 		if partition.Label != "ROOT" {
 			continue
 		}
 
-		_ = mustRun(t, "umount", partition.Device)
+		_ = mustRun(t, ctx, "umount", partition.Device)
 	}
 }
 
-func unmountPartitions(t *testing.T, partitions []*types.Partition) {
+func unmountPartitions(t *testing.T, ctx context.Context, partitions []*types.Partition) {
 	for _, partition := range partitions {
 		if partition.FilesystemType == "" || partition.FilesystemType == "swap" || partition.Label == "ROOT" {
 			continue
 		}
 
-		_ = mustRun(t, "umount", partition.Device)
+		_ = mustRun(t, ctx, "umount", partition.Device)
 	}
 }
 

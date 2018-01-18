@@ -16,6 +16,7 @@ package blackbox
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -34,6 +35,12 @@ import (
 
 	// Register the tests
 	_ "github.com/coreos/ignition/tests/registry"
+)
+
+var (
+	// testTimeout controls how long a given test is allowed to run before being
+	// cancelled.
+	testTimeout = time.Second * 30
 )
 
 // HTTP Server
@@ -130,6 +137,9 @@ func TestIgnitionBlackBoxNegative(t *testing.T) {
 func outer(t *testing.T, test types.Test, negativeTests bool) {
 	t.Log(test.Name)
 
+	ctx, cancelFunc := context.WithDeadline(context.Background(), time.Now().Add(testTimeout))
+	defer cancelFunc()
+
 	originalTmpDir := os.Getenv("TMPDIR")
 	if originalTmpDir == "" {
 		err := os.Setenv("TMPDIR", "/var/tmp")
@@ -174,7 +184,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		// Finish data setup
 		for _, part := range disk.Partitions {
 			if part.GUID == "" {
-				part.GUID = generateUUID(t)
+				part.GUID = generateUUID(t, ctx)
 			}
 			updateTypeGUID(t, part)
 		}
@@ -186,16 +196,16 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		test.Out[i].SetOffsets()
 
 		// Creation
-		createVolume(t, i, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
-		disk.Device = setDevices(t, disk.ImageFile, disk.Partitions)
+		createVolume(t, ctx, i, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
+		disk.Device = setDevices(t, ctx, disk.ImageFile, disk.Partitions)
 		test.Out[i].Device = disk.Device
-		rootMounted := mountRootPartition(t, disk.Partitions)
+		rootMounted := mountRootPartition(t, ctx, disk.Partitions)
 		if rootMounted && strings.Contains(test.Config, "passwd") {
-			prepareRootPartitionForPasswd(t, disk.Partitions)
+			prepareRootPartitionForPasswd(t, ctx, disk.Partitions)
 		}
-		mountPartitions(t, disk.Partitions)
+		mountPartitions(t, ctx, disk.Partitions)
 		createFilesForPartitions(t, disk.Partitions)
-		unmountPartitions(t, disk.Partitions)
+		unmountPartitions(t, ctx, disk.Partitions)
 
 		// Mount device name substitution
 		for _, d := range test.MntDevices {
@@ -222,8 +232,8 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		setExpectedPartitionsDrive(test.In[i].Partitions, disk.Partitions)
 
 		// Cleanup
-		defer destroyDevice(t, disk.Device)
-		defer unmountRootPartition(t, disk.Partitions)
+		defer destroyDevice(t, ctx, disk.Device)
+		defer unmountRootPartition(t, ctx, disk.Partitions)
 	}
 
 	if rootLocation == "" {
@@ -261,8 +271,8 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		"IGNITION_OEM_LOOKASIDE_DIR=" + oemLookasideDir,
 		"IGNITION_SYSTEM_CONFIG_DIR=" + systemConfigDir,
 	}
-	disks := runIgnition(t, "disks", rootLocation, tmpDirectory, appendEnv, negativeTests)
-	files := runIgnition(t, "files", rootLocation, tmpDirectory, appendEnv, negativeTests)
+	disks := runIgnition(t, ctx, "disks", rootLocation, tmpDirectory, appendEnv, negativeTests)
+	files := runIgnition(t, ctx, "files", rootLocation, tmpDirectory, appendEnv, negativeTests)
 	if negativeTests && disks && files {
 		t.Fatal("Expected failure and ignition succeeded")
 	}
@@ -270,12 +280,12 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	for _, disk := range test.Out {
 		if !negativeTests {
 			// Validation
-			mountPartitions(t, disk.Partitions)
+			mountPartitions(t, ctx, disk.Partitions)
 			t.Log(disk.ImageFile)
 			validateDisk(t, disk, disk.ImageFile)
 			validateFilesystems(t, disk.Partitions, disk.ImageFile)
 			validateFilesDirectoriesAndLinks(t, disk.Partitions)
-			unmountPartitions(t, disk.Partitions)
+			unmountPartitions(t, ctx, disk.Partitions)
 		}
 	}
 }
