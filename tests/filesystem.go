@@ -76,15 +76,16 @@ func getRootLocation(partitions []*types.Partition) string {
 
 // returns true if no error, false if error
 func runIgnition(t *testing.T, stage, root, cwd string, appendEnv []string, expectFail bool) bool {
-	args := []string{"-clear-cache", "-oem", "file", "-stage", stage, "-root", root}
+	args := []string{"-clear-cache", "-oem", "file", "-stage", stage, "-root", root, "-log-to-stdout"}
 	cmd := exec.Command("ignition", args...)
 	t.Log("ignition", args)
 	cmd.Dir = cwd
 	cmd.Env = append(os.Environ(), appendEnv...)
 	out, err := cmd.CombinedOutput()
 	t.Logf("PID: %d", cmd.Process.Pid)
+	t.Logf("Ignition output:\n%s", string(out))
 	if (err != nil && !expectFail) || strings.Contains(string(out), "panic") {
-		t.Fatal(args, err, string(out))
+		t.Fatalf("Ignition error encountered: %v", err)
 	}
 	return err == nil
 }
