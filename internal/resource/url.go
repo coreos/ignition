@@ -35,6 +35,7 @@ import (
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/systemd"
+	"github.com/coreos/ignition/internal/util"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -60,18 +61,6 @@ var (
 		"Accept":          []string{"application/vnd.coreos.ignition+json; version=2.1.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1"},
 	}
 )
-
-// ErrHashMismatch is returned when the calculated hash for a fetched object
-// doesn't match the expected sum of the object.
-type ErrHashMismatch struct {
-	Calculated string
-	Expected   string
-}
-
-func (e ErrHashMismatch) Error() string {
-	return fmt.Sprintf("hash verification failed (calculated %s but expected %s)",
-		e.Calculated, e.Expected)
-}
 
 const (
 	oemMountPath = "/mnt/oem" // Mountpoint where oem partition is mounted when present.
@@ -368,7 +357,7 @@ func (f *Fetcher) FetchFromS3(u url.URL, dest *os.File, opts FetchOptions) error
 		}
 		calculatedSum := opts.Hash.Sum(nil)
 		if !bytes.Equal(calculatedSum, opts.ExpectedSum) {
-			return ErrHashMismatch{
+			return util.ErrHashMismatch{
 				Calculated: hex.EncodeToString(calculatedSum),
 				Expected:   hex.EncodeToString(opts.ExpectedSum),
 			}
@@ -427,7 +416,7 @@ func (f *Fetcher) decompressCopyHashAndVerify(dest io.Writer, src io.Reader, opt
 	if opts.Hash != nil {
 		calculatedSum := opts.Hash.Sum(nil)
 		if !bytes.Equal(calculatedSum, opts.ExpectedSum) {
-			return ErrHashMismatch{
+			return util.ErrHashMismatch{
 				Calculated: hex.EncodeToString(calculatedSum),
 				Expected:   hex.EncodeToString(opts.ExpectedSum),
 			}
