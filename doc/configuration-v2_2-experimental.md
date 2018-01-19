@@ -18,6 +18,12 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_timeouts_** (object): options relating to `http` timeouts when fetching files over `http` or `https`.
     * **_httpResponseHeaders_** (integer) the time to wait (in seconds) for the server's response headers (but not the body) after making a request. 0 indicates no timeout. Default is 10 seconds.
     * **_httpTotal_** (integer) the time limit (in seconds) for the operation (connection, request, and response), including retries. 0 indicates no timeout. Default is 0.
+  * **_security_** (object): options relating to network security.
+    * **_tls_** (object): options relating to TLS when fetching resources over `https`.
+      * **_certificateAuthorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`.
+        * **source** (string): the URL of the certificate (in PEM format). Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+        * **_verification_** (object): options related to the verification of the certificate.
+          * **_hash_** (string): the hash of the certificate, in the form `<type>-<value>` where type is sha512.
 * **_storage_** (object): describes the desired state of the system's storage devices.
   * **_disks_** (list of objects): the list of disks to be configured and their options.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
