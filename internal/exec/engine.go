@@ -243,7 +243,7 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.
 	if err != nil {
 		return types.Config{}, err
 	}
-	e.Logger.Debug("fetched new config: %s", string(rawCfg))
+	e.Logger.Debug("fetched referenced config: %s", string(rawCfg))
 
 	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
 		return types.Config{}, err
