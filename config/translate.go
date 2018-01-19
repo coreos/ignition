@@ -105,8 +105,8 @@ func TranslateFromV1(old v1.Config) types.Config {
 				Node: types.Node{
 					Filesystem: filesystem.Name,
 					Path:       string(oldFile.Path),
-					User:       types.NodeUser{ID: intToPtr(oldFile.Uid)},
-					Group:      types.NodeGroup{ID: intToPtr(oldFile.Gid)},
+					User:       &types.NodeUser{ID: intToPtr(oldFile.Uid)},
+					Group:      &types.NodeGroup{ID: intToPtr(oldFile.Gid)},
 				},
 				FileEmbedded1: types.FileEmbedded1{
 					Mode: intToPtr(int(oldFile.Mode)),
@@ -321,8 +321,8 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 			Node: types.Node{
 				Filesystem: oldFile.Filesystem,
 				Path:       string(oldFile.Path),
-				User:       types.NodeUser{ID: intToPtr(oldFile.User.Id)},
-				Group:      types.NodeGroup{ID: intToPtr(oldFile.Group.Id)},
+				User:       &types.NodeUser{ID: intToPtr(oldFile.User.Id)},
+				Group:      &types.NodeGroup{ID: intToPtr(oldFile.Group.Id)},
 			},
 			FileEmbedded1: types.FileEmbedded1{
 				Mode: intToPtr(int(oldFile.Mode)),
@@ -519,14 +519,14 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 		}
 		return res
 	}
-	translateNodeGroup := func(old v2_1.NodeGroup) types.NodeGroup {
-		return types.NodeGroup{
+	translateNodeGroup := func(old v2_1.NodeGroup) *types.NodeGroup {
+		return &types.NodeGroup{
 			ID:   old.ID,
 			Name: old.Name,
 		}
 	}
-	translateNodeUser := func(old v2_1.NodeUser) types.NodeUser {
-		return types.NodeUser{
+	translateNodeUser := func(old v2_1.NodeUser) *types.NodeUser {
+		return &types.NodeUser{
 			ID:   old.ID,
 			Name: old.Name,
 		}

@@ -22,8 +22,16 @@ import (
 )
 
 var (
+	ErrAppendAndOverwrite = errors.New("cannot set both append and overwrite to true")
 	ErrCompressionInvalid = errors.New("invalid compression method")
 )
+
+func (f File) Validate() report.Report {
+	if f.Overwrite != nil && *f.Overwrite && f.Append {
+		return report.ReportFromError(ErrAppendAndOverwrite, report.EntryError)
+	}
+	return report.Report{}
+}
 
 func (f File) ValidateMode() report.Report {
 	r := report.Report{}

@@ -186,6 +186,9 @@
                 },
                 "contents": {
                   "$ref": "#/definitions/storage/definitions/file-contents"
+                },
+                "append": {
+                    "type": "boolean"
                 }
               }
             }
@@ -314,7 +317,7 @@
               "type": ["boolean", "null"]
             },
             "user": {
-              "type": "object",
+              "type": ["object", "null"],
               "properties": {
                 "id": {
                   "type": ["integer", "null"]
@@ -325,7 +328,7 @@
               }
             },
             "group": {
-              "type": "object",
+              "type": ["object", "null"],
               "properties": {
                 "id": {
                   "type": ["integer", "null"]
