@@ -29,6 +29,7 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
+	"github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -70,7 +71,7 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 	// validated by this point
 	uri, _ := url.Parse(f.Contents.Source)
 
-	hasher, err := GetHasher(f.Contents.Verification)
+	hasher, err := util.GetHasher(f.Contents.Verification)
 	if err != nil {
 		l.Crit("Error verifying file %q: %v", f.Path, err)
 		return nil

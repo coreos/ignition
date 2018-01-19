@@ -24,14 +24,13 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/exec/stages"
-	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/oem"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/cmdline"
 	"github.com/coreos/ignition/internal/providers/system"
 	"github.com/coreos/ignition/internal/resource"
-	internalUtil "github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -57,7 +56,7 @@ func (e Engine) Run(stageName string) bool {
 		Storage: types.Storage{
 			Filesystems: []types.Filesystem{{
 				Name: "root",
-				Path: internalUtil.StringToPtr(e.Root),
+				Path: util.StringToPtr(e.Root),
 			}},
 		},
 	}
