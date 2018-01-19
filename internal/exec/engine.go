@@ -44,8 +44,6 @@ type Engine struct {
 	Logger       *log.Logger
 	Root         string
 	OEMConfig    oem.Config
-
-	client resource.HttpClient
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -93,6 +91,12 @@ func (e Engine) Run(stageName string) bool {
 // acquireConfig returns the configuration, first checking a local cache
 // before attempting to fetch it from the provider.
 func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err error) {
+	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger)
+	if err != nil {
+		e.Logger.Crit("failed to generate fetcher: %s", err)
+		return
+	}
+
 	// First try read the config @ e.ConfigCache.
 	b, err := ioutil.ReadFile(e.ConfigCache)
 	if err == nil {
@@ -101,24 +105,14 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 		}
 		// Create an http client and fetcher with the timeouts from the cached
 		// config
-		e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
-		f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
-		if err != nil {
-			e.Logger.Crit("failed to generate fetcher: %s", err)
-			return
-		}
+		f.UpdateHttpTimeouts(cfg.Ignition.Timeouts)
 		return
 	}
 
 	// Create a new http client and fetcher with the timeouts set via the flags,
 	// since we don't have a config with timeout values we can use
 	timeout := int(e.FetchTimeout.Seconds())
-	e.client = resource.NewHttpClient(e.Logger, types.Timeouts{HTTPTotal: &timeout})
-	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
-	if err != nil {
-		e.Logger.Crit("failed to generate fetcher: %s", err)
-		return
-	}
+	f.UpdateHttpTimeouts(types.Timeouts{HTTPTotal: &timeout})
 
 	// (Re)Fetch the config if the cache is unreadable.
 	cfg, f, err = e.fetchProviderConfig(f)
@@ -126,12 +120,9 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 		e.Logger.Crit("failed to fetch config: %s", err)
 		return
 	}
-	// Update the engine's HTTP client to the new fetcher HTTP client
-	if f.Client == nil {
-		e.Logger.Crit("fetcher HTTP client uninitialized")
-		return
-	}
-	e.client = *f.Client
+
+	// Update the http client to use the timeouts from the newly fetched config
+	f.UpdateHttpTimeouts(cfg.Ignition.Timeouts)
 
 	// Populate the config cache.
 	b, err = json.Marshal(cfg)
@@ -179,8 +170,7 @@ func (e *Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, resource
 
 	// Replace the HTTP client in the fetcher to be configured with the
 	// timeouts of the config
-	client := resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
-	f.Client = &client
+	f.UpdateHttpTimeouts(cfg.Ignition.Timeouts)
 
 	return e.renderConfig(cfg, f)
 }
@@ -193,8 +183,6 @@ func (e *Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, resource
 // provided config will be returned unmodified. An updated fetcher will be
 // returned with any new timeouts set.
 func (e *Engine) renderConfig(cfg types.Config, f resource.Fetcher) (types.Config, resource.Fetcher, error) {
-	// Apply any new timeout info before fetching other configs.
-	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
 	if cfgRef := cfg.Ignition.Config.Replace; cfgRef != nil {
 		newCfg, err := e.fetchReferencedConfig(*cfgRef, f)
 		if err != nil {
@@ -203,8 +191,7 @@ func (e *Engine) renderConfig(cfg types.Config, f resource.Fetcher) (types.Confi
 
 		// Replace the HTTP client in the fetcher to be configured with the
 		// timeouts of the new config
-		client := resource.NewHttpClient(e.Logger, newCfg.Ignition.Timeouts)
-		f.Client = &client
+		f.UpdateHttpTimeouts(newCfg.Ignition.Timeouts)
 
 		return e.renderConfig(newCfg, f)
 	}
@@ -216,10 +203,11 @@ func (e *Engine) renderConfig(cfg types.Config, f resource.Fetcher) (types.Confi
 			return types.Config{}, f, err
 		}
 
-		// Replace the HTTP client in the fetcher to be configured with any new
-		// timeouts so that they're in effect when fetching the next config
-		client := resource.NewHttpClient(e.Logger, config.Append(appendedCfg, newCfg).Ignition.Timeouts)
-		f.Client = &client
+		// Append the old config with the new config before the new config has
+		// been rendered, so we can use the new config's timeouts  when fetching
+		// more configs.
+		cfgForFetcherSettings := config.Append(appendedCfg, newCfg)
+		f.UpdateHttpTimeouts(cfgForFetcherSettings.Ignition.Timeouts)
 
 		newCfg, f, err = e.renderConfig(newCfg, f)
 		if err != nil {

@@ -71,10 +71,10 @@ type Fetcher struct {
 	// The logger object to use when logging information.
 	Logger *log.Logger
 
-	// Client is the http client that will be used when fetching http(s)
+	// client is the http client that will be used when fetching http(s)
 	// resources. If left nil, one will be created and used, but this means any
 	// timeouts Ignition was configured to used will be ignored.
-	Client *HttpClient
+	client *HttpClient
 
 	// The AWS Session to use when fetching resources from S3. If left nil, the
 	// first S3 object that is fetched will initialize the field. This can be
@@ -218,12 +218,10 @@ func (f *Fetcher) FetchFromTFTP(u url.URL, dest *os.File, opts FetchOptions) err
 // FetchFromHTTP fetches a resource from u via HTTP(S) into dest, returning an
 // error if one is encountered.
 func (f *Fetcher) FetchFromHTTP(u url.URL, dest *os.File, opts FetchOptions) error {
-	if f.Client == nil {
-		f.Logger.Warning("Fetcher http client not initialized, ignoring any possible timeouts")
-		c := NewHttpClient(f.Logger, types.Timeouts{})
-		f.Client = &c
+	if f.client == nil {
+		f.newHttpClient()
 	}
-	dataReader, status, err := f.Client.getReaderWithHeader(u.String(), opts.Headers)
+	dataReader, status, err := f.client.getReaderWithHeader(u.String(), opts.Headers)
 	if err != nil {
 		return err
 	}
@@ -305,9 +303,9 @@ func (f *Fetcher) FetchFromS3(u url.URL, dest *os.File, opts FetchOptions) error
 		return ErrCompressionUnsupported
 	}
 	ctx := context.Background()
-	if f.Client != nil && f.Client.timeout != 0 {
+	if f.client != nil && f.client.timeout != 0 {
 		var cancelFn context.CancelFunc
-		ctx, cancelFn = context.WithTimeout(ctx, f.Client.timeout)
+		ctx, cancelFn = context.WithTimeout(ctx, f.client.timeout)
 		defer cancelFn()
 	}
 

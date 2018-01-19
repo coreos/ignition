@@ -28,4 +28,4 @@ var (
 )
 
 type FuncFetchConfig func(f resource.Fetcher) (types.Config, report.Report, error)
-type FuncNewFetcher func(logger *log.Logger, client *resource.HttpClient) (resource.Fetcher, error)
+type FuncNewFetcher func(logger *log.Logger) (resource.Fetcher, error)

@@ -51,7 +51,7 @@ func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
 	return util.ParseConfig(f.Logger, data)
 }
 
-func NewFetcher(l *log.Logger, c *resource.HttpClient) (resource.Fetcher, error) {
+func NewFetcher(l *log.Logger) (resource.Fetcher, error) {
 	sess, err := session.NewSession(&aws.Config{})
 	if err != nil {
 		return resource.Fetcher{}, err
@@ -65,7 +65,6 @@ func NewFetcher(l *log.Logger, c *resource.HttpClient) (resource.Fetcher, error)
 	}
 	return resource.Fetcher{
 		Logger:       l,
-		Client:       c,
 		AWSSession:   sess,
 		S3RegionHint: regionHint,
 	}, nil

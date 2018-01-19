@@ -55,10 +55,9 @@ func (c Config) NewFetcherFunc() providers.FuncNewFetcher {
 	if c.newFetcher != nil {
 		return c.newFetcher
 	}
-	return func(l *log.Logger, c *resource.HttpClient) (resource.Fetcher, error) {
+	return func(l *log.Logger) (resource.Fetcher, error) {
 		return resource.Fetcher{
 			Logger: l,
-			Client: c,
 		}, nil
 	}
 }

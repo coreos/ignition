@@ -47,10 +47,15 @@ type HttpClient struct {
 	client  *http.Client
 	logger  *log.Logger
 	timeout time.Duration
+
+	transport *http.Transport
 }
 
-// NewHttpClient creates a new client with the given logger and timeouts.
-func NewHttpClient(logger *log.Logger, timeouts types.Timeouts) HttpClient {
+func (f *Fetcher) UpdateHttpTimeouts(timeouts types.Timeouts) {
+	if f.client == nil {
+		f.newHttpClient()
+	}
+
 	responseHeader := defaultHttpResponseHeaderTimeout
 	total := defaultHttpTotalTimeout
 	if timeouts.HTTPResponseHeaders != nil {
@@ -59,22 +64,33 @@ func NewHttpClient(logger *log.Logger, timeouts types.Timeouts) HttpClient {
 	if timeouts.HTTPTotal != nil {
 		total = *timeouts.HTTPTotal
 	}
-	return HttpClient{
-		client: &http.Client{
-			Transport: &http.Transport{
-				ResponseHeaderTimeout: time.Duration(responseHeader) * time.Second,
-				Dial: (&net.Dialer{
-					Timeout:   30 * time.Second,
-					KeepAlive: 30 * time.Second,
-					Resolver: &net.Resolver{
-						PreferGo: true,
-					},
-				}).Dial,
-				TLSHandshakeTimeout: 10 * time.Second,
+
+	f.client.client.Timeout = time.Duration(total) * time.Second
+	f.client.timeout = f.client.client.Timeout
+
+	f.client.transport.ResponseHeaderTimeout = time.Duration(responseHeader) * time.Second
+	f.client.client.Transport = f.client.transport
+}
+
+func (f *Fetcher) newHttpClient() {
+	transport := &http.Transport{
+		ResponseHeaderTimeout: time.Duration(defaultHttpResponseHeaderTimeout) * time.Second,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			Resolver: &net.Resolver{
+				PreferGo: true,
 			},
+		}).Dial,
+		TLSHandshakeTimeout: 10 * time.Second,
+	}
+	f.client = &HttpClient{
+		client: &http.Client{
+			Transport: transport,
 		},
-		logger:  logger,
-		timeout: time.Duration(total) * time.Second,
+		logger:    f.Logger,
+		timeout:   time.Duration(defaultHttpTotalTimeout) * time.Second,
+		transport: transport,
 	}
 }
 
