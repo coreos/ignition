@@ -154,7 +154,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 // it checks the config engine's provider. An error is returned if the provider
 // is unavailable. This will also render the config (see renderConfig) before
 // returning.
-func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, resource.Fetcher, error) {
+func (e *Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, resource.Fetcher, error) {
 	fetchers := []providers.FuncFetchConfig{
 		cmdline.FetchConfig,
 		system.FetchConfig,
@@ -232,7 +232,7 @@ func (e *Engine) renderConfig(cfg types.Config, f resource.Fetcher) (types.Confi
 }
 
 // fetchReferencedConfig fetches and parses the requested config.
-func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.Fetcher) (types.Config, error) {
+func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.Fetcher) (types.Config, error) {
 	u, err := url.Parse(cfgRef.Source)
 	if err != nil {
 		return types.Config{}, err
