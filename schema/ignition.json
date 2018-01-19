@@ -40,6 +40,9 @@
         },
         "timeouts": {
           "$ref": "#/definitions/ignition/definitions/timeouts"
+        },
+        "security": {
+          "$ref": "#/definitions/ignition/definitions/security"
         }
       },
       "definitions": {
@@ -57,7 +60,34 @@
             }
           }
         },
+        "security": {
+          "type": "object",
+          "properties": {
+            "tls": {
+              "type": "object",
+              "properties": {
+                "certificateAuthorities": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ignition/definitions/ca-reference"
+                  }
+                }
+              }
+            }
+          }
+        },
         "config-reference": {
+          "type": ["object", "null"],
+          "properties": {
+            "source": {
+              "type": "string"
+            },
+            "verification": {
+              "$ref": "#/definitions/verification"
+            }
+          }
+        },
+        "ca-reference": {
           "type": ["object", "null"],
           "properties": {
             "source": {
