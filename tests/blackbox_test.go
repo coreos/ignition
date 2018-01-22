@@ -121,7 +121,10 @@ func TestMain(m *testing.M) {
 func TestIgnitionBlackBox(t *testing.T) {
 	for _, test := range register.Tests[register.PositiveTest] {
 		t.Run(test.Name, func(t *testing.T) {
-			outer(t, test, false)
+			err := outer(t, test, false)
+			if err != nil {
+				t.Error(err)
+			}
 		})
 	}
 }
@@ -129,12 +132,15 @@ func TestIgnitionBlackBox(t *testing.T) {
 func TestIgnitionBlackBoxNegative(t *testing.T) {
 	for _, test := range register.Tests[register.NegativeTest] {
 		t.Run(test.Name, func(t *testing.T) {
-			outer(t, test, true)
+			err := outer(t, test, true)
+			if err != nil {
+				t.Error(err)
+			}
 		})
 	}
 }
 
-func outer(t *testing.T, test types.Test, negativeTests bool) {
+func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	t.Log(test.Name)
 
 	ctx, cancelFunc := context.WithDeadline(context.Background(), time.Now().Add(testTimeout))
@@ -144,23 +150,23 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	if originalTmpDir == "" {
 		err := os.Setenv("TMPDIR", "/var/tmp")
 		if err != nil {
-			t.Fatalf("couldn't initialize TMPDIR: %v", err)
+			return fmt.Errorf("couldn't initialize TMPDIR: %v", err)
 		}
 	}
 
 	tmpDirectory, err := ioutil.TempDir("", "ignition-blackbox-")
 	if err != nil {
-		t.Fatalf("failed to create a temp dir: %v", err)
+		return fmt.Errorf("failed to create a temp dir: %v", err)
 	}
 	// the tmpDirectory must be 0755 or the tests will fail as the tool will
 	// not have permissions to perform some actions in the mounted folders
 	err = os.Chmod(tmpDirectory, 0755)
 	if err != nil {
-		t.Fatalf("failed to change mode of temp dir: %v", err)
+		return fmt.Errorf("failed to change mode of temp dir: %v", err)
 	}
 	err = os.Setenv("TMPDIR", tmpDirectory)
 	if err != nil {
-		t.Fatalf("failed to set TMPDIR environment var: %v", err)
+		return fmt.Errorf("failed to set TMPDIR environment var: %v", err)
 	}
 	defer os.Setenv("TMPDIR", originalTmpDir)
 	defer os.RemoveAll(tmpDirectory)
@@ -170,8 +176,18 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	var rootLocation string
 
 	// Setup
-	createFilesFromSlice(t, oemLookasideDir, test.OEMLookasideFiles)
-	createFilesFromSlice(t, systemConfigDir, test.SystemDirFiles)
+	err = createFilesFromSlice(t, oemLookasideDir, test.OEMLookasideFiles)
+	// Defer before the error handling because the createFilesFromSlice function
+	// can fail after partially-creating things
+	defer os.RemoveAll(oemLookasideDir)
+	if err != nil {
+		return err
+	}
+	err = createFilesFromSlice(t, systemConfigDir, test.SystemDirFiles)
+	defer os.RemoveAll(systemConfigDir)
+	if err != nil {
+		return err
+	}
 	for i, disk := range test.In {
 		// Set image file path
 		disk.ImageFile = filepath.Join(os.TempDir(), fmt.Sprintf("hd%d", i))
@@ -184,28 +200,90 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		// Finish data setup
 		for _, part := range disk.Partitions {
 			if part.GUID == "" {
-				part.GUID = generateUUID(t, ctx)
+				part.GUID, err = generateUUID(t, ctx)
+				if err != nil {
+					return err
+				}
 			}
-			updateTypeGUID(t, part)
+			err := updateTypeGUID(t, part)
+			if err != nil {
+				return err
+			}
 		}
 
 		disk.SetOffsets()
 		for _, part := range test.Out[i].Partitions {
-			updateTypeGUID(t, part)
+			err := updateTypeGUID(t, part)
+			if err != nil {
+				return err
+			}
 		}
 		test.Out[i].SetOffsets()
 
 		// Creation
-		createVolume(t, ctx, i, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
-		disk.Device = setDevices(t, ctx, disk.ImageFile, disk.Partitions)
-		test.Out[i].Device = disk.Device
-		rootMounted := mountRootPartition(t, ctx, disk.Partitions)
-		if rootMounted && strings.Contains(test.Config, "passwd") {
-			prepareRootPartitionForPasswd(t, ctx, disk.Partitions)
+		err = createVolume(t, ctx, i, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
+		// Move value into the local scope, because disk.ImageFile will change
+		// by the time this runs
+		imageFile := disk.ImageFile
+		defer func() {
+			err := os.Remove(imageFile)
+			if err != nil {
+				t.Errorf("couldn't remove %s: %v", imageFile, err)
+			}
+		}()
+		if err != nil {
+			return err
 		}
-		mountPartitions(t, ctx, disk.Partitions)
-		createFilesForPartitions(t, disk.Partitions)
-		unmountPartitions(t, ctx, disk.Partitions)
+
+		disk.Device, err = setDevices(t, ctx, disk.ImageFile, disk.Partitions)
+		device := disk.Device
+		defer func() {
+			err := destroyDevice(t, device)
+			if err != nil {
+				t.Errorf("couldn't destroy device: %v", err)
+			}
+		}()
+		if err != nil {
+			return err
+		}
+		test.Out[i].Device = disk.Device
+
+		rootMounted, err := mountRootPartition(t, ctx, disk.Partitions)
+		partitions := disk.Partitions
+		defer func() {
+			err := unmountRootPartition(t, partitions)
+			if err != nil {
+				t.Errorf("couldn't unmount root partition: %v", err)
+			}
+		}()
+		if err != nil {
+			return err
+		}
+
+		if rootMounted && strings.Contains(test.Config, "passwd") {
+			err = prepareRootPartitionForPasswd(t, ctx, disk.Partitions)
+			if err != nil {
+				return err
+			}
+		}
+		err = mountPartitions(t, ctx, disk.Partitions)
+		if err != nil {
+			// mountPartitions may have partially succeded, so at least try to
+			// unmount things.
+			unmountPartitions(t, disk.Partitions)
+			return err
+		}
+		err = createFilesForPartitions(t, disk.Partitions)
+		// unmount even if createFilesForPartitions failed
+		errUnmount := unmountPartitions(t, disk.Partitions)
+		if err != nil {
+			if errUnmount != nil {
+				t.Errorf("couldn't unmount partitions: %v", errUnmount)
+			}
+			return err
+		} else if errUnmount != nil {
+			return errUnmount
+		}
 
 		// Mount device name substitution
 		for _, d := range test.MntDevices {
@@ -230,21 +308,17 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	for i, disk := range test.Out {
 		// Update out structure with mount points & devices
 		setExpectedPartitionsDrive(test.In[i].Partitions, disk.Partitions)
-
-		// Cleanup
-		defer destroyDevice(t, ctx, disk.Device)
-		defer unmountRootPartition(t, ctx, disk.Partitions)
 	}
 
 	if rootLocation == "" {
-		t.Fatal("ROOT filesystem not found! A partition labeled ROOT is requred")
+		return fmt.Errorf("ROOT filesystem not found! A partition labeled ROOT is requred")
 	}
 
 	// Let's make sure that all of the devices we needed to substitute names in
 	// for were found
 	for _, d := range test.MntDevices {
 		if strings.Contains(test.Config, d.Substitution) {
-			t.Fatalf("Didn't find a drive with label: %s", d.Substitution)
+			return fmt.Errorf("Didn't find a drive with label: %s", d.Substitution)
 		}
 	}
 
@@ -253,16 +327,16 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 	if !test.ConfigShouldBeBad {
 		_, rpt, err := config.Parse([]byte(test.Config))
 		if rpt.IsFatal() {
-			t.Fatalf("test has bad config: %s", rpt.String())
+			return fmt.Errorf("test has bad config: %s", rpt.String())
 		}
 		if err != nil {
-			t.Fatalf("error parsing config: %v", err)
+			return fmt.Errorf("error parsing config: %v", err)
 		}
 	}
 
 	// Ignition config
 	if err := ioutil.WriteFile(filepath.Join(tmpDirectory, "config.ign"), []byte(test.Config), 0666); err != nil {
-		t.Fatal(err)
+		return fmt.Errorf("error writing config: %v", err)
 	}
 
 	// Ignition
@@ -271,21 +345,46 @@ func outer(t *testing.T, test types.Test, negativeTests bool) {
 		"IGNITION_OEM_LOOKASIDE_DIR=" + oemLookasideDir,
 		"IGNITION_SYSTEM_CONFIG_DIR=" + systemConfigDir,
 	}
-	disks := runIgnition(t, ctx, "disks", rootLocation, tmpDirectory, appendEnv, negativeTests)
-	files := runIgnition(t, ctx, "files", rootLocation, tmpDirectory, appendEnv, negativeTests)
-	if negativeTests && disks && files {
-		t.Fatal("Expected failure and ignition succeeded")
+	disksErr := runIgnition(t, ctx, "disks", rootLocation, tmpDirectory, appendEnv)
+	if !negativeTests && disksErr != nil {
+		return disksErr
+	}
+	filesErr := runIgnition(t, ctx, "files", rootLocation, tmpDirectory, appendEnv)
+	if !negativeTests && filesErr != nil {
+		return err
+	}
+	if negativeTests && disksErr == nil && filesErr == nil {
+		return fmt.Errorf("Expected failure and ignition succeeded")
 	}
 
 	for _, disk := range test.Out {
 		if !negativeTests {
 			// Validation
-			mountPartitions(t, ctx, disk.Partitions)
+			err = mountPartitions(t, ctx, disk.Partitions)
+			if err != nil {
+				// mountPartitions may have partially succeeded, so try to
+				// unmount everything before returning
+				unmountPartitions(t, disk.Partitions)
+				return err
+			}
+			partitions := disk.Partitions
+			defer func() {
+				err := unmountPartitions(t, partitions)
+				if err != nil {
+					t.Errorf("error unmounting partitions: %v", err)
+				}
+			}()
 			t.Log(disk.ImageFile)
-			validateDisk(t, disk, disk.ImageFile)
-			validateFilesystems(t, disk.Partitions, disk.ImageFile)
+			err = validateDisk(t, disk, disk.ImageFile)
+			if err != nil {
+				return err
+			}
+			err = validateFilesystems(t, disk.Partitions, disk.ImageFile)
+			if err != nil {
+				return err
+			}
 			validateFilesDirectoriesAndLinks(t, disk.Partitions)
-			unmountPartitions(t, ctx, disk.Partitions)
 		}
 	}
+	return nil
 }
