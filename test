@@ -30,4 +30,7 @@ go vet $PKG_VET
 echo "Running tests..."
 go test -timeout 60s -cover $@ ${PKG} --race
 
+echo "Checking docs..."
+go run internal/util/tools/docs/docs.go
+
 echo "Success"
