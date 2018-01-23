@@ -255,6 +255,10 @@ func (s stage) createRaids(config types.Config) error {
 			args = append(args, "--spare-devices", fmt.Sprintf("%d", md.Spares))
 		}
 
+		for _, o := range md.Options {
+			args = append(args, string(o))
+		}
+
 		for _, dev := range md.Devices {
 			args = append(args, util.DeviceAlias(string(dev)))
 		}
