@@ -8,6 +8,4 @@ DHCP=yes
 UseMTU=true
 UseDomains=true
 # Root is on iSCSI
-# Also prevents networkd from repeatedly resetting the MTU on bare metal
-# https://github.com/coreos/bugs/issues/2031
 CriticalConnection=true
