@@ -8,16 +8,22 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **version** (string): the semantic version number of the spec. The spec version must be compatible with the latest version (`2.2.0-experimental`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
   * **_config_** (objects): options related to the configuration.
     * **_append_** (list of objects): a list of the configs to be appended to the current config.
-      * **source** (string): the URL of the config. Supported schemes are http, https, s3, tftp, and [data][rfc2397]. Note: When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_verification_** (object): options related to the verification of the config.
-        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is sha512.
+        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_replace_** (object): the config that will replace the current.
-      * **source** (string): the URL of the config. Supported schemes are http, https, s3, tftp, and [data][rfc2397]. Note: When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_verification_** (object): options related to the verification of the config.
-        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is sha512.
-  * **_timeouts_** (object): options relating to http timeouts when fetching files over http or https.
+        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
+  * **_timeouts_** (object): options relating to `http` timeouts when fetching files over `http` or `https`.
     * **_httpResponseHeaders_** (integer) the time to wait (in seconds) for the server's response headers (but not the body) after making a request. 0 indicates no timeout. Default is 10 seconds.
     * **_httpTotal_** (integer) the time limit (in seconds) for the operation (connection, request, and response), including retries. 0 indicates no timeout. Default is 0.
+  * **_security_** (object): options relating to network security.
+    * **_tls_** (object): options relating to TLS when fetching resources over `https`.
+      * **_certificateAuthorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`.
+        * **source** (string): the URL of the certificate (in PEM format). Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+        * **_verification_** (object): options related to the verification of the certificate.
+          * **_hash_** (string): the hash of the certificate, in the form `<type>-<value>` where type is sha512.
 * **_storage_** (object): describes the desired state of the system's storage devices.
   * **_disks_** (list of objects): the list of disks to be configured and their options.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
@@ -55,9 +61,9 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_append_** (boolean): whether to append to the specified file. Creates a new file if nothing exists at the path. Cannot be set if overwrite is set to true.
     * **_contents_** (object): options related to the contents of the file.
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
-      * **_source_** (string): the URL of the file contents. Supported schemes are http, https, tftp, s3, and [data][rfc2397]. When using http, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_verification_** (object): options related to the verification of the file contents.
-        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is sha512.
+        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
     * **_user_** (object): specifies the file's owner.
       * **_id_** (integer): the user ID of the owner.

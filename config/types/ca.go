@@ -1,4 +1,4 @@
-// Copyright 2015 CoreOS, Inc.
+// Copyright 2018 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package providers
+package types
 
 import (
-	"errors"
+	"fmt"
 
-	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/resource"
 )
 
-var (
-	ErrNoProvider = errors.New("config provider was not online")
-)
-
-type FuncFetchConfig func(f resource.Fetcher) (types.Config, report.Report, error)
-type FuncNewFetcher func(logger *log.Logger) (resource.Fetcher, error)
+func (c CaReference) ValidateSource() report.Report {
+	err := validateURL(c.Source)
+	if err != nil {
+		return report.ReportFromError(
+			fmt.Errorf("invalid url %q: %v", c.Source, err),
+			report.EntryError)
+	}
+	return report.Report{}
+}
