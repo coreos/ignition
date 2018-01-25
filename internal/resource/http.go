@@ -174,6 +174,7 @@ func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.CaReference) error {
 func (f *Fetcher) newHttpClient() {
 	transport := &http.Transport{
 		ResponseHeaderTimeout: time.Duration(defaultHttpResponseHeaderTimeout) * time.Second,
+		Proxy: http.ProxyFromEnvironment,
 		Dial: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
