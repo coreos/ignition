@@ -63,6 +63,7 @@ func NewHttpClient(logger *log.Logger, timeouts types.Timeouts) HttpClient {
 		client: &http.Client{
 			Transport: &http.Transport{
 				ResponseHeaderTimeout: time.Duration(responseHeader) * time.Second,
+				Proxy: http.ProxyFromEnvironment,
 				Dial: (&net.Dialer{
 					Timeout:   30 * time.Second,
 					KeepAlive: 30 * time.Second,
