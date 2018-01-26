@@ -234,6 +234,7 @@ The following shows this particular change to the files section:
 
 ```json ignition
 {
+  "ignitionVersion": 1,
   "storage": {
     "filesystems": [
       {
@@ -252,12 +253,17 @@ The following shows this particular change to the files section:
 
 ```json ignition
 {
+  "ignition": {
+    "version": "2.0.0"
+  },
   "storage": {
     "filesystems": [
       {
         "name": "example",
-        "device": "/dev/sdb1",
-        "format": "ext4"
+        "mount": {
+          "device": "/dev/sdb1",
+          "format": "ext4"
+	}
       }
     ],
     "files": [

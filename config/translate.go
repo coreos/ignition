@@ -105,11 +105,11 @@ func TranslateFromV1(old v1.Config) types.Config {
 				Node: types.Node{
 					Filesystem: filesystem.Name,
 					Path:       string(oldFile.Path),
-					User:       types.NodeUser{ID: intToPtr(oldFile.Uid)},
-					Group:      types.NodeGroup{ID: intToPtr(oldFile.Gid)},
+					User:       &types.NodeUser{ID: intToPtr(oldFile.Uid)},
+					Group:      &types.NodeGroup{ID: intToPtr(oldFile.Gid)},
 				},
 				FileEmbedded1: types.FileEmbedded1{
-					Mode: int(oldFile.Mode),
+					Mode: intToPtr(int(oldFile.Mode)),
 					Contents: types.FileContents{
 						Source: (&url.URL{
 							Scheme: "data",
@@ -132,7 +132,7 @@ func TranslateFromV1(old v1.Config) types.Config {
 		}
 
 		for _, oldDropIn := range oldUnit.DropIns {
-			unit.Dropins = append(unit.Dropins, types.Dropin{
+			unit.Dropins = append(unit.Dropins, types.SystemdDropin{
 				Name:     string(oldDropIn.Name),
 				Contents: oldDropIn.Contents,
 			})
@@ -321,11 +321,11 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 			Node: types.Node{
 				Filesystem: oldFile.Filesystem,
 				Path:       string(oldFile.Path),
-				User:       types.NodeUser{ID: intToPtr(oldFile.User.Id)},
-				Group:      types.NodeGroup{ID: intToPtr(oldFile.Group.Id)},
+				User:       &types.NodeUser{ID: intToPtr(oldFile.User.Id)},
+				Group:      &types.NodeGroup{ID: intToPtr(oldFile.Group.Id)},
 			},
 			FileEmbedded1: types.FileEmbedded1{
-				Mode: int(oldFile.Mode),
+				Mode: intToPtr(int(oldFile.Mode)),
 				Contents: types.FileContents{
 					Compression:  string(oldFile.Contents.Compression),
 					Source:       oldFile.Contents.Source.String(),
@@ -346,7 +346,7 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 		}
 
 		for _, oldDropIn := range oldUnit.DropIns {
-			unit.Dropins = append(unit.Dropins, types.Dropin{
+			unit.Dropins = append(unit.Dropins, types.SystemdDropin{
 				Name:     string(oldDropIn.Name),
 				Contents: oldDropIn.Contents,
 			})
@@ -519,14 +519,14 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 		}
 		return res
 	}
-	translateNodeGroup := func(old v2_1.NodeGroup) types.NodeGroup {
-		return types.NodeGroup{
+	translateNodeGroup := func(old v2_1.NodeGroup) *types.NodeGroup {
+		return &types.NodeGroup{
 			ID:   old.ID,
 			Name: old.Name,
 		}
 	}
-	translateNodeUser := func(old v2_1.NodeUser) types.NodeUser {
-		return types.NodeUser{
+	translateNodeUser := func(old v2_1.NodeUser) *types.NodeUser {
+		return &types.NodeUser{
 			ID:   old.ID,
 			Name: old.Name,
 		}
@@ -545,7 +545,7 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 			res = append(res, types.Directory{
 				Node: translateNode(x.Node),
 				DirectoryEmbedded1: types.DirectoryEmbedded1{
-					Mode: x.DirectoryEmbedded1.Mode,
+					Mode: intToPtr(x.DirectoryEmbedded1.Mode),
 				},
 			})
 		}
@@ -589,7 +589,7 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 							Hash: x.Contents.Verification.Hash,
 						},
 					},
-					Mode: x.Mode,
+					Mode: intToPtr(x.Mode),
 				},
 			})
 		}
@@ -675,10 +675,10 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 		}
 		return res
 	}
-	translateSystemdDropinSlice := func(old []v2_1.Dropin) []types.Dropin {
-		var res []types.Dropin
+	translateSystemdDropinSlice := func(old []v2_1.Dropin) []types.SystemdDropin {
+		var res []types.SystemdDropin
 		for _, x := range old {
-			res = append(res, types.Dropin{
+			res = append(res, types.SystemdDropin{
 				Contents: x.Contents,
 				Name:     x.Name,
 			})

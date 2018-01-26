@@ -62,12 +62,13 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	}
 	switch version {
 	case semver.Version{Major: 1}:
-		config, err := ParseFromV1(rawConfig)
+		config, rpt, err := ParseFromV1(rawConfig)
 		if err != nil {
 			return types.Config{}, report.ReportFromError(err, report.EntryError), err
 		}
+		rpt.Merge(report.ReportFromError(ErrDeprecated, report.EntryDeprecated))
 
-		return config, report.ReportFromError(ErrDeprecated, report.EntryDeprecated), nil
+		return config, rpt, nil
 	case types.MaxVersion:
 		return ParseFromLatest(rawConfig)
 	case semver.Version{Major: 2, Minor: 1}:
@@ -160,13 +161,20 @@ func ParseFromLatest(rawConfig []byte) (types.Config, report.Report, error) {
 	return config, r, nil
 }
 
-func ParseFromV1(rawConfig []byte) (types.Config, error) {
+func ParseFromV1(rawConfig []byte) (types.Config, report.Report, error) {
 	config, err := v1.Parse(rawConfig)
 	if err != nil {
-		return types.Config{}, err
+		return types.Config{}, report.Report{}, err
 	}
 
-	return TranslateFromV1(config), nil
+	convertedConfig := TranslateFromV1(config)
+
+	rpt := validate.ValidateWithoutSource(reflect.ValueOf(convertedConfig))
+	if rpt.IsFatal() {
+		return types.Config{}, rpt, ErrInvalid
+	}
+	return convertedConfig, rpt, nil
+
 }
 
 func ParseFromV2_0(rawConfig []byte) (types.Config, report.Report, error) {

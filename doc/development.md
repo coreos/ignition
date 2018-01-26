@@ -46,8 +46,18 @@ example it will be building from the ignition-builder-1.8 image and targeting
 the amd64 architecture.
 
 ```sh
-docker run --rm -e TARGET=amd64 -e ACTION=COMPILE -v "$PWD":/usr/src/myapp -w /usr/src/myapp quay.io/coreos/ignition-builder-1.8 ./test
+docker run --rm -e TARGET=amd64 -v "$PWD":/usr/src/myapp -w /usr/src/myapp quay.io/coreos/ignition-builder-1.8 ./build_blackbox_tests
 sudo -E PATH=$PWD/bin/amd64:$PATH ./tests.test
+```
+
+## Runnning Blackbox Tests on platforms other than Container Linux
+
+Build Ignition and the test binaries with HELPERS=HOST to use the paths of the binaries from your host system instead of those found in
+Container linux. Then run blackbox tests. The subshell ensures the root PATH is used instead of your user's.
+
+```sh
+HELPERS=HOST ./build_blackbox_tests
+sudo sh -c 'PATH=$PWD/bin/amd64:$PATH ./tests.test'
 ```
 
 ## Test Host System Dependencies
@@ -62,6 +72,7 @@ The following packages are required by the Blackbox Test:
 * `uuid-runtime`
 * `gdisk`
 * `coreutils`
+* `mdadm`
 
 ## Writing Blackbox Tests
 

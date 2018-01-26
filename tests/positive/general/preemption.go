@@ -119,10 +119,11 @@ func makePreemptTest(components string) types.Test {
 	}
 
 	return types.Test{
-		Name:           name,
-		In:             in,
-		Out:            out,
-		Config:         config,
-		SystemDirFiles: systemFiles,
+		Name:              name,
+		In:                in,
+		Out:               out,
+		Config:            config,
+		SystemDirFiles:    systemFiles,
+		ConfigShouldBeBad: true,
 	}
 }

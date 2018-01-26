@@ -31,17 +31,17 @@ import (
 	"github.com/coreos/ignition/tests/types"
 )
 
-func regexpSearch(t *testing.T, itemName, pattern string, data []byte) string {
+func regexpSearch(t *testing.T, itemName, pattern string, data []byte) (string, error) {
 	re := regexp.MustCompile(pattern)
 	match := re.FindSubmatch(data)
 	if len(match) < 2 {
-		t.Fatalf("couldn't find %s", itemName)
+		return "", fmt.Errorf("couldn't find %s", itemName)
 	}
-	return string(match[1])
+	return string(match[1]), nil
 }
 
-func validatePartitions(t *testing.T, expected []*types.Partition, imageFile string) {
-	for _, e := range expected {
+func validateDisk(t *testing.T, d types.Disk, imageFile string) error {
+	for _, e := range d.Partitions {
 		if e.TypeCode == "blank" || e.FilesystemType == "swap" {
 			continue
 		}
@@ -52,16 +52,28 @@ func validatePartitions(t *testing.T, expected []*types.Partition, imageFile str
 			fmt.Printf("sgdisk -i %d %s died\n", e.Number, imageFile)
 			bufio.NewReader(os.Stdin).ReadBytes('\n')
 			t.Error("sgdisk -i", strconv.Itoa(e.Number), err)
-			return
+			return nil
 		}
 
-		actualGUID := regexpSearch(t, "GUID", "Partition unique GUID: (?P<partition_guid>[\\d\\w-]+)", sgdiskInfo)
-		actualTypeGUID := regexpSearch(t, "type GUID", "Partition GUID code: (?P<partition_code>[\\d\\w-]+)", sgdiskInfo)
-		actualSectors := regexpSearch(t, "partition size", "Partition size: (?P<sectors>\\d+) sectors", sgdiskInfo)
-		actualLabel := regexpSearch(t, "partition name", "Partition name: '(?P<name>[\\d\\w-_]+)'", sgdiskInfo)
+		actualGUID, err := regexpSearch(t, "GUID", "Partition unique GUID: (?P<partition_guid>[\\d\\w-]+)", sgdiskInfo)
+		if err != nil {
+			return err
+		}
+		actualTypeGUID, err := regexpSearch(t, "type GUID", "Partition GUID code: (?P<partition_code>[\\d\\w-]+)", sgdiskInfo)
+		if err != nil {
+			return err
+		}
+		actualSectors, err := regexpSearch(t, "partition size", "Partition size: (?P<sectors>\\d+) sectors", sgdiskInfo)
+		if err != nil {
+			return err
+		}
+		actualLabel, err := regexpSearch(t, "partition name", "Partition name: '(?P<name>[\\d\\w-_]+)'", sgdiskInfo)
+		if err != nil {
+			return err
+		}
 
-		// have to align the size to the nearest sector first
-		expectedSectors := align(e.Length, 512)
+		// have to align the size to the nearest sector alignment boundary first
+		expectedSectors := types.Align(e.Length, d.Alignment)
 
 		if e.TypeGUID != "" && e.TypeGUID != actualTypeGUID {
 			t.Error("TypeGUID does not match!", e.TypeGUID, actualTypeGUID)
@@ -77,18 +89,19 @@ func validatePartitions(t *testing.T, expected []*types.Partition, imageFile str
 				"Sectors does not match!", expectedSectors, actualSectors)
 		}
 	}
+	return nil
 }
 
 func formatUUID(s string) string {
 	return strings.ToUpper(strings.Replace(s, "-", "", -1))
 }
 
-func validateFilesystems(t *testing.T, expected []*types.Partition, imageFile string) {
+func validateFilesystems(t *testing.T, expected []*types.Partition, imageFile string) error {
 	for _, e := range expected {
 		if e.FilesystemType != "" {
 			filesystemType, err := util.FilesystemType(e.Device)
 			if err != nil {
-				t.Fatalf("couldn't determine filesystem type: %v", err)
+				return fmt.Errorf("couldn't determine filesystem type: %v", err)
 			}
 			if filesystemType != e.FilesystemType {
 				t.Errorf("FilesystemType does not match, expected:%q actual:%q",
@@ -98,7 +111,7 @@ func validateFilesystems(t *testing.T, expected []*types.Partition, imageFile st
 		if e.FilesystemUUID != "" {
 			filesystemUUID, err := util.FilesystemUUID(e.Device)
 			if err != nil {
-				t.Fatalf("couldn't determine filesystem uuid: %v", err)
+				return fmt.Errorf("couldn't determine filesystem uuid: %v", err)
 			}
 			if formatUUID(filesystemUUID) != formatUUID(e.FilesystemUUID) {
 				t.Errorf("FilesystemUUID does not match, expected:%q actual:%q",
@@ -108,7 +121,7 @@ func validateFilesystems(t *testing.T, expected []*types.Partition, imageFile st
 		if e.FilesystemLabel != "" {
 			filesystemLabel, err := util.FilesystemLabel(e.Device)
 			if err != nil {
-				t.Fatalf("couldn't determine filesystem label: %v", err)
+				return fmt.Errorf("couldn't determine filesystem label: %v", err)
 			}
 			if filesystemLabel != e.FilesystemLabel {
 				t.Errorf("FilesystemLabel does not match, expected:%q actual:%q",
@@ -116,6 +129,7 @@ func validateFilesystems(t *testing.T, expected []*types.Partition, imageFile st
 			}
 		}
 	}
+	return nil
 }
 
 func validateFilesDirectoriesAndLinks(t *testing.T, expected []*types.Partition) {
@@ -159,6 +173,7 @@ func validateFile(t *testing.T, partition *types.Partition, file types.File) {
 		}
 	}
 
+	validateMode(t, path, file.Mode)
 	validateNode(t, fileInfo, file.Node)
 }
 
@@ -222,19 +237,16 @@ func validateLink(t *testing.T, partition *types.Partition, link types.Link) {
 	validateNode(t, linkInfo, link.Node)
 }
 
-func validateMode(t *testing.T, path string, mode string) {
-	if mode != "" {
+func validateMode(t *testing.T, path string, mode int) {
+	if mode != 0 {
 		fileInfo, err := os.Stat(path)
 		if err != nil {
 			t.Error("Error running stat on node", path, err)
 			return
 		}
 
-		// converts to a string containing the base-10 mode
-		actualMode := strconv.Itoa(int(fileInfo.Mode()) & 07777)
-
-		if mode != actualMode {
-			t.Error("Node Mode does not match", path, mode, actualMode)
+		if fileInfo.Mode() != os.FileMode(mode) {
+			t.Error("Node Mode does not match", path, mode, fileInfo.Mode())
 		}
 	}
 }

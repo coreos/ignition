@@ -6,7 +6,8 @@ NAME="ignition"
 ORG_PATH="github.com/coreos"
 REPO_PATH="${ORG_PATH}/${NAME}"
 VERSION=$(git describe --dirty)
-GLDFLAGS="-X github.com/coreos/ignition/internal/version.Raw=${VERSION}"
+GLDFLAGS=${GLDFLAGS:-}
+GLDFLAGS+="-X github.com/coreos/ignition/internal/version.Raw=${VERSION}"
 
 if [ ! -h gopath/src/${REPO_PATH} ]; then
 	mkdir -p gopath/src/${ORG_PATH}
@@ -22,9 +23,7 @@ export CGO_ENABLED=1
 echo "Building ${NAME}..."
 go build -ldflags "${GLDFLAGS}" -o ${GOBIN}/${NAME} ${REPO_PATH}/internal
 
-for D in tests/stubs/*; do
-	if [ -d "${D}" ]; then
-		echo "Building ${D}"
-		go install ${REPO_PATH}/${D}
-	fi
-done
+NAME="ignition-validate"
+
+echo "Building ${NAME}..."
+go build -ldflags "${GLDFLAGS}" -o ${GOBIN}/${NAME} ${REPO_PATH}/validate

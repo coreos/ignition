@@ -18,7 +18,9 @@ package registry
 import (
 	_ "github.com/coreos/ignition/tests/negative/files"
 	_ "github.com/coreos/ignition/tests/negative/general"
+	_ "github.com/coreos/ignition/tests/negative/networkd"
 	_ "github.com/coreos/ignition/tests/negative/regression"
+	_ "github.com/coreos/ignition/tests/negative/security"
 	_ "github.com/coreos/ignition/tests/negative/storage"
 	_ "github.com/coreos/ignition/tests/negative/timeouts"
 	_ "github.com/coreos/ignition/tests/positive/files"
@@ -27,6 +29,7 @@ import (
 	_ "github.com/coreos/ignition/tests/positive/oem"
 	_ "github.com/coreos/ignition/tests/positive/passwd"
 	_ "github.com/coreos/ignition/tests/positive/regression"
+	_ "github.com/coreos/ignition/tests/positive/security"
 	_ "github.com/coreos/ignition/tests/positive/storage"
 	_ "github.com/coreos/ignition/tests/positive/systemd"
 	_ "github.com/coreos/ignition/tests/positive/timeouts"

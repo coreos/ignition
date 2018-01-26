@@ -43,7 +43,7 @@ func TestSystemdUnitValidateContents(t *testing.T) {
 			out: out{err: errors.New("invalid unit content: unable to find end of section")},
 		},
 		{
-			in:  in{unit: Unit{Name: "test.service", Contents: "", Dropins: []Dropin{{}}}},
+			in:  in{unit: Unit{Name: "test.service", Contents: "", Dropins: []SystemdDropin{{}}}},
 			out: out{err: nil},
 		},
 	}
@@ -92,7 +92,7 @@ func TestSystemdUnitValidateName(t *testing.T) {
 
 func TestSystemdUnitDropInValidate(t *testing.T) {
 	type in struct {
-		unit Dropin
+		unit SystemdDropin
 	}
 	type out struct {
 		err error
@@ -103,11 +103,11 @@ func TestSystemdUnitDropInValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{unit: Dropin{Name: "test.conf", Contents: "[Foo]\nQux=Bar"}},
+			in:  in{unit: SystemdDropin{Name: "test.conf", Contents: "[Foo]\nQux=Bar"}},
 			out: out{err: nil},
 		},
 		{
-			in:  in{unit: Dropin{Name: "test.conf", Contents: "[Foo"}},
+			in:  in{unit: SystemdDropin{Name: "test.conf", Contents: "[Foo"}},
 			out: out{err: errors.New("invalid unit content: unable to find end of section")},
 		},
 	}
@@ -176,6 +176,36 @@ func TestNetworkdUnitValidate(t *testing.T) {
 		},
 		{
 			in:  in{unit: Networkdunit{Name: "test.network", Contents: "[Foo"}},
+			out: out{err: errors.New("invalid unit content: unable to find end of section")},
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.unit.Validate()
+		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
+}
+
+func TestNetworkdUnitDropInValidate(t *testing.T) {
+	type in struct {
+		unit NetworkdDropin
+	}
+	type out struct {
+		err error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{unit: NetworkdDropin{Name: "test.conf", Contents: "[Foo]\nQux=Bar"}},
+			out: out{err: nil},
+		},
+		{
+			in:  in{unit: NetworkdDropin{Name: "test.conf", Contents: "[Foo"}},
 			out: out{err: errors.New("invalid unit content: unable to find end of section")},
 		},
 	}

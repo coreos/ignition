@@ -16,6 +16,7 @@ package util
 
 import (
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -23,11 +24,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"syscall"
 
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
-	internalUtil "github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -38,11 +40,12 @@ const (
 type FetchOp struct {
 	Hash         hash.Hash
 	Path         string
-	Mode         os.FileMode
-	Uid          int
-	Gid          int
 	Url          url.URL
+	Mode         *int
 	FetchOptions resource.FetchOptions
+	Overwrite    *bool
+	Append       bool
+	Node         types.Node
 }
 
 // newHashedReader returns a new ReadCloser that also writes to the provided hash.
@@ -68,7 +71,7 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 	// validated by this point
 	uri, _ := url.Parse(f.Contents.Source)
 
-	hasher, err := GetHasher(f.Contents.Verification)
+	hasher, err := util.GetHasher(f.Contents.Verification)
 	if err != nil {
 		l.Crit("Error verifying file %q: %v", f.Path, err)
 		return nil
@@ -85,18 +88,14 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 		}
 	}
 
-	f.User.ID, f.Group.ID = u.GetUserGroupID(l, f.User, f.Group)
-	if f.User.ID == nil || f.Group.ID == nil {
-		return nil
-	}
-
 	return &FetchOp{
-		Path: f.Path,
-		Hash: hasher,
-		Mode: os.FileMode(f.Mode),
-		Uid:  *f.User.ID,
-		Gid:  *f.Group.ID,
-		Url:  *uri,
+		Path:      f.Path,
+		Hash:      hasher,
+		Node:      f.Node,
+		Url:       *uri,
+		Mode:      f.Mode,
+		Overwrite: f.Overwrite,
+		Append:    f.Append,
 		FetchOptions: resource.FetchOptions{
 			Hash:        hasher,
 			Compression: f.Contents.Compression,
@@ -121,7 +120,12 @@ func (u Util) WriteLink(s types.Link) error {
 		return err
 	}
 
-	if err := os.Lchown(path, *s.User.ID, *s.Group.ID); err != nil {
+	uid, gid, err := u.ResolveNodeUidAndGid(s.Node, 0, 0)
+	if err != nil {
+		return err
+	}
+
+	if err := os.Lchown(path, uid, gid); err != nil {
 		return err
 	}
 
@@ -134,6 +138,32 @@ func (u Util) PerformFetch(f *FetchOp) error {
 	var err error
 
 	path := u.JoinPath(string(f.Path))
+
+	if f.Overwrite != nil && *f.Overwrite == false {
+		// Both directories and links will fail to be created if the target path
+		// already exists. Because files are downloaded into a temporary file
+		// and then renamed to the target path, we don't have the same
+		// guarantees here. If the user explicitly doesn't want us to overwrite
+		// preexisting nodes, check the target path and fail if something's
+		// there.
+		_, err := os.Stat(path)
+		switch {
+		case os.IsNotExist(err):
+			break
+		case err != nil:
+			return err
+		default:
+			return fmt.Errorf("error creating %q: something else exists at that path", f.Path)
+		}
+	}
+	if f.Overwrite == nil && !f.Append {
+		// For files, overwrite defaults to true if append is false. If
+		// overwrite wasn't specified, delete the path.
+		err := os.RemoveAll(path)
+		if err != nil {
+			return err
+		}
+	}
 
 	if err := MkdirForFile(path); err != nil {
 		return err
@@ -158,66 +188,156 @@ func (u Util) PerformFetch(f *FetchOp) error {
 		return err
 	}
 
-	// XXX(vc): Note that we assume to be operating on the file we just wrote, this is only guaranteed
-	// by using syscall.Fchown() and syscall.Fchmod()
+	if f.Append {
+		// Make sure that we're appending to a file
+		finfo, err := os.Lstat(path)
+		switch {
+		case os.IsNotExist(err):
+			// No problem, we'll create it.
+			break
+		case err != nil:
+			return err
+		default:
+			if !finfo.Mode().IsRegular() {
+				return fmt.Errorf("can only append to files: %q", f.Path)
+			}
+		}
 
-	// Ensure the ownership and mode are as requested (since WriteFile can be affected by sticky bit)
-	if err = os.Chown(tmp.Name(), f.Uid, f.Gid); err != nil {
-		return err
-	}
+		// Default to the appended file's owner for the uid and gid
+		defaultUid, defaultGid, mode := getFileOwnerAndMode(path)
+		uid, gid, err := u.ResolveNodeUidAndGid(f.Node, defaultUid, defaultGid)
+		if err != nil {
+			return err
+		}
+		if f.Mode != nil {
+			mode = os.FileMode(*f.Mode)
+		}
 
-	if err = os.Chmod(tmp.Name(), f.Mode); err != nil {
-		return err
-	}
+		targetFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, mode)
+		if err != nil {
+			return err
+		}
+		defer targetFile.Close()
 
-	if err = os.Rename(tmp.Name(), path); err != nil {
-		return err
+		if _, err = tmp.Seek(0, os.SEEK_SET); err != nil {
+			return err
+		}
+		if _, err = io.Copy(targetFile, tmp); err != nil {
+			return err
+		}
+
+		if err = os.Chown(targetFile.Name(), uid, gid); err != nil {
+			return err
+		}
+		if err = os.Chmod(targetFile.Name(), mode); err != nil {
+			return err
+		}
+	} else {
+		// XXX(vc): Note that we assume to be operating on the file we just wrote, this is only guaranteed
+		// by using syscall.Fchown() and syscall.Fchmod()
+
+		// Ensure the ownership and mode are as requested (since WriteFile can be affected by sticky bit)
+
+		mode := os.FileMode(0)
+		if f.Mode != nil {
+			mode = os.FileMode(*f.Mode)
+		}
+
+		uid, gid, err := u.ResolveNodeUidAndGid(f.Node, 0, 0)
+		if err != nil {
+			return err
+		}
+
+		if err = os.Chown(tmp.Name(), uid, gid); err != nil {
+			return err
+		}
+
+		if err = os.Chmod(tmp.Name(), mode); err != nil {
+			return err
+		}
+
+		if err = os.Rename(tmp.Name(), path); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func (u Util) GetUserGroupID(l *log.Logger, user types.NodeUser, group types.NodeGroup) (*int, *int) {
-	if user.Name != "" {
-		usr, err := u.userLookup(user.Name)
-		if err != nil {
-			l.Crit("No such user %q: %v", user.Name, err)
-			return nil, nil
-		}
-		uid, err := strconv.ParseInt(usr.Uid, 0, 0)
-		if err != nil {
-			l.Crit("Couldn't parse uid %q: %v", usr.Uid, err)
-			return nil, nil
-		}
-		tmp := int(uid)
-		user.ID = &tmp
-	}
-	if group.Name != "" {
-		g, err := u.groupLookup(group.Name)
-		if err != nil {
-			l.Crit("No such group %q: %v", group.Name, err)
-			return nil, nil
-		}
-		gid, err := strconv.ParseInt(g.Gid, 0, 0)
-		if err != nil {
-			l.Crit("Couldn't parse gid %q: %v", g.Gid, err)
-			return nil, nil
-		}
-		tmp := int(gid)
-		group.ID = &tmp
-	}
-
-	if user.ID == nil {
-		user.ID = internalUtil.IntToPtr(0)
-	}
-	if group.ID == nil {
-		group.ID = internalUtil.IntToPtr(0)
-	}
-
-	return user.ID, group.ID
-}
-
 // MkdirForFile helper creates the directory components of path.
 func MkdirForFile(path string) error {
 	return os.MkdirAll(filepath.Dir(path), DefaultDirectoryPermissions)
+}
+
+// getFileOwner will return the uid and gid for the file at a given path. If the
+// file doesn't exist, or some other error is encountered when running stat on
+// the path, 0, 0, and 0 will be returned.
+func getFileOwnerAndMode(path string) (int, int, os.FileMode) {
+	finfo, err := os.Stat(path)
+	if err != nil {
+		return 0, 0, 0
+	}
+	return int(finfo.Sys().(*syscall.Stat_t).Uid), int(finfo.Sys().(*syscall.Stat_t).Gid), finfo.Mode()
+}
+
+// ResolveNodeUidAndGid attempts to convert a types.Node into a concrete uid and
+// gid. If the node has the User.ID field set, that's used for the uid. If the
+// node has the User.Name field set, a username -> uid lookup is performed. If
+// neither are set, it returns the passed in defaultUid. The logic is identical
+// for gids with equivalent fields.
+func (u Util) ResolveNodeUidAndGid(n types.Node, defaultUid, defaultGid int) (int, int, error) {
+	var err error
+	uid, gid := defaultUid, defaultGid
+	if n.User != nil {
+		if n.User.ID != nil {
+			uid = *n.User.ID
+		} else if n.User.Name != "" {
+			uid, err = u.getUserID(n.User.Name)
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+	}
+	if n.Group != nil {
+		if n.Group.ID != nil {
+			gid = *n.Group.ID
+		} else if n.Group.Name != "" {
+			gid, err = u.getGroupID(n.Group.Name)
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+	}
+	return uid, gid, nil
+}
+
+func (u Util) getUserID(name string) (int, error) {
+	usr, err := u.userLookup(name)
+	if err != nil {
+		return 0, fmt.Errorf("No such user %q: %v", name, err)
+	}
+	uid, err := strconv.ParseInt(usr.Uid, 0, 0)
+	if err != nil {
+		return 0, fmt.Errorf("Couldn't parse uid %q: %v", usr.Uid, err)
+	}
+	return int(uid), nil
+}
+
+func (u Util) getGroupID(name string) (int, error) {
+	g, err := u.groupLookup(name)
+	if err != nil {
+		return 0, fmt.Errorf("No such group %q: %v", name, err)
+	}
+	gid, err := strconv.ParseInt(g.Gid, 0, 0)
+	if err != nil {
+		return 0, fmt.Errorf("Couldn't parse gid %q: %v", g.Gid, err)
+	}
+	return int(gid), nil
+}
+
+func (u Util) DeletePathOnOverwrite(n types.Node) error {
+	if n.Overwrite == nil || !*n.Overwrite {
+		return nil
+	}
+	return os.RemoveAll(u.JoinPath(string(n.Path)))
 }

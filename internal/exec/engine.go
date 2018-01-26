@@ -24,14 +24,13 @@ import (
 	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/exec/stages"
-	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/oem"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/cmdline"
 	"github.com/coreos/ignition/internal/providers/system"
 	"github.com/coreos/ignition/internal/resource"
-	internalUtil "github.com/coreos/ignition/internal/util"
+	"github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -45,8 +44,6 @@ type Engine struct {
 	Logger       *log.Logger
 	Root         string
 	OEMConfig    oem.Config
-
-	client resource.HttpClient
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -57,7 +54,7 @@ func (e Engine) Run(stageName string) bool {
 		Storage: types.Storage{
 			Filesystems: []types.Filesystem{{
 				Name: "root",
-				Path: internalUtil.StringToPtr(e.Root),
+				Path: util.StringToPtr(e.Root),
 			}},
 		},
 	}
@@ -94,6 +91,12 @@ func (e Engine) Run(stageName string) bool {
 // acquireConfig returns the configuration, first checking a local cache
 // before attempting to fetch it from the provider.
 func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err error) {
+	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger)
+	if err != nil {
+		e.Logger.Crit("failed to generate fetcher: %s", err)
+		return
+	}
+
 	// First try read the config @ e.ConfigCache.
 	b, err := ioutil.ReadFile(e.ConfigCache)
 	if err == nil {
@@ -102,10 +105,9 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 		}
 		// Create an http client and fetcher with the timeouts from the cached
 		// config
-		e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
-		f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
+		err = f.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
 		if err != nil {
-			e.Logger.Crit("failed to generate fetcher: %s", err)
+			e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
 			return
 		}
 		return
@@ -114,26 +116,30 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 	// Create a new http client and fetcher with the timeouts set via the flags,
 	// since we don't have a config with timeout values we can use
 	timeout := int(e.FetchTimeout.Seconds())
-	e.client = resource.NewHttpClient(e.Logger, types.Timeouts{HTTPTotal: &timeout})
-	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
+	err = f.UpdateHttpTimeoutsAndCAs(types.Timeouts{HTTPTotal: &timeout}, nil)
 	if err != nil {
-		e.Logger.Crit("failed to generate fetcher: %s", err)
+		e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
 		return
 	}
 
 	// (Re)Fetch the config if the cache is unreadable.
-	cfg, err = e.fetchProviderConfig(f)
+	cfg, f, err = e.fetchProviderConfig(f)
 	if err != nil {
 		e.Logger.Crit("failed to fetch config: %s", err)
 		return
 	}
 
-	// Regenerate the http client and fetcher to use the timeouts from the
-	// newly fetched config
-	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
-	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger, &e.client)
+	// Update the http client to use the timeouts and CAs from the newly fetched
+	// config
+	err = f.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
 	if err != nil {
-		e.Logger.Crit("failed to generate fetcher: %s", err)
+		e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
+		return
+	}
+
+	err = f.RewriteCAsWithDataUrls(cfg.Ignition.Security.TLS.CertificateAuthorities)
+	if err != nil {
+		e.Logger.Crit("error handling CAs: %v", err)
 		return
 	}
 
@@ -158,7 +164,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 // it checks the config engine's provider. An error is returned if the provider
 // is unavailable. This will also render the config (see renderConfig) before
 // returning.
-func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, error) {
+func (e *Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, resource.Fetcher, error) {
 	fetchers := []providers.FuncFetchConfig{
 		cmdline.FetchConfig,
 		system.FetchConfig,
@@ -178,7 +184,14 @@ func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, error) {
 
 	e.logReport(r)
 	if err != nil {
-		return types.Config{}, err
+		return types.Config{}, f, err
+	}
+
+	// Replace the HTTP client in the fetcher to be configured with the
+	// timeouts of the config
+	err = f.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
+	if err != nil {
+		return types.Config{}, f, err
 	}
 
 	return e.renderConfig(cfg, f)
@@ -189,29 +202,53 @@ func (e Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, error) {
 // set, the referenced and evaluted config will be returned. Otherwise, if
 // "ignition.config.append" is set, each of the referenced configs will be
 // evaluated and appended to the provided config. If neither option is set, the
-// provided config will be returned unmodified.
-func (e *Engine) renderConfig(cfg types.Config, f resource.Fetcher) (types.Config, error) {
-	// Apply any new timeout info before fetching other configs.
-	e.client = resource.NewHttpClient(e.Logger, cfg.Ignition.Timeouts)
+// provided config will be returned unmodified. An updated fetcher will be
+// returned with any new timeouts set.
+func (e *Engine) renderConfig(cfg types.Config, f resource.Fetcher) (types.Config, resource.Fetcher, error) {
 	if cfgRef := cfg.Ignition.Config.Replace; cfgRef != nil {
-		return e.fetchReferencedConfig(*cfgRef, f)
+		newCfg, err := e.fetchReferencedConfig(*cfgRef, f)
+		if err != nil {
+			return types.Config{}, f, err
+		}
+
+		// Replace the HTTP client in the fetcher to be configured with the
+		// timeouts of the new config
+		err = f.UpdateHttpTimeoutsAndCAs(newCfg.Ignition.Timeouts, newCfg.Ignition.Security.TLS.CertificateAuthorities)
+		if err != nil {
+			return types.Config{}, f, err
+		}
+
+		return e.renderConfig(newCfg, f)
 	}
 
 	appendedCfg := cfg
 	for _, cfgRef := range cfg.Ignition.Config.Append {
 		newCfg, err := e.fetchReferencedConfig(cfgRef, f)
 		if err != nil {
-			return newCfg, err
+			return types.Config{}, f, err
+		}
+
+		// Append the old config with the new config before the new config has
+		// been rendered, so we can use the new config's timeouts and CAs when
+		// fetching more configs.
+		cfgForFetcherSettings := config.Append(appendedCfg, newCfg)
+		err = f.UpdateHttpTimeoutsAndCAs(cfgForFetcherSettings.Ignition.Timeouts, cfgForFetcherSettings.Ignition.Security.TLS.CertificateAuthorities)
+		if err != nil {
+			return types.Config{}, f, err
+		}
+
+		newCfg, f, err = e.renderConfig(newCfg, f)
+		if err != nil {
+			return types.Config{}, f, err
 		}
 
 		appendedCfg = config.Append(appendedCfg, newCfg)
 	}
-	return appendedCfg, nil
+	return appendedCfg, f, nil
 }
 
-// fetchReferencedConfig fetches, renders, and attempts to verify the requested
-// config.
-func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.Fetcher) (types.Config, error) {
+// fetchReferencedConfig fetches and parses the requested config.
+func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.Fetcher) (types.Config, error) {
 	u, err := url.Parse(cfgRef.Source)
 	if err != nil {
 		return types.Config{}, err
@@ -222,6 +259,7 @@ func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.F
 	if err != nil {
 		return types.Config{}, err
 	}
+	e.Logger.Debug("fetched referenced config: %s", string(rawCfg))
 
 	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
 		return types.Config{}, err
@@ -233,7 +271,7 @@ func (e Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.F
 		return types.Config{}, err
 	}
 
-	return e.renderConfig(cfg, f)
+	return cfg, nil
 }
 
 func (e Engine) logReport(r report.Report) {

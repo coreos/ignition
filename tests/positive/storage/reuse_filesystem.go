@@ -50,6 +50,7 @@ func ReuseExistingFilesystem() types.Test {
 		}
 	}`
 	in = append(in, types.Disk{
+		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{
 			{
 				Label:           "important-data",
@@ -71,6 +72,7 @@ func ReuseExistingFilesystem() types.Test {
 		},
 	})
 	out = append(out, types.Disk{
+		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{
 			{
 				Label:           "important-data",

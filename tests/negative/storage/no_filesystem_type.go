@@ -48,11 +48,12 @@ func NoFilesystemType() types.Test {
 	}`
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:              name,
+		In:                in,
+		Out:               out,
+		MntDevices:        mntDevices,
+		Config:            config,
+		ConfigShouldBeBad: true,
 	}
 }
 
@@ -76,17 +77,18 @@ func NoFilesystemTypeWithForce() types.Test {
 						"force": true
 					}
 				},
-				"name": "foobar",
+				"name": "foobar"
 			}]
 		}
 	}`
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:              name,
+		In:                in,
+		Out:               out,
+		MntDevices:        mntDevices,
+		Config:            config,
+		ConfigShouldBeBad: true,
 	}
 }
 
@@ -114,10 +116,11 @@ func NoFilesystemTypeWithWipeFilesystem() types.Test {
 	}`
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:              name,
+		In:                in,
+		Out:               out,
+		MntDevices:        mntDevices,
+		Config:            config,
+		ConfigShouldBeBad: true,
 	}
 }

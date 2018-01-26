@@ -22,8 +22,8 @@ var (
 	ErrFileIllegalMode = errors.New("illegal file mode")
 )
 
-func validateMode(m int) error {
-	if m < 0 || m > 07777 {
+func validateMode(m *int) error {
+	if m != nil && (*m < 0 || *m > 07777) {
 		return ErrFileIllegalMode
 	}
 	return nil

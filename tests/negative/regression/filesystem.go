@@ -31,7 +31,7 @@ func VFATIgnoresWipeFilesystem() types.Test {
 	out := in
 	mntDevices := []types.MntDevice{
 		{
-			Label:        "EFI-SYSTEM",
+			Label:        "OEM",
 			Substitution: "$DEVICE",
 		},
 	}
@@ -43,7 +43,7 @@ func VFATIgnoresWipeFilesystem() types.Test {
                                         "device": "$DEVICE",
                                         "format": "vfat",
                                         "wipeFilesystem": false
-                                }}],
+                                }}]
                         }
         }`
 

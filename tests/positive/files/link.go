@@ -22,6 +22,8 @@ import (
 func init() {
 	register.Register(register.PositiveTest, CreateHardLinkOnRoot())
 	register.Register(register.PositiveTest, CreateSymlinkOnRoot())
+	register.Register(register.PositiveTest, ForceLinkCreation())
+	register.Register(register.PositiveTest, ForceHardLinkCreation())
 }
 
 func CreateHardLinkOnRoot() types.Test {
@@ -105,6 +107,124 @@ func CreateSymlinkOnRoot() types.Test {
 			},
 			Target: "/foo/target",
 			Hard:   false,
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ForceLinkCreation() types.Test {
+	name := "Force Link Creation"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.2.0-experimental" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/target",
+	      "contents": {
+	        "source": "http://127.0.0.1:8080/contents"
+	      }
+	    }],
+	    "links": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "target": "/foo/target",
+	      "overwrite": true
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "target",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	out[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Target: "/foo/target",
+		},
+	})
+
+	return types.Test{
+		Name:   name,
+		In:     in,
+		Out:    out,
+		Config: config,
+	}
+}
+
+func ForceHardLinkCreation() types.Test {
+	name := "Force Hard Link Creation"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "2.2.0-experimental" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/target",
+	      "contents": {
+	        "source": "http://127.0.0.1:8080/contents"
+	      }
+	    }],
+	    "links": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "target": "/foo/target",
+		  "hard": true,
+	      "overwrite": true
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "target",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	out[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Target: "/foo/target",
+			Hard:   true,
 		},
 	})
 
