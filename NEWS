@@ -1,3 +1,32 @@
+26-Jan-2017 IGNITION v0.21.0
+
+  Features
+
+    - Add support for networkd drop-ins
+    - Add new program, ignition-validate, for validating Ignition configs
+    - Add "overwrite" field to "files", "directories", and "links" sections for
+      deleting preexisting items at the node's path
+    - Add "options" field to "raid" section for specifying arbitrary mdadm
+      options
+    - Add "append" field to "files" section for appending to preexisting files
+    - Add support for specifying additional certificate authorities to use when
+      fetching objects over HTTPS
+
+  Changes
+
+    - Validate that partition labels don't contain colons, as sgdisk will
+      silently truncate the label
+    - Remove "-validate" flag from Ignition that was introduced in v0.20.0
+    - Warn when the mode for a file or directory is unset
+    - Log retries of HTTP fetches at info loglevel so messages appear on console
+
+  Bug Fixes
+
+    - Fix issue where unspecified fields in an appended config could "unset"
+      fields specified in a config earlier in the chain
+    - Use timeouts specified in a config when fetching other configs referenced
+      by it
+
 12-Jan-2018 IGNITION v0.20.1
 
   Changes
