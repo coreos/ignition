@@ -1,5 +1,5 @@
-hash: 63aea55f474316860c68f85348a4f6d2c1679d53f0bcb4cd3ececbc2f10dee7d
-updated: 2017-12-21T12:36:25.23641529-08:00
+hash: 18fad4dd55fa433d22d48b2e663254b1df96d0feca585c2c6a02f017d34e4bb4
+updated: 2018-02-05T13:45:32.96062789-08:00
 imports:
 - name: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
@@ -38,7 +38,7 @@ imports:
   subpackages:
   - semver
 - name: github.com/coreos/go-systemd
-  version: 7c9533367ef925dc1078d75e5b7141e10da2c4e8
+  version: 40e2722dffead74698ca12a750f64ef313ddce05
   subpackages:
   - dbus
   - unit
