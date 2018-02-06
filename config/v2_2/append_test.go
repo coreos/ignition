@@ -20,8 +20,12 @@ import (
 	"github.com/coreos/go-semver/semver"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/v2_2/types"
 )
+
+func intToPtr(x int) *int {
+	return &x
+}
 
 func TestAppend(t *testing.T) {
 	type in struct {
