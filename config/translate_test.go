@@ -1869,6 +1869,25 @@ func TestTranslateFromV2_2(t *testing.T) {
 			in: in{config: v2_2.Config{
 				Ignition: v2_2.Ignition{
 					Timeouts: v2_2.Timeouts{
+						HTTPResponseHeaders: nil,
+						HTTPTotal:           nil,
+					},
+				},
+			}},
+			out: out{config: types.Config{
+				Ignition: types.Ignition{
+					Version: types.MaxVersion.String(),
+					Timeouts: types.Timeouts{
+						HTTPResponseHeaders: nil,
+						HTTPTotal:           nil,
+					},
+				},
+			}},
+		},
+		{
+			in: in{config: v2_2.Config{
+				Ignition: v2_2.Ignition{
+					Timeouts: v2_2.Timeouts{
 						HTTPResponseHeaders: intToPtr(0),
 						HTTPTotal:           intToPtr(0),
 					},
@@ -1899,6 +1918,76 @@ func TestTranslateFromV2_2(t *testing.T) {
 					Timeouts: types.Timeouts{
 						HTTPResponseHeaders: intToPtr(50),
 						HTTPTotal:           intToPtr(100),
+					},
+				},
+			}},
+		},
+		{
+			in: in{config: v2_2.Config{
+				Ignition: v2_2.Ignition{
+					Security: v2_2.Security{
+						TLS: v2_2.TLS{
+							CertificateAuthorities: []v2_2.CaReference{
+								{
+									Source: "https://example.com/ca.pem",
+								},
+							},
+						},
+					},
+				},
+			}},
+			out: out{config: types.Config{
+				Ignition: types.Ignition{
+					Version: types.MaxVersion.String(),
+					Security: types.Security{
+						TLS: types.TLS{
+							CertificateAuthorities: []types.CaReference{
+								{
+									Source: "https://example.com/ca.pem",
+								},
+							},
+						},
+					},
+				},
+			}},
+		},
+		{
+			in: in{config: v2_2.Config{
+				Ignition: v2_2.Ignition{
+					Security: v2_2.Security{
+						TLS: v2_2.TLS{
+							CertificateAuthorities: []v2_2.CaReference{
+								{
+									Source: "https://example.com/ca.pem",
+								},
+								{
+									Source: "https://example.com/ca2.pem",
+									Verification: v2_2.Verification{
+										Hash: strToPtr("sha512-adbebebd234245380"),
+									},
+								},
+							},
+						},
+					},
+				},
+			}},
+			out: out{config: types.Config{
+				Ignition: types.Ignition{
+					Version: types.MaxVersion.String(),
+					Security: types.Security{
+						TLS: types.TLS{
+							CertificateAuthorities: []types.CaReference{
+								{
+									Source: "https://example.com/ca.pem",
+								},
+								{
+									Source: "https://example.com/ca2.pem",
+									Verification: types.Verification{
+										Hash: strToPtr("sha512-adbebebd234245380"),
+									},
+								},
+							},
+						},
 					},
 				},
 			}},
@@ -1994,6 +2083,20 @@ func TestTranslateFromV2_2(t *testing.T) {
 							},
 							Spares: 3,
 						},
+						{
+							Name:  "fast-and-durable",
+							Level: "raid10",
+							Devices: []v2_2.Device{
+								v2_2.Device("/dev/sdg"),
+								v2_2.Device("/dev/sdh"),
+								v2_2.Device("/dev/sdi"),
+								v2_2.Device("/dev/sdj"),
+							},
+							Spares: 0,
+							Options: []v2_2.RaidOption{
+								"--this-is-a-flag",
+							},
+						},
 					},
 				},
 			}},
@@ -2012,6 +2115,20 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Level:   "raid1",
 							Devices: []types.Device{types.Device("/dev/sde"), types.Device("/dev/sdf")},
 							Spares:  3,
+						},
+						{
+							Name:  "fast-and-durable",
+							Level: "raid10",
+							Devices: []types.Device{
+								types.Device("/dev/sdg"),
+								types.Device("/dev/sdh"),
+								types.Device("/dev/sdi"),
+								types.Device("/dev/sdj"),
+							},
+							Spares: 0,
+							Options: []types.RaidOption{
+								"--this-is-a-flag",
+							},
 						},
 					},
 				},
@@ -2104,6 +2221,7 @@ func TestTranslateFromV2_2(t *testing.T) {
 								Path:       "/opt/file1",
 								User:       &v2_2.NodeUser{ID: intToPtr(500)},
 								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
+								Overwrite:  boolToPtr(false),
 							},
 							FileEmbedded1: v2_2.FileEmbedded1{
 								Mode: intToPtr(0664),
@@ -2126,7 +2244,8 @@ func TestTranslateFromV2_2(t *testing.T) {
 								Group:      &v2_2.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: v2_2.FileEmbedded1{
-								Mode: intToPtr(0644),
+								Mode:   intToPtr(0644),
+								Append: true,
 								Contents: v2_2.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -2166,6 +2285,7 @@ func TestTranslateFromV2_2(t *testing.T) {
 								Path:       "/opt/file1",
 								User:       &types.NodeUser{ID: intToPtr(500)},
 								Group:      &types.NodeGroup{ID: intToPtr(501)},
+								Overwrite:  boolToPtr(false),
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: intToPtr(0664),
@@ -2188,7 +2308,8 @@ func TestTranslateFromV2_2(t *testing.T) {
 								Group:      &types.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: intToPtr(0644),
+								Mode:   intToPtr(0644),
+								Append: true,
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -2230,6 +2351,7 @@ func TestTranslateFromV2_2(t *testing.T) {
 								Path:       "/opt/dir1",
 								User:       &v2_2.NodeUser{ID: intToPtr(500)},
 								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
+								Overwrite:  boolToPtr(false),
 							},
 							DirectoryEmbedded1: v2_2.DirectoryEmbedded1{
 								Mode: intToPtr(0664),
@@ -2270,6 +2392,7 @@ func TestTranslateFromV2_2(t *testing.T) {
 								Path:       "/opt/dir1",
 								User:       &types.NodeUser{ID: intToPtr(500)},
 								Group:      &types.NodeGroup{ID: intToPtr(501)},
+								Overwrite:  boolToPtr(false),
 							},
 							DirectoryEmbedded1: types.DirectoryEmbedded1{
 								Mode: intToPtr(0664),
@@ -2312,6 +2435,7 @@ func TestTranslateFromV2_2(t *testing.T) {
 								Path:       "/opt/link1",
 								User:       &v2_2.NodeUser{ID: intToPtr(500)},
 								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
+								Overwrite:  boolToPtr(true),
 							},
 							LinkEmbedded1: v2_2.LinkEmbedded1{
 								Hard:   false,
@@ -2355,6 +2479,7 @@ func TestTranslateFromV2_2(t *testing.T) {
 								Path:       "/opt/link1",
 								User:       &types.NodeUser{ID: intToPtr(500)},
 								Group:      &types.NodeGroup{ID: intToPtr(501)},
+								Overwrite:  boolToPtr(true),
 							},
 							LinkEmbedded1: types.LinkEmbedded1{
 								Hard:   false,
@@ -2461,8 +2586,17 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Contents: "test1 contents",
 						},
 						{
-							Name:     "test2.network",
-							Contents: "test2 contents",
+							Name: "test2.network",
+							Dropins: []v2_2.NetworkdDropin{
+								{
+									Name:     "conf1.conf",
+									Contents: "conf1 contents",
+								},
+								{
+									Name:     "conf2.conf",
+									Contents: "conf2 contents",
+								},
+							},
 						},
 					},
 				},
@@ -2476,8 +2610,17 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Contents: "test1 contents",
 						},
 						{
-							Name:     "test2.network",
-							Contents: "test2 contents",
+							Name: "test2.network",
+							Dropins: []types.NetworkdDropin{
+								{
+									Name:     "conf1.conf",
+									Contents: "conf1 contents",
+								},
+								{
+									Name:     "conf2.conf",
+									Contents: "conf2 contents",
+								},
+							},
 						},
 					},
 				},
