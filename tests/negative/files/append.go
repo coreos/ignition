@@ -36,7 +36,7 @@ func AppendToDirectory() types.Test {
 	}
 
 	config := `{
-	    "ignition": {"version": "2.2.0-experimental"},
+	    "ignition": {"version": "2.2.0"},
 	    "storage": {
 	      "files": [{
 	      "filesystem": "root",
@@ -76,7 +76,7 @@ func AppendAndOverwrite() types.Test {
 	}
 
 	config := `{
-		"ignition": {"version": "2.2.0-experimental"},
+		"ignition": {"version": "2.2.0"},
 		"storage": {
 		  "files": [{
 	      "filesystem": "root",

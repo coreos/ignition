@@ -28,7 +28,7 @@ func NetworkdDropinInvalidExtension() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": { "version": "2.2.0-experimental" },
+		"ignition": { "version": "2.2.0" },
 		"networkd": {
 			"units": [{
 				"name": "static.network",

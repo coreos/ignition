@@ -33,7 +33,7 @@ func ForceFileCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0-experimental" },
+	  "ignition": { "version": "2.2.0" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -67,7 +67,7 @@ func ForceDirCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0-experimental" },
+	  "ignition": { "version": "2.2.0" },
 	  "storage": {
 	    "directories": [{
 	      "filesystem": "root",
@@ -98,7 +98,7 @@ func ForceLinkCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0-experimental" },
+	  "ignition": { "version": "2.2.0" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -137,7 +137,7 @@ func ForceHardLinkCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0-experimental" },
+	  "ignition": { "version": "2.2.0" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -177,7 +177,7 @@ func ForceFileCreationOverNonemptyDir() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0-experimental" },
+	  "ignition": { "version": "2.2.0" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -212,7 +212,7 @@ func ForceLinkCreationOverNonemptyDir() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0-experimental" },
+	  "ignition": { "version": "2.2.0" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",

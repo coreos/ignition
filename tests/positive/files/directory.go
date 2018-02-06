@@ -60,7 +60,7 @@ func ForceDirCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0-experimental" },
+	  "ignition": { "version": "2.2.0" },
 	  "storage": {
 	    "directories": [{
 	      "filesystem": "root",
@@ -100,7 +100,7 @@ func ForceDirCreationOverNonemptyDir() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0-experimental" },
+	  "ignition": { "version": "2.2.0" },
 	  "storage": {
 	    "directories": [{
 	      "filesystem": "root",
