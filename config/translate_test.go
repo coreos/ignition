@@ -2102,11 +2102,11 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file1",
-								User:       v2_2.NodeUser{ID: intToPtr(500)},
-								Group:      v2_2.NodeGroup{ID: intToPtr(501)},
+								User:       &v2_2.NodeUser{ID: intToPtr(500)},
+								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
 							},
 							FileEmbedded1: v2_2.FileEmbedded1{
-								Mode: 0664,
+								Mode: intToPtr(0664),
 								Contents: v2_2.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -2122,11 +2122,11 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file2",
-								User:       v2_2.NodeUser{ID: intToPtr(502)},
-								Group:      v2_2.NodeGroup{ID: intToPtr(503)},
+								User:       &v2_2.NodeUser{ID: intToPtr(502)},
+								Group:      &v2_2.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: v2_2.FileEmbedded1{
-								Mode: 0644,
+								Mode: intToPtr(0644),
 								Contents: v2_2.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -2140,11 +2140,11 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/file3",
-								User:       v2_2.NodeUser{ID: intToPtr(1000)},
-								Group:      v2_2.NodeGroup{ID: intToPtr(1001)},
+								User:       &v2_2.NodeUser{ID: intToPtr(1000)},
+								Group:      &v2_2.NodeGroup{ID: intToPtr(1001)},
 							},
 							FileEmbedded1: v2_2.FileEmbedded1{
-								Mode: 0400,
+								Mode: intToPtr(0400),
 								Contents: v2_2.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -2228,33 +2228,33 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/dir1",
-								User:       v2_2.NodeUser{ID: intToPtr(500)},
-								Group:      v2_2.NodeGroup{ID: intToPtr(501)},
+								User:       &v2_2.NodeUser{ID: intToPtr(500)},
+								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
 							},
 							DirectoryEmbedded1: v2_2.DirectoryEmbedded1{
-								Mode: 0664,
+								Mode: intToPtr(0664),
 							},
 						},
 						{
 							Node: v2_2.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/dir2",
-								User:       v2_2.NodeUser{ID: intToPtr(502)},
-								Group:      v2_2.NodeGroup{ID: intToPtr(503)},
+								User:       &v2_2.NodeUser{ID: intToPtr(502)},
+								Group:      &v2_2.NodeGroup{ID: intToPtr(503)},
 							},
 							DirectoryEmbedded1: v2_2.DirectoryEmbedded1{
-								Mode: 0644,
+								Mode: intToPtr(0644),
 							},
 						},
 						{
 							Node: v2_2.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/dir3",
-								User:       v2_2.NodeUser{ID: intToPtr(1000)},
-								Group:      v2_2.NodeGroup{ID: intToPtr(1001)},
+								User:       &v2_2.NodeUser{ID: intToPtr(1000)},
+								Group:      &v2_2.NodeGroup{ID: intToPtr(1001)},
 							},
 							DirectoryEmbedded1: v2_2.DirectoryEmbedded1{
-								Mode: 0400,
+								Mode: intToPtr(0400),
 							},
 						},
 					},
@@ -2310,8 +2310,8 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/link1",
-								User:       v2_2.NodeUser{ID: intToPtr(500)},
-								Group:      v2_2.NodeGroup{ID: intToPtr(501)},
+								User:       &v2_2.NodeUser{ID: intToPtr(500)},
+								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
 							},
 							LinkEmbedded1: v2_2.LinkEmbedded1{
 								Hard:   false,
@@ -2322,8 +2322,8 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/link2",
-								User:       v2_2.NodeUser{ID: intToPtr(502)},
-								Group:      v2_2.NodeGroup{ID: intToPtr(503)},
+								User:       &v2_2.NodeUser{ID: intToPtr(502)},
+								Group:      &v2_2.NodeGroup{ID: intToPtr(503)},
 							},
 							LinkEmbedded1: v2_2.LinkEmbedded1{
 								Hard:   true,
@@ -2334,8 +2334,8 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/link3",
-								User:       v2_2.NodeUser{ID: intToPtr(1000)},
-								Group:      v2_2.NodeGroup{ID: intToPtr(1001)},
+								User:       &v2_2.NodeUser{ID: intToPtr(1000)},
+								Group:      &v2_2.NodeGroup{ID: intToPtr(1001)},
 							},
 							LinkEmbedded1: v2_2.LinkEmbedded1{
 								Hard:   true,
@@ -2397,7 +2397,7 @@ func TestTranslateFromV2_2(t *testing.T) {
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							Dropins: []v2_2.Dropin{
+							Dropins: []v2_2.SystemdDropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
@@ -2519,7 +2519,7 @@ func TestTranslateFromV2_2(t *testing.T) {
 							HomeDir:           "/home/user 2",
 							NoCreateHome:      true,
 							PrimaryGroup:      "wheel",
-							Groups:            []v2_2.PasswdUserGroup{"wheel", "plugdev"},
+							Groups:            []v2_2.Group{"wheel", "plugdev"},
 							NoUserGroup:       true,
 							System:            true,
 							NoLogInit:         true,
