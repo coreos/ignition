@@ -753,12 +753,35 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
+	translateCertificateAuthoritySlice := func(old []v2_2.CaReference) []types.CaReference {
+		var res []types.CaReference
+		for _, x := range old {
+			res = append(res, types.CaReference{
+				Source: x.Source,
+				Verification: types.Verification{
+					Hash: x.Verification.Hash,
+				},
+			})
+		}
+		return res
+	}
+	translateNetworkdDropinSlice := func(old []v2_2.NetworkdDropin) []types.NetworkdDropin {
+		var res []types.NetworkdDropin
+		for _, x := range old {
+			res = append(res, types.NetworkdDropin{
+				Contents: x.Contents,
+				Name:     x.Name,
+			})
+		}
+		return res
+	}
 	translateNetworkdUnitSlice := func(old []v2_2.Networkdunit) []types.Networkdunit {
 		var res []types.Networkdunit
 		for _, u := range old {
 			res = append(res, types.Networkdunit{
 				Contents: u.Contents,
 				Name:     u.Name,
+				Dropins:  translateNetworkdDropinSlice(u.Dropins),
 			})
 		}
 		return res
@@ -859,6 +882,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			Group:      translateNodeGroup(old.Group),
 			Path:       old.Path,
 			User:       translateNodeUser(old.User),
+			Overwrite:  old.Overwrite,
 		}
 	}
 	translateDirectorySlice := func(old []v2_2.Directory) []types.Directory {
@@ -911,7 +935,8 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 							Hash: x.Contents.Verification.Hash,
 						},
 					},
-					Mode: x.Mode,
+					Mode:   x.Mode,
+					Append: x.Append,
 				},
 			})
 		}
@@ -985,6 +1010,13 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
+	translateRaidOptionSlice := func(old []v2_2.RaidOption) []types.RaidOption {
+		var res []types.RaidOption
+		for _, x := range old {
+			res = append(res, types.RaidOption(x))
+		}
+		return res
+	}
 	translateRaidSlice := func(old []v2_2.Raid) []types.Raid {
 		var res []types.Raid
 		for _, x := range old {
@@ -993,6 +1025,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 				Level:   x.Level,
 				Name:    x.Name,
 				Spares:  x.Spares,
+				Options: translateRaidOptionSlice(x.Options),
 			})
 		}
 		return res
@@ -1031,6 +1064,11 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			Config: types.IgnitionConfig{
 				Replace: translateConfigReference(old.Ignition.Config.Replace),
 				Append:  translateConfigReferenceSlice(old.Ignition.Config.Append),
+			},
+			Security: types.Security{
+				TLS: types.TLS{
+					CertificateAuthorities: translateCertificateAuthoritySlice(old.Ignition.Security.TLS.CertificateAuthorities),
+				},
 			},
 		},
 		Networkd: types.Networkd{
