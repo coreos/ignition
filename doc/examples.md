@@ -111,6 +111,7 @@ In many cases it is useful to write files to the root filesystem. This example w
     "files": [{
       "filesystem": "root",
       "path": "/foo/bar",
+      "mode": 420,
       "contents": { "source": "data:,example%20file%0A" }
     }]
   }
@@ -141,6 +142,7 @@ There are cases where it is desirable to write a file to disk, but with the cont
     "files": [{
       "filesystem": "root",
       "path": "/foo/bar",
+      "mode": 420,
       "contents": {
         "source": "http://example.com/asset",
         "verification": { "hash": "sha512-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" }
