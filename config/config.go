@@ -23,6 +23,7 @@ import (
 	"github.com/coreos/ignition/config/v1"
 	"github.com/coreos/ignition/config/v2_0"
 	"github.com/coreos/ignition/config/v2_1"
+	"github.com/coreos/ignition/config/v2_2"
 	"github.com/coreos/ignition/config/validate"
 	astjson "github.com/coreos/ignition/config/validate/astjson"
 	"github.com/coreos/ignition/config/validate/report"
@@ -71,6 +72,8 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 		return config, rpt, nil
 	case types.MaxVersion:
 		return ParseFromLatest(rawConfig)
+	case semver.Version{Major: 2, Minor: 2}:
+		return ParseFromV2_2(rawConfig)
 	case semver.Version{Major: 2, Minor: 1}:
 		return ParseFromV2_1(rawConfig)
 	case semver.Version{Major: 2, Minor: 0}:
@@ -193,6 +196,15 @@ func ParseFromV2_1(rawConfig []byte) (types.Config, report.Report, error) {
 	}
 
 	return TranslateFromV2_1(cfg), report, err
+}
+
+func ParseFromV2_2(rawConfig []byte) (types.Config, report.Report, error) {
+	cfg, report, err := v2_2.Parse(rawConfig)
+	if err != nil {
+		return types.Config{}, report, err
+	}
+
+	return TranslateFromV2_2(cfg), report, err
 }
 
 func Version(rawConfig []byte) (semver.Version, error) {
