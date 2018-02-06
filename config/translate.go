@@ -799,7 +799,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			UID:          old.UID,
 		}
 	}
-	translatePasswdUserGroupSlice := func(old []v2_2.PasswdUserGroup) []types.Group {
+	translatePasswdUserGroupSlice := func(old []v2_2.Group) []types.Group {
 		var res []types.Group
 		for _, g := range old {
 			res = append(res, types.Group(g))
@@ -835,13 +835,19 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateNodeGroup := func(old v2_2.NodeGroup) *types.NodeGroup {
+	translateNodeGroup := func(old *v2_2.NodeGroup) *types.NodeGroup {
+		if old == nil {
+			return nil
+		}
 		return &types.NodeGroup{
 			ID:   old.ID,
 			Name: old.Name,
 		}
 	}
-	translateNodeUser := func(old v2_2.NodeUser) *types.NodeUser {
+	translateNodeUser := func(old *v2_2.NodeUser) *types.NodeUser {
+		if old == nil {
+			return nil
+		}
 		return &types.NodeUser{
 			ID:   old.ID,
 			Name: old.Name,
@@ -861,7 +867,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			res = append(res, types.Directory{
 				Node: translateNode(x.Node),
 				DirectoryEmbedded1: types.DirectoryEmbedded1{
-					Mode: intToPtr(x.DirectoryEmbedded1.Mode),
+					Mode: x.DirectoryEmbedded1.Mode,
 				},
 			})
 		}
@@ -905,7 +911,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 							Hash: x.Contents.Verification.Hash,
 						},
 					},
-					Mode: intToPtr(x.Mode),
+					Mode: x.Mode,
 				},
 			})
 		}
@@ -991,7 +997,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateSystemdDropinSlice := func(old []v2_2.Dropin) []types.SystemdDropin {
+	translateSystemdDropinSlice := func(old []v2_2.SystemdDropin) []types.SystemdDropin {
 		var res []types.SystemdDropin
 		for _, x := range old {
 			res = append(res, types.SystemdDropin{
