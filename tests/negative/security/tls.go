@@ -17,6 +17,8 @@ package security
 import (
 	"crypto/tls"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 
@@ -31,6 +33,7 @@ func init() {
 	}
 	config := &tls.Config{Certificates: []tls.Certificate{cer}}
 	customCAServer.TLS = config
+	customCAServer.Config.ErrorLog = log.New(ioutil.Discard, "", 0)
 	customCAServer.StartTLS()
 
 	register.Register(register.NegativeTest, AppendConfigCustomCert())
