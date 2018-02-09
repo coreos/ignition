@@ -1,6 +1,6 @@
 # Example Configs
 
-Each of these examples is written in version 2.1.0 of the config. Ensure that any configuration is compatible with the version that Ignition accepts. Compatibility requires the major versions to match and the spec version be less than or equal to the version Ignition accepts.
+Each of these examples is written in version 2.2.0 of the config. Ensure that any configuration is compatible with the version that Ignition accepts. Compatibility requires the major versions to match and the spec version be less than or equal to the version Ignition accepts.
 
 ## Services
 
@@ -10,7 +10,7 @@ This config will write a single service unit (shown below) with the contents of 
 
 ```json ignition
 {
-  "ignition": { "version": "2.1.0" },
+  "ignition": { "version": "2.2.0" },
   "systemd": {
     "units": [{
       "name": "example.service",
@@ -38,7 +38,7 @@ This config will add a [systemd unit drop-in](https://coreos.com/os/docs/latest/
 
 ```json ignition
 {
-  "ignition": { "version": "2.1.0" },
+  "ignition": { "version": "2.2.0" },
   "systemd": {
     "units": [{
       "name": "systemd-networkd.service",
@@ -66,7 +66,7 @@ This example Ignition configuration will locate the device with the "ROOT" files
 
 ```json ignition
 {
-  "ignition": { "version": "2.1.0" },
+  "ignition": { "version": "2.2.0" },
   "storage": {
     "filesystems": [{
       "mount": {
@@ -86,7 +86,7 @@ This example Ignition configuration will locate the device with the "ROOT" files
 
 ```json ignition
 {
-  "ignition": { "version": "2.1.0" },
+  "ignition": { "version": "2.2.0" },
   "storage": {
     "filesystems": [{
       "mount": {
@@ -106,11 +106,12 @@ In many cases it is useful to write files to the root filesystem. This example w
 
 ```json ignition
 {
-  "ignition": { "version": "2.1.0" },
+  "ignition": { "version": "2.2.0" },
   "storage": {
     "files": [{
       "filesystem": "root",
       "path": "/foo/bar",
+      "mode": 420,
       "contents": { "source": "data:,example%20file%0A" }
     }]
   }
@@ -136,11 +137,12 @@ There are cases where it is desirable to write a file to disk, but with the cont
 
 ```json ignition
 {
-  "ignition": { "version": "2.1.0" },
+  "ignition": { "version": "2.2.0" },
   "storage": {
     "files": [{
       "filesystem": "root",
       "path": "/foo/bar",
+      "mode": 420,
       "contents": {
         "source": "http://example.com/asset",
         "verification": { "hash": "sha512-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" }
@@ -158,7 +160,7 @@ In many scenarios, it may be useful to have an external data volume. This config
 
 ```json ignition
 {
-  "ignition": { "version": "2.1.0" },
+  "ignition": { "version": "2.2.0" },
   "storage": {
     "disks": [
       {
@@ -227,7 +229,7 @@ In some cloud environments, there is a limit on the size of the config which may
 ```json ignition
 {
   "ignition": {
-    "version": "2.1.0",
+    "version": "2.2.0",
     "config": {
       "replace": {
         "source": "http://example.com/config.json",
@@ -246,7 +248,7 @@ Setting the hostname of a system is as simple as writing `/etc/hostname`:
 
 ```json ignition
 {
-  "ignition": { "version": "2.1.0" },
+  "ignition": { "version": "2.2.0" },
   "storage": {
     "files": [{
       "filesystem": "root",
@@ -264,7 +266,7 @@ Users can be added to an OS with the `passwd.users` key which takes a list of ob
 
 ```json ignition
 {
-  "ignition": { "version": "2.1.0" },
+  "ignition": { "version": "2.2.0" },
   "passwd": {
     "users": [
       {

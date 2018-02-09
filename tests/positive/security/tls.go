@@ -95,7 +95,7 @@ func AppendConfigCustomCert() types.Test {
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.2.0-experimental",
+			"version": "2.2.0",
 			"config": {
 			  "append": [{
 				"source": %q
@@ -135,7 +135,7 @@ func FetchFileCustomCert() types.Test {
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.2.0-experimental",
+			"version": "2.2.0",
 			"security": {
 				"tls": {
 					"certificateAuthorities": [{

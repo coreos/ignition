@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package v2_2
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/coreos/ignition/config/types"
-	v1 "github.com/coreos/ignition/config/v1"
-	v2_0 "github.com/coreos/ignition/config/v2_0/types"
+	"github.com/coreos/ignition/config/v2_2/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,39 +38,35 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: v2_0.MaxVersion.String()}}},
+			out: out{err: ErrBadVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "1.0.0"}}`)},
-			out: out{err: v1.ErrVersion},
+			out: out{err: ErrBadVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+			out: out{err: ErrBadVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+			out: out{err: ErrBadVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.2.0-experimental"}}`)},
-			out: out{err: ErrUnknownVersion},
+			out: out{err: ErrBadVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.1.0-experimental"}}`)},
-			out: out{err: ErrUnknownVersion},
+			out: out{err: ErrBadVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.2.0"}}`)},
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.3.0-experimental"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
-		},
-		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"},}`)},
-			out: out{err: ErrInvalid},
+			out: out{err: ErrVersionIndeterminable},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "invalid.semver"}}`)},
@@ -80,7 +74,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			in:  in{config: []byte(`{}`)},
-			out: out{err: ErrInvalid},
+			out: out{err: ErrVersionIndeterminable},
 		},
 		{
 			in:  in{config: []byte{}},

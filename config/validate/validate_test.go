@@ -55,7 +55,7 @@ func TestValidate(t *testing.T) {
 			out: out{err: ErrInvalidVersion},
 		},
 		{
-			in:  in{cfg: Config{Ignition: Ignition{Version: "2.2.0"}}},
+			in:  in{cfg: Config{Ignition: Ignition{Version: "2.3.0"}}},
 			out: out{err: ErrNewVersion},
 		},
 		{
