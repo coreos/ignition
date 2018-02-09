@@ -1,3 +1,11 @@
+09-Feb-2018 IGNITION v0.22.0
+
+  Changes
+
+    - Mark the 2.2.0 config spec as stable
+    - No longer accept configs with version 2.2.0-experimental
+    - Create new 2.3.0-experimental config spec from 2.2.0
+
 26-Jan-2018 IGNITION v0.21.0
 
   Features
