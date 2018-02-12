@@ -22,10 +22,11 @@ import (
 )
 
 var (
+	// ErrInvalidScheme is returned when the scheme is not valid for the context.
 	ErrInvalidScheme = errors.New("invalid url scheme")
 )
 
-func validateURL(s string) error {
+func validateURL(s string, subset ...string) error {
 	// Empty url is valid, indicates an empty file
 	if s == "" {
 		return nil
@@ -37,13 +38,24 @@ func validateURL(s string) error {
 
 	switch u.Scheme {
 	case "http", "https", "oem", "tftp", "s3":
-		return nil
+		break
 	case "data":
 		if _, err := dataurl.DecodeString(s); err != nil {
 			return err
 		}
-		return nil
+		break
 	default:
 		return ErrInvalidScheme
 	}
+
+	if len(subset) != 0 {
+		for _, allowed := range subset {
+			if u.Scheme == allowed {
+				return nil
+			}
+		}
+		return ErrInvalidScheme
+	}
+
+	return nil
 }
