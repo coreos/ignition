@@ -26,7 +26,9 @@
     "verification": {
       "type": "object",
       "properties": {
-        "hash": { "type": ["string", "null"] }
+        "hash": {
+          "type": ["string", "null"]
+        }
       }
     },
     "ignition": {
@@ -149,6 +151,12 @@
           "items": {
             "$ref": "#/definitions/storage/definitions/link"
           }
+        },
+        "encryption": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/encryption"
+          }
         }
       },
       "definitions": {
@@ -224,7 +232,7 @@
                   "$ref": "#/definitions/storage/definitions/file-contents"
                 },
                 "append": {
-                    "type": "boolean"
+                  "type": "boolean"
                 }
               }
             }
@@ -262,6 +270,54 @@
               }
             }
           ]
+        },
+        "encryption": {
+          "type": "object",
+          "properties": {
+            "device": {
+              "type": "string"
+            },
+            "disableDiscard": {
+              "type": "boolean"
+            },
+            "keySlots": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/storage/definitions/encryption/definitions/keyslot"
+              }
+            },
+            "name": {
+              "type": "string"
+            },
+            "wipeVolume": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "device",
+            "keySlots",
+            "name"
+          ],
+          "definitions": {
+            "keyslot": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "$ref": "#/definitions/storage/definitions/encryption/definitions/keyslot/definitions/content"
+                }
+              },
+              "definitions": {
+                "content": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "source": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
         },
         "partition": {
           "type": "object",

@@ -20,6 +20,10 @@ type ConfigReference struct {
 	Verification Verification `json:"verification,omitempty"`
 }
 
+type Content struct {
+	Source string `json:"source,omitempty"`
+}
+
 type Create struct {
 	Force   bool           `json:"force,omitempty"`
 	Options []CreateOption `json:"options,omitempty"`
@@ -42,6 +46,14 @@ type Disk struct {
 	Device     string      `json:"device,omitempty"`
 	Partitions []Partition `json:"partitions,omitempty"`
 	WipeTable  bool        `json:"wipeTable,omitempty"`
+}
+
+type Encryption struct {
+	Device         string    `json:"device"`
+	DisableDiscard bool      `json:"disableDiscard,omitempty"`
+	KeySlots       []Keyslot `json:"keySlots"`
+	Name           string    `json:"name"`
+	WipeVolume     bool      `json:"wipeVolume,omitempty"`
 }
 
 type File struct {
@@ -79,6 +91,10 @@ type Ignition struct {
 type IgnitionConfig struct {
 	Append  []ConfigReference `json:"append,omitempty"`
 	Replace *ConfigReference  `json:"replace,omitempty"`
+}
+
+type Keyslot struct {
+	Content *Content `json:"content,omitempty"`
 }
 
 type Link struct {
@@ -193,6 +209,7 @@ type Security struct {
 type Storage struct {
 	Directories []Directory  `json:"directories,omitempty"`
 	Disks       []Disk       `json:"disks,omitempty"`
+	Encryption  []Encryption `json:"encryption,omitempty"`
 	Files       []File       `json:"files,omitempty"`
 	Filesystems []Filesystem `json:"filesystems,omitempty"`
 	Links       []Link       `json:"links,omitempty"`
