@@ -35,6 +35,14 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_start_** (integer): the start of the partition (in device logical sectors). If zero, the partition will be positioned at the start of the largest block available.
       * **_typeGuid_** (string): the GPT [partition type GUID][part-types]. If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
       * **_guid_** (string): the GPT unique partition GUID.
+  * **_encryption_** (list of objects): the list of encrypted volumes to be configured and their options.
+    * **name** (string): name for the device-mapper volume to create.
+    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
+    * **_disableDiscard_** (boolean): whether to disable TRIM/discard passthrough. Defaults to `false`.
+    * **_wipeVolume_** (boolean): whether to wipe the device before creating the volume. Defaults to `false`. See [operator notes](operator-notes.md#reuse-semantics-for-encrypted-volumes) for more details.
+    * **keySlots** (list of objects): the list of keyslots to be configured and their options. Currently, it must contain exactly one entry.
+      * **_content_** (object):
+        * **source** (string): the URL of the passphrase. Supported schemes are: `https`.
   * **_raid_** (list of objects): the list of RAID arrays to be configured.
     * **name** (string): the name to use for the resulting md device.
     * **level** (string): the redundancy level of the array (e.g. linear, raid1, raid5, etc.).
