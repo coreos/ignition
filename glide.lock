@@ -1,5 +1,5 @@
-hash: 6cec3b8e033abff84f106f33e57a381886d30d53c863cc1621d4405c4725efeb
-updated: 2018-02-15T18:15:43.70808531Z
+hash: f79d3c85a8b962ff20aaf80e22d8f7f59db3f7ad4751493c680d5c38a8501221
+updated: 2018-02-15T16:08:56.116306848-08:00
 imports:
 - name: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
@@ -85,6 +85,10 @@ testImports:
   version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
   subpackages:
   - spew
+- name: github.com/euank/go-kmsg-parser
+  version: 5ba4d492e455a77d25dcf0d2c4acc9f2afebef4e
+  subpackages:
+  - kmsgparser
 - name: github.com/pmezard/go-difflib
   version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
