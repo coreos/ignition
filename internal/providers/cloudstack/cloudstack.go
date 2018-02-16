@@ -20,6 +20,7 @@ package cloudstack
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -37,8 +38,6 @@ import (
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
-
-	"golang.org/x/net/context"
 )
 
 const (

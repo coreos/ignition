@@ -1,5 +1,5 @@
-hash: 18fad4dd55fa433d22d48b2e663254b1df96d0feca585c2c6a02f017d34e4bb4
-updated: 2018-02-05T13:45:32.96062789-08:00
+hash: 6cec3b8e033abff84f106f33e57a381886d30d53c863cc1621d4405c4725efeb
+updated: 2018-02-15T18:15:43.70808531Z
 imports:
 - name: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
@@ -80,11 +80,6 @@ imports:
   version: 03efcb870d84809319ea509714dd6d19a1498483
   subpackages:
   - errorutil
-- name: golang.org/x/net
-  version: 075e191f18186a8ff2becaf64478e30f4545cdad
-  subpackages:
-  - context
-  - context/ctxhttp
 testImports:
 - name: github.com/davecgh/go-spew
   version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9

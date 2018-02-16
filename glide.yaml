@@ -26,11 +26,6 @@ import:
   version: 03efcb870d84809319ea509714dd6d19a1498483
   subpackages:
   - errorutil
-- package: golang.org/x/net
-  version: 075e191f18186a8ff2becaf64478e30f4545cdad
-  subpackages:
-  - context
-  - context/ctxhttp
 - package: github.com/aws/aws-sdk-go
   version: v1.8.39
 - package: github.com/spf13/cobra

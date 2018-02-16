@@ -15,6 +15,7 @@
 package resource
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
@@ -32,8 +33,6 @@ import (
 	"github.com/coreos/ignition/internal/version"
 
 	"github.com/vincent-petithory/dataurl"
-	"golang.org/x/net/context"
-	"golang.org/x/net/context/ctxhttp"
 )
 
 const (
@@ -198,7 +197,7 @@ func (f *Fetcher) newHttpClient() {
 // getReaderWithHeader performs an HTTP GET on the provided URL with the provided request header
 // and returns the response body Reader, HTTP status code, and error (if any). By
 // default, User-Agent is added to the header but this can be overridden.
-func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, error) {
+func (c HttpClient) getReaderWithHeader(ctx context.Context, url string, header http.Header) (io.ReadCloser, int, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, 0, err
@@ -213,15 +212,16 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 		}
 	}
 
-	ctx := context.Background()
 	if c.timeout != 0 {
-		ctx, _ = context.WithTimeout(ctx, c.timeout)
+		ctxTo, cancel := context.WithTimeout(ctx, c.timeout)
+		ctx = ctxTo
+		defer cancel()
 	}
 
 	duration := initialBackoff
 	for attempt := 1; ; attempt++ {
 		c.logger.Info("GET %s: attempt #%d", url, attempt)
-		resp, err := ctxhttp.Do(ctx, c.client, req)
+		resp, err := c.client.Do(req.WithContext(ctx))
 
 		if err == nil {
 			c.logger.Info("GET result: %s", http.StatusText(resp.StatusCode))
