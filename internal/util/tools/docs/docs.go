@@ -25,8 +25,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/coreos/ignition/config"
+	"github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/internal/config"
 )
 
 const (
@@ -82,7 +83,7 @@ func isDeprecatedConfig(r report.Report) bool {
 	if len(r.Entries) != 1 {
 		return false
 	}
-	if r.Entries[0].Kind == report.EntryDeprecated && r.Entries[0].Message == config.ErrDeprecated.Error() {
+	if r.Entries[0].Kind == report.EntryDeprecated && r.Entries[0].Message == errors.ErrDeprecated.Error() {
 		return true
 	}
 	return false
