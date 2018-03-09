@@ -15,8 +15,7 @@
 package v2_3_experimental
 
 import (
-	"errors"
-
+	"github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/v2_2"
 	"github.com/coreos/ignition/config/v2_3_experimental/types"
@@ -26,24 +25,15 @@ import (
 	"github.com/coreos/go-semver/semver"
 )
 
-var (
-	ErrCloudConfig           = errors.New("not a config (found coreos-cloudconfig)")
-	ErrEmpty                 = errors.New("not a config (empty)")
-	ErrScript                = errors.New("not a config (found coreos-cloudinit script)")
-	ErrInvalid               = errors.New("config is not valid")
-	ErrUnknownVersion        = errors.New("unsupported config version")
-	ErrVersionIndeterminable = errors.New("unable to determine version")
-)
-
 // Parse parses the raw config into a types.Config struct and generates a report of any
 // errors, warnings, info, and deprecations it encountered
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	if isEmpty(rawConfig) {
-		return types.Config{}, report.Report{}, ErrEmpty
+		return types.Config{}, report.Report{}, errors.ErrEmpty
 	} else if isCloudConfig(rawConfig) {
-		return types.Config{}, report.Report{}, ErrCloudConfig
+		return types.Config{}, report.Report{}, errors.ErrCloudConfig
 	} else if isScript(rawConfig) {
-		return types.Config{}, report.Report{}, ErrScript
+		return types.Config{}, report.Report{}, errors.ErrScript
 	}
 
 	var err error
@@ -64,12 +54,12 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	}
 
 	if *version != types.MaxVersion {
-		return types.Config{}, report.Report{}, ErrInvalid
+		return types.Config{}, report.Report{}, errors.ErrInvalid
 	}
 
 	rpt := util.ValidateConfig(rawConfig, config)
 	if rpt.IsFatal() {
-		return types.Config{}, rpt, ErrInvalid
+		return types.Config{}, rpt, errors.ErrInvalid
 	}
 
 	return config, rpt, nil
