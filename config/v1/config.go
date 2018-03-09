@@ -15,12 +15,9 @@
 package v1
 
 import (
-	"reflect"
-
 	"github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/v1/types"
-	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
 
 	json "github.com/ajeddeloh/go-json"
@@ -49,7 +46,7 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 		return types.Config{}, report.Report{}, errors.ErrInvalid
 	}
 
-	rpt := validate.ValidateWithoutSource(reflect.ValueOf(config))
+	rpt := util.ValidateConfig(rawConfig, config)
 	if rpt.IsFatal() {
 		return types.Config{}, rpt, errors.ErrInvalid
 	}

@@ -15,11 +15,13 @@
 package v1
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/config/v1/types"
+	"github.com/coreos/ignition/config/validate/report"
 )
 
 func TestParse(t *testing.T) {
@@ -28,6 +30,7 @@ func TestParse(t *testing.T) {
 	}
 	type out struct {
 		config types.Config
+		report report.Report
 		err    error
 	}
 
@@ -38,6 +41,23 @@ func TestParse(t *testing.T) {
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
 			out: out{config: types.Config{Version: 1}},
+		},
+		{
+			in: in{config: []byte(`{"ignitionVersion": 1, "storage": {"filesystems": [{"device": "this/is/a/relative/path", "format":"ext4"}]}}`)},
+			out: out{
+				report: report.Report{
+					Entries: []report.Entry{
+						{
+							Message:   types.ErrPathRelative.Error(),
+							Kind:      report.EntryError,
+							Line:      1,
+							Column:    87,
+							Highlight: "    1: {\"ignitionVersion\": 1, \"storage\": {\"filesystems\": [{\"device\": \"this/is/a/relative/path\"\n                                                                                            ^\n",
+						},
+					},
+				},
+				err: errors.ErrInvalid,
+			},
 		},
 		{
 			in:  in{config: []byte(`{}`)},
@@ -79,12 +99,12 @@ func TestParse(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		config, _, err := Parse(test.in.config)
-		if !reflect.DeepEqual(test.out.config, config) {
-			t.Errorf("#%d: bad config: want %+v, got %+v", i, test.out.config, config)
+		config, rpt, err := Parse(test.in.config)
+		assert.Equal(t, test.out.config, config, "#%d: bad config", i)
+		assert.Equal(t, test.out.report, rpt, "#%d: bad report", i)
+		if len(rpt.Entries) > 0 {
+			t.Logf("highlight: %q\n", rpt.Entries[0].Highlight)
 		}
-		if test.out.err != err {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
-		}
+		assert.Equal(t, test.out.err, err, "#%d: bad error", i)
 	}
 }
