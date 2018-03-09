@@ -15,8 +15,7 @@
 package v2_0
 
 import (
-	"errors"
-
+	"github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/v1"
 	"github.com/coreos/ignition/config/v2_0/types"
@@ -26,24 +25,15 @@ import (
 	"github.com/coreos/go-semver/semver"
 )
 
-var (
-	ErrCloudConfig    = errors.New("not a config (found coreos-cloudconfig)")
-	ErrEmpty          = errors.New("not a config (empty)")
-	ErrScript         = errors.New("not a config (found coreos-cloudinit script)")
-	ErrDeprecated     = errors.New("config format deprecated")
-	ErrInvalid        = errors.New("config is not valid")
-	ErrVersionUnknown = errors.New("unknown config version")
-)
-
 // Parse parses the raw config into a types.Config struct and generates a report of any
 // errors, warnings, info, and deprecations it encountered
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	if isEmpty(rawConfig) {
-		return types.Config{}, report.Report{}, ErrEmpty
+		return types.Config{}, report.Report{}, errors.ErrEmpty
 	} else if isCloudConfig(rawConfig) {
-		return types.Config{}, report.Report{}, ErrCloudConfig
+		return types.Config{}, report.Report{}, errors.ErrCloudConfig
 	} else if isScript(rawConfig) {
-		return types.Config{}, report.Report{}, ErrScript
+		return types.Config{}, report.Report{}, errors.ErrScript
 	}
 
 	var err error
@@ -59,17 +49,17 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 			return types.Config{}, rpt, err
 		}
 
-		rpt.Merge(report.ReportFromError(ErrDeprecated, report.EntryDeprecated))
+		rpt.Merge(report.ReportFromError(errors.ErrDeprecated, report.EntryDeprecated))
 		return TranslateFromV1(config), rpt, err
 	}
 
 	if semver.Version(config.Ignition.Version) != types.MaxVersion {
-		return types.Config{}, report.Report{}, ErrInvalid
+		return types.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
 
 	rpt := util.ValidateConfig(rawConfig, config)
 	if rpt.IsFatal() {
-		return types.Config{}, rpt, ErrInvalid
+		return types.Config{}, rpt, errors.ErrInvalid
 	}
 
 	return config, rpt, nil
