@@ -234,7 +234,15 @@ func (lst ByDirectorySegments) Swap(i, j int) {
 }
 
 func (lst ByDirectorySegments) Less(i, j int) bool {
-	return lst[i].Depth() < lst[j].Depth()
+	return depth(lst[i].Node) < depth(lst[j].Node)
+}
+
+func depth(n types.Node) uint {
+	var count uint = 0
+	for p := filepath.Clean(string(n.Path)); p != "/"; count++ {
+		p = filepath.Dir(p)
+	}
+	return count
 }
 
 // mapEntriesToFilesystems builds a map of filesystems to files. If multiple
