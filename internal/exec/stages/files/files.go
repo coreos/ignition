@@ -23,12 +23,12 @@ import (
 	"sort"
 	"syscall"
 
+	configUtil "github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
-	internalUtil "github.com/coreos/ignition/internal/util"
 )
 
 const (
@@ -178,7 +178,7 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 		}
 
 		if d.Mode == nil {
-			d.Mode = internalUtil.IntToPtr(0)
+			d.Mode = configUtil.IntToPtr(0)
 		}
 
 		if err := os.MkdirAll(path, os.FileMode(*d.Mode)); err != nil {
