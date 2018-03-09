@@ -15,9 +15,8 @@
 package v2_1
 
 import (
-	"errors"
-
 	"github.com/coreos/go-semver/semver"
+	"github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/v2_0"
 	"github.com/coreos/ignition/config/v2_1/types"
@@ -26,21 +25,13 @@ import (
 	json "github.com/ajeddeloh/go-json"
 )
 
-var (
-	ErrCloudConfig = errors.New("not a config (found coreos-cloudconfig)")
-	ErrEmpty       = errors.New("not a config (empty)")
-	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
-	ErrDeprecated  = errors.New("config format deprecated")
-	ErrInvalid     = errors.New("config is not valid")
-)
-
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	if isEmpty(rawConfig) {
-		return types.Config{}, report.Report{}, ErrEmpty
+		return types.Config{}, report.Report{}, errors.ErrEmpty
 	} else if isCloudConfig(rawConfig) {
-		return types.Config{}, report.Report{}, ErrCloudConfig
+		return types.Config{}, report.Report{}, errors.ErrCloudConfig
 	} else if isScript(rawConfig) {
-		return types.Config{}, report.Report{}, ErrScript
+		return types.Config{}, report.Report{}, errors.ErrScript
 	}
 
 	var err error
@@ -61,12 +52,12 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	}
 
 	if *version != types.MaxVersion {
-		return types.Config{}, report.Report{}, ErrInvalid
+		return types.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
 
 	rpt := util.ValidateConfig(rawConfig, config)
 	if rpt.IsFatal() {
-		return types.Config{}, rpt, ErrInvalid
+		return types.Config{}, rpt, errors.ErrInvalid
 	}
 
 	return config, rpt, nil
