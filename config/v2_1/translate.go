@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2018 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,46 @@ import (
 	"strings"
 
 	v2_0 "github.com/coreos/ignition/config/v2_0/types"
-	"github.com/coreos/ignition/config/v2_1types"
+	"github.com/coreos/ignition/config/v2_1/types"
 )
+
+func intToPtr(x int) *int {
+	return &x
+}
+
+func strToPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+// golang--
+func translateV2_0MkfsOptionsTov2_1OptionSlice(opts v2_0.MkfsOptions) []types.CreateOption {
+	newOpts := make([]types.CreateOption, len(opts))
+	for i, o := range opts {
+		newOpts[i] = types.CreateOption(o)
+	}
+	return newOpts
+}
+
+// golang--
+func translateStringSliceTov2_1SSHAuthorizedKeySlice(keys []string) []types.SSHAuthorizedKey {
+	newKeys := make([]types.SSHAuthorizedKey, len(keys))
+	for i, k := range keys {
+		newKeys[i] = types.SSHAuthorizedKey(k)
+	}
+	return newKeys
+}
+
+// golang--
+func translateStringSliceTov2_1UsercreateGroupSlice(groups []string) []types.UsercreateGroup {
+	var newGroups []types.UsercreateGroup
+	for _, g := range groups {
+		newGroups = append(newGroups, types.UsercreateGroup(g))
+	}
+	return newGroups
+}
 
 func TranslateFromV2_0(old v2_0.Config) types.Config {
 	translateVerification := func(old v2_0.Verification) types.Verification {
@@ -101,7 +139,7 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 			if oldFilesystem.Mount.Create != nil {
 				filesystem.Mount.Create = &types.Create{
 					Force:   oldFilesystem.Mount.Create.Force,
-					Options: translateV2_0MkfsOptionsToV2_2OptionSlice(oldFilesystem.Mount.Create.Options),
+					Options: translateV2_0MkfsOptionsTov2_1OptionSlice(oldFilesystem.Mount.Create.Options),
 				}
 			}
 		}
@@ -119,11 +157,11 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 			Node: types.Node{
 				Filesystem: oldFile.Filesystem,
 				Path:       string(oldFile.Path),
-				User:       &types.NodeUser{ID: intToPtr(oldFile.User.Id)},
-				Group:      &types.NodeGroup{ID: intToPtr(oldFile.Group.Id)},
+				User:       types.NodeUser{ID: intToPtr(oldFile.User.Id)},
+				Group:      types.NodeGroup{ID: intToPtr(oldFile.Group.Id)},
 			},
 			FileEmbedded1: types.FileEmbedded1{
-				Mode: intToPtr(int(oldFile.Mode)),
+				Mode: int(oldFile.Mode),
 				Contents: types.FileContents{
 					Compression:  string(oldFile.Contents.Compression),
 					Source:       oldFile.Contents.Source.String(),
@@ -144,7 +182,7 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 		}
 
 		for _, oldDropIn := range oldUnit.DropIns {
-			unit.Dropins = append(unit.Dropins, types.SystemdDropin{
+			unit.Dropins = append(unit.Dropins, types.Dropin{
 				Name:     string(oldDropIn.Name),
 				Contents: oldDropIn.Contents,
 			})
@@ -164,7 +202,7 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 		user := types.PasswdUser{
 			Name:              oldUser.Name,
 			PasswordHash:      strToPtr(oldUser.PasswordHash),
-			SSHAuthorizedKeys: translateStringSliceToV2_2SSHAuthorizedKeySlice(oldUser.SSHAuthorizedKeys),
+			SSHAuthorizedKeys: translateStringSliceTov2_1SSHAuthorizedKeySlice(oldUser.SSHAuthorizedKeys),
 		}
 
 		if oldUser.Create != nil {
@@ -179,7 +217,7 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 				HomeDir:      oldUser.Create.Homedir,
 				NoCreateHome: oldUser.Create.NoCreateHome,
 				PrimaryGroup: oldUser.Create.PrimaryGroup,
-				Groups:       translateStringSliceToV2_2UsercreateGroupSlice(oldUser.Create.Groups),
+				Groups:       translateStringSliceTov2_1UsercreateGroupSlice(oldUser.Create.Groups),
 				NoUserGroup:  oldUser.Create.NoUserGroup,
 				System:       oldUser.Create.System,
 				NoLogInit:    oldUser.Create.NoLogInit,
