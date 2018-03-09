@@ -15,7 +15,6 @@
 package v2_0
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/coreos/go-semver/semver"
@@ -39,7 +38,7 @@ func TestTranslateFromV1(t *testing.T) {
 	}{
 		{
 			in:  in{},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: v2_0.MaxVersion.String()}}},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.IgnitionVersion(types.MaxVersion)}}},
 		},
 		{
 			in: in{config: v1.Config{
@@ -126,7 +125,7 @@ func TestTranslateFromV1(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: semver.Version{Major: 2}.String()},
+				Ignition: types.Ignition{Version: types.IgnitionVersion(semver.Version{Major: 2})},
 				Storage: types.Storage{
 					Disks: []types.Disk{
 						{
@@ -154,35 +153,35 @@ func TestTranslateFromV1(t *testing.T) {
 							WipeTable: true,
 						},
 					},
-					Raid: []types.Raid{
+					Arrays: []types.Raid{
 						{
 							Name:    "fast",
 							Level:   "raid0",
-							Devices: []types.Device{types.Device("/dev/sdc"), types.Device("/dev/sdd")},
+							Devices: []types.Path{types.Path("/dev/sdc"), types.Path("/dev/sdd")},
 							Spares:  2,
 						},
 						{
 							Name:    "durable",
 							Level:   "raid1",
-							Devices: []types.Device{types.Device("/dev/sde"), types.Device("/dev/sdf")},
+							Devices: []types.Path{types.Path("/dev/sde"), types.Path("/dev/sdf")},
 							Spares:  3,
 						},
 					},
 					Filesystems: []types.Filesystem{
 						{
 							Name: "_translate-filesystem-0",
-							Mount: &types.Mount{
+							Mount: &types.FilesystemMount{
 								Device: "/dev/disk/by-partlabel/ROOT",
 								Format: "btrfs",
-								Create: &types.Create{
+								Create: &types.FilesystemCreate{
 									Force:   true,
-									Options: []types.CreateOption{"-L", "ROOT"},
+									Options: types.MkfsOptions{"-L", "ROOT"},
 								},
 							},
 						},
 						{
 							Name: "_translate-filesystem-1",
-							Mount: &types.Mount{
+							Mount: &types.FilesystemMount{
 								Device: "/dev/disk/by-partlabel/DATA",
 								Format: "ext4",
 							},
@@ -190,53 +189,41 @@ func TestTranslateFromV1(t *testing.T) {
 					},
 					Files: []types.File{
 						{
-							Node: types.Node{
-								Filesystem: "_translate-filesystem-0",
-								Path:       "/opt/file1",
-								User:       &types.NodeUser{ID: intToPtr(500)},
-								Group:      &types.NodeGroup{ID: intToPtr(501)},
-							},
-							FileEmbedded1: types.FileEmbedded1{
-								Mode: intToPtr(0664),
-								Contents: types.FileContents{
-									Source: (&url.URL{
-										Scheme: "data",
-										Opaque: ",file1",
-									}).String(),
+							Filesystem: "_translate-filesystem-0",
+							Path:       "/opt/file1",
+							User:       types.FileUser{Id: 500},
+							Group:      types.FileGroup{Id: 501},
+							Mode:       0664,
+							Contents: types.FileContents{
+								Source: types.Url{
+									Scheme: "data",
+									Opaque: ",file1",
 								},
 							},
 						},
 						{
-							Node: types.Node{
-								Filesystem: "_translate-filesystem-0",
-								Path:       "/opt/file2",
-								User:       &types.NodeUser{ID: intToPtr(502)},
-								Group:      &types.NodeGroup{ID: intToPtr(503)},
-							},
-							FileEmbedded1: types.FileEmbedded1{
-								Mode: intToPtr(0644),
-								Contents: types.FileContents{
-									Source: (&url.URL{
-										Scheme: "data",
-										Opaque: ",file2",
-									}).String(),
+							Filesystem: "_translate-filesystem-0",
+							Path:       "/opt/file2",
+							User:       types.FileUser{Id: 502},
+							Group:      types.FileGroup{Id: 503},
+							Mode:       0644,
+							Contents: types.FileContents{
+								Source: types.Url{
+									Scheme: "data",
+									Opaque: ",file2",
 								},
 							},
 						},
 						{
-							Node: types.Node{
-								Filesystem: "_translate-filesystem-1",
-								Path:       "/opt/file3",
-								User:       &types.NodeUser{ID: intToPtr(1000)},
-								Group:      &types.NodeGroup{ID: intToPtr(1001)},
-							},
-							FileEmbedded1: types.FileEmbedded1{
-								Mode: intToPtr(0400),
-								Contents: types.FileContents{
-									Source: (&url.URL{
-										Scheme: "data",
-										Opaque: ",file3",
-									}).String(),
+							Filesystem: "_translate-filesystem-1",
+							Path:       "/opt/file3",
+							User:       types.FileUser{Id: 1000},
+							Group:      types.FileGroup{Id: 1001},
+							Mode:       0400,
+							Contents: types.FileContents{
+								Source: types.Url{
+									Scheme: "data",
+									Opaque: ",file3",
 								},
 							},
 						},
@@ -272,14 +259,14 @@ func TestTranslateFromV1(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: semver.Version{Major: 2}.String()},
+				Ignition: types.Ignition{Version: types.IgnitionVersion(semver.Version{Major: 2})},
 				Systemd: types.Systemd{
-					Units: []types.Unit{
+					Units: []types.SystemdUnit{
 						{
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							Dropins: []types.SystemdDropin{
+							DropIns: []types.SystemdUnitDropIn{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
@@ -315,9 +302,9 @@ func TestTranslateFromV1(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: semver.Version{Major: 2}.String()},
+				Ignition: types.Ignition{Version: types.IgnitionVersion(semver.Version{Major: 2})},
 				Networkd: types.Networkd{
-					Units: []types.Networkdunit{
+					Units: []types.NetworkdUnit{
 						{
 							Name:     "test1.network",
 							Contents: "test1 contents",
@@ -378,25 +365,25 @@ func TestTranslateFromV1(t *testing.T) {
 				},
 			}},
 			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: semver.Version{Major: 2}.String()},
+				Ignition: types.Ignition{Version: types.IgnitionVersion(semver.Version{Major: 2})},
 				Passwd: types.Passwd{
-					Users: []types.PasswdUser{
+					Users: []types.User{
 						{
 							Name:              "user 1",
-							PasswordHash:      strToPtr("password 1"),
-							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key1", "key2"},
+							PasswordHash:      "password 1",
+							SSHAuthorizedKeys: []string{"key1", "key2"},
 						},
 						{
 							Name:              "user 2",
-							PasswordHash:      strToPtr("password 2"),
-							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key3", "key4"},
-							Create: &types.Usercreate{
-								UID:          func(i int) *int { return &i }(123),
-								Gecos:        "gecos",
-								HomeDir:      "/home/user 2",
+							PasswordHash:      "password 2",
+							SSHAuthorizedKeys: []string{"key3", "key4"},
+							Create: &types.UserCreate{
+								Uid:          func(i uint) *uint { return &i }(123),
+								GECOS:        "gecos",
+								Homedir:      "/home/user 2",
 								NoCreateHome: true,
 								PrimaryGroup: "wheel",
-								Groups:       []types.UsercreateGroup{"wheel", "plugdev"},
+								Groups:       []string{"wheel", "plugdev"},
 								NoUserGroup:  true,
 								System:       true,
 								NoLogInit:    true,
@@ -405,15 +392,15 @@ func TestTranslateFromV1(t *testing.T) {
 						},
 						{
 							Name:              "user 3",
-							PasswordHash:      strToPtr("password 3"),
-							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key5", "key6"},
-							Create:            &types.Usercreate{},
+							PasswordHash:      "password 3",
+							SSHAuthorizedKeys: []string{"key5", "key6"},
+							Create:            &types.UserCreate{},
 						},
 					},
-					Groups: []types.PasswdGroup{
+					Groups: []types.Group{
 						{
 							Name:         "group 1",
-							Gid:          func(i int) *int { return &i }(1000),
+							Gid:          func(i uint) *uint { return &i }(1000),
 							PasswordHash: "password 1",
 							System:       true,
 						},
