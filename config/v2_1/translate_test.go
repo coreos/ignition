@@ -20,6 +20,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/coreos/ignition/config/util"
 	v2_0 "github.com/coreos/ignition/config/v2_0/types"
 	"github.com/coreos/ignition/config/v2_1/types"
 )
@@ -96,7 +97,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 									Opaque: ",file2",
 								}).String(),
 								Verification: types.Verification{
-									Hash: strToPtr("func2-sum2"),
+									Hash: util.StrToPtr("func2-sum2"),
 								},
 							},
 						},
@@ -106,7 +107,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 								Opaque: ",file3",
 							}).String(),
 							Verification: types.Verification{
-								Hash: strToPtr("func3-sum3"),
+								Hash: util.StrToPtr("func3-sum3"),
 							},
 						},
 					},
@@ -295,8 +296,8 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file1",
-								User:       types.NodeUser{ID: intToPtr(500)},
-								Group:      types.NodeGroup{ID: intToPtr(501)},
+								User:       types.NodeUser{ID: util.IntToPtr(500)},
+								Group:      types.NodeGroup{ID: util.IntToPtr(501)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: 0664,
@@ -312,8 +313,8 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file2",
-								User:       types.NodeUser{ID: intToPtr(502)},
-								Group:      types.NodeGroup{ID: intToPtr(503)},
+								User:       types.NodeUser{ID: util.IntToPtr(502)},
+								Group:      types.NodeGroup{ID: util.IntToPtr(503)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: 0644,
@@ -329,8 +330,8 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/file3",
-								User:       types.NodeUser{ID: intToPtr(1000)},
-								Group:      types.NodeGroup{ID: intToPtr(1001)},
+								User:       types.NodeUser{ID: util.IntToPtr(1000)},
+								Group:      types.NodeGroup{ID: util.IntToPtr(1001)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: 0400,
@@ -485,12 +486,12 @@ func TestTranslateFromV2_0(t *testing.T) {
 					Users: []types.PasswdUser{
 						{
 							Name:              "user 1",
-							PasswordHash:      strToPtr("password 1"),
+							PasswordHash:      util.StrToPtr("password 1"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key1", "key2"},
 						},
 						{
 							Name:              "user 2",
-							PasswordHash:      strToPtr("password 2"),
+							PasswordHash:      util.StrToPtr("password 2"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key3", "key4"},
 							Create: &types.Usercreate{
 								UID:          func(i int) *int { return &i }(123),
@@ -507,7 +508,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 						},
 						{
 							Name:              "user 3",
-							PasswordHash:      strToPtr("password 3"),
+							PasswordHash:      util.StrToPtr("password 3"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key5", "key6"},
 							Create:            &types.Usercreate{},
 						},

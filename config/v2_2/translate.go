@@ -15,24 +15,10 @@
 package v2_2
 
 import (
+	"github.com/coreos/ignition/config/util"
 	v2_1 "github.com/coreos/ignition/config/v2_1/types"
 	"github.com/coreos/ignition/config/v2_2/types"
 )
-
-func intToPtr(x int) *int {
-	return &x
-}
-
-func strToPtr(s string) *string {
-	if s == "" {
-		return nil
-	}
-	return &s
-}
-
-func boolToPtr(b bool) *bool {
-	return &b
-}
 
 // golang--
 func translateStringSliceToV2_2SSHAuthorizedKeySlice(keys []string) []types.SSHAuthorizedKey {
@@ -179,7 +165,7 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 			res = append(res, types.Directory{
 				Node: translateNode(x.Node),
 				DirectoryEmbedded1: types.DirectoryEmbedded1{
-					Mode: intToPtr(x.DirectoryEmbedded1.Mode),
+					Mode: util.IntToPtr(x.DirectoryEmbedded1.Mode),
 				},
 			})
 		}
@@ -223,7 +209,7 @@ func TranslateFromV2_1(old v2_1.Config) types.Config {
 							Hash: x.Contents.Verification.Hash,
 						},
 					},
-					Mode: intToPtr(x.Mode),
+					Mode: util.IntToPtr(x.Mode),
 				},
 			})
 		}

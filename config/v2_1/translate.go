@@ -17,20 +17,10 @@ package v2_1
 import (
 	"strings"
 
+	"github.com/coreos/ignition/config/util"
 	v2_0 "github.com/coreos/ignition/config/v2_0/types"
 	"github.com/coreos/ignition/config/v2_1/types"
 )
-
-func intToPtr(x int) *int {
-	return &x
-}
-
-func strToPtr(s string) *string {
-	if s == "" {
-		return nil
-	}
-	return &s
-}
 
 // golang--
 func translateV2_0MkfsOptionsTov2_1OptionSlice(opts v2_0.MkfsOptions) []types.CreateOption {
@@ -157,8 +147,8 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 			Node: types.Node{
 				Filesystem: oldFile.Filesystem,
 				Path:       string(oldFile.Path),
-				User:       types.NodeUser{ID: intToPtr(oldFile.User.Id)},
-				Group:      types.NodeGroup{ID: intToPtr(oldFile.Group.Id)},
+				User:       types.NodeUser{ID: util.IntToPtr(oldFile.User.Id)},
+				Group:      types.NodeGroup{ID: util.IntToPtr(oldFile.Group.Id)},
 			},
 			FileEmbedded1: types.FileEmbedded1{
 				Mode: int(oldFile.Mode),
@@ -201,7 +191,7 @@ func TranslateFromV2_0(old v2_0.Config) types.Config {
 	for _, oldUser := range old.Passwd.Users {
 		user := types.PasswdUser{
 			Name:              oldUser.Name,
-			PasswordHash:      strToPtr(oldUser.PasswordHash),
+			PasswordHash:      util.StrToPtr(oldUser.PasswordHash),
 			SSHAuthorizedKeys: translateStringSliceTov2_1SSHAuthorizedKeySlice(oldUser.SSHAuthorizedKeys),
 		}
 

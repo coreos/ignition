@@ -20,6 +20,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/coreos/ignition/config/util"
 	v2_2 "github.com/coreos/ignition/config/v2_2/types"
 	"github.com/coreos/ignition/config/v2_3_experimental/types"
 )
@@ -57,7 +58,7 @@ func TestTranslate(t *testing.T) {
 									Opaque: ",file2",
 								}).String(),
 								Verification: v2_2.Verification{
-									Hash: strToPtr("func2-sum2"),
+									Hash: util.StrToPtr("func2-sum2"),
 								},
 							},
 						},
@@ -67,7 +68,7 @@ func TestTranslate(t *testing.T) {
 								Opaque: ",file3",
 							}).String(),
 							Verification: v2_2.Verification{
-								Hash: strToPtr("func3-sum3"),
+								Hash: util.StrToPtr("func3-sum3"),
 							},
 						},
 					},
@@ -90,7 +91,7 @@ func TestTranslate(t *testing.T) {
 									Opaque: ",file2",
 								}).String(),
 								Verification: types.Verification{
-									Hash: strToPtr("func2-sum2"),
+									Hash: util.StrToPtr("func2-sum2"),
 								},
 							},
 						},
@@ -100,7 +101,7 @@ func TestTranslate(t *testing.T) {
 								Opaque: ",file3",
 							}).String(),
 							Verification: types.Verification{
-								Hash: strToPtr("func3-sum3"),
+								Hash: util.StrToPtr("func3-sum3"),
 							},
 						},
 					},
@@ -130,8 +131,8 @@ func TestTranslate(t *testing.T) {
 			in: in{config: v2_2.Config{
 				Ignition: v2_2.Ignition{
 					Timeouts: v2_2.Timeouts{
-						HTTPResponseHeaders: intToPtr(0),
-						HTTPTotal:           intToPtr(0),
+						HTTPResponseHeaders: util.IntToPtr(0),
+						HTTPTotal:           util.IntToPtr(0),
 					},
 				},
 			}},
@@ -139,8 +140,8 @@ func TestTranslate(t *testing.T) {
 				Ignition: types.Ignition{
 					Version: types.MaxVersion.String(),
 					Timeouts: types.Timeouts{
-						HTTPResponseHeaders: intToPtr(0),
-						HTTPTotal:           intToPtr(0),
+						HTTPResponseHeaders: util.IntToPtr(0),
+						HTTPTotal:           util.IntToPtr(0),
 					},
 				},
 			}},
@@ -149,8 +150,8 @@ func TestTranslate(t *testing.T) {
 			in: in{config: v2_2.Config{
 				Ignition: v2_2.Ignition{
 					Timeouts: v2_2.Timeouts{
-						HTTPResponseHeaders: intToPtr(50),
-						HTTPTotal:           intToPtr(100),
+						HTTPResponseHeaders: util.IntToPtr(50),
+						HTTPTotal:           util.IntToPtr(100),
 					},
 				},
 			}},
@@ -158,8 +159,8 @@ func TestTranslate(t *testing.T) {
 				Ignition: types.Ignition{
 					Version: types.MaxVersion.String(),
 					Timeouts: types.Timeouts{
-						HTTPResponseHeaders: intToPtr(50),
-						HTTPTotal:           intToPtr(100),
+						HTTPResponseHeaders: util.IntToPtr(50),
+						HTTPTotal:           util.IntToPtr(100),
 					},
 				},
 			}},
@@ -205,7 +206,7 @@ func TestTranslate(t *testing.T) {
 								{
 									Source: "https://example.com/ca2.pem",
 									Verification: v2_2.Verification{
-										Hash: strToPtr("sha512-adbebebd234245380"),
+										Hash: util.StrToPtr("sha512-adbebebd234245380"),
 									},
 								},
 							},
@@ -225,7 +226,7 @@ func TestTranslate(t *testing.T) {
 								{
 									Source: "https://example.com/ca2.pem",
 									Verification: types.Verification{
-										Hash: strToPtr("sha512-adbebebd234245380"),
+										Hash: util.StrToPtr("sha512-adbebebd234245380"),
 									},
 								},
 							},
@@ -390,9 +391,9 @@ func TestTranslate(t *testing.T) {
 									Force:   true,
 									Options: []v2_2.CreateOption{"-L", "ROOT"},
 								},
-								Label:          strToPtr("ROOT"),
+								Label:          util.StrToPtr("ROOT"),
 								Options:        []v2_2.MountOption{"--nodiscard"},
-								UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-46215D4696AC"),
+								UUID:           util.StrToPtr("8A7A6E26-5E8F-4CCA-A654-46215D4696AC"),
 								WipeFilesystem: true,
 							},
 						},
@@ -401,9 +402,9 @@ func TestTranslate(t *testing.T) {
 							Mount: &v2_2.Mount{
 								Device:         "/dev/disk/by-partlabel/DATA",
 								Format:         "ext4",
-								Label:          strToPtr("DATA"),
+								Label:          util.StrToPtr("DATA"),
 								Options:        []v2_2.MountOption{"-b", "1024"},
-								UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-DEADBEEF0101"),
+								UUID:           util.StrToPtr("8A7A6E26-5E8F-4CCA-A654-DEADBEEF0101"),
 								WipeFilesystem: false,
 							},
 						},
@@ -427,9 +428,9 @@ func TestTranslate(t *testing.T) {
 									Force:   true,
 									Options: []types.CreateOption{"-L", "ROOT"},
 								},
-								Label:          strToPtr("ROOT"),
+								Label:          util.StrToPtr("ROOT"),
 								Options:        []types.MountOption{"--nodiscard"},
-								UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-46215D4696AC"),
+								UUID:           util.StrToPtr("8A7A6E26-5E8F-4CCA-A654-46215D4696AC"),
 								WipeFilesystem: true,
 							},
 						},
@@ -438,15 +439,15 @@ func TestTranslate(t *testing.T) {
 							Mount: &types.Mount{
 								Device:         "/dev/disk/by-partlabel/DATA",
 								Format:         "ext4",
-								Label:          strToPtr("DATA"),
+								Label:          util.StrToPtr("DATA"),
 								Options:        []types.MountOption{"-b", "1024"},
-								UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-DEADBEEF0101"),
+								UUID:           util.StrToPtr("8A7A6E26-5E8F-4CCA-A654-DEADBEEF0101"),
 								WipeFilesystem: false,
 							},
 						},
 						{
 							Name: "filesystem-2",
-							Path: strToPtr("/foo"),
+							Path: util.StrToPtr("/foo"),
 						},
 					},
 				},
@@ -461,19 +462,19 @@ func TestTranslate(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file1",
-								User:       &v2_2.NodeUser{ID: intToPtr(500)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(false),
+								User:       &v2_2.NodeUser{ID: util.IntToPtr(500)},
+								Group:      &v2_2.NodeGroup{ID: util.IntToPtr(501)},
+								Overwrite:  util.BoolToPtr(false),
 							},
 							FileEmbedded1: v2_2.FileEmbedded1{
-								Mode: intToPtr(0664),
+								Mode: util.IntToPtr(0664),
 								Contents: v2_2.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
 										Opaque: ",file1",
 									}).String(),
 									Verification: v2_2.Verification{
-										Hash: strToPtr("foobar"),
+										Hash: util.StrToPtr("foobar"),
 									},
 								},
 							},
@@ -482,11 +483,11 @@ func TestTranslate(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file2",
-								User:       &v2_2.NodeUser{ID: intToPtr(502)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(503)},
+								User:       &v2_2.NodeUser{ID: util.IntToPtr(502)},
+								Group:      &v2_2.NodeGroup{ID: util.IntToPtr(503)},
 							},
 							FileEmbedded1: v2_2.FileEmbedded1{
-								Mode:   intToPtr(0644),
+								Mode:   util.IntToPtr(0644),
 								Append: true,
 								Contents: v2_2.FileContents{
 									Source: (&url.URL{
@@ -501,11 +502,11 @@ func TestTranslate(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/file3",
-								User:       &v2_2.NodeUser{ID: intToPtr(1000)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(1001)},
+								User:       &v2_2.NodeUser{ID: util.IntToPtr(1000)},
+								Group:      &v2_2.NodeGroup{ID: util.IntToPtr(1001)},
 							},
 							FileEmbedded1: v2_2.FileEmbedded1{
-								Mode: intToPtr(0400),
+								Mode: util.IntToPtr(0400),
 								Contents: v2_2.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -525,19 +526,19 @@ func TestTranslate(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file1",
-								User:       &types.NodeUser{ID: intToPtr(500)},
-								Group:      &types.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(false),
+								User:       &types.NodeUser{ID: util.IntToPtr(500)},
+								Group:      &types.NodeGroup{ID: util.IntToPtr(501)},
+								Overwrite:  util.BoolToPtr(false),
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: intToPtr(0664),
+								Mode: util.IntToPtr(0664),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
 										Opaque: ",file1",
 									}).String(),
 									Verification: types.Verification{
-										Hash: strToPtr("foobar"),
+										Hash: util.StrToPtr("foobar"),
 									},
 								},
 							},
@@ -546,11 +547,11 @@ func TestTranslate(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file2",
-								User:       &types.NodeUser{ID: intToPtr(502)},
-								Group:      &types.NodeGroup{ID: intToPtr(503)},
+								User:       &types.NodeUser{ID: util.IntToPtr(502)},
+								Group:      &types.NodeGroup{ID: util.IntToPtr(503)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode:   intToPtr(0644),
+								Mode:   util.IntToPtr(0644),
 								Append: true,
 								Contents: types.FileContents{
 									Source: (&url.URL{
@@ -565,11 +566,11 @@ func TestTranslate(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/file3",
-								User:       &types.NodeUser{ID: intToPtr(1000)},
-								Group:      &types.NodeGroup{ID: intToPtr(1001)},
+								User:       &types.NodeUser{ID: util.IntToPtr(1000)},
+								Group:      &types.NodeGroup{ID: util.IntToPtr(1001)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: intToPtr(0400),
+								Mode: util.IntToPtr(0400),
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -591,34 +592,34 @@ func TestTranslate(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/dir1",
-								User:       &v2_2.NodeUser{ID: intToPtr(500)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(false),
+								User:       &v2_2.NodeUser{ID: util.IntToPtr(500)},
+								Group:      &v2_2.NodeGroup{ID: util.IntToPtr(501)},
+								Overwrite:  util.BoolToPtr(false),
 							},
 							DirectoryEmbedded1: v2_2.DirectoryEmbedded1{
-								Mode: intToPtr(0664),
+								Mode: util.IntToPtr(0664),
 							},
 						},
 						{
 							Node: v2_2.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/dir2",
-								User:       &v2_2.NodeUser{ID: intToPtr(502)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(503)},
+								User:       &v2_2.NodeUser{ID: util.IntToPtr(502)},
+								Group:      &v2_2.NodeGroup{ID: util.IntToPtr(503)},
 							},
 							DirectoryEmbedded1: v2_2.DirectoryEmbedded1{
-								Mode: intToPtr(0644),
+								Mode: util.IntToPtr(0644),
 							},
 						},
 						{
 							Node: v2_2.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/dir3",
-								User:       &v2_2.NodeUser{ID: intToPtr(1000)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(1001)},
+								User:       &v2_2.NodeUser{ID: util.IntToPtr(1000)},
+								Group:      &v2_2.NodeGroup{ID: util.IntToPtr(1001)},
 							},
 							DirectoryEmbedded1: v2_2.DirectoryEmbedded1{
-								Mode: intToPtr(0400),
+								Mode: util.IntToPtr(0400),
 							},
 						},
 					},
@@ -632,34 +633,34 @@ func TestTranslate(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/dir1",
-								User:       &types.NodeUser{ID: intToPtr(500)},
-								Group:      &types.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(false),
+								User:       &types.NodeUser{ID: util.IntToPtr(500)},
+								Group:      &types.NodeGroup{ID: util.IntToPtr(501)},
+								Overwrite:  util.BoolToPtr(false),
 							},
 							DirectoryEmbedded1: types.DirectoryEmbedded1{
-								Mode: intToPtr(0664),
+								Mode: util.IntToPtr(0664),
 							},
 						},
 						{
 							Node: types.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/dir2",
-								User:       &types.NodeUser{ID: intToPtr(502)},
-								Group:      &types.NodeGroup{ID: intToPtr(503)},
+								User:       &types.NodeUser{ID: util.IntToPtr(502)},
+								Group:      &types.NodeGroup{ID: util.IntToPtr(503)},
 							},
 							DirectoryEmbedded1: types.DirectoryEmbedded1{
-								Mode: intToPtr(0644),
+								Mode: util.IntToPtr(0644),
 							},
 						},
 						{
 							Node: types.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/dir3",
-								User:       &types.NodeUser{ID: intToPtr(1000)},
-								Group:      &types.NodeGroup{ID: intToPtr(1001)},
+								User:       &types.NodeUser{ID: util.IntToPtr(1000)},
+								Group:      &types.NodeGroup{ID: util.IntToPtr(1001)},
 							},
 							DirectoryEmbedded1: types.DirectoryEmbedded1{
-								Mode: intToPtr(0400),
+								Mode: util.IntToPtr(0400),
 							},
 						},
 					},
@@ -675,9 +676,9 @@ func TestTranslate(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/link1",
-								User:       &v2_2.NodeUser{ID: intToPtr(500)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(true),
+								User:       &v2_2.NodeUser{ID: util.IntToPtr(500)},
+								Group:      &v2_2.NodeGroup{ID: util.IntToPtr(501)},
+								Overwrite:  util.BoolToPtr(true),
 							},
 							LinkEmbedded1: v2_2.LinkEmbedded1{
 								Hard:   false,
@@ -688,8 +689,8 @@ func TestTranslate(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/link2",
-								User:       &v2_2.NodeUser{ID: intToPtr(502)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(503)},
+								User:       &v2_2.NodeUser{ID: util.IntToPtr(502)},
+								Group:      &v2_2.NodeGroup{ID: util.IntToPtr(503)},
 							},
 							LinkEmbedded1: v2_2.LinkEmbedded1{
 								Hard:   true,
@@ -700,8 +701,8 @@ func TestTranslate(t *testing.T) {
 							Node: v2_2.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/link3",
-								User:       &v2_2.NodeUser{ID: intToPtr(1000)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(1001)},
+								User:       &v2_2.NodeUser{ID: util.IntToPtr(1000)},
+								Group:      &v2_2.NodeGroup{ID: util.IntToPtr(1001)},
 							},
 							LinkEmbedded1: v2_2.LinkEmbedded1{
 								Hard:   true,
@@ -719,9 +720,9 @@ func TestTranslate(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/link1",
-								User:       &types.NodeUser{ID: intToPtr(500)},
-								Group:      &types.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(true),
+								User:       &types.NodeUser{ID: util.IntToPtr(500)},
+								Group:      &types.NodeGroup{ID: util.IntToPtr(501)},
+								Overwrite:  util.BoolToPtr(true),
 							},
 							LinkEmbedded1: types.LinkEmbedded1{
 								Hard:   false,
@@ -732,8 +733,8 @@ func TestTranslate(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/link2",
-								User:       &types.NodeUser{ID: intToPtr(502)},
-								Group:      &types.NodeGroup{ID: intToPtr(503)},
+								User:       &types.NodeUser{ID: util.IntToPtr(502)},
+								Group:      &types.NodeGroup{ID: util.IntToPtr(503)},
 							},
 							LinkEmbedded1: types.LinkEmbedded1{
 								Hard:   true,
@@ -744,8 +745,8 @@ func TestTranslate(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/link3",
-								User:       &types.NodeUser{ID: intToPtr(1000)},
-								Group:      &types.NodeGroup{ID: intToPtr(1001)},
+								User:       &types.NodeUser{ID: util.IntToPtr(1000)},
+								Group:      &types.NodeGroup{ID: util.IntToPtr(1001)},
 							},
 							LinkEmbedded1: types.LinkEmbedded1{
 								Hard:   true,
@@ -782,7 +783,7 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Name:    "test3.service",
-							Enabled: boolToPtr(false),
+							Enabled: util.BoolToPtr(false),
 						},
 					},
 				},
@@ -813,7 +814,7 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Name:    "test3.service",
-							Enabled: boolToPtr(false),
+							Enabled: util.BoolToPtr(false),
 						},
 					},
 				},
@@ -875,15 +876,15 @@ func TestTranslate(t *testing.T) {
 					Users: []v2_2.PasswdUser{
 						{
 							Name:              "user 1",
-							PasswordHash:      strToPtr("password 1"),
+							PasswordHash:      util.StrToPtr("password 1"),
 							SSHAuthorizedKeys: []v2_2.SSHAuthorizedKey{"key1", "key2"},
 						},
 						{
 							Name:              "user 2",
-							PasswordHash:      strToPtr("password 2"),
+							PasswordHash:      util.StrToPtr("password 2"),
 							SSHAuthorizedKeys: []v2_2.SSHAuthorizedKey{"key3", "key4"},
 							Create: &v2_2.Usercreate{
-								UID:          intToPtr(123),
+								UID:          util.IntToPtr(123),
 								Gecos:        "gecos",
 								HomeDir:      "/home/user 2",
 								NoCreateHome: true,
@@ -897,9 +898,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Name:              "user 3",
-							PasswordHash:      strToPtr("password 3"),
+							PasswordHash:      util.StrToPtr("password 3"),
 							SSHAuthorizedKeys: []v2_2.SSHAuthorizedKey{"key5", "key6"},
-							UID:               intToPtr(123),
+							UID:               util.IntToPtr(123),
 							Gecos:             "gecos",
 							HomeDir:           "/home/user 2",
 							NoCreateHome:      true,
@@ -912,7 +913,7 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Name:              "user 4",
-							PasswordHash:      strToPtr("password 4"),
+							PasswordHash:      util.StrToPtr("password 4"),
 							SSHAuthorizedKeys: []v2_2.SSHAuthorizedKey{"key7", "key8"},
 							Create:            &v2_2.Usercreate{},
 						},
@@ -937,12 +938,12 @@ func TestTranslate(t *testing.T) {
 					Users: []types.PasswdUser{
 						{
 							Name:              "user 1",
-							PasswordHash:      strToPtr("password 1"),
+							PasswordHash:      util.StrToPtr("password 1"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key1", "key2"},
 						},
 						{
 							Name:              "user 2",
-							PasswordHash:      strToPtr("password 2"),
+							PasswordHash:      util.StrToPtr("password 2"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key3", "key4"},
 							Create: &types.Usercreate{
 								UID:          func(i int) *int { return &i }(123),
@@ -959,9 +960,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Name:              "user 3",
-							PasswordHash:      strToPtr("password 3"),
+							PasswordHash:      util.StrToPtr("password 3"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key5", "key6"},
-							UID:               intToPtr(123),
+							UID:               util.IntToPtr(123),
 							Gecos:             "gecos",
 							HomeDir:           "/home/user 2",
 							NoCreateHome:      true,
@@ -974,7 +975,7 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Name:              "user 4",
-							PasswordHash:      strToPtr("password 4"),
+							PasswordHash:      util.StrToPtr("password 4"),
 							SSHAuthorizedKeys: []types.SSHAuthorizedKey{"key7", "key8"},
 							Create:            &types.Usercreate{},
 						},

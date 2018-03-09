@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -50,21 +51,17 @@ func TestNodeValidateFilesystem(t *testing.T) {
 	}
 }
 
-func intToPtr(x int) *int {
-	return &x
-}
-
 func TestNodeValidateUser(t *testing.T) {
 	tests := []struct {
 		in  NodeUser
 		out report.Report
 	}{
 		{
-			in:  NodeUser{intToPtr(0), ""},
+			in:  NodeUser{util.IntToPtr(0), ""},
 			out: report.Report{},
 		},
 		{
-			in:  NodeUser{intToPtr(1000), ""},
+			in:  NodeUser{util.IntToPtr(1000), ""},
 			out: report.Report{},
 		},
 		{
@@ -72,7 +69,7 @@ func TestNodeValidateUser(t *testing.T) {
 			out: report.Report{},
 		},
 		{
-			in:  NodeUser{intToPtr(1000), "core"},
+			in:  NodeUser{util.IntToPtr(1000), "core"},
 			out: report.ReportFromError(ErrBothIDAndNameSet, report.EntryError),
 		},
 	}
@@ -91,11 +88,11 @@ func TestNodeValidateGroup(t *testing.T) {
 		out report.Report
 	}{
 		{
-			in:  NodeGroup{intToPtr(0), ""},
+			in:  NodeGroup{util.IntToPtr(0), ""},
 			out: report.Report{},
 		},
 		{
-			in:  NodeGroup{intToPtr(1000), ""},
+			in:  NodeGroup{util.IntToPtr(1000), ""},
 			out: report.Report{},
 		},
 		{
@@ -103,7 +100,7 @@ func TestNodeValidateGroup(t *testing.T) {
 			out: report.Report{},
 		},
 		{
-			in:  NodeGroup{intToPtr(1000), "core"},
+			in:  NodeGroup{util.IntToPtr(1000), "core"},
 			out: report.ReportFromError(ErrBothIDAndNameSet, report.EntryError),
 		},
 	}

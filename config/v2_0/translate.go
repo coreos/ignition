@@ -22,21 +22,6 @@ import (
 	"github.com/vincent-petithory/dataurl"
 )
 
-func intToPtr(x int) *int {
-	return &x
-}
-
-func strToPtr(s string) *string {
-	if s == "" {
-		return nil
-	}
-	return &s
-}
-
-func boolToPtr(b bool) *bool {
-	return &b
-}
-
 func TranslateFromV1(old v1.Config) types.Config {
 	config := types.Config{
 		Ignition: types.Ignition{

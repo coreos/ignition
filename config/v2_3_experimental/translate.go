@@ -19,21 +19,6 @@ import (
 	"github.com/coreos/ignition/config/v2_3_experimental/types"
 )
 
-func intToPtr(x int) *int {
-	return &x
-}
-
-func strToPtr(s string) *string {
-	if s == "" {
-		return nil
-	}
-	return &s
-}
-
-func boolToPtr(b bool) *bool {
-	return &b
-}
-
 func Translate(old v2_2.Config) types.Config {
 	translateConfigReference := func(old *v2_2.ConfigReference) *types.ConfigReference {
 		if old == nil {
