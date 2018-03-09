@@ -15,9 +15,9 @@
 package v1
 
 import (
-	"errors"
 	"reflect"
 
+	"github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/v1/types"
 	"github.com/coreos/ignition/config/validate"
@@ -26,20 +26,13 @@ import (
 	json "github.com/ajeddeloh/go-json"
 )
 
-var (
-	ErrVersion     = errors.New("incorrect config version")
-	ErrCloudConfig = errors.New("not a config (found coreos-cloudconfig)")
-	ErrEmpty       = errors.New("not a config (empty)")
-	ErrScript      = errors.New("not a config (found coreos-cloudinit script)")
-)
-
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	if isEmpty(rawConfig) {
-		return types.Config{}, report.Report{}, ErrEmpty
+		return types.Config{}, report.Report{}, errors.ErrEmpty
 	} else if isCloudConfig(rawConfig) {
-		return types.Config{}, report.Report{}, ErrCloudConfig
+		return types.Config{}, report.Report{}, errors.ErrCloudConfig
 	} else if isScript(rawConfig) {
-		return types.Config{}, report.Report{}, ErrScript
+		return types.Config{}, report.Report{}, errors.ErrScript
 	}
 
 	var err error
@@ -53,12 +46,12 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	}
 
 	if config.Version != types.Version {
-		err = ErrVersion
+		return types.Config{}, report.Report{}, errors.ErrInvalid
 	}
 
 	rpt := validate.ValidateWithoutSource(reflect.ValueOf(config))
 	if rpt.IsFatal() {
-		return types.Config{}, rpt, util.ErrInvalid
+		return types.Config{}, rpt, errors.ErrInvalid
 	}
 	return config, rpt, nil
 }
