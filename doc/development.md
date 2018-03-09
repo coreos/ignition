@@ -10,7 +10,7 @@ sudo apt-get install libblkid-dev
 sudo dnf install libblkid-devel
 ```
 
-## Generate
+## Modifying the config spec
 
 Install [schematyper](https://github.com/idubinskiy/schematyper) to generate Go structs from JSON schema definitions.
 
@@ -18,11 +18,17 @@ Install [schematyper](https://github.com/idubinskiy/schematyper) to generate Go 
 go get -u github.com/idubinskiy/schematyper
 ```
 
-Use the tool to generate `config/types/schema.go` whenever the `schema/ignition.json` is modified.
+Modify `schema/ignition.json` as necessary. This file adheres to the [json schema spec](http://json-schema.org/).
+
+Run the `generate` script to create `internal/config/types/schema.go` and `config/v${LATEST_EXPERIMENTAL}/types/schema.go`. The first of the two files is used internally by Ignition, and the second is presented to library consumers and used for validation.
 
 ```sh
 ./generate
 ```
+
+Add whatever validation logic is necessary to `config/v${LATEST_EXPERIMENTAL}/types`, modify the translator at `internal/config/translate.go` to handle the changes, and update `internal/config/translate_test.go` to properly test the changes.
+
+Finally, make whatever changes are necessary to `internal` to handle the new spec.
 
 ## Vendor
 
