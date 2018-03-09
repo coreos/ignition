@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2018 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v2_3_experimental
+package config
 
 import (
-	v2_2 "github.com/coreos/ignition/config/v2_2/types"
-	"github.com/coreos/ignition/config/v2_3_experimental/types"
+	from "github.com/coreos/ignition/config/v2_3_experimental/types"
+	"github.com/coreos/ignition/internal/config/types"
 )
 
 func intToPtr(x int) *int {
@@ -34,26 +34,8 @@ func boolToPtr(b bool) *bool {
 	return &b
 }
 
-// golang--
-func translateStringSliceToV2_2SSHAuthorizedKeySlice(keys []string) []types.SSHAuthorizedKey {
-	newKeys := make([]types.SSHAuthorizedKey, len(keys))
-	for i, k := range keys {
-		newKeys[i] = types.SSHAuthorizedKey(k)
-	}
-	return newKeys
-}
-
-// golang--
-func translateStringSliceToV2_2UsercreateGroupSlice(groups []string) []types.UsercreateGroup {
-	var newGroups []types.UsercreateGroup
-	for _, g := range groups {
-		newGroups = append(newGroups, types.UsercreateGroup(g))
-	}
-	return newGroups
-}
-
-func TranslateFromV2_2(old v2_2.Config) types.Config {
-	translateConfigReference := func(old *v2_2.ConfigReference) *types.ConfigReference {
+func Translate(old from.Config) types.Config {
+	translateConfigReference := func(old *from.ConfigReference) *types.ConfigReference {
 		if old == nil {
 			return nil
 		}
@@ -64,14 +46,14 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			},
 		}
 	}
-	translateConfigReferenceSlice := func(old []v2_2.ConfigReference) []types.ConfigReference {
+	translateConfigReferenceSlice := func(old []from.ConfigReference) []types.ConfigReference {
 		var res []types.ConfigReference
 		for _, c := range old {
 			res = append(res, *translateConfigReference(&c))
 		}
 		return res
 	}
-	translateCertificateAuthoritySlice := func(old []v2_2.CaReference) []types.CaReference {
+	translateCertificateAuthoritySlice := func(old []from.CaReference) []types.CaReference {
 		var res []types.CaReference
 		for _, x := range old {
 			res = append(res, types.CaReference{
@@ -83,7 +65,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateNetworkdDropinSlice := func(old []v2_2.NetworkdDropin) []types.NetworkdDropin {
+	translateNetworkdDropinSlice := func(old []from.NetworkdDropin) []types.NetworkdDropin {
 		var res []types.NetworkdDropin
 		for _, x := range old {
 			res = append(res, types.NetworkdDropin{
@@ -93,7 +75,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateNetworkdUnitSlice := func(old []v2_2.Networkdunit) []types.Networkdunit {
+	translateNetworkdUnitSlice := func(old []from.Networkdunit) []types.Networkdunit {
 		var res []types.Networkdunit
 		for _, u := range old {
 			res = append(res, types.Networkdunit{
@@ -104,7 +86,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translatePasswdGroupSlice := func(old []v2_2.PasswdGroup) []types.PasswdGroup {
+	translatePasswdGroupSlice := func(old []from.PasswdGroup) []types.PasswdGroup {
 		var res []types.PasswdGroup
 		for _, g := range old {
 			res = append(res, types.PasswdGroup{
@@ -116,14 +98,14 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translatePasswdUsercreateGroupSlice := func(old []v2_2.UsercreateGroup) []types.UsercreateGroup {
+	translatePasswdUsercreateGroupSlice := func(old []from.UsercreateGroup) []types.UsercreateGroup {
 		var res []types.UsercreateGroup
 		for _, g := range old {
 			res = append(res, types.UsercreateGroup(g))
 		}
 		return res
 	}
-	translatePasswdUsercreate := func(old *v2_2.Usercreate) *types.Usercreate {
+	translatePasswdUsercreate := func(old *from.Usercreate) *types.Usercreate {
 		if old == nil {
 			return nil
 		}
@@ -140,21 +122,21 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			UID:          old.UID,
 		}
 	}
-	translatePasswdUserGroupSlice := func(old []v2_2.Group) []types.Group {
+	translatePasswdUserGroupSlice := func(old []from.Group) []types.Group {
 		var res []types.Group
 		for _, g := range old {
 			res = append(res, types.Group(g))
 		}
 		return res
 	}
-	translatePasswdSSHAuthorizedKeySlice := func(old []v2_2.SSHAuthorizedKey) []types.SSHAuthorizedKey {
+	translatePasswdSSHAuthorizedKeySlice := func(old []from.SSHAuthorizedKey) []types.SSHAuthorizedKey {
 		res := make([]types.SSHAuthorizedKey, len(old))
 		for i, k := range old {
 			res[i] = types.SSHAuthorizedKey(k)
 		}
 		return res
 	}
-	translatePasswdUserSlice := func(old []v2_2.PasswdUser) []types.PasswdUser {
+	translatePasswdUserSlice := func(old []from.PasswdUser) []types.PasswdUser {
 		var res []types.PasswdUser
 		for _, u := range old {
 			res = append(res, types.PasswdUser{
@@ -176,7 +158,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateNodeGroup := func(old *v2_2.NodeGroup) *types.NodeGroup {
+	translateNodeGroup := func(old *from.NodeGroup) *types.NodeGroup {
 		if old == nil {
 			return nil
 		}
@@ -185,7 +167,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			Name: old.Name,
 		}
 	}
-	translateNodeUser := func(old *v2_2.NodeUser) *types.NodeUser {
+	translateNodeUser := func(old *from.NodeUser) *types.NodeUser {
 		if old == nil {
 			return nil
 		}
@@ -194,7 +176,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			Name: old.Name,
 		}
 	}
-	translateNode := func(old v2_2.Node) types.Node {
+	translateNode := func(old from.Node) types.Node {
 		return types.Node{
 			Filesystem: old.Filesystem,
 			Group:      translateNodeGroup(old.Group),
@@ -203,7 +185,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			Overwrite:  old.Overwrite,
 		}
 	}
-	translateDirectorySlice := func(old []v2_2.Directory) []types.Directory {
+	translateDirectorySlice := func(old []from.Directory) []types.Directory {
 		var res []types.Directory
 		for _, x := range old {
 			res = append(res, types.Directory{
@@ -215,7 +197,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translatePartitionSlice := func(old []v2_2.Partition) []types.Partition {
+	translatePartitionSlice := func(old []from.Partition) []types.Partition {
 		var res []types.Partition
 		for _, x := range old {
 			res = append(res, types.Partition{
@@ -229,7 +211,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateDiskSlice := func(old []v2_2.Disk) []types.Disk {
+	translateDiskSlice := func(old []from.Disk) []types.Disk {
 		var res []types.Disk
 		for _, x := range old {
 			res = append(res, types.Disk{
@@ -240,7 +222,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateFileSlice := func(old []v2_2.File) []types.File {
+	translateFileSlice := func(old []from.File) []types.File {
 		var res []types.File
 		for _, x := range old {
 			res = append(res, types.File{
@@ -260,14 +242,14 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateMountCreateOptionSlice := func(old []v2_2.CreateOption) []types.CreateOption {
+	translateMountCreateOptionSlice := func(old []from.CreateOption) []types.CreateOption {
 		var res []types.CreateOption
 		for _, x := range old {
 			res = append(res, types.CreateOption(x))
 		}
 		return res
 	}
-	translateMountCreate := func(old *v2_2.Create) *types.Create {
+	translateMountCreate := func(old *from.Create) *types.Create {
 		if old == nil {
 			return nil
 		}
@@ -276,14 +258,14 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			Options: translateMountCreateOptionSlice(old.Options),
 		}
 	}
-	translateMountOptionSlice := func(old []v2_2.MountOption) []types.MountOption {
+	translateMountOptionSlice := func(old []from.MountOption) []types.MountOption {
 		var res []types.MountOption
 		for _, x := range old {
 			res = append(res, types.MountOption(x))
 		}
 		return res
 	}
-	translateMount := func(old *v2_2.Mount) *types.Mount {
+	translateMount := func(old *from.Mount) *types.Mount {
 		if old == nil {
 			return nil
 		}
@@ -297,7 +279,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 			WipeFilesystem: old.WipeFilesystem,
 		}
 	}
-	translateFilesystemSlice := func(old []v2_2.Filesystem) []types.Filesystem {
+	translateFilesystemSlice := func(old []from.Filesystem) []types.Filesystem {
 		var res []types.Filesystem
 		for _, x := range old {
 			res = append(res, types.Filesystem{
@@ -308,7 +290,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateLinkSlice := func(old []v2_2.Link) []types.Link {
+	translateLinkSlice := func(old []from.Link) []types.Link {
 		var res []types.Link
 		for _, x := range old {
 			res = append(res, types.Link{
@@ -321,21 +303,21 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateDeviceSlice := func(old []v2_2.Device) []types.Device {
+	translateDeviceSlice := func(old []from.Device) []types.Device {
 		var res []types.Device
 		for _, x := range old {
 			res = append(res, types.Device(x))
 		}
 		return res
 	}
-	translateRaidOptionSlice := func(old []v2_2.RaidOption) []types.RaidOption {
+	translateRaidOptionSlice := func(old []from.RaidOption) []types.RaidOption {
 		var res []types.RaidOption
 		for _, x := range old {
 			res = append(res, types.RaidOption(x))
 		}
 		return res
 	}
-	translateRaidSlice := func(old []v2_2.Raid) []types.Raid {
+	translateRaidSlice := func(old []from.Raid) []types.Raid {
 		var res []types.Raid
 		for _, x := range old {
 			res = append(res, types.Raid{
@@ -348,7 +330,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateSystemdDropinSlice := func(old []v2_2.SystemdDropin) []types.SystemdDropin {
+	translateSystemdDropinSlice := func(old []from.SystemdDropin) []types.SystemdDropin {
 		var res []types.SystemdDropin
 		for _, x := range old {
 			res = append(res, types.SystemdDropin{
@@ -358,7 +340,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 		}
 		return res
 	}
-	translateSystemdUnitSlice := func(old []v2_2.Unit) []types.Unit {
+	translateSystemdUnitSlice := func(old []from.Unit) []types.Unit {
 		var res []types.Unit
 		for _, x := range old {
 			res = append(res, types.Unit{
@@ -374,7 +356,7 @@ func TranslateFromV2_2(old v2_2.Config) types.Config {
 	}
 	config := types.Config{
 		Ignition: types.Ignition{
-			Version: types.MaxVersion.String(),
+			Version: from.MaxVersion.String(),
 			Timeouts: types.Timeouts{
 				HTTPResponseHeaders: old.Ignition.Timeouts.HTTPResponseHeaders,
 				HTTPTotal:           old.Ignition.Timeouts.HTTPTotal,
