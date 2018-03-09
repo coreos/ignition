@@ -103,7 +103,41 @@ When an experimental version of the Ignition config spec (e.g.: `2.3.0-experimen
 
 - Any configs with a `version` field set to the previously experimental version will no longer pass validation. For example, if `2.3.0-experimental` is being marked as stable, any configs written for `2.3.0-experimental` should have their version fields changed to `2.3.0`, for Ignition will no longer accept them.
 - A new experimental spec version will be created. For example, if `2.3.0-experimental` is being marked as stable, a new version of `2.4.0-experimental` will now be accepted, and start to accumulate new changes to the spec.
-- Internally, any configs presented to Ignition will be translated into the new experimental spec before Ignition begins processing them. For example, if the new experimental spec is `2.4.0-experimental`, and Ignition is given a `2.3.0` config, it will be converted into a `2.4.0-experimental` config before any work is done.
 - The new stable spec and the new experimental spec will be identical. The new experimental spec is a direct copy of the old experimental spec, and no new changes to the spec have been made yet, so initially the two specs will have the same fields and semantics.
 - The HTTP `user-agent` header that Ignition uses whenever fetching an object and the HTTP `accept` header that Ignition uses whenever fetching a config will be updated to advertise the new stable spec.
 - New features will be documented in the [migrating configs](doc/migrating-configs.md) documentation.
+
+The code changes that are required to achieve these effects are typically the following:
+
+### Making the experimental package stable
+
+- Rename `config/vX_Y_experimental` to `config/vX_Y`, and update the golang `package` statements
+- Update `MaxVersion` in `config/vX_Y/types/config.go` to have `PreRelease` set to `""`
+- Update `config/vX_Y/config_test.go` to test that the new stable version is valid and the old experimental version is invalid
+
+### Creating the new experimental package
+
+- Copy `config/vX_Y` into `config/vX_(Y+1)_experimental`, and update the golang `package` statements
+- Update `MaxVersion` in `config/vX_(Y+1)_experimental/types/config.go` to have the correct major/minor versions and `PreRelease` set to `"experimental"`
+- Update `config/vX_(Y+1)_experimental/config.go` to use `config/vX_Y` for parsing
+- Update `config/vX_(Y+1)_experimental/config_test.go` to test that the new stable version is valid, the new experimental version is valid, and the old experimental version is invalid
+- Copy `internal/config/translate.go` and `internal/config/translate_test.go` to `config/vX_(Y+1)_experimental`, and update their golang `package` statements
+
+### Update all relevant places to use the new experimental package
+
+Next, all places that imported `config/vX_Y_experimental` should be updated to `config/vX_(Y+1)_experimental`. As of the time of writing (please check for more!) this is the list of places to update:
+
+- `config/util`
+- `config/validate`
+- `internal/config`
+- `internal/config/types`
+- `tests`
+- `validate`
+
+### Update the blackbox tests
+
+Finally, update the blackbox tests.
+
+- Drop `-experimental` from the relevant `VersionOnlyConfig` test in `tests/positive/general/general.go`.
+- Add a new `VersionOnlyConfig` test for `X.(Y+1).0-experimental`.
+- Find all tests using `X.Y.0-experimental` and alter them to use `X.Y.0`.
