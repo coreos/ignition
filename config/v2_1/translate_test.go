@@ -295,11 +295,11 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file1",
-								User:       &types.NodeUser{ID: intToPtr(500)},
-								Group:      &types.NodeGroup{ID: intToPtr(501)},
+								User:       types.NodeUser{ID: intToPtr(500)},
+								Group:      types.NodeGroup{ID: intToPtr(501)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: intToPtr(0664),
+								Mode: 0664,
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -312,11 +312,11 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file2",
-								User:       &types.NodeUser{ID: intToPtr(502)},
-								Group:      &types.NodeGroup{ID: intToPtr(503)},
+								User:       types.NodeUser{ID: intToPtr(502)},
+								Group:      types.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: intToPtr(0644),
+								Mode: 0644,
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -329,11 +329,11 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Node: types.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/file3",
-								User:       &types.NodeUser{ID: intToPtr(1000)},
-								Group:      &types.NodeGroup{ID: intToPtr(1001)},
+								User:       types.NodeUser{ID: intToPtr(1000)},
+								Group:      types.NodeGroup{ID: intToPtr(1001)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Mode: intToPtr(0400),
+								Mode: 0400,
 								Contents: types.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
@@ -381,7 +381,7 @@ func TestTranslateFromV2_0(t *testing.T) {
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							Dropins: []types.SystemdDropin{
+							Dropins: []types.Dropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
