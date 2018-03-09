@@ -20,7 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/config/types"
 	internalUtil "github.com/coreos/ignition/internal/util"
 
 	"github.com/vincent-petithory/dataurl"

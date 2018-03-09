@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
 	"github.com/coreos/ignition/internal/util"

@@ -27,7 +27,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/util"
 	"github.com/coreos/ignition/internal/version"

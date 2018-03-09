@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"hash"
 
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/config/types"
 )
 
 // ErrHashMismatch is returned when the calculated hash for a fetched object

@@ -23,9 +23,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
@@ -40,7 +40,7 @@ func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
 	rawConfig, err := ioutil.ReadFile(filepath.Join(distro.DiskByPartUUIDDir(), partUUID))
 	if os.IsNotExist(err) {
 		f.Logger.Info("Path to ignition config does not exist, assuming no config")
-		return types.Config{}, report.Report{}, config.ErrEmpty
+		return types.Config{}, report.Report{}, errors.ErrEmpty
 	} else if err != nil {
 		f.Logger.Err("Error reading ignition config: %v", err)
 		return types.Config{}, report.Report{}, err

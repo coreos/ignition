@@ -20,8 +20,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/coreos/ignition/config/types"
 	keys "github.com/coreos/ignition/internal/authorized_keys_d"
+	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/distro"
 )
 

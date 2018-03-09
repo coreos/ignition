@@ -20,9 +20,10 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/internal/config"
+	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/oem"
@@ -69,7 +70,7 @@ func (e Engine) Run(stageName string) bool {
 	cfg, f, err := e.acquireConfig()
 	switch err {
 	case nil:
-	case config.ErrCloudConfig, config.ErrScript, config.ErrEmpty:
+	case errors.ErrCloudConfig, errors.ErrScript, errors.ErrEmpty:
 		e.Logger.Info("%v: ignoring user-provided config", err)
 		cfg, r, err = system.FetchDefaultConfig(e.Logger)
 		e.logReport(r)

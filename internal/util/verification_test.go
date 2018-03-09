@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/config/types"
 )
 
 func TestAssertValid(t *testing.T) {
@@ -55,7 +55,7 @@ func TestAssertValid(t *testing.T) {
 					Hash: stringDeref("xor-"),
 				},
 			},
-			out: out{err: types.ErrHashUnrecognized},
+			out: out{err: ErrHashUnrecognized},
 		},
 		{
 			in: in{
