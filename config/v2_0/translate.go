@@ -14,26 +14,49 @@
 
 package v2_0
 
+import (
+	"fmt"
+
+	v1 "github.com/coreos/ignition/config/v1/types"
+	"github.com/coreos/ignition/config/v2_0/types"
+	"github.com/vincent-petithory/dataurl"
+)
+
+func intToPtr(x int) *int {
+	return &x
+}
+
+func strToPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+func boolToPtr(b bool) *bool {
+	return &b
+}
+
 func TranslateFromV1(old v1.Config) types.Config {
 	config := types.Config{
 		Ignition: types.Ignition{
-			Version: v2_0.MaxVersion.String(),
+			Version: types.IgnitionVersion(types.MaxVersion),
 		},
 	}
 
 	for _, oldDisk := range old.Storage.Disks {
 		disk := types.Disk{
-			Device:    string(oldDisk.Device),
+			Device:    types.Path(oldDisk.Device),
 			WipeTable: oldDisk.WipeTable,
 		}
 
 		for _, oldPartition := range oldDisk.Partitions {
 			disk.Partitions = append(disk.Partitions, types.Partition{
-				Label:    string(oldPartition.Label),
+				Label:    types.PartitionLabel(oldPartition.Label),
 				Number:   oldPartition.Number,
-				Size:     int(oldPartition.Size),
-				Start:    int(oldPartition.Start),
-				TypeGUID: string(oldPartition.TypeGUID),
+				Size:     types.PartitionDimension(oldPartition.Size),
+				Start:    types.PartitionDimension(oldPartition.Start),
+				TypeGUID: types.PartitionTypeGUID(oldPartition.TypeGUID),
 			})
 		}
 
@@ -48,25 +71,25 @@ func TranslateFromV1(old v1.Config) types.Config {
 		}
 
 		for _, oldDevice := range oldArray.Devices {
-			array.Devices = append(array.Devices, types.Device(oldDevice))
+			array.Devices = append(array.Devices, types.Path(oldDevice))
 		}
 
-		config.Storage.Raid = append(config.Storage.Raid, array)
+		config.Storage.Arrays = append(config.Storage.Arrays, array)
 	}
 
 	for i, oldFilesystem := range old.Storage.Filesystems {
 		filesystem := types.Filesystem{
 			Name: fmt.Sprintf("_translate-filesystem-%d", i),
-			Mount: &types.Mount{
-				Device: string(oldFilesystem.Device),
-				Format: string(oldFilesystem.Format),
+			Mount: &types.FilesystemMount{
+				Device: types.Path(oldFilesystem.Device),
+				Format: types.FilesystemFormat(oldFilesystem.Format),
 			},
 		}
 
 		if oldFilesystem.Create != nil {
-			filesystem.Mount.Create = &types.Create{
+			filesystem.Mount.Create = &types.FilesystemCreate{
 				Force:   oldFilesystem.Create.Force,
-				Options: translateV1MkfsOptionsToOptionSlice(oldFilesystem.Create.Options),
+				Options: types.MkfsOptions(oldFilesystem.Create.Options),
 			}
 		}
 
@@ -74,19 +97,15 @@ func TranslateFromV1(old v1.Config) types.Config {
 
 		for _, oldFile := range oldFilesystem.Files {
 			file := types.File{
-				Node: types.Node{
-					Filesystem: filesystem.Name,
-					Path:       string(oldFile.Path),
-					User:       &types.NodeUser{ID: intToPtr(oldFile.Uid)},
-					Group:      &types.NodeGroup{ID: intToPtr(oldFile.Gid)},
-				},
-				FileEmbedded1: types.FileEmbedded1{
-					Mode: intToPtr(int(oldFile.Mode)),
-					Contents: types.FileContents{
-						Source: (&url.URL{
-							Scheme: "data",
-							Opaque: "," + dataurl.EscapeString(oldFile.Contents),
-						}).String(),
+				Filesystem: filesystem.Name,
+				Path:       types.Path(oldFile.Path),
+				User:       types.FileUser{Id: oldFile.Uid},
+				Group:      types.FileGroup{Id: oldFile.Gid},
+				Mode:       types.FileMode(oldFile.Mode),
+				Contents: types.FileContents{
+					Source: types.Url{
+						Scheme: "data",
+						Opaque: "," + dataurl.EscapeString(oldFile.Contents),
 					},
 				},
 			}
@@ -96,16 +115,16 @@ func TranslateFromV1(old v1.Config) types.Config {
 	}
 
 	for _, oldUnit := range old.Systemd.Units {
-		unit := types.Unit{
-			Name:     string(oldUnit.Name),
+		unit := types.SystemdUnit{
+			Name:     types.SystemdUnitName(oldUnit.Name),
 			Enable:   oldUnit.Enable,
 			Mask:     oldUnit.Mask,
 			Contents: oldUnit.Contents,
 		}
 
 		for _, oldDropIn := range oldUnit.DropIns {
-			unit.Dropins = append(unit.Dropins, types.SystemdDropin{
-				Name:     string(oldDropIn.Name),
+			unit.DropIns = append(unit.DropIns, types.SystemdUnitDropIn{
+				Name:     types.SystemdUnitDropInName(oldDropIn.Name),
 				Contents: oldDropIn.Contents,
 			})
 		}
@@ -114,33 +133,33 @@ func TranslateFromV1(old v1.Config) types.Config {
 	}
 
 	for _, oldUnit := range old.Networkd.Units {
-		config.Networkd.Units = append(config.Networkd.Units, types.Networkdunit{
-			Name:     string(oldUnit.Name),
+		config.Networkd.Units = append(config.Networkd.Units, types.NetworkdUnit{
+			Name:     types.NetworkdUnitName(oldUnit.Name),
 			Contents: oldUnit.Contents,
 		})
 	}
 
 	for _, oldUser := range old.Passwd.Users {
-		user := types.PasswdUser{
+		user := types.User{
 			Name:              oldUser.Name,
-			PasswordHash:      strToPtr(oldUser.PasswordHash),
-			SSHAuthorizedKeys: translateStringSliceToSSHAuthorizedKeySlice(oldUser.SSHAuthorizedKeys),
+			PasswordHash:      oldUser.PasswordHash,
+			SSHAuthorizedKeys: oldUser.SSHAuthorizedKeys,
 		}
 
 		if oldUser.Create != nil {
-			var uid *int
+			var uid *uint
 			if oldUser.Create.Uid != nil {
-				tmp := int(*oldUser.Create.Uid)
+				tmp := uint(*oldUser.Create.Uid)
 				uid = &tmp
 			}
 
-			user.Create = &types.Usercreate{
-				UID:          uid,
-				Gecos:        oldUser.Create.GECOS,
-				HomeDir:      oldUser.Create.Homedir,
+			user.Create = &types.UserCreate{
+				Uid:          uid,
+				GECOS:        oldUser.Create.GECOS,
+				Homedir:      oldUser.Create.Homedir,
 				NoCreateHome: oldUser.Create.NoCreateHome,
 				PrimaryGroup: oldUser.Create.PrimaryGroup,
-				Groups:       translateStringSliceToUsercreateGroupSlice(oldUser.Create.Groups),
+				Groups:       oldUser.Create.Groups,
 				NoUserGroup:  oldUser.Create.NoUserGroup,
 				System:       oldUser.Create.System,
 				NoLogInit:    oldUser.Create.NoLogInit,
@@ -152,12 +171,12 @@ func TranslateFromV1(old v1.Config) types.Config {
 	}
 
 	for _, oldGroup := range old.Passwd.Groups {
-		var gid *int
+		var gid *uint
 		if oldGroup.Gid != nil {
-			tmp := int(*oldGroup.Gid)
+			tmp := uint(*oldGroup.Gid)
 			gid = &tmp
 		}
-		config.Passwd.Groups = append(config.Passwd.Groups, types.PasswdGroup{
+		config.Passwd.Groups = append(config.Passwd.Groups, types.Group{
 			Name:         oldGroup.Name,
 			Gid:          gid,
 			PasswordHash: oldGroup.PasswordHash,
@@ -166,31 +185,4 @@ func TranslateFromV1(old v1.Config) types.Config {
 	}
 
 	return config
-}
-
-// golang--
-func translateV1MkfsOptionsToOptionSlice(opts v1.MkfsOptions) []types.CreateOption {
-	newOpts := make([]types.CreateOption, len(opts))
-	for i, o := range opts {
-		newOpts[i] = types.CreateOption(o)
-	}
-	return newOpts
-}
-
-// golang--
-func translateStringSliceToSSHAuthorizedKeySlice(keys []string) []types.SSHAuthorizedKey {
-	newKeys := make([]types.SSHAuthorizedKey, len(keys))
-	for i, k := range keys {
-		newKeys[i] = types.SSHAuthorizedKey(k)
-	}
-	return newKeys
-}
-
-// golang--
-func translateStringSliceToUsercreateGroupSlice(groups []string) []types.UsercreateGroup {
-	var newGroups []types.UsercreateGroup
-	for _, g := range groups {
-		newGroups = append(newGroups, types.UsercreateGroup(g))
-	}
-	return newGroups
 }
