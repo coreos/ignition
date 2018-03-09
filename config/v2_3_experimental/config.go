@@ -50,7 +50,7 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 		if err != nil {
 			return types.Config{}, rpt, err
 		}
-		return TranslateFromV2_2(config), rpt, err
+		return Translate(config), rpt, err
 	}
 
 	if *version != types.MaxVersion {

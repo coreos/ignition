@@ -24,7 +24,7 @@ import (
 	"github.com/coreos/ignition/config/v2_3_experimental/types"
 )
 
-func TestTranslateFromV2_2(t *testing.T) {
+func TestTranslate(t *testing.T) {
 	type in struct {
 		config v2_2.Config
 	}
@@ -997,7 +997,7 @@ func TestTranslateFromV2_2(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		config := TranslateFromV2_2(test.in.config)
+		config := Translate(test.in.config)
 		assert.Equal(t, test.out.config, config, "#%d: bad config", i)
 	}
 }

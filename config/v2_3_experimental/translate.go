@@ -34,25 +34,7 @@ func boolToPtr(b bool) *bool {
 	return &b
 }
 
-// golang--
-func translateStringSliceToV2_2SSHAuthorizedKeySlice(keys []string) []types.SSHAuthorizedKey {
-	newKeys := make([]types.SSHAuthorizedKey, len(keys))
-	for i, k := range keys {
-		newKeys[i] = types.SSHAuthorizedKey(k)
-	}
-	return newKeys
-}
-
-// golang--
-func translateStringSliceToV2_2UsercreateGroupSlice(groups []string) []types.UsercreateGroup {
-	var newGroups []types.UsercreateGroup
-	for _, g := range groups {
-		newGroups = append(newGroups, types.UsercreateGroup(g))
-	}
-	return newGroups
-}
-
-func TranslateFromV2_2(old v2_2.Config) types.Config {
+func Translate(old v2_2.Config) types.Config {
 	translateConfigReference := func(old *v2_2.ConfigReference) *types.ConfigReference {
 		if old == nil {
 			return nil
