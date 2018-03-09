@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v2_3_experimental
+package config
 
 import (
 	"net/url"
@@ -20,13 +20,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	v2_2 "github.com/coreos/ignition/config/v2_2/types"
-	"github.com/coreos/ignition/config/v2_3_experimental/types"
+	from "github.com/coreos/ignition/config/v2_3_experimental/types"
+	"github.com/coreos/ignition/internal/config/types"
 )
 
-func TestTranslateFromV2_2(t *testing.T) {
+func TestTranslate(t *testing.T) {
 	type in struct {
-		config v2_2.Config
+		config from.Config
 	}
 	type out struct {
 		config types.Config
@@ -41,10 +41,10 @@ func TestTranslateFromV2_2(t *testing.T) {
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{
-					Config: v2_2.IgnitionConfig{
-						Append: []v2_2.ConfigReference{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Config: from.IgnitionConfig{
+						Append: []from.ConfigReference{
 							{
 								Source: (&url.URL{
 									Scheme: "data",
@@ -56,17 +56,17 @@ func TestTranslateFromV2_2(t *testing.T) {
 									Scheme: "data",
 									Opaque: ",file2",
 								}).String(),
-								Verification: v2_2.Verification{
+								Verification: from.Verification{
 									Hash: strToPtr("func2-sum2"),
 								},
 							},
 						},
-						Replace: &v2_2.ConfigReference{
+						Replace: &from.ConfigReference{
 							Source: (&url.URL{
 								Scheme: "data",
 								Opaque: ",file3",
 							}).String(),
-							Verification: v2_2.Verification{
+							Verification: from.Verification{
 								Hash: strToPtr("func3-sum3"),
 							},
 						},
@@ -108,9 +108,9 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{
-					Timeouts: v2_2.Timeouts{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Timeouts: from.Timeouts{
 						HTTPResponseHeaders: nil,
 						HTTPTotal:           nil,
 					},
@@ -127,9 +127,9 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{
-					Timeouts: v2_2.Timeouts{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Timeouts: from.Timeouts{
 						HTTPResponseHeaders: intToPtr(0),
 						HTTPTotal:           intToPtr(0),
 					},
@@ -146,9 +146,9 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{
-					Timeouts: v2_2.Timeouts{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Timeouts: from.Timeouts{
 						HTTPResponseHeaders: intToPtr(50),
 						HTTPTotal:           intToPtr(100),
 					},
@@ -165,11 +165,11 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{
-					Security: v2_2.Security{
-						TLS: v2_2.TLS{
-							CertificateAuthorities: []v2_2.CaReference{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Security: from.Security{
+						TLS: from.TLS{
+							CertificateAuthorities: []from.CaReference{
 								{
 									Source: "https://example.com/ca.pem",
 								},
@@ -194,17 +194,17 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{
-					Security: v2_2.Security{
-						TLS: v2_2.TLS{
-							CertificateAuthorities: []v2_2.CaReference{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Security: from.Security{
+						TLS: from.TLS{
+							CertificateAuthorities: []from.CaReference{
 								{
 									Source: "https://example.com/ca.pem",
 								},
 								{
 									Source: "https://example.com/ca2.pem",
-									Verification: v2_2.Verification{
+									Verification: from.Verification{
 										Hash: strToPtr("sha512-adbebebd234245380"),
 									},
 								},
@@ -235,14 +235,14 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{Version: v2_2.MaxVersion.String()},
-				Storage: v2_2.Storage{
-					Disks: []v2_2.Disk{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{Version: from.MaxVersion.String()},
+				Storage: from.Storage{
+					Disks: []from.Disk{
 						{
 							Device:    "/dev/sda",
 							WipeTable: true,
-							Partitions: []v2_2.Partition{
+							Partitions: []from.Partition{
 								{
 									Label:    "ROOT",
 									Number:   7,
@@ -303,39 +303,39 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{Version: v2_2.MaxVersion.String()},
-				Storage: v2_2.Storage{
-					Raid: []v2_2.Raid{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{Version: from.MaxVersion.String()},
+				Storage: from.Storage{
+					Raid: []from.Raid{
 						{
 							Name:  "fast",
 							Level: "raid0",
-							Devices: []v2_2.Device{
-								v2_2.Device("/dev/sdc"),
-								v2_2.Device("/dev/sdd"),
+							Devices: []from.Device{
+								from.Device("/dev/sdc"),
+								from.Device("/dev/sdd"),
 							},
 							Spares: 2,
 						},
 						{
 							Name:  "durable",
 							Level: "raid1",
-							Devices: []v2_2.Device{
-								v2_2.Device("/dev/sde"),
-								v2_2.Device("/dev/sdf"),
+							Devices: []from.Device{
+								from.Device("/dev/sde"),
+								from.Device("/dev/sdf"),
 							},
 							Spares: 3,
 						},
 						{
 							Name:  "fast-and-durable",
 							Level: "raid10",
-							Devices: []v2_2.Device{
-								v2_2.Device("/dev/sdg"),
-								v2_2.Device("/dev/sdh"),
-								v2_2.Device("/dev/sdi"),
-								v2_2.Device("/dev/sdj"),
+							Devices: []from.Device{
+								from.Device("/dev/sdg"),
+								from.Device("/dev/sdh"),
+								from.Device("/dev/sdi"),
+								from.Device("/dev/sdj"),
 							},
 							Spares: 0,
-							Options: []v2_2.RaidOption{
+							Options: []from.RaidOption{
 								"--this-is-a-flag",
 							},
 						},
@@ -377,32 +377,32 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{Version: v2_2.MaxVersion.String()},
-				Storage: v2_2.Storage{
-					Filesystems: []v2_2.Filesystem{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{Version: from.MaxVersion.String()},
+				Storage: from.Storage{
+					Filesystems: []from.Filesystem{
 						{
 							Name: "filesystem-0",
-							Mount: &v2_2.Mount{
+							Mount: &from.Mount{
 								Device: "/dev/disk/by-partlabel/ROOT",
 								Format: "btrfs",
-								Create: &v2_2.Create{
+								Create: &from.Create{
 									Force:   true,
-									Options: []v2_2.CreateOption{"-L", "ROOT"},
+									Options: []from.CreateOption{"-L", "ROOT"},
 								},
 								Label:          strToPtr("ROOT"),
-								Options:        []v2_2.MountOption{"--nodiscard"},
+								Options:        []from.MountOption{"--nodiscard"},
 								UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-46215D4696AC"),
 								WipeFilesystem: true,
 							},
 						},
 						{
 							Name: "filesystem-1",
-							Mount: &v2_2.Mount{
+							Mount: &from.Mount{
 								Device:         "/dev/disk/by-partlabel/DATA",
 								Format:         "ext4",
 								Label:          strToPtr("DATA"),
-								Options:        []v2_2.MountOption{"-b", "1024"},
+								Options:        []from.MountOption{"-b", "1024"},
 								UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-DEADBEEF0101"),
 								WipeFilesystem: false,
 							},
@@ -453,42 +453,42 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{Version: v2_2.MaxVersion.String()},
-				Storage: v2_2.Storage{
-					Files: []v2_2.File{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{Version: from.MaxVersion.String()},
+				Storage: from.Storage{
+					Files: []from.File{
 						{
-							Node: v2_2.Node{
+							Node: from.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file1",
-								User:       &v2_2.NodeUser{ID: intToPtr(500)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
+								User:       &from.NodeUser{ID: intToPtr(500)},
+								Group:      &from.NodeGroup{ID: intToPtr(501)},
 								Overwrite:  boolToPtr(false),
 							},
-							FileEmbedded1: v2_2.FileEmbedded1{
+							FileEmbedded1: from.FileEmbedded1{
 								Mode: intToPtr(0664),
-								Contents: v2_2.FileContents{
+								Contents: from.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
 										Opaque: ",file1",
 									}).String(),
-									Verification: v2_2.Verification{
+									Verification: from.Verification{
 										Hash: strToPtr("foobar"),
 									},
 								},
 							},
 						},
 						{
-							Node: v2_2.Node{
+							Node: from.Node{
 								Filesystem: "filesystem-0",
 								Path:       "/opt/file2",
-								User:       &v2_2.NodeUser{ID: intToPtr(502)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(503)},
+								User:       &from.NodeUser{ID: intToPtr(502)},
+								Group:      &from.NodeGroup{ID: intToPtr(503)},
 							},
-							FileEmbedded1: v2_2.FileEmbedded1{
+							FileEmbedded1: from.FileEmbedded1{
 								Mode:   intToPtr(0644),
 								Append: true,
-								Contents: v2_2.FileContents{
+								Contents: from.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
 										Opaque: ",file2",
@@ -498,15 +498,15 @@ func TestTranslateFromV2_2(t *testing.T) {
 							},
 						},
 						{
-							Node: v2_2.Node{
+							Node: from.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/file3",
-								User:       &v2_2.NodeUser{ID: intToPtr(1000)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(1001)},
+								User:       &from.NodeUser{ID: intToPtr(1000)},
+								Group:      &from.NodeGroup{ID: intToPtr(1001)},
 							},
-							FileEmbedded1: v2_2.FileEmbedded1{
+							FileEmbedded1: from.FileEmbedded1{
 								Mode: intToPtr(0400),
-								Contents: v2_2.FileContents{
+								Contents: from.FileContents{
 									Source: (&url.URL{
 										Scheme: "data",
 										Opaque: ",file3",
@@ -583,41 +583,41 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{Version: v2_2.MaxVersion.String()},
-				Storage: v2_2.Storage{
-					Directories: []v2_2.Directory{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{Version: from.MaxVersion.String()},
+				Storage: from.Storage{
+					Directories: []from.Directory{
 						{
-							Node: v2_2.Node{
+							Node: from.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/dir1",
-								User:       &v2_2.NodeUser{ID: intToPtr(500)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
+								User:       &from.NodeUser{ID: intToPtr(500)},
+								Group:      &from.NodeGroup{ID: intToPtr(501)},
 								Overwrite:  boolToPtr(false),
 							},
-							DirectoryEmbedded1: v2_2.DirectoryEmbedded1{
+							DirectoryEmbedded1: from.DirectoryEmbedded1{
 								Mode: intToPtr(0664),
 							},
 						},
 						{
-							Node: v2_2.Node{
+							Node: from.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/dir2",
-								User:       &v2_2.NodeUser{ID: intToPtr(502)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(503)},
+								User:       &from.NodeUser{ID: intToPtr(502)},
+								Group:      &from.NodeGroup{ID: intToPtr(503)},
 							},
-							DirectoryEmbedded1: v2_2.DirectoryEmbedded1{
+							DirectoryEmbedded1: from.DirectoryEmbedded1{
 								Mode: intToPtr(0644),
 							},
 						},
 						{
-							Node: v2_2.Node{
+							Node: from.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/dir3",
-								User:       &v2_2.NodeUser{ID: intToPtr(1000)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(1001)},
+								User:       &from.NodeUser{ID: intToPtr(1000)},
+								Group:      &from.NodeGroup{ID: intToPtr(1001)},
 							},
-							DirectoryEmbedded1: v2_2.DirectoryEmbedded1{
+							DirectoryEmbedded1: from.DirectoryEmbedded1{
 								Mode: intToPtr(0400),
 							},
 						},
@@ -667,43 +667,43 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{config: v2_2.Config{
-				Ignition: v2_2.Ignition{Version: v2_2.MaxVersion.String()},
-				Storage: v2_2.Storage{
-					Links: []v2_2.Link{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{Version: from.MaxVersion.String()},
+				Storage: from.Storage{
+					Links: []from.Link{
 						{
-							Node: v2_2.Node{
+							Node: from.Node{
 								Filesystem: "filesystem-1",
 								Path:       "/opt/link1",
-								User:       &v2_2.NodeUser{ID: intToPtr(500)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(501)},
+								User:       &from.NodeUser{ID: intToPtr(500)},
+								Group:      &from.NodeGroup{ID: intToPtr(501)},
 								Overwrite:  boolToPtr(true),
 							},
-							LinkEmbedded1: v2_2.LinkEmbedded1{
+							LinkEmbedded1: from.LinkEmbedded1{
 								Hard:   false,
 								Target: "/opt/file1",
 							},
 						},
 						{
-							Node: v2_2.Node{
+							Node: from.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/link2",
-								User:       &v2_2.NodeUser{ID: intToPtr(502)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(503)},
+								User:       &from.NodeUser{ID: intToPtr(502)},
+								Group:      &from.NodeGroup{ID: intToPtr(503)},
 							},
-							LinkEmbedded1: v2_2.LinkEmbedded1{
+							LinkEmbedded1: from.LinkEmbedded1{
 								Hard:   true,
 								Target: "/opt/file2",
 							},
 						},
 						{
-							Node: v2_2.Node{
+							Node: from.Node{
 								Filesystem: "filesystem-2",
 								Path:       "/opt/link3",
-								User:       &v2_2.NodeUser{ID: intToPtr(1000)},
-								Group:      &v2_2.NodeGroup{ID: intToPtr(1001)},
+								User:       &from.NodeUser{ID: intToPtr(1000)},
+								Group:      &from.NodeGroup{ID: intToPtr(1001)},
 							},
-							LinkEmbedded1: v2_2.LinkEmbedded1{
+							LinkEmbedded1: from.LinkEmbedded1{
 								Hard:   true,
 								Target: "/opt/file3",
 							},
@@ -757,14 +757,14 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{v2_2.Config{
-				Systemd: v2_2.Systemd{
-					Units: []v2_2.Unit{
+			in: in{from.Config{
+				Systemd: from.Systemd{
+					Units: []from.Unit{
 						{
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							Dropins: []v2_2.SystemdDropin{
+							Dropins: []from.SystemdDropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
@@ -820,16 +820,16 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{v2_2.Config{
-				Networkd: v2_2.Networkd{
-					Units: []v2_2.Networkdunit{
+			in: in{from.Config{
+				Networkd: from.Networkd{
+					Units: []from.Networkdunit{
 						{
 							Name:     "test1.network",
 							Contents: "test1 contents",
 						},
 						{
 							Name: "test2.network",
-							Dropins: []v2_2.NetworkdDropin{
+							Dropins: []from.NetworkdDropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
@@ -869,26 +869,26 @@ func TestTranslateFromV2_2(t *testing.T) {
 			}},
 		},
 		{
-			in: in{v2_2.Config{
-				Ignition: v2_2.Ignition{Version: v2_2.MaxVersion.String()},
-				Passwd: v2_2.Passwd{
-					Users: []v2_2.PasswdUser{
+			in: in{from.Config{
+				Ignition: from.Ignition{Version: from.MaxVersion.String()},
+				Passwd: from.Passwd{
+					Users: []from.PasswdUser{
 						{
 							Name:              "user 1",
 							PasswordHash:      strToPtr("password 1"),
-							SSHAuthorizedKeys: []v2_2.SSHAuthorizedKey{"key1", "key2"},
+							SSHAuthorizedKeys: []from.SSHAuthorizedKey{"key1", "key2"},
 						},
 						{
 							Name:              "user 2",
 							PasswordHash:      strToPtr("password 2"),
-							SSHAuthorizedKeys: []v2_2.SSHAuthorizedKey{"key3", "key4"},
-							Create: &v2_2.Usercreate{
+							SSHAuthorizedKeys: []from.SSHAuthorizedKey{"key3", "key4"},
+							Create: &from.Usercreate{
 								UID:          intToPtr(123),
 								Gecos:        "gecos",
 								HomeDir:      "/home/user 2",
 								NoCreateHome: true,
 								PrimaryGroup: "wheel",
-								Groups:       []v2_2.UsercreateGroup{"wheel", "plugdev"},
+								Groups:       []from.UsercreateGroup{"wheel", "plugdev"},
 								NoUserGroup:  true,
 								System:       true,
 								NoLogInit:    true,
@@ -898,13 +898,13 @@ func TestTranslateFromV2_2(t *testing.T) {
 						{
 							Name:              "user 3",
 							PasswordHash:      strToPtr("password 3"),
-							SSHAuthorizedKeys: []v2_2.SSHAuthorizedKey{"key5", "key6"},
+							SSHAuthorizedKeys: []from.SSHAuthorizedKey{"key5", "key6"},
 							UID:               intToPtr(123),
 							Gecos:             "gecos",
 							HomeDir:           "/home/user 2",
 							NoCreateHome:      true,
 							PrimaryGroup:      "wheel",
-							Groups:            []v2_2.Group{"wheel", "plugdev"},
+							Groups:            []from.Group{"wheel", "plugdev"},
 							NoUserGroup:       true,
 							System:            true,
 							NoLogInit:         true,
@@ -913,11 +913,11 @@ func TestTranslateFromV2_2(t *testing.T) {
 						{
 							Name:              "user 4",
 							PasswordHash:      strToPtr("password 4"),
-							SSHAuthorizedKeys: []v2_2.SSHAuthorizedKey{"key7", "key8"},
-							Create:            &v2_2.Usercreate{},
+							SSHAuthorizedKeys: []from.SSHAuthorizedKey{"key7", "key8"},
+							Create:            &from.Usercreate{},
 						},
 					},
-					Groups: []v2_2.PasswdGroup{
+					Groups: []from.PasswdGroup{
 						{
 							Name:         "group 1",
 							Gid:          func(i int) *int { return &i }(1000),
@@ -997,7 +997,7 @@ func TestTranslateFromV2_2(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		config := TranslateFromV2_2(test.in.config)
+		config := Translate(test.in.config)
 		assert.Equal(t, test.out.config, config, "#%d: bad config", i)
 	}
 }
