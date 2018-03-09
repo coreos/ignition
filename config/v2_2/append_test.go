@@ -23,10 +23,6 @@ import (
 	"github.com/coreos/ignition/config/v2_2/types"
 )
 
-func intToPtr(x int) *int {
-	return &x
-}
-
 func TestAppend(t *testing.T) {
 	type in struct {
 		oldConfig types.Config
