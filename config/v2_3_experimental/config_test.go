@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package v2_3_experimental
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/coreos/ignition/config/types"
 	v1 "github.com/coreos/ignition/config/v1"
 	v2_0 "github.com/coreos/ignition/config/v2_0/types"
+	"github.com/coreos/ignition/config/v2_3_experimental/types"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package v2_3_experimental
 
 import (
 	"reflect"
 
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/v2_3_experimental/types"
 )
 
 // Append appends newConfig to oldConfig and returns the result. Appending one

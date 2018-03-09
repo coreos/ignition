@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package v2_3_experimental
 
 import (
 	"testing"
@@ -20,7 +20,7 @@ import (
 	"github.com/coreos/go-semver/semver"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/config/v2_3_experimental/types"
 )
 
 func TestAppend(t *testing.T) {
