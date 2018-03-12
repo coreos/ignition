@@ -29,7 +29,7 @@ import (
 
 	"github.com/pin/tftp"
 
-	"github.com/coreos/ignition/config"
+	config "github.com/coreos/ignition/config/v2_3_experimental"
 	"github.com/coreos/ignition/tests/register"
 	"github.com/coreos/ignition/tests/types"
 

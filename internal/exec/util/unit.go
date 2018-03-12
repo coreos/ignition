@@ -20,8 +20,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/coreos/ignition/config/types"
-	internalUtil "github.com/coreos/ignition/internal/util"
+	configUtil "github.com/coreos/ignition/config/util"
+	"github.com/coreos/ignition/internal/config/types"
 
 	"github.com/vincent-petithory/dataurl"
 )
@@ -39,7 +39,7 @@ func FileFromSystemdUnit(unit types.Unit) (*FetchOp, error) {
 	return &FetchOp{
 		Path: filepath.Join(SystemdUnitsPath(), string(unit.Name)),
 		Url:  *u,
-		Mode: internalUtil.IntToPtr(int(DefaultFilePermissions)),
+		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
 	}, nil
 }
 
@@ -51,7 +51,7 @@ func FileFromNetworkdUnit(unit types.Networkdunit) (*FetchOp, error) {
 	return &FetchOp{
 		Path: filepath.Join(NetworkdUnitsPath(), string(unit.Name)),
 		Url:  *u,
-		Mode: internalUtil.IntToPtr(int(DefaultFilePermissions)),
+		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
 	}, nil
 }
 
@@ -63,7 +63,7 @@ func FileFromSystemdUnitDropin(unit types.Unit, dropin types.SystemdDropin) (*Fe
 	return &FetchOp{
 		Path: filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
 		Url:  *u,
-		Mode: internalUtil.IntToPtr(int(DefaultFilePermissions)),
+		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
 	}, nil
 }
 
@@ -75,7 +75,7 @@ func FileFromNetworkdUnitDropin(unit types.Networkdunit, dropin types.NetworkdDr
 	return &FetchOp{
 		Path: filepath.Join(NetworkdDropinsPath(string(unit.Name)), string(dropin.Name)),
 		Url:  *u,
-		Mode: internalUtil.IntToPtr(int(DefaultFilePermissions)),
+		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
 	}, nil
 }
 

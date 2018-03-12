@@ -18,12 +18,12 @@ import (
 	"errors"
 	"fmt"
 
+	configErrors "github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
 var (
 	ErrAppendAndOverwrite = errors.New("cannot set both append and overwrite to true")
-	ErrCompressionInvalid = errors.New("invalid compression method")
 )
 
 func (f File) Validate() report.Report {
@@ -56,7 +56,7 @@ func (fc FileContents) ValidateCompression() report.Report {
 	case "", "gzip":
 	default:
 		r.Add(report.Entry{
-			Message: ErrCompressionInvalid.Error(),
+			Message: configErrors.ErrCompressionInvalid.Error(),
 			Kind:    report.EntryError,
 		})
 	}

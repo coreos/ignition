@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
 	"github.com/coreos/ignition/internal/util"
@@ -80,7 +80,7 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 	if hasher != nil {
 		// explicitly ignoring the error here because the config should already
 		// be validated by this point
-		_, expectedSumString, _ := f.Contents.Verification.HashParts()
+		_, expectedSumString, _ := util.HashParts(f.Contents.Verification)
 		expectedSum, err = hex.DecodeString(expectedSumString)
 		if err != nil {
 			l.Crit("Error parsing verification string %q: %v", expectedSumString, err)

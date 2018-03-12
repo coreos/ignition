@@ -20,12 +20,9 @@ import (
 	"github.com/coreos/go-semver/semver"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/v2_2/types"
 )
-
-func intToPtr(x int) *int {
-	return &x
-}
 
 func TestAppend(t *testing.T) {
 	type in struct {
@@ -199,7 +196,7 @@ func TestAppend(t *testing.T) {
 				oldConfig: types.Config{
 					Ignition: types.Ignition{
 						Timeouts: types.Timeouts{
-							HTTPTotal: intToPtr(1),
+							HTTPTotal: util.IntToPtr(1),
 						},
 					},
 				},
@@ -214,7 +211,7 @@ func TestAppend(t *testing.T) {
 			out: out{types.Config{
 				Ignition: types.Ignition{
 					Timeouts: types.Timeouts{
-						HTTPTotal: intToPtr(1),
+						HTTPTotal: util.IntToPtr(1),
 					},
 				},
 			}},

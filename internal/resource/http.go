@@ -27,7 +27,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/coreos/ignition/config/types"
+	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/util"
 	"github.com/coreos/ignition/internal/version"
@@ -136,7 +136,7 @@ func (f *Fetcher) getCABlob(ca types.CaReference) ([]byte, error) {
 	if hasher != nil {
 		// explicitly ignoring the error here because the config should already
 		// be validated by this point
-		_, expectedSumString, _ := ca.Verification.HashParts()
+		_, expectedSumString, _ := util.HashParts(ca.Verification)
 		expectedSum, err = hex.DecodeString(expectedSumString)
 		if err != nil {
 			f.Logger.Crit("Error parsing verification string %q: %v", expectedSumString, err)

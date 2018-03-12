@@ -31,7 +31,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/coreos/ignition/config/types"
+	configErrors "github.com/coreos/ignition/config/errors"
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/systemd"
@@ -390,7 +390,7 @@ func (f *Fetcher) uncompress(r io.Reader, opts FetchOptions) (io.ReadCloser, err
 	case "gzip":
 		return gzip.NewReader(r)
 	default:
-		return nil, types.ErrCompressionInvalid
+		return nil, configErrors.ErrCompressionInvalid
 	}
 }
 

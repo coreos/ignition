@@ -30,9 +30,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/config/types"
 	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/internal/config"
+	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
