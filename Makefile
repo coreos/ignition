@@ -1,3 +1,6 @@
+.PHONY: all
+all:
+	./build
 
 .PHONY: vendor
 vendor:
