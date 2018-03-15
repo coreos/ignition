@@ -15,10 +15,10 @@
 package types
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"path"
+	"strings"
 
 	"github.com/coreos/go-systemd/unit"
 
@@ -38,6 +38,7 @@ func (u Unit) ValidateContents() report.Report {
 			Kind:    report.EntryError,
 		})
 	}
+
 	return r
 }
 
@@ -99,7 +100,7 @@ func (u Networkdunit) Validate() report.Report {
 }
 
 func validateUnitContent(content string) error {
-	c := bytes.NewBufferString(content)
+	c := strings.NewReader(content)
 	_, err := unit.Deserialize(c)
 	if err != nil {
 		return fmt.Errorf("invalid unit content: %s", err)
