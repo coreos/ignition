@@ -22,6 +22,7 @@ import (
 
 	"github.com/coreos/go-systemd/unit"
 
+	"github.com/coreos/ignition/config/shared"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -34,11 +35,15 @@ type SystemdUnit struct {
 }
 
 func (u SystemdUnit) Validate() report.Report {
-	if err := validateUnitContent(u.Contents); err != nil {
+	r := report.Report{}
+	opts, err := validateUnitContent(u.Contents)
+	if err != nil {
 		return report.ReportFromError(err, report.EntryError)
 	}
 
-	return report.Report{}
+	r.Merge(shared.ValidateInstallSection(string(u.Name), u.Enable, u.Contents == "", opts))
+
+	return r
 }
 
 type SystemdUnitDropIn struct {
@@ -47,7 +52,7 @@ type SystemdUnitDropIn struct {
 }
 
 func (u SystemdUnitDropIn) Validate() report.Report {
-	if err := validateUnitContent(u.Contents); err != nil {
+	if _, err := validateUnitContent(u.Contents); err != nil {
 		return report.ReportFromError(err, report.EntryError)
 	}
 
@@ -82,7 +87,7 @@ type NetworkdUnit struct {
 }
 
 func (u NetworkdUnit) Validate() report.Report {
-	if err := validateUnitContent(u.Contents); err != nil {
+	if _, err := validateUnitContent(u.Contents); err != nil {
 		return report.ReportFromError(err, report.EntryError)
 	}
 
@@ -100,12 +105,11 @@ func (n NetworkdUnitName) Validate() report.Report {
 	}
 }
 
-func validateUnitContent(content string) error {
+func validateUnitContent(content string) ([]*unit.UnitOption, error) {
 	c := strings.NewReader(content)
-	_, err := unit.Deserialize(c)
+	opts, err := unit.Deserialize(c)
 	if err != nil {
-		return fmt.Errorf("invalid unit content: %s", err)
+		return nil, fmt.Errorf("invalid unit content: %s", err)
 	}
-
-	return nil
+	return opts, nil
 }

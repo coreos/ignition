@@ -12,9 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package errors includes errors that are used in multiple config versions
 package errors
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	ErrInvalid            = errors.New("config is not valid")
@@ -26,3 +30,9 @@ var (
 	ErrVersion            = errors.New("incorrect config version")
 	ErrCompressionInvalid = errors.New("invalid compression method")
 )
+
+// NewNoInstallSectionError produces an error indicating the given unit, named
+// name, is missing an Install section.
+func NewNoInstallSectionError(name string) error {
+	return fmt.Errorf("unit %q is enabled, but has no install section so enable does nothing", name)
+}

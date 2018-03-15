@@ -24,6 +24,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	json "github.com/ajeddeloh/go-json"
+	conferrs "github.com/coreos/ignition/config/errors"
+	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/astjson"
 	"github.com/coreos/ignition/config/validate/report"
 	// Import into the same namespace to keep config definitions clean
@@ -35,7 +37,8 @@ func TestValidate(t *testing.T) {
 		cfg Config
 	}
 	type out struct {
-		err error
+		err     error
+		warning error
 	}
 
 	tests := []struct {
@@ -79,7 +82,7 @@ func TestValidate(t *testing.T) {
 					},
 				},
 			}},
-			out: out{errors.New("unrecognized hash function")},
+			out: out{err: errors.New("unrecognized hash function")},
 		},
 		{
 			in: in{cfg: Config{
@@ -119,11 +122,23 @@ func TestValidate(t *testing.T) {
 			}},
 			out: out{err: errors.New("invalid systemd unit extension")},
 		},
+		{
+			in: in{cfg: Config{
+				Ignition: Ignition{Version: semver.Version{Major: 2}.String()},
+				Systemd:  Systemd{Units: []Unit{{Name: "enable-but-no-install.service", Enabled: util.BoolToPtr(true), Contents: "[Foo]\nlemon=lime"}}},
+			}},
+			out: out{warning: conferrs.NewNoInstallSectionError("enable-but-no-install.service")},
+		},
 	}
 
 	for i, test := range tests {
 		r := ValidateWithoutSource(reflect.ValueOf(test.in.cfg))
-		expectedReport := report.ReportFromError(test.out.err, report.EntryError)
+		var expectedReport report.Report
+		if test.out.err != nil {
+			expectedReport = report.ReportFromError(test.out.err, report.EntryError)
+		} else if test.out.warning != nil {
+			expectedReport = report.Report{Entries: []report.Entry{{Message: test.out.warning.Error(), Kind: report.EntryWarning}}}
+		}
 		if !reflect.DeepEqual(expectedReport, r) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, expectedReport, r)
 		}
