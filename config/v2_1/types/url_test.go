@@ -17,6 +17,8 @@ package types
 import (
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/config/shared/errors"
 )
 
 func TestURLValidate(t *testing.T) {
@@ -57,7 +59,7 @@ func TestURLValidate(t *testing.T) {
 		},
 		{
 			in:  in{u: "bad://"},
-			out: out{err: ErrInvalidScheme},
+			out: out{err: errors.ErrInvalidScheme},
 		},
 	}
 

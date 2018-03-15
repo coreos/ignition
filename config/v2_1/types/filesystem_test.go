@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -43,7 +44,7 @@ func TestMountValidate(t *testing.T) {
 		},
 		{
 			in:  in{format: ""},
-			out: out{err: ErrFilesystemInvalidFormat},
+			out: out{err: errors.ErrFilesystemInvalidFormat},
 		},
 	}
 
@@ -77,11 +78,11 @@ func TestFilesystemValidate(t *testing.T) {
 		},
 		{
 			in:  in{filesystem: Filesystem{Path: func(p string) *string { return &p }("/mount"), Mount: &Mount{Device: "/foo", Format: "ext4"}}},
-			out: out{err: ErrFilesystemMountAndPath},
+			out: out{err: errors.ErrFilesystemMountAndPath},
 		},
 		{
 			in:  in{filesystem: Filesystem{}},
-			out: out{err: ErrFilesystemNoMountPath},
+			out: out{err: errors.ErrFilesystemNoMountPath},
 		},
 	}
 
@@ -117,7 +118,7 @@ func TestLabelValidate(t *testing.T) {
 		},
 		{
 			in:  in{mount: Mount{Format: "ext4", Label: strToPtr("thislabelistoolong")}},
-			out: out{err: ErrExt4LabelTooLong},
+			out: out{err: errors.ErrExt4LabelTooLong},
 		},
 		{
 			in:  in{mount: Mount{Format: "btrfs", Label: nil}},
@@ -129,7 +130,7 @@ func TestLabelValidate(t *testing.T) {
 		},
 		{
 			in:  in{mount: Mount{Format: "btrfs", Label: strToPtr("thislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolong")}},
-			out: out{err: ErrBtrfsLabelTooLong},
+			out: out{err: errors.ErrBtrfsLabelTooLong},
 		},
 		{
 			in:  in{mount: Mount{Format: "xfs", Label: nil}},
@@ -141,7 +142,7 @@ func TestLabelValidate(t *testing.T) {
 		},
 		{
 			in:  in{mount: Mount{Format: "xfs", Label: strToPtr("thislabelistoolong")}},
-			out: out{err: ErrXfsLabelTooLong},
+			out: out{err: errors.ErrXfsLabelTooLong},
 		},
 		{
 			in:  in{mount: Mount{Format: "swap", Label: nil}},
@@ -153,7 +154,7 @@ func TestLabelValidate(t *testing.T) {
 		},
 		{
 			in:  in{mount: Mount{Format: "swap", Label: strToPtr("thislabelistoolong")}},
-			out: out{err: ErrSwapLabelTooLong},
+			out: out{err: errors.ErrSwapLabelTooLong},
 		},
 		{
 			in:  in{mount: Mount{Format: "vfat", Label: nil}},
@@ -165,7 +166,7 @@ func TestLabelValidate(t *testing.T) {
 		},
 		{
 			in:  in{mount: Mount{Format: "vfat", Label: strToPtr("thislabelistoolong")}},
-			out: out{err: ErrVfatLabelTooLong},
+			out: out{err: errors.ErrVfatLabelTooLong},
 		},
 	}
 
