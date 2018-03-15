@@ -17,7 +17,7 @@ package v2_2
 import (
 	"testing"
 
-	"github.com/coreos/ignition/config/errors"
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/v2_2/types"
 	"github.com/stretchr/testify/assert"
 )

@@ -16,7 +16,7 @@ package v2_1
 
 import (
 	"github.com/coreos/go-semver/semver"
-	"github.com/coreos/ignition/config/errors"
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/v2_0"
 	"github.com/coreos/ignition/config/v2_1/types"
 	"github.com/coreos/ignition/config/validate"

@@ -19,7 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/coreos/ignition/config/errors"
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/v1/types"
 	"github.com/coreos/ignition/config/validate/report"
 )

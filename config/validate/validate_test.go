@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	json "github.com/ajeddeloh/go-json"
-	conferrs "github.com/coreos/ignition/config/errors"
+	conferrs "github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/astjson"
 	"github.com/coreos/ignition/config/validate/report"

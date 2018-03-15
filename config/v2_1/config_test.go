@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/coreos/ignition/config/errors"
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/v2_1/types"
 )
 

@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 
-	configErrors "github.com/coreos/ignition/config/errors"
+	configErrors "github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 

@@ -16,7 +16,7 @@ package shared
 
 import (
 	"github.com/coreos/go-systemd/unit"
-	"github.com/coreos/ignition/config/errors"
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 

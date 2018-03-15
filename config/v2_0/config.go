@@ -15,7 +15,7 @@
 package v2_0
 
 import (
-	"github.com/coreos/ignition/config/errors"
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/v1"
 	"github.com/coreos/ignition/config/v2_0/types"
 	"github.com/coreos/ignition/config/validate"
