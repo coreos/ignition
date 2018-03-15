@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package shared contains types and validations that may be shared between
-// multiple config versions safely.
-// This package may be imported by all config versions.
+// Package shared contains types, validations, errors, etc that may be shared
+// between multiple config versions safely.
+// Subpackages of this package may be imported by all config versions.
 package shared

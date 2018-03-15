@@ -22,7 +22,7 @@ import (
 
 	"github.com/coreos/go-systemd/unit"
 
-	"github.com/coreos/ignition/config/shared"
+	"github.com/coreos/ignition/config/shared/validations"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -41,7 +41,7 @@ func (u SystemdUnit) Validate() report.Report {
 		return report.ReportFromError(err, report.EntryError)
 	}
 
-	r.Merge(shared.ValidateInstallSection(string(u.Name), u.Enable, u.Contents == "", opts))
+	r.Merge(validations.ValidateInstallSection(string(u.Name), u.Enable, u.Contents == "", opts))
 
 	return r
 }

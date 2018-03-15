@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shared
+// Package validations contains validations shared between multiple config
+// versions.
+package validations
 
 import (
 	"github.com/coreos/go-systemd/unit"
