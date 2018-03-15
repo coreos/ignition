@@ -17,6 +17,8 @@ package types
 import (
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/config/shared/errors"
 )
 
 func TestModeValidate(t *testing.T) {
@@ -53,7 +55,7 @@ func TestModeValidate(t *testing.T) {
 		},
 		{
 			in:  in{mode: intToPtr(010000)},
-			out: out{ErrFileIllegalMode},
+			out: out{errors.ErrFileIllegalMode},
 		},
 	}
 

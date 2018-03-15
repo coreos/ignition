@@ -18,12 +18,13 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
 func TestNodeValidatePath(t *testing.T) {
 	node := Node{Path: "not/absolute"}
-	rep := report.ReportFromError(ErrPathRelative, report.EntryError)
+	rep := report.ReportFromError(errors.ErrPathRelative, report.EntryError)
 	if receivedRep := node.ValidatePath(); !reflect.DeepEqual(rep, receivedRep) {
 		t.Errorf("bad error: want %v, got %v", rep, receivedRep)
 	}
@@ -40,7 +41,7 @@ func TestNodeValidateFilesystem(t *testing.T) {
 		},
 		{
 			node: Node{Path: "/"},
-			r:    report.ReportFromError(ErrNoFilesystem, report.EntryError),
+			r:    report.ReportFromError(errors.ErrNoFilesystem, report.EntryError),
 		},
 	}
 	for i, test := range tests {
@@ -73,7 +74,7 @@ func TestNodeValidateUser(t *testing.T) {
 		},
 		{
 			in:  NodeUser{intToPtr(1000), "core"},
-			out: report.ReportFromError(ErrBothIDAndNameSet, report.EntryError),
+			out: report.ReportFromError(errors.ErrBothIDAndNameSet, report.EntryError),
 		},
 	}
 
@@ -104,7 +105,7 @@ func TestNodeValidateGroup(t *testing.T) {
 		},
 		{
 			in:  NodeGroup{intToPtr(1000), "core"},
-			out: report.ReportFromError(ErrBothIDAndNameSet, report.EntryError),
+			out: report.ReportFromError(errors.ErrBothIDAndNameSet, report.EntryError),
 		},
 	}
 

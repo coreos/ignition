@@ -15,6 +15,7 @@
 package types
 
 import (
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -28,7 +29,7 @@ func (d Directory) ValidateMode() report.Report {
 	}
 	if d.Mode == nil {
 		r.Add(report.Entry{
-			Message: "directory permissions unset, defaulting to 0000",
+			Message: errors.ErrPermissionsUnset.Error(),
 			Kind:    report.EntryWarning,
 		})
 	}

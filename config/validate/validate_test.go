@@ -16,7 +16,7 @@ package validate
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	json "github.com/ajeddeloh/go-json"
-	conferrs "github.com/coreos/ignition/config/shared/errors"
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/astjson"
 	"github.com/coreos/ignition/config/validate/report"
@@ -51,23 +51,23 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			in:  in{cfg: Config{}},
-			out: out{err: ErrInvalidVersion},
+			out: out{err: errors.ErrInvalidVersion},
 		},
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: "invalid.version"}}},
-			out: out{err: ErrInvalidVersion},
+			out: out{err: errors.ErrInvalidVersion},
 		},
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: "2.3.0"}}},
-			out: out{err: ErrNewVersion},
+			out: out{err: errors.ErrNewVersion},
 		},
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: "3.0.0"}}},
-			out: out{err: ErrNewVersion},
+			out: out{err: errors.ErrNewVersion},
 		},
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: "1.0.0"}}},
-			out: out{err: ErrOldVersion},
+			out: out{err: errors.ErrOldVersion},
 		},
 		{
 			in: in{cfg: Config{
@@ -82,7 +82,7 @@ func TestValidate(t *testing.T) {
 					},
 				},
 			}},
-			out: out{err: errors.New("unrecognized hash function")},
+			out: out{err: fmt.Errorf("unrecognized hash function")},
 		},
 		{
 			in: in{cfg: Config{
@@ -120,14 +120,14 @@ func TestValidate(t *testing.T) {
 				Ignition: Ignition{Version: semver.Version{Major: 2}.String()},
 				Systemd:  Systemd{Units: []Unit{{Name: "foo.bar", Contents: "[Foo]\nfoo=qux"}}},
 			}},
-			out: out{err: errors.New("invalid systemd unit extension")},
+			out: out{err: fmt.Errorf("invalid systemd unit extension")},
 		},
 		{
 			in: in{cfg: Config{
 				Ignition: Ignition{Version: semver.Version{Major: 2}.String()},
 				Systemd:  Systemd{Units: []Unit{{Name: "enable-but-no-install.service", Enabled: util.BoolToPtr(true), Contents: "[Foo]\nlemon=lime"}}},
 			}},
-			out: out{warning: conferrs.NewNoInstallSectionError("enable-but-no-install.service")},
+			out: out{warning: errors.NewNoInstallSectionError("enable-but-no-install.service")},
 		},
 	}
 
@@ -145,7 +145,7 @@ func TestValidate(t *testing.T) {
 	}
 }
 
-var dummyErr = errors.New("dummy error")
+var dummyErr = fmt.Errorf("dummy error")
 
 // These types need to be declared here to allow us to define Validate() methods on them
 // simple case, no embedding, no Validate<NAME> functions, just Validate() defined on a struct
