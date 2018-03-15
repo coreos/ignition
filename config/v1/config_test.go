@@ -48,7 +48,7 @@ func TestParse(t *testing.T) {
 				report: report.Report{
 					Entries: []report.Entry{
 						{
-							Message:   types.ErrPathRelative.Error(),
+							Message:   errors.ErrPathRelative.Error(),
 							Kind:      report.EntryError,
 							Line:      1,
 							Column:    87,

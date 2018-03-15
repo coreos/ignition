@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -39,7 +40,7 @@ func TestFileModeValidate(t *testing.T) {
 		},
 		{
 			in:  in{data: 9999},
-			out: out{rep: report.ReportFromError(ErrFileIllegalMode, report.EntryError)},
+			out: out{rep: report.ReportFromError(errors.ErrFileIllegalMode, report.EntryError)},
 		},
 	}
 
@@ -81,7 +82,7 @@ func TestFileAssertValid(t *testing.T) {
 		},
 		{
 			in:  in{mode: FileMode(010000)},
-			out: out{rep: report.ReportFromError(ErrFileIllegalMode, report.EntryError)},
+			out: out{rep: report.ReportFromError(errors.ErrFileIllegalMode, report.EntryError)},
 		},
 	}
 

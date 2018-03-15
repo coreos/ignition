@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -43,7 +44,7 @@ func TestFilesystemFormatValidate(t *testing.T) {
 		},
 		{
 			in:  in{format: FilesystemFormat("")},
-			out: out{rep: report.ReportFromError(ErrFilesystemInvalidFormat, report.EntryError)},
+			out: out{rep: report.ReportFromError(errors.ErrFilesystemInvalidFormat, report.EntryError)},
 		},
 	}
 
