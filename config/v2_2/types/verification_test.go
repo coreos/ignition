@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -38,7 +39,7 @@ func TestHashParts(t *testing.T) {
 		},
 		{
 			in:  in{data: `"sha512:01234567"`},
-			out: out{err: ErrHashMalformed},
+			out: out{err: errors.ErrHashMalformed},
 		},
 	}
 
@@ -71,11 +72,11 @@ func TestHashValidate(t *testing.T) {
 	}{
 		{
 			in:  in{v: Verification{Hash: &h1}},
-			out: out{err: ErrHashUnrecognized},
+			out: out{err: errors.ErrHashUnrecognized},
 		},
 		{
 			in:  in{v: Verification{Hash: &h2}},
-			out: out{err: ErrHashWrongSize},
+			out: out{err: errors.ErrHashWrongSize},
 		},
 		{
 			in:  in{v: Verification{Hash: &h3}},
