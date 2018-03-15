@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -51,7 +52,7 @@ func TestFileValidate(t *testing.T) {
 		},
 		{
 			in:  in{mode: FileMode(010000)},
-			out: out{err: ErrFileIllegalMode},
+			out: out{err: errors.ErrFileIllegalMode},
 		},
 	}
 

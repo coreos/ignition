@@ -19,6 +19,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -41,7 +42,7 @@ func TestHashUnmarshalJSON(t *testing.T) {
 		},
 		{
 			in:  in{data: `"xor01234567"`},
-			out: out{err: ErrHashMalformed},
+			out: out{err: errors.ErrHashMalformed},
 		},
 	}
 
@@ -71,15 +72,15 @@ func TestHashValidate(t *testing.T) {
 	}{
 		{
 			in:  in{hash: Hash{}},
-			out: out{err: ErrHashUnrecognized},
+			out: out{err: errors.ErrHashUnrecognized},
 		},
 		{
 			in:  in{hash: Hash{Function: "xor"}},
-			out: out{err: ErrHashUnrecognized},
+			out: out{err: errors.ErrHashUnrecognized},
 		},
 		{
 			in:  in{hash: Hash{Function: "sha512", Sum: "123"}},
-			out: out{err: ErrHashWrongSize},
+			out: out{err: errors.ErrHashWrongSize},
 		},
 		{
 			in:  in{hash: Hash{Function: "sha512", Sum: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}},
