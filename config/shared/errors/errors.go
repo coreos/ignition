@@ -21,6 +21,7 @@ import (
 )
 
 var (
+	// Parsing / general errors
 	ErrInvalid            = errors.New("config is not valid")
 	ErrCloudConfig        = errors.New("not a config (found coreos-cloudconfig)")
 	ErrEmpty              = errors.New("not a config (empty)")
@@ -29,6 +30,65 @@ var (
 	ErrDeprecated         = errors.New("config format deprecated")
 	ErrVersion            = errors.New("incorrect config version")
 	ErrCompressionInvalid = errors.New("invalid compression method")
+
+	// Ignition section errors
+	ErrOldVersion     = errors.New("incorrect config version (too old)")
+	ErrNewVersion     = errors.New("incorrect config version (too new)")
+	ErrInvalidVersion = errors.New("invalid config version (couldn't parse)")
+
+	// Storage section errors
+	ErrPermissionsUnset            = errors.New("permissions unset, defaulting to 0000")
+	ErrDiskDeviceRequired          = errors.New("disk device is required")
+	ErrPartitionNumbersCollide     = errors.New("partition numbers collide")
+	ErrPartitionsOverlap           = errors.New("partitions overlap")
+	ErrPartitionsMisaligned        = errors.New("partitions misaligned")
+	ErrAppendAndOverwrite          = errors.New("cannot set both append and overwrite to true")
+	ErrFilesystemInvalidFormat     = errors.New("invalid filesystem format")
+	ErrFilesystemNoMountPath       = errors.New("filesystem is missing mount or path")
+	ErrFilesystemMountAndPath      = errors.New("filesystem has both mount and path defined")
+	ErrUsedCreateAndMountOpts      = errors.New("cannot use both create object and mount-level options field")
+	ErrUsedCreateAndWipeFilesystem = errors.New("cannot use both create object and wipeFilesystem field")
+	ErrWarningCreateDeprecated     = errors.New("the create object has been deprecated in favor of mount-level options")
+	ErrExt4LabelTooLong            = errors.New("filesystem labels cannot be longer than 16 characters when using ext4")
+	ErrBtrfsLabelTooLong           = errors.New("filesystem labels cannot be longer than 256 characters when using btrfs")
+	ErrXfsLabelTooLong             = errors.New("filesystem labels cannot be longer than 12 characters when using xfs")
+	ErrSwapLabelTooLong            = errors.New("filesystem labels cannot be longer than 15 characters when using swap")
+	ErrVfatLabelTooLong            = errors.New("filesystem labels cannot be longer than 11 characters when using vfat")
+	ErrFileIllegalMode             = errors.New("illegal file mode")
+	ErrNoFilesystem                = errors.New("no filesystem specified")
+	ErrBothIDAndNameSet            = errors.New("cannot set both id and name")
+	ErrLabelTooLong                = errors.New("partition labels may not exceed 36 characters")
+	ErrDoesntMatchGUIDRegex        = errors.New("doesn't match the form \"01234567-89AB-CDEF-EDCB-A98765432101\"")
+	ErrLabelContainsColon          = errors.New("partition label will be truncated to text before the colon")
+	ErrPathRelative                = errors.New("path not absolute")
+	ErrSparesUnsupportedForLevel   = errors.New("spares unsupported for arrays with a level greater than 0")
+	ErrUnrecognizedRaidLevel       = errors.New("unrecognized raid level")
+
+	// Passwd section errors
+	ErrPasswdCreateDeprecated      = errors.New("the create object has been deprecated in favor of user-level options")
+	ErrPasswdCreateAndGecos        = errors.New("cannot use both the create object and the user-level gecos field")
+	ErrPasswdCreateAndGroups       = errors.New("cannot use both the create object and the user-level groups field")
+	ErrPasswdCreateAndHomeDir      = errors.New("cannot use both the create object and the user-level homeDir field")
+	ErrPasswdCreateAndNoCreateHome = errors.New("cannot use both the create object and the user-level noCreateHome field")
+	ErrPasswdCreateAndNoLogInit    = errors.New("cannot use both the create object and the user-level noLogInit field")
+	ErrPasswdCreateAndNoUserGroup  = errors.New("cannot use both the create object and the user-level noUserGroup field")
+	ErrPasswdCreateAndPrimaryGroup = errors.New("cannot use both the create object and the user-level primaryGroup field")
+	ErrPasswdCreateAndShell        = errors.New("cannot use both the create object and the user-level shell field")
+	ErrPasswdCreateAndSystem       = errors.New("cannot use both the create object and the user-level system field")
+	ErrPasswdCreateAndUID          = errors.New("cannot use both the create object and the user-level uid field")
+
+	// Systemd and Networkd section errors
+	ErrInvalidSystemdExt        = errors.New("invalid systemd unit extension")
+	ErrInvalidSystemdDropinExt  = errors.New("invalid systemd drop-in extension")
+	ErrInvalidNetworkdExt       = errors.New("invalid networkd unit extension")
+	ErrInvalidNetworkdDropinExt = errors.New("invalid networkd drop-in extension")
+
+	// Misc errors
+	ErrInvalidScheme    = errors.New("invalid url scheme")
+	ErrInvalidUrl       = errors.New("unable to parse url")
+	ErrHashMalformed    = errors.New("malformed hash specifier")
+	ErrHashWrongSize    = errors.New("incorrect size for hash sum")
+	ErrHashUnrecognized = errors.New("unrecognized hash function")
 )
 
 // NewNoInstallSectionError produces an error indicating the given unit, named
