@@ -21,14 +21,17 @@ fi
 
 eval $(go env)
 
-export GOBIN=${PWD}/bin/releases
+if [ -z ${BIN_PATH+a} ]; then
+	export BIN_PATH=${PWD}/bin/releases/
+fi
+
 export GOPATH=${PWD}/gopath
 export CGO_ENABLED=0
 
 build_release() {
     export NAME="ignition-validate-${1}"
     echo "building ${NAME}"
-    go build -ldflags "${GLDFLAGS}" -o ${GOBIN}/${NAME} ${REPO_PATH}/validate
+    go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/validate
 }
 
 export GOOS=linux
