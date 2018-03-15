@@ -16,14 +16,17 @@ fi
 
 eval $(go env)
 
-export GOBIN=${PWD}/bin/${GOARCH}
+if [ -z ${BIN_PATH+a} ]; then
+	export BIN_PATH=${PWD}/bin/${GOARCH}
+fi
+
 export GOPATH=${PWD}/gopath
 export CGO_ENABLED=1
 
 echo "Building ${NAME}..."
-go build -ldflags "${GLDFLAGS}" -o ${GOBIN}/${NAME} ${REPO_PATH}/internal
+go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/internal
 
 NAME="ignition-validate"
 
 echo "Building ${NAME}..."
-go build -ldflags "${GLDFLAGS}" -o ${GOBIN}/${NAME} ${REPO_PATH}/validate
+go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/validate
