@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -51,7 +52,7 @@ func TestPathValidate(t *testing.T) {
 		},
 		{
 			in:  in{device: Path("relative/path")},
-			out: out{err: ErrPathRelative},
+			out: out{err: errors.ErrPathRelative},
 		},
 	}
 

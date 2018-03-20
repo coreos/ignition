@@ -15,10 +15,11 @@
 package types
 
 import (
-	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -40,7 +41,7 @@ func TestSystemdUnitValidate(t *testing.T) {
 		},
 		{
 			in:  in{unit: SystemdUnit{Contents: "[Foo"}},
-			out: out{err: errors.New("invalid unit content: unable to find end of section")},
+			out: out{err: fmt.Errorf("invalid unit content: unable to find end of section")},
 		},
 		{
 			in:  in{unit: SystemdUnit{Contents: "", DropIns: []SystemdUnitDropIn{{}}}},
@@ -78,7 +79,7 @@ func TestSystemdUnitNameValidate(t *testing.T) {
 		},
 		{
 			in:  in{unit: SystemdUnitName("test.blah")},
-			out: out{err: errors.New("invalid systemd unit extension")},
+			out: out{err: errors.ErrInvalidSystemdExt},
 		},
 	}
 
@@ -108,7 +109,7 @@ func TestSystemdUnitDropInValidate(t *testing.T) {
 		},
 		{
 			in:  in{unit: SystemdUnitDropIn{Contents: "[Foo"}},
-			out: out{err: errors.New("invalid unit content: unable to find end of section")},
+			out: out{err: fmt.Errorf("invalid unit content: unable to find end of section")},
 		},
 	}
 
@@ -146,7 +147,7 @@ func TestNetworkdUnitNameValidate(t *testing.T) {
 		},
 		{
 			in:  in{unit: NetworkdUnitName("test.blah")},
-			out: out{err: errors.New("invalid networkd unit extension")},
+			out: out{err: errors.ErrInvalidNetworkdExt},
 		},
 	}
 
@@ -176,7 +177,7 @@ func TestNetworkdUnitValidate(t *testing.T) {
 		},
 		{
 			in:  in{unit: NetworkdUnit{Contents: "[Foo"}},
-			out: out{err: errors.New("invalid unit content: unable to find end of section")},
+			out: out{err: fmt.Errorf("invalid unit content: unable to find end of section")},
 		},
 	}
 

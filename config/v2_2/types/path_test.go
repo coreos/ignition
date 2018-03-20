@@ -17,6 +17,8 @@ package types
 import (
 	"reflect"
 	"testing"
+
+	"github.com/coreos/ignition/config/shared/errors"
 )
 
 func TestPathValidate(t *testing.T) {
@@ -49,7 +51,7 @@ func TestPathValidate(t *testing.T) {
 		},
 		{
 			in:  in{device: "relative/path"},
-			out: out{err: ErrPathRelative},
+			out: out{err: errors.ErrPathRelative},
 		},
 	}
 

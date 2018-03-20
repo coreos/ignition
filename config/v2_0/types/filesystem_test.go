@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -43,7 +44,7 @@ func TestFilesystemFormatValidate(t *testing.T) {
 		},
 		{
 			in:  in{format: FilesystemFormat("")},
-			out: out{err: ErrFilesystemInvalidFormat},
+			out: out{err: errors.ErrFilesystemInvalidFormat},
 		},
 	}
 
@@ -77,11 +78,11 @@ func TestFilesystemValidate(t *testing.T) {
 		},
 		{
 			in:  in{filesystem: Filesystem{Path: func(p Path) *Path { return &p }("/mount"), Mount: &FilesystemMount{Device: "/foo", Format: "ext4"}}},
-			out: out{err: ErrFilesystemMountAndPath},
+			out: out{err: errors.ErrFilesystemMountAndPath},
 		},
 		{
 			in:  in{filesystem: Filesystem{}},
-			out: out{err: ErrFilesystemNoMountPath},
+			out: out{err: errors.ErrFilesystemNoMountPath},
 		},
 	}
 

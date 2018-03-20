@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -51,7 +52,7 @@ func TestPathAssertValid(t *testing.T) {
 		},
 		{
 			in:  in{device: Path("relative/path")},
-			out: out{rep: report.ReportFromError(ErrPathRelative, report.EntryError)},
+			out: out{rep: report.ReportFromError(errors.ErrPathRelative, report.EntryError)},
 		},
 	}
 

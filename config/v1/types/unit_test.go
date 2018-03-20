@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -43,7 +44,7 @@ func TestSystemdUnitNameValidate(t *testing.T) {
 		},
 		{
 			in:  in{data: "test.blah"},
-			out: out{rep: report.ReportFromError(ErrSystemdUnitInvalidExt, report.EntryError)},
+			out: out{rep: report.ReportFromError(errors.ErrInvalidSystemdExt, report.EntryError)},
 		},
 	}
 
@@ -81,7 +82,7 @@ func TestNetworkdUnitNameValidate(t *testing.T) {
 		},
 		{
 			in:  in{data: "test.blah"},
-			out: out{rep: report.ReportFromError(ErrNetworkdUnitInvalidExt, report.EntryError)},
+			out: out{rep: report.ReportFromError(errors.ErrInvalidNetworkdExt, report.EntryError)},
 		},
 	}
 

@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -46,11 +47,11 @@ func TestValidateLabel(t *testing.T) {
 		},
 		{
 			in{"1111111111111111111111111111111111111"},
-			out{report.ReportFromError(ErrLabelTooLong, report.EntryError)},
+			out{report.ReportFromError(errors.ErrLabelTooLong, report.EntryError)},
 		},
 		{
 			in{"test:"},
-			out{report.ReportFromError(ErrLabelContainsColon, report.EntryWarning)},
+			out{report.ReportFromError(errors.ErrLabelContainsColon, report.EntryWarning)},
 		},
 	}
 	for i, test := range tests {
@@ -82,7 +83,7 @@ func TestValidateTypeGUID(t *testing.T) {
 		},
 		{
 			in{"not-a-valid-typeguid"},
-			out{report.ReportFromError(ErrDoesntMatchGUIDRegex, report.EntryError)},
+			out{report.ReportFromError(errors.ErrDoesntMatchGUIDRegex, report.EntryError)},
 		},
 	}
 	for i, test := range tests {
@@ -114,7 +115,7 @@ func TestValidateGUID(t *testing.T) {
 		},
 		{
 			in{"not-a-valid-typeguid"},
-			out{report.ReportFromError(ErrDoesntMatchGUIDRegex, report.EntryError)},
+			out{report.ReportFromError(errors.ErrDoesntMatchGUIDRegex, report.EntryError)},
 		},
 	}
 	for i, test := range tests {
