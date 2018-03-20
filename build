@@ -5,7 +5,7 @@ set -eu
 NAME="ignition"
 ORG_PATH="github.com/coreos"
 REPO_PATH="${ORG_PATH}/${NAME}"
-VERSION=$(git describe --dirty)
+VERSION=${VERSION:-$(git describe --dirty)}
 GLDFLAGS=${GLDFLAGS:-}
 GLDFLAGS+="-X github.com/coreos/ignition/internal/version.Raw=${VERSION}"
 
