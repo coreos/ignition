@@ -35,13 +35,7 @@ done
 for D in tests/stubs/*; do
 	if [ -d "${D}" ]; then
 		echo "Building ${D}"
-		if [ "$GOHOSTARCH" == "$GOARCH" ]; then
-			go install ${REPO_PATH}/${D}
-		else
-			# Don't try to go install things when cross compiling because
-			# go install disallows it.
-			go build ${REPO_PATH}/${D}
-		fi
+		go build -o ${BIN_PATH}/$(basename ${D}) ${REPO_PATH}/${D}
 	fi
 done
 
