@@ -16,10 +16,10 @@ package v2_1
 
 import (
 	"github.com/coreos/go-semver/semver"
-	"github.com/coreos/ignition/config/errors"
-	"github.com/coreos/ignition/config/util"
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/v2_0"
 	"github.com/coreos/ignition/config/v2_1/types"
+	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
 
 	json "github.com/ajeddeloh/go-json"
@@ -55,7 +55,7 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 		return types.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
 
-	rpt := util.ValidateConfig(rawConfig, config)
+	rpt := validate.ValidateConfig(rawConfig, config)
 	if rpt.IsFatal() {
 		return types.Config{}, rpt, errors.ErrInvalid
 	}

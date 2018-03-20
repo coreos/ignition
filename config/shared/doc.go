@@ -12,17 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package errors
-
-import "errors"
-
-var (
-	ErrInvalid            = errors.New("config is not valid")
-	ErrCloudConfig        = errors.New("not a config (found coreos-cloudconfig)")
-	ErrEmpty              = errors.New("not a config (empty)")
-	ErrUnknownVersion     = errors.New("unsupported config version")
-	ErrScript             = errors.New("not a config (found coreos-cloudinit script)")
-	ErrDeprecated         = errors.New("config format deprecated")
-	ErrVersion            = errors.New("incorrect config version")
-	ErrCompressionInvalid = errors.New("invalid compression method")
-)
+// Package shared contains types, validations, errors, etc that may be shared
+// between multiple config versions safely.
+// Subpackages of this package may be imported by all config versions.
+package shared

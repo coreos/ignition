@@ -22,6 +22,7 @@ import (
 
 	"github.com/coreos/go-systemd/unit"
 
+	"github.com/coreos/ignition/config/shared/validations"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -32,12 +33,17 @@ var (
 
 func (u Unit) ValidateContents() report.Report {
 	r := report.Report{}
-	if err := validateUnitContent(u.Contents); err != nil {
+	opts, err := validateUnitContent(u.Contents)
+	if err != nil {
 		r.Add(report.Entry{
 			Message: err.Error(),
 			Kind:    report.EntryError,
 		})
 	}
+
+	isEnabled := u.Enable || (u.Enabled != nil && *u.Enabled)
+	r.Merge(validations.ValidateInstallSection(u.Name, isEnabled, u.Contents == "", opts))
+
 	return r
 }
 
@@ -57,7 +63,7 @@ func (u Unit) ValidateName() report.Report {
 func (d SystemdDropin) Validate() report.Report {
 	r := report.Report{}
 
-	if err := validateUnitContent(d.Contents); err != nil {
+	if _, err := validateUnitContent(d.Contents); err != nil {
 		r.Add(report.Entry{
 			Message: err.Error(),
 			Kind:    report.EntryError,
@@ -79,7 +85,7 @@ func (d SystemdDropin) Validate() report.Report {
 func (u Networkdunit) Validate() report.Report {
 	r := report.Report{}
 
-	if err := validateUnitContent(u.Contents); err != nil {
+	if _, err := validateUnitContent(u.Contents); err != nil {
 		r.Add(report.Entry{
 			Message: err.Error(),
 			Kind:    report.EntryError,
@@ -101,7 +107,7 @@ func (u Networkdunit) Validate() report.Report {
 func (d NetworkdDropin) Validate() report.Report {
 	r := report.Report{}
 
-	if err := validateUnitContent(d.Contents); err != nil {
+	if _, err := validateUnitContent(d.Contents); err != nil {
 		r.Add(report.Entry{
 			Message: err.Error(),
 			Kind:    report.EntryError,
@@ -120,12 +126,11 @@ func (d NetworkdDropin) Validate() report.Report {
 	return r
 }
 
-func validateUnitContent(content string) error {
+func validateUnitContent(content string) ([]*unit.UnitOption, error) {
 	c := strings.NewReader(content)
-	_, err := unit.Deserialize(c)
+	opts, err := unit.Deserialize(c)
 	if err != nil {
-		return fmt.Errorf("invalid unit content: %s", err)
+		return nil, fmt.Errorf("invalid unit content: %s", err)
 	}
-
-	return nil
+	return opts, nil
 }

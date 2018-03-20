@@ -15,17 +15,38 @@
 package validate
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"reflect"
 	"strings"
 
+	json "github.com/ajeddeloh/go-json"
+	"github.com/coreos/ignition/config/validate/astjson"
 	"github.com/coreos/ignition/config/validate/astnode"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
 type validator interface {
 	Validate() report.Report
+}
+
+// ValidateConfig validates a raw config object into a given config version
+func ValidateConfig(rawConfig []byte, config interface{}) report.Report {
+	// Unmarshal again to a json.Node to get offset information for building a report
+	var ast json.Node
+	var r report.Report
+	configValue := reflect.ValueOf(config)
+	if err := json.Unmarshal(rawConfig, &ast); err != nil {
+		r.Add(report.Entry{
+			Kind:    report.EntryWarning,
+			Message: "Ignition could not unmarshal your config for reporting line numbers. This should never happen. Please file a bug.",
+		})
+		r.Merge(ValidateWithoutSource(configValue))
+	} else {
+		r.Merge(Validate(configValue, astjson.FromJsonRoot(ast), bytes.NewReader(rawConfig), true))
+	}
+	return r
 }
 
 // Validate walks down a struct tree calling Validate on every node that implements it, building

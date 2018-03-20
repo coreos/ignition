@@ -17,7 +17,7 @@
 package noop
 
 import (
-	"github.com/coreos/ignition/config/errors"
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/resource"

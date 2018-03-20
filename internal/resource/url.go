@@ -31,7 +31,7 @@ import (
 	"strings"
 	"syscall"
 
-	configErrors "github.com/coreos/ignition/config/errors"
+	configErrors "github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/systemd"

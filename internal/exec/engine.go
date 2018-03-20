@@ -20,7 +20,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/coreos/ignition/config/errors"
+	"github.com/coreos/ignition/config/shared/errors"
 	configUtil "github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/config"
