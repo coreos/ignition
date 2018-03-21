@@ -78,12 +78,12 @@ func prepareRootPartitionForPasswd(t *testing.T, ctx context.Context, partitions
 	}
 
 	// TODO: use the architecture, not hardcode amd64
-	err := exec.CommandContext(ctx, "cp", "bin/amd64/id-stub", filepath.Join(mountPath, distro.IdCmd())).Run()
+	_, err := run(t, ctx, "cp", "bin/amd64/id-stub", filepath.Join(mountPath, distro.IdCmd()))
 	if err != nil {
 		return err
 	}
 	// TODO: needed for user_group_lookup.c
-	err = exec.CommandContext(ctx, "cp", "/lib64/libnss_files.so.2", filepath.Join(mountPath, "usr", "lib64")).Run()
+	_, err = run(t, ctx, "cp", "/lib64/libnss_files.so.2", filepath.Join(mountPath, "usr", "lib64"))
 	return err
 }
 
