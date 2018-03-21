@@ -43,3 +43,4 @@ testImport:
   version: 4d4bfba8f1d1027c4fdbe371823030df51419987
   subpackages:
   - assert
+- package: github.com/euank/go-kmsg-parser

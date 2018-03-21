@@ -27,6 +27,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/euank/go-kmsg-parser/kmsgparser"
 	"github.com/pin/tftp"
 
 	config "github.com/coreos/ignition/config/v2_3_experimental"
@@ -119,6 +120,19 @@ func TestMain(m *testing.M) {
 }
 
 func TestIgnitionBlackBox(t *testing.T) {
+	parser, err := kmsgparser.NewParser()
+	if err != nil {
+		t.Log(err)
+	} else {
+		msgChan := parser.Parse()
+		go func() {
+			for {
+				event := <- msgChan
+				t.Logf("kmsg: %v\n", event)
+			}
+		}()
+	}
+
 	for _, test := range register.Tests[register.PositiveTest] {
 		t.Run(test.Name, func(t *testing.T) {
 			err := outer(t, test, false)
