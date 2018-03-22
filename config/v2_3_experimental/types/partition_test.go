@@ -22,9 +22,14 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+// redefined here to avoid import cycles
+func strToPtrStrict(s string) *string {
+	return &s
+}
+
 func TestValidateLabel(t *testing.T) {
 	type in struct {
-		label string
+		label *string
 	}
 	type out struct {
 		report report.Report
@@ -34,23 +39,27 @@ func TestValidateLabel(t *testing.T) {
 		out out
 	}{
 		{
-			in{"root"},
+			in{strToPtrStrict("root")},
 			out{report.Report{}},
 		},
 		{
-			in{""},
+			in{strToPtrStrict("")},
 			out{report.Report{}},
 		},
 		{
-			in{"111111111111111111111111111111111111"},
+			in{nil},
 			out{report.Report{}},
 		},
 		{
-			in{"1111111111111111111111111111111111111"},
+			in{strToPtrStrict("111111111111111111111111111111111111")},
+			out{report.Report{}},
+		},
+		{
+			in{strToPtrStrict("1111111111111111111111111111111111111")},
 			out{report.ReportFromError(errors.ErrLabelTooLong, report.EntryError)},
 		},
 		{
-			in{"test:"},
+			in{strToPtrStrict("test:")},
 			out{report.ReportFromError(errors.ErrLabelContainsColon, report.EntryWarning)},
 		},
 	}
