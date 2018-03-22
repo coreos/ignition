@@ -174,8 +174,9 @@ func validateStruct(vObj reflect.Value, ast astnode.AstNode, source io.ReadSeeke
 		// Default to deepest node if the node's type isn't an object,
 		// such as when a json string actually unmarshal to structs (like with version)
 		line, col := 0, 0
+		highlight := ""
 		if ast != nil {
-			line, col, _ = ast.ValueLineCol(src)
+			line, col, highlight = ast.ValueLineCol(src)
 		}
 
 		// If there's a Validate<Name> func for the given field, call it
@@ -183,16 +184,16 @@ func validateStruct(vObj reflect.Value, ast astnode.AstNode, source io.ReadSeeke
 		if funct.IsValid() {
 			if sub_node != nil {
 				// if sub_node is non-nil, we can get better line/col info
-				line, col, _ = sub_node.ValueLineCol(src)
+				line, col, highlight = sub_node.ValueLineCol(src)
 			}
 			res := funct.Call(nil)
 			sub_report := res[0].Interface().(report.Report)
-			sub_report.AddPosition(line, col, "")
+			sub_report.AddPosition(line, col, highlight)
 			r.Merge(sub_report)
 		}
 
 		sub_report := Validate(f.Value, sub_node, src, checkUnusedKeys)
-		sub_report.AddPosition(line, col, "")
+		sub_report.AddPosition(line, col, highlight)
 		r.Merge(sub_report)
 	}
 	if !isFromObject || !checkUnusedKeys {
