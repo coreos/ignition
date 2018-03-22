@@ -15,6 +15,7 @@
 package v2_3_experimental
 
 import (
+	"github.com/coreos/ignition/config/util"
 	v2_2 "github.com/coreos/ignition/config/v2_2/types"
 	"github.com/coreos/ignition/config/v2_3_experimental/types"
 )
@@ -187,10 +188,10 @@ func Translate(old v2_2.Config) types.Config {
 		for _, x := range old {
 			res = append(res, types.Partition{
 				GUID:     x.GUID,
-				Label:    x.Label,
+				Label:    util.StrToPtrStrict(x.Label),
 				Number:   x.Number,
-				Size:     x.Size,
-				Start:    x.Start,
+				Size:     util.IntToPtr(x.Size),
+				Start:    util.IntToPtr(x.Start),
 				TypeGUID: x.TypeGUID,
 			})
 		}

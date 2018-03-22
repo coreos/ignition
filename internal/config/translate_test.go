@@ -20,6 +20,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/coreos/ignition/config/util"
 	from "github.com/coreos/ignition/config/v2_3_experimental/types"
 	"github.com/coreos/ignition/internal/config/types"
 )
@@ -244,18 +245,18 @@ func TestTranslate(t *testing.T) {
 							WipeTable: true,
 							Partitions: []from.Partition{
 								{
-									Label:    "ROOT",
+									Label:    util.StrToPtrStrict("ROOT"),
 									Number:   7,
-									Size:     100,
-									Start:    50,
+									Size:     util.IntToPtr(100),
+									Start:    util.IntToPtr(50),
 									TypeGUID: "HI",
 									GUID:     "4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709",
 								},
 								{
-									Label:    "DATA",
+									Label:    util.StrToPtrStrict("DATA"),
 									Number:   12,
-									Size:     1000,
-									Start:    300,
+									Size:     util.IntToPtr(1000),
+									Start:    util.IntToPtr(300),
 									TypeGUID: "LO",
 									GUID:     "3B8F8425-20E0-4F3B-907F-1A25A76F98E8",
 								},
@@ -277,18 +278,18 @@ func TestTranslate(t *testing.T) {
 							WipeTable: true,
 							Partitions: []types.Partition{
 								{
-									Label:    "ROOT",
+									Label:    util.StrToPtrStrict("ROOT"),
 									Number:   7,
-									Size:     100,
-									Start:    50,
+									Size:     util.IntToPtr(100),
+									Start:    util.IntToPtr(50),
 									TypeGUID: "HI",
 									GUID:     "4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709",
 								},
 								{
-									Label:    "DATA",
+									Label:    util.StrToPtrStrict("DATA"),
 									Number:   12,
-									Size:     1000,
-									Start:    300,
+									Size:     util.IntToPtr(1000),
+									Start:    util.IntToPtr(300),
 									TypeGUID: "LO",
 									GUID:     "3B8F8425-20E0-4F3B-907F-1A25A76F98E8",
 								},
