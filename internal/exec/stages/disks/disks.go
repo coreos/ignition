@@ -199,11 +199,23 @@ func (s stage) createPartitions(config types.Config) error {
 			}
 
 			for _, part := range dev.Partitions {
+				start := 0
+				size := 0
+				label := ""
+				if part.Start != nil {
+					start = *part.Start
+				}
+				if part.Size != nil {
+					size = *part.Size
+				}
+				if part.Label != nil {
+					label = *part.Label
+				}
 				op.CreatePartition(sgdisk.Partition{
 					Number:   part.Number,
-					Length:   uint64(part.Size),
-					Offset:   uint64(part.Start),
-					Label:    string(part.Label),
+					Length:   uint64(size),
+					Offset:   uint64(start),
+					Label:    string(label),
 					TypeGUID: string(part.TypeGUID),
 					GUID:     string(part.GUID),
 				})
