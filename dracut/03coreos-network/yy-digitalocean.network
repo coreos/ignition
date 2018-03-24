@@ -1,7 +1,0 @@
-[Match]
-KernelCommandLine=coreos.oem.id=digitalocean
-Name=eth0
-
-[Network]
-DHCP=yes
-LinkLocalAddressing=yes
