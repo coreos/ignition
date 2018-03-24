@@ -32,6 +32,11 @@ add_requires() {
     ln -sf "../${name}" "${requires_dir}/${name}"
 }
 
+add_requires ignition-files.service
+oem_id=qemu
+echo "OEM_ID=$(cmdline_arg coreos.oem.id ${oem_id})" > /run/ignition.env
+exit 0
+
 # This can't be done with ConditionKernelCommandLine because that always
 # starts the unit's dependencies. We want to start networkd only on first
 # boot.

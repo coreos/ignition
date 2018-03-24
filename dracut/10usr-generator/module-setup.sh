@@ -7,9 +7,9 @@ depends() {
 }
 
 install() {
-    dracut_install tr
-    inst_simple "$moddir/usr-generator" \
-        "$systemdutildir/system-generators/usr-generator"
+#   dracut_install tr
+#   inst_simple "$moddir/usr-generator" \
+#       "$systemdutildir/system-generators/usr-generator"
     inst_simple "$moddir/remount-sysroot.service" \
         "$systemdutildir/system/remount-sysroot.service"
 }

@@ -5,7 +5,7 @@
 Description=Remount Root File System
 DefaultDependencies=no
 After=sysroot.mount
-Before=sysroot-usr.mount
+#Before=sysroot-usr.mount
 ConditionPathIsReadWrite=!/sysroot
 
 [Service]
