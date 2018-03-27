@@ -2,6 +2,7 @@
 Description=Ignition (files)
 DefaultDependencies=false
 Before=initrd-parse-etc.service
+ConditionPathExists=/sysroot/coreos_first_boot
 
 Requires=initrd-root-fs.target
 After=initrd-root-fs.target
