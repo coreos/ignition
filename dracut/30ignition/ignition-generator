@@ -33,6 +33,7 @@ add_requires() {
 }
 
 add_requires ignition-files.service
+add_requires ignition-quench.service
 oem_id=qemu
 echo "OEM_ID=$(cmdline_arg coreos.oem.id ${oem_id})" > /run/ignition.env
 exit 0
