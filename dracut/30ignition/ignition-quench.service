@@ -1,7 +1,7 @@
 [Unit]
 Description=Ignition (record completion)
 DefaultDependencies=false
-Before=initrd.target
+#Before=initrd.target
 
 #Requires=ignition-disks.service
 #After=ignition-disks.service
