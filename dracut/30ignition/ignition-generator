@@ -36,7 +36,7 @@ add_requires() {
 # starts the unit's dependencies. We want to start networkd only on first
 # boot.
 if $(cmdline_bool coreos.first_boot 0); then
-    #add_requires ignition-disks.service
+    add_requires ignition-disks.service
     add_requires ignition-files.service
     # Only try to mount the ESP if GRUB detected a first_boot file
     #if [[ $(cmdline_arg coreos.first_boot) = "detected" ]]; then

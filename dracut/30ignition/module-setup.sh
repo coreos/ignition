@@ -18,7 +18,8 @@ install() {
         mkfs.ext4 \
         mkfs.xfs \
         mkfs.vfat \
-        mkswap
+        mkswap \
+        sgdisk
 
 #   inst_script "$moddir/ignition-setup.sh" \
 #       "/usr/sbin/ignition-setup"
@@ -29,8 +30,8 @@ install() {
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
 
-#   inst_simple "$moddir/ignition-disks.service" \
-#       "$systemdsystemunitdir/ignition-disks.service"
+    inst_simple "$moddir/ignition-disks.service" \
+        "$systemdsystemunitdir/ignition-disks.service"
 
     inst_simple "$moddir/ignition-files.service" \
         "$systemdsystemunitdir/ignition-files.service"
