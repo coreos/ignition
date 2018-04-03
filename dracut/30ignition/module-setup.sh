@@ -9,17 +9,16 @@ depends() {
 install() {
     inst_multiple \
         ignition \
-#       coreos-metadata \
-#       useradd \
-#       usermod \
-#       groupadd \
-#       systemd-detect-virt \
-#       mountpoint \
-#       mkfs.btrfs \
-#       mkfs.ext4 \
-#       mkfs.xfs \
-#       mkfs.vfat \
-#       mkswap
+        useradd \
+        usermod \
+        groupadd \
+        systemd-detect-virt \
+        mountpoint \
+        mkfs.btrfs \
+        mkfs.ext4 \
+        mkfs.xfs \
+        mkfs.vfat \
+        mkswap
 
 #   inst_script "$moddir/ignition-setup.sh" \
 #       "/usr/sbin/ignition-setup"
