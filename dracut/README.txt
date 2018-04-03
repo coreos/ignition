@@ -16,6 +16,6 @@ dracut --add 'url-lib network ignition usr-generator' --install /usr/bin/ignitio
 
 rm /etc/machine-id
 touch /coreos_first_boot
-add 'coreos.config.url="https://dustymabe.fedorapeople.org/base.ign" ip=eth0:dhcp rd.neednet=1' to grub.cfg
+add 'coreos.config.url="https://dustymabe.fedorapeople.org/base.ign" ip=eth0:dhcp rd.neednet=1 coreos.first_boot' to grub.cfg
 
 reboot

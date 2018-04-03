@@ -35,6 +35,9 @@ install() {
     inst_simple "$moddir/ignition-files.service" \
         "$systemdsystemunitdir/ignition-files.service"
 
+    inst_simple "$moddir/ignition-quench.ign" \
+        "/usr/lib/ignition/base.ign"
+
 #   inst_simple "$moddir/ignition-quench.service" \
 #       "$systemdsystemunitdir/ignition-quench.service"
 
