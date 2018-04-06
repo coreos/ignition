@@ -9,17 +9,17 @@ depends() {
 install() {
     inst_multiple \
         ignition \
-#       coreos-metadata \
-#       useradd \
-#       usermod \
-#       groupadd \
-#       systemd-detect-virt \
-#       mountpoint \
-#       mkfs.btrfs \
-#       mkfs.ext4 \
-#       mkfs.xfs \
-#       mkfs.vfat \
-#       mkswap
+        useradd \
+        usermod \
+        groupadd \
+        systemd-detect-virt \
+        mountpoint \
+        mkfs.btrfs \
+        mkfs.ext4 \
+        mkfs.xfs \
+        mkfs.vfat \
+        mkswap \
+        sgdisk
 
 #   inst_script "$moddir/ignition-setup.sh" \
 #       "/usr/sbin/ignition-setup"
@@ -30,11 +30,14 @@ install() {
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
 
-#   inst_simple "$moddir/ignition-disks.service" \
-#       "$systemdsystemunitdir/ignition-disks.service"
+    inst_simple "$moddir/ignition-disks.service" \
+        "$systemdsystemunitdir/ignition-disks.service"
 
     inst_simple "$moddir/ignition-files.service" \
         "$systemdsystemunitdir/ignition-files.service"
+
+    inst_simple "$moddir/ignition-quench.ign" \
+        "/usr/lib/ignition/base.ign"
 
 #   inst_simple "$moddir/ignition-quench.service" \
 #       "$systemdsystemunitdir/ignition-quench.service"

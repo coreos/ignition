@@ -2,19 +2,13 @@
 Description=Ignition (disks)
 DefaultDependencies=false
 
-Requires=local-fs-pre.target
-Before=local-fs-pre.target
+Requires=sysinit.target
+After=sysinit.target
 
-Requires=ignition-setup.service
-After=ignition-setup.service
+Requires=network.target
+After=network.target
 
-# setup networking
-Wants=systemd-networkd.service
-After=systemd-networkd.service
-
-# generate resolv.conf
-Wants=systemd-resolved.service
-After=systemd-resolved.service
+Before=remount-sysroot.service
 
 [Service]
 Type=oneshot

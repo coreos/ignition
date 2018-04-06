@@ -32,11 +32,6 @@ add_requires() {
     ln -sf "../${name}" "${requires_dir}/${name}"
 }
 
-add_requires ignition-files.service
-oem_id=qemu
-echo "OEM_ID=$(cmdline_arg coreos.oem.id ${oem_id})" > /run/ignition.env
-exit 0
-
 # This can't be done with ConditionKernelCommandLine because that always
 # starts the unit's dependencies. We want to start networkd only on first
 # boot.
@@ -44,53 +39,53 @@ if $(cmdline_bool coreos.first_boot 0); then
     add_requires ignition-disks.service
     add_requires ignition-files.service
     # Only try to mount the ESP if GRUB detected a first_boot file
-    if [[ $(cmdline_arg coreos.first_boot) = "detected" ]]; then
-        add_requires ignition-quench.service
-    fi
-    if [[ $(cmdline_arg coreos.oem.id) == "packet" ]]; then
-        add_requires coreos-static-network.service
-    fi
+    #if [[ $(cmdline_arg coreos.first_boot) = "detected" ]]; then
+    #    add_requires ignition-quench.service
+    #fi
+    #if [[ $(cmdline_arg coreos.oem.id) == "packet" ]]; then
+    #    add_requires coreos-static-network.service
+    #fi
 
     # On EC2, shut down systemd-networkd if ignition fails so that the instance
     # fails EC2 instance checks.
-    if [[ $(cmdline_arg coreos.oem.id) == "ec2" ]]; then
-        mkdir -p ${UNIT_DIR}/systemd-networkd.service.d
-        cat > ${UNIT_DIR}/systemd-networkd.service.d/10-conflict-emergency.conf <<EOF
-[Unit]
-Conflicts=emergency.target
-Conflicts=emergency.service
-Conflicts=dracut-emergency.service
-EOF
-    fi
+    #if [[ $(cmdline_arg coreos.oem.id) == "ec2" ]]; then
+    #    mkdir -p ${UNIT_DIR}/systemd-networkd.service.d
+    #    cat > ${UNIT_DIR}/systemd-networkd.service.d/10-conflict-emergency.conf <<EOF
+#[Unit]
+#Conflicts=emergency.target
+#Conflicts=emergency.service
+#Conflicts=dracut-emergency.service
+#EOF
+    #fi
 fi
 
 # Write ignition-setup.service customized for PXE/ISO or regular boot
-pxe=
-nopxe=
-usr=$(cmdline_arg mount.usr "$(cmdline_arg usr)")
-if [[ -z "${usr}" && -f /usr.squashfs ]]; then
-    # PXE-booted system, with or without persistent root
-    # (see 10diskless-generator)
-    pxe=1
-else
-    nopxe=1
-fi
-cat > ${UNIT_DIR}/ignition-setup.service <<EOF
-[Unit]
-Description=Ignition (setup)
-DefaultDependencies=false
-
-Requires=local-fs-pre.target
-Before=local-fs-pre.target
-
-# pull in OEM device if it should exist
-${nopxe:+Requires=dev-disk-by\x2dlabel-OEM.device
-After=dev-disk-by\x2dlabel-OEM.device}
-
-[Service]
-Type=oneshot
-ExecStart=/usr/sbin/ignition-setup ${nopxe:+normal} ${pxe:+pxe}
-EOF
+#pxe=
+#nopxe=
+#usr=$(cmdline_arg mount.usr "$(cmdline_arg usr)")
+#if [[ -z "${usr}" && -f /usr.squashfs ]]; then
+#    # PXE-booted system, with or without persistent root
+#    # (see 10diskless-generator)
+#    pxe=1
+#else
+#    nopxe=1
+#fi
+#cat > ${UNIT_DIR}/ignition-setup.service <<EOF
+#[Unit]
+#Description=Ignition (setup)
+#DefaultDependencies=false
+#
+#Requires=local-fs-pre.target
+#Before=local-fs-pre.target
+#
+## pull in OEM device if it should exist
+#${nopxe:+Requires=dev-disk-by\x2dlabel-OEM.device
+#After=dev-disk-by\x2dlabel-OEM.device}
+#
+#[Service]
+#Type=oneshot
+#ExecStart=/usr/sbin/ignition-setup ${nopxe:+normal} ${pxe:+pxe}
+#EOF
 
 RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)
 if [ -n "$RANDOMIZE_DISK_GUID" ]; then
