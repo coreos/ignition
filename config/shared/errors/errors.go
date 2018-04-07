@@ -28,7 +28,6 @@ var (
 	ErrUnknownVersion     = errors.New("unsupported config version")
 	ErrScript             = errors.New("not a config (found coreos-cloudinit script)")
 	ErrDeprecated         = errors.New("config format deprecated")
-	ErrVersion            = errors.New("incorrect config version")
 	ErrCompressionInvalid = errors.New("invalid compression method")
 
 	// Ignition section errors
