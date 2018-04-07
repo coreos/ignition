@@ -44,7 +44,7 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	}
 
 	if config.Version != types.Version {
-		return types.Config{}, report.Report{}, errors.ErrInvalid
+		return types.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
 
 	rpt := validate.ValidateConfig(rawConfig, config)

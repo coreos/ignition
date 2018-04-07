@@ -61,7 +61,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			in:  in{config: []byte(`{}`)},
-			out: out{err: errors.ErrInvalid},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{config: []byte{}},
