@@ -29,7 +29,7 @@ export GOPATH=${PWD}/gopath
 export CGO_ENABLED=1
 
 echo "Building ${NAME}..."
-go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/internal
+go build -buildmode=pie -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/internal
 
 NAME="ignition-validate"
 
