@@ -80,10 +80,12 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_noUserGroup_** (boolean): whether or not to create a group with the same name as the user.
       * **_noLogInit_** (boolean): whether or not to add the user to the lastlog and faillog databases.
       * **_shell_** (string): the login shell of the new account.
+      * **_system_** (bool): whether or not to make the user a system user.
   * **_groups_** (list of objects): the list of groups to be added.
     * **name** (string): the name of the group.
     * **_gid_** (integer): the group ID of the new group.
     * **_passwordHash_** (string): the encrypted password of the new group.
+    * **_system_** (bool): whether or not the group should be a system group. This only has an effect if the group doesn't exist yet.
 
 [v2_1]: configuration-v2_1.md
 [part-types]: http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
