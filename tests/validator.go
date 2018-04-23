@@ -27,6 +27,7 @@ import (
 	"syscall"
 	"testing"
 
+	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/tests/types"
 )
@@ -46,7 +47,7 @@ func validateDisk(t *testing.T, d types.Disk, imageFile string) error {
 			continue
 		}
 		sgdiskInfo, err := exec.Command(
-			"sgdisk", "-i", strconv.Itoa(e.Number),
+			distro.SgdiskCmd(), "-i", strconv.Itoa(e.Number),
 			imageFile).CombinedOutput()
 		if err != nil {
 			fmt.Printf("sgdisk -i %d %s died\n", e.Number, imageFile)

@@ -21,6 +21,9 @@ if [ "${HELPERS:-CL}" == "HOST" ]; then
 	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.swapMkfsCmd=$(sudo which mkswap) "
 	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.vfatMkfsCmd=$(sudo which mkfs.vfat) "
 	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.xfsMkfsCmd=$(sudo which mkfs.xfs) "
+
+	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.losetupCmd=$(sudo which losetup) "
+	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.mke2fsCmd=$(sudo which mke2fs) "
 fi
 
 . build
@@ -29,7 +32,7 @@ PKG=$(cd gopath/src/${REPO_PATH}; go list ./tests/...)
 
 echo "Compiling tests..."
 for p in ${PKG}; do
-	go test -c $p
+	go test -ldflags "${GLDFLAGS}" -c $p
 done
 
 for D in tests/stubs/*; do

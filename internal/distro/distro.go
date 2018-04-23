@@ -51,6 +51,10 @@ var (
 	swapMkfsCmd  = "/usr/sbin/mkswap"
 	vfatMkfsCmd  = "/usr/sbin/mkfs.vfat"
 	xfsMkfsCmd   = "/usr/sbin/mkfs.xfs"
+
+	// Needed for blackbox tests
+	losetupCmd = "/sbin/losetup"
+	mke2fsCmd  = "/sbin/mke2fs"
 )
 
 func DiskByIDDir() string       { return diskByIDDir }
@@ -77,6 +81,9 @@ func Ext4MkfsCmd() string  { return ext4MkfsCmd }
 func SwapMkfsCmd() string  { return swapMkfsCmd }
 func VfatMkfsCmd() string  { return vfatMkfsCmd }
 func XfsMkfsCmd() string   { return xfsMkfsCmd }
+
+func LosetupCmd() string { return losetupCmd }
+func Mke2fsCmd() string { return mke2fsCmd }
 
 func fromEnv(nameSuffix, defaultValue string) string {
 	value := os.Getenv("IGNITION_" + nameSuffix)
