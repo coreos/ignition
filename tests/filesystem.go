@@ -176,7 +176,7 @@ func createVolume(t *testing.T, ctx context.Context, index int, imageFile string
 // and then will format each partition according to what's described in the
 // partitions argument.
 func setDevices(t *testing.T, ctx context.Context, imageFile string, partitions []*types.Partition) (string, error) {
-	out, err := run(t, ctx, "losetup", "-Pf", "--show", imageFile)
+	out, err := run(t, ctx, distro.LosetupCmd(), "-Pf", "--show", imageFile)
 	if err != nil {
 		return "", err
 	}
@@ -196,7 +196,7 @@ func setDevices(t *testing.T, ctx context.Context, imageFile string, partitions 
 }
 
 func destroyDevice(t *testing.T, loopDevice string) error {
-	_, err := runWithoutContext(t, "losetup", "-d", loopDevice)
+	_, err := runWithoutContext(t, distro.LosetupCmd(), "-d", loopDevice)
 	return err
 }
 
@@ -206,11 +206,11 @@ func formatPartition(t *testing.T, ctx context.Context, partition *types.Partiti
 
 	switch partition.FilesystemType {
 	case "vfat":
-		mkfs = "mkfs.vfat"
+		mkfs = distro.VfatMkfsCmd()
 		label = []string{"-n", partition.FilesystemLabel}
 		uuid = []string{"-i", partition.FilesystemUUID}
 	case "ext2", "ext4":
-		mkfs = "mke2fs"
+		mkfs = distro.Mke2fsCmd()
 		opts = []string{
 			"-t", partition.FilesystemType, "-b", "4096",
 			"-i", "4096", "-I", "128", "-e", "remount-ro",
@@ -218,15 +218,15 @@ func formatPartition(t *testing.T, ctx context.Context, partition *types.Partiti
 		label = []string{"-L", partition.FilesystemLabel}
 		uuid = []string{"-U", partition.FilesystemUUID}
 	case "btrfs":
-		mkfs = "mkfs.btrfs"
+		mkfs = distro.BtrfsMkfsCmd()
 		label = []string{"--label", partition.FilesystemLabel}
 		uuid = []string{"--uuid", partition.FilesystemUUID}
 	case "xfs":
-		mkfs = "mkfs.xfs"
+		mkfs = distro.XfsMkfsCmd()
 		label = []string{"-L", partition.FilesystemLabel}
 		uuid = []string{"-m", "uuid=" + partition.FilesystemUUID}
 	case "swap":
-		mkfs = "mkswap"
+		mkfs = distro.SwapMkfsCmd()
 		label = []string{"-L", partition.FilesystemLabel}
 		uuid = []string{"-U", partition.FilesystemUUID}
 	default:
@@ -294,7 +294,7 @@ func createPartitionTable(t *testing.T, ctx context.Context, imageFile string, p
 			opts = append(opts, fmt.Sprintf("-h=%s", intJoin(hybrids, ":")))
 		}
 	}
-	_, err := run(t, ctx, "sgdisk", opts...)
+	_, err := run(t, ctx, distro.SgdiskCmd(), opts...)
 	return err
 }
 
