@@ -120,7 +120,9 @@ func TestMain(m *testing.M) {
 
 func TestIgnitionBlackBox(t *testing.T) {
 	for _, test := range register.Tests[register.PositiveTest] {
+		test := test
 		t.Run(test.Name, func(t *testing.T) {
+			t.Parallel()
 			err := outer(t, test, false)
 			if err != nil {
 				t.Error(err)
@@ -131,7 +133,9 @@ func TestIgnitionBlackBox(t *testing.T) {
 
 func TestIgnitionBlackBoxNegative(t *testing.T) {
 	for _, test := range register.Tests[register.NegativeTest] {
+		test := test
 		t.Run(test.Name, func(t *testing.T) {
+			t.Parallel()
 			err := outer(t, test, true)
 			if err != nil {
 				t.Error(err)
@@ -146,33 +150,20 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	ctx, cancelFunc := context.WithDeadline(context.Background(), time.Now().Add(testTimeout))
 	defer cancelFunc()
 
-	originalTmpDir := os.Getenv("TMPDIR")
-	if originalTmpDir == "" {
-		err := os.Setenv("TMPDIR", "/var/tmp")
-		if err != nil {
-			return fmt.Errorf("couldn't initialize TMPDIR: %v", err)
-		}
-	}
-
 	tmpDirectory, err := ioutil.TempDir("", "ignition-blackbox-")
 	if err != nil {
 		return fmt.Errorf("failed to create a temp dir: %v", err)
 	}
+	defer os.RemoveAll(tmpDirectory)
 	// the tmpDirectory must be 0755 or the tests will fail as the tool will
 	// not have permissions to perform some actions in the mounted folders
 	err = os.Chmod(tmpDirectory, 0755)
 	if err != nil {
 		return fmt.Errorf("failed to change mode of temp dir: %v", err)
 	}
-	err = os.Setenv("TMPDIR", tmpDirectory)
-	if err != nil {
-		return fmt.Errorf("failed to set TMPDIR environment var: %v", err)
-	}
-	defer os.Setenv("TMPDIR", originalTmpDir)
-	defer os.RemoveAll(tmpDirectory)
 
-	oemLookasideDir := filepath.Join(os.TempDir(), "oem-lookaside")
-	systemConfigDir := filepath.Join(os.TempDir(), "system")
+	oemLookasideDir := filepath.Join(tmpDirectory, "oem-lookaside")
+	systemConfigDir := filepath.Join(tmpDirectory, "system")
 	var rootLocation string
 
 	// Setup
@@ -190,7 +181,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	}
 	for i, disk := range test.In {
 		// Set image file path
-		disk.ImageFile = filepath.Join(os.TempDir(), fmt.Sprintf("hd%d", i))
+		disk.ImageFile = filepath.Join(tmpDirectory, fmt.Sprintf("hd%d", i))
 		test.Out[i].ImageFile = disk.ImageFile
 
 		// There may be more partitions created by Ignition, so look at the
@@ -221,7 +212,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		test.Out[i].SetOffsets()
 
 		// Creation
-		err = createVolume(t, ctx, i, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
+		err = createVolume(t, ctx, tmpDirectory, i, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
 		// Move value into the local scope, because disk.ImageFile will change
 		// by the time this runs
 		imageFile := disk.ImageFile
