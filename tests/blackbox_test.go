@@ -351,7 +351,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	}
 	filesErr := runIgnition(t, ctx, "files", rootLocation, tmpDirectory, appendEnv)
 	if !negativeTests && filesErr != nil {
-		return err
+		return filesErr
 	}
 	if negativeTests && disksErr == nil && filesErr == nil {
 		return fmt.Errorf("Expected failure and ignition succeeded")
