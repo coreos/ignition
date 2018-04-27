@@ -141,7 +141,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		test.Out[i].SetOffsets()
 
 		// Creation
-		err = createVolume(t, ctx, tmpDirectory, i, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
+		err = createVolume(t, ctx, tmpDirectory, i, disk.ImageFile, imageSize, disk.Partitions)
 		// Move value into the local scope, because disk.ImageFile will change
 		// by the time this runs
 		imageFile := disk.ImageFile

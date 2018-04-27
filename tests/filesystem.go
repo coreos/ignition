@@ -126,7 +126,7 @@ func pickPartition(t *testing.T, device string, partitions []*types.Partition, l
 
 // createVolume will create the image file of the specified size, create a
 // partition table in it, and generate mount paths for every partition
-func createVolume(t *testing.T, ctx context.Context, tmpDirectory string, index int, imageFile string, size int64, cylinders int, heads int, sectorsPerTrack int, partitions []*types.Partition) (err error) {
+func createVolume(t *testing.T, ctx context.Context, tmpDirectory string, index int, imageFile string, size int64, partitions []*types.Partition) (err error) {
 	// attempt to create the file, will leave already existing files alone.
 	// os.Truncate requires the file to already exist
 	var out *os.File
