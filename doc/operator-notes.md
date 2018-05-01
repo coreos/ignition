@@ -30,3 +30,35 @@ In the second two cases, where there is a preexisting filesystem, Ignition's beh
 If `wipeFilesystem` is set to true, Ignition will always wipe any preexisting filesystem and create the desired filesystem. Note this will result in any data on the old filesystem being lost.
 
 If `wipeFilesystem` is set to false, Ignition will then attempt to reuse the existing filesystem. If the filesystem is of the correct type, has a matching label, and has a matching UUID, then Ignition will reuse the filesystem. If the label or UUID is not set in the Ignition config, they don't need to match for Ignition to reuse the filesystem. Any preexisting data will be left on the device and will be available to the installation. If the preexisting filesystem is *not* of the correct type, then Ignition will fail, and the machine will fail to boot.
+
+## SELinux
+
+When using Ignition with distributions which have [SELinux][selinux] enabled, extra care must be taken to prevent Ignition from creating files that lack SELinux labels. Unfortunately, distributions do not typically include SELinux policies in the initramfs where Ignition runs, so any files, directories, and links created by Ignition don't receive the proper default SELinux labels.
+
+A workaround for this issue is to use [`restorecon`][restorecon] in a oneshot systemd unit to relabel files that Ignition has touched. This unit can be set to run after the SELinux policies have loaded, but before services will try to use them.
+
+An example of this unit is as follows:
+
+```
+[Unit]
+Requires=systemd-udevd.target
+After=systemd-udevd.target
+
+Before=sssd.service
+DefaultDependencies=no
+ConditionFirstBoot=true
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/restorecon /foo/bar /etc/test /etc/systemd/system/example.service /etc/passwd /etc/group /etc/shadow
+
+[Install]
+WantedBy=multi-user.target
+```
+
+This unit will vary based on the Ignition config it is being added to and the distribution that Ignition is running on. Notably the paths listed in the unit are all paths that Ignition caused to be modified or created, not just paths listed in `storage.files`. For example, if a new user is created then `/etc/passwd`, `/etc/shadow`, and `/etc/group` will all need to be relabeled.
+
+If tooling is being used to generate Ignition configs, the tooling _should_ generate such a unit when creating a config for distributions which rely on SELinux.
+
+[selinux]: https://selinuxproject.org/page/Main_Page
+[restorecon]: https://linux.die.net/man/8/restorecon
