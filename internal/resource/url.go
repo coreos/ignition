@@ -130,6 +130,11 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 // and written into dest. If opts.Hash is set the data stream will also be
 // hashed and compared against opts.ExpectedSum, and any match failures will
 // result in an error being returned.
+//
+// Fetch expects dest to be an empty file and for the cursor in the file to be
+// at the beginning. Since some url schemes (ex: s3) use chunked downloads and
+// fetch chunks out of order, Fetch's behavior when dest is not an empty file is
+// undefined.
 func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
 	switch u.Scheme {
 	case "http", "https":

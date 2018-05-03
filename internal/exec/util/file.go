@@ -175,12 +175,10 @@ func (u Util) PerformFetch(f *FetchOp) error {
 		return err
 	}
 
-	defer func() {
-		tmp.Close()
-		if err != nil {
-			os.Remove(tmp.Name())
-		}
-	}()
+	defer tmp.Close()
+	// sometimes the following line will fail (the file might be renamed),
+	// but that's ok (we wanted to keep the file in that case).
+	defer os.Remove(tmp.Name())
 
 	err = u.Fetcher.Fetch(f.Url, tmp, f.FetchOptions)
 	if err != nil {
