@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/tests/types"
@@ -125,7 +126,7 @@ func pickPartition(t *testing.T, device string, partitions []*types.Partition, l
 
 // createVolume will create the image file of the specified size, create a
 // partition table in it, and generate mount paths for every partition
-func createVolume(t *testing.T, ctx context.Context, index int, imageFile string, size int64, cylinders int, heads int, sectorsPerTrack int, partitions []*types.Partition) (err error) {
+func createVolume(t *testing.T, ctx context.Context, tmpDirectory string, index int, imageFile string, size int64, cylinders int, heads int, sectorsPerTrack int, partitions []*types.Partition) (err error) {
 	// attempt to create the file, will leave already existing files alone.
 	// os.Truncate requires the file to already exist
 	var out *os.File
@@ -157,7 +158,7 @@ func createVolume(t *testing.T, ctx context.Context, index int, imageFile string
 			continue
 		}
 
-		partition.MountPath = filepath.Join(os.TempDir(), fmt.Sprintf("hd%dp%d", index, counter))
+		partition.MountPath = filepath.Join(tmpDirectory, fmt.Sprintf("hd%dp%d", index, counter))
 		if err := os.Mkdir(partition.MountPath, 0777); err != nil {
 			return err
 		}
@@ -181,6 +182,9 @@ func setDevices(t *testing.T, ctx context.Context, imageFile string, partitions 
 		return "", err
 	}
 	loopDevice := strings.TrimSpace(string(out))
+
+	// To avoid races with the kernel with loop devices appearing, sleep a bit
+	time.Sleep(time.Millisecond * 100)
 
 	for _, partition := range partitions {
 		if partition.TypeCode == "blank" || partition.FilesystemType == "" {

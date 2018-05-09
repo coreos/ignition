@@ -62,10 +62,6 @@ var (
 	}
 )
 
-const (
-	oemMountPath = "/mnt/oem" // Mountpoint where oem partition is mounted when present.
-)
-
 // Fetcher holds settings for fetching resources from URLs
 type Fetcher struct {
 	// The logger object to use when logging information.
@@ -274,15 +270,21 @@ func (f *Fetcher) FetchFromOEM(u url.URL, dest *os.File, opts FetchOptions) erro
 		return ErrFailed
 	}
 
-	f.Logger.Info("oem config not found in %q, trying %q",
-		distro.OEMLookasideDir(), oemMountPath)
+	f.Logger.Info("oem config not found in %q, looking on oem partition",
+		distro.OEMLookasideDir())
 
+	oemMountPath, err := ioutil.TempDir("/mnt", "oem")
+	if err != nil {
+		f.Logger.Err("failed to create mount path for oem partition: %v")
+		return ErrFailed
+	}
 	// try oemMountPath, requires mounting it.
-	if err := f.mountOEM(); err != nil {
+	if err := f.mountOEM(oemMountPath); err != nil {
 		f.Logger.Err("failed to mount oem partition: %v", err)
 		return ErrFailed
 	}
-	defer f.umountOEM()
+	defer os.Remove(oemMountPath)
+	defer f.umountOEM(oemMountPath)
 
 	absPath = filepath.Join(oemMountPath, path)
 	fi, err := os.Open(absPath)
@@ -426,8 +428,8 @@ func (f *Fetcher) decompressCopyHashAndVerify(dest io.Writer, src io.Reader, opt
 }
 
 // mountOEM waits for the presence of and mounts the oem partition at
-// oemMountPath.
-func (f *Fetcher) mountOEM() error {
+// oemMountPath. oemMountPath will be created if it does not exist.
+func (f *Fetcher) mountOEM(oemMountPath string) error {
 	dev := []string{distro.OEMDevicePath()}
 	if err := systemd.WaitOnDevices(dev, "oem-cmdline"); err != nil {
 		f.Logger.Err("failed to wait for oem device: %v", err)
@@ -453,7 +455,7 @@ func (f *Fetcher) mountOEM() error {
 }
 
 // umountOEM unmounts the oem partition at oemMountPath.
-func (f *Fetcher) umountOEM() {
+func (f *Fetcher) umountOEM(oemMountPath string) {
 	f.Logger.LogOp(
 		func() error { return syscall.Unmount(oemMountPath, 0) },
 		"unmounting %q", oemMountPath,

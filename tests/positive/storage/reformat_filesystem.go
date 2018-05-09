@@ -49,7 +49,7 @@ func ReformatToBTRFS_2_0_0() types.Test {
 	        "format": "btrfs",
 	        "create": {
 	          "force": true,
-	          "options": [ "--label=OEM", "--uuid=CA7D7CCB-63ED-4C53-861C-1742536059CC" ]
+	          "options": [ "--label=OEM", "--uuid=CA7D7CCB-63ED-4C53-861C-1742536059D4" ]
 	        }
 	      }
 	    }]
@@ -85,7 +85,7 @@ func ReformatToXFS_2_0_0() types.Test {
 	        "format": "xfs",
 	        "create": {
 	          "force": true,
-	          "options": [ "-L", "OEM", "-m", "uuid=CA7D7CCB-63ED-4C53-861C-1742536059CC" ]
+	          "options": [ "-L", "OEM", "-m", "uuid=CA7D7CCB-63ED-4C53-861C-1742536059CD" ]
 	        }
 	      }
 	    }]
@@ -121,14 +121,14 @@ func ReformatToVFAT_2_0_0() types.Test {
 	        "format": "vfat",
 	        "create": {
 	          "force": true,
-	          "options": [ "-n", "OEM", "-i", "CA7D7CCB-63ED-4C53-861C-1742536059CC" ]
+	          "options": [ "-n", "OEM", "-i", "CA7D7CCB-63ED-4C53-861C-1742536059CE" ]
 	        }
 	      }
 	    }]
 	  }
 	}`
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "vfat"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
+	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CE"
 
 	return types.Test{
 		Name:       name,
@@ -158,7 +158,7 @@ func ReformatToEXT4_2_0_0() types.Test {
 	        "format": "ext4",
 	        "create": {
 	          "force": true,
-	          "options": [ "-L", "OEM", "-U", "CA7D7CCB-63ED-4C53-861C-1742536059CC" ]
+	          "options": [ "-L", "OEM", "-U", "CA7D7CCB-63ED-4C53-861C-1742536059CF" ]
 	        }
 	      }
 	    }]
@@ -166,7 +166,7 @@ func ReformatToEXT4_2_0_0() types.Test {
 	}`
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
+	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CF"
 
 	return types.Test{
 		Name:       name,
@@ -195,14 +195,14 @@ func ReformatToBTRFS_2_1_0() types.Test {
 	        "device": "$DEVICE",
 	        "format": "btrfs",
 	        "label": "OEM",
-		"uuid": "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+		"uuid": "CA7D7CCB-63ED-4C53-861C-1742536059D0",
 		"wipeFilesystem": true
 	      }
 	    }]
 	  }
 	}`
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "btrfs"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
+	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059D0"
 
 	return types.Test{
 		Name:       name,
@@ -231,14 +231,14 @@ func ReformatToXFS_2_1_0() types.Test {
 	        "device": "$DEVICE",
 	        "format": "xfs",
 	        "label": "OEM",
-		"uuid": "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+		"uuid": "CA7D7CCB-63ED-4C53-861C-1742536059D1",
 		"wipeFilesystem": true
 	      }
 	    }]
 	  }
 	}`
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "xfs"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
+	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059D1"
 
 	return types.Test{
 		Name:       name,
@@ -303,7 +303,7 @@ func ReformatToEXT4_2_1_0() types.Test {
 	        "device": "$DEVICE",
 	        "format": "ext4",
 	        "label": "OEM",
-		"uuid": "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+		"uuid": "CA7D7CCB-63ED-4C53-861C-1742536059D2",
 		"wipeFilesystem": true
 	      }
 	    }]
@@ -311,7 +311,7 @@ func ReformatToEXT4_2_1_0() types.Test {
 	}`
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
+	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059D2"
 
 	return types.Test{
 		Name:       name,
@@ -340,7 +340,7 @@ func ReformatToSWAP_2_1_0() types.Test {
 	        "device": "$DEVICE",
 	        "format": "swap",
 	        "label": "OEM",
-	        "uuid": "CA7D7CCB-63ED-4C53-861C-1742536059CC",
+	        "uuid": "CA7D7CCB-63ED-4C53-861C-1742536059D3",
 		"wipeFilesystem": true
 	      }
 	    }]
@@ -348,7 +348,7 @@ func ReformatToSWAP_2_1_0() types.Test {
 	}`
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "swap"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059CC"
+	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "CA7D7CCB-63ED-4C53-861C-1742536059D3"
 
 	return types.Test{
 		Name:       name,
