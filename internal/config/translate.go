@@ -242,6 +242,26 @@ func Translate(old from.Config) types.Config {
 		}
 		return res
 	}
+	translateArchiveSlice := func(old []from.Archive) []types.Archive {
+		var res []types.Archive
+		for _, x := range old {
+			res = append(res, types.Archive{
+				Node: translateNode(x.Node),
+				ArchiveEmbedded1: types.ArchiveEmbedded1{
+					Contents: types.FileContents{
+						Compression: x.Contents.Compression,
+						Source:      x.Contents.Source,
+						Verification: types.Verification{
+							Hash: x.Contents.Verification.Hash,
+						},
+					},
+					Mode:   x.Mode,
+					Format: x.Format,
+				},
+			})
+		}
+		return res
+	}
 	translateMountCreateOptionSlice := func(old []from.CreateOption) []types.CreateOption {
 		var res []types.CreateOption
 		for _, x := range old {
@@ -382,6 +402,7 @@ func Translate(old from.Config) types.Config {
 			Directories: translateDirectorySlice(old.Storage.Directories),
 			Disks:       translateDiskSlice(old.Storage.Disks),
 			Files:       translateFileSlice(old.Storage.Files),
+			Archives:    translateArchiveSlice(old.Storage.Archives),
 			Filesystems: translateFilesystemSlice(old.Storage.Filesystems),
 			Links:       translateLinkSlice(old.Storage.Links),
 			Raid:        translateRaidSlice(old.Storage.Raid),

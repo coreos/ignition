@@ -26,6 +26,9 @@ import (
 	"strconv"
 	"syscall"
 
+	rkttar "github.com/rkt/rkt/pkg/tar"
+	"github.com/rkt/rkt/pkg/user"
+
 	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/resource"
@@ -262,6 +265,54 @@ func (u Util) PerformFetch(f *FetchOp) error {
 	}
 
 	return nil
+}
+
+func (u Util) FetchAndExtractArchive(f *FetchOp, format string) error {
+	archiveTargetPath := u.JoinPath(string(f.Path))
+
+	f.Path = f.Path + ".tmp"
+	err := u.PerformFetch(f)
+	if err != nil {
+		return err
+	}
+	tmpFilePath := u.JoinPath(string(f.Path))
+	defer os.RemoveAll(tmpFilePath)
+	tmpFile, err := os.Open(tmpFilePath)
+	if err != nil {
+		return err
+	}
+	defer tmpFile.Close()
+
+	// Create the extract point with the correct permissions
+	mode := 0
+	if f.Mode != nil {
+		mode = *f.Mode
+	}
+	if err := os.MkdirAll(archiveTargetPath, os.FileMode(mode)); err != nil {
+		return fmt.Errorf("failed to create extract target: %v", err)
+	}
+	uid, gid, err := u.ResolveNodeUidAndGid(f.Node, 0, 0)
+	if err != nil {
+		return err
+	}
+	if err = os.Chown(archiveTargetPath, uid, gid); err != nil {
+		return err
+	}
+
+	switch format {
+	case "tar":
+		if _, err = tmpFile.Seek(0, os.SEEK_SET); err != nil {
+			return fmt.Errorf("failed to seek in temp file: %v", err)
+		}
+		overwrite := false
+		if f.Overwrite != nil {
+			overwrite = *f.Overwrite
+		}
+		uidRange := user.NewBlankUidRange()
+		return rkttar.ExtractTar(tmpFile, archiveTargetPath, overwrite, uidRange, nil)
+	default:
+		return fmt.Errorf("unsupported extract format: %q", format)
+	}
 }
 
 // MkdirForFile helper creates the directory components of path.

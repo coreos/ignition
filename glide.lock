@@ -1,8 +1,22 @@
-hash: 6cec3b8e033abff84f106f33e57a381886d30d53c863cc1621d4405c4725efeb
-updated: 2018-02-15T18:15:43.70808531Z
+hash: 53d696d8fd00a443f55958586d3b7cfb161d0401fbc1504f535c1ae78173f1c0
+updated: 2018-05-09T13:52:45.077767512-07:00
 imports:
 - name: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
+- name: github.com/appc/spec
+  version: cbe99b7160b1397bf89f9c8bb1418f69c9424049
+  subpackages:
+  - ace
+  - aci
+  - actool
+  - discovery
+  - pkg/acirenderer
+  - pkg/device
+  - pkg/tarheader
+  - schema
+  - schema/common
+  - schema/lastditch
+  - schema/types
 - name: github.com/aws/aws-sdk-go
   version: c861d27d0304a79f727e9a8a4e2ac1e74602fdc0
   subpackages:
@@ -46,6 +60,8 @@ imports:
   version: c787282c39ac1fc618827141a1f762240def08a3
 - name: github.com/godbus/dbus
   version: a389bdde4dd695d414e47b755e95e72b7826432c
+- name: github.com/hashicorp/errwrap
+  version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmespath/go-jmespath
@@ -54,6 +70,17 @@ imports:
   version: 9ea92f6b1029bc1bf3072bba195c84bb9b0370e3
   subpackages:
   - netascii
+- name: github.com/rkt/rkt
+  version: e04dd994baa1051f1205578d12d69eec83dbb905
+  subpackages:
+  - pkg
+  - pkg/fileutil
+  - pkg/group
+  - pkg/multicall
+  - pkg/passwd
+  - pkg/sys
+  - pkg/tar
+  - pkg/user
 - name: github.com/sigma/bdoor
   version: babf2a4017b020d4ce04e8167076186e82645dd1
   repo: https://github.com/sigma/bdoor
@@ -66,6 +93,10 @@ imports:
   version: 7b2c5ac9fc04fc5efafb60700713d4fa609b777b
 - name: github.com/spf13/pflag
   version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
+- name: github.com/syndtr/gocapability
+  version: e7cb7fa329f456b3855136a2642b197bad7366ba
+  subpackages:
+  - capability
 - name: github.com/vincent-petithory/dataurl
   version: 9a301d65acbb728fcc3ace14f45f511a4cfeea9c
 - name: github.com/vmware/vmw-guestinfo
@@ -82,7 +113,7 @@ imports:
   - errorutil
 testImports:
 - name: github.com/davecgh/go-spew
-  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
+  version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
   subpackages:
   - spew
 - name: github.com/pmezard/go-difflib

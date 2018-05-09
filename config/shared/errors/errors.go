@@ -22,13 +22,14 @@ import (
 
 var (
 	// Parsing / general errors
-	ErrInvalid            = errors.New("config is not valid")
-	ErrCloudConfig        = errors.New("not a config (found coreos-cloudconfig)")
-	ErrEmpty              = errors.New("not a config (empty)")
-	ErrUnknownVersion     = errors.New("unsupported config version")
-	ErrScript             = errors.New("not a config (found coreos-cloudinit script)")
-	ErrDeprecated         = errors.New("config format deprecated")
-	ErrCompressionInvalid = errors.New("invalid compression method")
+	ErrInvalid              = errors.New("config is not valid")
+	ErrCloudConfig          = errors.New("not a config (found coreos-cloudconfig)")
+	ErrEmpty                = errors.New("not a config (empty)")
+	ErrUnknownVersion       = errors.New("unsupported config version")
+	ErrScript               = errors.New("not a config (found coreos-cloudinit script)")
+	ErrDeprecated           = errors.New("config format deprecated")
+	ErrCompressionInvalid   = errors.New("invalid compression method")
+	ErrArchiveFormatInvalid = errors.New("invalid archive format")
 
 	// Ignition section errors
 	ErrOldVersion     = errors.New("incorrect config version (too old)")
