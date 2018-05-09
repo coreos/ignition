@@ -94,6 +94,23 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_name_** (string): the group name of the owner.
     * **target** (string): the target path of the link
     * **_hard_** (boolean): a symbolic link is created if this is false, a hard one if this is true.
+  * **_archives_** (list of objects): the list of archives to be fetched and extracted to a path.
+    * **filesystem** (string): the internal identifier of the filesystem in which to write the file. This matches the last filesystem with the given identifier.
+    * **path** (string): the absolute path to where this archive is to be extracted.
+    * **format** (string): the format this archive is in. The only supported format is `tar`.
+    * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. Defaults to true.
+    * **_contents_** (object): options related to the source of the archive.
+      * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
+      * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_verification_** (object): options related to the verification of the file contents.
+        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
+    * **_mode_** (integer): the target directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
+    * **_user_** (object): specifies the target directory's owner.
+      * **_id_** (integer): the user ID of the owner.
+      * **_name_** (string): the user name of the owner.
+    * **_group_** (object): specifies the group of the owner.
+      * **_id_** (integer): the group ID of the owner.
+      * **_name_** (string): the group name of the owner.
 * **_systemd_** (object): describes the desired state of the systemd units.
   * **_units_** (list of objects): the list of systemd units.
     * **name** (string): the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service").
