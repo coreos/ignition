@@ -20,6 +20,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/rkt/rkt/pkg/multicall"
+
 	"github.com/coreos/ignition/internal/exec"
 	"github.com/coreos/ignition/internal/exec/stages"
 	_ "github.com/coreos/ignition/internal/exec/stages/disks"
@@ -30,6 +32,7 @@ import (
 )
 
 func main() {
+	multicall.MaybeExec()
 	flags := struct {
 		clearCache   bool
 		configCache  string

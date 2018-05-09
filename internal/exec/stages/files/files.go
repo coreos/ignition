@@ -144,6 +144,43 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	return nil
 }
 
+type archiveEntry types.Archive
+
+func (tmp archiveEntry) create(l *log.Logger, u util.Util) error {
+	a := types.Archive(tmp)
+
+	f := types.File{
+		Node: a.Node,
+		FileEmbedded1: types.FileEmbedded1{
+			Append:   false,
+			Mode:     a.Mode,
+			Contents: a.Contents,
+		},
+	}
+
+	fetchOp := u.PrepareFetch(l, f)
+	if fetchOp == nil {
+		return fmt.Errorf("failed to resolve archive %q", a.Path)
+	}
+
+	msg := "writing and extracting archive %q"
+
+	if err := l.LogOp(
+		func() error {
+			err := u.DeletePathOnOverwrite(a.Node)
+			if err != nil {
+				return err
+			}
+
+			return u.FetchAndExtractArchive(fetchOp, a.Format)
+		}, msg, string(a.Path),
+	); err != nil {
+		return fmt.Errorf("failed to fetch and extract archive %q: %v", fetchOp.Path, err)
+	}
+
+	return nil
+}
+
 type dirEntry types.Directory
 
 func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
@@ -284,6 +321,15 @@ func (s stage) mapEntriesToFilesystems(config types.Config) (map[types.Filesyste
 			entryMap[fs] = append(entryMap[fs], linkEntry(sy))
 		} else {
 			s.Logger.Crit("the filesystem (%q), was not defined", sy.Filesystem)
+			return nil, ErrFilesystemUndefined
+		}
+	}
+
+	for _, a := range config.Storage.Archives {
+		if fs, ok := filesystems[a.Filesystem]; ok {
+			entryMap[fs] = append(entryMap[fs], archiveEntry(a))
+		} else {
+			s.Logger.Crit("the filesystem (%q), was not defined", a.Filesystem)
 			return nil, ErrFilesystemUndefined
 		}
 	}
