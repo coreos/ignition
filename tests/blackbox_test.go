@@ -15,19 +15,14 @@
 package blackbox
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/pin/tftp"
 
 	config "github.com/coreos/ignition/config/v2_3_experimental"
 	"github.com/coreos/ignition/tests/register"
@@ -42,72 +37,6 @@ var (
 	// cancelled.
 	testTimeout = time.Second * 30
 )
-
-// HTTP Server
-func (server *HTTPServer) Config(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(`{
-	"ignition": { "version": "2.0.0" },
-	"storage": {
-		"files": [{
-		  "filesystem": "root",
-		  "path": "/foo/bar",
-		  "contents": { "source": "data:,example%20file%0A" }
-		}]
-	}
-}`))
-}
-
-func (server *HTTPServer) Contents(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(`asdf
-fdsa`))
-}
-
-type HTTPServer struct{}
-
-func (server *HTTPServer) Start() {
-	http.HandleFunc("/contents", server.Contents)
-	http.HandleFunc("/config", server.Config)
-
-	s := &http.Server{Addr: ":8080"}
-	go s.ListenAndServe()
-}
-
-// TFTP Server
-func (server *TFTPServer) ReadHandler(filename string, rf io.ReaderFrom) error {
-	var buf *bytes.Reader
-	if strings.Contains(filename, "contents") {
-		buf = bytes.NewReader([]byte(`asdf
-fdsa`))
-	} else if strings.Contains(filename, "config") {
-		buf = bytes.NewReader([]byte(`{
-        "ignition": { "version": "2.0.0" },
-        "storage": {
-                "files": [{
-                  "filesystem": "root",
-                  "path": "/foo/bar",
-                  "contents": { "source": "data:,example%20file%0A" }
-                }]
-        }
-}`))
-	} else {
-		return fmt.Errorf("no such file %q", filename)
-	}
-
-	_, err := rf.ReadFrom(buf)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		return err
-	}
-	return nil
-}
-
-type TFTPServer struct{}
-
-func (server *TFTPServer) Start() {
-	s := tftp.NewServer(server.ReadHandler, nil)
-	s.SetTimeout(5 * time.Second)
-	go s.ListenAndServe(":69")
-}
 
 func TestMain(m *testing.M) {
 	httpServer := &HTTPServer{}
@@ -212,7 +141,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		test.Out[i].SetOffsets()
 
 		// Creation
-		err = createVolume(t, ctx, tmpDirectory, i, disk.ImageFile, imageSize, 20, 16, 63, disk.Partitions)
+		err = createVolume(t, ctx, tmpDirectory, i, disk.ImageFile, imageSize, disk.Partitions)
 		// Move value into the local scope, because disk.ImageFile will change
 		// by the time this runs
 		imageFile := disk.ImageFile

@@ -1,4 +1,4 @@
-// Copyright 2017 CoreOS, Inc.
+// Copyright 2018 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package storage
+package partitions
 
 import (
 	"github.com/coreos/ignition/tests/register"
@@ -20,113 +20,9 @@ import (
 )
 
 func init() {
-	register.Register(register.PositiveTest, ForceNewFilesystemOfSameType())
-	register.Register(register.PositiveTest, WipeFilesystemWithSameType())
 	register.Register(register.PositiveTest, CreateNewPartitions())
 	register.Register(register.PositiveTest, AppendPartition())
 	register.Register(register.PositiveTest, PartitionSizeStart0())
-}
-
-func ForceNewFilesystemOfSameType() types.Test {
-	name := "Force new Filesystem Creation of same type"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	mntDevices := []types.MntDevice{
-		{
-			Label:        "EFI-SYSTEM",
-			Substitution: "$DEVICE",
-		},
-	}
-	config := `{
-		"ignition": {"version": "2.0.0"},
-		"storage": {
-			"filesystems": [{
-				"mount": {
-					"device": "$DEVICE",
-					"format": "ext4",
-					"create": {
-						"force": true
-					}}
-				 }]
-			}
-	}`
-
-	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
-	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
-	out[0].Partitions.GetPartition("EFI-SYSTEM").Files = []types.File{}
-	out[0].Partitions.AddRemovedNodes("EFI-SYSTEM", []types.Node{
-		{
-			Name:      "multiLine",
-			Directory: "path/example",
-		}, {
-			Name:      "singleLine",
-			Directory: "another/path/example",
-		}, {
-			Name:      "emptyFile",
-			Directory: "empty",
-		}, {
-			Name:      "noPath",
-			Directory: "",
-		},
-	})
-
-	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
-	}
-}
-
-func WipeFilesystemWithSameType() types.Test {
-	name := "Wipe Filesystem with Filesystem of same type"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	mntDevices := []types.MntDevice{
-		{
-			Label:        "EFI-SYSTEM",
-			Substitution: "$DEVICE",
-		},
-	}
-	config := `{
-		"ignition": { "version": "2.1.0" },
-		"storage": {
-			"filesystems": [{
-				"mount": {
-					"device": "$DEVICE",
-					"format": "ext4",
-					"wipeFilesystem": true
-				}}]
-			}
-	}`
-
-	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
-	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
-	out[0].Partitions.GetPartition("EFI-SYSTEM").Files = []types.File{}
-	out[0].Partitions.AddRemovedNodes("EFI-SYSTEM", []types.Node{
-		{
-			Name:      "multiLine",
-			Directory: "path/example",
-		}, {
-			Name:      "singleLine",
-			Directory: "another/path/example",
-		}, {
-			Name:      "emptyFile",
-			Directory: "empty",
-		}, {
-			Name:      "noPath",
-			Directory: "",
-		},
-	})
-
-	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
-	}
 }
 
 func CreateNewPartitions() types.Test {
