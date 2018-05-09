@@ -149,6 +149,12 @@
           "items": {
             "$ref": "#/definitions/storage/definitions/link"
           }
+        },
+        "archives": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/archive"
+          }
         }
       },
       "definitions": {
@@ -258,6 +264,27 @@
                 },
                 "hard": {
                   "type": "boolean"
+                }
+              }
+            }
+          ]
+        },
+        "archive": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/storage/definitions/node"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "type": ["integer", "null"]
+                },
+                "contents": {
+                  "$ref": "#/definitions/storage/definitions/file-contents"
+                },
+                "format": {
+                    "type": "string"
                 }
               }
             }
