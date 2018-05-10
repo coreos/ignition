@@ -20,6 +20,7 @@ import (
 	_ "github.com/coreos/ignition/tests/negative/filesystems"
 	_ "github.com/coreos/ignition/tests/negative/general"
 	_ "github.com/coreos/ignition/tests/negative/networkd"
+	_ "github.com/coreos/ignition/tests/negative/partitions"
 	_ "github.com/coreos/ignition/tests/negative/regression"
 	_ "github.com/coreos/ignition/tests/negative/security"
 	_ "github.com/coreos/ignition/tests/negative/timeouts"
