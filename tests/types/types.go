@@ -130,7 +130,7 @@ func (ps Partitions) AddRemovedNodes(label string, ns []Node) {
 func (d Disk) SetOffsets() {
 	offset := gptHeaderSize
 	for _, p := range d.Partitions {
-		if p.Length == 0 || p.TypeCode == "blank" {
+		if p.Length == 0 {
 			continue
 		}
 		offset = Align(offset, d.Alignment)
@@ -216,12 +216,6 @@ func GetBaseDisk() []Disk {
 					TypeCode: "coreos-rootfs",
 					Length:   2097152,
 				}, {
-					Number:   5,
-					Label:    "ROOT-C",
-					GUID:     "d82521b4-07ac-4f1c-8840-ddefedc332f3",
-					TypeCode: "blank",
-					Length:   0,
-				}, {
 					Number:         6,
 					Label:          "OEM",
 					TypeCode:       "data",
@@ -232,11 +226,6 @@ func GetBaseDisk() []Disk {
 					Label:    "OEM-CONFIG",
 					TypeCode: "coreos-reserved",
 					Length:   131072,
-				}, {
-					Number:   8,
-					Label:    "coreos-reserved",
-					TypeCode: "blank",
-					Length:   0,
 				}, {
 					Number:         9,
 					Label:          "ROOT",

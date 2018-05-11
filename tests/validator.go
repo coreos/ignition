@@ -15,7 +15,6 @@
 package blackbox
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -31,7 +30,7 @@ import (
 	"github.com/coreos/ignition/tests/types"
 )
 
-func regexpSearch(t *testing.T, itemName, pattern string, data []byte) (string, error) {
+func regexpSearch(itemName, pattern string, data []byte) (string, error) {
 	re := regexp.MustCompile(pattern)
 	match := re.FindSubmatch(data)
 	if len(match) < 2 {
@@ -40,8 +39,43 @@ func regexpSearch(t *testing.T, itemName, pattern string, data []byte) (string, 
 	return string(match[1]), nil
 }
 
+func getPartitionSet(imageFile string) (map[int]struct{}, error) {
+	sgdiskOverview, err := exec.Command("sgdisk", "-p", imageFile).CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("sgdisk -p %s failed: %v", imageFile, err)
+	}
+
+	//What this regex means:       num      start    end    size,code,name
+	re := regexp.MustCompile("\n\\W+(\\d+)\\W+\\d+\\W+\\d+\\W+\\d+.*")
+	ret := map[int]struct{}{}
+	for _, match := range re.FindAllStringSubmatch(string(sgdiskOverview), -1) {
+		if len(match) == 0 {
+			continue
+		}
+		if len(match) != 2 {
+			return nil, fmt.Errorf("Invalid regex result from parsing sgdisk")
+		}
+		num, err := strconv.Atoi(match[1])
+		if err != nil {
+			return nil, err
+		}
+		ret[num] = struct{}{}
+	}
+	return ret, nil
+}
+
 func validateDisk(t *testing.T, d types.Disk, imageFile string) error {
+	partitionSet, err := getPartitionSet(imageFile)
+	if err != nil {
+		return err
+	}
+
 	for _, e := range d.Partitions {
+		if _, ok := partitionSet[e.Number]; !ok {
+			t.Errorf("Partition %d is missing", e.Number)
+		}
+		delete(partitionSet, e.Number)
+
 		if e.TypeCode == "blank" || e.FilesystemType == "swap" {
 			continue
 		}
@@ -49,25 +83,23 @@ func validateDisk(t *testing.T, d types.Disk, imageFile string) error {
 			"sgdisk", "-i", strconv.Itoa(e.Number),
 			imageFile).CombinedOutput()
 		if err != nil {
-			fmt.Printf("sgdisk -i %d %s died\n", e.Number, imageFile)
-			bufio.NewReader(os.Stdin).ReadBytes('\n')
 			t.Error("sgdisk -i", strconv.Itoa(e.Number), err)
 			return nil
 		}
 
-		actualGUID, err := regexpSearch(t, "GUID", "Partition unique GUID: (?P<partition_guid>[\\d\\w-]+)", sgdiskInfo)
+		actualGUID, err := regexpSearch("GUID", "Partition unique GUID: (?P<partition_guid>[\\d\\w-]+)", sgdiskInfo)
 		if err != nil {
 			return err
 		}
-		actualTypeGUID, err := regexpSearch(t, "type GUID", "Partition GUID code: (?P<partition_code>[\\d\\w-]+)", sgdiskInfo)
+		actualTypeGUID, err := regexpSearch("type GUID", "Partition GUID code: (?P<partition_code>[\\d\\w-]+)", sgdiskInfo)
 		if err != nil {
 			return err
 		}
-		actualSectors, err := regexpSearch(t, "partition size", "Partition size: (?P<sectors>\\d+) sectors", sgdiskInfo)
+		actualSectors, err := regexpSearch("partition size", "Partition size: (?P<sectors>\\d+) sectors", sgdiskInfo)
 		if err != nil {
 			return err
 		}
-		actualLabel, err := regexpSearch(t, "partition name", "Partition name: '(?P<name>[\\d\\w-_]+)'", sgdiskInfo)
+		actualLabel, err := regexpSearch("partition name", "Partition name: '(?P<name>[\\d\\w-_]+)'", sgdiskInfo)
 		if err != nil {
 			return err
 		}
@@ -88,6 +120,10 @@ func validateDisk(t *testing.T, d types.Disk, imageFile string) error {
 			t.Error(
 				"Sectors does not match!", expectedSectors, actualSectors)
 		}
+	}
+
+	if len(partitionSet) != 0 {
+		t.Error("Disk had extra partitions", partitionSet)
 	}
 	return nil
 }
