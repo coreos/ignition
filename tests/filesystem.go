@@ -99,7 +99,8 @@ func getRootLocation(partitions []*types.Partition) string {
 
 // returns true if no error, false if error
 func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, appendEnv []string) error {
-	args := []string{"-clear-cache", "-oem", "file", "-stage", stage, "-root", root, "-log-to-stdout"}
+	args := []string{"-clear-cache", "-oem", "file", "-stage", stage,
+		"-root", root, "-log-to-stdout", "--config-cache", filepath.Join(cwd, "ignition.json")}
 	cmd := exec.CommandContext(ctx, "ignition", args...)
 	t.Log("ignition", args)
 	cmd.Dir = cwd
