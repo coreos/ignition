@@ -17,11 +17,11 @@ package registry
 // Done to import the tests
 import (
 	_ "github.com/coreos/ignition/tests/negative/files"
+	_ "github.com/coreos/ignition/tests/negative/filesystems"
 	_ "github.com/coreos/ignition/tests/negative/general"
 	_ "github.com/coreos/ignition/tests/negative/networkd"
 	_ "github.com/coreos/ignition/tests/negative/regression"
 	_ "github.com/coreos/ignition/tests/negative/security"
-	_ "github.com/coreos/ignition/tests/negative/storage"
 	_ "github.com/coreos/ignition/tests/negative/timeouts"
 	_ "github.com/coreos/ignition/tests/positive/files"
 	_ "github.com/coreos/ignition/tests/positive/filesystems"
