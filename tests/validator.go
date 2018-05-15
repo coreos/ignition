@@ -71,14 +71,15 @@ func validateDisk(t *testing.T, d types.Disk, imageFile string) error {
 	}
 
 	for _, e := range d.Partitions {
+		if e.TypeCode == "blank" {
+			continue
+		}
+
 		if _, ok := partitionSet[e.Number]; !ok {
 			t.Errorf("Partition %d is missing", e.Number)
 		}
 		delete(partitionSet, e.Number)
 
-		if e.TypeCode == "blank" || e.FilesystemType == "swap" {
-			continue
-		}
 		sgdiskInfo, err := exec.Command(
 			"sgdisk", "-i", strconv.Itoa(e.Number),
 			imageFile).CombinedOutput()
@@ -107,7 +108,7 @@ func validateDisk(t *testing.T, d types.Disk, imageFile string) error {
 		// have to align the size to the nearest sector alignment boundary first
 		expectedSectors := types.Align(e.Length, d.Alignment)
 
-		if e.TypeGUID != "" && e.TypeGUID != actualTypeGUID {
+		if e.TypeGUID != "" && formatUUID(e.TypeGUID) != formatUUID(actualTypeGUID) {
 			t.Error("TypeGUID does not match!", e.TypeGUID, actualTypeGUID)
 		}
 		if e.GUID != "" && formatUUID(e.GUID) != formatUUID(actualGUID) {
