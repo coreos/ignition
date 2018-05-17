@@ -1,3 +1,20 @@
+17-May-2018 IGNITION v0.25.0
+
+  Features:
+
+     - Blackbox tests can now be run in parallel
+
+  Changes:
+
+     - Remove Oracle Cloud Infrastructure support
+
+  Bug Fixes:
+
+     - No longer leave a stray file when appending to an existing file
+     - Fix multiple blackbox test validation errors
+     - Fix v1 config parsing to return ErrUnknownVersion if version is
+       unrecognized
+
 06-Mar-2018 IGNITION v0.24.0
 
   Features
