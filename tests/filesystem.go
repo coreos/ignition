@@ -23,6 +23,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -31,7 +32,14 @@ import (
 )
 
 func run(t *testing.T, ctx context.Context, command string, args ...string) ([]byte, error) {
-	out, err := exec.CommandContext(ctx, command, args...).CombinedOutput()
+	cmd := exec.CommandContext(ctx, command, args...)
+	// Run this command in a new process group so that if the tests gets
+	// Ctrl-C'd the process can run through to completion.
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+		Pgid:    0,
+	}
+	out, err := runCommandAndGetOutput(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed: %q: %v\n%s", command, err, out)
 	}
@@ -41,7 +49,12 @@ func run(t *testing.T, ctx context.Context, command string, args ...string) ([]b
 // Runs the command even if the context has exired. Should be used for cleanup
 // operations
 func runWithoutContext(t *testing.T, command string, args ...string) ([]byte, error) {
-	out, err := exec.Command(command, args...).CombinedOutput()
+	cmd := exec.Command(command, args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+		Pgid:    0,
+	}
+	out, err := runCommandAndGetOutput(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed: %q: %v\n%s", command, err, out)
 	}
@@ -102,10 +115,16 @@ func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, app
 	args := []string{"-clear-cache", "-oem", "file", "-stage", stage,
 		"-root", root, "-log-to-stdout", "--config-cache", filepath.Join(cwd, "ignition.json")}
 	cmd := exec.CommandContext(ctx, "ignition", args...)
+	// Run this command in a new process group so that if the tests gets
+	// Ctrl-C'd the process can run through to completion.
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+		Pgid:    0,
+	}
 	t.Log("ignition", args)
 	cmd.Dir = cwd
 	cmd.Env = append(os.Environ(), appendEnv...)
-	out, err := cmd.CombinedOutput()
+	out, err := runCommandAndGetOutput(cmd)
 	t.Logf("PID: %d", cmd.Process.Pid)
 	t.Logf("Ignition output:\n%s", string(out))
 	if strings.Contains(string(out), "panic") {
@@ -194,7 +213,7 @@ func setDevices(t *testing.T, ctx context.Context, imageFile string, partitions 
 		partition.Device = fmt.Sprintf("%sp%d", loopDevice, partition.Number)
 		err := formatPartition(t, ctx, partition)
 		if err != nil {
-			return "", err
+			return loopDevice, err
 		}
 	}
 	return loopDevice, nil
