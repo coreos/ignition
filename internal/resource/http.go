@@ -194,13 +194,14 @@ func (f *Fetcher) newHttpClient() {
 	}
 }
 
-// getReaderWithHeader performs an HTTP GET on the provided URL with the provided request header
-// and returns the response body Reader, HTTP status code, and error (if any). By
+// getReaderWithHeader performs an HTTP GET on the provided URL with the
+// provided request header and returns the response body Reader, HTTP status
+// code, a cancel function for the result's context, and error (if any). By
 // default, User-Agent is added to the header but this can be overridden.
-func (c HttpClient) getReaderWithHeader(ctx context.Context, url string, header http.Header) (io.ReadCloser, int, error) {
+func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, context.CancelFunc, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, nil, err
 	}
 
 	req.Header.Set("User-Agent", "Ignition/"+version.Raw)
@@ -212,10 +213,10 @@ func (c HttpClient) getReaderWithHeader(ctx context.Context, url string, header 
 		}
 	}
 
+	ctx, cancelFn := context.WithCancel(context.Background())
 	if c.timeout != 0 {
-		ctxTo, cancel := context.WithTimeout(ctx, c.timeout)
-		ctx = ctxTo
-		defer cancel()
+		cancelFn()
+		ctx, cancelFn = context.WithTimeout(context.Background(), c.timeout)
 	}
 
 	duration := initialBackoff
@@ -226,7 +227,7 @@ func (c HttpClient) getReaderWithHeader(ctx context.Context, url string, header 
 		if err == nil {
 			c.logger.Info("GET result: %s", http.StatusText(resp.StatusCode))
 			if resp.StatusCode < 500 {
-				return resp.Body, resp.StatusCode, nil
+				return resp.Body, resp.StatusCode, cancelFn, nil
 			}
 			resp.Body.Close()
 		} else {
@@ -242,7 +243,7 @@ func (c HttpClient) getReaderWithHeader(ctx context.Context, url string, header 
 		select {
 		case <-time.After(duration):
 		case <-ctx.Done():
-			return nil, 0, ErrTimeout
+			return nil, 0, cancelFn, ErrTimeout
 		}
 	}
 }
