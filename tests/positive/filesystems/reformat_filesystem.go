@@ -31,7 +31,7 @@ func init() {
 }
 
 func ReformatToBTRFS_2_0_0() types.Test {
-	name := "Reformat a Filesystem to Btrfs"
+	name := "Reformat a Filesystem to Btrfs - 2.0.0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -67,7 +67,7 @@ func ReformatToBTRFS_2_0_0() types.Test {
 }
 
 func ReformatToXFS_2_0_0() types.Test {
-	name := "Reformat a Filesystem to XFS"
+	name := "Reformat a Filesystem to XFS - 2.0.0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -103,7 +103,7 @@ func ReformatToXFS_2_0_0() types.Test {
 }
 
 func ReformatToVFAT_2_0_0() types.Test {
-	name := "Reformat a Filesystem to VFAT"
+	name := "Reformat a Filesystem to VFAT - 2.0.0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -140,7 +140,7 @@ func ReformatToVFAT_2_0_0() types.Test {
 }
 
 func ReformatToEXT4_2_0_0() types.Test {
-	name := "Reformat a Filesystem to EXT4"
+	name := "Reformat a Filesystem to EXT4 - 2.0.0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -178,7 +178,7 @@ func ReformatToEXT4_2_0_0() types.Test {
 }
 
 func ReformatToBTRFS_2_1_0() types.Test {
-	name := "Reformat a Filesystem to Btrfs"
+	name := "Reformat a Filesystem to Btrfs - 2.1.0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -214,7 +214,7 @@ func ReformatToBTRFS_2_1_0() types.Test {
 }
 
 func ReformatToXFS_2_1_0() types.Test {
-	name := "Reformat a Filesystem to XFS"
+	name := "Reformat a Filesystem to XFS - 2.1.0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -250,7 +250,7 @@ func ReformatToXFS_2_1_0() types.Test {
 }
 
 func ReformatToVFAT_2_1_0() types.Test {
-	name := "Reformat a Filesystem to VFAT"
+	name := "Reformat a Filesystem to VFAT - 2.1.0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -286,7 +286,7 @@ func ReformatToVFAT_2_1_0() types.Test {
 }
 
 func ReformatToEXT4_2_1_0() types.Test {
-	name := "Reformat a Filesystem to EXT4"
+	name := "Reformat a Filesystem to EXT4 - 2.1.0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -323,7 +323,7 @@ func ReformatToEXT4_2_1_0() types.Test {
 }
 
 func ReformatToSWAP_2_1_0() types.Test {
-	name := "Reformat a Filesystem to SWAP"
+	name := "Reformat a Filesystem to SWAP - 2.1.0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
