@@ -79,12 +79,18 @@ func main() {
 	}
 
 	oemConfig := oem.MustGet(flags.oem.String())
+	fetcher, err := oemConfig.NewFetcherFunc()(&logger)
+	if err != nil {
+		logger.Crit("failed to generate fetcher: %s", err)
+		os.Exit(3)
+	}
 	engine := exec.Engine{
 		Root:         flags.root,
 		FetchTimeout: flags.fetchTimeout,
 		Logger:       &logger,
 		ConfigCache:  flags.configCache,
 		OEMConfig:    oemConfig,
+		Fetcher:      &fetcher,
 	}
 
 	if !engine.Run(flags.stage.String()) {

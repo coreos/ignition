@@ -16,8 +16,10 @@ package exec
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/coreos/ignition/config/shared/errors"
@@ -46,11 +48,16 @@ type Engine struct {
 	Logger       *log.Logger
 	Root         string
 	OEMConfig    oem.Config
+	Fetcher      *resource.Fetcher
 }
 
 // Run executes the stage of the given name. It returns true if the stage
 // successfully ran and false if there were any errors.
 func (e Engine) Run(stageName string) bool {
+	if e.Fetcher == nil || e.Logger == nil {
+		fmt.Fprintf(os.Stderr, "engine incorrectly configured\n")
+		return false
+	}
 	baseConfig := types.Config{
 		Ignition: types.Ignition{Version: types.MaxVersion.String()},
 		Storage: types.Storage{
@@ -68,7 +75,7 @@ func (e Engine) Run(stageName string) bool {
 		return false
 	}
 
-	cfg, f, err := e.acquireConfig()
+	cfg, err := e.acquireConfig()
 	switch err {
 	case nil:
 	case errors.ErrCloudConfig, errors.ErrScript, errors.ErrEmpty:
@@ -87,17 +94,12 @@ func (e Engine) Run(stageName string) bool {
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
 
-	return stages.Get(stageName).Create(e.Logger, e.Root, f).Run(config.Append(baseConfig, config.Append(systemBaseConfig, cfg)))
+	return stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(config.Append(baseConfig, config.Append(systemBaseConfig, cfg)))
 }
 
 // acquireConfig returns the configuration, first checking a local cache
 // before attempting to fetch it from the provider.
-func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err error) {
-	f, err = e.OEMConfig.NewFetcherFunc()(e.Logger)
-	if err != nil {
-		e.Logger.Crit("failed to generate fetcher: %s", err)
-		return
-	}
+func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 
 	// First try read the config @ e.ConfigCache.
 	b, err := ioutil.ReadFile(e.ConfigCache)
@@ -107,7 +109,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 		}
 		// Create an http client and fetcher with the timeouts from the cached
 		// config
-		err = f.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
+		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
 		if err != nil {
 			e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
 			return
@@ -118,14 +120,14 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 	// Create a new http client and fetcher with the timeouts set via the flags,
 	// since we don't have a config with timeout values we can use
 	timeout := int(e.FetchTimeout.Seconds())
-	err = f.UpdateHttpTimeoutsAndCAs(types.Timeouts{HTTPTotal: &timeout}, nil)
+	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(types.Timeouts{HTTPTotal: &timeout}, nil)
 	if err != nil {
 		e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
 		return
 	}
 
 	// (Re)Fetch the config if the cache is unreadable.
-	cfg, f, err = e.fetchProviderConfig(f)
+	cfg, err = e.fetchProviderConfig()
 	if err != nil {
 		e.Logger.Crit("failed to fetch config: %s", err)
 		return
@@ -133,13 +135,13 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 
 	// Update the http client to use the timeouts and CAs from the newly fetched
 	// config
-	err = f.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
+	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
 	if err != nil {
 		e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
 		return
 	}
 
-	err = f.RewriteCAsWithDataUrls(cfg.Ignition.Security.TLS.CertificateAuthorities)
+	err = e.Fetcher.RewriteCAsWithDataUrls(cfg.Ignition.Security.TLS.CertificateAuthorities)
 	if err != nil {
 		e.Logger.Crit("error handling CAs: %v", err)
 		return
@@ -166,7 +168,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, f resource.Fetcher, err erro
 // it checks the config engine's provider. An error is returned if the provider
 // is unavailable. This will also render the config (see renderConfig) before
 // returning.
-func (e *Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, resource.Fetcher, error) {
+func (e *Engine) fetchProviderConfig() (types.Config, error) {
 	fetchers := []providers.FuncFetchConfig{
 		cmdline.FetchConfig,
 		system.FetchConfig,
@@ -177,7 +179,7 @@ func (e *Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, resource
 	var r report.Report
 	var err error
 	for _, fetcher := range fetchers {
-		cfg, r, err = fetcher(f)
+		cfg, r, err = fetcher(*e.Fetcher)
 		if err != providers.ErrNoProvider {
 			// successful, or failed on another error
 			break
@@ -186,17 +188,17 @@ func (e *Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, resource
 
 	e.logReport(r)
 	if err != nil {
-		return types.Config{}, f, err
+		return types.Config{}, err
 	}
 
 	// Replace the HTTP client in the fetcher to be configured with the
 	// timeouts of the config
-	err = f.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
+	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
 	if err != nil {
-		return types.Config{}, f, err
+		return types.Config{}, err
 	}
 
-	return e.renderConfig(cfg, f)
+	return e.renderConfig(cfg)
 }
 
 // renderConfig evaluates "ignition.config.replace" and "ignition.config.append"
@@ -206,56 +208,56 @@ func (e *Engine) fetchProviderConfig(f resource.Fetcher) (types.Config, resource
 // evaluated and appended to the provided config. If neither option is set, the
 // provided config will be returned unmodified. An updated fetcher will be
 // returned with any new timeouts set.
-func (e *Engine) renderConfig(cfg types.Config, f resource.Fetcher) (types.Config, resource.Fetcher, error) {
+func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 	if cfgRef := cfg.Ignition.Config.Replace; cfgRef != nil {
-		newCfg, err := e.fetchReferencedConfig(*cfgRef, f)
+		newCfg, err := e.fetchReferencedConfig(*cfgRef)
 		if err != nil {
-			return types.Config{}, f, err
+			return types.Config{}, err
 		}
 
 		// Replace the HTTP client in the fetcher to be configured with the
 		// timeouts of the new config
-		err = f.UpdateHttpTimeoutsAndCAs(newCfg.Ignition.Timeouts, newCfg.Ignition.Security.TLS.CertificateAuthorities)
+		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(newCfg.Ignition.Timeouts, newCfg.Ignition.Security.TLS.CertificateAuthorities)
 		if err != nil {
-			return types.Config{}, f, err
+			return types.Config{}, err
 		}
 
-		return e.renderConfig(newCfg, f)
+		return e.renderConfig(newCfg)
 	}
 
 	appendedCfg := cfg
 	for _, cfgRef := range cfg.Ignition.Config.Append {
-		newCfg, err := e.fetchReferencedConfig(cfgRef, f)
+		newCfg, err := e.fetchReferencedConfig(cfgRef)
 		if err != nil {
-			return types.Config{}, f, err
+			return types.Config{}, err
 		}
 
 		// Append the old config with the new config before the new config has
 		// been rendered, so we can use the new config's timeouts and CAs when
 		// fetching more configs.
 		cfgForFetcherSettings := config.Append(appendedCfg, newCfg)
-		err = f.UpdateHttpTimeoutsAndCAs(cfgForFetcherSettings.Ignition.Timeouts, cfgForFetcherSettings.Ignition.Security.TLS.CertificateAuthorities)
+		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfgForFetcherSettings.Ignition.Timeouts, cfgForFetcherSettings.Ignition.Security.TLS.CertificateAuthorities)
 		if err != nil {
-			return types.Config{}, f, err
+			return types.Config{}, err
 		}
 
-		newCfg, f, err = e.renderConfig(newCfg, f)
+		newCfg, err = e.renderConfig(newCfg)
 		if err != nil {
-			return types.Config{}, f, err
+			return types.Config{}, err
 		}
 
 		appendedCfg = config.Append(appendedCfg, newCfg)
 	}
-	return appendedCfg, f, nil
+	return appendedCfg, nil
 }
 
 // fetchReferencedConfig fetches and parses the requested config.
-func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference, f resource.Fetcher) (types.Config, error) {
+func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
 	u, err := url.Parse(cfgRef.Source)
 	if err != nil {
 		return types.Config{}, err
 	}
-	rawCfg, err := f.FetchToBuffer(*u, resource.FetchOptions{
+	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{
 		Headers: resource.ConfigHeaders,
 	})
 	if err != nil {
