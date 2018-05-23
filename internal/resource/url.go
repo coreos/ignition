@@ -218,11 +218,15 @@ func (f *Fetcher) FetchFromTFTP(u url.URL, dest *os.File, opts FetchOptions) err
 // FetchFromHTTP fetches a resource from u via HTTP(S) into dest, returning an
 // error if one is encountered.
 func (f *Fetcher) FetchFromHTTP(u url.URL, dest *os.File, opts FetchOptions) error {
-	ctx := context.Background()
 	if f.client == nil {
 		f.newHttpClient()
 	}
-	dataReader, status, err := f.client.getReaderWithHeader(ctx, u.String(), opts.Headers)
+	dataReader, status, ctxCancel, err := f.client.getReaderWithHeader(u.String(), opts.Headers)
+	if ctxCancel != nil {
+		// whatever context getReaderWithHeader created for the request should
+		// be cancelled once we're done reading the response
+		defer ctxCancel()
+	}
 	if err != nil {
 		return err
 	}
