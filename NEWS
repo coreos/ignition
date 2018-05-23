@@ -1,3 +1,9 @@
+22-May-2018 IGNITION v0.25.1
+
+  Bug Fixes:
+
+    - Fix an issue in timeout logic causing http(s) requests to sometimes fail
+
 22-May-2018 IGNITION v0.24.1
 
   Bug Fixes:
