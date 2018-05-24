@@ -111,6 +111,9 @@ func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, app
 	if strings.Contains(string(out), "panic") {
 		return fmt.Errorf("ignition panicked")
 	}
+	if strings.Contains(string(out), "CRITICAL") {
+		return fmt.Errorf("found critical ignition log")
+	}
 	return err
 }
 
