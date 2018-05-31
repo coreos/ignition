@@ -62,6 +62,8 @@ var (
 	ErrPathRelative                = errors.New("path not absolute")
 	ErrSparesUnsupportedForLevel   = errors.New("spares unsupported for arrays with a level greater than 0")
 	ErrUnrecognizedRaidLevel       = errors.New("unrecognized raid level")
+	ErrShouldNotExistWithOthers    = errors.New("shouldExist specified false with other options also specified")
+	ErrZeroesWithShouldNotExist    = errors.New("shouldExist is false for a partition and other partition(s) has start or size 0")
 
 	// Passwd section errors
 	ErrPasswdCreateDeprecated      = errors.New("the create object has been deprecated in favor of user-level options")

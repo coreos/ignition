@@ -27,14 +27,25 @@ const (
 	guidRegexStr = "^(|[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12})$"
 )
 
+func (p Partition) Validate() report.Report {
+	if p.ShouldExist != nil && !*p.ShouldExist &&
+		(p.Label != nil || p.TypeGUID != "" || p.GUID != "" || p.Start != nil || p.Size != nil) {
+		return report.ReportFromError(errors.ErrShouldNotExistWithOthers, report.EntryError)
+	}
+	return report.Report{}
+}
+
 func (p Partition) ValidateLabel() report.Report {
 	r := report.Report{}
+	if p.Label == nil {
+		return r
+	}
 	// http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_entries:
 	// 56 (0x38) 	72 bytes 	Partition name (36 UTF-16LE code units)
 
 	// XXX(vc): note GPT calls it a name, we're using label for consistency
 	// with udev naming /dev/disk/by-partlabel/*.
-	if len(p.Label) > 36 {
+	if len(*p.Label) > 36 {
 		r.Add(report.Entry{
 			Message: errors.ErrLabelTooLong.Error(),
 			Kind:    report.EntryError,
@@ -42,7 +53,7 @@ func (p Partition) ValidateLabel() report.Report {
 	}
 
 	// sgdisk uses colons for delimitting compound arguments and does not allow escaping them.
-	if strings.Contains(p.Label, ":") {
+	if strings.Contains(*p.Label, ":") {
 		r.Add(report.Entry{
 			Message: errors.ErrLabelContainsColon.Error(),
 			Kind:    report.EntryWarning,
