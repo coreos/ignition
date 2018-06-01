@@ -8,18 +8,18 @@ depends() {
 
 install() {
     inst_multiple \
-        ignition \
-        useradd \
-        usermod \
         groupadd \
-        systemd-detect-virt \
-        mountpoint \
+        ignition \
         mkfs.btrfs \
         mkfs.ext4 \
-        mkfs.xfs \
         mkfs.vfat \
+        mkfs.xfs \
         mkswap \
-        sgdisk
+        mountpoint \
+        sgdisk \
+        systemd-detect-virt \
+        useradd \
+        usermod
 
 #   inst_script "$moddir/ignition-setup.sh" \
 #       "/usr/sbin/ignition-setup"
