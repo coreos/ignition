@@ -129,7 +129,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 	// (Re)Fetch the config if the cache is unreadable.
 	cfg, err = e.fetchProviderConfig()
 	if err != nil {
-		e.Logger.Crit("failed to fetch config: %s", err)
+		e.Logger.Warning("failed to fetch config: %s", err)
 		return
 	}
 

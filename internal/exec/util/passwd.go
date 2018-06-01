@@ -19,10 +19,12 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"syscall"
 
 	keys "github.com/coreos/ignition/internal/authorized_keys_d"
 	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/distro"
+	"github.com/coreos/ignition/internal/log"
 )
 
 // EnsureUser ensures that the user exists as described. If the user does not
@@ -130,11 +132,17 @@ func translateV2_1UsercreateGroupSliceToPasswdUserGroupSlice(groups []types.User
 	return newGroups
 }
 
+// CheckIfUserExists will return Info log when user is empty
 func (u Util) CheckIfUserExists(c types.PasswdUser) (bool, error) {
-	code, err := u.LogCmd(exec.Command(distro.ChrootCmd(), u.DestDir, distro.IdCmd(), c.Name),
-		"checking if user %q exists", c.Name)
+	code := -1
+	cmd := exec.Command(distro.ChrootCmd(), u.DestDir, distro.IdCmd(), c.Name)
+	stdout, err := cmd.CombinedOutput()
 	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			code = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
+		}
 		if code == 1 {
+			u.Info("checking if user \"%s\" exists: %s", c.Name, fmt.Errorf("[Attention] %v: Cmd: %s Stdout: %s", err, log.QuotedCmd(cmd), stdout))
 			return false, nil
 		}
 		u.Logger.Info("error encountered (%+T): %v", err, err)
