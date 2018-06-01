@@ -1,9 +1,11 @@
 
-# for Fedora
+# for Fedora (classic)
     dnf install -y dracut-network git-core gdisk
     dnf install -y --nogpgcheck --repofrompath 'copr,https://copr-be.cloud.fedoraproject.org/results/dustymabe/ignition/fedora-$releasever-$basearch/' ignition
 
-# for centos
+You can also likely use Fedora Atomic Host for this.
+
+# for CentOS (classic)
     yum install -y dracut-network git-core gdisk
     curl -L https://copr.fedorainfracloud.org/coprs/dustymabe/ignition/repo/epel-7/dustymabe-ignition-epel-7.repo > /etc/yum.repos.d/copr.repo
     yum install -y ignition
