@@ -3,12 +3,14 @@
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
 depends() {
-    echo qemu systemd
+    echo qemu systemd url-lib network usr-generator
 }
 
 install() {
     inst_multiple \
+        chroot \
         groupadd \
+        id \
         ignition \
         mkfs.btrfs \
         mkfs.ext4 \
