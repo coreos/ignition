@@ -3,7 +3,7 @@
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
 depends() {
-    echo qemu systemd url-lib network usr-generator
+    echo qemu systemd url-lib network
 }
 
 install() {
@@ -37,6 +37,9 @@ install() {
 
     inst_simple "$moddir/ignition-files.service" \
         "$systemdsystemunitdir/ignition-files.service"
+
+    inst_simple "$moddir/remount-sysroot.service" \
+        "$systemdutildir/system/remount-sysroot.service"
 
     inst_simple "$moddir/ignition-quench.ign" \
         "/usr/lib/ignition/base.ign"
