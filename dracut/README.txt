@@ -1,23 +1,23 @@
 
 # for Fedora (classic)
     dnf install -y dracut-network git-core gdisk
-    dnf install -y --nogpgcheck --repofrompath 'copr,https://copr-be.cloud.fedoraproject.org/results/dustymabe/ignition/fedora-$releasever-$basearch/' ignition
+    dnf install -y --nogpgcheck --repofrompath 'copr,https://copr-be.cloud.fedoraproject.org/results/dustymabe/ignition/fedora-$releasever-$basearch/' ignition ignition-dracut
+    dracut --force --verbose -N
+    rm /etc/machine-id
+    add 'ip=dhcp rd.neednet=1 enforcing=0 coreos.first_boot' to /boot/grub2/grub.cfg
 
-You can also likely use Fedora Atomic Host for this.
+# for Fedora Atomic Host
+    rpm-ostree initramfs --enable
+    rpm-ostree ex kargs --append 'ip=dhcp rd.neednet=1 enforcing=0 coreos.first_boot'
+    curl -L https://copr.fedorainfracloud.org/coprs/dustymabe/ignition/repo/fedora-28/dustymabe-ignition-fedora-28.repo > /etc/yum.repos.d/copr.repo
+    rpm-ostree install -y ignition ignition-dracut
+    
 
 # for CentOS (classic)
     yum install -y dracut-network git-core gdisk
     curl -L https://copr.fedorainfracloud.org/coprs/dustymabe/ignition/repo/epel-7/dustymabe-ignition-epel-7.repo > /etc/yum.repos.d/copr.repo
-    yum install -y ignition
+    yum install -y ignition ignition-dracut
     rm /etc/yum.repos.d/copr.repo
-
-git clone https://github.com/dustymabe/bootengine.git
-rsync -avh ./bootengine/dracut/* /usr/lib/dracut/modules.d/
-
-dracut --add 'url-lib network ignition usr-generator' --install /usr/bin/ignition --force --verbose -N
-
-rm /etc/machine-id
-touch /coreos_first_boot
-add 'ip=dhcp rd.neednet=1 coreos.first_boot' to grub.cfg
-
-reboot
+    dracut --force --verbose -N
+    rm /etc/machine-id
+    add 'ip=dhcp rd.neednet=1 enforcing=0 coreos.first_boot' to /boot/grub2/grub.cfg

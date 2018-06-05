@@ -3,23 +3,25 @@
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
 depends() {
-    echo qemu systemd
+    echo qemu systemd url-lib network
 }
 
 install() {
     inst_multiple \
-        ignition \
-        useradd \
-        usermod \
+        chroot \
         groupadd \
-        systemd-detect-virt \
-        mountpoint \
+        id \
+        ignition \
         mkfs.btrfs \
         mkfs.ext4 \
-        mkfs.xfs \
         mkfs.vfat \
+        mkfs.xfs \
         mkswap \
-        sgdisk
+        mountpoint \
+        sgdisk \
+        systemd-detect-virt \
+        useradd \
+        usermod
 
 #   inst_script "$moddir/ignition-setup.sh" \
 #       "/usr/sbin/ignition-setup"
@@ -35,6 +37,9 @@ install() {
 
     inst_simple "$moddir/ignition-files.service" \
         "$systemdsystemunitdir/ignition-files.service"
+
+    inst_simple "$moddir/remount-sysroot.service" \
+        "$systemdutildir/system/remount-sysroot.service"
 
     inst_simple "$moddir/ignition-quench.ign" \
         "/usr/lib/ignition/base.ign"
