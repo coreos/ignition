@@ -26,8 +26,9 @@ cmdline_bool() {
 }
 
 add_requires() {
-    local name="$1"
-    local requires_dir="${UNIT_DIR}/initrd.target.requires"
+    local name="$1"; shift
+    local target="${1:-initrd.target}"
+    local requires_dir="${UNIT_DIR}/${target}.requires"
     mkdir -p "${requires_dir}"
     ln -sf "../${name}" "${requires_dir}/${name}"
 }
@@ -37,7 +38,9 @@ add_requires() {
 # boot.
 if $(cmdline_bool coreos.first_boot 0); then
     add_requires ignition-disks.service
-    add_requires ignition-files.service
+    # we want this to run before initrd-switch-root.service, not initrd.target,
+    # because it needs to run after ostree-prepare-root.service.
+    add_requires ignition-files.service initrd-switch-root.service
     # Only try to mount the ESP if GRUB detected a first_boot file
     #if [[ $(cmdline_arg coreos.first_boot) = "detected" ]]; then
     #    add_requires ignition-quench.service

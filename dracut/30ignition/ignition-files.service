@@ -15,6 +15,10 @@ After=ignition-disks.service
 Requires=ignition-remount-sysroot.service
 After=ignition-remount-sysroot.service
 
+After=ostree-prepare-root.service
+After=initrd-switch-root.target
+Before=initrd-switch-root.service
+
 # setup the root filesystem before we try do things like create users on it.
 #Requires=initrd-setup-root.service
 #After=initrd-setup-root.service
