@@ -7,8 +7,10 @@ DefaultDependencies=no
 After=sysroot.mount
 #Before=sysroot-usr.mount
 ConditionPathIsReadWrite=!/sysroot
+After=ostree-prepare-root.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/bin/mount -o remount,rw /sysroot
+ExecStart=/bin/mount -o remount,rw /sysroot/var
