@@ -9,8 +9,8 @@ After=initrd-root-fs.target
 #Requires=ignition-setup.service ignition-disks.service
 #After=ignition-setup.service ignition-disks.service
 
-Requires=ignition-disks.service
-After=ignition-disks.service
+#Requires=ignition-disks.service
+#After=ignition-disks.service
 
 Requires=ignition-remount-sysroot.service
 After=ignition-remount-sysroot.service
