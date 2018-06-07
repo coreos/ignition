@@ -2,7 +2,7 @@
 # the 'rootflags=rw' argument built into the kernel image.
 
 [Unit]
-Description=Remount Root File System
+Description=Remount Root File System for Ignition
 DefaultDependencies=no
 After=sysroot.mount
 #Before=sysroot-usr.mount

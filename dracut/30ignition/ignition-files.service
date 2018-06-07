@@ -12,8 +12,8 @@ After=initrd-root-fs.target
 Requires=ignition-disks.service
 After=ignition-disks.service
 
-Requires=remount-sysroot.service
-After=remount-sysroot.service
+Requires=ignition-remount-sysroot.service
+After=ignition-remount-sysroot.service
 
 # setup the root filesystem before we try do things like create users on it.
 #Requires=initrd-setup-root.service
