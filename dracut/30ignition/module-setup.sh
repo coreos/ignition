@@ -21,7 +21,8 @@ install() {
         sgdisk \
         systemd-detect-virt \
         useradd \
-        usermod
+        usermod \
+        touch
 
 #   inst_script "$moddir/ignition-setup.sh" \
 #       "/usr/sbin/ignition-setup"
@@ -37,6 +38,9 @@ install() {
 
     inst_simple "$moddir/ignition-files.service" \
         "$systemdsystemunitdir/ignition-files.service"
+
+    inst_simple "$moddir/ignition-ask-var-mount.service" \
+        "$systemdsystemunitdir/ignition-ask-var-mount.service"
 
     inst_simple "$moddir/ignition-remount-sysroot.service" \
         "$systemdutildir/system/ignition-remount-sysroot.service"
