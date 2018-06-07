@@ -10,8 +10,8 @@
     rpm-ostree initramfs --enable
     rpm-ostree ex kargs --append 'ip=dhcp rd.neednet=1 enforcing=0 coreos.first_boot'
     curl -L https://copr.fedorainfracloud.org/coprs/dustymabe/ignition/repo/fedora-28/dustymabe-ignition-fedora-28.repo > /etc/yum.repos.d/copr.repo
-    rpm-ostree install -y ignition ignition-dracut
-    
+    rpm-ostree install ignition ignition-dracut
+
 
 # for CentOS (classic)
     yum install -y dracut-network git-core gdisk

@@ -8,7 +8,7 @@ After=sysinit.target
 Requires=network.target
 After=network.target
 
-Before=remount-sysroot.service
+Before=ignition-remount-sysroot.service
 
 [Service]
 Type=oneshot
