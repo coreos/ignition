@@ -1,3 +1,16 @@
+11-June-2018 IGNITION v0.26.0
+
+  Features:
+
+    - Support partition matching, specifying that a partition should not 
+      exist, and recreating existing partitions
+    - Fail blackbox tests when Ignition encounters critical-level logs
+
+  Bug Fixes:
+
+    - Fix an issue in timeout logic causing http(s) requests to sometimes fail
+    - Do not log non-critical errors with CRITICAL log level
+
 22-May-2018 IGNITION v0.25.1
 
   Bug Fixes:
