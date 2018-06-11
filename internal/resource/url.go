@@ -352,9 +352,15 @@ func (f *Fetcher) FetchFromS3(u url.URL, dest *os.File, opts FetchOptions) error
 
 	sess.Config.Region = aws.String(region)
 
+	var versionId *string
+	if v, ok := u.Query()["versionId"]; ok && len(v) > 0 {
+		versionId = aws.String(v[0])
+	}
+
 	input := &s3.GetObjectInput{
-		Bucket: &u.Host,
-		Key:    &u.Path,
+		Bucket:    &u.Host,
+		Key:       &u.Path,
+		VersionId: versionId,
 	}
 	err = f.fetchFromS3WithCreds(ctx, dest, input, sess)
 	if err != nil {
