@@ -28,7 +28,6 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_disks_** (list of objects): the list of disks to be configured and their options.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
     * **_wipeTable_** (boolean): whether or not the partition tables shall be wiped. When true, the partition tables are erased before any further manipulation. Otherwise, the existing entries are left intact.
-    * **disallowUnspecifiedPartitions** (boolean): whether or not to fail if a disk has partitions not described by Ignition. Has no effect if "wipeTable" is true.
     * **_partitions_** (list of objects): the list of partitions and their configuration for this particular disk.
       * **_label_** (string): the PARTLABEL for the partition.
       * **_number_** (integer): the partition number, which dictates it's position in the partition table (one-indexed). If zero, use the next available partition slot.
@@ -36,8 +35,8 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_start_** (integer): the start of the partition (in device logical sectors). If zero, the partition will be positioned at the start of the largest block available.
       * **_typeGuid_** (string): the GPT [partition type GUID][part-types]. If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
       * **_guid_** (string): the GPT unique partition GUID.
-      * **_wipePartitionEntry_** (boolean) whether or not Ignition is allowed to wipe an existing partition entry for this partition number.
-      * **_shouldExist_** (boolean) whether or not a partition `number` should exist. If ommited, it defaults to true. If false, `number` must be specified and non-zero and `label`, `start`, `size`, `guid`, and `typeGuid` must all be omitted.
+      * **_wipePartitionEntry_** (boolean) if true, Ignition will clobber an existing partition if it does not match the config. If false (default), Ignition will fail instead.
+      * **_shouldExist_** (boolean) whether or not the partition with the specified `number` should exist. If omitted, it defaults to true. If false Ignition will either delete the specified partition or fail, depending on `wipePartitionEntry`. If false `number` must be specified and non-zero and `label`, `start`, `size`, `guid`, and `typeGuid` must all be omitted.
   * **_raid_** (list of objects): the list of RAID arrays to be configured.
     * **name** (string): the name to use for the resulting md device.
     * **level** (string): the redundancy level of the array (e.g. linear, raid1, raid5, etc.).
