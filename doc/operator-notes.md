@@ -14,6 +14,24 @@ Ignition will initially wait 100 milliseconds between failed attempts, and the a
 
 Ignition has support for fetching files over the S3 protocol. When Ignition is running in EC2, it supports using the IAM role given to the EC2 instance to fetch protected assets from S3. If IAM credentials are not successfully fetched, Ignition will attempt to fetch the file with no credentials.
 
+When running in EC2, the instance will need the following permissions for Ignition to be able to fetch protected objects from S3 successfully:
+
+```
+    {
+      "Action" : [
+        "s3:GetObject",
+        "s3:HeadObject",
+        "s3:GetBucketLocation"
+      ],
+      "Resource": "<s3_bucket_arn>/*",
+      "Effect": "Allow"
+    },
+    {
+      "Action" : ["s3:GetBucketLocation"],
+      "Resource": "<s3_bucket_arn>",
+      "Effect": "Allow"
+    }
+```
 
 ## Filesystem-Reuse Semantics
 
