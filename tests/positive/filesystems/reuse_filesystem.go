@@ -41,7 +41,7 @@ func ReuseExistingFilesystem() types.Test {
 					"mount": {
 						"device": "$DEVICE",
 						"wipeFilesystem": false,
-						"format": "btrfs",
+						"format": "xfs",
 						"label": "data",
 						"uuid": "8A7A6E26-5E8F-4CCA-A654-46215D4696AC"
 					}
@@ -56,7 +56,7 @@ func ReuseExistingFilesystem() types.Test {
 				Label:           "important-data",
 				Number:          1,
 				Length:          2621440,
-				FilesystemType:  "btrfs",
+				FilesystemType:  "xfs",
 				FilesystemLabel: "data",
 				FilesystemUUID:  "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
 				Files: []types.File{
@@ -78,7 +78,7 @@ func ReuseExistingFilesystem() types.Test {
 				Label:           "important-data",
 				Number:          1,
 				Length:          2621440,
-				FilesystemType:  "btrfs",
+				FilesystemType:  "xfs",
 				FilesystemLabel: "data",
 				FilesystemUUID:  "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
 				Files: []types.File{
