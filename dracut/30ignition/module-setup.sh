@@ -22,7 +22,8 @@ install() {
         systemd-detect-virt \
         useradd \
         usermod \
-        touch
+        touch \
+        dmidecode
 
 #   inst_script "$moddir/ignition-setup.sh" \
 #       "/usr/sbin/ignition-setup"
