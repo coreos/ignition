@@ -19,7 +19,6 @@ import (
 	"io/ioutil"
 	"os/exec"
 
-	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
@@ -41,12 +40,6 @@ func Begin(logger *log.Logger, dev string) *Operation {
 
 // CreatePartition adds the supplied partition to the list of partitions to be created as part of an operation.
 func (op *Operation) CreatePartition(p types.Partition) {
-	if p.Start == nil {
-		p.Start = util.IntToPtr(0)
-	}
-	if p.Size == nil {
-		p.Size = util.IntToPtr(0)
-	}
 	op.parts = append(op.parts, p)
 }
 
@@ -132,7 +125,7 @@ func (op Operation) buildOptions() []string {
 	}
 
 	for _, p := range op.parts {
-		opts = append(opts, fmt.Sprintf("--new=%d:%d:+%d", p.Number, *p.Start, *p.Size))
+		opts = append(opts, fmt.Sprintf("--new=%d:%s:+%s", p.Number, partitionGetStart(p), partitionGetSize(p)))
 		if p.Label != nil {
 			opts = append(opts, fmt.Sprintf("--change-name=%d:%s", p.Number, *p.Label))
 		}
@@ -154,4 +147,24 @@ func (op Operation) buildOptions() []string {
 
 	opts = append(opts, op.dev)
 	return opts
+}
+
+func partitionGetStart(p types.Partition) string {
+	if p.Start != nil {
+		return fmt.Sprintf("%d", *p.Start)
+	}
+	if p.StartMb != nil {
+		return fmt.Sprintf("%dM", *p.StartMb)
+	}
+	return "0"
+}
+
+func partitionGetSize(p types.Partition) string {
+	if p.Size != nil {
+		return fmt.Sprintf("%d", *p.Size)
+	}
+	if p.SizeMb != nil {
+		return fmt.Sprintf("%dM", *p.SizeMb)
+	}
+	return "0"
 }

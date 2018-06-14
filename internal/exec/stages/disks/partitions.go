@@ -91,6 +91,17 @@ func partitionMatches(existing, spec types.Partition) error {
 	return nil
 }
 
+// partitionShouldBeInspected returns if the partition has zeroes that need to be resolved to sectors.
+func partitionShouldBeInspected(part types.Partition) bool {
+	if part.Number == 0 {
+		return false
+	}
+	return (part.Start != nil && *part.Start == 0) ||
+		(part.StartMb != nil && *part.StartMb == 0) ||
+		(part.Size != nil && *part.Size == 0) ||
+		(part.SizeMb != nil && *part.SizeMb == 0)
+}
+
 // getRealStartAndSize returns a map of partition numbers to a struct that contains what their real start
 // and end sector should be. It runs sgdisk --pretend to determine what the partitions would look like if
 // everything specified were to be (re)created.
@@ -101,11 +112,13 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, existanceMap
 		if exists {
 			// delete all existing partitions
 			op.DeletePartition(part.Number)
-			if part.Start == nil && !part.WipePartitionEntry {
+			if part.Start == nil && part.StartMb == nil && !part.WipePartitionEntry {
 				// don't care means keep the same if we can't wipe, otherwise stick it at start 0
+				part.StartMb = nil
 				part.Start = info.Start
 			}
-			if part.Size == nil && !part.WipePartitionEntry {
+			if part.Size == nil && part.SizeMb == nil && !part.WipePartitionEntry {
+				part.SizeMb = nil
 				part.Size = info.Size
 			}
 		}
@@ -119,7 +132,7 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, existanceMap
 	// We only care to examine partitions that have start or size 0.
 	partitionsToInspect := []int{}
 	for _, part := range dev.Partitions {
-		if ((part.Start != nil && *part.Start == 0) || (part.Size != nil && *part.Size == 0)) && part.Number != 0 {
+		if partitionShouldBeInspected(part) {
 			op.Info(part.Number)
 			partitionsToInspect = append(partitionsToInspect, part.Number)
 		}
@@ -139,9 +152,11 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, existanceMap
 	for _, part := range dev.Partitions {
 		if dims, ok := realDimensions[part.Number]; ok {
 			if part.Start != nil {
+				part.StartMb = nil
 				part.Start = &dims.start
 			}
 			if part.Size != nil {
+				part.SizeMb = nil
 				part.Size = &dims.size
 			}
 		}
