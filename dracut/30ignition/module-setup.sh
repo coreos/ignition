@@ -46,6 +46,9 @@ install() {
     inst_simple "$moddir/ignition-remount-sysroot.service" \
         "$systemdutildir/system/ignition-remount-sysroot.service"
 
+    inst_simple "$moddir/ignition-remount-sysroot-var.service" \
+        "$systemdutildir/system/ignition-remount-sysroot-var.service"
+
     inst_simple "$moddir/ignition-quench.ign" \
         "/usr/lib/ignition/base.ign"
 

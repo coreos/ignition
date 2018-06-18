@@ -14,6 +14,8 @@ After=initrd-root-fs.target
 
 Requires=ignition-remount-sysroot.service
 After=ignition-remount-sysroot.service
+Requires=ignition-remount-sysroot-var.service
+After=ignition-remount-sysroot-var.service
 
 After=ostree-prepare-root.service
 After=initrd-switch-root.target
