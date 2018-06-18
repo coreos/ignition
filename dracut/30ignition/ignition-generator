@@ -106,12 +106,4 @@ if [[ $(systemd-detect-virt || true) =~ ^(kvm|qemu)$ ]]; then
     oem_id=qemu
 fi
 
-# For now let's assume ec2 if we get xen
-if [[ $(systemd-detect-virt || true) =~ ^xen$ ]]; then
-    oem_id=ec2
-# Also try to auto-detect openstack
-elif dmidecode -s system-product-name | grep -i openstack; then
-    oem_id=openstack
-fi
-
 echo "OEM_ID=$(cmdline_arg coreos.oem.id ${oem_id})" > /run/ignition.env
