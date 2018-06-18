@@ -2,14 +2,13 @@
 # the 'rootflags=rw' argument built into the kernel image.
 
 [Unit]
-Description=Remount /sysroot for Ignition
+Description=Remount /sysroot/var for Ignition
 DefaultDependencies=no
 After=sysroot.mount
-#Before=sysroot-usr.mount
-ConditionPathIsReadWrite=!/sysroot
-After=ostree-prepare-root.service
+ConditionPathIsReadWrite=!/sysroot/var
+After=ignition-remount-sysroot.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/mount -o remount,rw /sysroot
+ExecStart=/bin/mount -o remount,rw /sysroot/var
