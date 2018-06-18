@@ -24,7 +24,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/tests/types"
@@ -187,8 +186,11 @@ func setDevices(t *testing.T, ctx context.Context, imageFile string, partitions 
 	}
 	loopDevice := strings.TrimSpace(string(out))
 
-	// To avoid races with the kernel with loop devices appearing, sleep a bit
-	time.Sleep(time.Millisecond * 100)
+	// Avoid race with kernel by waiting for loopDevice creation to complete
+	_, err = run(t, ctx, "udevadm", "settle")
+	if err != nil {
+		return "", fmt.Errorf("Settling devices: %v", err)
+	}
 
 	for _, partition := range partitions {
 		if partition.TypeCode == "blank" || partition.FilesystemType == "" {
