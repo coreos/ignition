@@ -1,0 +1,7 @@
+#!/bin/sh
+exec tail -n +3 $0
+set coreos_firstboot=""
+# Determine if this is a first boot.
+if [ -f "/coreos-firstboot" ]; then
+    set coreos_firstboot="coreos.firstboot=1"
+fi

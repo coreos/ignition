@@ -36,16 +36,12 @@ add_requires() {
 # This can't be done with ConditionKernelCommandLine because that always
 # starts the unit's dependencies. We want to start networkd only on first
 # boot.
-if $(cmdline_bool coreos.first_boot 0); then
+if $(cmdline_bool 'coreos.firstboot' 0); then
 #   add_requires ignition-disks.service
     # we want this to run before initrd-switch-root.service, not initrd.target,
     # because it needs to run after ostree-prepare-root.service.
     add_requires ignition-files.service initrd-switch-root.service
     add_requires ignition-ask-var-mount.service initrd-switch-root.service
-    # Only try to mount the ESP if GRUB detected a first_boot file
-    #if [[ $(cmdline_arg coreos.first_boot) = "detected" ]]; then
-    #    add_requires ignition-quench.service
-    #fi
     #if [[ $(cmdline_arg coreos.oem.id) == "packet" ]]; then
     #    add_requires coreos-static-network.service
     #fi

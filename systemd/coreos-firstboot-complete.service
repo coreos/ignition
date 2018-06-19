@@ -1,0 +1,14 @@
+[Unit]
+Description=Mark boot complete
+Documentation=https://github.com/coreos/ignition
+ConditionKernelCommandLine=coreos.firstboot
+RequiresMountsFor=/boot
+
+[Service]
+Type=oneshot
+# We should have only run if GRUB detected this file. Fail if we are unable to
+# remove it, rather than risking rerunning Ignition at next boot.
+ExecStart=/bin/rm /boot/coreos-firstboot
+
+[Install]
+WantedBy=multi-user.target
