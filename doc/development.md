@@ -72,7 +72,6 @@ The following packages are required by the Blackbox Test:
 * `e2fsprogs`
 * `btrfs-progs`
 * `xfsprogs`
-* `uuid-runtime`
 * `gdisk`
 * `coreutils`
 * `mdadm`
@@ -96,6 +95,8 @@ SystemDirFiles: `[]File` object which describes the Files that should be written
 Config: `string`
 
 The test should be added to the init function inside of the test file. If the test module is being created then an `init` function should be created which registers the tests and the package must be imported inside of `tests/registry/registry.go` to allow for discovery.
+
+UUIDs may be required in the following fields of a Test object: In, Out, and Config. Replace all GUIDs with GUID varaibles which take on the format `$uuid<num>` (e.g. $uuid123). Where `<num>` must be a positive integer. GUID variables with identical `<num>` fields will be replaced with identical GUIDs. For example, look at [tests/positive/partitions/zeros.go](https://github.com/coreos/ignition/blob/master/tests/positive/partitions/zeros.go).
 
 ## Marking an experimental spec as stable
 
