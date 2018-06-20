@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -30,6 +31,9 @@ import (
 
 	// Register the tests
 	_ "github.com/coreos/ignition/tests/registry"
+
+	// UUID generation tool
+	"github.com/pborman/uuid"
 )
 
 var (
@@ -75,6 +79,9 @@ func TestIgnitionBlackBoxNegative(t *testing.T) {
 
 func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	t.Log(test.Name)
+
+	// Maps $uuid<num> such that two variables with the same <num> have identical UUID
+	UUIDmap := make(map[string]string)
 
 	ctx, cancelFunc := context.WithDeadline(context.Background(), time.Now().Add(testTimeout))
 	defer cancelFunc()
@@ -123,7 +130,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		// Finish data setup
 		for _, part := range disk.Partitions {
 			if part.GUID == "" {
-				part.GUID, err = generateUUID(t, ctx)
+				part.GUID = uuid.New()
 				if err != nil {
 					return err
 				}
@@ -142,6 +149,46 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 			}
 		}
 		test.Out[i].SetOffsets()
+
+		// Replace all UUID variables (format $uuid<num>) in configs and partitions with an UUID
+		test.Config, err = replaceUUIDVars(t, test.Config, UUIDmap)
+		if err != nil {
+			return err
+		}
+
+		for _, disk := range test.In {
+			for _, partition := range disk.Partitions {
+				partition.TypeGUID, err = replaceUUIDVars(t, partition.TypeGUID, UUIDmap)
+				if err != nil {
+					return err
+				}
+				partition.GUID, err = replaceUUIDVars(t, partition.GUID, UUIDmap)
+				if err != nil {
+					return err
+				}
+				partition.FilesystemUUID, err = replaceUUIDVars(t, partition.FilesystemUUID, UUIDmap)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		for _, disk := range test.Out {
+			for _, partition := range disk.Partitions {
+				partition.TypeGUID, err = replaceUUIDVars(t, partition.TypeGUID, UUIDmap)
+				if err != nil {
+					return err
+				}
+				partition.GUID, err = replaceUUIDVars(t, partition.GUID, UUIDmap)
+				if err != nil {
+					return err
+				}
+				partition.FilesystemUUID, err = replaceUUIDVars(t, partition.FilesystemUUID, UUIDmap)
+				if err != nil {
+					return err
+				}
+			}
+		}
 
 		// Creation
 		err = createVolume(t, ctx, tmpDirectory, i, disk.ImageFile, imageSize, disk.Partitions)
@@ -310,4 +357,29 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		}
 	}
 	return nil
+}
+
+// Identify and replace $uuid<num> with correct UUID
+// Variables with matching <num> should have identical UUIDs
+func replaceUUIDVars(t *testing.T, str string, UUIDmap map[string]string) (string, error) {
+	finalStr := str
+
+	pattern := regexp.MustCompile("\\$uuid([0-9]+)")
+	for _, match := range pattern.FindAllStringSubmatch(str, -1) {
+		if len(match) != 2 {
+			return str, fmt.Errorf("find all string submatch error: want length of 2, got length of %d", len(match))
+		}
+
+		finalStr = strings.Replace(finalStr, match[0], getUUID(match[0], UUIDmap), 1)
+	}
+	return finalStr, nil
+}
+
+// Format: $uuid<num> where the uuid variable (uuid<num>) is the key
+// value is the UUID for this uuid variable
+func getUUID(key string, UUIDmap map[string]string) string {
+	if _, ok := UUIDmap[key]; !ok {
+		UUIDmap[key] = uuid.New()
+	}
+	return UUIDmap[key]
 }
