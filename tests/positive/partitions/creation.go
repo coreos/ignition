@@ -37,8 +37,8 @@ func CreatePartition() types.Test {
 				Label:    "create-partition",
 				Number:   1,
 				Length:   65536,
-				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
-				GUID:     "05AE8178-224E-4744-862A-4F4B042662D0",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid1",
 			},
 		},
 	})
@@ -55,8 +55,8 @@ func CreatePartition() types.Test {
 					"number": 1,
 					"size": 65536,
 					"label": "create-partition",
-					"typeGuid": "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
-					"guid": "05AE8178-224E-4744-862A-4F4B042662D0"
+					"typeGuid": "$uuid0",
+					"guid": "$uuid1"
 				}
 				]
 			}
@@ -89,15 +89,15 @@ func WipeAndCreateNewPartitions() types.Test {
 					"label": "important-data",
 					"number": 1,
 					"size": 65536,
-					"typeGuid": "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
-					"guid": "8A7A6E26-5E8F-4CCA-A654-46215D4696AC"
+					"typeGuid": "$uuid0",
+					"guid": "$uuid1"
 				},
 				{
 					"label": "ephemeral-data",
 					"number": 2,
 					"size": 131072,
-					"typeGuid": "CA7D7CCB-63ED-4C53-861C-1742536059CC",
-					"guid": "A51034E6-26B3-48DF-BEED-220562AC7AD1"
+					"typeGuid": "$uuid2",
+					"guid": "$uuid3"
 				}
 				]
 			}
@@ -114,15 +114,15 @@ func WipeAndCreateNewPartitions() types.Test {
 				Label:    "important-data",
 				Number:   1,
 				Length:   65536,
-				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
-				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid0",
 			},
 			{
 				Label:    "ephemeral-data",
 				Number:   2,
 				Length:   131072,
-				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
-				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				TypeGUID: "$uuid2",
+				GUID:     "$uuid0",
 			},
 		},
 	})
@@ -133,15 +133,15 @@ func WipeAndCreateNewPartitions() types.Test {
 				Label:    "important-data",
 				Number:   1,
 				Length:   65536,
-				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
-				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid1",
 			},
 			{
 				Label:    "ephemeral-data",
 				Number:   2,
 				Length:   131072,
-				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
-				GUID:     "A51034E6-26B3-48DF-BEED-220562AC7AD1",
+				TypeGUID: "$uuid2",
+				GUID:     "$uuid3",
 			},
 		},
 	})
@@ -170,15 +170,15 @@ func AppendPartitions() types.Test {
 					"label": "additional-partition",
 					"number": 3,
 					"size": 65536,
-					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-					"guid": "3ED3993F-0016-422B-B134-09FCBA6F66EF"
+					"typeGuid": "$uuid0",
+					"guid": "$uuid1"
 				},
 				{
 					"label": "additional-partition2",
 					"number": 4,
 					"size": 65536,
-					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-					"guid": "accedd09-76c2-4363-9893-f5689a78c47f"
+					"typeGuid": "$uuid0",
+					"guid": "$uuid2"
 				}]
 			}]
 		}
@@ -191,15 +191,15 @@ func AppendPartitions() types.Test {
 				Label:    "important-data",
 				Number:   1,
 				Length:   65536,
-				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
-				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+				TypeGUID: "$uuid3",
+				GUID:     "$uuid4",
 			},
 			{
 				Label:    "ephemeral-data",
 				Number:   2,
 				Length:   131072,
-				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
-				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				TypeGUID: "$uuid5",
+				GUID:     "$uuid3",
 			},
 		},
 	})
@@ -210,29 +210,29 @@ func AppendPartitions() types.Test {
 				Label:    "important-data",
 				Number:   1,
 				Length:   65536,
-				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
-				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+				TypeGUID: "$uuid3",
+				GUID:     "$uuid4",
 			},
 			{
 				Label:    "ephemeral-data",
 				Number:   2,
 				Length:   131072,
-				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
-				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				TypeGUID: "$uuid5",
+				GUID:     "$uuid3",
 			},
 			{
 				Label:    "additional-partition",
 				Number:   3,
 				Length:   65536,
-				TypeGUID: "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-				GUID:     "3ED3993F-0016-422B-B134-09FCBA6F66EF",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid1",
 			},
 			{
 				Label:    "additional-partition2",
 				Number:   4,
 				Length:   65536,
-				TypeGUID: "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-				GUID:     "accedd09-76c2-4363-9893-f5689a78c47f",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid2",
 			},
 		},
 	})
@@ -262,7 +262,7 @@ func ResizeRoot() types.Test {
 					"number": 9,
 					"size": 13008896,
 					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E",
-					"guid": "3ED3993F-0016-422B-B134-09FCBA6F66EF",
+					"guid": "$uuid0",
 					"wipePartitionEntry": true
 				}
 				]

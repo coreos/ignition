@@ -43,7 +43,7 @@ func EquivalentFilesystemUUIDsTreatedDistinctEXT4() types.Test {
 		        "mount": {
 		          "device": "$DEVICE",
 		          "format": "ext4",
-		          "uuid": "6ABE925E-6DAF-4FAD-BC09-8D56BE8822DE"
+		          "uuid": "$uuid0"
 		        }
 		      }
 		    ]
@@ -51,8 +51,8 @@ func EquivalentFilesystemUUIDsTreatedDistinctEXT4() types.Test {
 		}`
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
-	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "6ABE925E-6DAF-4FAD-BC09-8D56BE8822DE"
-	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "6ABE925E-6DAF-4FAD-BC09-8D56BE8822DE"
+	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "$uuid0"
+	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "$uuid0"
 
 	return types.Test{
 		Name:       name,

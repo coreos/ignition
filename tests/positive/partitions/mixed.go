@@ -35,22 +35,22 @@ func Match1Recreate1Delete1Create1() types.Test {
 				Label:    "important-data",
 				Number:   1,
 				Length:   65536,
-				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
-				GUID:     "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid1",
 			},
 			{
 				Label:    "ephemeral-data",
 				Number:   2,
 				Length:   65536,
-				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
-				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				TypeGUID: "$uuid2",
+				GUID:     "$uuid0",
 			},
 			{
 				Label:    "bunch-of-junk",
 				Number:   3,
 				Length:   131072,
-				TypeGUID: "CA7D7CCB-63ED-4C53-861C-1742536059CC",
-				GUID:     "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				TypeGUID: "$uuid2",
+				GUID:     "$uuid0",
 			},
 		},
 	})
@@ -132,13 +132,13 @@ func NothingMatches() types.Test {
 				Label:    "important-data",
 				Number:   1,
 				Length:   65536,
-				TypeGUID: "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				TypeGUID: "$uuid0",
 			},
 			{
 				Label:  "ephemeral-data",
 				Number: 2,
 				Length: 65536,
-				GUID:   "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				GUID:   "$uuid0",
 			},
 			{
 				Label:  "bunch-of-junk",
@@ -154,13 +154,13 @@ func NothingMatches() types.Test {
 				Label:    "important-data",
 				Number:   1,
 				Length:   65536,
-				TypeGUID: "0921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				TypeGUID: "$uuid1",
 			},
 			{
 				Label:  "ephemeral-data",
 				Number: 2,
 				Length: 65536,
-				GUID:   "0921B045-1DF0-41C3-AF44-4C6F280D3FAE",
+				GUID:   "$uuid1",
 			},
 			{
 				Label:  "even-more-data",
@@ -184,7 +184,7 @@ func NothingMatches() types.Test {
 					"start": 2048,
 					"size": 65536,
 					"wipePartitionEntry": true,
-					"typeGuid": "0921B045-1DF0-41C3-AF44-4C6F280D3FAE"
+					"typeGuid": "$uuid1"
 				},
 				{
 					"label": "ephemeral-data",
@@ -192,7 +192,7 @@ func NothingMatches() types.Test {
 					"start": 67584,
 					"size": 65536,
 					"wipePartitionEntry": true,
-					"guid": "0921B045-1DF0-41C3-AF44-4C6F280D3FAE"
+					"guid": "$uuid1"
 				},
 				{
 					"label": "even-more-data",

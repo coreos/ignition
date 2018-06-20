@@ -43,7 +43,7 @@ func ReuseExistingFilesystem() types.Test {
 						"wipeFilesystem": false,
 						"format": "xfs",
 						"label": "data",
-						"uuid": "8A7A6E26-5E8F-4CCA-A654-46215D4696AC"
+						"uuid": "$uuid0"
 					}
 				}
 			]
@@ -58,7 +58,7 @@ func ReuseExistingFilesystem() types.Test {
 				Length:          2621440,
 				FilesystemType:  "xfs",
 				FilesystemLabel: "data",
-				FilesystemUUID:  "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+				FilesystemUUID:  "$uuid0",
 				Files: []types.File{
 					{
 						Node: types.Node{
@@ -80,7 +80,7 @@ func ReuseExistingFilesystem() types.Test {
 				Length:          2621440,
 				FilesystemType:  "xfs",
 				FilesystemLabel: "data",
-				FilesystemUUID:  "8A7A6E26-5E8F-4CCA-A654-46215D4696AC",
+				FilesystemUUID:  "$uuid0",
 				Files: []types.File{
 					{
 						Node: types.Node{

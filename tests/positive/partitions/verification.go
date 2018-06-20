@@ -56,7 +56,7 @@ func VerifyBaseDisk() types.Test {
 					"number": 3,
 					"start": 270336,
 					"size": 2097152,
-					"typeGuid": "5dfbf5f4-2848-4bac-aa5e-0d9a20b745a6",
+					"typeGuid": "5DFBF5F4-2848-4BAC-AA5E-0D9A20B745A6",
 					"guid": "7130c94a-213a-4e5a-8e26-6cce9662f132"
 				},
 				{
@@ -64,7 +64,7 @@ func VerifyBaseDisk() types.Test {
 					"number": 4,
 					"start": 2367488,
 					"size": 2097152,
-					"typeGuid": "5dfbf5f4-2848-4bac-aa5e-0d9a20b745a6",
+					"typeGuid": "5DFBF5F4-2848-4BAC-AA5E-0D9A20B745A6",
 					"guid": "e03dd35c-7c2d-4a47-b3fe-27f15780a57c"
 				},
 				{
@@ -86,7 +86,7 @@ func VerifyBaseDisk() types.Test {
 					"number": 9,
 					"start": 4857856,
 					"size": 12943360,
-					"typeGuid": "3884dd41-8582-4404-b9a8-e9b84f2df50e"
+					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E"
 				}
 				]
 			}]
@@ -137,7 +137,7 @@ func VerifyBaseDiskWithWipe() types.Test {
 					"start": 270336,
 					"size": 2097152,
 					"wipePartitionEntry": true,
-					"typeGuid": "5dfbf5f4-2848-4bac-aa5e-0d9a20b745a6"
+					"typeGuid": "5DFBF5F4-2848-4BAC-AA5E-0D9A20B745A6"
 				},
 				{
 					"label": "USR-B",
@@ -145,7 +145,7 @@ func VerifyBaseDiskWithWipe() types.Test {
 					"start": 2367488,
 					"size": 2097152,
 					"wipePartitionEntry": true,
-					"typeGuid": "5dfbf5f4-2848-4bac-aa5e-0d9a20b745a6",
+					"typeGuid": "5DFBF5F4-2848-4BAC-AA5E-0D9A20B745A6",
 					"guid": "e03dd35c-7c2d-4a47-b3fe-27f15780a57c"
 				},
 				{
@@ -170,7 +170,7 @@ func VerifyBaseDiskWithWipe() types.Test {
 					"start": 4857856,
 					"size": 12943360,
 					"wipePartitionEntry": true,
-					"typeGuid": "3884dd41-8582-4404-b9a8-e9b84f2df50e"
+					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E"
 				}
 				]
 			}]
