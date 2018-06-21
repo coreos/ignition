@@ -76,6 +76,10 @@ func TestIgnitionBlackBoxNegative(t *testing.T) {
 func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	t.Log(test.Name)
 
+	if testsAreCancelled() {
+		t.SkipNow()
+	}
+
 	ctx, cancelFunc := context.WithDeadline(context.Background(), time.Now().Add(testTimeout))
 	defer cancelFunc()
 
