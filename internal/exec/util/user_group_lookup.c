@@ -58,6 +58,10 @@ static int user_lookup_fn(lookup_ctxt_t *ctxt) {
 		goto out_err;
 	}
 
+	if (chdir("/") == -1) {
+		goto out_err;
+	}
+
 	if(getpwnam_r(ctxt->name, &p, buf, sizeof(buf), &pptr) != 0 || !pptr) {
 		goto out_err;
 	}
@@ -87,6 +91,10 @@ static int group_lookup_fn(lookup_ctxt_t *ctxt) {
 	struct group g, *gptr;
 
 	if(chroot(ctxt->root) == -1) {
+		goto out_err;
+	}
+
+	if (chdir("/") == -1) {
 		goto out_err;
 	}
 
