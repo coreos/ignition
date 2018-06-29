@@ -1,5 +1,5 @@
-hash: 73775bf0b3adebbea41e1027e485793028562d1d3461d87b69e8c874bce735df
-updated: 2018-05-25T12:22:29.123848173-07:00
+hash: 1de154fd59f1a5e02d4a9a15815f7328fb7cb8ef232ded755432f2d3b1120419
+updated: 2018-06-14T16:10:53.870195521-07:00
 imports:
 - name: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
@@ -56,7 +56,6 @@ imports:
   - netascii
 - name: github.com/sigma/bdoor
   version: babf2a4017b020d4ce04e8167076186e82645dd1
-  repo: https://github.com/sigma/bdoor
 - name: github.com/sigma/vmw-guestinfo
   version: 95dd4126d6e8b4ef1970b3f3fe2e8cdd470d2903
   subpackages:
@@ -85,6 +84,10 @@ testImports:
   version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
   subpackages:
   - spew
+- name: github.com/pborman/uuid
+  version: e790cca94e6cc75c7064b1332e63811d4aae1a53
+  subpackages:
+  - assert
 - name: github.com/pmezard/go-difflib
   version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:

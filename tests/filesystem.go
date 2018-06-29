@@ -376,14 +376,6 @@ func removeEmpty(strings []string) []string {
 	return r
 }
 
-func generateUUID(t *testing.T, ctx context.Context) (string, error) {
-	out, err := run(t, ctx, "uuidgen")
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(out)), nil
-}
-
 func createFilesForPartitions(t *testing.T, partitions []*types.Partition) error {
 	for _, partition := range partitions {
 		err := createDirectoriesFromSlice(t, partition.MountPath, partition.Directories)

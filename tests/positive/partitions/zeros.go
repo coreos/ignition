@@ -46,8 +46,8 @@ func PartitionSizeStart0() types.Test {
 					"number": 1,
 					"start": 0,
 					"size": 0,
-					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-					"guid": "3ED3993F-0016-422B-B134-09FCBA6F66EF"
+					"typeGuid": "$uuid0",
+					"guid": "$uuid1"
 				}]
 			}]
 		}
@@ -63,8 +63,8 @@ func PartitionSizeStart0() types.Test {
 				Label:    "fills-disk",
 				Number:   1,
 				Length:   65536,
-				TypeGUID: "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-				GUID:     "3ED3993F-0016-422B-B134-09FCBA6F66EF",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid1",
 			},
 		},
 	})
@@ -92,20 +92,20 @@ func PartitionStartNumber0() types.Test {
 				"partitions": [{
 					"label": "uno",
 					"size": 65536,
-					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-					"guid": "3ED3993F-0016-422B-B134-09FCBA6F66EF"
+					"typeGuid": "$uuid0",
+					"guid": "$uuid1"
 				},
 				{
 					"label": "dos",
 					"size": 65536,
-					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-					"guid": "6A6BD6B9-4345-4AFB-974E-08D5A343E8F8"
+					"typeGuid": "$uuid0",
+					"guid": "$uuid2"
 				},
 				{
 					"label": "tres",
 					"size": 65536,
-					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-					"guid": "FE6108DC-096A-4E62-83CB-A11CE9D8E633"
+					"typeGuid": "$uuid0",
+					"guid": "$uuid3"
 				}]
 			}]
 		}
@@ -121,22 +121,22 @@ func PartitionStartNumber0() types.Test {
 				Label:    "uno",
 				Number:   1,
 				Length:   65536,
-				TypeGUID: "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-				GUID:     "3ED3993F-0016-422B-B134-09FCBA6F66EF",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid1",
 			},
 			{
 				Label:    "dos",
 				Number:   2,
 				Length:   65536,
-				TypeGUID: "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-				GUID:     "6A6BD6B9-4345-4AFB-974E-08D5A343E8F8",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid2",
 			},
 			{
 				Label:    "tres",
 				Number:   3,
 				Length:   65536,
-				TypeGUID: "F39C522B-9966-4429-A8F8-417CD5D83E5E",
-				GUID:     "FE6108DC-096A-4E62-83CB-A11CE9D8E633",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid3",
 			},
 		},
 	})
@@ -255,8 +255,8 @@ func NumberZeroHappensLast() types.Test {
 				Number:   1,
 				Label:    "foobar",
 				Length:   65536,
-				TypeGUID: "1f4ce97c-10fc-4daf-8b2c-0075bd34df43",
-				GUID:     "8426957e-e444-40c8-93ed-f6c0d69cccde",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid1",
 			},
 		},
 	})
@@ -267,8 +267,8 @@ func NumberZeroHappensLast() types.Test {
 				Number:   1,
 				Label:    "foobar",
 				Length:   65536,
-				TypeGUID: "1f4ce97c-10fc-4daf-8b2c-0075bd34df43",
-				GUID:     "8426957e-e444-40c8-93ed-f6c0d69cccde",
+				TypeGUID: "$uuid0",
+				GUID:     "$uuid1",
 			},
 			{
 				Number: 2,
