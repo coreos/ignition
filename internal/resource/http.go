@@ -32,6 +32,7 @@ import (
 	"github.com/coreos/ignition/internal/util"
 	"github.com/coreos/ignition/internal/version"
 
+	"github.com/ashcrow/osrelease"
 	"github.com/vincent-petithory/dataurl"
 )
 
@@ -206,6 +207,11 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 
 	req.Header.Set("User-Agent", "Ignition/"+version.Raw)
 
+	err = addSystemInfoHeaders(&req.Header)
+	if err != nil {
+		c.logger.Info("error adding os-release headers: %v", err)
+	}
+
 	for key, values := range header {
 		req.Header.Del(key)
 		for _, value := range values {
@@ -246,4 +252,22 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 			return nil, 0, cancelFn, ErrTimeout
 		}
 	}
+}
+
+// addSystemInfoHeaders will add an Ignition-Initramfs-ID, a Ignition-Initramfs-Version_ID (if present),
+// and a Ignition-Initramfs-Variant_ID (if present) header to the client's ignition config GET request
+func addSystemInfoHeaders(header *http.Header) error {
+	or, err := osrelease.New()
+	if err != nil {
+		return err
+	}
+
+	header.Add("Ignition-Initramfs-ID", or.ID)
+	if or.VERSION_ID != "" { // optional field
+		header.Add("Ignition-Initramfs-Version_ID", or.VERSION_ID)
+	}
+	if or.VARIANT_ID != "" { // optional field
+		header.Add("Ignition-Initramfs-Variant_ID", or.VARIANT_ID)
+	}
+	return nil
 }
