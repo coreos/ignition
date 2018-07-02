@@ -1,8 +1,10 @@
-hash: 1de154fd59f1a5e02d4a9a15815f7328fb7cb8ef232ded755432f2d3b1120419
-updated: 2018-06-14T16:10:53.870195521-07:00
+hash: 4c7ec3e76d79976c7be97f2232d865c01b3a9d3b94b147672d119bf5d67c1274
+updated: 2018-07-01T20:06:33.283505893-07:00
 imports:
 - name: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
+- name: github.com/ashcrow/osrelease
+  version: 9b292693c55c791c79825cdce5b7e0b3b6da6e88
 - name: github.com/aws/aws-sdk-go
   version: c861d27d0304a79f727e9a8a4e2ac1e74602fdc0
   subpackages:
