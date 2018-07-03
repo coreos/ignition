@@ -16,6 +16,11 @@ package types
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
+	// UUID generation tool
+	"github.com/pborman/uuid"
 )
 
 const (
@@ -236,4 +241,71 @@ func GetBaseDisk() []Disk {
 			},
 		},
 	}
+}
+
+// Replace all UUID variables (format $uuid<num>) in configs and partitions with an UUID
+func (test *Test) ReplaceAllUUIDVars() error {
+	var err error
+	UUIDmap := make(map[string]string)
+
+	test.Config, err = replaceUUIDVars(test.Config, UUIDmap)
+	if err != nil {
+		return err
+	}
+	for _, disk := range test.In {
+		if err := disk.replaceAllUUIDVarsInPartitions(UUIDmap); err != nil {
+			return err
+		}
+	}
+	for _, disk := range test.Out {
+		if err := disk.replaceAllUUIDVarsInPartitions(UUIDmap); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Replace all UUID variables (format $uuid<num>) in partitions with an UUID
+func (disk *Disk) replaceAllUUIDVarsInPartitions(UUIDmap map[string]string) error {
+	var err error
+
+	for _, partition := range disk.Partitions {
+		partition.TypeGUID, err = replaceUUIDVars(partition.TypeGUID, UUIDmap)
+		if err != nil {
+			return err
+		}
+		partition.GUID, err = replaceUUIDVars(partition.GUID, UUIDmap)
+		if err != nil {
+			return err
+		}
+		partition.FilesystemUUID, err = replaceUUIDVars(partition.FilesystemUUID, UUIDmap)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Identify and replace $uuid<num> with correct UUID
+// Variables with matching <num> should have identical UUIDs
+func replaceUUIDVars(str string, UUIDmap map[string]string) (string, error) {
+	finalStr := str
+
+	pattern := regexp.MustCompile("\\$uuid([0-9]+)")
+	for _, match := range pattern.FindAllStringSubmatch(str, -1) {
+		if len(match) != 2 {
+			return str, fmt.Errorf("find all string submatch error: want length of 2, got length of %d", len(match))
+		}
+		finalStr = strings.Replace(finalStr, match[0], getUUID(match[0], UUIDmap), 1)
+	}
+	return finalStr, nil
+}
+
+// Format: $uuid<num> where the uuid variable (uuid<num>) is the key
+// value is the UUID for this uuid variable
+func getUUID(key string, UUIDmap map[string]string) string {
+	if _, ok := UUIDmap[key]; !ok {
+		UUIDmap[key] = uuid.New()
+	}
+	return UUIDmap[key]
 }

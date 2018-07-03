@@ -66,7 +66,7 @@ func (stage) Name() string {
 }
 
 func (s stage) Run(config types.Config) bool {
-	// Interacting with disks/paritions/raids/filesystems in general can cause
+	// Interacting with disks/partitions/raids/filesystems in general can cause
 	// udev races. If we do not need to  do anything, we also do not need to
 	// do the udevadm settle and can just return here.
 	if len(config.Storage.Disks) == 0 &&
