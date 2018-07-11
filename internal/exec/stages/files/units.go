@@ -22,7 +22,7 @@ import (
 // createUnits creates the units listed under systemd.units and networkd.units.
 func (s stage) createUnits(config types.Config) error {
 	for _, unit := range config.Systemd.Units {
-		if err := s.writeSystemdUnit(unit); err != nil {
+		if err := s.writeSystemdUnit(unit, false); err != nil {
 			return err
 		}
 		if unit.Enable {
@@ -71,20 +71,25 @@ func (s stage) createUnits(config types.Config) error {
 // writeSystemdUnit creates the specified unit and any dropins for that unit.
 // If the contents of the unit or are empty, the unit is not created. The same
 // applies to the unit's dropins.
-func (s stage) writeSystemdUnit(unit types.Unit) error {
+func (s stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
+	// use a different DestDir if it's runtime so it affects our /run
+	u := s.Util
+	if runtime {
+		u.DestDir = "/"
+	}
+
 	return s.Logger.LogOp(func() error {
 		for _, dropin := range unit.Dropins {
 			if dropin.Contents == "" {
 				continue
 			}
-
-			f, err := util.FileFromSystemdUnitDropin(unit, dropin)
+			f, err := util.FileFromSystemdUnitDropin(unit, dropin, runtime)
 			if err != nil {
 				s.Logger.Crit("error converting systemd dropin: %v", err)
 				return err
 			}
 			if err := s.Logger.LogOp(
-				func() error { return s.PerformFetch(f) },
+				func() error { return u.PerformFetch(f) },
 				"writing systemd drop-in %q at %q", dropin.Name, f.Path,
 			); err != nil {
 				return err
@@ -95,13 +100,13 @@ func (s stage) writeSystemdUnit(unit types.Unit) error {
 			return nil
 		}
 
-		f, err := util.FileFromSystemdUnit(unit)
+		f, err := util.FileFromSystemdUnit(unit, runtime)
 		if err != nil {
 			s.Logger.Crit("error converting unit: %v", err)
 			return err
 		}
 		if err := s.Logger.LogOp(
-			func() error { return s.PerformFetch(f) },
+			func() error { return u.PerformFetch(f) },
 			"writing unit %q at %q", unit.Name, f.Path,
 		); err != nil {
 			return err
