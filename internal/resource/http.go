@@ -39,8 +39,8 @@ const (
 	initialBackoff = 100 * time.Millisecond
 	maxBackoff     = 5 * time.Second
 
-	defaultHttpResponseHeaderTimeout = 10
-	defaultHttpTotalTimeout          = 0
+	defaultHttpResponseHeaderTimeout = 5
+	defaultHttpTotalTimeout          = 10
 )
 
 var (
