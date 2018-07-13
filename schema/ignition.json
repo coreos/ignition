@@ -85,7 +85,10 @@
             "verification": {
               "$ref": "#/definitions/verification"
             }
-          }
+          },
+          "required": [
+              "source"
+          ]
         },
         "ca-reference": {
           "type": ["object", "null"],
@@ -96,7 +99,10 @@
             "verification": {
               "$ref": "#/definitions/verification"
             }
-          }
+          },
+          "required": [
+              "source"
+          ]
         },
         "timeouts": {
           "type": "object",
@@ -167,7 +173,10 @@
                 "$ref": "#/definitions/storage/definitions/partition"
               }
             }
-          }
+          },
+          "required": [
+              "device"
+          ]
         },
         "raid": {
           "type": "object",
@@ -193,7 +202,12 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": [
+              "name",
+              "level",
+              "devices"
+          ]
         },
         "filesystem": {
           "type": "object",
@@ -259,7 +273,10 @@
                 "hard": {
                   "type": "boolean"
                 }
-              }
+              },
+              "required": [
+                  "target"
+              ]
             }
           ]
         },
@@ -330,7 +347,11 @@
                 }
               }
             }
-          }
+          },
+          "required": [
+              "device",
+              "format"
+          ]
         },
         "file-contents": {
           "type": "object",
@@ -380,7 +401,11 @@
                 }
               }
             }
-          }
+          },
+          "required": [
+              "filesystem",
+              "path"
+          ]
         }
       }
     },
@@ -419,7 +444,10 @@
                 "$ref": "#/definitions/systemd/definitions/dropin"
               }
             }
-          }
+          },
+          "required": [
+              "name"
+          ]
         },
         "dropin": {
           "type": "object",
@@ -430,7 +458,10 @@
             "contents": {
               "type": "string"
             }
-          }
+          },
+          "required": [
+              "name"
+          ]
         }
       }
     },
@@ -460,7 +491,10 @@
                 "$ref": "#/definitions/networkd/definitions/dropin"
               }
             }
-          }
+          },
+          "required": [
+              "name"
+          ]
         },
         "dropin": {
           "type": "object",
@@ -471,7 +505,10 @@
             "contents": {
               "type": "string"
             }
-          }
+          },
+          "required": [
+              "name"
+          ]
         }
       }
     },
@@ -543,7 +580,10 @@
             "create": {
               "$ref": "#/definitions/passwd/definitions/usercreate"
             }
-          }
+          },
+          "required": [
+              "name"
+          ]
         },
         "group": {
           "type": "object",
@@ -560,7 +600,10 @@
             "system": {
               "type": "boolean"
             }
-          }
+          },
+          "required": [
+              "name"
+          ]
         },
         "usercreate": {
           "type": ["object", "null"],
