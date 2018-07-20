@@ -7,6 +7,6 @@ depends() {
 }
 
 install() {
-    inst_simple "$moddir/00-forward-to-console.conf" \
-        "/etc/systemd/journald.conf.d/00-forward-to-console.conf"
+    inst_simple "$moddir/00-journal-log-forwarding.conf" \
+        "/etc/systemd/journald.conf.d/00-journal-log-forwarding.conf"
 }
