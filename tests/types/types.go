@@ -98,6 +98,7 @@ type Test struct {
 	OEMLookasideFiles []File
 	SystemDirFiles    []File
 	Config            string
+	ConfigMinVersion  string
 	ConfigShouldBeBad bool
 }
 
@@ -308,4 +309,75 @@ func getUUID(key string, UUIDmap map[string]string) string {
 		UUIDmap[key] = uuid.New()
 	}
 	return UUIDmap[key]
+}
+
+// Replace Version variable (format $version) in configs with ConfigMinVersion
+// Updates the old config version (oldVersion) with a new one (newVersion)
+func (t *Test) ReplaceAllVersionVars(version string) {
+	pattern := regexp.MustCompile("\\$version")
+	t.Config = pattern.ReplaceAllString(t.Config, version)
+	t.Name += " " + version
+}
+
+// Deep copy Test struct fields In, Out, MntDevices, OEMLookasideFiles, SystemDirFiles
+// so each BB test with identical Test structs have their own independent Test copies
+func DeepCopy(t Test) Test {
+	In_diskArr := make([]Disk, len(t.In))
+	copy(In_diskArr, t.In)
+	t.In = deepCopyPartitions(In_diskArr)
+
+	Out_diskArr := make([]Disk, len(t.Out))
+	copy(Out_diskArr, t.Out)
+	t.Out = deepCopyPartitions(Out_diskArr)
+
+	mntdevice := make([]MntDevice, len(t.MntDevices))
+	copy(mntdevice, t.MntDevices)
+	t.MntDevices = mntdevice
+
+	OEMLookasideFiles := make([]File, len(t.OEMLookasideFiles))
+	copy(OEMLookasideFiles, t.OEMLookasideFiles)
+	t.OEMLookasideFiles = OEMLookasideFiles
+
+	SystemDirFiles := make([]File, len(t.SystemDirFiles))
+	copy(SystemDirFiles, t.SystemDirFiles)
+	t.SystemDirFiles = SystemDirFiles
+
+	return t
+}
+
+// Deep copy each partition in []*Partitions
+func deepCopyPartitions(diskArr []Disk) []Disk {
+	disk_count := 0
+	for _, disk := range diskArr {
+		partitionArr := make([]*Partition, len(disk.Partitions))
+		copy(partitionArr, disk.Partitions)
+
+		partition_count := 0
+		for _, partition := range disk.Partitions {
+			partition_tmp := *partition
+			partitionArr[partition_count] = &partition_tmp
+
+			// deep copy all slices in partition struct
+			Files := make([]File, len(partition.Files))
+			copy(Files, partition.Files)
+			partitionArr[partition_count].Files = Files
+
+			Directories := make([]Directory, len(partition.Directories))
+			copy(Directories, partition.Directories)
+			partitionArr[partition_count].Directories = Directories
+
+			Links := make([]Link, len(partition.Links))
+			copy(Links, partition.Links)
+			partitionArr[partition_count].Links = Links
+
+			RemovedNodes := make([]Node, len(partition.RemovedNodes))
+			copy(RemovedNodes, partition.RemovedNodes)
+			partitionArr[partition_count].RemovedNodes = RemovedNodes
+
+			partition_count++
+		}
+		diskArr[disk_count].Partitions = partitionArr
+		disk_count++
+	}
+	return diskArr
 }

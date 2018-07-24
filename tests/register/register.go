@@ -15,6 +15,12 @@
 package register
 
 import (
+	"github.com/coreos/go-semver/semver"
+	types1 "github.com/coreos/ignition/config/v1/types"
+	types20 "github.com/coreos/ignition/config/v2_0/types"
+	types21 "github.com/coreos/ignition/config/v2_1/types"
+	types22 "github.com/coreos/ignition/config/v2_2/types"
+	types23 "github.com/coreos/ignition/config/v2_3_experimental/types"
 	"github.com/coreos/ignition/tests/types"
 )
 
@@ -31,6 +37,32 @@ func init() {
 	Tests = make(map[TestType][]types.Test)
 }
 
-func Register(tType TestType, t types.Test) {
+func register(tType TestType, t types.Test) {
 	Tests[tType] = append(Tests[tType], t)
+}
+
+// Registers t for every version, inside the same major version,
+// that is equal to or greater than the specified ConfigMinVersion.
+func Register(tType TestType, t types.Test) {
+	// update confgiVersions with new config versions
+	configVersions := [][]semver.Version{
+		{semver.Version{}}, // place holder
+		{types1.MaxVersion},
+		{types20.MaxVersion, types21.MaxVersion, types22.MaxVersion, types23.MaxVersion},
+	}
+
+	test := types.DeepCopy(t)
+	version, semverErr := semver.NewVersion(test.ConfigMinVersion)
+	test.ReplaceAllVersionVars(test.ConfigMinVersion)
+	register(tType, test) // some tests purposefully don't have config version
+
+	if semverErr == nil && version != nil && t.ConfigMinVersion != "" {
+		for _, v := range configVersions[version.Major] {
+			if version.LessThan(v) {
+				test = types.DeepCopy(t)
+				test.ReplaceAllVersionVars(v.String())
+				register(tType, test)
+			}
+		}
+	}
 }
