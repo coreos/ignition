@@ -28,7 +28,7 @@ func InvalidVersion() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": {"version": "4.0.0"},
+		"ignition": {"version": 4.0.0"},
 		"storage": {
 			"files": [{
 				"filesystem": "test",

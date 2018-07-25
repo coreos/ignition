@@ -36,7 +36,7 @@ func CreateFileOnRoot() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -54,12 +54,14 @@ func CreateFileOnRoot() types.Test {
 			Contents: "example file\n",
 		},
 	})
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -68,7 +70,7 @@ func UserGroupByID_2_0_0() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -90,12 +92,14 @@ func UserGroupByID_2_0_0() types.Test {
 			Contents: "example file\n",
 		},
 	})
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -104,7 +108,7 @@ func UserGroupByID_2_1_0() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -126,12 +130,14 @@ func UserGroupByID_2_1_0() types.Test {
 			Contents: "example file\n",
 		},
 	})
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -140,7 +146,7 @@ func UserGroupByName_2_1_0() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -162,12 +168,14 @@ func UserGroupByName_2_1_0() types.Test {
 			Contents: "example file\n",
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -176,7 +184,7 @@ func ForceFileCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -206,12 +214,14 @@ func ForceFileCreation() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -220,7 +230,7 @@ func ForceFileCreationNoOverwrite() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -249,12 +259,14 @@ func ForceFileCreationNoOverwrite() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -263,7 +275,7 @@ func AppendToAFile() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -291,12 +303,14 @@ func AppendToAFile() types.Test {
 			Contents: "example file\nhello world\n",
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -305,7 +319,7 @@ func AppendToNonexistentFile() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -326,11 +340,13 @@ func AppendToNonexistentFile() types.Test {
 			Contents: "hello world\n",
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

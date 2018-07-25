@@ -29,7 +29,7 @@ func AddPasswdUsers() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
 		"ignition": {
-			"version": "2.0.0"
+			"version": "$version"
 		},
 		"passwd": {
 			"users": [{
@@ -49,6 +49,7 @@ func AddPasswdUsers() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.0.0"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -151,9 +152,10 @@ ENCRYPT_METHOD SHA512
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

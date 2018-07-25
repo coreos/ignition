@@ -36,7 +36,7 @@ func InvalidHash() types.Test {
 	}
 
 	config := `{
-		"ignition": {"version": "2.0.0"},
+		"ignition": {"version": "$version" },
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -53,13 +53,15 @@ func InvalidHash() types.Test {
 					"source": "data:,asdf", "verification": {"hash": "sha512-1a04c76c17079cd99e688ba4f1ba095b927d3fecf2b1e027af361dfeafb548f7f5f6fdd675aaa2563950db441d893ca77b0c3e965cdcb891784af96e330267d7"}}
 			}]}
 	}`
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -68,7 +70,7 @@ func InvalidHashFromHTTPURL() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -80,6 +82,7 @@ func InvalidHashFromHTTPURL() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -91,9 +94,10 @@ func InvalidHashFromHTTPURL() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

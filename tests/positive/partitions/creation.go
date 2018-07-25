@@ -44,7 +44,7 @@ func CreatePartition() types.Test {
 	})
 	config := `{
 		"ignition": {
-			"version": "2.1.0"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [
@@ -63,11 +63,14 @@ func CreatePartition() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.1.0"
+
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -77,7 +80,7 @@ func WipeAndCreateNewPartitions() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
 		"ignition": {
-			"version": "2.1.0"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [
@@ -104,6 +107,7 @@ func WipeAndCreateNewPartitions() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.1.0"
 	// Create dummy partitions. The UUIDs in the input partitions
 	// are intentionally different so if Ignition doesn't do the right thing the
 	// validation will fail.
@@ -147,10 +151,11 @@ func WipeAndCreateNewPartitions() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -160,7 +165,7 @@ func AppendPartitions() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
 		"ignition": {
-			"version": "2.1.0"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -183,6 +188,7 @@ func AppendPartitions() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.1.0"
 
 	in = append(in, types.Disk{
 		Alignment: types.IgnitionAlignment,
@@ -238,10 +244,11 @@ func AppendPartitions() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -252,7 +259,7 @@ func ResizeRoot() types.Test {
 	out[0].Partitions[9-2-1].Length = 12943360 + 65536
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -269,11 +276,13 @@ func ResizeRoot() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

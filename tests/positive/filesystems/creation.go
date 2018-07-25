@@ -35,7 +35,7 @@ func ForceNewFilesystemOfSameType() types.Test {
 		},
 	}
 	config := `{
-		"ignition": {"version": "2.0.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -47,6 +47,7 @@ func ForceNewFilesystemOfSameType() types.Test {
 				 }]
 			}
 	}`
+	configMinVersion := "2.0.0"
 
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
@@ -68,11 +69,12 @@ func ForceNewFilesystemOfSameType() types.Test {
 	})
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -87,7 +89,7 @@ func WipeFilesystemWithSameType() types.Test {
 		},
 	}
 	config := `{
-		"ignition": { "version": "2.1.0" },
+		"ignition": { "version": "$version" },
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -97,6 +99,7 @@ func WipeFilesystemWithSameType() types.Test {
 				}}]
 			}
 	}`
+	configMinVersion := "2.1.0"
 
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
@@ -118,10 +121,11 @@ func WipeFilesystemWithSameType() types.Test {
 	})
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

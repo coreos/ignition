@@ -40,7 +40,7 @@ func DeleteOne() types.Test {
 	out := append(types.GetBaseDisk(), types.Disk{Alignment: types.IgnitionAlignment})
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [
@@ -57,11 +57,14 @@ func DeleteOne() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
+
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -71,7 +74,7 @@ func DeleteAll() types.Test {
 	out := append(types.GetBaseDisk(), types.Disk{Alignment: types.IgnitionAlignment})
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [
@@ -118,10 +121,13 @@ func DeleteAll() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
+
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

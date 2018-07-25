@@ -36,7 +36,7 @@ func VFATIgnoresWipeFilesystem() types.Test {
 		},
 	}
 	config := `{
-                "ignition": {"version": "2.1.0"},
+                "ignition": {"version": "$version"},
                 "storage": {
                         "filesystems": [{
                                 "mount": {
@@ -46,12 +46,14 @@ func VFATIgnoresWipeFilesystem() types.Test {
                                 }}]
                         }
         }`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

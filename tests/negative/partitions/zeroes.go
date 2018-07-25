@@ -34,7 +34,7 @@ func Partition9DoesNotFillDisk() types.Test {
 	})
 	out := in
 	config := `{
-		"ignition": {"version": "2.3.0-experimental"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"disks": [
 			{
@@ -49,12 +49,14 @@ func Partition9DoesNotFillDisk() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -70,7 +72,7 @@ func Partition9DoesNotStartCorrectly() types.Test {
 	in[0].Partitions = append(in[0].Partitions, tmp)
 	out := in
 	config := `{
-		"ignition": {"version": "2.3.0-experimental"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"disks": [
 			{
@@ -85,11 +87,13 @@ func Partition9DoesNotStartCorrectly() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

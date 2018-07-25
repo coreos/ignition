@@ -28,7 +28,7 @@ func InvalidFilesystem() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": {"version": "2.0.0"},
+		"ignition": {"version": "$version" },
 		"storage": {
 			"files": [{
 				"filesystem": "NotARealFilesystem",
@@ -36,11 +36,13 @@ func InvalidFilesystem() types.Test {
 				"contents": {"source": "data:,asdf"}
 			}]}
 	}`
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

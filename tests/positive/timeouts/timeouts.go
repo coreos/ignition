@@ -55,7 +55,7 @@ func IncreaseHTTPResponseHeadersTimeout() types.Test {
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.1.0",
+			"version": "$version",
 			"timeouts": {
 				"httpResponseHeaders": 12
 			}
@@ -72,6 +72,7 @@ func IncreaseHTTPResponseHeadersTimeout() types.Test {
 			]
 		}
 	}`, respondDelayServer.URL)
+	configMinVersion := "2.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -83,10 +84,11 @@ func IncreaseHTTPResponseHeadersTimeout() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -96,7 +98,7 @@ func ConfirmHTTPBackoffWorks() types.Test {
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.1.0"
+			"version": "$version"
 		},
 		"storage": {
 		    "files": [
@@ -110,6 +112,7 @@ func ConfirmHTTPBackoffWorks() types.Test {
 			]
 		}
 	}`, respondThrottledServer.URL)
+	configMinVersion := "2.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -121,9 +124,10 @@ func ConfirmHTTPBackoffWorks() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

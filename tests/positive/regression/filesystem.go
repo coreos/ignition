@@ -36,7 +36,7 @@ func EquivalentFilesystemUUIDsTreatedDistinctEXT4() types.Test {
 		},
 	}
 	config := `{
-		"ignition": {"version": "2.1.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 		    "filesystems": [
 		      {
@@ -49,17 +49,19 @@ func EquivalentFilesystemUUIDsTreatedDistinctEXT4() types.Test {
 		    ]
 		  }
 		}`
+	configMinVersion := "2.1.0"
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "$uuid0"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "$uuid0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -75,7 +77,7 @@ func EquivalentFilesystemUUIDsTreatedDistinctVFAT() types.Test {
 		},
 	}
 	config := `{
-		"ignition": {"version": "2.1.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 		    "filesystems": [
 		      {
@@ -88,15 +90,17 @@ func EquivalentFilesystemUUIDsTreatedDistinctVFAT() types.Test {
 		    ]
 		  }
 		}`
+	configMinVersion := "2.1.0"
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "2e24ec82"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "2e24ec82"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "vfat"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
