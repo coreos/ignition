@@ -98,6 +98,7 @@ type Test struct {
 	OEMLookasideFiles []File
 	SystemDirFiles    []File
 	Config            string
+	ConfigMinVersion  string
 	ConfigShouldBeBad bool
 }
 
@@ -308,6 +309,12 @@ func getUUID(key string, UUIDmap map[string]string) string {
 		UUIDmap[key] = uuid.New()
 	}
 	return UUIDmap[key]
+}
+
+// Replace Version variable (format $version) in configs with ConfigMinVersion
+func (test *Test) ReplaceAllVersionVars() {
+	pattern := regexp.MustCompile("\\$version")
+	test.Config = pattern.ReplaceAllString(test.Config, test.ConfigMinVersion)
 }
 
 // Deep copy Test struct fields In, Out, MntDevices, OEMLookasideFiles, SystemDirFiles

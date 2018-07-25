@@ -61,6 +61,7 @@ func Register(tType TestType, t types.Test) {
 
 	// todo: reformat a filesystem
 	// todo: "Appending to the Config with a Remote Config from OEM", preemeption, //
+	t.ReplaceAllVersionVars()
 
 	var config typesInternal.Config
 	err := json.Unmarshal([]byte(t.Config), &config)
