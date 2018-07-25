@@ -31,7 +31,7 @@ func VerifyBaseDisk() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
 		"ignition": {
-			"version": "2.1.0"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -92,12 +92,14 @@ func VerifyBaseDisk() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -109,7 +111,7 @@ func VerifyBaseDiskWithWipe() types.Test {
 	// one and fail the test.
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -176,11 +178,13 @@ func VerifyBaseDiskWithWipe() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

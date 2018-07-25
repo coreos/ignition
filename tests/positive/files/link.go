@@ -31,7 +31,7 @@ func CreateHardLinkOnRoot() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -67,12 +67,14 @@ func CreateHardLinkOnRoot() types.Test {
 			Hard:   true,
 		},
 	})
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -81,7 +83,7 @@ func CreateSymlinkOnRoot() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "links": [{
 	      "filesystem": "root",
@@ -109,12 +111,14 @@ func CreateSymlinkOnRoot() types.Test {
 			Hard:   false,
 		},
 	})
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -123,7 +127,7 @@ func ForceLinkCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -167,12 +171,14 @@ func ForceLinkCreation() types.Test {
 			Target: "/foo/target",
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -181,7 +187,7 @@ func ForceHardLinkCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -227,11 +233,13 @@ func ForceHardLinkCreation() types.Test {
 			Hard:   true,
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

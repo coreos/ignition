@@ -31,7 +31,7 @@ func NoDevice() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": {"version": "2.1.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -41,6 +41,7 @@ func NoDevice() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
 		Name:              name,
@@ -48,6 +49,7 @@ func NoDevice() types.Test {
 		Out:               out,
 		Config:            config,
 		ConfigShouldBeBad: true,
+		ConfigMinVersion:  configMinVersion,
 	}
 }
 
@@ -56,7 +58,7 @@ func NoDeviceWithForce() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": {"version": "2.0.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -69,6 +71,7 @@ func NoDeviceWithForce() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.0.0"
 
 	return types.Test{
 		Name:              name,
@@ -76,6 +79,7 @@ func NoDeviceWithForce() types.Test {
 		Out:               out,
 		Config:            config,
 		ConfigShouldBeBad: true,
+		ConfigMinVersion:  configMinVersion,
 	}
 }
 
@@ -84,7 +88,7 @@ func NoDeviceWithWipeFilesystemTrue() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": {"version": "2.1.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -95,6 +99,7 @@ func NoDeviceWithWipeFilesystemTrue() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
 		Name:              name,
@@ -102,6 +107,7 @@ func NoDeviceWithWipeFilesystemTrue() types.Test {
 		Out:               out,
 		Config:            config,
 		ConfigShouldBeBad: true,
+		ConfigMinVersion:  configMinVersion,
 	}
 }
 
@@ -110,7 +116,7 @@ func NoDeviceWithWipeFilesystemFalse() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": {"version": "2.1.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -121,6 +127,7 @@ func NoDeviceWithWipeFilesystemFalse() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
 		Name:              name,
@@ -128,5 +135,6 @@ func NoDeviceWithWipeFilesystemFalse() types.Test {
 		Out:               out,
 		Config:            config,
 		ConfigShouldBeBad: true,
+		ConfigMinVersion:  configMinVersion,
 	}
 }

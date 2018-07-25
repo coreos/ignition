@@ -28,7 +28,7 @@ func CreateNetworkdUnit() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-		"ignition": { "version": "2.1.0" },
+		"ignition": { "version": "$version" },
 		"networkd": {
 			"units": [{
 				"name": "static.network",
@@ -36,6 +36,7 @@ func CreateNetworkdUnit() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -47,9 +48,10 @@ func CreateNetworkdUnit() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

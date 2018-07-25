@@ -30,7 +30,7 @@ func MissingRemoteContentsHTTP() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -41,11 +41,14 @@ func MissingRemoteContentsHTTP() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.1.0"
+
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -54,7 +57,7 @@ func MissingRemoteContentsTFTP() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-          "ignition": { "version": "2.1.0" },
+          "ignition": { "version": "$version" },
           "storage": {
             "files": [{
               "filesystem": "root",
@@ -65,11 +68,14 @@ func MissingRemoteContentsTFTP() types.Test {
             }]
           }
         }`
+	configMinVersion := "2.1.0"
+
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -78,7 +84,7 @@ func MissingRemoteContentsOEM() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -89,10 +95,13 @@ func MissingRemoteContentsOEM() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.1.0"
+
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

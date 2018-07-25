@@ -30,7 +30,7 @@ func CreateDirectoryOnRoot() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "directories": [{
 	      "filesystem": "root",
@@ -46,12 +46,14 @@ func CreateDirectoryOnRoot() types.Test {
 			},
 		},
 	})
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -60,7 +62,7 @@ func ForceDirCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "directories": [{
 	      "filesystem": "root",
@@ -86,12 +88,14 @@ func ForceDirCreation() types.Test {
 			},
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -100,7 +104,7 @@ func ForceDirCreationOverNonemptyDir() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "directories": [{
 	      "filesystem": "root",
@@ -126,12 +130,14 @@ func ForceDirCreationOverNonemptyDir() types.Test {
 			},
 		},
 	})
+	configMinVersion := "2.2.0"
 	// TODO: add ability to ensure that foo/bar/baz doesn't exist here.
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
