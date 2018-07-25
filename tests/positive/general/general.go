@@ -30,10 +30,7 @@ func init() {
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigOEM())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigData())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigData())
-	register.Register(register.PositiveTest, VersionOnlyConfig20())
-	register.Register(register.PositiveTest, VersionOnlyConfig21())
-	register.Register(register.PositiveTest, VersionOnlyConfig22())
-	register.Register(register.PositiveTest, VersionOnlyConfig23())
+	register.Register(register.PositiveTest, VersionOnlyConfig())
 	register.Register(register.PositiveTest, EmptyUserdata())
 }
 
@@ -423,60 +420,12 @@ func AppendConfigWithRemoteConfigData() types.Test {
 	}
 }
 
-func VersionOnlyConfig20() types.Test {
-	name := "Version Only Config 2.0.0"
+func VersionOnlyConfig() types.Test {
+	name := "Version Only Config"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
 		"ignition": {"version": "2.0.0"}
-	}`
-
-	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
-	}
-}
-
-func VersionOnlyConfig21() types.Test {
-	name := "Version Only Config 2.1.0"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	config := `{
-		"ignition": {"version": "2.1.0"}
-	}`
-
-	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
-	}
-}
-
-func VersionOnlyConfig22() types.Test {
-	name := "Version Only Config 2.2.0"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	config := `{
-		"ignition": {"version": "2.2.0"}
-	}`
-
-	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
-	}
-}
-
-func VersionOnlyConfig23() types.Test {
-	name := "Version Only Config 2.3.0-experimental"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	config := `{
-		"ignition": {"version": "2.3.0-experimental"}
 	}`
 
 	return types.Test{
