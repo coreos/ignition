@@ -92,7 +92,9 @@ OEMLookasideFiles: `[]File` object which describes the Files that should be writ
 
 SystemDirFiles: `[]File` object which describes the Files that should be written into Ignition's system config directory before Ignition is run.
 
-Config: `string`
+Config: `string` type where the specific config version should be replaced by `$version` and will be updated before Ignition is run.
+
+ConfigMinVersion: `string` type which describes the minimum config version the test should be run with. Copies of the test will be generated for every version, inside the same major version, that is equal to or greater than the specified ConfigMinVersion. If the test should run only once with a specfic config version, leave this field empty and replace $version in the `Config` field with the desired version.
 
 The test should be added to the init function inside of the test file. If the test module is being created then an `init` function should be created which registers the tests and the package must be imported inside of `tests/registry/registry.go` to allow for discovery.
 
