@@ -28,7 +28,7 @@ func CreateNetworkdDropin() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-		"ignition": { "version": "2.2.0" },
+		"ignition": { "version": "$version" },
 		"networkd": {
 			"units": [{
 				"name": "static.network",
@@ -39,6 +39,7 @@ func CreateNetworkdDropin() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.2.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -50,9 +51,10 @@ func CreateNetworkdDropin() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

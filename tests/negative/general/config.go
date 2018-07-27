@@ -45,7 +45,7 @@ func ReplaceConfigWithInvalidHash() types.Test {
 	}
 	config := `{
 	  "ignition": {
-	    "version": "2.0.0",
+	    "version": "$version",
 	    "config": {
 	      "replace": {
 	        "source": "http://127.0.0.1:8080/config",
@@ -54,13 +54,15 @@ func ReplaceConfigWithInvalidHash() types.Test {
 	    }
 	  }
 	}`
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -76,7 +78,7 @@ func AppendConfigWithInvalidHash() types.Test {
 	}
 	config := `{
 	  "ignition": {
-	    "version": "2.0.0",
+	    "version": "$version",
 	    "config": {
 	      "append": [{
 	        "source": "http://127.0.0.1:8080/config",
@@ -92,13 +94,15 @@ func AppendConfigWithInvalidHash() types.Test {
         }]
       }
 	}`
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -108,7 +112,7 @@ func ReplaceConfigWithMissingFileHTTP() types.Test {
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.1.0",
+	    "version": "$version",
 	    "config": {
 	      "replace": {
 	        "source": "http://127.0.0.1:8080/asdf"
@@ -116,12 +120,14 @@ func ReplaceConfigWithMissingFileHTTP() types.Test {
 	    }
 	  }
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -131,7 +137,7 @@ func ReplaceConfigWithMissingFileTFTP() types.Test {
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.1.0",
+	    "version": "$version",
 	    "config": {
 	      "replace": {
 	        "source": "tftp://127.0.0.1:69/asdf"
@@ -139,12 +145,14 @@ func ReplaceConfigWithMissingFileTFTP() types.Test {
 	    }
 	  }
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -154,7 +162,7 @@ func ReplaceConfigWithMissingFileOEM() types.Test {
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.1.0",
+	    "version": "$version",
 	    "config": {
 	      "replace": {
 	        "source": "oem:///asdf"
@@ -162,12 +170,14 @@ func ReplaceConfigWithMissingFileOEM() types.Test {
 	    }
 	  }
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -177,7 +187,7 @@ func AppendConfigWithMissingFileHTTP() types.Test {
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.1.0",
+	    "version": "$version",
 	    "config": {
 	      "append": [{
 	        "source": "http://127.0.0.1:8080/asdf"
@@ -185,12 +195,14 @@ func AppendConfigWithMissingFileHTTP() types.Test {
 	    }
 	  }
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -200,7 +212,7 @@ func AppendConfigWithMissingFileTFTP() types.Test {
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.1.0",
+	    "version": "$version",
 	    "config": {
 	      "append": [{
 	        "source": "tftp://127.0.0.1:69/asdf"
@@ -208,12 +220,14 @@ func AppendConfigWithMissingFileTFTP() types.Test {
 	    }
 	  }
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -223,7 +237,7 @@ func AppendConfigWithMissingFileOEM() types.Test {
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.1.0",
+	    "version": "$version",
 	    "config": {
 	      "append": [{
 	        "source": "oem:///asdf"
@@ -231,12 +245,14 @@ func AppendConfigWithMissingFileOEM() types.Test {
 	    }
 	  }
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -246,7 +262,7 @@ func VersionOnlyConfig22() types.Test {
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.2.0-experimental"
+	    "version": $version"
 	  }
 	}`
 

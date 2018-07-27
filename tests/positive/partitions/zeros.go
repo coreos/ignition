@@ -35,7 +35,7 @@ func PartitionSizeStart0() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
 		"ignition": {
-			"version": "2.1.0"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -52,6 +52,7 @@ func PartitionSizeStart0() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.1.0"
 
 	in = append(in, types.Disk{
 		Alignment: types.IgnitionAlignment,
@@ -70,10 +71,11 @@ func PartitionSizeStart0() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -83,7 +85,7 @@ func PartitionStartNumber0() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
 		"ignition": {
-			"version": "2.1.0"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -110,6 +112,7 @@ func PartitionStartNumber0() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.1.0"
 
 	in = append(in, types.Disk{
 		Alignment: types.IgnitionAlignment,
@@ -142,10 +145,11 @@ func PartitionStartNumber0() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -156,7 +160,7 @@ func ResizeRootFillDisk() types.Test {
 	out[0].Partitions[9-2-1].Length = 12943360 + 65536
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -173,12 +177,14 @@ func ResizeRootFillDisk() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -188,7 +194,7 @@ func VerifyRootFillsDisk() types.Test {
 	out := in
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -204,12 +210,14 @@ func VerifyRootFillsDisk() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -223,7 +231,7 @@ func VerifyUnspecifiedIsDoNotCare() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -237,12 +245,14 @@ func VerifyUnspecifiedIsDoNotCare() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -279,7 +289,7 @@ func NumberZeroHappensLast() types.Test {
 	})
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -297,11 +307,13 @@ func NumberZeroHappensLast() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

@@ -34,7 +34,7 @@ func ReuseExistingFilesystem() types.Test {
 		},
 	}
 	config := `{
-		"ignition": {"version": "2.1.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 		    "filesystems": [
 			    {
@@ -49,6 +49,7 @@ func ReuseExistingFilesystem() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.1.0"
 	in = append(in, types.Disk{
 		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{
@@ -95,10 +96,11 @@ func ReuseExistingFilesystem() types.Test {
 	})
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

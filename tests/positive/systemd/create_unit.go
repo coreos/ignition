@@ -28,7 +28,7 @@ func CreateSystemdService() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-		"ignition": { "version": "2.0.0" },
+		"ignition": { "version": "$version" },
 		"systemd": {
 			"units": [{
 				"name": "example.service",
@@ -37,6 +37,7 @@ func CreateSystemdService() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -55,9 +56,10 @@ func CreateSystemdService() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

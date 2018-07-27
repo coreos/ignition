@@ -32,7 +32,7 @@ func ShouldNotExistNoWipeEntry() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": {"version": "2.3.0-experimental"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"disks": [
 			{
@@ -47,12 +47,14 @@ func ShouldNotExistNoWipeEntry() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -61,7 +63,7 @@ func DoesNotMatchNoWipeEntry() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": {"version": "2.3.0-experimental"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"disks": [
 			{
@@ -76,12 +78,14 @@ func DoesNotMatchNoWipeEntry() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -90,7 +94,7 @@ func ValidAndDoesNotMatchNoWipeEntry() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": {"version": "2.3.0-experimental"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"disks": [
 			{
@@ -108,12 +112,14 @@ func ValidAndDoesNotMatchNoWipeEntry() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -122,7 +128,7 @@ func NotThereAndDoesNotMatchNoWipeEntry() types.Test {
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
-		"ignition": {"version": "2.3.0-experimental"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"disks": [
 			{
@@ -141,11 +147,13 @@ func NotThereAndDoesNotMatchNoWipeEntry() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

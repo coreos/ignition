@@ -41,7 +41,7 @@ func ReformatToBTRFS_2_0_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -55,14 +55,16 @@ func ReformatToBTRFS_2_0_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.0.0"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "btrfs"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -77,7 +79,7 @@ func ReformatToXFS_2_0_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -91,14 +93,16 @@ func ReformatToXFS_2_0_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.0.0"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "xfs"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -113,7 +117,7 @@ func ReformatToVFAT_2_0_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -127,15 +131,17 @@ func ReformatToVFAT_2_0_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.0.0"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "vfat"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -150,7 +156,7 @@ func ReformatToEXT4_2_0_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -164,16 +170,18 @@ func ReformatToEXT4_2_0_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.0.0"
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -188,7 +196,7 @@ func ReformatToBTRFS_2_1_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -201,15 +209,17 @@ func ReformatToBTRFS_2_1_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.1.0"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "btrfs"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -224,7 +234,7 @@ func ReformatToXFS_2_1_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -237,15 +247,17 @@ func ReformatToXFS_2_1_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.1.0"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "xfs"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -260,7 +272,7 @@ func ReformatToVFAT_2_1_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -273,15 +285,17 @@ func ReformatToVFAT_2_1_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.1.0"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "vfat"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "2e24ec82"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -296,7 +310,7 @@ func ReformatToEXT4_2_1_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -309,16 +323,18 @@ func ReformatToEXT4_2_1_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.1.0"
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -333,7 +349,7 @@ func ReformatToSWAP_2_1_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -346,15 +362,17 @@ func ReformatToSWAP_2_1_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.1.0"
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "swap"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
