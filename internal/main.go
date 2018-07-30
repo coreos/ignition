@@ -93,7 +93,7 @@ func main() {
 		Fetcher:      &fetcher,
 	}
 
-	if !engine.Run(flags.stage.String()) {
+	if engine.Run(flags.stage.String()) != nil {
 		os.Exit(1)
 	}
 }
