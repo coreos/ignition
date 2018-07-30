@@ -40,6 +40,7 @@ type Config struct {
 	name       string
 	fetch      providers.FuncFetchConfig
 	newFetcher providers.FuncNewFetcher
+	status     providers.FuncPostStatus
 }
 
 func (c Config) Name() string {
@@ -59,6 +60,14 @@ func (c Config) NewFetcherFunc() providers.FuncNewFetcher {
 			Logger: l,
 		}, nil
 	}
+}
+
+// Status takes a Fetcher and the error from Run (from engine)
+func (c Config) Status(stageName string, f resource.Fetcher, statusErr error) error {
+	if c.status != nil {
+		return c.status(stageName, f, statusErr)
+	}
+	return nil
 }
 
 var configs = registry.Create("oem configs")
