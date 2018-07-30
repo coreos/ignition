@@ -119,8 +119,9 @@ func init() {
 		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:  "packet",
-		fetch: packet.FetchConfig,
+		name:   "packet",
+		fetch:  packet.FetchConfig,
+		status: packet.PostStatus,
 	})
 	configs.Register(Config{
 		name:  "pxe",
