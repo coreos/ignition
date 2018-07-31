@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	presetPath               string      = "/etc/systemd/system-preset/20-ignition.preset"
+	PresetPath               string      = "/etc/systemd/system-preset/20-ignition.preset"
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
@@ -136,7 +136,7 @@ func (u Util) DisableUnit(unit types.Unit) error {
 }
 
 func (u Util) appendLineToPreset(data string) error {
-	path := u.JoinPath(presetPath)
+	path := u.JoinPath(PresetPath)
 	if err := MkdirForFile(path); err != nil {
 		return err
 	}

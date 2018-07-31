@@ -267,6 +267,20 @@ func MkdirForFile(path string) error {
 	return os.MkdirAll(filepath.Dir(path), DefaultDirectoryPermissions)
 }
 
+// PathExists returns true if a node exists within DestDir, false otherwise. Any
+// error other than ENOENT is treated as fatal.
+func (u Util) PathExists(path string) (bool, error) {
+	_, err := os.Stat(u.JoinPath(path))
+	switch {
+	case os.IsNotExist(err):
+		return false, nil
+	case err != nil:
+		return false, err
+	default:
+		return true, nil
+	}
+}
+
 // getFileOwner will return the uid and gid for the file at a given path. If the
 // file doesn't exist, or some other error is encountered when running stat on
 // the path, 0, 0, and 0 will be returned.

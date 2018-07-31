@@ -15,12 +15,15 @@
 package files
 
 import (
+	"path/filepath"
+
 	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/exec/util"
 )
 
 // createUnits creates the units listed under systemd.units and networkd.units.
-func (s stage) createUnits(config types.Config) error {
+func (s *stage) createUnits(config types.Config) error {
+	enabledOneUnit := false
 	for _, unit := range config.Systemd.Units {
 		if err := s.writeSystemdUnit(unit, false); err != nil {
 			return err
@@ -33,6 +36,7 @@ func (s stage) createUnits(config types.Config) error {
 			); err != nil {
 				return err
 			}
+			enabledOneUnit = true
 		}
 		if unit.Enabled != nil {
 			if *unit.Enabled {
@@ -50,6 +54,7 @@ func (s stage) createUnits(config types.Config) error {
 					return err
 				}
 			}
+			enabledOneUnit = true
 		}
 		if unit.Mask {
 			if err := s.Logger.LogOp(
@@ -59,6 +64,10 @@ func (s stage) createUnits(config types.Config) error {
 				return err
 			}
 		}
+	}
+	// and relabel the preset file itself if we enabled/disabled something
+	if enabledOneUnit {
+		s.relabel(util.PresetPath)
 	}
 	for _, unit := range config.Networkd.Units {
 		if err := s.writeNetworkdUnit(unit); err != nil {
@@ -71,7 +80,7 @@ func (s stage) createUnits(config types.Config) error {
 // writeSystemdUnit creates the specified unit and any dropins for that unit.
 // If the contents of the unit or are empty, the unit is not created. The same
 // applies to the unit's dropins.
-func (s stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
+func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 	// use a different DestDir if it's runtime so it affects our /run
 	u := s.Util
 	if runtime {
@@ -79,6 +88,7 @@ func (s stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 	}
 
 	return s.Logger.LogOp(func() error {
+		relabeledDropinDir := false
 		for _, dropin := range unit.Dropins {
 			if dropin.Contents == "" {
 				continue
@@ -93,6 +103,10 @@ func (s stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 				"writing systemd drop-in %q at %q", dropin.Name, f.Path,
 			); err != nil {
 				return err
+			}
+			if !relabeledDropinDir {
+				s.relabel(filepath.Dir("/" + f.Path))
+				relabeledDropinDir = true
 			}
 		}
 
@@ -111,6 +125,7 @@ func (s stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 		); err != nil {
 			return err
 		}
+		s.relabel("/" + f.Path)
 
 		return nil
 	}, "processing unit %q", unit.Name)
@@ -119,7 +134,7 @@ func (s stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 // writeNetworkdUnit creates the specified unit and any dropins for that unit.
 // If the contents of the unit or are empty, the unit is not created. The same
 // applies to the unit's dropins.
-func (s stage) writeNetworkdUnit(unit types.Networkdunit) error {
+func (s *stage) writeNetworkdUnit(unit types.Networkdunit) error {
 	return s.Logger.LogOp(func() error {
 		for _, dropin := range unit.Dropins {
 			if dropin.Contents == "" {
@@ -137,6 +152,7 @@ func (s stage) writeNetworkdUnit(unit types.Networkdunit) error {
 			); err != nil {
 				return err
 			}
+			s.relabel("/" + f.Path)
 		}
 		if unit.Contents == "" {
 			return nil
@@ -153,6 +169,7 @@ func (s stage) writeNetworkdUnit(unit types.Networkdunit) error {
 		); err != nil {
 			return err
 		}
+		s.relabel("/" + f.Path)
 
 		return nil
 	}, "processing unit %q", unit.Name)
