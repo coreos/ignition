@@ -65,29 +65,26 @@ func (stage) Name() string {
 	return name
 }
 
-func (s stage) Run(config types.Config) bool {
+func (s stage) Run(config types.Config) error {
 	// Interacting with disks/partitions/raids/filesystems in general can cause
 	// udev races. If we do not need to  do anything, we also do not need to
 	// do the udevadm settle and can just return here.
 	if len(config.Storage.Disks) == 0 &&
 		len(config.Storage.Raid) == 0 &&
 		len(config.Storage.Filesystems) == 0 {
-		return true
+		return nil
 	}
 
 	if err := s.createPartitions(config); err != nil {
-		s.Logger.Crit("create partitions failed: %v", err)
-		return false
+		return fmt.Errorf("create partitions failed: %v", err)
 	}
 
 	if err := s.createRaids(config); err != nil {
-		s.Logger.Crit("failed to create raids: %v", err)
-		return false
+		return fmt.Errorf("failed to create raids: %v", err)
 	}
 
 	if err := s.createFilesystems(config); err != nil {
-		s.Logger.Crit("failed to create filesystems: %v", err)
-		return false
+		return fmt.Errorf("failed to create filesystems: %v", err)
 	}
 
 	// udevd registers an IN_CLOSE_WRITE inotify watch on block device
@@ -118,11 +115,10 @@ func (s stage) Run(config types.Config) bool {
 		exec.Command(distro.UdevadmCmd(), "settle"),
 		"waiting for udev to settle",
 	); err != nil {
-		s.Logger.Crit("udevadm settle failed: %v", err)
-		return false
+		return fmt.Errorf("udevadm settle failed: %v", err)
 	}
 
-	return true
+	return nil
 }
 
 // waitOnDevices waits for the devices enumerated in devs as a logged operation

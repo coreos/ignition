@@ -93,7 +93,13 @@ func main() {
 		Fetcher:      &fetcher,
 	}
 
-	if !engine.Run(flags.stage.String()) {
+	err = engine.Run(flags.stage.String())
+	if statusErr := engine.OEMConfig.Status(flags.stage.String(), *engine.Fetcher, err); statusErr != nil {
+		logger.Err("POST Status error: ", statusErr.Error())
+	}
+	if err != nil {
+		logger.Crit("Ignition failed: %v", err.Error())
 		os.Exit(1)
 	}
+	logger.Info("Ignition finished successfully")
 }

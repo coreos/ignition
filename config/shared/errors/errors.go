@@ -85,11 +85,12 @@ var (
 	ErrInvalidNetworkdDropinExt = errors.New("invalid networkd drop-in extension")
 
 	// Misc errors
-	ErrInvalidScheme    = errors.New("invalid url scheme")
-	ErrInvalidUrl       = errors.New("unable to parse url")
-	ErrHashMalformed    = errors.New("malformed hash specifier")
-	ErrHashWrongSize    = errors.New("incorrect size for hash sum")
-	ErrHashUnrecognized = errors.New("unrecognized hash function")
+	ErrInvalidScheme       = errors.New("invalid url scheme")
+	ErrInvalidUrl          = errors.New("unable to parse url")
+	ErrHashMalformed       = errors.New("malformed hash specifier")
+	ErrHashWrongSize       = errors.New("incorrect size for hash sum")
+	ErrHashUnrecognized    = errors.New("unrecognized hash function")
+	ErrEngineConfiguration = errors.New("engine incorrectly configured")
 )
 
 // NewNoInstallSectionError produces an error indicating the given unit, named

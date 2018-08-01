@@ -18,7 +18,12 @@
 package packet
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/config/types"
@@ -27,10 +32,22 @@ import (
 )
 
 var (
+	ErrValidFetchEmptyData = errors.New("fetch successful but fetched data empty")
+)
+
+var (
 	userdataUrl = url.URL{
 		Scheme: "https",
 		Host:   "metadata.packet.net",
 		Path:   "userdata",
+	}
+)
+
+var (
+	metadataUrl = url.URL{
+		Scheme: "https",
+		Host:   "metadata.packet.net",
+		Path:   "metadata",
 	}
 )
 
@@ -47,4 +64,72 @@ func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
 	}
 
 	return util.ParseConfig(f.Logger, data)
+}
+
+// PostStatus posts a message that will show on the Packet Instance Timeline
+func PostStatus(stageName string, f resource.Fetcher, errMsg error) error {
+	f.Logger.Info("POST message to Packet Timeline")
+	// fetch JSON from https://metadata.packet.net/metadata
+	data, err := f.FetchToBuffer(metadataUrl, resource.FetchOptions{
+		Headers: nil,
+	})
+	if err != nil {
+		return err
+	}
+	if data == nil {
+		return ErrValidFetchEmptyData
+	}
+	metadata := struct {
+		PhoneHomeURL string `json:"phone_home_url"`
+	}{}
+	err = json.Unmarshal(data, &metadata)
+	if err != nil {
+		return err
+	}
+	phonehomeURL := metadata.PhoneHomeURL
+	// to get phonehome IPv4
+	phonehomeURL = strings.TrimSuffix(phonehomeURL, "/phone-home")
+	// POST Message to phonehome IP
+	postMessageURL := phonehomeURL + "/events"
+
+	return postMessage(stageName, errMsg, postMessageURL)
+}
+
+// postMessage makes a post request with the supplied message to the url
+func postMessage(stageName string, e error, url string) error {
+
+	stageName = "[" + stageName + "]"
+
+	type mStruct struct {
+		State   string `json:"state"`
+		Message string `json:"message"`
+	}
+	m := mStruct{}
+	if e != nil {
+		m = mStruct{
+			State:   "failed",
+			Message: stageName + " Ignition error: " + e.Error(),
+		}
+	} else {
+		m = mStruct{
+			State:   "succeeded",
+			Message: stageName + " Ignition status: finished successfully",
+		}
+	}
+	messageJSON, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	postReq, err := http.NewRequest("POST", url, bytes.NewBuffer(messageJSON))
+	if err != nil {
+		return err
+	}
+	postReq.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	respPost, err := client.Do(postReq)
+	if err != nil {
+		return err
+	}
+	defer respPost.Body.Close()
+	return err
 }

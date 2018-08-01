@@ -16,6 +16,7 @@ package files
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/exec/stages"
@@ -60,21 +61,18 @@ func (stage) Name() string {
 	return name
 }
 
-func (s stage) Run(config types.Config) bool {
+func (s stage) Run(config types.Config) error {
 	if err := s.createPasswd(config); err != nil {
-		s.Logger.Crit("failed to create users/groups: %v", err)
-		return false
+		return fmt.Errorf("failed to create users/groups: %v", err)
 	}
 
 	if err := s.createFilesystemsEntries(config); err != nil {
-		s.Logger.Crit("failed to create files: %v", err)
-		return false
+		return fmt.Errorf("failed to create files: %v", err)
 	}
 
 	if err := s.createUnits(config); err != nil {
-		s.Logger.Crit("failed to create units: %v", err)
-		return false
+		return fmt.Errorf("failed to create units: %v", err)
 	}
 
-	return true
+	return nil
 }

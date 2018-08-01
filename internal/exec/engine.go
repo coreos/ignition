@@ -53,10 +53,10 @@ type Engine struct {
 
 // Run executes the stage of the given name. It returns true if the stage
 // successfully ran and false if there were any errors.
-func (e Engine) Run(stageName string) bool {
+func (e Engine) Run(stageName string) error {
 	if e.Fetcher == nil || e.Logger == nil {
 		fmt.Fprintf(os.Stderr, "engine incorrectly configured\n")
-		return false
+		return errors.ErrEngineConfiguration
 	}
 	baseConfig := types.Config{
 		Ignition: types.Ignition{Version: types.MaxVersion.String()},
@@ -72,7 +72,7 @@ func (e Engine) Run(stageName string) bool {
 	e.logReport(r)
 	if err != nil && err != providers.ErrNoProvider {
 		e.Logger.Crit("failed to acquire system base config: %v", err)
-		return false
+		return err
 	}
 
 	cfg, err := e.acquireConfig()
@@ -84,17 +84,23 @@ func (e Engine) Run(stageName string) bool {
 		e.logReport(r)
 		if err != nil && err != providers.ErrNoProvider {
 			e.Logger.Crit("failed to acquire default config: %v", err)
-			return false
+			return err
 		}
 	default:
 		e.Logger.Crit("failed to acquire config: %v", err)
-		return false
+		return err
 	}
 
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
 
-	return stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(config.Append(baseConfig, config.Append(systemBaseConfig, cfg)))
+	if err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(config.Append(baseConfig, config.Append(systemBaseConfig, cfg))); err != nil {
+		// e.Logger could be nil
+		fmt.Fprintf(os.Stderr, "%s failed", stageName)
+		return err
+	}
+	e.Logger.Info("%s passed", stageName)
+	return nil
 }
 
 // acquireConfig returns the configuration, first checking a local cache

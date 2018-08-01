@@ -23,7 +23,7 @@ import (
 
 // Stage is responsible for actually executing a stage of the configuration.
 type Stage interface {
-	Run(config types.Config) bool
+	Run(config types.Config) error
 	Name() string
 }
 
