@@ -33,7 +33,7 @@ func ForceFileCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -45,6 +45,7 @@ func ForceFileCreation() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.2.0"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -55,10 +56,11 @@ func ForceFileCreation() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -67,7 +69,7 @@ func ForceDirCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "directories": [{
 	      "filesystem": "root",
@@ -75,6 +77,7 @@ func ForceDirCreation() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.2.0"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -86,10 +89,11 @@ func ForceDirCreation() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -98,7 +102,7 @@ func ForceLinkCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -114,6 +118,7 @@ func ForceLinkCreation() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.2.0"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -125,10 +130,11 @@ func ForceLinkCreation() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -137,7 +143,7 @@ func ForceHardLinkCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -154,6 +160,7 @@ func ForceHardLinkCreation() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.2.0"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -165,10 +172,11 @@ func ForceHardLinkCreation() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -177,7 +185,7 @@ func ForceFileCreationOverNonemptyDir() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -189,6 +197,7 @@ func ForceFileCreationOverNonemptyDir() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.2.0"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -200,10 +209,11 @@ func ForceFileCreationOverNonemptyDir() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -212,7 +222,7 @@ func ForceLinkCreationOverNonemptyDir() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -228,6 +238,7 @@ func ForceLinkCreationOverNonemptyDir() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.2.0"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -239,9 +250,10 @@ func ForceLinkCreationOverNonemptyDir() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

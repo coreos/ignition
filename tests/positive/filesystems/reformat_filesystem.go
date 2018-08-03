@@ -20,18 +20,15 @@ import (
 )
 
 func init() {
-	register.Register(register.PositiveTest, ReformatToBTRFS_2_0_0())
-	register.Register(register.PositiveTest, ReformatToXFS_2_0_0())
-	register.Register(register.PositiveTest, ReformatToEXT4_2_0_0())
-	register.Register(register.PositiveTest, ReformatToBTRFS_2_1_0())
-	register.Register(register.PositiveTest, ReformatToXFS_2_1_0())
-	register.Register(register.PositiveTest, ReformatToVFAT_2_1_0())
-	register.Register(register.PositiveTest, ReformatToEXT4_2_1_0())
-	register.Register(register.PositiveTest, ReformatToSWAP_2_1_0())
+	register.Register(register.PositiveTest, ReformatToBTRFS())
+	register.Register(register.PositiveTest, ReformatToXFS())
+	register.Register(register.PositiveTest, ReformatToVFAT())
+	register.Register(register.PositiveTest, ReformatToEXT4())
+	register.Register(register.PositiveTest, ReformatToSWAP())
 }
 
-func ReformatToBTRFS_2_0_0() types.Test {
-	name := "Reformat a Filesystem to Btrfs - 2.0.0"
+func ReformatToBTRFS() types.Test {
+	name := "Reformat a Filesystem to Btrfs"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -41,7 +38,7 @@ func ReformatToBTRFS_2_0_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -55,19 +52,21 @@ func ReformatToBTRFS_2_0_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.0.0"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "btrfs"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
-func ReformatToXFS_2_0_0() types.Test {
-	name := "Reformat a Filesystem to XFS - 2.0.0"
+func ReformatToXFS() types.Test {
+	name := "Reformat a Filesystem to XFS"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -77,7 +76,7 @@ func ReformatToXFS_2_0_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -91,19 +90,21 @@ func ReformatToXFS_2_0_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.0.0"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "xfs"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
-func ReformatToVFAT_2_0_0() types.Test {
-	name := "Reformat a Filesystem to VFAT - 2.0.0"
+func ReformatToVFAT() types.Test {
+	name := "Reformat a Filesystem to VFAT"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -113,34 +114,35 @@ func ReformatToVFAT_2_0_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
 	        "device": "$DEVICE",
 	        "format": "vfat",
-	        "create": {
-	          "force": true,
-	          "options": [ "-n", "OEM", "-i", "$uuid0" ]
-	        }
+	        "label": "OEM",
+		"uuid": "2e24ec82",
+		"wipeFilesystem": true
 	      }
 	    }]
 	  }
 	}`
+	configMinVersion := "2.1.0"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "vfat"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
+	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "2e24ec82"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
-func ReformatToEXT4_2_0_0() types.Test {
-	name := "Reformat a Filesystem to EXT4 - 2.0.0"
+func ReformatToEXT4() types.Test {
+	name := "Reformat a Filesystem to EXT4"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -150,7 +152,7 @@ func ReformatToEXT4_2_0_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -164,21 +166,23 @@ func ReformatToEXT4_2_0_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.0.0"
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
-func ReformatToBTRFS_2_1_0() types.Test {
-	name := "Reformat a Filesystem to Btrfs - 2.1.0"
+func ReformatToSWAP() types.Test {
+	name := "Reformat a Filesystem to SWAP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -188,152 +192,7 @@ func ReformatToBTRFS_2_1_0() types.Test {
 		},
 	}
 	config := `{
-	  "ignition": { "version": "2.1.0" },
-	  "storage": {
-	    "filesystems": [{
-	      "mount": {
-	        "device": "$DEVICE",
-	        "format": "btrfs",
-	        "label": "OEM",
-		"uuid": "$uuid0",
-		"wipeFilesystem": true
-	      }
-	    }]
-	  }
-	}`
-	out[0].Partitions.GetPartition("OEM").FilesystemType = "btrfs"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
-
-	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
-	}
-}
-
-func ReformatToXFS_2_1_0() types.Test {
-	name := "Reformat a Filesystem to XFS - 2.1.0"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	mntDevices := []types.MntDevice{
-		{
-			Label:        "OEM",
-			Substitution: "$DEVICE",
-		},
-	}
-	config := `{
-	  "ignition": { "version": "2.1.0" },
-	  "storage": {
-	    "filesystems": [{
-	      "mount": {
-	        "device": "$DEVICE",
-	        "format": "xfs",
-	        "label": "OEM",
-		"uuid": "$uuid0",
-		"wipeFilesystem": true
-	      }
-	    }]
-	  }
-	}`
-	out[0].Partitions.GetPartition("OEM").FilesystemType = "xfs"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
-
-	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
-	}
-}
-
-func ReformatToVFAT_2_1_0() types.Test {
-	name := "Reformat a Filesystem to VFAT - 2.1.0"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	mntDevices := []types.MntDevice{
-		{
-			Label:        "OEM",
-			Substitution: "$DEVICE",
-		},
-	}
-	config := `{
-	  "ignition": { "version": "2.1.0" },
-	  "storage": {
-	    "filesystems": [{
-	      "mount": {
-	        "device": "$DEVICE",
-	        "format": "vfat",
-	        "label": "OEM",
-		"uuid": "2e24ec82",
-		"wipeFilesystem": true
-	      }
-	    }]
-	  }
-	}`
-	out[0].Partitions.GetPartition("OEM").FilesystemType = "vfat"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "2e24ec82"
-
-	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
-	}
-}
-
-func ReformatToEXT4_2_1_0() types.Test {
-	name := "Reformat a Filesystem to EXT4 - 2.1.0"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	mntDevices := []types.MntDevice{
-		{
-			Label:        "OEM",
-			Substitution: "$DEVICE",
-		},
-	}
-	config := `{
-	  "ignition": { "version": "2.1.0" },
-	  "storage": {
-	    "filesystems": [{
-	      "mount": {
-	        "device": "$DEVICE",
-	        "format": "ext4",
-	        "label": "OEM",
-		"uuid": "$uuid0",
-		"wipeFilesystem": true
-	      }
-	    }]
-	  }
-	}`
-	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
-	out[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
-	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
-
-	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
-	}
-}
-
-func ReformatToSWAP_2_1_0() types.Test {
-	name := "Reformat a Filesystem to SWAP - 2.1.0"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	mntDevices := []types.MntDevice{
-		{
-			Label:        "OEM",
-			Substitution: "$DEVICE",
-		},
-	}
-	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
 	      "mount": {
@@ -346,15 +205,17 @@ func ReformatToSWAP_2_1_0() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.1.0"
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "swap"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

@@ -30,7 +30,7 @@ func CreateFileFromRemoteContentsHTTP() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -50,12 +50,14 @@ func CreateFileFromRemoteContentsHTTP() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -64,7 +66,7 @@ func CreateFileFromRemoteContentsTFTP() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-          "ignition": { "version": "2.1.0" },
+          "ignition": { "version": "$version" },
           "storage": {
             "files": [{
               "filesystem": "root",
@@ -84,12 +86,14 @@ func CreateFileFromRemoteContentsTFTP() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -98,7 +102,7 @@ func CreateFileFromRemoteContentsOEM() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.1.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -126,11 +130,13 @@ func CreateFileFromRemoteContentsOEM() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

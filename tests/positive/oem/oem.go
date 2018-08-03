@@ -28,7 +28,7 @@ func OEMSearchPath() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-		"ignition": {"version": "2.1.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"files": [
 				{
@@ -43,6 +43,7 @@ func OEMSearchPath() types.Test {
 				}
 			]}
 	}`
+	configMinVersion := "2.1.0"
 	lookasideFiles := []types.File{
 		{
 			Node: types.Node{
@@ -82,5 +83,6 @@ func OEMSearchPath() types.Test {
 		Out:               out,
 		OEMLookasideFiles: lookasideFiles,
 		Config:            config,
+		ConfigMinVersion:  configMinVersion,
 	}
 }

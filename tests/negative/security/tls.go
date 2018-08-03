@@ -96,7 +96,7 @@ func AppendConfigCustomCert() types.Test {
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.2.0",
+			"version": "$version",
 			"config": {
 			  "append": [{
 				"source": %q
@@ -107,12 +107,14 @@ func AppendConfigCustomCert() types.Test {
 			}
 		}
 	}`, customCAServer.URL)
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -122,7 +124,7 @@ func FetchFileCustomCert() types.Test {
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.2.0",
+			"version": "$version",
 			"timeouts": {
 				"httpTotal": 5
 			}
@@ -137,11 +139,13 @@ func FetchFileCustomCert() types.Test {
 			}]
 		}
 	}`, customCAServer.URL)
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

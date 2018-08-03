@@ -90,12 +90,12 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 )
 
 func AppendConfigCustomCert() types.Test {
-	name := "Append config with custom tls cert"
+	name := "Append config with custom tls cert_positive"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.2.0",
+			"version": "$version",
 			"config": {
 			  "append": [{
 				"source": %q
@@ -110,6 +110,7 @@ func AppendConfigCustomCert() types.Test {
 			}
 		}
 	}`, customCAServer.URL, dataurl.EncodeBytes(publicKey))
+	configMinVersion := "2.2.0"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
@@ -122,10 +123,11 @@ func AppendConfigCustomCert() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -135,7 +137,7 @@ func FetchFileCustomCert() types.Test {
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.2.0",
+			"version": "$version",
 			"security": {
 				"tls": {
 					"certificateAuthorities": [{
@@ -154,6 +156,7 @@ func FetchFileCustomCert() types.Test {
 			}]
 		}
 	}`, dataurl.EncodeBytes(publicKey), customCAServer.URL)
+	configMinVersion := "2.2.0"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
@@ -166,9 +169,10 @@ func FetchFileCustomCert() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

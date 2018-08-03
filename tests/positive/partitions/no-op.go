@@ -31,7 +31,7 @@ func DoNothing() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
 		"ignition": {
-			"version": "2.0.0"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [
@@ -41,11 +41,14 @@ func DoNothing() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.0.0"
+
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -55,7 +58,7 @@ func SpecifiedNonexistent() types.Test {
 	out := append(types.GetBaseDisk(), types.Disk{Alignment: types.IgnitionAlignment})
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [
@@ -96,10 +99,13 @@ func SpecifiedNonexistent() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
+
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

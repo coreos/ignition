@@ -21,14 +21,13 @@ import (
 
 func init() {
 	register.Register(register.PositiveTest, CreateFileOnRoot())
-	register.Register(register.PositiveTest, UserGroupByID_2_0_0())
-	register.Register(register.PositiveTest, UserGroupByID_2_1_0())
+	register.Register(register.PositiveTest, UserGroupByID())
 	register.Register(register.PositiveTest, ForceFileCreation())
 	register.Register(register.PositiveTest, ForceFileCreationNoOverwrite())
 	register.Register(register.PositiveTest, AppendToAFile())
 	register.Register(register.PositiveTest, AppendToNonexistentFile())
 	// TODO: Investigate why ignition's C code hates our environment
-	// register.Register(register.PositiveTest, UserGroupByName_2_1_0())
+	// register.Register(register.PositiveTest, UserGroupByName())
 }
 
 func CreateFileOnRoot() types.Test {
@@ -36,7 +35,7 @@ func CreateFileOnRoot() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -54,21 +53,23 @@ func CreateFileOnRoot() types.Test {
 			Contents: "example file\n",
 		},
 	})
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
-func UserGroupByID_2_0_0() types.Test {
-	name := "2.0.0 User/Group by id"
+func UserGroupByID() types.Test {
+	name := "User/Group by id"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -90,57 +91,23 @@ func UserGroupByID_2_0_0() types.Test {
 			Contents: "example file\n",
 		},
 	})
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
-func UserGroupByID_2_1_0() types.Test {
-	name := "2.1.0 User/Group by id"
+func UserGroupByName() types.Test {
+	name := "User/Group by name"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.0.0" },
-	  "storage": {
-	    "files": [{
-	      "filesystem": "root",
-	      "path": "/foo/bar",
-	      "contents": { "source": "data:,example%20file%0A" },
-		  "user": {"id": 500},
-		  "group": {"id": 500}
-	    }]
-	  }
-	}`
-	out[0].Partitions.AddFiles("ROOT", []types.File{
-		{
-			Node: types.Node{
-				Name:      "bar",
-				Directory: "foo",
-				User:      500,
-				Group:     500,
-			},
-			Contents: "example file\n",
-		},
-	})
-
-	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
-	}
-}
-
-func UserGroupByName_2_1_0() types.Test {
-	name := "2.1.0 User/Group by name"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	config := `{
-	  "ignition": { "version": "2.0.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -162,12 +129,14 @@ func UserGroupByName_2_1_0() types.Test {
 			Contents: "example file\n",
 		},
 	})
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -176,7 +145,7 @@ func ForceFileCreation() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -206,12 +175,14 @@ func ForceFileCreation() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -220,7 +191,7 @@ func ForceFileCreationNoOverwrite() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -249,12 +220,14 @@ func ForceFileCreationNoOverwrite() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -263,7 +236,7 @@ func AppendToAFile() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -291,12 +264,14 @@ func AppendToAFile() types.Test {
 			Contents: "example file\nhello world\n",
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -305,7 +280,7 @@ func AppendToNonexistentFile() types.Test {
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-	  "ignition": { "version": "2.2.0" },
+	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
 	      "filesystem": "root",
@@ -326,11 +301,13 @@ func AppendToNonexistentFile() types.Test {
 			Contents: "hello world\n",
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

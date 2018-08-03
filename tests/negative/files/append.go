@@ -36,7 +36,7 @@ func AppendToDirectory() types.Test {
 	}
 
 	config := `{
-	    "ignition": {"version": "2.2.0"},
+	    "ignition": {"version": "$version" },
 	    "storage": {
 	      "files": [{
 	      "filesystem": "root",
@@ -54,13 +54,15 @@ func AppendToDirectory() types.Test {
 			},
 		},
 	})
+	configMinVersion := "2.2.0"
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -76,7 +78,7 @@ func AppendAndOverwrite() types.Test {
 	}
 
 	config := `{
-		"ignition": {"version": "2.2.0"},
+		"ignition": {"version": "$version" },
 		"storage": {
 		  "files": [{
 	      "filesystem": "root",
@@ -87,6 +89,7 @@ func AppendAndOverwrite() types.Test {
 	    }]
 	  }
 	}`
+	configMinVersion := "2.2.0"
 
 	return types.Test{
 		Name:              name,
@@ -95,5 +98,6 @@ func AppendAndOverwrite() types.Test {
 		MntDevices:        mntDevices,
 		Config:            config,
 		ConfigShouldBeBad: true,
+		ConfigMinVersion:  configMinVersion,
 	}
 }

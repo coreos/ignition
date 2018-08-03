@@ -30,10 +30,7 @@ func init() {
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigOEM())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigData())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigData())
-	register.Register(register.PositiveTest, VersionOnlyConfig20())
-	register.Register(register.PositiveTest, VersionOnlyConfig21())
-	register.Register(register.PositiveTest, VersionOnlyConfig22())
-	register.Register(register.PositiveTest, VersionOnlyConfig23())
+	register.Register(register.PositiveTest, VersionOnlyConfig())
 	register.Register(register.PositiveTest, EmptyUserdata())
 }
 
@@ -48,7 +45,7 @@ func ReformatFilesystemAndWriteFile() types.Test {
 		},
 	}
 	config := `{
-		"ignition": {"version": "2.0.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -64,6 +61,7 @@ func ReformatFilesystemAndWriteFile() types.Test {
 				"contents": {"source": "data:,asdf"}
 			}]}
 	}`
+	configMinVersion := "2.0.0"
 
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").Files = []types.File{
@@ -77,11 +75,12 @@ func ReformatFilesystemAndWriteFile() types.Test {
 	}
 
 	return types.Test{
-		Name:       name,
-		In:         in,
-		Out:        out,
-		MntDevices: mntDevices,
-		Config:     config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -91,7 +90,7 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
 	  "ignition": {
-	    "version": "2.0.0",
+	    "version": "$version",
 	    "config": {
 	      "replace": {
 	        "source": "http://127.0.0.1:8080/config",
@@ -100,6 +99,7 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	    }
 	  }
 	}`
+	configMinVersion := "2.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -111,10 +111,11 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -124,7 +125,7 @@ func ReplaceConfigWithRemoteConfigTFTP() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
           "ignition": {
-            "version": "2.1.0",
+            "version": "$version",
             "config": {
               "replace": {
                 "source": "tftp://127.0.0.1:69/config",
@@ -133,6 +134,7 @@ func ReplaceConfigWithRemoteConfigTFTP() types.Test {
             }
           }
         }`
+	configMinVersion := "2.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -144,10 +146,11 @@ func ReplaceConfigWithRemoteConfigTFTP() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -157,7 +160,7 @@ func ReplaceConfigWithRemoteConfigOEM() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
           "ignition": {
-            "version": "2.1.0",
+            "version": "$version",
             "config": {
               "replace": {
                 "source": "oem:///config",
@@ -166,6 +169,7 @@ func ReplaceConfigWithRemoteConfigOEM() types.Test {
             }
           }
         }`
+	configMinVersion := "2.1.0"
 	in[0].Partitions.AddFiles("OEM", []types.File{
 		{
 			Node: types.Node{
@@ -194,10 +198,11 @@ func ReplaceConfigWithRemoteConfigOEM() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -207,7 +212,7 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
 	  "ignition": {
-	    "version": "2.0.0",
+	    "version": "$version",
 	    "config": {
 	      "append": [{
 	        "source": "http://127.0.0.1:8080/config",
@@ -223,6 +228,7 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
         }]
       }
 	}`
+	configMinVersion := "2.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -241,10 +247,11 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -254,7 +261,7 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
           "ignition": {
-            "version": "2.1.0",
+            "version": "$version",
             "config": {
               "append": [{
                 "source": "tftp://127.0.0.1:69/config",
@@ -270,6 +277,7 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
         }]
       }
         }`
+	configMinVersion := "2.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -288,10 +296,11 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -301,7 +310,7 @@ func AppendConfigWithRemoteConfigOEM() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
           "ignition": {
-            "version": "2.1.0",
+            "version": "$version",
             "config": {
               "append": [{
                 "source": "oem:///config",
@@ -317,6 +326,7 @@ func AppendConfigWithRemoteConfigOEM() types.Test {
         }]
       }
         }`
+	configMinVersion := "2.1.0"
 	in[0].Partitions.AddFiles("OEM", []types.File{
 		{
 			Node: types.Node{
@@ -352,10 +362,11 @@ func AppendConfigWithRemoteConfigOEM() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -365,7 +376,7 @@ func ReplaceConfigWithRemoteConfigData() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
           "ignition": {
-            "version": "2.1.0",
+            "version": "$version",
             "config": {
               "replace": {
 				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%222.1.0%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
@@ -373,6 +384,7 @@ func ReplaceConfigWithRemoteConfigData() types.Test {
             }
           }
         }`
+	configMinVersion := "2.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -384,10 +396,11 @@ func ReplaceConfigWithRemoteConfigData() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -397,7 +410,7 @@ func AppendConfigWithRemoteConfigData() types.Test {
 	out := types.GetBaseDisk()
 	config := `{
           "ignition": {
-            "version": "2.1.0",
+            "version": "$version",
             "config": {
               "append": [{
 				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%222.1.0%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
@@ -405,6 +418,7 @@ func AppendConfigWithRemoteConfigData() types.Test {
             }
           }
         }`
+	configMinVersion := "2.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -416,74 +430,29 @@ func AppendConfigWithRemoteConfigData() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
-func VersionOnlyConfig20() types.Test {
-	name := "Version Only Config 2.0.0"
+func VersionOnlyConfig() types.Test {
+	name := "Version Only Config"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
-		"ignition": {"version": "2.0.0"}
+		"ignition": {"version": "$version"}
 	}`
+	configMinVersion := "2.0.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
-	}
-}
-
-func VersionOnlyConfig21() types.Test {
-	name := "Version Only Config 2.1.0"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	config := `{
-		"ignition": {"version": "2.1.0"}
-	}`
-
-	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
-	}
-}
-
-func VersionOnlyConfig22() types.Test {
-	name := "Version Only Config 2.2.0"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	config := `{
-		"ignition": {"version": "2.2.0"}
-	}`
-
-	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
-	}
-}
-
-func VersionOnlyConfig23() types.Test {
-	name := "Version Only Config 2.3.0-experimental"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	config := `{
-		"ignition": {"version": "2.3.0-experimental"}
-	}`
-
-	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 

@@ -76,7 +76,7 @@ func Match1Recreate1Delete1Create1() types.Test {
 	})
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [
@@ -112,11 +112,14 @@ func Match1Recreate1Delete1Create1() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
+
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -171,7 +174,7 @@ func NothingMatches() types.Test {
 	})
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [
@@ -206,10 +209,13 @@ func NothingMatches() types.Test {
 			]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
+
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

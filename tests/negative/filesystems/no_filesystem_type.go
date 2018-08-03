@@ -36,7 +36,7 @@ func NoFilesystemType() types.Test {
 		},
 	}
 	config := `{
-		"ignition": {"version": "2.1.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -46,6 +46,7 @@ func NoFilesystemType() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
 		Name:              name,
@@ -54,6 +55,7 @@ func NoFilesystemType() types.Test {
 		MntDevices:        mntDevices,
 		Config:            config,
 		ConfigShouldBeBad: true,
+		ConfigMinVersion:  configMinVersion,
 	}
 }
 
@@ -68,7 +70,7 @@ func NoFilesystemTypeWithForce() types.Test {
 		},
 	}
 	config := `{
-		"ignition": {"version": "2.0.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -81,6 +83,7 @@ func NoFilesystemTypeWithForce() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.0.0"
 
 	return types.Test{
 		Name:              name,
@@ -89,6 +92,7 @@ func NoFilesystemTypeWithForce() types.Test {
 		MntDevices:        mntDevices,
 		Config:            config,
 		ConfigShouldBeBad: true,
+		ConfigMinVersion:  configMinVersion,
 	}
 }
 
@@ -103,7 +107,7 @@ func NoFilesystemTypeWithWipeFilesystem() types.Test {
 		},
 	}
 	config := `{
-		"ignition": {"version": "2.1.0"},
+		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
 				"mount": {
@@ -114,6 +118,7 @@ func NoFilesystemTypeWithWipeFilesystem() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.1.0"
 
 	return types.Test{
 		Name:              name,
@@ -122,5 +127,6 @@ func NoFilesystemTypeWithWipeFilesystem() types.Test {
 		MntDevices:        mntDevices,
 		Config:            config,
 		ConfigShouldBeBad: true,
+		ConfigMinVersion:  configMinVersion,
 	}
 }

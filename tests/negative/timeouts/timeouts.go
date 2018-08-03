@@ -46,7 +46,7 @@ var (
 		// second (less than we wait!)
 		w.Write([]byte(fmt.Sprintf(`{
 			"ignition": {
-				"version": "2.1.0",
+				"version": "$version",
 				"config": {
 					"append": [{
 						"source": %q
@@ -67,7 +67,7 @@ func DecreaseHTTPResponseHeadersTimeout() types.Test {
 	out := in
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.1.0",
+			"version": "$version",
 			"timeouts": {
 				"httpResponseHeaders": 1,
 				"httpTotal": 10
@@ -85,12 +85,14 @@ func DecreaseHTTPResponseHeadersTimeout() types.Test {
 			]
 		}
 	}`, respondDelayServer.URL)
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -100,7 +102,7 @@ func AppendWithHTTPTimeouts() types.Test {
 	out := in
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.1.0",
+			"version": "$version",
 			"config": {
 				"append": [{
 					"source": %q
@@ -113,12 +115,14 @@ func AppendWithHTTPTimeouts() types.Test {
 		}
 	}`, configDelayServer.URL)
 	configDelayServerURL = configDelayServer.URL
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -128,7 +132,7 @@ func AppendLowerHTTPTimeouts() types.Test {
 	out := in
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.1.0",
+			"version": "$version",
 			"config": {
 				"append": [{
 					"source": %q
@@ -137,12 +141,14 @@ func AppendLowerHTTPTimeouts() types.Test {
 		}
 	}`, configDelayServer.URL)
 	configDelayServerURL = configDelayServer.URL
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
 
@@ -158,7 +164,7 @@ func AppendNoneThenLowerHTTPTimeouts() types.Test {
 			// second (less than we wait!)
 			w.Write([]byte(`{
 				"ignition": {
-					"version": "2.1.0"
+					"version": "$version"
 				}
 			}`))
 		}))
@@ -167,8 +173,8 @@ func AppendNoneThenLowerHTTPTimeouts() types.Test {
 			// Give a config that appends ourselves and sets the timeouts to 1
 			// second (less than we wait!)
 			w.Write([]byte(fmt.Sprintf(`{
-			"ignition": {
-				"version": "2.1.0",
+			"ignition": 
+				"version": "$version",
 				"config": {
 					"append": [{
 						"source": %q
@@ -184,7 +190,7 @@ func AppendNoneThenLowerHTTPTimeouts() types.Test {
 	out := in
 	config := fmt.Sprintf(`{
 		"ignition": {
-			"version": "2.1.0",
+			"version": "$version",
 			"config": {
 				"append": [{
 					"source": %q
@@ -196,11 +202,13 @@ func AppendNoneThenLowerHTTPTimeouts() types.Test {
 			}
 		}
 	}`, configNoDelayServer.URL)
+	configMinVersion := "2.1.0"
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }

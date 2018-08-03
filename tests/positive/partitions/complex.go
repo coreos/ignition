@@ -31,7 +31,7 @@ func KitchenSink() types.Test {
 	// Ignition should not clobber by default, so omit the partition 5 entry
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "$version"
 		},
 		"storage": {
 			"disks": [{
@@ -74,6 +74,7 @@ func KitchenSink() types.Test {
 			}]
 		}
 	}`
+	configMinVersion := "2.3.0-experimental"
 
 	in = append(in, types.Disk{
 		Alignment: types.IgnitionAlignment,
@@ -162,9 +163,10 @@ func KitchenSink() types.Test {
 	})
 
 	return types.Test{
-		Name:   name,
-		In:     in,
-		Out:    out,
-		Config: config,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
 	}
 }
