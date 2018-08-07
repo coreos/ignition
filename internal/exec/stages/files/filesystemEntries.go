@@ -200,7 +200,7 @@ func (s stage) mapEntriesToFilesystems(config types.Config) (map[types.Filesyste
 
 	// Sort directories to ensure /a gets created before /a/b.
 	sortedDirs := config.Storage.Directories
-	sort.Sort(ByDirectorySegments(sortedDirs))
+	sort.Stable(ByDirectorySegments(sortedDirs))
 
 	// Add directories first to ensure they are created before files.
 	for _, d := range sortedDirs {
