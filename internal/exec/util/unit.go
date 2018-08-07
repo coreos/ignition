@@ -22,6 +22,7 @@ import (
 
 	configUtil "github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/internal/config/types"
+	"github.com/coreos/ignition/internal/distro"
 
 	"github.com/vincent-petithory/dataurl"
 )
@@ -113,9 +114,11 @@ func (u Util) EnableUnit(unit types.Unit) error {
 // presets link in /etc, which doesn't make sense for runtime units
 // Related: https://github.com/coreos/ignition/issues/588
 func (u Util) EnableRuntimeUnit(unit types.Unit, target string) error {
-	// we want to affect /run, which will be carried into the pivot,
-	// not a directory named /$DestDir/run
-	u.DestDir = "/"
+	// unless we're running tests locally, we want to affect /run, which will
+	// be carried into the pivot, not a directory named /$DestDir/run
+	if !distro.BlackboxTesting() {
+		u.DestDir = "/"
+	}
 
 	link := types.Link{
 		Node: types.Node{

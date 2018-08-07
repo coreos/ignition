@@ -55,7 +55,8 @@ var (
 	xfsMkfsCmd   = "/usr/sbin/mkfs.xfs"
 
 	// Flags
-	selinuxRelabel = "false"
+	selinuxRelabel  = "false"
+	blackboxTesting = "false"
 )
 
 func DiskByIDDir() string       { return diskByIDDir }
@@ -84,7 +85,8 @@ func SwapMkfsCmd() string  { return swapMkfsCmd }
 func VfatMkfsCmd() string  { return vfatMkfsCmd }
 func XfsMkfsCmd() string   { return xfsMkfsCmd }
 
-func SelinuxRelabel() bool { return bakedStringToBool(selinuxRelabel) }
+func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) }
+func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
 
 func fromEnv(nameSuffix, defaultValue string) string {
 	value := os.Getenv("IGNITION_" + nameSuffix)
