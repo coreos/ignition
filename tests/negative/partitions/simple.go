@@ -78,7 +78,7 @@ func DoesNotMatchNoWipeEntry() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.3.0-experimental"
+	configMinVersion := "2.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -112,7 +112,7 @@ func ValidAndDoesNotMatchNoWipeEntry() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.3.0-experimental"
+	configMinVersion := "2.0.0"
 
 	return types.Test{
 		Name:             name,

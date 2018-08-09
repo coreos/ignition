@@ -36,7 +36,7 @@ func CreateNetworkdUnit() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "2.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

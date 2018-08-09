@@ -46,7 +46,7 @@ func NoFilesystemType() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "2.0.0"
 
 	return types.Test{
 		Name:              name,

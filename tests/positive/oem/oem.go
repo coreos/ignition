@@ -43,7 +43,7 @@ func OEMSearchPath() types.Test {
 				}
 			]}
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "2.0.0"
 	lookasideFiles := []types.File{
 		{
 			Node: types.Node{

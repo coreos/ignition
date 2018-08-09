@@ -169,7 +169,7 @@ func ReplaceConfigWithRemoteConfigOEM() types.Test {
             }
           }
         }`
-	configMinVersion := "2.1.0"
+	configMinVersion := "2.0.0"
 	in[0].Partitions.AddFiles("OEM", []types.File{
 		{
 			Node: types.Node{
@@ -326,7 +326,7 @@ func AppendConfigWithRemoteConfigOEM() types.Test {
         }]
       }
         }`
-	configMinVersion := "2.1.0"
+	configMinVersion := "2.0.0"
 	in[0].Partitions.AddFiles("OEM", []types.File{
 		{
 			Node: types.Node{
@@ -384,7 +384,7 @@ func ReplaceConfigWithRemoteConfigData() types.Test {
             }
           }
         }`
-	configMinVersion := "2.1.0"
+	configMinVersion := "2.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -418,7 +418,7 @@ func AppendConfigWithRemoteConfigData() types.Test {
             }
           }
         }`
-	configMinVersion := "2.1.0"
+	configMinVersion := "2.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

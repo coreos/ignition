@@ -75,7 +75,7 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 -----END CERTIFICATE-----`)
 
 	customCAServerFile = []byte(`{
-			"ignition": { "version": "2.1.0" },
+			"ignition": { "version": "2.0.0" },
 			"storage": {
 				"files": [{
 					"filesystem": "root",
@@ -107,7 +107,7 @@ func AppendConfigCustomCert() types.Test {
 			}
 		}
 	}`, customCAServer.URL)
-	configMinVersion := "2.2.0"
+	configMinVersion := "2.1.0"
 
 	return types.Test{
 		Name:             name,
@@ -139,7 +139,7 @@ func FetchFileCustomCert() types.Test {
 			}]
 		}
 	}`, customCAServer.URL)
-	configMinVersion := "2.2.0"
+	configMinVersion := "2.1.0"
 
 	return types.Test{
 		Name:             name,
