@@ -22,22 +22,31 @@ import (
 
 	configUtil "github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/internal/config/types"
+	"github.com/coreos/ignition/internal/distro"
 
 	"github.com/vincent-petithory/dataurl"
 )
 
 const (
-	presetPath               string      = "/etc/systemd/system-preset/20-ignition.preset"
+	PresetPath               string      = "/etc/systemd/system-preset/20-ignition.preset"
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func FileFromSystemdUnit(unit types.Unit) (*FetchOp, error) {
+func FileFromSystemdUnit(unit types.Unit, runtime bool) (*FetchOp, error) {
 	u, err := url.Parse(dataurl.EncodeBytes([]byte(unit.Contents)))
 	if err != nil {
 		return nil, err
 	}
+
+	var path string
+	if runtime {
+		path = SystemdRuntimeUnitsPath()
+	} else {
+		path = SystemdUnitsPath()
+	}
+
 	return &FetchOp{
-		Path: filepath.Join(SystemdUnitsPath(), string(unit.Name)),
+		Path: filepath.Join(path, string(unit.Name)),
 		Url:  *u,
 		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
 	}, nil
@@ -55,13 +64,21 @@ func FileFromNetworkdUnit(unit types.Networkdunit) (*FetchOp, error) {
 	}, nil
 }
 
-func FileFromSystemdUnitDropin(unit types.Unit, dropin types.SystemdDropin) (*FetchOp, error) {
+func FileFromSystemdUnitDropin(unit types.Unit, dropin types.SystemdDropin, runtime bool) (*FetchOp, error) {
 	u, err := url.Parse(dataurl.EncodeBytes([]byte(dropin.Contents)))
 	if err != nil {
 		return nil, err
 	}
+
+	var path string
+	if runtime {
+		path = SystemdRuntimeDropinsPath(string(unit.Name))
+	} else {
+		path = SystemdDropinsPath(string(unit.Name))
+	}
+
 	return &FetchOp{
-		Path: filepath.Join(SystemdDropinsPath(string(unit.Name)), string(dropin.Name)),
+		Path: filepath.Join(path, string(dropin.Name)),
 		Url:  *u,
 		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
 	}, nil
@@ -94,12 +111,35 @@ func (u Util) EnableUnit(unit types.Unit) error {
 	return u.appendLineToPreset(fmt.Sprintf("enable %s", unit.Name))
 }
 
+// presets link in /etc, which doesn't make sense for runtime units
+// Related: https://github.com/coreos/ignition/issues/588
+func (u Util) EnableRuntimeUnit(unit types.Unit, target string) error {
+	// unless we're running tests locally, we want to affect /run, which will
+	// be carried into the pivot, not a directory named /$DestDir/run
+	if !distro.BlackboxTesting() {
+		u.DestDir = "/"
+	}
+
+	link := types.Link{
+		Node: types.Node{
+			Filesystem: "root",
+			// XXX(jl): make Wants/Required a parameter
+			Path: filepath.Join(SystemdRuntimeUnitWantsPath(target), string(unit.Name)),
+		},
+		LinkEmbedded1: types.LinkEmbedded1{
+			Target: filepath.Join("/", SystemdRuntimeUnitsPath(), string(unit.Name)),
+		},
+	}
+
+	return u.WriteLink(link)
+}
+
 func (u Util) DisableUnit(unit types.Unit) error {
 	return u.appendLineToPreset(fmt.Sprintf("disable %s", unit.Name))
 }
 
 func (u Util) appendLineToPreset(data string) error {
-	path := u.JoinPath(presetPath)
+	path := u.JoinPath(PresetPath)
 	if err := MkdirForFile(path); err != nil {
 		return err
 	}

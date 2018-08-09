@@ -29,7 +29,7 @@ import (
 )
 
 // createFilesystemsEntries creates the files described in config.Storage.{Files,Directories}.
-func (s stage) createFilesystemsEntries(config types.Config) error {
+func (s *stage) createFilesystemsEntries(config types.Config) error {
 	if len(config.Storage.Filesystems) == 0 {
 		return nil
 	}
@@ -53,9 +53,14 @@ func (s stage) createFilesystemsEntries(config types.Config) error {
 // filesystemEntry represent a thing that knows how to create itself.
 type filesystemEntry interface {
 	create(l *log.Logger, u util.Util) error
+	getPath() string
 }
 
 type fileEntry types.File
+
+func (tmp fileEntry) getPath() string {
+	return types.File(tmp).Path
+}
 
 func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	f := types.File(tmp)
@@ -87,6 +92,10 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 }
 
 type dirEntry types.Directory
+
+func (tmp dirEntry) getPath() string {
+	return types.Directory(tmp).Path
+}
 
 func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 	d := types.Directory(tmp)
@@ -146,6 +155,10 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 }
 
 type linkEntry types.Link
+
+func (tmp linkEntry) getPath() string {
+	return types.Link(tmp).Path
+}
 
 func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	s := types.Link(tmp)
@@ -234,7 +247,7 @@ func (s stage) mapEntriesToFilesystems(config types.Config) (map[types.Filesyste
 }
 
 // createEntries creates any files or directories listed for the filesystem in Storage.{Files,Directories}.
-func (s stage) createEntries(fs types.Filesystem, files []filesystemEntry) error {
+func (s *stage) createEntries(fs types.Filesystem, files []filesystemEntry) error {
 	s.Logger.PushPrefix("createFiles")
 	defer s.Logger.PopPrefix()
 
@@ -271,10 +284,33 @@ func (s stage) createEntries(fs types.Filesystem, files []filesystemEntry) error
 	}
 
 	for _, e := range files {
+		path := e.getPath()
+		// only relabel things on the root filesystem
+		if fs.Name == "root" && s.relabeling() {
+			// relabel from the first parent dir that we'll have to create --
+			// alternatively, we could make `MkdirForFile` fancier instead of
+			// using `os.MkdirAll`, though that's quite a lot of levels to plumb
+			// through
+			relabelFrom := path
+			dir := filepath.Dir(path)
+			for {
+				exists, err := u.PathExists(dir)
+				if err != nil {
+					return err
+				}
+				// we're done on the first hit -- also sanity check we didn't
+				// somehow get all the way up to /
+				if exists || dir == "/" {
+					break
+				}
+				relabelFrom = dir
+				dir = filepath.Dir(dir)
+			}
+			s.relabel(relabelFrom)
+		}
 		if err := e.create(s.Logger, u); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }

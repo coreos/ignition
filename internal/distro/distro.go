@@ -15,6 +15,7 @@
 package distro
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -35,15 +36,16 @@ var (
 	oemLookasideDir = "/usr/share/oem"
 
 	// Helper programs
-	chrootCmd   = "/usr/bin/chroot"
-	groupaddCmd = "/usr/sbin/groupadd"
-	idCmd       = "/usr/bin/id"
-	mdadmCmd    = "/usr/sbin/mdadm"
-	mountCmd    = "/usr/bin/mount"
-	sgdiskCmd   = "/usr/sbin/sgdisk"
-	udevadmCmd  = "/usr/bin/udevadm"
-	usermodCmd  = "/usr/sbin/usermod"
-	useraddCmd  = "/usr/sbin/useradd"
+	chrootCmd     = "/usr/bin/chroot"
+	groupaddCmd   = "/usr/sbin/groupadd"
+	idCmd         = "/usr/bin/id"
+	mdadmCmd      = "/usr/sbin/mdadm"
+	mountCmd      = "/usr/bin/mount"
+	sgdiskCmd     = "/usr/sbin/sgdisk"
+	udevadmCmd    = "/usr/bin/udevadm"
+	usermodCmd    = "/usr/sbin/usermod"
+	useraddCmd    = "/usr/sbin/useradd"
+	restoreconCmd = "/usr/sbin/restorecon"
 
 	// Filesystem tools
 	btrfsMkfsCmd = "/usr/sbin/mkfs.btrfs"
@@ -51,6 +53,10 @@ var (
 	swapMkfsCmd  = "/usr/sbin/mkswap"
 	vfatMkfsCmd  = "/usr/sbin/mkfs.vfat"
 	xfsMkfsCmd   = "/usr/sbin/mkfs.xfs"
+
+	// Flags
+	selinuxRelabel  = "false"
+	blackboxTesting = "false"
 )
 
 func DiskByIDDir() string       { return diskByIDDir }
@@ -62,15 +68,16 @@ func KernelCmdlinePath() string { return kernelCmdlinePath }
 func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
 func OEMLookasideDir() string   { return fromEnv("OEM_LOOKASIDE_DIR", oemLookasideDir) }
 
-func ChrootCmd() string   { return chrootCmd }
-func GroupaddCmd() string { return groupaddCmd }
-func IdCmd() string       { return idCmd }
-func MdadmCmd() string    { return mdadmCmd }
-func MountCmd() string    { return mountCmd }
-func SgdiskCmd() string   { return sgdiskCmd }
-func UdevadmCmd() string  { return udevadmCmd }
-func UsermodCmd() string  { return usermodCmd }
-func UseraddCmd() string  { return useraddCmd }
+func ChrootCmd() string     { return chrootCmd }
+func GroupaddCmd() string   { return groupaddCmd }
+func IdCmd() string         { return idCmd }
+func MdadmCmd() string      { return mdadmCmd }
+func MountCmd() string      { return mountCmd }
+func SgdiskCmd() string     { return sgdiskCmd }
+func UdevadmCmd() string    { return udevadmCmd }
+func UsermodCmd() string    { return usermodCmd }
+func UseraddCmd() string    { return useraddCmd }
+func RestoreconCmd() string { return restoreconCmd }
 
 func BtrfsMkfsCmd() string { return btrfsMkfsCmd }
 func Ext4MkfsCmd() string  { return ext4MkfsCmd }
@@ -78,10 +85,25 @@ func SwapMkfsCmd() string  { return swapMkfsCmd }
 func VfatMkfsCmd() string  { return vfatMkfsCmd }
 func XfsMkfsCmd() string   { return xfsMkfsCmd }
 
+func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) }
+func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
+
 func fromEnv(nameSuffix, defaultValue string) string {
 	value := os.Getenv("IGNITION_" + nameSuffix)
 	if value != "" {
 		return value
 	}
 	return defaultValue
+}
+
+func bakedStringToBool(s string) bool {
+	// the linker only supports string args, so do some basic bool sensing
+	if s == "true" || s == "1" {
+		return true
+	} else if s == "false" || s == "0" {
+		return false
+	} else {
+		// if we got a bad compile flag, just crash and burn rather than assume
+		panic(fmt.Sprintf("value '%s' cannot be interpreted as a boolean", s))
+	}
 }

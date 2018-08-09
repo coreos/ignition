@@ -8,6 +8,7 @@ set -eu
 # system
 GLDFLAGS="-X github.com/coreos/ignition/internal/distro.useraddCmd=useradd-stub "
 GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.usermodCmd=usermod-stub "
+GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.blackboxTesting=true "
 
 if [ "${HELPERS:-CL}" == "HOST" ]; then
 	GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.mdadmCmd=$(sudo which mdadm) "

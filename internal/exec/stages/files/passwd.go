@@ -21,13 +21,26 @@ import (
 )
 
 // createPasswd creates the users and groups as described in config.Passwd.
-func (s stage) createPasswd(config types.Config) error {
+func (s *stage) createPasswd(config types.Config) error {
 	if err := s.createGroups(config); err != nil {
 		return fmt.Errorf("failed to create groups: %v", err)
 	}
 
 	if err := s.createUsers(config); err != nil {
 		return fmt.Errorf("failed to create users: %v", err)
+	}
+
+	// to be safe, just blanket mark all passwd-related files rather than
+	// trying to make it more granular based on which executables we ran
+	if len(config.Passwd.Groups) != 0 || len(config.Passwd.Users) != 0 {
+		s.relabel(
+			"/etc/passwd*",
+			"/etc/group*",
+			"/etc/shadow*",
+			"/etc/gshadow*",
+			"/etc/.pwd.lock",
+			"/home",
+		)
 	}
 
 	return nil
