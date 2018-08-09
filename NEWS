@@ -1,3 +1,19 @@
+09-Aug-2018 IGNITION v0.27.0
+
+  Features:
+
+    - Ignition is now built as a Position Independent Executable (PIE)
+    - Blackbox tests now run against all spec versions (within the same major
+      version) greater than their minimum version
+    - Ignition now reports its status when running on Packet
+    - Add a compile-time flag to enable SELinux file relabeling after boot
+
+  Bug Fixes:
+
+    - Directories specified in both base and appended configs are always
+      created with the permissions specified in the appended config
+    - Call `chdir()` after `chroot()` to silence static checkers
+
 11-June-2018 IGNITION v0.26.0
 
   Features:
