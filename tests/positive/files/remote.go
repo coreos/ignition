@@ -130,7 +130,7 @@ func CreateFileFromRemoteContentsOEM() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "2.1.0"
+	configMinVersion := "2.0.0"
 
 	return types.Test{
 		Name:             name,

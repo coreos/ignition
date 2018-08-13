@@ -220,7 +220,7 @@ func ForceFileCreationNoOverwrite() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "2.2.0"
+	configMinVersion := "2.0.0"
 
 	return types.Test{
 		Name:             name,

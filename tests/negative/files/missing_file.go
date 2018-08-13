@@ -41,7 +41,7 @@ func MissingRemoteContentsHTTP() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "2.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -95,7 +95,7 @@ func MissingRemoteContentsOEM() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "2.0.0"
 
 	return types.Test{
 		Name:             name,
