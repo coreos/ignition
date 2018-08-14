@@ -40,6 +40,7 @@ func (s *stage) createPasswd(config types.Config) error {
 			"/etc/gshadow*",
 			"/etc/.pwd.lock",
 			"/home",
+			"/root",
 		)
 	}
 
