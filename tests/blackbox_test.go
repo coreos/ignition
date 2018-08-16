@@ -87,7 +87,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	ctx, cancelFunc := context.WithDeadline(context.Background(), time.Now().Add(testTimeout))
 	defer cancelFunc()
 
-	tmpDirectory, err := ioutil.TempDir("", "ignition-blackbox-")
+	tmpDirectory, err := ioutil.TempDir("/var/tmp", "ignition-blackbox-")
 	if err != nil {
 		return fmt.Errorf("failed to create a temp dir: %v", err)
 	}
