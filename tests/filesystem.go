@@ -127,42 +127,60 @@ func pickPartition(t *testing.T, device string, partitions []*types.Partition, l
 	return ""
 }
 
-// createVolume will create the image file of the specified size, create a
-// partition table in it, and generate mount paths for every partition
-func createVolume(t *testing.T, ctx context.Context, tmpDirectory string, index int, imageFile string, size int64, partitions []*types.Partition) (err error) {
+// setupDisk creates a backing file then loop mounts it. It sets up the partitions and filesystems on that loop device.
+// It returns any error it encounters, but cleans up after itself if it errors out.
+func setupDisk(t *testing.T, ctx context.Context, disk *types.Disk, diskIndex int, imageSize int64, tmpDirectory string) (err error) {
 	// attempt to create the file, will leave already existing files alone.
 	// os.Truncate requires the file to already exist
-	var out *os.File
-	out, err = os.Create(imageFile)
-	if err != nil {
+	var (
+		out *os.File
+		tmp []byte
+	)
+	if out, err = os.Create(disk.ImageFile); err != nil {
 		return err
 	}
 	defer func() {
 		// Delete the image file if this function exits with an error
 		if err != nil {
-			os.Remove(imageFile)
+			os.Remove(disk.ImageFile)
 		}
 	}()
 	out.Close()
 
 	// Truncate the file to the given size
-	err = os.Truncate(imageFile, size)
-	if err != nil {
+	if err = os.Truncate(disk.ImageFile, imageSize); err != nil {
 		return err
 	}
 
-	err = createPartitionTable(t, ctx, imageFile, partitions)
+	// Attach the file to a loopback device
+	tmp, err = run(t, ctx, "losetup", "-Pf", "--show", disk.ImageFile)
 	if err != nil {
 		return err
 	}
+	disk.Device = strings.TrimSpace(string(tmp))
+	loopdev := disk.Device
+	defer func() {
+		if err != nil {
+			destroyDevice(t, loopdev)
+		}
+	}()
 
-	for counter, partition := range partitions {
+	// Avoid race with kernel by waiting for loopDevice creation to complete
+	if _, err = run(t, ctx, "udevadm", "settle"); err != nil {
+		return fmt.Errorf("Settling devices: %v", err)
+	}
+
+	if err = createPartitionTable(t, ctx, disk.Device, disk.Partitions); err != nil {
+		return err
+	}
+
+	for counter, partition := range disk.Partitions {
 		if partition.TypeCode == "blank" || partition.FilesystemType == "" {
 			continue
 		}
 
-		partition.MountPath = filepath.Join(tmpDirectory, fmt.Sprintf("hd%dp%d", index, counter))
-		if err := os.Mkdir(partition.MountPath, 0777); err != nil {
+		partition.MountPath = filepath.Join(tmpDirectory, fmt.Sprintf("hd%dp%d", diskIndex, counter))
+		if err = os.Mkdir(partition.MountPath, 0777); err != nil {
 			return err
 		}
 		mountPath := partition.MountPath
@@ -172,37 +190,13 @@ func createVolume(t *testing.T, ctx context.Context, tmpDirectory string, index 
 				os.RemoveAll(mountPath)
 			}
 		}()
+
+		partition.Device = fmt.Sprintf("%sp%d", disk.Device, partition.Number)
+		if err = formatPartition(t, ctx, partition); err != nil {
+			return err
+		}
 	}
 	return nil
-}
-
-// setDevices will create devices for each of the partitions in the imageFile,
-// and then will format each partition according to what's described in the
-// partitions argument.
-func setDevices(t *testing.T, ctx context.Context, imageFile string, partitions []*types.Partition) (string, error) {
-	out, err := run(t, ctx, "losetup", "-Pf", "--show", imageFile)
-	if err != nil {
-		return "", err
-	}
-	loopDevice := strings.TrimSpace(string(out))
-
-	// Avoid race with kernel by waiting for loopDevice creation to complete
-	_, err = run(t, ctx, "udevadm", "settle")
-	if err != nil {
-		return "", fmt.Errorf("Settling devices: %v", err)
-	}
-
-	for _, partition := range partitions {
-		if partition.TypeCode == "blank" || partition.FilesystemType == "" {
-			continue
-		}
-		partition.Device = fmt.Sprintf("%sp%d", loopDevice, partition.Number)
-		err := formatPartition(t, ctx, partition)
-		if err != nil {
-			return "", err
-		}
-	}
-	return loopDevice, nil
 }
 
 func destroyDevice(t *testing.T, loopDevice string) error {
@@ -337,7 +331,7 @@ func mountPartitions(t *testing.T, ctx context.Context, partitions []*types.Part
 	return nil
 }
 
-func updateTypeGUID(t *testing.T, partition *types.Partition) error {
+func updateTypeGUID(partition *types.Partition) error {
 	partitionTypes := map[string]string{
 		"coreos-resize":   "3884DD41-8582-4404-B9A8-E9B84F2DF50E",
 		"data":            "0FC63DAF-8483-4772-8E79-3D69D8477DE4",
