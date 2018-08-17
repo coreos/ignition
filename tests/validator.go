@@ -39,10 +39,10 @@ func regexpSearch(itemName, pattern string, data []byte) (string, error) {
 	return string(match[1]), nil
 }
 
-func getPartitionSet(imageFile string) (map[int]struct{}, error) {
-	sgdiskOverview, err := exec.Command("sgdisk", "-p", imageFile).CombinedOutput()
+func getPartitionSet(device string) (map[int]struct{}, error) {
+	sgdiskOverview, err := exec.Command("sgdisk", "-p", device).CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("sgdisk -p %s failed: %v", imageFile, err)
+		return nil, fmt.Errorf("sgdisk -p %s failed: %v", device, err)
 	}
 
 	//What this regex means:       num      start    end    size,code,name
@@ -64,8 +64,8 @@ func getPartitionSet(imageFile string) (map[int]struct{}, error) {
 	return ret, nil
 }
 
-func validateDisk(t *testing.T, d types.Disk, imageFile string) error {
-	partitionSet, err := getPartitionSet(imageFile)
+func validateDisk(t *testing.T, d types.Disk) error {
+	partitionSet, err := getPartitionSet(d.Device)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func validateDisk(t *testing.T, d types.Disk, imageFile string) error {
 
 		sgdiskInfo, err := exec.Command(
 			"sgdisk", "-i", strconv.Itoa(e.Number),
-			imageFile).CombinedOutput()
+			d.Device).CombinedOutput()
 		if err != nil {
 			t.Error("sgdisk -i", strconv.Itoa(e.Number), err)
 			return nil
@@ -133,7 +133,7 @@ func formatUUID(s string) string {
 	return strings.ToUpper(strings.Replace(s, "-", "", -1))
 }
 
-func validateFilesystems(t *testing.T, expected []*types.Partition, imageFile string) error {
+func validateFilesystems(t *testing.T, expected []*types.Partition) error {
 	for _, e := range expected {
 		if e.FilesystemType != "" {
 			filesystemType, err := util.FilesystemType(e.Device)
@@ -169,23 +169,43 @@ func validateFilesystems(t *testing.T, expected []*types.Partition, imageFile st
 	return nil
 }
 
+func validatePartitionNodes(t *testing.T, partition *types.Partition) {
+	device, mountPath := partition.Device, partition.MountPath
+	if partition.Label != "ROOT" {
+		// TODO unmount root before doing validation so this is not a special case
+		if _, err := runWithoutContext(t, "mount", device, mountPath); err != nil {
+			t.Errorf("failed to mount %s: %v", device, err)
+		}
+		defer func() {
+			if _, err := runWithoutContext(t, "umount", mountPath); err != nil {
+				// failing to unmount is not a validation failure
+				t.Logf("Failed to unmount %s: %v", mountPath, err)
+			}
+		}()
+	}
+	for _, file := range partition.Files {
+		validateFile(t, partition, file)
+	}
+	for _, dir := range partition.Directories {
+		validateDirectory(t, partition, dir)
+	}
+	for _, link := range partition.Links {
+		validateLink(t, partition, link)
+	}
+	for _, node := range partition.RemovedNodes {
+		path := filepath.Join(partition.MountPath, node.Directory, node.Name)
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			t.Error("Node was expected to be removed and is present!", path)
+		}
+	}
+}
+
 func validateFilesDirectoriesAndLinks(t *testing.T, expected []*types.Partition) {
 	for _, partition := range expected {
-		for _, file := range partition.Files {
-			validateFile(t, partition, file)
+		if partition.TypeCode == "blank" || partition.Length == 0 || partition.FilesystemType == "" || partition.FilesystemType == "swap" {
+			continue
 		}
-		for _, dir := range partition.Directories {
-			validateDirectory(t, partition, dir)
-		}
-		for _, link := range partition.Links {
-			validateLink(t, partition, link)
-		}
-		for _, node := range partition.RemovedNodes {
-			path := filepath.Join(partition.MountPath, node.Directory, node.Name)
-			if _, err := os.Stat(path); !os.IsNotExist(err) {
-				t.Error("Node was expected to be removed and is present!", path)
-			}
-		}
+		validatePartitionNodes(t, partition)
 	}
 }
 

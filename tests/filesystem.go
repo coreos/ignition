@@ -174,12 +174,12 @@ func setupDisk(t *testing.T, ctx context.Context, disk *types.Disk, diskIndex in
 		return err
 	}
 
-	for counter, partition := range disk.Partitions {
-		if partition.TypeCode == "blank" || partition.FilesystemType == "" {
+	for _, partition := range disk.Partitions {
+		if partition.TypeCode == "blank" || partition.FilesystemType == "" || partition.FilesystemType == "swap" {
 			continue
 		}
 
-		partition.MountPath = filepath.Join(tmpDirectory, fmt.Sprintf("hd%dp%d", diskIndex, counter))
+		partition.MountPath = filepath.Join(tmpDirectory, fmt.Sprintf("hd%dp%d", diskIndex, partition.Number))
 		if err = os.Mkdir(partition.MountPath, 0777); err != nil {
 			return err
 		}
@@ -307,9 +307,7 @@ func mountRootPartition(t *testing.T, ctx context.Context, partitions []*types.P
 		if partition.Label != "ROOT" {
 			continue
 		}
-		args := []string{partition.Device, partition.MountPath}
-		_, err := run(t, ctx, "mount", args...)
-		if err != nil {
+		if _, err := run(t, ctx, "mount", partition.Device, partition.MountPath); err != nil {
 			return false, err
 		}
 		return true, nil
@@ -322,9 +320,8 @@ func mountPartitions(t *testing.T, ctx context.Context, partitions []*types.Part
 		if partition.FilesystemType == "" || partition.FilesystemType == "swap" || partition.Label == "ROOT" {
 			continue
 		}
-		args := []string{partition.Device, partition.MountPath}
-		_, err := run(t, ctx, "mount", args...)
-		if err != nil {
+
+		if _, err := run(t, ctx, "mount", partition.Device, partition.MountPath); err != nil {
 			return err
 		}
 	}

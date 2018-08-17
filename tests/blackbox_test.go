@@ -283,27 +283,11 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 
 	for _, disk := range test.Out {
 		if !negativeTests {
-			// Validation
-			err = mountPartitions(t, ctx, disk.Partitions)
-			if err != nil {
-				// mountPartitions may have partially succeeded, so try to
-				// unmount everything before returning
-				unmountPartitions(t, disk.Partitions)
-				return err
-			}
-			partitions := disk.Partitions
-			defer func() {
-				err := unmountPartitions(t, partitions)
-				if err != nil {
-					t.Errorf("error unmounting partitions: %v", err)
-				}
-			}()
-			t.Log(disk.ImageFile)
-			err = validateDisk(t, disk, disk.ImageFile)
+			err = validateDisk(t, disk)
 			if err != nil {
 				return err
 			}
-			err = validateFilesystems(t, disk.Partitions, disk.ImageFile)
+			err = validateFilesystems(t, disk.Partitions)
 			if err != nil {
 				return err
 			}
