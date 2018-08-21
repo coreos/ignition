@@ -100,6 +100,10 @@ The test should be added to the init function inside of the test file. If the te
 
 UUIDs may be required in the following fields of a Test object: In, Out, and Config. Replace all GUIDs with GUID varaibles which take on the format `$uuid<num>` (e.g. $uuid123). Where `<num>` must be a positive integer. GUID variables with identical `<num>` fields will be replaced with identical GUIDs. For example, look at [tests/positive/partitions/zeros.go](https://github.com/coreos/ignition/blob/master/tests/positive/partitions/zeros.go).
 
+## Releasing Ignition
+
+Create a new [release checklist](https://github.com/coreos/ignition/issues/new?template=release-checklist.md) and follow the steps there.
+
 ## Marking an experimental spec as stable
 
 When an experimental version of the Ignition config spec (e.g.: `2.3.0-experimental`) is to be declared stable (e.g. `2.3.0`), there are a handful of changes that must be made to the code base. These changes should have the following effects:
