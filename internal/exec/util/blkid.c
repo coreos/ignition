@@ -19,7 +19,7 @@
 static inline void _free_probe(blkid_probe *pr) { if (pr) blkid_free_probe(*pr); }
 #define _cleanup_probe_ __attribute__((cleanup(_free_probe)))
 
-static result_t extract_part_info(blkid_partition part, struct partition_info *info);
+static result_t extract_part_info(blkid_partition part, struct partition_info *info, long sector_divisor);
 
 static result_t checked_copy(char *dest, const char *src, size_t len);
 
@@ -141,10 +141,27 @@ result_t blkid_get_partition(const char *device, int part_num, struct partition_
 	if (!part)
 		return RESULT_BAD_INDEX;
 
-	return extract_part_info(part, info);
+	// topo points inside of pr and will be freed when pr is freed
+	blkid_topology topo = blkid_probe_get_topology(pr);
+	if (!topo) {
+		return RESULT_NO_TOPO;
+	}
+
+	long sector_size = blkid_topology_get_logical_sector_size(topo);
+	if (sector_size == 0) {
+		return RESULT_NO_SECTOR_SIZE;
+	}
+	if (sector_size % 512 != 0) {
+		return RESULT_BAD_SECTOR_SIZE;
+	}
+
+	return extract_part_info(part, info, sector_size / 512);
 }
 
-static result_t extract_part_info(blkid_partition part, struct partition_info *info)
+// extract_part_info reads the information for a partition into *info. sector_divisor is how many 512
+// byte sectors are in a logical sector (1 for "normal" sectors, 8 for 4k sectors). This is needed because
+// libblkid always assumes 512 byte sectors regardless of what the actual logical sector size of the device is.
+static result_t extract_part_info(blkid_partition part, struct partition_info *info, long sector_divisor)
 {
 	if (!part || !info)
 		return RESULT_BAD_PARAMS;
@@ -179,17 +196,17 @@ static result_t extract_part_info(blkid_partition part, struct partition_info *i
 		return RESULT_LOOKUP_FAILED;
 	info->number = itmp;
 
-	// start (in 512 byte sectors)
+	// start (in sectors)
 	itmp = blkid_partition_get_start(part);
 	if (itmp == -1)
 		return RESULT_LOOKUP_FAILED;
-	info->start = itmp;
+	info->start = itmp / sector_divisor;
 
-	// size (in 512 byte sectors)
+	// size (in sectors)
 	itmp = blkid_partition_get_size(part);
 	if (itmp == -1)
 		return RESULT_LOOKUP_FAILED;
-	info->size = itmp;
+	info->size = itmp / sector_divisor;
 
 	return RESULT_OK;
 }
