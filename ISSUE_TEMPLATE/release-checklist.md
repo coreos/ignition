@@ -1,3 +1,8 @@
+---
+name: Release checklist
+about: Checklist for releasing a new version of Ignition
+---
+
 Release checklist:
  - [ ] Write release notes in NEWS. Get them reviewed and merged
      - [ ] If doing a branched release, also include a PR to merge the NEWS changes into master
