@@ -87,7 +87,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	ctx, cancelFunc := context.WithDeadline(context.Background(), time.Now().Add(testTimeout))
 	defer cancelFunc()
 
-	tmpDirectory, err := ioutil.TempDir("", "ignition-blackbox-")
+	tmpDirectory, err := ioutil.TempDir("/var/tmp", "ignition-blackbox-")
 	if err != nil {
 		return fmt.Errorf("failed to create a temp dir: %v", err)
 	}
@@ -136,7 +136,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 					return err
 				}
 			}
-			err := updateTypeGUID(t, part)
+			err := updateTypeGUID(part)
 			if err != nil {
 				return err
 			}
@@ -144,46 +144,39 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 
 		disk.SetOffsets()
 		for _, part := range test.Out[i].Partitions {
-			err := updateTypeGUID(t, part)
+			err := updateTypeGUID(part)
 			if err != nil {
 				return err
 			}
 		}
 		test.Out[i].SetOffsets()
 
-		// Creation
-		err = createVolume(t, ctx, tmpDirectory, i, disk.ImageFile, imageSize, disk.Partitions)
-		// Move value into the local scope, because disk.ImageFile will change
-		// by the time this runs
-		imageFile := disk.ImageFile
-		defer func() {
-			err := os.Remove(imageFile)
-			if err != nil {
-				t.Errorf("couldn't remove %s: %v", imageFile, err)
-			}
-		}()
-		if err != nil {
+		if err = setupDisk(t, ctx, &disk, i, imageSize, tmpDirectory); err != nil {
 			return err
 		}
 
-		disk.Device, err = setDevices(t, ctx, disk.ImageFile, disk.Partitions)
+		// Creation
+		// Move value into the local scope, because disk.ImageFile and device
+		// will change by the time this runs
+		imageFile := disk.ImageFile
 		device := disk.Device
 		defer func() {
-			err := destroyDevice(t, device)
-			if err != nil {
+			if err := os.Remove(imageFile); err != nil {
+				t.Errorf("couldn't remove %s: %v", imageFile, err)
+			}
+		}()
+		defer func() {
+			if err := destroyDevice(t, device); err != nil {
 				t.Errorf("couldn't destroy device: %v", err)
 			}
 		}()
-		if err != nil {
-			return err
-		}
+
 		test.Out[i].Device = disk.Device
 
 		rootMounted, err := mountRootPartition(t, ctx, disk.Partitions)
 		partitions := disk.Partitions
 		defer func() {
-			err := unmountRootPartition(t, partitions)
-			if err != nil {
+			if err := unmountRootPartition(t, partitions); err != nil {
 				t.Errorf("couldn't unmount root partition: %v", err)
 			}
 		}()
@@ -192,18 +185,18 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		}
 
 		if rootMounted && strings.Contains(test.Config, "passwd") {
-			err = prepareRootPartitionForPasswd(t, ctx, disk.Partitions)
-			if err != nil {
+			if err = prepareRootPartitionForPasswd(t, ctx, disk.Partitions); err != nil {
 				return err
 			}
 		}
-		err = mountPartitions(t, ctx, disk.Partitions)
-		if err != nil {
+
+		if err = mountPartitions(t, ctx, disk.Partitions); err != nil {
 			// mountPartitions may have partially succeded, so at least try to
 			// unmount things.
 			unmountPartitions(t, disk.Partitions)
 			return err
 		}
+
 		err = createFilesForPartitions(t, disk.Partitions)
 		// unmount even if createFilesForPartitions failed
 		errUnmount := unmountPartitions(t, disk.Partitions)
@@ -290,27 +283,11 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 
 	for _, disk := range test.Out {
 		if !negativeTests {
-			// Validation
-			err = mountPartitions(t, ctx, disk.Partitions)
-			if err != nil {
-				// mountPartitions may have partially succeeded, so try to
-				// unmount everything before returning
-				unmountPartitions(t, disk.Partitions)
-				return err
-			}
-			partitions := disk.Partitions
-			defer func() {
-				err := unmountPartitions(t, partitions)
-				if err != nil {
-					t.Errorf("error unmounting partitions: %v", err)
-				}
-			}()
-			t.Log(disk.ImageFile)
-			err = validateDisk(t, disk, disk.ImageFile)
+			err = validateDisk(t, disk)
 			if err != nil {
 				return err
 			}
-			err = validateFilesystems(t, disk.Partitions, disk.ImageFile)
+			err = validateFilesystems(t, disk.Partitions)
 			if err != nil {
 				return err
 			}

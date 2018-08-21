@@ -36,15 +36,16 @@ var (
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	lastResponse           time.Time
+	lastResponses          = map[string]time.Time{}
 	respondThrottledServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if (lastResponse != time.Time{}) && time.Since(lastResponse) > time.Second*4 {
+		lastResponse, ok := lastResponses[r.RequestURI]
+		if ok && time.Since(lastResponse) > time.Second*4 {
 			// Only respond successfully if it's been more than 4 seconds since
 			// the last attempt
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		lastResponse = time.Now()
+		lastResponses[r.RequestURI] = time.Now()
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 )
@@ -106,7 +107,7 @@ func ConfirmHTTPBackoffWorks() types.Test {
 					"filesystem": "root",
 					"path": "/foo/bar",
 					"contents": {
-						"source": %q
+						"source": "%s/$version"
 					}
 				}
 			]
