@@ -75,6 +75,12 @@ func cResultToErr(res C.result_t, device string) error {
 		return fmt.Errorf("internal error. bad params passed while handling %q", device)
 	case C.RESULT_OVERFLOW:
 		return fmt.Errorf("internal error. libblkid returned impossibly large value when handling %q", device)
+	case C.RESULT_NO_TOPO:
+		return fmt.Errorf("failed to get topology information for %q", device)
+	case C.RESULT_NO_SECTOR_SIZE:
+		return fmt.Errorf("failed to get logical sector size for %q", device)
+	case C.RESULT_BAD_SECTOR_SIZE:
+		return fmt.Errorf("logical sector size for %q was not a multiple of 512", device)
 	default:
 		return fmt.Errorf("Unknown error while handling %q. err code: %d", device, res)
 	}

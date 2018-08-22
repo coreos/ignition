@@ -29,6 +29,9 @@ typedef enum {
 	RESULT_DISK_NOT_GPT,
 	RESULT_BAD_PARAMS,
 	RESULT_OVERFLOW,
+	RESULT_NO_TOPO,
+	RESULT_NO_SECTOR_SIZE,
+	RESULT_BAD_SECTOR_SIZE,
 } result_t;
 
 // really this shouldn't need to be larger than 145, but extra doesn't hurt
