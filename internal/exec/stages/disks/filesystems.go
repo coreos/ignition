@@ -106,47 +106,47 @@ func (s stage) createFilesystem(fs types.Mount) error {
 		mkfs = distro.BtrfsMkfsCmd()
 		args = append(args, "--force")
 		if fs.UUID != nil {
-			args = append(args, []string{"-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID)}...)
+			args = append(args, "-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID))
 		}
 		if fs.Label != nil {
-			args = append(args, []string{"-L", *fs.Label}...)
+			args = append(args, "-L", *fs.Label)
 		}
 	case "ext4":
 		mkfs = distro.Ext4MkfsCmd()
 		args = append(args, "-F")
 		if fs.UUID != nil {
-			args = append(args, []string{"-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID)}...)
+			args = append(args, "-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID))
 		}
 		if fs.Label != nil {
-			args = append(args, []string{"-L", *fs.Label}...)
+			args = append(args, "-L", *fs.Label)
 		}
 	case "xfs":
 		mkfs = distro.XfsMkfsCmd()
 		args = append(args, "-f")
 		if fs.UUID != nil {
-			args = append(args, []string{"-m", "uuid=" + canonicalizeFilesystemUUID(fs.Format, *fs.UUID)}...)
+			args = append(args, "-m", "uuid="+canonicalizeFilesystemUUID(fs.Format, *fs.UUID))
 		}
 		if fs.Label != nil {
-			args = append(args, []string{"-L", *fs.Label}...)
+			args = append(args, "-L", *fs.Label)
 		}
 	case "swap":
 		mkfs = distro.SwapMkfsCmd()
 		args = append(args, "-f")
 		if fs.UUID != nil {
-			args = append(args, []string{"-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID)}...)
+			args = append(args, "-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID))
 		}
 		if fs.Label != nil {
-			args = append(args, []string{"-L", *fs.Label}...)
+			args = append(args, "-L", *fs.Label)
 		}
 	case "vfat":
 		mkfs = distro.VfatMkfsCmd()
 		// There is no force flag for mkfs.vfat, it always destroys any data on
 		// the device at which it is pointed.
 		if fs.UUID != nil {
-			args = append(args, []string{"-i", canonicalizeFilesystemUUID(fs.Format, *fs.UUID)}...)
+			args = append(args, "-i", canonicalizeFilesystemUUID(fs.Format, *fs.UUID))
 		}
 		if fs.Label != nil {
-			args = append(args, []string{"-n", *fs.Label}...)
+			args = append(args, "-n", *fs.Label)
 		}
 	default:
 		return fmt.Errorf("unsupported filesystem format: %q", fs.Format)
