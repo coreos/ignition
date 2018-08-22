@@ -1,3 +1,16 @@
+22-Aug-2018 IGNITION v0.28.0
+
+  Features:
+
+    - Refactor blackbox tests to allow testing disks with 4k sectors
+
+  Bug Fixes:
+
+    - Correctly detect disks with 4k sectors when scanning existing partitions
+    - Fix race between HTTP backoff tests
+    - Set the minimum config versions in tests to the actual minimum required
+    - Relabel /root when SELinux relabeling is enabled
+
 09-Aug-2018 IGNITION v0.27.0
 
   Features:
