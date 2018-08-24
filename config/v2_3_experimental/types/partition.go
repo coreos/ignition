@@ -45,6 +45,20 @@ func (p Partition) Validate() report.Report {
 	return r
 }
 
+func (p Partition) ValidateSize() report.Report {
+	if p.Size != nil {
+		return report.ReportFromError(errors.ErrSizeDeprecated, report.EntryDeprecated)
+	}
+	return report.Report{}
+}
+
+func (p Partition) ValidateStart() report.Report {
+	if p.Start != nil {
+		return report.ReportFromError(errors.ErrStartDeprecated, report.EntryDeprecated)
+	}
+	return report.Report{}
+}
+
 func (p Partition) ValidateLabel() report.Report {
 	r := report.Report{}
 	if p.Label == nil {

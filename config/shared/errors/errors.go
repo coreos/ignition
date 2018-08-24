@@ -65,6 +65,8 @@ var (
 	ErrShouldNotExistWithOthers    = errors.New("shouldExist specified false with other options also specified")
 	ErrZeroesWithShouldNotExist    = errors.New("shouldExist is false for a partition and other partition(s) has start or size 0")
 	ErrPartitionsUnitsMismatch     = errors.New("cannot mix MBs and sectors within a disk")
+	ErrSizeDeprecated              = errors.New("size is deprecated; use sizeMB instead")
+	ErrStartDeprecated             = errors.New("start is deprecated; use startMB instead")
 
 	// Passwd section errors
 	ErrPasswdCreateDeprecated      = errors.New("the create object has been deprecated in favor of user-level options")
