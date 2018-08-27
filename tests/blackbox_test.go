@@ -19,8 +19,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -39,6 +41,8 @@ var (
 	// testTimeout controls how long a given test is allowed to run before being
 	// cancelled.
 	testTimeout = time.Second * 30
+	// somewhat of an abuse of contexts but go's got our hands tied
+	killContext = context.TODO()
 )
 
 func TestMain(m *testing.M) {
@@ -47,6 +51,20 @@ func TestMain(m *testing.M) {
 	tftpServer := &TFTPServer{}
 	tftpServer.Start()
 
+	interruptChan := make(chan os.Signal, 3)
+	signal.Notify(interruptChan, os.Interrupt, syscall.SIGTERM)
+	tmp, killCancel := context.WithCancel(context.Background())
+	killContext = tmp
+	go func() {
+		for {
+			sig := <-interruptChan
+			switch sig {
+			case os.Interrupt, syscall.SIGTERM:
+				killCancel()
+			}
+		}
+	}()
+
 	os.Exit(m.Run())
 }
 
@@ -54,6 +72,9 @@ func TestIgnitionBlackBox(t *testing.T) {
 	for _, test := range register.Tests[register.PositiveTest] {
 		test := test
 		t.Run(test.Name, func(t *testing.T) {
+			if killContext.Err() != nil {
+				t.SkipNow()
+			}
 			t.Parallel()
 			err := outer(t, test, false)
 			if err != nil {
@@ -67,6 +88,9 @@ func TestIgnitionBlackBoxNegative(t *testing.T) {
 	for _, test := range register.Tests[register.NegativeTest] {
 		test := test
 		t.Run(test.Name, func(t *testing.T) {
+			if killContext.Err() != nil {
+				t.SkipNow()
+			}
 			t.Parallel()
 			err := outer(t, test, true)
 			if err != nil {
@@ -84,7 +108,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		return err
 	}
 
-	ctx, cancelFunc := context.WithDeadline(context.Background(), time.Now().Add(testTimeout))
+	ctx, cancelFunc := context.WithDeadline(killContext, time.Now().Add(testTimeout))
 	defer cancelFunc()
 
 	tmpDirectory, err := ioutil.TempDir("/var/tmp", "ignition-blackbox-")
