@@ -128,14 +128,14 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	var rootLocation string
 
 	// Setup
-	err = createFilesFromSlice(t, oemLookasideDir, test.OEMLookasideFiles)
+	err = createFilesFromSlice(oemLookasideDir, test.OEMLookasideFiles)
 	// Defer before the error handling because the createFilesFromSlice function
 	// can fail after partially-creating things
 	defer os.RemoveAll(oemLookasideDir)
 	if err != nil {
 		return err
 	}
-	err = createFilesFromSlice(t, systemConfigDir, test.SystemDirFiles)
+	err = createFilesFromSlice(systemConfigDir, test.SystemDirFiles)
 	defer os.RemoveAll(systemConfigDir)
 	if err != nil {
 		return err
@@ -175,7 +175,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		}
 		test.Out[i].SetOffsets()
 
-		if err = setupDisk(t, ctx, &disk, i, imageSize, tmpDirectory); err != nil {
+		if err = setupDisk(ctx, &disk, i, imageSize, tmpDirectory); err != nil {
 			return err
 		}
 
@@ -190,17 +190,17 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 			}
 		}()
 		defer func() {
-			if err := destroyDevice(t, device); err != nil {
+			if err := destroyDevice(device); err != nil {
 				t.Errorf("couldn't destroy device: %v", err)
 			}
 		}()
 
 		test.Out[i].Device = disk.Device
 
-		rootMounted, err := mountRootPartition(t, ctx, disk.Partitions)
+		rootMounted, err := mountRootPartition(ctx, disk.Partitions)
 		partitions := disk.Partitions
 		defer func() {
-			if err := unmountRootPartition(t, partitions); err != nil {
+			if err := unmountRootPartition(partitions); err != nil {
 				t.Errorf("couldn't unmount root partition: %v", err)
 			}
 		}()
@@ -209,21 +209,21 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		}
 
 		if rootMounted && strings.Contains(test.Config, "passwd") {
-			if err = prepareRootPartitionForPasswd(t, ctx, disk.Partitions); err != nil {
+			if err = prepareRootPartitionForPasswd(ctx, disk.Partitions); err != nil {
 				return err
 			}
 		}
 
-		if err = mountPartitions(t, ctx, disk.Partitions); err != nil {
+		if err = mountPartitions(ctx, disk.Partitions); err != nil {
 			// mountPartitions may have partially succeded, so at least try to
 			// unmount things.
-			unmountPartitions(t, disk.Partitions)
+			unmountPartitions(disk.Partitions)
 			return err
 		}
 
-		err = createFilesForPartitions(t, disk.Partitions)
+		err = createFilesForPartitions(disk.Partitions)
 		// unmount even if createFilesForPartitions failed
-		errUnmount := unmountPartitions(t, disk.Partitions)
+		errUnmount := unmountPartitions(disk.Partitions)
 		if err != nil {
 			if errUnmount != nil {
 				t.Errorf("couldn't unmount partitions: %v", errUnmount)
@@ -235,7 +235,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 
 		// Mount device name substitution
 		for _, d := range test.MntDevices {
-			device := pickPartition(t, disk.Device, disk.Partitions, d.Label)
+			device := pickPartition(disk.Device, disk.Partitions, d.Label)
 			// The device may not be on this disk, if it's not found here let's
 			// assume we'll find it on another one and keep going
 			if device != "" {

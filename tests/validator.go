@@ -173,11 +173,11 @@ func validatePartitionNodes(t *testing.T, partition *types.Partition) {
 	device, mountPath := partition.Device, partition.MountPath
 	if partition.Label != "ROOT" {
 		// TODO unmount root before doing validation so this is not a special case
-		if _, err := runWithoutContext(t, "mount", device, mountPath); err != nil {
+		if _, err := runWithoutContext("mount", device, mountPath); err != nil {
 			t.Errorf("failed to mount %s: %v", device, err)
 		}
 		defer func() {
-			if _, err := runWithoutContext(t, "umount", mountPath); err != nil {
+			if _, err := runWithoutContext("umount", mountPath); err != nil {
 				// failing to unmount is not a validation failure
 				t.Logf("Failed to unmount %s: %v", mountPath, err)
 			}
