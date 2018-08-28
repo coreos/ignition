@@ -48,8 +48,14 @@ func runWithoutContext(command string, args ...string) ([]byte, error) {
 }
 
 func prepareRootPartitionForPasswd(ctx context.Context, partitions []*types.Partition) error {
+	ok, err := mountRootPartition(ctx, partitions)
+	if err != nil {
+		return err
+	}
+	defer unmountRootPartition(partitions)
+
 	mountPath := getRootLocation(partitions)
-	if mountPath == "" {
+	if mountPath == "" || !ok {
 		// Guess there's no root partition
 		return nil
 	}
@@ -78,7 +84,7 @@ func prepareRootPartitionForPasswd(ctx context.Context, partitions []*types.Part
 	}
 
 	// TODO: use the architecture, not hardcode amd64
-	_, err := run(ctx, "cp", "bin/amd64/id-stub", filepath.Join(mountPath, distro.IdCmd()))
+	_, err = run(ctx, "cp", "bin/amd64/id-stub", filepath.Join(mountPath, distro.IdCmd()))
 	if err != nil {
 		return err
 	}
@@ -315,19 +321,6 @@ func mountRootPartition(ctx context.Context, partitions []*types.Partition) (boo
 	return false, nil
 }
 
-func mountPartitions(ctx context.Context, partitions []*types.Partition) error {
-	for _, partition := range partitions {
-		if partition.FilesystemType == "" || partition.FilesystemType == "swap" || partition.Label == "ROOT" {
-			continue
-		}
-
-		if _, err := run(ctx, "mount", partition.Device, partition.MountPath); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func updateTypeGUID(partition *types.Partition) error {
 	partitionTypes := map[string]string{
 		"coreos-resize":   "3884DD41-8582-4404-B9A8-E9B84F2DF50E",
@@ -367,8 +360,16 @@ func removeEmpty(strings []string) []string {
 	return r
 }
 
-func createFilesForPartitions(partitions []*types.Partition) error {
+func createFilesForPartitions(ctx context.Context, partitions []*types.Partition) error {
 	for _, partition := range partitions {
+		if partition.FilesystemType == "swap" || partition.FilesystemType == "" {
+			continue
+		}
+		if _, err := run(ctx, "mount", partition.Device, partition.MountPath); err != nil {
+			return err
+		}
+		defer runWithoutContext("umount", partition.MountPath)
+
 		err := createDirectoriesFromSlice(partition.MountPath, partition.Directories)
 		if err != nil {
 			return err
@@ -450,23 +451,7 @@ func unmountRootPartition(partitions []*types.Partition) error {
 		if partition.Label != "ROOT" {
 			continue
 		}
-
-		_, err := runWithoutContext("umount", partition.Device)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func unmountPartitions(partitions []*types.Partition) error {
-	for _, partition := range partitions {
-		if partition.FilesystemType == "" || partition.FilesystemType == "swap" || partition.Label == "ROOT" {
-			continue
-		}
-
-		_, err := runWithoutContext("umount", partition.Device)
-		if err != nil {
+		if _, err := runWithoutContext("umount", partition.Device); err != nil {
 			return err
 		}
 	}

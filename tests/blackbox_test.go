@@ -197,40 +197,16 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 
 		test.Out[i].Device = disk.Device
 
-		rootMounted, err := mountRootPartition(ctx, disk.Partitions)
-		partitions := disk.Partitions
-		defer func() {
-			if err := unmountRootPartition(partitions); err != nil {
-				t.Errorf("couldn't unmount root partition: %v", err)
-			}
-		}()
-		if err != nil {
-			return err
-		}
-
-		if rootMounted && strings.Contains(test.Config, "passwd") {
+		if strings.Contains(test.Config, "passwd") {
 			if err = prepareRootPartitionForPasswd(ctx, disk.Partitions); err != nil {
 				return err
 			}
 		}
 
-		if err = mountPartitions(ctx, disk.Partitions); err != nil {
-			// mountPartitions may have partially succeded, so at least try to
-			// unmount things.
-			unmountPartitions(disk.Partitions)
-			return err
-		}
 
-		err = createFilesForPartitions(disk.Partitions)
-		// unmount even if createFilesForPartitions failed
-		errUnmount := unmountPartitions(disk.Partitions)
+		err = createFilesForPartitions(ctx, disk.Partitions)
 		if err != nil {
-			if errUnmount != nil {
-				t.Errorf("couldn't unmount partitions: %v", errUnmount)
-			}
 			return err
-		} else if errUnmount != nil {
-			return errUnmount
 		}
 
 		// Mount device name substitution
@@ -297,13 +273,23 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	if !negativeTests && disksErr != nil {
 		return disksErr
 	}
+
+	if ok, err := mountRootPartition(ctx, test.In[0].Partitions); err != nil {
+		return err
+	} else if !ok {
+		return fmt.Errorf("ROOT filesystem not found! A partition labeled ROOT is requred")
+	}
 	filesErr := runIgnition(t, ctx, "files", rootLocation, tmpDirectory, appendEnv)
+	if err := unmountRootPartition(test.In[0].Partitions); err != nil {
+		return err
+	}
 	if !negativeTests && filesErr != nil {
 		return filesErr
 	}
 	if negativeTests && disksErr == nil && filesErr == nil {
 		return fmt.Errorf("Expected failure and ignition succeeded")
 	}
+
 
 	for _, disk := range test.Out {
 		if !negativeTests {
