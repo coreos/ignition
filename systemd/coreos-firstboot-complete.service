@@ -10,6 +10,7 @@ RequiresMountsFor=/boot
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 # We should have only run if GRUB detected this file. Fail if we are unable to
 # remove it, rather than risking rerunning Ignition at next boot.
 ExecStart=/bin/rm /boot/coreos-firstboot
