@@ -15,6 +15,7 @@
 package blackbox
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -174,15 +175,14 @@ func validateFilesystems(t *testing.T, expected []*types.Partition) error {
 	return nil
 }
 
-func validatePartitionNodes(t *testing.T, partition *types.Partition) {
-	device, mountPath := partition.Device, partition.MountPath
-	if _, err := runWithoutContext("mount", device, mountPath); err != nil {
-		t.Errorf("failed to mount %s: %v", device, err)
+func validatePartitionNodes(t *testing.T, ctx context.Context, partition *types.Partition) {
+	if err := mountPartition(ctx, partition); err != nil {
+		t.Errorf("failed to mount %s: %v", partition.Device, err)
 	}
 	defer func() {
-		if _, err := runWithoutContext("umount", mountPath); err != nil {
+		if err := umountPartition(partition); err != nil {
 			// failing to unmount is not a validation failure
-			t.Logf("Failed to unmount %s: %v", mountPath, err)
+			t.Logf("Failed to unmount %s: %v", partition.MountPath, err)
 		}
 	}()
 	for _, file := range partition.Files {
@@ -202,12 +202,12 @@ func validatePartitionNodes(t *testing.T, partition *types.Partition) {
 	}
 }
 
-func validateFilesDirectoriesAndLinks(t *testing.T, expected []*types.Partition) {
+func validateFilesDirectoriesAndLinks(t *testing.T, ctx context.Context, expected []*types.Partition) {
 	for _, partition := range expected {
 		if partition.TypeCode == "blank" || partition.Length == 0 || partition.FilesystemType == "" || partition.FilesystemType == "swap" {
 			continue
 		}
-		validatePartitionNodes(t, partition)
+		validatePartitionNodes(t, ctx, partition)
 	}
 }
 

@@ -125,7 +125,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 
 	oemLookasideDir := filepath.Join(tmpDirectory, "oem-lookaside")
 	systemConfigDir := filepath.Join(tmpDirectory, "system")
-	var rootLocation string
+	var rootPartition *types.Partition
 
 	// Setup
 	err = createFilesFromSlice(oemLookasideDir, test.OEMLookasideFiles)
@@ -197,13 +197,6 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 
 		test.Out[i].Device = disk.Device
 
-		if strings.Contains(test.Config, "passwd") {
-			if err = prepareRootPartitionForPasswd(ctx, disk.Partitions); err != nil {
-				return err
-			}
-		}
-
-
 		err = createFilesForPartitions(ctx, disk.Partitions)
 		if err != nil {
 			return err
@@ -223,8 +216,17 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		// that got assigned to it
 		test.Config = strings.Replace(test.Config, fmt.Sprintf("$disk%d", i), disk.Device, -1)
 
-		if rootLocation == "" {
-			rootLocation = getRootLocation(disk.Partitions)
+		if rootPartition == nil {
+			rootPartition = getRootPartition(disk.Partitions)
+		}
+	}
+	if rootPartition == nil {
+		return fmt.Errorf("ROOT filesystem not found! A partition labeled ROOT is requred")
+	}
+
+	if strings.Contains(test.Config, "passwd") {
+		if err := prepareRootPartitionForPasswd(ctx, rootPartition); err != nil {
+			return err
 		}
 	}
 
@@ -232,10 +234,6 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	for i, disk := range test.Out {
 		// Update out structure with mount points & devices
 		setExpectedPartitionsDrive(test.In[i].Partitions, disk.Partitions)
-	}
-
-	if rootLocation == "" {
-		return fmt.Errorf("ROOT filesystem not found! A partition labeled ROOT is requred")
 	}
 
 	// Let's make sure that all of the devices we needed to substitute names in
@@ -269,18 +267,16 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		"IGNITION_OEM_LOOKASIDE_DIR=" + oemLookasideDir,
 		"IGNITION_SYSTEM_CONFIG_DIR=" + systemConfigDir,
 	}
-	disksErr := runIgnition(t, ctx, "disks", rootLocation, tmpDirectory, appendEnv)
+	disksErr := runIgnition(t, ctx, "disks", rootPartition.MountPath, tmpDirectory, appendEnv)
 	if !negativeTests && disksErr != nil {
 		return disksErr
 	}
 
-	if ok, err := mountRootPartition(ctx, test.In[0].Partitions); err != nil {
+	if err := mountPartition(ctx, rootPartition); err != nil {
 		return err
-	} else if !ok {
-		return fmt.Errorf("ROOT filesystem not found! A partition labeled ROOT is requred")
 	}
-	filesErr := runIgnition(t, ctx, "files", rootLocation, tmpDirectory, appendEnv)
-	if err := unmountRootPartition(test.In[0].Partitions); err != nil {
+	filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv)
+	if err := umountPartition(rootPartition); err != nil {
 		return err
 	}
 	if !negativeTests && filesErr != nil {
@@ -289,7 +285,6 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	if negativeTests && disksErr == nil && filesErr == nil {
 		return fmt.Errorf("Expected failure and ignition succeeded")
 	}
-
 
 	for _, disk := range test.Out {
 		if !negativeTests {
@@ -301,7 +296,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 			if err != nil {
 				return err
 			}
-			validateFilesDirectoriesAndLinks(t, disk.Partitions)
+			validateFilesDirectoriesAndLinks(t, ctx, disk.Partitions)
 		}
 	}
 	return nil

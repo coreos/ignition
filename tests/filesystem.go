@@ -47,18 +47,13 @@ func runWithoutContext(command string, args ...string) ([]byte, error) {
 	return out, nil
 }
 
-func prepareRootPartitionForPasswd(ctx context.Context, partitions []*types.Partition) error {
-	ok, err := mountRootPartition(ctx, partitions)
-	if err != nil {
+func prepareRootPartitionForPasswd(ctx context.Context, root *types.Partition) error {
+	if err := mountPartition(ctx, root); err != nil {
 		return err
 	}
-	defer unmountRootPartition(partitions)
+	defer umountPartition(root)
 
-	mountPath := getRootLocation(partitions)
-	if mountPath == "" || !ok {
-		// Guess there's no root partition
-		return nil
-	}
+	mountPath := root.MountPath
 	dirs := []string{
 		filepath.Join(mountPath, "home"),
 		filepath.Join(mountPath, "usr", "bin"),
@@ -84,7 +79,7 @@ func prepareRootPartitionForPasswd(ctx context.Context, partitions []*types.Part
 	}
 
 	// TODO: use the architecture, not hardcode amd64
-	_, err = run(ctx, "cp", "bin/amd64/id-stub", filepath.Join(mountPath, distro.IdCmd()))
+	_, err := run(ctx, "cp", "bin/amd64/id-stub", filepath.Join(mountPath, distro.IdCmd()))
 	if err != nil {
 		return err
 	}
@@ -93,13 +88,29 @@ func prepareRootPartitionForPasswd(ctx context.Context, partitions []*types.Part
 	return err
 }
 
-func getRootLocation(partitions []*types.Partition) string {
+func getRootPartition(partitions []*types.Partition) *types.Partition {
 	for _, p := range partitions {
 		if p.Label == "ROOT" {
-			return p.MountPath
+			return p
 		}
 	}
-	return ""
+	return nil
+}
+
+func mountPartition(ctx context.Context, p *types.Partition) error {
+	if p.MountPath == "" || p.Device == "" {
+		return fmt.Errorf("Invalid partition for mounting %+v", p)
+	}
+	_, err := run(ctx, "mount", p.Device, p.MountPath)
+	return err
+}
+
+func umountPartition(p *types.Partition) error {
+	if p.MountPath == "" || p.Device == "" {
+		return fmt.Errorf("Invalid partition for unmounting %+v", p)
+	}
+	_, err := runWithoutContext("umount", p.MountPath)
+	return err
 }
 
 // returns true if no error, false if error
@@ -308,19 +319,6 @@ func createPartitionTable(ctx context.Context, imageFile string, partitions []*t
 	return err
 }
 
-func mountRootPartition(ctx context.Context, partitions []*types.Partition) (bool, error) {
-	for _, partition := range partitions {
-		if partition.Label != "ROOT" {
-			continue
-		}
-		if _, err := run(ctx, "mount", partition.Device, partition.MountPath); err != nil {
-			return false, err
-		}
-		return true, nil
-	}
-	return false, nil
-}
-
 func updateTypeGUID(partition *types.Partition) error {
 	partitionTypes := map[string]string{
 		"coreos-resize":   "3884DD41-8582-4404-B9A8-E9B84F2DF50E",
@@ -365,10 +363,10 @@ func createFilesForPartitions(ctx context.Context, partitions []*types.Partition
 		if partition.FilesystemType == "swap" || partition.FilesystemType == "" {
 			continue
 		}
-		if _, err := run(ctx, "mount", partition.Device, partition.MountPath); err != nil {
+		if err := mountPartition(ctx, partition); err != nil {
 			return err
 		}
-		defer runWithoutContext("umount", partition.MountPath)
+		defer umountPartition(partition)
 
 		err := createDirectoriesFromSlice(partition.MountPath, partition.Directories)
 		if err != nil {
@@ -440,18 +438,6 @@ func createLinksFromSlice(basedir string, links []types.Link) error {
 			err = os.Symlink(link.Target, filepath.Join(basedir, link.Directory, link.Name))
 		}
 		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func unmountRootPartition(partitions []*types.Partition) error {
-	for _, partition := range partitions {
-		if partition.Label != "ROOT" {
-			continue
-		}
-		if _, err := runWithoutContext("umount", partition.Device); err != nil {
 			return err
 		}
 	}
