@@ -29,6 +29,9 @@ export GOPATH=${PWD}/gopath
 export CGO_ENABLED=1
 
 echo "Building ${NAME}..."
+# clean the cache since cgo isn't correctly handled by gocache. Test to see if this version
+# of go supports caching before trying to clear the cache
+go clean -help 2>&1 | grep -F '[-cache]' >/dev/null && go clean -cache -testcache internal
 go build -buildmode=pie -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/internal
 
 NAME="ignition-validate"
