@@ -26,12 +26,10 @@ fi
 
 . build
 
-PKG=$(cd gopath/src/${REPO_PATH}; go list ./tests/...)
+PKG=$(cd gopath/src/${REPO_PATH}; go list ./tests/)
 
 echo "Compiling tests..."
-for p in ${PKG}; do
-	go test -c $p
-done
+go test -c $PKG
 
 for D in tests/stubs/*; do
 	if [ -d "${D}" ]; then

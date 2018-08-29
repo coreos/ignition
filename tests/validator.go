@@ -15,6 +15,7 @@
 package blackbox
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -126,6 +127,11 @@ func validateDisk(t *testing.T, d types.Disk) error {
 	if len(partitionSet) != 0 {
 		t.Error("Disk had extra partitions", partitionSet)
 	}
+
+	// TODO: inspect the disk without triggering partition rescans so we don't need to settle here
+	if _, err := runWithoutContext("udevadm", "settle"); err != nil {
+		t.Log(err)
+	}
 	return nil
 }
 
@@ -169,20 +175,16 @@ func validateFilesystems(t *testing.T, expected []*types.Partition) error {
 	return nil
 }
 
-func validatePartitionNodes(t *testing.T, partition *types.Partition) {
-	device, mountPath := partition.Device, partition.MountPath
-	if partition.Label != "ROOT" {
-		// TODO unmount root before doing validation so this is not a special case
-		if _, err := runWithoutContext(t, "mount", device, mountPath); err != nil {
-			t.Errorf("failed to mount %s: %v", device, err)
-		}
-		defer func() {
-			if _, err := runWithoutContext(t, "umount", mountPath); err != nil {
-				// failing to unmount is not a validation failure
-				t.Logf("Failed to unmount %s: %v", mountPath, err)
-			}
-		}()
+func validatePartitionNodes(t *testing.T, ctx context.Context, partition *types.Partition) {
+	if err := mountPartition(ctx, partition); err != nil {
+		t.Errorf("failed to mount %s: %v", partition.Device, err)
 	}
+	defer func() {
+		if err := umountPartition(partition); err != nil {
+			// failing to unmount is not a validation failure
+			t.Logf("Failed to unmount %s: %v", partition.MountPath, err)
+		}
+	}()
 	for _, file := range partition.Files {
 		validateFile(t, partition, file)
 	}
@@ -200,12 +202,12 @@ func validatePartitionNodes(t *testing.T, partition *types.Partition) {
 	}
 }
 
-func validateFilesDirectoriesAndLinks(t *testing.T, expected []*types.Partition) {
+func validateFilesDirectoriesAndLinks(t *testing.T, ctx context.Context, expected []*types.Partition) {
 	for _, partition := range expected {
 		if partition.TypeCode == "blank" || partition.Length == 0 || partition.FilesystemType == "" || partition.FilesystemType == "swap" {
 			continue
 		}
-		validatePartitionNodes(t, partition)
+		validatePartitionNodes(t, ctx, partition)
 	}
 }
 
