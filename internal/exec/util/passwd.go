@@ -145,7 +145,7 @@ func (u Util) CheckIfUserExists(c types.PasswdUser) (bool, error) {
 			u.Info("checking if user \"%s\" exists: %s", c.Name, fmt.Errorf("[Attention] %v: Cmd: %s Stdout: %s", err, log.QuotedCmd(cmd), stdout))
 			return false, nil
 		}
-		u.Logger.Info("error encountered (%+T): %v", err, err)
+		u.Logger.Info("error encountered (%T): %v", err, err)
 		return false, err
 	}
 	return true, nil

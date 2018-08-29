@@ -289,7 +289,7 @@ func (f *Fetcher) FetchFromOEM(u url.URL, dest *os.File, opts FetchOptions) erro
 
 	oemMountPath, err := ioutil.TempDir("/mnt", "oem")
 	if err != nil {
-		f.Logger.Err("failed to create mount path for oem partition: %v")
+		f.Logger.Err("failed to create mount path for oem partition: %v", err)
 		return ErrFailed
 	}
 	// try oemMountPath, requires mounting it.
