@@ -51,7 +51,7 @@ Build both the Ignition & test binaries inside of a docker container, for this e
 
 ```sh
 docker run --rm -e TARGET=amd64 -v "$PWD":/usr/src/myapp -w /usr/src/myapp quay.io/coreos/ignition-builder-1.8 ./build_blackbox_tests
-sudo -E PATH=$PWD/bin/amd64:$PATH ./tests.test
+sudo -E PATH=$PWD/bin/amd64:$PATH ./tests.test -test.parallel 4
 ```
 
 ## Runnning Blackbox Tests on platforms other than Container Linux
@@ -60,8 +60,12 @@ Build Ignition and the test binaries with HELPERS=HOST to use the paths of the b
 
 ```sh
 HELPERS=HOST ./build_blackbox_tests
-sudo sh -c 'PATH=$PWD/bin/amd64:$PATH ./tests.test'
+sudo sh -c 'PATH=$PWD/bin/amd64:$PATH ./tests.test -test.parallel 4'
 ```
+
+## Running Blackbox Tests in Parallel
+
+`test.parallel 4` is suggested due to the go test runner defaulting the parallelism level to the amount of cores on the host machine. The Ignition blackbox tests are still currently racey with higher parallelism and test validity / resource cleanup is not guaranteed on higher levels of parallelism.
 
 ## Test Host System Dependencies
 
