@@ -40,7 +40,7 @@ import (
 var (
 	// testTimeout controls how long a given test is allowed to run before being
 	// cancelled.
-	testTimeout = time.Second * 30
+	testTimeout = time.Second * 60
 	// somewhat of an abuse of contexts but go's got our hands tied
 	killContext = context.TODO()
 )
