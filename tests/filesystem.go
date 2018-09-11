@@ -23,7 +23,9 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/tests/types"
@@ -105,12 +107,55 @@ func mountPartition(ctx context.Context, p *types.Partition) error {
 	return err
 }
 
+// runGetExit runs the command and returns the exit status. It only returns an error when execing
+// the command encounters an error. exec'd programs that exit with non-zero status will not return
+// errors.
+func runGetExit(cmd string, args ...string) (int, string, error) {
+	tmp, err := exec.Command(cmd, args...).CombinedOutput()
+	logs := string(tmp)
+	if err == nil {
+		return 0, logs, nil
+	}
+	exitErr, ok := err.(*exec.ExitError)
+	if !ok {
+		return -1, logs, err
+	}
+	status, ok2 := exitErr.Sys().(syscall.WaitStatus)
+	if !ok2 {
+		return -1, logs, err
+	}
+	return status.ExitStatus(), logs, nil
+}
+
 func umountPartition(p *types.Partition) error {
 	if p.MountPath == "" || p.Device == "" {
 		return fmt.Errorf("Invalid partition for unmounting %+v", p)
 	}
-	_, err := runWithoutContext("umount", p.MountPath)
-	return err
+
+	// sometimes umount returns exit status 32 when it succeeds. Retry in this
+	// specific case. See https://github.com/coreos/bootengine/commit/8bf46fe78ec59bcd5148ce9ab8ec5fb805600151
+	// for more context.
+	for i := 0; i < 3; i++ {
+		status, logs, err := runGetExit("umount", p.MountPath)
+		if status == 0 {
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("exec'ing `umount %s` failed: %v", p.MountPath, err)
+		}
+		if status != 32 {
+			return fmt.Errorf("`umount %s` failed with exit status %d: %s", p.MountPath, status, logs)
+		}
+		// wait a sec to see if things clear up
+		time.Sleep(time.Second)
+
+		if unmounted, _, err := runGetExit("mountpoint", "-q", p.MountPath); err != nil {
+			return fmt.Errorf("exec'ing `mountpoint -q %s` failed: %v", p.MountPath, err)
+		} else if unmounted == 1 {
+			return nil
+		}
+	}
+	return fmt.Errorf("umount failed after 3 tries (exit status 32) for %s", p.MountPath)
 }
 
 // returns true if no error, false if error
