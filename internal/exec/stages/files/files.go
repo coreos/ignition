@@ -146,7 +146,7 @@ OnFailureJobMode=replace-irreversibly
 
 [Service]
 Type=oneshot
-ExecStart=` + distro.RestoreconCmd() + ` -0vRf /etc/selinux/ignition.relabel
+ExecStart=` + distro.RestoreconCmd() + ` -0vRif /etc/selinux/ignition.relabel
 ExecStart=/usr/bin/rm /etc/selinux/ignition.relabel
 RemainAfterExit=yes`,
 	}
