@@ -272,13 +272,19 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		return disksErr
 	}
 
-	if err := mountPartition(ctx, rootPartition); err != nil {
-		return err
+	var filesErr error
+	if disksErr == nil {
+		// Even if we're running negative tests, we shouldn't run the files stage if the disks stage
+		// failed. This is how Ignition was designed to be used.
+		if err := mountPartition(ctx, rootPartition); err != nil {
+			return err
+		}
+		filesErr = runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv)
+		if err := umountPartition(rootPartition); err != nil {
+			return err
+		}
 	}
-	filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv)
-	if err := umountPartition(rootPartition); err != nil {
-		return err
-	}
+
 	if !negativeTests && filesErr != nil {
 		return filesErr
 	}

@@ -1,5 +1,5 @@
-hash: 1de154fd59f1a5e02d4a9a15815f7328fb7cb8ef232ded755432f2d3b1120419
-updated: 2018-06-14T16:10:53.870195521-07:00
+hash: 7ac5073f3dddddf1f82ba6039fa082cd177b3c58bbdd13ac909b1e75c21e2609
+updated: 2018-09-05T15:27:05.905996183-07:00
 imports:
 - name: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
@@ -50,12 +50,15 @@ imports:
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmespath/go-jmespath
   version: c01cf91b011868172fdcd9f41838e80c9d716264
+- name: github.com/pborman/uuid
+  version: e790cca94e6cc75c7064b1332e63811d4aae1a53
 - name: github.com/pin/tftp
   version: 9ea92f6b1029bc1bf3072bba195c84bb9b0370e3
   subpackages:
   - netascii
 - name: github.com/sigma/bdoor
   version: babf2a4017b020d4ce04e8167076186e82645dd1
+  repo: https://github.com/sigma/bdoor
 - name: github.com/sigma/vmw-guestinfo
   version: 95dd4126d6e8b4ef1970b3f3fe2e8cdd470d2903
   subpackages:
@@ -84,10 +87,6 @@ testImports:
   version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
   subpackages:
   - spew
-- name: github.com/pborman/uuid
-  version: e790cca94e6cc75c7064b1332e63811d4aae1a53
-  subpackages:
-  - assert
 - name: github.com/pmezard/go-difflib
   version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
