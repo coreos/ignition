@@ -41,6 +41,9 @@ func (s *stage) createPasswd(config types.Config) error {
 			"/etc/.pwd.lock",
 			"/home",
 			"/root",
+			// for OSTree-based systems (newer restorecon doesn't follow symlinks)
+			"/var/home",
+			"/var/roothome",
 		)
 	}
 
