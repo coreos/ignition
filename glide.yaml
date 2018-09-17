@@ -3,11 +3,11 @@ import:
 - package: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
 - package: github.com/coreos/go-semver
-  version: 294930c1e79c64e7dbe360054274fdad492c8cf5
+  version: 0.1.0
 - package: github.com/coreos/go-systemd
   version: v17
 - package: github.com/pin/tftp
-  version: 9ea92f6b1029bc1bf3072bba195c84bb9b0370e3
+  version: 2.1.0
 - package: github.com/vmware/vmw-ovflib
   version: 1f217b9dc714d5f340d0a3cc3e9d49255c536f68
 - package: github.com/sigma/vmw-guestinfo
@@ -23,9 +23,7 @@ import:
 - package: github.com/spf13/pflag
   version: 1.0.0
 - package: github.com/godbus/dbus
-  version: a389bdde4dd695d414e47b755e95e72b7826432c
-- package: github.com/go-ini/ini
-  version: c787282c39ac1fc618827141a1f762240def08a3
+  version: 4.1.0
 # see https://github.com/Masterminds/glide/issues/564 on why this is not
 # in testImport
 - package: github.com/pborman/uuid
