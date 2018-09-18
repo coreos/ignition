@@ -2,13 +2,18 @@
 Description=Ignition (disks)
 DefaultDependencies=false
 
-Requires=sysinit.target
-After=sysinit.target
+# This stage runs between `basic.target` and `initrd-root-fs.target`,
+# see https://www.freedesktop.org/software/systemd/man/bootup.html
+After=basic.target
+Before=initrd-root-fs.target
 
+# Network may be used to fetch userdata content.
 Requires=network.target
 After=network.target
 
-Before=ignition-remount-sysroot.service
+# This stage requires udevd to detect disk partitioning changes.
+Requires=systemd-udevd.service
+After=systemd-udevd.service
 
 [Service]
 Type=oneshot
