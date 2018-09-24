@@ -16,6 +16,10 @@
 
 package util
 
+// We want at least this warning, since the default C behavior of
+// assuming int foo(int) is totally broken.
+
+// #cgo CFLAGS: -Werror=implicit-function-declaration
 // #cgo LDFLAGS: -lblkid
 // #include <stdlib.h>
 // #include "blkid.h"
