@@ -138,7 +138,7 @@ func (s *stage) addRelabelUnit(config types.Config) error {
 Description=Relabel files created by Ignition
 DefaultDependencies=no
 After=local-fs.target
-Before=sysinit.target
+Before=sysinit.target systemd-sysctl.service
 ConditionSecurity=selinux
 ConditionPathExists=/etc/selinux/ignition.relabel
 OnFailure=emergency.target
