@@ -16,6 +16,9 @@
 
 package util
 
+// See blkid.go for compiler warning comment.
+
+// #cgo CFLAGS: -Werror=implicit-function-declaration
 // #include "user_group_lookup.h"
 import "C"
 
