@@ -12,7 +12,6 @@ install() {
         groupadd \
         id \
         ignition \
-        mkfs.btrfs \
         mkfs.ext4 \
         mkfs.vfat \
         mkfs.xfs \
@@ -23,6 +22,9 @@ install() {
         useradd \
         usermod \
         touch
+
+    # This one is optional; https://src.fedoraproject.org/rpms/ignition/pull-request/9
+    inst_multiple -o mkfs.btrfs
 
 #   inst_script "$moddir/ignition-setup.sh" \
 #       "/usr/sbin/ignition-setup"
