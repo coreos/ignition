@@ -59,3 +59,8 @@ install() {
 #   inst_simple "$moddir/coreos-static-network.service" \
 #       "$systemdsystemunitdir/coreos-static-network.service"
 }
+
+installkernel() {
+    # We definitely need this one in the initrd to support Ignition cfgs on qemu
+    instmods -c qemu_fw_cfg
+}
