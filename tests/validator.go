@@ -289,7 +289,7 @@ func validateLink(t *testing.T, partition *types.Partition, link types.Link) {
 			return
 		}
 		if targetPath != link.Target {
-			t.Error("Actual and expected symbolic link targets don't match")
+			t.Errorf("Actual and expected symbolic link targets don't match. Expected %q, got %q", link.Target, targetPath)
 			return
 		}
 	}
