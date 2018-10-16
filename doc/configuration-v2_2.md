@@ -18,7 +18,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_httpTotal_** (integer) the time limit (in seconds) for the operation (connection, request, and response), including retries. 0 indicates no timeout. Default is 0.
   * **_security_** (object): options relating to network security.
     * **_tls_** (object): options relating to TLS when fetching resources over `https`.
-      * **_certificateAuthorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`.
+      * **_certificateAuthorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`; this applies only to Ignition itself, the certificates are not added persistently to the system-wide trust store.
         * **source** (string): the URL of the certificate (in PEM format). Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
         * **_verification_** (object): options related to the verification of the certificate.
           * **_hash_** (string): the hash of the certificate, in the form `<type>-<value>` where type is sha512.
