@@ -7,7 +7,7 @@
 [Unit]
 Description=Ask OSTree to mount /var in initramfs
 DefaultDependencies=false
-After=initrd-switch-root.target
+After=basic.target
 Before=ostree-prepare-root.service
 
 [Service]

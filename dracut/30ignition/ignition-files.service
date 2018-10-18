@@ -2,9 +2,12 @@
 Description=Ignition (files)
 DefaultDependencies=false
 
-# Ignition files stage starts after partitioning is completed.
+# Ignition files stage starts after /sysroot is mounted.
 Requires=initrd-root-fs.target
 After=initrd-root-fs.target
+
+# Run before initrd-parse-etc so that we can drop files it then picks up.
+Before=initrd-parse-etc.service
 
 # Network may be required to fetch userdata content.
 After=network.target
@@ -14,14 +17,9 @@ After=ignition-remount-sysroot.service
 Requires=ignition-remount-sysroot-var.service
 After=ignition-remount-sysroot-var.service
 
-After=ostree-prepare-root.service
-After=initrd-switch-root.target
-Before=initrd-switch-root.service
-
 ## NOTE(lucab): this was the original order in CL. This stage now runs
 ##  after initrd-cleanup, and some behavior may be subtly different.
 
-#Before=initrd-parse-etc.service
 # setup the root filesystem before we try do things like create users on it.
 #Requires=initrd-setup-root.service
 #After=initrd-setup-root.service
