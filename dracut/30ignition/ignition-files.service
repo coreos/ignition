@@ -12,21 +12,6 @@ Before=initrd-parse-etc.service
 # Network may be required to fetch userdata content.
 After=network.target
 
-Requires=ignition-remount-sysroot.service
-After=ignition-remount-sysroot.service
-Requires=ignition-remount-sysroot-var.service
-After=ignition-remount-sysroot-var.service
-
-## NOTE(lucab): this was the original order in CL. This stage now runs
-##  after initrd-cleanup, and some behavior may be subtly different.
-
-# setup the root filesystem before we try do things like create users on it.
-#Requires=initrd-setup-root.service
-#After=initrd-setup-root.service
-# generate resolv.conf
-#Wants=systemd-resolved.service
-#After=systemd-resolved.service
-
 [Service]
 Type=oneshot
 EnvironmentFile=/run/ignition.env
