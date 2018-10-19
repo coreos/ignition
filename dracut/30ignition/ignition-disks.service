@@ -8,7 +8,6 @@ After=basic.target
 Before=initrd-root-fs.target
 
 # Network may be used to fetch userdata content.
-Requires=network.target
 After=network.target
 
 # This stage requires udevd to detect disk partitioning changes.

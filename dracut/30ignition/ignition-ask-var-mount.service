@@ -14,3 +14,4 @@ Before=ostree-prepare-root.service
 Type=oneshot
 ExecStart=/bin/mkdir -p /run/ostree
 ExecStart=/bin/touch /run/ostree/initramfs-mount-var
+RemainAfterExit=yes
