@@ -61,6 +61,18 @@ func TestURLValidate(t *testing.T) {
 			in:  in{u: "bad://"},
 			out: out{err: errors.ErrInvalidScheme},
 		},
+		{
+			in:  in{u: "s3://bucket/key"},
+			out: out{},
+		},
+		{
+			in:  in{u: "s3://bucket/key?versionId="},
+			out: out{err: errors.ErrInvalidS3ObjectVersionId},
+		},
+		{
+			in:  in{u: "s3://bucket/key?versionId=aVersionHash"},
+			out: out{},
+		},
 	}
 
 	for i, test := range tests {
