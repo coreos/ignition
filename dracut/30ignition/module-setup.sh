@@ -54,7 +54,24 @@ install() {
 #       "$systemdsystemunitdir/coreos-static-network.service"
 }
 
+has_builtin_fw_cfg() {
+    # this is like check_kernel_config() but it specifically checks for `y` and
+    # also checks the OSTree-specific kernel location
+    for path in /boot/config-$kernel \
+                /usr/lib/modules/$kernel/config \
+                /usr/lib/ostree-boot/config-$kernel; do
+        if test -f $path; then
+            rc=0
+            grep -q CONFIG_FW_CFG_SYSFS=y $path || rc=$?
+            return $rc
+        fi
+    done
+    return 1
+}
+
 installkernel() {
     # We definitely need this one in the initrd to support Ignition cfgs on qemu
-    instmods -c qemu_fw_cfg
+    if ! has_builtin_fw_cfg; then
+        instmods -c qemu_fw_cfg
+    fi
 }
