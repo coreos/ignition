@@ -4,8 +4,13 @@ DefaultDependencies=false
 
 # This stage runs between `basic.target` and `initrd-root-fs.target`,
 # see https://www.freedesktop.org/software/systemd/man/bootup.html
+
+# Note that CL runs this before `local-fs-pre.target` to allow for configs that
+# completely wipe the rootfs. Though we're not there yet. But we still run
+# before `sysroot.mount` on principle.
 After=basic.target
 Before=initrd-root-fs.target
+Before=sysroot.mount
 
 # Network may be used to fetch userdata content.
 After=network.target

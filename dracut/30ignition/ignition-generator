@@ -27,8 +27,7 @@ cmdline_bool() {
 
 add_requires() {
     local name="$1"; shift
-    local target="${1:-initrd.target}"
-    local requires_dir="${UNIT_DIR}/${target}.requires"
+    local requires_dir="${UNIT_DIR}/initrd.target.requires"
     mkdir -p "${requires_dir}"
     ln -sf "../${name}" "${requires_dir}/${name}"
 }
@@ -37,11 +36,9 @@ add_requires() {
 # starts the unit's dependencies. We want to start networkd only on first
 # boot.
 if $(cmdline_bool 'coreos.firstboot' 0); then
-    add_requires ignition-disks.service initrd-root-fs.target
-    # we want this to run before initrd-switch-root.service, not initrd.target,
-    # because it needs to run after ostree-prepare-root.service.
-    add_requires ignition-files.service initrd-switch-root.service
-    add_requires ignition-ask-var-mount.service initrd-switch-root.service
+    add_requires ignition-disks.service
+    add_requires ignition-files.service
+    add_requires ignition-ask-var-mount.service
     #if [[ $(cmdline_arg coreos.oem.id) == "packet" ]]; then
     #    add_requires coreos-static-network.service
     #fi
