@@ -15,7 +15,7 @@
 package config
 
 import (
-	currentExperimental "github.com/coreos/ignition/config/v2_3_experimental"
+	currentExperimental "github.com/coreos/ignition/config/v2_4_experimental"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/config/types"
 )
