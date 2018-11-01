@@ -31,6 +31,10 @@ If `wipeFilesystem` is set to true, Ignition will always wipe any preexisting fi
 
 If `wipeFilesystem` is set to false, Ignition will then attempt to reuse the existing filesystem. If the filesystem is of the correct type, has a matching label, and has a matching UUID, then Ignition will reuse the filesystem. If the label or UUID is not set in the Ignition config, they don't need to match for Ignition to reuse the filesystem. Any preexisting data will be left on the device and will be available to the installation. If the preexisting filesystem is *not* of the correct type, then Ignition will fail, and the machine will fail to boot.
 
+## Path Traversal and Following Symlinks
+
+When resolving paths, Ignition follows symlinks on all but the last element of a path. This ensures existing symlinks on a filesystem can be overwritten while still following symlinks as expected. When writing files, links, or directories, Ignition does not allow following symlinks outside the specified filesystem. When writing files, links, or directories on the `root` filesystem, Ignition follows symlinks as if it were executing in that root; a symlink to `/etc` is followed to `/etc` on the `root` filesystem. When writing files, links, or directories to any other filesystem, Ignition fails if it tries to follow a symlink outside that filesystem.
+
 ## SELinux
 
 When using Ignition with distributions which have [SELinux][selinux] enabled, extra care must be taken to prevent Ignition from creating files that lack SELinux labels. Unfortunately, distributions do not typically include SELinux policies in the initramfs where Ignition runs, so any files, directories, and links created by Ignition don't receive the proper default SELinux labels.

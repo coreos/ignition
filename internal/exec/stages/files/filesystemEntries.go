@@ -101,10 +101,12 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 	d := types.Directory(tmp)
 
 	err := l.LogOp(func() error {
-		path := filepath.Clean(u.JoinPath(string(d.Path)))
-
-		err := u.DeletePathOnOverwrite(d.Node)
+		path, err := u.JoinPath(string(d.Path))
 		if err != nil {
+			return err
+		}
+
+		if err := u.DeletePathOnOverwrite(d.Node); err != nil {
 			return err
 		}
 
@@ -279,6 +281,7 @@ func (s *stage) createEntries(fs types.Filesystem, files []filesystemEntry) erro
 
 	u := util.Util{
 		DestDir: mnt,
+		IsRoot:  fs.Name == "root",
 		Fetcher: s.Util.Fetcher,
 		Logger:  s.Logger,
 	}

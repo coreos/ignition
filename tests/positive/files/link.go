@@ -22,6 +22,9 @@ import (
 func init() {
 	register.Register(register.PositiveTest, CreateHardLinkOnRoot())
 	register.Register(register.PositiveTest, CreateSymlinkOnRoot())
+	register.Register(register.PositiveTest, WriteThroughRelativeSymlink())
+	register.Register(register.PositiveTest, WriteThroughRelativeSymlinkBeyondRoot())
+	register.Register(register.PositiveTest, WriteThroughAbsoluteSymlink())
 	register.Register(register.PositiveTest, ForceLinkCreation())
 	register.Register(register.PositiveTest, ForceHardLinkCreation())
 }
@@ -108,6 +111,156 @@ func CreateSymlinkOnRoot() types.Test {
 				Directory: "foo",
 			},
 			Target: "/foo/target",
+			Hard:   false,
+		},
+	})
+	configMinVersion := "2.1.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func WriteThroughRelativeSymlink() types.Test {
+	name := "Write Through Relative Symlink on the Root Filesystem"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	// note this abuses the order in which ignition writes links and will break with 3.0.0
+	// Also tests that Ignition does not try to resolve symlink targets
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "links": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "target": "../etc"
+	    },
+	    {
+	      "filesystem": "root",
+	      "path": "/foo/bar/baz",
+	      "target": "somewhere/over/the/rainbow"
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Target: "../etc",
+			Hard:   false,
+		},
+		{
+			Node: types.Node{
+				Name:      "baz",
+				Directory: "etc",
+			},
+			Target: "somewhere/over/the/rainbow",
+			Hard:   false,
+		},
+	})
+	configMinVersion := "2.1.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func WriteThroughRelativeSymlinkBeyondRoot() types.Test {
+	name := "Write Through Relative Symlink beyond the root on the Root Filesystem"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	// note this abuses the order in which ignition writes links and will break with 3.0.0
+	// Also tests that Ignition does not try to resolve symlink targets
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "links": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "target": "../../etc"
+	    },
+	    {
+	      "filesystem": "root",
+	      "path": "/foo/bar/baz",
+	      "target": "somewhere/over/the/rainbow"
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Target: "../../etc",
+			Hard:   false,
+		},
+		{
+			Node: types.Node{
+				Name:      "baz",
+				Directory: "etc",
+			},
+			Target: "somewhere/over/the/rainbow",
+			Hard:   false,
+		},
+	})
+	configMinVersion := "2.1.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func WriteThroughAbsoluteSymlink() types.Test {
+	name := "Write Through Absolute Symlink on the Root Filesystem"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	// note this abuses the order in which ignition writes links and will break with 3.0.0
+	// Also tests that Ignition does not try to resolve symlink targets
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "links": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "target": "/etc"
+	    },
+	    {
+	      "filesystem": "root",
+	      "path": "/foo/bar/baz",
+	      "target": "somewhere/over/the/rainbow"
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Target: "/etc",
+			Hard:   false,
+		},
+		{
+			Node: types.Node{
+				Name:      "baz",
+				Directory: "etc",
+			},
+			Target: "somewhere/over/the/rainbow",
 			Hard:   false,
 		},
 	})

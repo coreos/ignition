@@ -160,7 +160,11 @@ RemainAfterExit=yes`,
 	}
 
 	// and now create the list of files to relabel
-	f, err := os.Create(s.JoinPath("etc/selinux/ignition.relabel"))
+	etcRelabelPath, err := s.JoinPath("etc/selinux/ignition.relabel")
+	if err != nil {
+		return err
+	}
+	f, err := os.Create(etcRelabelPath)
 	if err != nil {
 		return err
 	}
