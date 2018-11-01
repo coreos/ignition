@@ -47,7 +47,7 @@ func ShouldNotExistNoWipeEntry() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.3.0-experimental"
+	configMinVersion := "2.3.0"
 
 	return types.Test{
 		Name:             name,
@@ -147,7 +147,7 @@ func NotThereAndDoesNotMatchNoWipeEntry() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.3.0-experimental"
+	configMinVersion := "2.3.0"
 
 	return types.Test{
 		Name:             name,

@@ -31,7 +31,7 @@ func KitchenSinkMiB() types.Test {
 	// Ignition should not clobber by default, so omit the partition 5 entry
 	config := `{
 		"ignition": {
-			"version": "2.3.0-experimental"
+			"version": "2.3.0"
 		},
 		"storage": {
 			"disks": [{
