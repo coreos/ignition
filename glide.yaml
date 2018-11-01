@@ -5,7 +5,10 @@ import:
 - package: github.com/coreos/go-semver
   version: 0.1.0
 - package: github.com/coreos/go-systemd
-  version: v17
+  version: v18
+# Transitive dependency from go-systemd:v18
+- package: github.com/godbus/dbus
+  version: v5.0
 - package: github.com/pin/tftp
   version: 2.1.0
 - package: github.com/vmware/vmw-ovflib
@@ -28,8 +31,6 @@ import:
   version: 0.0.1
 - package: github.com/spf13/pflag
   version: 1.0.0
-- package: github.com/godbus/dbus
-  version: 4.1.0
 # see https://github.com/Masterminds/glide/issues/564 on why this is not
 # in testImport
 - package: github.com/pborman/uuid
