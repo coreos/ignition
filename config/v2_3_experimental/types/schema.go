@@ -142,9 +142,9 @@ type Partition struct {
 	Number             int     `json:"number,omitempty"`
 	ShouldExist        *bool   `json:"shouldExist,omitempty"`
 	Size               *int    `json:"size,omitempty"`
-	SizeMb             *int    `json:"size-mb,omitempty"`
+	SizeMb             *int    `json:"sizeMB,omitempty"`
 	Start              *int    `json:"start,omitempty"`
-	StartMb            *int    `json:"start-mb,omitempty"`
+	StartMb            *int    `json:"startMB,omitempty"`
 	TypeGUID           string  `json:"typeGuid,omitempty"`
 	WipePartitionEntry bool    `json:"wipePartitionEntry,omitempty"`
 }
