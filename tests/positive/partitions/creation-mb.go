@@ -54,7 +54,7 @@ func CreatePartitionMB() types.Test {
 				"partitions": [
 				{
 					"number": 1,
-					"size-mb": 32,
+					"sizeMB": 32,
 					"label": "create-partition",
 					"typeGuid": "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
 					"guid": "05AE8178-224E-4744-862A-4F4B042662D0"
@@ -99,8 +99,8 @@ func CreatePartitionMBWithStart() types.Test {
 				"partitions": [
 				{
 					"number": 1,
-					"start-mb": 1,
-					"size-mb": 32,
+					"startMB": 1,
+					"sizeMB": 32,
 					"label": "create-partition",
 					"typeGuid": "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
 					"guid": "05AE8178-224E-4744-862A-4F4B042662D0"
@@ -136,14 +136,14 @@ func WipeAndCreateNewPartitionsMB() types.Test {
 				{
 					"label": "important-data",
 					"number": 1,
-					"size-mb": 32,
+					"sizeMB": 32,
 					"typeGuid": "B921B045-1DF0-41C3-AF44-4C6F280D3FAE",
 					"guid": "8A7A6E26-5E8F-4CCA-A654-46215D4696AC"
 				},
 				{
 					"label": "ephemeral-data",
 					"number": 2,
-					"size-mb": 64,
+					"sizeMB": 64,
 					"typeGuid": "CA7D7CCB-63ED-4C53-861C-1742536059CC",
 					"guid": "A51034E6-26B3-48DF-BEED-220562AC7AD1"
 				}
@@ -218,14 +218,14 @@ func AppendPartitionsMB() types.Test {
 				"partitions": [{
 					"label": "additional-partition",
 					"number": 3,
-					"size-mb": 32,
+					"sizeMB": 32,
 					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
 					"guid": "3ED3993F-0016-422B-B134-09FCBA6F66EF"
 				},
 				{
 					"label": "additional-partition2",
 					"number": 4,
-					"size-mb": 32,
+					"sizeMB": 32,
 					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
 					"guid": "accedd09-76c2-4363-9893-f5689a78c47f"
 				}]
@@ -310,7 +310,7 @@ func ResizeRootMB() types.Test {
 				"partitions": [{
 					"label": "ROOT",
 					"number": 9,
-					"size-mb": 6352,
+					"sizeMB": 6352,
 					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E",
 					"guid": "3ED3993F-0016-422B-B134-09FCBA6F66EF",
 					"wipePartitionEntry": true
