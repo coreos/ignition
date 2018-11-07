@@ -2,6 +2,39 @@
 
 Occasionally, there are changes made to Ignition's configuration that break backward compatibility. While this is not a concern for running machines (since Ignition only runs one time during first boot), it is a concern for those who maintain configuration files. This document serves to detail each of the breaking changes and tries to provide some reasoning for the change. This does not cover all of the changes to the spec - just those that need to be considered when migrating from one version to the next.
 
+## From Version 2.2.0 to 2.3.0
+
+There are not any breaking changes between versions 2.2.0 and versions 2.3.0 of the configuration specification. Any valid 2.2.0 configuration can be updated to a 2.3.0 configuration by simply changing the version string in the config.
+
+The following is a list of notable new features, deprecations, and changes.
+
+### More expressive partitioning
+
+The `disks` section gained support for more complex partitioning operations. The `partitions` field has gained two new fields: `wipePartitionEntry` and `shouldExist`. The former indicates that Ignition is allowed to wipe a partition entry from the disk's partition table if necessary to satisfy the config. The latter indicates whether a partition with the specified number should exist on the disk. See the [Operator Notes](https://github.com/coreos/ignition/blob/master/doc/operator-notes.md) for more details.
+
+This allows for existing partitions to be resized (when possible) and for partitions to be deleted.
+
+The `start` and `size` fields which specify the starting sector and size of a partition (in sectors) are deprecated in favor of `startMiB` and `sizeMiB`, which are specified in mebibytes. Specifying 0 for the new fields has the same meaning as specifying 0 for the old fields.
+
+```json ignition
+{
+  "ignition": { "version": "2.3.0" },
+  "storage": {
+    "disks": [{
+      "device": "/dev/sda",
+      "partitions": [{
+        "number": 9,
+        "sizeMiB": 0,
+        "startMiB": 0,
+        "label": "ROOT",
+        "typeGuid": "4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709",
+        "wipePartitionEntry": true
+      }]
+    }]
+  }
+}
+```
+
 ## From Version 2.1.0 to 2.2.0
 
 There are not any breaking changes between versions 2.1.0 and versions 2.2.0 of the configuration specification. Any valid 2.1.0 configuration can be updated to a 2.2.0 configuration by simply changing the version string in the config.
