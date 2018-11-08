@@ -29,7 +29,7 @@ const (
 
 func (p Partition) Validate() report.Report {
 	r := report.Report{}
-	if (p.Start != nil || p.Size != nil) && (p.StartMb != nil || p.SizeMb != nil) {
+	if (p.Start != nil || p.Size != nil) && (p.StartMiB != nil || p.SizeMiB != nil) {
 		r.Add(report.Entry{
 			Message: errors.ErrPartitionsUnitsMismatch.Error(),
 			Kind:    report.EntryError,

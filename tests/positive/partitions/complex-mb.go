@@ -21,11 +21,11 @@ import (
 
 func init() {
 	// Everything and the kitchen sink
-	register.Register(register.PositiveTest, KitchenSinkMB())
+	register.Register(register.PositiveTest, KitchenSinkMiB())
 }
 
-func KitchenSinkMB() types.Test {
-	name := "Complex partitioning case using MBs"
+func KitchenSinkMiB() types.Test {
+	name := "Complex partitioning case using MiBs"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	// Ignition should not clobber by default, so omit the partition 5 entry
@@ -41,8 +41,8 @@ func KitchenSinkMB() types.Test {
 				{
 					"label": "p1",
 					"number": 1,
-					"startMB": 1,
-					"sizeMB": 32,
+					"startMiB": 1,
+					"sizeMiB": 32,
 					"typeGuid": "316f19f9-9e0f-431e-859e-ae6908dbe8ca",
 					"guid": "53f2e871-f468-437c-b90d-f3c6409df81a",
 					"wipePartitionEntry": true
@@ -50,13 +50,13 @@ func KitchenSinkMB() types.Test {
 				{
 					"label": "dont-delete",
 					"number": 2,
-					"sizeMB": 32
+					"sizeMiB": 32
 				},
 				{
 					"label": "new-biggest",
 					"number": 3,
-					"sizeMB": 0,
-					"startMB": 0,
+					"sizeMiB": 0,
+					"startMiB": 0,
 					"typeGuid": "6050e8fc-1e31-473b-bcc0-714e32fcb09d",
 					"guid": "f14984bc-6f08-4885-b668-526263469a00",
 					"wipePartitionEntry": true

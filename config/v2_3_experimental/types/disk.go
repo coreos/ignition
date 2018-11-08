@@ -156,7 +156,7 @@ func (n Disk) partitionsUnitsMismatch() bool {
 		if p.Size != nil || p.Start != nil {
 			partsNotInMb = true
 		}
-		if p.SizeMb != nil || p.StartMb != nil {
+		if p.SizeMiB != nil || p.StartMiB != nil {
 			partsInMb = true
 		}
 	}
