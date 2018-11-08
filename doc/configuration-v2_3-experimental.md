@@ -31,10 +31,10 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_partitions_** (list of objects): the list of partitions and their configuration for this particular disk.
       * **_label_** (string): the PARTLABEL for the partition.
       * **_number_** (integer): the partition number, which dictates it's position in the partition table (one-indexed). If zero, use the next available partition slot.
-      * **_sizeMB_** (integer): the size of the partition (in megabytes). If zero, the partition will be made as large as possible.
-      * **_startMB_** (integer): the start of the partition (in megabytes). If zero, the partition will be positioned at the start of the largest block available.
-      * **_size_** (integer, DEPRECATED): the size of the partition (in device logical sectors, 512 or 4096 bytes). If zero, the partition will be made as large as possible. This object has been marked for deprecation, please use **_sizeMB_** field instead.
-      * **_start_** (integer, DEPRECATED): the start of the partition (in device logical sectors). If zero, the partition will be positioned at the start of the largest block available. This object has been marked for deprecation, please use **_startMB_** field instead.
+      * **_sizeMiB_** (integer): the size of the partition (in mebibytes). If zero, the partition will be made as large as possible.
+      * **_startMiB_** (integer): the start of the partition (in mebibytes). If zero, the partition will be positioned at the start of the largest block available.
+      * **_size_** (integer, DEPRECATED): the size of the partition (in device logical sectors, 512 or 4096 bytes). If zero, the partition will be made as large as possible. This object has been marked for deprecation, please use **_sizeMiB_** field instead.
+      * **_start_** (integer, DEPRECATED): the start of the partition (in device logical sectors). If zero, the partition will be positioned at the start of the largest block available. This object has been marked for deprecation, please use **_startMiB_** field instead.
       * **_typeGuid_** (string): the GPT [partition type GUID][part-types]. If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
       * **_guid_** (string): the GPT unique partition GUID.
       * **_wipePartitionEntry_** (boolean) if true, Ignition will clobber an existing partition if it does not match the config. If false (default), Ignition will fail instead.

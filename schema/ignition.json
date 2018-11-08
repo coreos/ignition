@@ -295,10 +295,10 @@
             "start": {
               "type": ["integer", "null"]
             },
-            "sizeMB": {
+            "sizeMiB": {
               "type": ["integer", "null"]
             },
-            "startMB": {
+            "startMiB": {
               "type": ["integer", "null"]
             },
             "typeGuid": {

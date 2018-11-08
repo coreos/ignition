@@ -153,8 +153,8 @@ func partitionGetStart(p types.Partition) string {
 	if p.Start != nil {
 		return fmt.Sprintf("%d", *p.Start)
 	}
-	if p.StartMb != nil {
-		return fmt.Sprintf("%dM", *p.StartMb)
+	if p.StartMiB != nil {
+		return fmt.Sprintf("%dM", *p.StartMiB)
 	}
 	return "0"
 }
@@ -163,8 +163,8 @@ func partitionGetSize(p types.Partition) string {
 	if p.Size != nil {
 		return fmt.Sprintf("%d", *p.Size)
 	}
-	if p.SizeMb != nil {
-		return fmt.Sprintf("%dM", *p.SizeMb)
+	if p.SizeMiB != nil {
+		return fmt.Sprintf("%dM", *p.SizeMiB)
 	}
 	return "0"
 }

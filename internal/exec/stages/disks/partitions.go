@@ -97,9 +97,9 @@ func partitionShouldBeInspected(part types.Partition) bool {
 		return false
 	}
 	return (part.Start != nil && *part.Start == 0) ||
-		(part.StartMb != nil && *part.StartMb == 0) ||
+		(part.StartMiB != nil && *part.StartMiB == 0) ||
 		(part.Size != nil && *part.Size == 0) ||
-		(part.SizeMb != nil && *part.SizeMb == 0)
+		(part.SizeMiB != nil && *part.SizeMiB == 0)
 }
 
 // getRealStartAndSize returns a map of partition numbers to a struct that contains what their real start
@@ -112,13 +112,13 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, existanceMap
 		if exists {
 			// delete all existing partitions
 			op.DeletePartition(part.Number)
-			if part.Start == nil && part.StartMb == nil && !part.WipePartitionEntry {
+			if part.Start == nil && part.StartMiB == nil && !part.WipePartitionEntry {
 				// don't care means keep the same if we can't wipe, otherwise stick it at start 0
-				part.StartMb = nil
+				part.StartMiB = nil
 				part.Start = info.Start
 			}
-			if part.Size == nil && part.SizeMb == nil && !part.WipePartitionEntry {
-				part.SizeMb = nil
+			if part.Size == nil && part.SizeMiB == nil && !part.WipePartitionEntry {
+				part.SizeMiB = nil
 				part.Size = info.Size
 			}
 		}
@@ -152,11 +152,11 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, existanceMap
 	for _, part := range dev.Partitions {
 		if dims, ok := realDimensions[part.Number]; ok {
 			if part.Start != nil {
-				part.StartMb = nil
+				part.StartMiB = nil
 				part.Start = &dims.start
 			}
 			if part.Size != nil {
-				part.SizeMb = nil
+				part.SizeMiB = nil
 				part.Size = &dims.size
 			}
 		}
