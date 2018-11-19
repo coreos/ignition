@@ -35,6 +35,12 @@ import:
 # in testImport
 - package: github.com/pborman/uuid
   version: v1.1
+- package: golang.org/x/sys
+  original: golang.org/x/sys
+  repo: https://github.com/golang/sys.git
+  subpackages:
+    - unix
+  version: 93218def8b18e66adbdab3eca8ec334700329f1f
 testImport:
 - package: github.com/stretchr/testify
   version: 4d4bfba8f1d1027c4fdbe371823030df51419987
