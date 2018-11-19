@@ -224,7 +224,9 @@ func (f *Fetcher) FetchFromHTTP(u url.URL, dest *os.File, opts FetchOptions) err
 	if f.client == nil {
 		logger := log.New(true)
 		f.Logger = &logger
-		f.newHttpClient()
+		if err := f.newHttpClient(); err != nil {
+			return err
+		}
 	}
 
 	dataReader, status, ctxCancel, err := f.client.getReaderWithHeader(u.String(), opts.Headers)
@@ -389,9 +391,15 @@ func (f *Fetcher) FetchFromS3(u url.URL, dest *os.File, opts FetchOptions) error
 }
 
 func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest *os.File, input *s3.GetObjectInput, sess *session.Session) error {
-	downloader := s3manager.NewDownloader(sess)
-	_, err := downloader.DownloadWithContext(ctx, dest, input)
+	httpClient, err := defaultHTTPClient()
 	if err != nil {
+		return err
+	}
+
+	awsConfig := aws.NewConfig().WithHTTPClient(httpClient)
+	s3Client := s3.New(sess, awsConfig)
+	downloader := s3manager.NewDownloaderWithClient(s3Client)
+	if _, err := downloader.DownloadWithContext(ctx, dest, input); err != nil {
 		if awserrval, ok := err.(awserr.Error); ok && awserrval.Code() == "EC2RoleRequestError" {
 			// If this error was due to an EC2 role request error, try again
 			// with the anonymous credentials.
