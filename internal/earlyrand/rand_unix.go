@@ -1,13 +1,11 @@
-// Copyright 2010 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+// Copyright 2010 The Go Authors.
+// Copyright 2018 The Ignition Authors.
+// All rights reserved.
+// Use of this source code is governed by a BSD-style license.
 
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd plan9 solaris
+// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
 
-// Unix cryptographically secure pseudorandom number
-// generator.
-
-package rand
+package earlyrand
 
 import (
 	"bufio"
@@ -74,7 +72,7 @@ type hideAgainReader struct {
 
 func (hr hideAgainReader) Read(p []byte) (n int, err error) {
 	n, err = hr.r.Read(p)
-	if err != nil && isEAGAIN != nil && isEAGAIN(err) {
+	if err != nil && isEAGAIN != nil && unixIsEAGAIN(err) {
 		err = nil
 	}
 	return

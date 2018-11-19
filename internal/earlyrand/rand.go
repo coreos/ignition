@@ -1,21 +1,17 @@
-// Copyright 2010 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+// Copyright 2010 The Go Authors.
+// Copyright 2018 The Ignition Authors.
+// All rights reserved.
+// Use of this source code is governed by a BSD-style license.
 
-// Package rand implements a cryptographically secure
-// random number generator.
-package rand
+// Package earlyrand implements a early-boot cryptographically
+// mostly-secure random number generator.
+package earlyrand
 
 import "io"
 
-// Reader is a global, shared instance of a cryptographically
-// secure random number generator.
+// Reader is a global, shared instance of the random number generator.
 //
-// On Linux, Reader uses getrandom(2) if available, /dev/urandom otherwise.
-// On OpenBSD, Reader uses getentropy(2).
-// On other Unix-like systems, Reader reads from /dev/urandom.
-// On Windows systems, Reader uses the CryptGenRandom API.
-// On Wasm, Reader uses the Web Crypto API.
+// Reader uses non-blocking getrandom(2) if possible, /dev/urandom otherwise.
 var Reader io.Reader
 
 // Read is a helper function that calls Reader.Read using io.ReadFull.

@@ -1,10 +1,11 @@
-// Copyright 2014 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+// Copyright 2014 The Go Authors.
+// Copyright 2018 The Ignition Authors.
+// All rights reserved.
+// Use of this source code is governed by a BSD-style license.
 
 // +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
 
-package rand
+package earlyrand
 
 import (
 	"os"

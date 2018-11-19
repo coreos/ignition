@@ -1,11 +1,12 @@
-// Copyright 2014 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+// Copyright 2014 The Go Authors.
+// Copyright 2018 The Ignition Authors.
+// All rights reserved.
+// Use of this source code is governed by a BSD-style license.
 
-package rand
+package earlyrand
 
 import (
-	"internal/syscall/unix"
+	"golang.org/x/sys/unix"
 )
 
 func init() {
@@ -43,6 +44,6 @@ func batched(f func([]byte) bool, readMax int) func([]byte) bool {
 // until the kernel has sufficient randomness (as we don't use GRND_NONBLOCK).
 // In this case, unix.GetRandom will not return an error.
 func getRandomLinux(p []byte) (ok bool) {
-	n, err := unix.GetRandom(p, 0)
+	n, err := unix.Getrandom(p, 0)
 	return n == len(p) && err == nil
 }
