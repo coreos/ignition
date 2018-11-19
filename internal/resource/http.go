@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/internal/config/types"
+	"github.com/coreos/ignition/internal/earlyrand"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/util"
 	"github.com/coreos/ignition/internal/version"
@@ -171,8 +172,12 @@ func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.CaReference) error {
 	return nil
 }
 
-func (f *Fetcher) newHttpClient() {
-	transport := &http.Transport{
+// DefaultHTTPClient builds the default `http.client` for Ignition.
+func defaultHTTPClient() (*http.Client, *http.Transport) {
+	tlsConfig := tls.Config{
+		Rand: earlyrand.Reader,
+	}
+	transport := http.Transport{
 		ResponseHeaderTimeout: time.Duration(defaultHttpResponseHeaderTimeout) * time.Second,
 		Dial: (&net.Dialer{
 			Timeout:   30 * time.Second,
@@ -181,15 +186,23 @@ func (f *Fetcher) newHttpClient() {
 				PreferGo: true,
 			},
 		}).Dial,
+		TLSClientConfig:     &tlsConfig,
 		TLSHandshakeTimeout: 10 * time.Second,
 	}
+	client := http.Client{
+		Transport: &transport,
+	}
+	return &client, &transport
+}
+
+// newHttpClient populates the fetcher with the default HTTP client.
+func (f *Fetcher) newHttpClient() {
+	defaultClient, defaultTransport := defaultHTTPClient()
 	f.client = &HttpClient{
-		client: &http.Client{
-			Transport: transport,
-		},
+		client:    defaultClient,
 		logger:    f.Logger,
 		timeout:   time.Duration(defaultHttpTotalTimeout) * time.Second,
-		transport: transport,
+		transport: defaultTransport,
 		cas:       make(map[types.CaReference][]byte),
 	}
 }

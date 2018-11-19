@@ -389,7 +389,10 @@ func (f *Fetcher) FetchFromS3(u url.URL, dest *os.File, opts FetchOptions) error
 }
 
 func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest *os.File, input *s3.GetObjectInput, sess *session.Session) error {
-	downloader := s3manager.NewDownloader(sess)
+	httpClient, _ := defaultHTTPClient()
+	awsConfig := aws.NewConfig().WithHTTPClient(httpClient)
+	s3Client := s3.New(sess, awsConfig)
+	downloader := s3manager.NewDownloaderWithClient(s3Client)
 	_, err := downloader.DownloadWithContext(ctx, dest, input)
 	if err != nil {
 		if awserrval, ok := err.(awserr.Error); ok && awserrval.Code() == "EC2RoleRequestError" {
