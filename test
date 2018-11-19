@@ -18,7 +18,7 @@ EXPECTED_HEADER='//
 
 HEADER_CHECK_FAILED=0
 
-for file in $(find config internal validate tests -name \*.go -type f -not -name schema.go); do
+for file in $(find config internal validate tests -name \*.go -type f -not \( -name schema.go -o -path 'internal/earlyrand/*' \)); do
     # Don't check the first line because the year will vary
     HEADER="$(head -n 13 ${file} | tail -n 12)"
     if [ "${HEADER}" != "${EXPECTED_HEADER}" ]; then
