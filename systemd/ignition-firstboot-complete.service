@@ -1,11 +1,7 @@
 [Unit]
 Description=Mark boot complete
 Documentation=https://github.com/coreos/ignition
-# Note that deriving from Container Linux, there is
-# a tradition that coreos.first_boot=1 is used for PXE/diskless
-# scenarios where it's *always* first boot, so we don't want
-# to try to change `/boot` there.
-ConditionKernelCommandLine=coreos.firstboot=detected
+ConditionKernelCommandLine=ignition.firstboot
 RequiresMountsFor=/boot
 
 [Service]
@@ -13,7 +9,7 @@ Type=oneshot
 RemainAfterExit=yes
 # We should have only run if GRUB detected this file. Fail if we are unable to
 # remove it, rather than risking rerunning Ignition at next boot.
-ExecStart=/bin/rm /boot/coreos-firstboot
+ExecStart=/bin/rm /boot/ignition.firstboot
 
 [Install]
 WantedBy=multi-user.target
