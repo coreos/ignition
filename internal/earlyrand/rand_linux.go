@@ -40,10 +40,11 @@ func batched(f func([]byte) bool, readMax int) func([]byte) bool {
 // unix.GetRandom will immediately return ENOSYS and we will then fall back to
 // reading from /dev/urandom in rand_unix.go. unix.GetRandom caches the ENOSYS
 // result so we only suffer the syscall overhead once in this case.
-// If the kernel supports the getrandom() syscall, unix.GetRandom will block
-// until the kernel has sufficient randomness (as we don't use GRND_NONBLOCK).
-// In this case, unix.GetRandom will not return an error.
+// If the kernel supports the getrandom() syscall, unix.GetRandom will not block
+// (as we use GRND_NONBLOCK) but it may return `EAGAIN` if the system does not
+// have sufficient randomness at the time of the call.
+// In this case, unix.GetRandom will cache the error and fall back to `/dev/urandom`.
 func getRandomLinux(p []byte) (ok bool) {
-	n, err := unix.Getrandom(p, 0)
+	n, err := unix.Getrandom(p, unix.GRND_NONBLOCK)
 	return n == len(p) && err == nil
 }
