@@ -11,6 +11,7 @@ Ignition is currently only supported for the following platforms:
 * [Packet] - Ignition will read its configuration from the instance userdata. SSH keys are handled by coreos-metadata.
 * [QEMU] - Ignition will read its configuration from the 'opt/com.coreos/config' key on the QEMU Firmware Configuration Device.
 * [DigitalOcean] - Ignition will read its configuration from the droplet userdata. SSH keys and network configuration are handled by coreos-metadata.
+* [Hetzner Cloud] - Ignition will read its configuration from the instance userdata. SSH keys are handled by coreos-metadata.
 
 Ignition is under active development so expect this list to expand in the coming months.
 
