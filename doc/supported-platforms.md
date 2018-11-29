@@ -24,3 +24,4 @@ Ignition is under active development so expect this list to expand in the coming
 [Packet]: https://github.com/coreos/docs/blob/master/os/booting-on-packet.md
 [QEMU]: https://github.com/qemu/qemu/blob/d75aa4372f0414c9960534026a562b0302fcff29/docs/specs/fw_cfg.txt
 [DigitalOcean]: https://github.com/coreos/docs/blob/master/os/booting-on-digitalocean.md
+[Hetzner Cloud]: https://www.hetzner.com/cloud
