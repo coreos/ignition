@@ -10,7 +10,7 @@ The following is a list of notable new features, deprecations, and changes.
 
 ### More expressive partitioning
 
-The `disks` section gained support for more complex partitioning operations. The `partitions` field has gained two new fields: `wipePartitionEntry` and `shouldExist`. The former indicates that Ignition is allowed to wipe a partition entry from the disk's partition table if necessary to satisfy the config. The latter indicates whether a partition with the specified number should exist on the disk. See the [Operator Notes](https://github.com/coreos/ignition/blob/master/doc/operator-notes.md) for more details.
+The `disks` section gained support for more complex partitioning operations. The `partitions` field has gained two new fields: `wipePartitionEntry` and `shouldExist`. The former indicates that Ignition is allowed to wipe a partition entry from the disk's partition table if necessary to satisfy the config. The latter indicates whether a partition with the specified number should exist on the disk. See the [Operator Notes](operator-notes.md) for more details.
 
 This allows for existing partitions to be resized (when possible) and for partitions to be deleted.
 
