@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package v2_4_experimental
 
 import (
 	"net/url"
@@ -21,8 +21,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/coreos/ignition/config/util"
-	from "github.com/coreos/ignition/config/v2_4_experimental/types"
-	"github.com/coreos/ignition/internal/config/types"
+	from "github.com/coreos/ignition/config/v2_3/types"
+	"github.com/coreos/ignition/config/v2_4_experimental/types"
 )
 
 func TestTranslate(t *testing.T) {

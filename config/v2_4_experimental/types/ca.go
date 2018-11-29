@@ -15,9 +15,13 @@
 package types
 
 import (
-	currentExperimental "github.com/coreos/ignition/config/v2_4_experimental/types"
+	"github.com/coreos/ignition/config/validate/report"
 )
 
-var (
-	MaxVersion = currentExperimental.MaxVersion
-)
+func (c CaReference) ValidateSource() report.Report {
+	err := validateURL(c.Source)
+	if err != nil {
+		return report.ReportFromError(err, report.EntryError)
+	}
+	return report.Report{}
+}

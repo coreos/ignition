@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v2_3_experimental
+package v2_3
 
 import (
 	"net/url"
@@ -22,7 +22,7 @@ import (
 
 	"github.com/coreos/ignition/config/util"
 	v2_2 "github.com/coreos/ignition/config/v2_2/types"
-	"github.com/coreos/ignition/config/v2_3_experimental/types"
+	"github.com/coreos/ignition/config/v2_3/types"
 )
 
 func TestTranslate(t *testing.T) {

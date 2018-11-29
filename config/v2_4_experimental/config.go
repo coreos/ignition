@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v2_3_experimental
+package v2_4_experimental
 
 import (
 	"github.com/coreos/ignition/config/shared/errors"
-	"github.com/coreos/ignition/config/v2_2"
-	"github.com/coreos/ignition/config/v2_3_experimental/types"
+	"github.com/coreos/ignition/config/v2_3"
+	"github.com/coreos/ignition/config/v2_4_experimental/types"
 	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
 
@@ -46,7 +46,7 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	if err != nil || semverErr != nil || version.LessThan(types.MaxVersion) {
 		// We can fail unmarshaling if it's an older config. Attempt to parse
 		// it as such.
-		config, rpt, err := v2_2.Parse(rawConfig)
+		config, rpt, err := v2_3.Parse(rawConfig)
 		if err != nil {
 			return types.Config{}, rpt, err
 		}

@@ -74,7 +74,7 @@ func KitchenSink() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "2.3.0-experimental"
+	configMinVersion := "2.3.0"
 
 	in = append(in, types.Disk{
 		Alignment: types.IgnitionAlignment,

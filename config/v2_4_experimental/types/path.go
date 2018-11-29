@@ -1,4 +1,4 @@
-// Copyright 2018 CoreOS, Inc.
+// Copyright 2016 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,9 +15,14 @@
 package types
 
 import (
-	currentExperimental "github.com/coreos/ignition/config/v2_4_experimental/types"
+	"path"
+
+	"github.com/coreos/ignition/config/shared/errors"
 )
 
-var (
-	MaxVersion = currentExperimental.MaxVersion
-)
+func validatePath(p string) error {
+	if !path.IsAbs(p) {
+		return errors.ErrPathRelative
+	}
+	return nil
+}
