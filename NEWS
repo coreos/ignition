@@ -1,3 +1,31 @@
+30-Nov-2018 IGNITION v0.29.0
+
+  Features:
+
+    - Add support for ?versionId on s3:// URLs
+
+  Changes:
+
+    - Mark the 2.3.0 config spec as stable
+    - No longer accept configs with version 2.3.0-experimental
+    - Create new 2.4.0-experimental config spec from 2.3.0
+
+  Bug Fixes:
+
+    - Don't allow HTTPS connections to block on system entropy pool
+    - Relabel /var/home and /var/roothome when SELinux is enabled
+    - Fix race where files were relabeled after systemd-sysctl.service
+    - Do not run udevadm settle after the disks stage if the disks stage did
+      nothing
+    - Allow writing relative symlinks
+    - Resolve absolute symlinks relative to specified filesystem instead of the
+      initramfs root
+    - Report status to Packet as "running" instead of "succeeded"
+
+  Test Changes:
+
+    - Fix race with umount when running blackbox tests
+
 22-Aug-2018 IGNITION v0.28.0
 
   Features:
