@@ -112,7 +112,7 @@ func postMessage(stageName string, e error, url string) error {
 		}
 	} else {
 		m = mStruct{
-			State:   "succeeded",
+			State:   "running",
 			Message: stageName + " Ignition status: finished successfully",
 		}
 	}
