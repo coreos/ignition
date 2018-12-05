@@ -27,6 +27,8 @@ func init() {
 	register.Register(register.PositiveTest, WriteThroughAbsoluteSymlink())
 	register.Register(register.PositiveTest, ForceLinkCreation())
 	register.Register(register.PositiveTest, ForceHardLinkCreation())
+	register.Register(register.PositiveTest, WriteOverSymlink())
+	register.Register(register.PositiveTest, WriteOverBrokenSymlink())
 }
 
 func CreateHardLinkOnRoot() types.Test {
@@ -387,6 +389,116 @@ func ForceHardLinkCreation() types.Test {
 		},
 	})
 	configMinVersion := "2.2.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func WriteOverSymlink() types.Test {
+	name := "Write Over Symlink at end of path"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	// note this abuses the order in which ignition writes links and will break with 3.0.0
+	// Also tests that Ignition does not try to resolve symlink targets
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/etc/file",
+	      "mode": 420
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Name:      "file",
+				Directory: "etc",
+			},
+			Target: "/usr/rofile",
+		},
+	})
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "rofile",
+				Directory: "usr",
+			},
+			Contents: "",
+			Mode:     420,
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "rofile",
+				Directory: "usr",
+			},
+			Contents: "",
+			Mode:     420,
+		},
+		{
+			Node: types.Node{
+				Name:      "file",
+				Directory: "etc",
+			},
+			Contents: "",
+			Mode:     420,
+		},
+	})
+	configMinVersion := "2.1.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func WriteOverBrokenSymlink() types.Test {
+	name := "Write Over Broken Symlink at end of path"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	// note this abuses the order in which ignition writes links and will break with 3.0.0
+	// Also tests that Ignition does not try to resolve symlink targets
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/etc/file",
+	      "mode": 420
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Name:      "file",
+				Directory: "etc",
+			},
+			Target: "/usr/rofile",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "file",
+				Directory: "etc",
+			},
+			Contents: "",
+			Mode:     420,
+		},
+	})
+	configMinVersion := "2.1.0"
 
 	return types.Test{
 		Name:             name,
