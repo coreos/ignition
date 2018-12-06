@@ -153,7 +153,7 @@ func (u Util) PerformFetch(f *FetchOp) error {
 		// guarantees here. If the user explicitly doesn't want us to overwrite
 		// preexisting nodes, check the target path and fail if something's
 		// there.
-		_, err := os.Stat(path)
+		_, err := os.Lstat(path)
 		switch {
 		case os.IsNotExist(err):
 			break
@@ -282,7 +282,7 @@ func (u Util) PathExists(path string) (bool, error) {
 		return false, err
 	}
 
-	_, err = os.Stat(path)
+	_, err = os.Lstat(path)
 	switch {
 	case os.IsNotExist(err):
 		return false, nil

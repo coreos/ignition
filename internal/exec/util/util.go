@@ -56,11 +56,14 @@ func wantsToEscape(p string) bool {
 // u.DestDir. This means that the resulting path will always be under
 // u.DestDir. If u.IsRoot is false, it fails if a symlink resolves such
 // that it would escape u.DestDir.
+// The last element of the path is never followed.
 func (u Util) JoinPath(path ...string) (string, error) {
 	components := []string{}
 	for _, tmp := range path {
 		components = append(components, splitPath(tmp)...)
 	}
+	last := components[len(components)-1]
+	components = components[:len(components)-1]
 
 	realpath := "/"
 	for _, component := range components {
@@ -94,5 +97,5 @@ func (u Util) JoinPath(path ...string) (string, error) {
 		realpath = filepath.Join(realpath, symlinkPath)
 	}
 
-	return filepath.Join(u.DestDir, realpath), nil
+	return filepath.Join(u.DestDir, realpath, last), nil
 }
