@@ -1,3 +1,10 @@
+06-Dec-2018 IGNITION v0.29.1
+
+  Bug Fixes:
+
+    - When writing files, directories, or links, do not follow symlinks if they
+      are the last path element
+
 30-Nov-2018 IGNITION v0.29.0
 
   Features:
