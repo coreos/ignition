@@ -55,6 +55,7 @@ func Register(tType TestType, t types.Test) {
 	test := types.DeepCopy(t)
 	version, semverErr := semver.NewVersion(test.ConfigMinVersion)
 	test.ReplaceAllVersionVars(test.ConfigMinVersion)
+	test.ConfigVersion = test.ConfigMinVersion
 	register(tType, test) // some tests purposefully don't have config version
 
 	if semverErr == nil && version != nil && t.ConfigMinVersion != "" {
@@ -62,6 +63,7 @@ func Register(tType TestType, t types.Test) {
 			if version.LessThan(v) {
 				test = types.DeepCopy(t)
 				test.ReplaceAllVersionVars(v.String())
+				test.ConfigVersion = v.String()
 				register(tType, test)
 			}
 		}
