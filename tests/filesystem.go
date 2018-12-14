@@ -405,7 +405,7 @@ func removeEmpty(strings []string) []string {
 
 func createFilesForPartitions(ctx context.Context, partitions []*types.Partition) error {
 	for _, partition := range partitions {
-		if partition.FilesystemType == "swap" || partition.FilesystemType == "" {
+		if partition.FilesystemType == "swap" || partition.FilesystemType == "" || partition.FilesystemType == "blank" {
 			continue
 		}
 		if err := mountPartition(ctx, partition); err != nil {

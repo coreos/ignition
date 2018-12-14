@@ -15,6 +15,8 @@
 package filesystems
 
 import (
+	"fmt"
+
 	"github.com/coreos/ignition/tests/register"
 	"github.com/coreos/ignition/tests/types"
 )
@@ -22,6 +24,7 @@ import (
 func init() {
 	register.Register(register.PositiveTest, ForceNewFilesystemOfSameType())
 	register.Register(register.PositiveTest, WipeFilesystemWithSameType())
+	register.Register(register.PositiveTest, FilesystemCreationOnMultipleDisks())
 }
 
 func ForceNewFilesystemOfSameType() types.Test {
@@ -119,6 +122,96 @@ func WipeFilesystemWithSameType() types.Test {
 			Directory: "",
 		},
 	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FilesystemCreationOnMultipleDisks() types.Test {
+	name := "Filesystem creation on multiple disks"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+
+	mntDevices := []types.MntDevice{}
+
+	for i := 0; i < 4; i++ {
+		label := fmt.Sprintf("data-%d", i)
+		in = append(in, types.Disk{
+			Alignment: types.IgnitionAlignment,
+			Partitions: types.Partitions{
+				{
+					Label:          label,
+					Number:         1,
+					Length:         65536,
+					FilesystemType: "blank",
+				},
+			},
+		})
+
+		out = append(out, types.Disk{
+			Alignment: types.IgnitionAlignment,
+			Partitions: types.Partitions{
+				{
+					Label:          label,
+					Number:         1,
+					Length:         65536,
+					FilesystemType: "xfs",
+				},
+			},
+		})
+
+		mntDevices = append(mntDevices, types.MntDevice{
+			Label:        label,
+			Substitution: fmt.Sprintf("$dev%d", i),
+		})
+	}
+
+	config := `{
+		"ignition": {"version": "$version"},
+		"storage": {
+			"filesystems": [
+				{
+					"name": "xfs-0",
+					"mount": {
+						"device": "$dev0",
+						"format": "xfs",
+						"label": "data-0"
+					}
+				},
+				{
+					"name": "xfs-1",
+					"mount": {
+						"device": "$dev1",
+						"format": "xfs",
+						"label": "data-1"
+					}
+				},
+				{
+					"name": "xfs-2",
+					"mount": {
+						"device": "$dev2",
+						"format": "xfs",
+						"label": "data-2"
+					}
+				},
+				{
+					"name": "xfs-3",
+					"mount": {
+						"device": "$dev3",
+						"format": "xfs",
+						"label": "data-3"
+					}
+				}
+			]
+		}
+	}`
+	configMinVersion := "2.0.0"
 
 	return types.Test{
 		Name:             name,
