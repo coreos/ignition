@@ -102,7 +102,7 @@ UUIDs may be required in the following fields of a Test object: In, Out, and Con
 
 ## Releasing Ignition
 
-Create a new [release checklist](https://github.com/coreos/ignition/issues/new?template=release-checklist.md) and follow the steps there.
+Create a new [release checklist](https://github.com/coreos/ignition/issues/new?labels=kind/release&template=release-checklist.md) and follow the steps there.
 
 ## Marking an experimental spec as stable
 
