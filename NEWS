@@ -1,3 +1,18 @@
+14-Dec-2018 IGNITION v0.30.0
+
+  Features:
+
+    - Parallelize filesystem creation
+
+  Changes:
+
+    - Increase default config fetch timeout to 2 minutes
+
+  Test Changes:
+
+    - Add -list option to list blackbox tests
+    - Skip backward compatibility tests with -test.short
+
 06-Dec-2018 IGNITION v0.29.1
 
   Bug Fixes:
