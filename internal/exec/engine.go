@@ -38,7 +38,7 @@ import (
 )
 
 const (
-	DefaultFetchTimeout = time.Minute
+	DefaultFetchTimeout = 2 * time.Minute
 )
 
 // Engine represents the entity that fetches and executes a configuration.
