@@ -99,6 +99,7 @@ type Test struct {
 	SystemDirFiles    []File
 	Config            string
 	ConfigMinVersion  string
+	ConfigVersion     string
 	ConfigShouldBeBad bool
 }
 

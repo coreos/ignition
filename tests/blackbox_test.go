@@ -80,7 +80,7 @@ func TestIgnitionBlackBox(t *testing.T) {
 	for _, test := range register.Tests[register.PositiveTest] {
 		test := test
 		t.Run(test.Name, func(t *testing.T) {
-			if killContext.Err() != nil {
+			if killContext.Err() != nil || (testing.Short() && test.ConfigMinVersion != test.ConfigVersion) {
 				t.SkipNow()
 			}
 			if listSubtests {
@@ -100,7 +100,7 @@ func TestIgnitionBlackBoxNegative(t *testing.T) {
 	for _, test := range register.Tests[register.NegativeTest] {
 		test := test
 		t.Run(test.Name, func(t *testing.T) {
-			if killContext.Err() != nil {
+			if killContext.Err() != nil || (testing.Short() && test.ConfigMinVersion != test.ConfigVersion) {
 				t.SkipNow()
 			}
 			if listSubtests {
