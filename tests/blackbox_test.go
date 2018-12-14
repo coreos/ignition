@@ -16,6 +16,7 @@ package blackbox
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -43,14 +44,12 @@ var (
 	testTimeout = time.Second * 60
 	// somewhat of an abuse of contexts but go's got our hands tied
 	killContext = context.TODO()
+
+	// flag for listing all subtests that would be run without running them
+	listSubtests = false
 )
 
 func TestMain(m *testing.M) {
-	httpServer := &HTTPServer{}
-	httpServer.Start()
-	tftpServer := &TFTPServer{}
-	tftpServer.Start()
-
 	interruptChan := make(chan os.Signal, 3)
 	signal.Notify(interruptChan, os.Interrupt, syscall.SIGTERM)
 	tmp, killCancel := context.WithCancel(context.Background())
@@ -65,6 +64,15 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
+	flag.BoolVar(&listSubtests, "list", false, "list tests that would be run without running them")
+	flag.Parse()
+
+	if !listSubtests {
+		httpServer := &HTTPServer{}
+		httpServer.Start()
+		tftpServer := &TFTPServer{}
+		tftpServer.Start()
+	}
 	os.Exit(m.Run())
 }
 
@@ -74,6 +82,10 @@ func TestIgnitionBlackBox(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			if killContext.Err() != nil {
 				t.SkipNow()
+			}
+			if listSubtests {
+				fmt.Println(t.Name())
+				return
 			}
 			t.Parallel()
 			err := outer(t, test, false)
@@ -90,6 +102,10 @@ func TestIgnitionBlackBoxNegative(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			if killContext.Err() != nil {
 				t.SkipNow()
+			}
+			if listSubtests {
+				fmt.Println(t.Name())
+				return
 			}
 			t.Parallel()
 			err := outer(t, test, true)
