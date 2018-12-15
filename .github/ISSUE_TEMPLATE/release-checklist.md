@@ -8,7 +8,7 @@ Release checklist:
  - [ ] Run `./build_releases`
  - [ ] Sign the release artifacts by running
 ```
-gpg --local-user 0xCDDE268EBB729EC7 --detach-sign --armor <path to artifact>
+gpg --local-user 0xCDDE268EBB729EC7! --detach-sign --armor <path to artifact>
 ```
 for each release artifact. Do not try to sign all of them at once by globbing. If you do, gpg will sign the combination of all the release artifacts instead of each one individually.
  - [ ] Create a draft release on Github and upload all the release artifacts and their signatures. Copy and paste the release notes from NEWS here as well.
