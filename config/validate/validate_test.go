@@ -29,7 +29,7 @@ import (
 	"github.com/coreos/ignition/config/validate/astjson"
 	"github.com/coreos/ignition/config/validate/report"
 	// Import into the same namespace to keep config definitions clean
-	. "github.com/coreos/ignition/config/v2_4_experimental/types"
+	. "github.com/coreos/ignition/config/v3_0_experimental/types"
 )
 
 func TestValidate(t *testing.T) {

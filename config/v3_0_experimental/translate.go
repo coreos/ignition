@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v2_4_experimental
+package v3_0_experimental
 
 import (
 	from "github.com/coreos/ignition/config/v2_3/types"
-	"github.com/coreos/ignition/config/v2_4_experimental/types"
+	"github.com/coreos/ignition/config/v3_0_experimental/types"
 )
 
 func intToPtr(x int) *int {

@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	config "github.com/coreos/ignition/config/v2_4_experimental"
+	config "github.com/coreos/ignition/config/v3_0_experimental"
 	"github.com/coreos/ignition/tests/register"
 	"github.com/coreos/ignition/tests/types"
 
