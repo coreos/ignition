@@ -166,6 +166,6 @@ func KitchenSinkMiB() types.Test {
 		In:               in,
 		Out:              out,
 		Config:           config,
-		ConfigMinVersion: "2.3.0",
+		ConfigMinVersion: "3.0.0-experimental",
 	}
 }

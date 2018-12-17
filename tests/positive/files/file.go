@@ -53,7 +53,7 @@ func CreateFileOnRoot() types.Test {
 			Contents: "example file\n",
 		},
 	})
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -91,7 +91,7 @@ func UserGroupByID() types.Test {
 			Contents: "example file\n",
 		},
 	})
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -129,7 +129,7 @@ func UserGroupByName() types.Test {
 			Contents: "example file\n",
 		},
 	})
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -175,7 +175,7 @@ func ForceFileCreation() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -220,7 +220,7 @@ func ForceFileCreationNoOverwrite() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -264,7 +264,7 @@ func AppendToAFile() types.Test {
 			Contents: "example file\nhello world\n",
 		},
 	})
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -301,7 +301,7 @@ func AppendToNonexistentFile() types.Test {
 			Contents: "hello world\n",
 		},
 	})
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,

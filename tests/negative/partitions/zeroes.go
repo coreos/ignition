@@ -49,7 +49,7 @@ func Partition9DoesNotFillDisk() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -87,7 +87,7 @@ func Partition9DoesNotStartCorrectly() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,

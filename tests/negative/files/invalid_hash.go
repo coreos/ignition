@@ -53,7 +53,7 @@ func InvalidHash() types.Test {
 					"source": "data:,asdf", "verification": {"hash": "sha512-1a04c76c17079cd99e688ba4f1ba095b927d3fecf2b1e027af361dfeafb548f7f5f6fdd675aaa2563950db441d893ca77b0c3e965cdcb891784af96e330267d7"}}
 			}]}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -82,7 +82,7 @@ func InvalidHashFromHTTPURL() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

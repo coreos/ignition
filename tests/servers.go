@@ -29,7 +29,7 @@ import (
 // HTTP Server
 func (server *HTTPServer) Config(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{
-	"ignition": { "version": "2.0.0" },
+	"ignition": { "version": "3.0.0-experimental" },
 	"storage": {
 		"files": [{
 		  "filesystem": "root",
@@ -63,7 +63,7 @@ func (server *TFTPServer) ReadHandler(filename string, rf io.ReaderFrom) error {
 fdsa`))
 	} else if strings.Contains(filename, "config") {
 		buf = bytes.NewReader([]byte(`{
-        "ignition": { "version": "2.0.0" },
+        "ignition": { "version": "3.0.0-experimental" },
         "storage": {
                 "files": [{
                   "filesystem": "root",

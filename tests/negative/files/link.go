@@ -58,7 +58,7 @@ func WriteThroughRelativeSymlink() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -104,7 +104,7 @@ func WriteThroughAbsoluteSymlink() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -140,7 +140,7 @@ func WriteOverBrokenSymlink() types.Test {
 			Target: "/usr/rofile",
 		},
 	})
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,

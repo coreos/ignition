@@ -39,7 +39,7 @@ func CreateNetworkdDropin() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

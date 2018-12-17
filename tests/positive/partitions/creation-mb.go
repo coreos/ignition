@@ -69,7 +69,7 @@ func CreatePartitionMiB() types.Test {
 		In:               in,
 		Out:              out,
 		Config:           config,
-		ConfigMinVersion: "2.3.0",
+		ConfigMinVersion: "3.0.0-experimental",
 	}
 }
 
@@ -115,7 +115,7 @@ func CreatePartitionMiBWithStart() types.Test {
 		In:               in,
 		Out:              out,
 		Config:           config,
-		ConfigMinVersion: "2.3.0",
+		ConfigMinVersion: "3.0.0-experimental",
 	}
 }
 
@@ -199,7 +199,7 @@ func WipeAndCreateNewPartitionsMiB() types.Test {
 		In:               in,
 		Out:              out,
 		Config:           config,
-		ConfigMinVersion: "2.3.0",
+		ConfigMinVersion: "3.0.0-experimental",
 	}
 }
 
@@ -291,7 +291,7 @@ func AppendPartitionsMiB() types.Test {
 		In:               in,
 		Out:              out,
 		Config:           config,
-		ConfigMinVersion: "2.3.0",
+		ConfigMinVersion: "3.0.0-experimental",
 	}
 }
 
@@ -325,6 +325,6 @@ func ResizeRootMiB() types.Test {
 		In:               in,
 		Out:              out,
 		Config:           config,
-		ConfigMinVersion: "2.3.0",
+		ConfigMinVersion: "3.0.0-experimental",
 	}
 }

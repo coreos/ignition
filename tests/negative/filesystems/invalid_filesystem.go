@@ -36,7 +36,7 @@ func InvalidFilesystem() types.Test {
 				"contents": {"source": "data:,asdf"}
 			}]}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,

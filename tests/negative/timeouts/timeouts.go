@@ -85,7 +85,7 @@ func DecreaseHTTPResponseHeadersTimeout() types.Test {
 			]
 		}
 	}`, respondDelayServer.URL)
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -115,7 +115,7 @@ func AppendWithHTTPTimeouts() types.Test {
 		}
 	}`, configDelayServer.URL)
 	configDelayServerURL = configDelayServer.URL
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -141,7 +141,7 @@ func AppendLowerHTTPTimeouts() types.Test {
 		}
 	}`, configDelayServer.URL)
 	configDelayServerURL = configDelayServer.URL
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -202,7 +202,7 @@ func AppendNoneThenLowerHTTPTimeouts() types.Test {
 			}
 		}
 	}`, configNoDelayServer.URL)
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,

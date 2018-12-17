@@ -41,7 +41,7 @@ func NoDevice() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:              name,
@@ -71,7 +71,7 @@ func NoDeviceWithForce() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:              name,
@@ -99,7 +99,7 @@ func NoDeviceWithWipeFilesystemTrue() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:              name,
@@ -127,7 +127,7 @@ func NoDeviceWithWipeFilesystemFalse() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:              name,

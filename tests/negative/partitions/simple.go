@@ -47,7 +47,7 @@ func ShouldNotExistNoWipeEntry() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.3.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -78,7 +78,7 @@ func DoesNotMatchNoWipeEntry() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -112,7 +112,7 @@ func ValidAndDoesNotMatchNoWipeEntry() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -147,7 +147,7 @@ func NotThereAndDoesNotMatchNoWipeEntry() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.3.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,

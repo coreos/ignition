@@ -40,7 +40,7 @@ func ModifySystemdService() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -73,7 +73,7 @@ func MaskSystemdServices() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.AddLinks("ROOT", []types.Link{
 		{
 			Node: types.Node{

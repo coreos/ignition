@@ -46,7 +46,7 @@ func CreateDirectoryOnRoot() types.Test {
 			},
 		},
 	})
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -88,7 +88,7 @@ func ForceDirCreation() types.Test {
 			},
 		},
 	})
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -130,7 +130,7 @@ func ForceDirCreationOverNonemptyDir() types.Test {
 			},
 		},
 	})
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 	// TODO: add ability to ensure that foo/bar/baz doesn't exist here.
 
 	return types.Test{
