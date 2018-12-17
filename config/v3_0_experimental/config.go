@@ -16,7 +16,7 @@ package v3_0_experimental
 
 import (
 	"github.com/coreos/ignition/config/shared/errors"
-	"github.com/coreos/ignition/config/v2_3"
+	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/v3_0_experimental/types"
 	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
@@ -36,24 +36,17 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 		return types.Config{}, report.Report{}, errors.ErrScript
 	}
 
-	var err error
 	var config types.Config
 
-	err = json.Unmarshal(rawConfig, &config)
-
-	version, semverErr := semver.NewVersion(config.Ignition.Version)
-
-	if err != nil || semverErr != nil || version.LessThan(types.MaxVersion) {
-		// We can fail unmarshaling if it's an older config. Attempt to parse
-		// it as such.
-		config, rpt, err := v2_3.Parse(rawConfig)
-		if err != nil {
-			return types.Config{}, rpt, err
-		}
-		return Translate(config), rpt, err
+	if err := json.Unmarshal(rawConfig, &config); err != nil {
+		rpt, err := util.HandleParseErrors(rawConfig)
+		// HandleParseErrors always returns an error
+		return types.Config{}, rpt, err
 	}
 
-	if *version != types.MaxVersion {
+	version, err := semver.NewVersion(config.Ignition.Version)
+
+	if err != nil || *version != types.MaxVersion {
 		return types.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
 

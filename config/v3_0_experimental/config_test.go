@@ -38,7 +38,7 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			in:  in{config: []byte(`{"ignitionVersion": 1}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "1.0.0"}}`)},
@@ -46,14 +46,22 @@ func TestParse(t *testing.T) {
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.1.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.2.0-experimental"}}`)},
+			in:  in{config: []byte(`{"ignition": {"version": "2.2.0"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.3.0"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.0.0-experimental"}}`)},
 			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
@@ -61,19 +69,19 @@ func TestParse(t *testing.T) {
 			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.2.0-experimental"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.3.0-experimental"}}`)},
 			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.2.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
-		},
-		{
-			in:  in{config: []byte(`{"ignition": {"version": "2.3.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
-		},
-		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.4.0-experimental"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.0.0-experimental"}}`)},
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{

@@ -16,11 +16,6 @@ package register
 
 import (
 	"github.com/coreos/go-semver/semver"
-	types1 "github.com/coreos/ignition/config/v1/types"
-	types20 "github.com/coreos/ignition/config/v2_0/types"
-	types21 "github.com/coreos/ignition/config/v2_1/types"
-	types22 "github.com/coreos/ignition/config/v2_2/types"
-	types23 "github.com/coreos/ignition/config/v2_3/types"
 	types30 "github.com/coreos/ignition/config/v3_0_experimental/types"
 	"github.com/coreos/ignition/tests/types"
 )
@@ -47,9 +42,9 @@ func register(tType TestType, t types.Test) {
 func Register(tType TestType, t types.Test) {
 	// update confgiVersions with new config versions
 	configVersions := [][]semver.Version{
-		{semver.Version{}}, // place holder
-		{types1.MaxVersion},
-		{types20.MaxVersion, types21.MaxVersion, types22.MaxVersion, types23.MaxVersion},
+		{semver.Version{}}, // place holder 0
+		{semver.Version{}}, // place holder 1
+		{semver.Version{}}, // place holder 2
 		{types30.MaxVersion},
 	}
 
