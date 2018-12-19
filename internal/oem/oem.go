@@ -112,10 +112,6 @@ func init() {
 		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:  "vagrant-virtualbox",
-		fetch: virtualbox.FetchConfig,
-	})
-	configs.Register(Config{
 		name:  "virtualbox",
 		fetch: virtualbox.FetchConfig,
 	})
