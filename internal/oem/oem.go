@@ -78,10 +78,6 @@ func init() {
 		fetch: azure.FetchConfig,
 	})
 	configs.Register(Config{
-		name:  "cloudsigma",
-		fetch: noop.FetchConfig,
-	})
-	configs.Register(Config{
 		name:  "cloudstack",
 		fetch: cloudstack.FetchConfig,
 	})
@@ -103,20 +99,8 @@ func init() {
 		newFetcher: ec2.NewFetcher,
 	})
 	configs.Register(Config{
-		name:  "exoscale",
-		fetch: noop.FetchConfig,
-	})
-	configs.Register(Config{
 		name:  "gce",
 		fetch: gce.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "hyperv",
-		fetch: noop.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "niftycloud",
-		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
 		name:   "packet",
@@ -128,32 +112,12 @@ func init() {
 		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
-		name:  "rackspace",
-		fetch: noop.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "rackspace-onmetal",
-		fetch: noop.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "vagrant",
-		fetch: noop.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "vagrant-virtualbox",
-		fetch: virtualbox.FetchConfig,
-	})
-	configs.Register(Config{
 		name:  "virtualbox",
 		fetch: virtualbox.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "vmware",
 		fetch: vmware.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "interoute",
-		fetch: noop.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "qemu",
