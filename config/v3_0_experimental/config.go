@@ -30,10 +30,6 @@ import (
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	if isEmpty(rawConfig) {
 		return types.Config{}, report.Report{}, errors.ErrEmpty
-	} else if isCloudConfig(rawConfig) {
-		return types.Config{}, report.Report{}, errors.ErrCloudConfig
-	} else if isScript(rawConfig) {
-		return types.Config{}, report.Report{}, errors.ErrScript
 	}
 
 	var config types.Config
