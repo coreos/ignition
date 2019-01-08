@@ -61,7 +61,7 @@ func ReformatFilesystemAndWriteFile() types.Test {
 				"contents": {"source": "data:,asdf"}
 			}]}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").Files = []types.File{
@@ -94,12 +94,12 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	    "config": {
 	      "replace": {
 	        "source": "http://127.0.0.1:8080/config",
-			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
+			"verification": { "hash": "sha512-c81f3b2185ccc39e995b199c8d22a7ae2972575c826300a9d8e930def33d99351f2d308fbe96ef9fd82a4c30e68920623e64ae7ffd884bf5ea6cd9b288fc886b" }
 	      }
 	    }
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -129,12 +129,12 @@ func ReplaceConfigWithRemoteConfigTFTP() types.Test {
             "config": {
               "replace": {
                 "source": "tftp://127.0.0.1:69/config",
-                        "verification": { "hash": "sha512-fa00083efe3f00eb984e6dc27cc8673585cce4319e39099ce014103619ae7ab7dc3555e51401c7df472bdd125c552e528f54d717b8147129c99836d3dedc9760" }
+                        "verification": { "hash": "sha512-89f6601d56c37071b7529e47b7cfc91ada2871230e5e23847885e78bfb573a801200301ee3b370bb9d6d12e556775817b49695e71bd8ebb61909e482d5079416" }
               }
             }
           }
         }`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -164,19 +164,19 @@ func ReplaceConfigWithRemoteConfigOEM() types.Test {
             "config": {
               "replace": {
                 "source": "oem:///config",
-                        "verification": { "hash": "sha512-73395ffef4b1aefac56b6406f7aed307199d960cc8ad9317e0e8b6497a64f879b33fd59eca533f5f139aa4237f7d81de08c6f7f17db9dd2c072e9ecccb0fed42" }
+                        "verification": { "hash": "sha512-c81f3b2185ccc39e995b199c8d22a7ae2972575c826300a9d8e930def33d99351f2d308fbe96ef9fd82a4c30e68920623e64ae7ffd884bf5ea6cd9b288fc886b" }
               }
             }
           }
         }`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.AddFiles("OEM", []types.File{
 		{
 			Node: types.Node{
 				Name: "config",
 			},
 			Contents: `{
-	"ignition": { "version": "2.1.0" },
+	"ignition": { "version": "3.0.0-experimental" },
 	"storage": {
 		"files": [{
 		  "filesystem": "root",
@@ -216,7 +216,7 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
 	    "config": {
 	      "append": [{
 	        "source": "http://127.0.0.1:8080/config",
-			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
+			"verification": { "hash": "sha512-c81f3b2185ccc39e995b199c8d22a7ae2972575c826300a9d8e930def33d99351f2d308fbe96ef9fd82a4c30e68920623e64ae7ffd884bf5ea6cd9b288fc886b" }
 	      }]
 	    }
 	  },
@@ -228,7 +228,7 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
         }]
       }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -265,7 +265,7 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
             "config": {
               "append": [{
                 "source": "tftp://127.0.0.1:69/config",
-                        "verification": { "hash": "sha512-fa00083efe3f00eb984e6dc27cc8673585cce4319e39099ce014103619ae7ab7dc3555e51401c7df472bdd125c552e528f54d717b8147129c99836d3dedc9760" }
+                        "verification": { "hash": "sha512-89f6601d56c37071b7529e47b7cfc91ada2871230e5e23847885e78bfb573a801200301ee3b370bb9d6d12e556775817b49695e71bd8ebb61909e482d5079416" }
               }]
             }
           },
@@ -277,7 +277,7 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
         }]
       }
         }`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -314,7 +314,7 @@ func AppendConfigWithRemoteConfigOEM() types.Test {
             "config": {
               "append": [{
                 "source": "oem:///config",
-                        "verification": { "hash": "sha512-73395ffef4b1aefac56b6406f7aed307199d960cc8ad9317e0e8b6497a64f879b33fd59eca533f5f139aa4237f7d81de08c6f7f17db9dd2c072e9ecccb0fed42" }
+                        "verification": { "hash": "sha512-c81f3b2185ccc39e995b199c8d22a7ae2972575c826300a9d8e930def33d99351f2d308fbe96ef9fd82a4c30e68920623e64ae7ffd884bf5ea6cd9b288fc886b" }
               }]
             }
           },
@@ -326,14 +326,14 @@ func AppendConfigWithRemoteConfigOEM() types.Test {
         }]
       }
         }`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.AddFiles("OEM", []types.File{
 		{
 			Node: types.Node{
 				Name: "config",
 			},
 			Contents: `{
-	"ignition": { "version": "2.1.0" },
+	"ignition": { "version": "3.0.0-experimental" },
 	"storage": {
 		"files": [{
 		  "filesystem": "root",
@@ -379,12 +379,12 @@ func ReplaceConfigWithRemoteConfigData() types.Test {
             "version": "$version",
             "config": {
               "replace": {
-				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%222.1.0%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
+				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%223.0.0-experimental%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
               }
             }
           }
         }`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -413,12 +413,12 @@ func AppendConfigWithRemoteConfigData() types.Test {
             "version": "$version",
             "config": {
               "append": [{
-				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%222.1.0%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
+				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%223.0.0-experimental%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
               }]
             }
           }
         }`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -445,7 +445,7 @@ func VersionOnlyConfig() types.Test {
 	config := `{
 		"ignition": {"version": "$version"}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,

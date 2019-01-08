@@ -45,7 +45,7 @@ func ForceFileCreation() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -77,7 +77,7 @@ func ForceDirCreation() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -118,7 +118,7 @@ func ForceLinkCreation() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -160,7 +160,7 @@ func ForceHardLinkCreation() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -197,7 +197,7 @@ func ForceFileCreationOverNonemptyDir() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -238,7 +238,7 @@ func ForceLinkCreationOverNonemptyDir() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

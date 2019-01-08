@@ -50,7 +50,7 @@ func ForceNewFilesystemOfSameType() types.Test {
 				 }]
 			}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
@@ -102,7 +102,7 @@ func WipeFilesystemWithSameType() types.Test {
 				}}]
 			}
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
@@ -211,7 +211,7 @@ func FilesystemCreationOnMultipleDisks() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,

@@ -12,38 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1
+package v3_0_experimental
 
 import (
 	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/util"
-	"github.com/coreos/ignition/config/v1/types"
+	"github.com/coreos/ignition/config/v3_0_experimental/types"
 	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
 
 	json "github.com/ajeddeloh/go-json"
+	"github.com/coreos/go-semver/semver"
 )
 
+// Parse parses the raw config into a types.Config struct and generates a report of any
+// errors, warnings, info, and deprecations it encountered
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	if isEmpty(rawConfig) {
 		return types.Config{}, report.Report{}, errors.ErrEmpty
-	} else if isCloudConfig(rawConfig) {
-		return types.Config{}, report.Report{}, errors.ErrCloudConfig
-	} else if isScript(rawConfig) {
-		return types.Config{}, report.Report{}, errors.ErrScript
 	}
 
-	var err error
 	var config types.Config
 
-	err = json.Unmarshal(rawConfig, &config)
-	if err != nil {
+	if err := json.Unmarshal(rawConfig, &config); err != nil {
 		rpt, err := util.HandleParseErrors(rawConfig)
 		// HandleParseErrors always returns an error
 		return types.Config{}, rpt, err
 	}
 
-	if config.Version != types.Version {
+	version, err := semver.NewVersion(config.Ignition.Version)
+
+	if err != nil || *version != types.MaxVersion {
 		return types.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
 
@@ -51,6 +50,7 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	if rpt.IsFatal() {
 		return types.Config{}, rpt, errors.ErrInvalid
 	}
+
 	return config, rpt, nil
 }
 

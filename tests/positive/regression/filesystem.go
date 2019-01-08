@@ -49,7 +49,7 @@ func EquivalentFilesystemUUIDsTreatedDistinctEXT4() types.Test {
 		    ]
 		  }
 		}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "$uuid0"
@@ -90,7 +90,7 @@ func EquivalentFilesystemUUIDsTreatedDistinctVFAT() types.Test {
 		    ]
 		  }
 		}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "2e24ec82"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemUUID = "2e24ec82"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "vfat"

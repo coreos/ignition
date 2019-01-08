@@ -52,7 +52,7 @@ func ReformatToBTRFS() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "btrfs"
 
 	return types.Test{
@@ -90,7 +90,7 @@ func ReformatToXFS() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "xfs"
 
 	return types.Test{
@@ -127,7 +127,7 @@ func ReformatToVFAT() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "vfat"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "2e24ec82"
 
@@ -166,7 +166,7 @@ func ReformatToEXT4() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"
@@ -205,7 +205,7 @@ func ReformatToSWAP() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext2"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = "swap"
 	out[0].Partitions.GetPartition("OEM").FilesystemUUID = "$uuid0"

@@ -29,7 +29,7 @@ import (
 	"github.com/coreos/ignition/config/validate/astjson"
 	"github.com/coreos/ignition/config/validate/report"
 	// Import into the same namespace to keep config definitions clean
-	. "github.com/coreos/ignition/config/v2_4_experimental/types"
+	. "github.com/coreos/ignition/config/v3_0_experimental/types"
 )
 
 func TestValidate(t *testing.T) {
@@ -47,7 +47,7 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: semver.Version{Major: 2}.String()}}},
-			out: out{},
+			out: out{err: errors.ErrOldVersion},
 		},
 		{
 			in:  in{cfg: Config{}},
@@ -58,7 +58,7 @@ func TestValidate(t *testing.T) {
 			out: out{err: errors.ErrInvalidVersion},
 		},
 		{
-			in:  in{cfg: Config{Ignition: Ignition{Version: "2.4.0"}}},
+			in:  in{cfg: Config{Ignition: Ignition{Version: "3.1.0"}}},
 			out: out{err: errors.ErrNewVersion},
 		},
 		{
@@ -72,7 +72,7 @@ func TestValidate(t *testing.T) {
 		{
 			in: in{cfg: Config{
 				Ignition: Ignition{
-					Version: semver.Version{Major: 2}.String(),
+					Version: "3.0.0-experimental",
 					Config: IgnitionConfig{
 						Replace: &ConfigReference{
 							Verification: Verification{
@@ -86,7 +86,7 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			in: in{cfg: Config{
-				Ignition: Ignition{Version: semver.Version{Major: 2}.String()},
+				Ignition: Ignition{Version: "3.0.0-experimental"},
 				Storage: Storage{
 					Filesystems: []Filesystem{
 						{
@@ -103,7 +103,7 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			in: in{cfg: Config{
-				Ignition: Ignition{Version: semver.Version{Major: 2}.String()},
+				Ignition: Ignition{Version: "3.0.0-experimental"},
 				Storage: Storage{
 					Filesystems: []Filesystem{
 						{
@@ -117,14 +117,14 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			in: in{cfg: Config{
-				Ignition: Ignition{Version: semver.Version{Major: 2}.String()},
+				Ignition: Ignition{Version: "3.0.0-experimental"},
 				Systemd:  Systemd{Units: []Unit{{Name: "foo.bar", Contents: "[Foo]\nfoo=qux"}}},
 			}},
 			out: out{err: fmt.Errorf("invalid systemd unit extension")},
 		},
 		{
 			in: in{cfg: Config{
-				Ignition: Ignition{Version: semver.Version{Major: 2}.String()},
+				Ignition: Ignition{Version: "3.0.0-experimental"},
 				Systemd:  Systemd{Units: []Unit{{Name: "enable-but-no-install.service", Enabled: util.BoolToPtr(true), Contents: "[Foo]\nlemon=lime"}}},
 			}},
 			out: out{warning: errors.NewNoInstallSectionError("enable-but-no-install.service")},

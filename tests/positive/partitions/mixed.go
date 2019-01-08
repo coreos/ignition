@@ -112,7 +112,7 @@ func Match1Recreate1Delete1Create1() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.3.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -209,7 +209,7 @@ func NothingMatches() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.3.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,

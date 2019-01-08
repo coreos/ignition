@@ -20,7 +20,7 @@ import (
 	"os"
 	"strings"
 
-	config "github.com/coreos/ignition/config/v2_4_experimental"
+	config "github.com/coreos/ignition/config/v3_0_experimental"
 	"github.com/coreos/ignition/internal/version"
 
 	"github.com/spf13/cobra"

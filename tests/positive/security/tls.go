@@ -74,7 +74,7 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 -----END CERTIFICATE-----`)
 
 	customCAServerFile = []byte(`{
-			"ignition": { "version": "2.0.0" },
+			"ignition": { "version": "3.0.0-experimental" },
 			"storage": {
 				"files": [{
 					"filesystem": "root",
@@ -110,7 +110,7 @@ func AppendConfigCustomCert() types.Test {
 			}
 		}
 	}`, customCAServer.URL, dataurl.EncodeBytes(publicKey))
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
@@ -156,7 +156,7 @@ func FetchFileCustomCert() types.Test {
 			}]
 		}
 	}`, dataurl.EncodeBytes(publicKey), customCAServer.URL)
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{

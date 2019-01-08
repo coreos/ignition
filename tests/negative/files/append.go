@@ -54,7 +54,7 @@ func AppendToDirectory() types.Test {
 			},
 		},
 	})
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -89,7 +89,7 @@ func AppendAndOverwrite() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "2.2.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:              name,

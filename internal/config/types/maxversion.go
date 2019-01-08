@@ -15,7 +15,7 @@
 package types
 
 import (
-	currentExperimental "github.com/coreos/ignition/config/v2_4_experimental/types"
+	currentExperimental "github.com/coreos/ignition/config/v3_0_experimental/types"
 )
 
 var (

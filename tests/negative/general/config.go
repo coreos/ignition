@@ -28,9 +28,9 @@ func init() {
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileHTTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileTFTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileOEM())
-	register.Register(register.NegativeTest, VersionOnlyConfig23())
 	register.Register(register.NegativeTest, VersionOnlyConfig24())
-	register.Register(register.NegativeTest, VersionOnlyConfig25())
+	register.Register(register.NegativeTest, VersionOnlyConfig30())
+	register.Register(register.NegativeTest, VersionOnlyConfig31())
 }
 
 func ReplaceConfigWithInvalidHash() types.Test {
@@ -54,7 +54,7 @@ func ReplaceConfigWithInvalidHash() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -94,7 +94,7 @@ func AppendConfigWithInvalidHash() types.Test {
         }]
       }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -120,7 +120,7 @@ func ReplaceConfigWithMissingFileHTTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -145,7 +145,7 @@ func ReplaceConfigWithMissingFileTFTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -170,7 +170,7 @@ func ReplaceConfigWithMissingFileOEM() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -195,7 +195,7 @@ func AppendConfigWithMissingFileHTTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -220,7 +220,7 @@ func AppendConfigWithMissingFileTFTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.1.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -245,7 +245,7 @@ func AppendConfigWithMissingFileOEM() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -256,32 +256,13 @@ func AppendConfigWithMissingFileOEM() types.Test {
 	}
 }
 
-func VersionOnlyConfig23() types.Test {
-	name := "Version Only Config 2.3.0-experimental"
-	in := types.GetBaseDisk()
-	out := in
-	config := `{
-	  "ignition": {
-	    "version": "2.3.0-experimental"
-	  }
-	}`
-
-	return types.Test{
-		Name:              name,
-		In:                in,
-		Out:               out,
-		Config:            config,
-		ConfigShouldBeBad: true,
-	}
-}
-
 func VersionOnlyConfig24() types.Test {
-	name := "Version Only Config 2.4.0"
+	name := "Version Only Config 2.4.0-experimental"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.4.0"
+	    "version": "2.4.0-experimental"
 	  }
 	}`
 
@@ -294,13 +275,32 @@ func VersionOnlyConfig24() types.Test {
 	}
 }
 
-func VersionOnlyConfig25() types.Test {
-	name := "Version Only Config 2.5.0-experimental"
+func VersionOnlyConfig30() types.Test {
+	name := "Version Only Config 3.0.0"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.5.0-experimental"
+	    "version": "3.0.0"
+	  }
+	}`
+
+	return types.Test{
+		Name:              name,
+		In:                in,
+		Out:               out,
+		Config:            config,
+		ConfigShouldBeBad: true,
+	}
+}
+
+func VersionOnlyConfig31() types.Test {
+	name := "Version Only Config 3.1.0-experimental"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "3.1.0-experimental"
 	  }
 	}`
 

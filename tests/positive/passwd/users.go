@@ -49,7 +49,7 @@ func AddPasswdUsers() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.0.0"
+	configMinVersion := "3.0.0-experimental"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

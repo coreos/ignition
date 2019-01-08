@@ -57,7 +57,7 @@ func DeleteOne() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.3.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
@@ -121,7 +121,7 @@ func DeleteAll() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "2.3.0"
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
