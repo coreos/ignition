@@ -27,10 +27,6 @@ import:
 # Transitive dependency from aws-sdk-go:v1.8.39
 - package: github.com/jmespath/go-jmespath
   version: 0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74
-- package: github.com/spf13/cobra
-  version: 0.0.1
-- package: github.com/spf13/pflag
-  version: 1.0.0
 # see https://github.com/Masterminds/glide/issues/564 on why this is not
 # in testImport
 - package: github.com/pborman/uuid
