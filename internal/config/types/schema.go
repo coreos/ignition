@@ -9,7 +9,6 @@ type CaReference struct {
 
 type Config struct {
 	Ignition Ignition `json:"ignition"`
-	Networkd Networkd `json:"networkd,omitempty"`
 	Passwd   Passwd   `json:"passwd,omitempty"`
 	Storage  Storage  `json:"storage,omitempty"`
 	Systemd  Systemd  `json:"systemd,omitempty"`
@@ -42,6 +41,11 @@ type Disk struct {
 	Device     string      `json:"device"`
 	Partitions []Partition `json:"partitions,omitempty"`
 	WipeTable  bool        `json:"wipeTable,omitempty"`
+}
+
+type Dropin struct {
+	Contents string `json:"contents,omitempty"`
+	Name     string `json:"name"`
 }
 
 type File struct {
@@ -102,21 +106,6 @@ type Mount struct {
 }
 
 type MountOption string
-
-type Networkd struct {
-	Units []Networkdunit `json:"units,omitempty"`
-}
-
-type NetworkdDropin struct {
-	Contents string `json:"contents,omitempty"`
-	Name     string `json:"name"`
-}
-
-type Networkdunit struct {
-	Contents string           `json:"contents,omitempty"`
-	Dropins  []NetworkdDropin `json:"dropins,omitempty"`
-	Name     string           `json:"name"`
-}
 
 type Node struct {
 	Filesystem string     `json:"filesystem"`
@@ -191,7 +180,7 @@ type RaidOption string
 type SSHAuthorizedKey string
 
 type Security struct {
-	TLS `json:"tls,omitempty"`
+	TLS TLS `json:"tls,omitempty"`
 }
 
 type Storage struct {
@@ -207,11 +196,6 @@ type Systemd struct {
 	Units []Unit `json:"units,omitempty"`
 }
 
-type SystemdDropin struct {
-	Contents string `json:"contents,omitempty"`
-	Name     string `json:"name"`
-}
-
 type TLS struct {
 	CertificateAuthorities []CaReference `json:"certificateAuthorities,omitempty"`
 }
@@ -222,12 +206,12 @@ type Timeouts struct {
 }
 
 type Unit struct {
-	Contents string          `json:"contents,omitempty"`
-	Dropins  []SystemdDropin `json:"dropins,omitempty"`
-	Enable   bool            `json:"enable,omitempty"`
-	Enabled  *bool           `json:"enabled,omitempty"`
-	Mask     bool            `json:"mask,omitempty"`
-	Name     string          `json:"name"`
+	Contents string   `json:"contents,omitempty"`
+	Dropins  []Dropin `json:"dropins,omitempty"`
+	Enable   bool     `json:"enable,omitempty"`
+	Enabled  *bool    `json:"enabled,omitempty"`
+	Mask     bool     `json:"mask,omitempty"`
+	Name     string   `json:"name"`
 }
 
 type Usercreate struct {

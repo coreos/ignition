@@ -32,7 +32,7 @@ func ModifySystemdService() types.Test {
 	  "ignition": { "version": "$version" },
 	  "systemd": {
 	    "units": [{
-	      "name": "systemd-networkd.service",
+	      "name": "systemd-journald.service",
 	      "dropins": [{
 	        "name": "debug.conf",
 	        "contents": "[Service]\nEnvironment=SYSTEMD_LOG_LEVEL=debug"
@@ -45,7 +45,7 @@ func ModifySystemdService() types.Test {
 		{
 			Node: types.Node{
 				Name:      "debug.conf",
-				Directory: "etc/systemd/system/systemd-networkd.service.d",
+				Directory: "etc/systemd/system/systemd-journald.service.d",
 			},
 			Contents: "[Service]\nEnvironment=SYSTEMD_LOG_LEVEL=debug",
 		},
@@ -68,7 +68,7 @@ func MaskSystemdServices() types.Test {
 	  "ignition": { "version": "$version" },
 	  "systemd": {
 	    "units": [{
-	      "name": "systemd-networkd.service",
+	      "name": "systemd-journald.service",
 		  "mask": true
 	    }]
 	  }
@@ -77,7 +77,7 @@ func MaskSystemdServices() types.Test {
 	out[0].Partitions.AddLinks("ROOT", []types.Link{
 		{
 			Node: types.Node{
-				Name:      "systemd-networkd.service",
+				Name:      "systemd-journald.service",
 				Directory: "etc/systemd/system",
 			},
 			Target: "/dev/null",

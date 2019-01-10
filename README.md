@@ -1,6 +1,6 @@
 # Ignition
 
-Ignition is the utility used by CoreOS Container Linux to manipulate disks during the initramfs. This includes partitioning disks, formatting partitions, writing files (regular files, systemd units, networkd units, etc.), and configuring users. On first boot, Ignition reads its configuration from a source of truth (remote URL, network metadata service, hypervisor bridge, etc.) and applies the configuration.
+Ignition is the utility used by CoreOS Container Linux to manipulate disks during the initramfs. This includes partitioning disks, formatting partitions, writing files (regular files, systemd units, etc.), and configuring users. On first boot, Ignition reads its configuration from a source of truth (remote URL, network metadata service, hypervisor bridge, etc.) and applies the configuration.
 
 Ignition has two main development branches: master and spec2x. This is the master branch which is for Ignition included in Red Hat CoreOS and Fedora CoreOS. For Ignition development for Container Linux see the [spec2x](https://github.com/coreos/ignition/tree/spec2x) branch.
 

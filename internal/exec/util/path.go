@@ -30,18 +30,10 @@ func SystemdRuntimeUnitWantsPath(unitName string) string {
 	return filepath.Join("run", "systemd", "system", unitName+".wants")
 }
 
-func NetworkdUnitsPath() string {
-	return filepath.Join("etc", "systemd", "network")
-}
-
 func SystemdDropinsPath(unitName string) string {
 	return filepath.Join("etc", "systemd", "system", unitName+".d")
 }
 
 func SystemdRuntimeDropinsPath(unitName string) string {
 	return filepath.Join("run", "systemd", "system", unitName+".d")
-}
-
-func NetworkdDropinsPath(unitName string) string {
-	return filepath.Join("etc", "systemd", "network", unitName+".d")
 }

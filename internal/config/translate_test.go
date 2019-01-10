@@ -773,7 +773,7 @@ func TestTranslate(t *testing.T) {
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							Dropins: []from.SystemdDropin{
+							Dropins: []from.Dropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
@@ -804,7 +804,7 @@ func TestTranslate(t *testing.T) {
 							Name:     "test1.service",
 							Enable:   true,
 							Contents: "test1 contents",
-							Dropins: []types.SystemdDropin{
+							Dropins: []types.Dropin{
 								{
 									Name:     "conf1.conf",
 									Contents: "conf1 contents",
@@ -823,55 +823,6 @@ func TestTranslate(t *testing.T) {
 						{
 							Name:    "test3.service",
 							Enabled: boolToPtr(false),
-						},
-					},
-				},
-			}},
-		},
-		{
-			in: in{from.Config{
-				Networkd: from.Networkd{
-					Units: []from.Networkdunit{
-						{
-							Name:     "test1.network",
-							Contents: "test1 contents",
-						},
-						{
-							Name: "test2.network",
-							Dropins: []from.NetworkdDropin{
-								{
-									Name:     "conf1.conf",
-									Contents: "conf1 contents",
-								},
-								{
-									Name:     "conf2.conf",
-									Contents: "conf2 contents",
-								},
-							},
-						},
-					},
-				},
-			}},
-			out: out{config: types.Config{
-				Ignition: types.Ignition{Version: types.MaxVersion.String()},
-				Networkd: types.Networkd{
-					Units: []types.Networkdunit{
-						{
-							Name:     "test1.network",
-							Contents: "test1 contents",
-						},
-						{
-							Name: "test2.network",
-							Dropins: []types.NetworkdDropin{
-								{
-									Name:     "conf1.conf",
-									Contents: "conf1 contents",
-								},
-								{
-									Name:     "conf2.conf",
-									Contents: "conf2 contents",
-								},
-							},
 						},
 					},
 				},

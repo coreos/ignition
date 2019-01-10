@@ -65,27 +65,6 @@ func Translate(old from.Config) types.Config {
 		}
 		return res
 	}
-	translateNetworkdDropinSlice := func(old []from.NetworkdDropin) []types.NetworkdDropin {
-		var res []types.NetworkdDropin
-		for _, x := range old {
-			res = append(res, types.NetworkdDropin{
-				Contents: x.Contents,
-				Name:     x.Name,
-			})
-		}
-		return res
-	}
-	translateNetworkdUnitSlice := func(old []from.Networkdunit) []types.Networkdunit {
-		var res []types.Networkdunit
-		for _, u := range old {
-			res = append(res, types.Networkdunit{
-				Contents: u.Contents,
-				Name:     u.Name,
-				Dropins:  translateNetworkdDropinSlice(u.Dropins),
-			})
-		}
-		return res
-	}
 	translatePasswdGroupSlice := func(old []from.PasswdGroup) []types.PasswdGroup {
 		var res []types.PasswdGroup
 		for _, g := range old {
@@ -334,10 +313,10 @@ func Translate(old from.Config) types.Config {
 		}
 		return res
 	}
-	translateSystemdDropinSlice := func(old []from.SystemdDropin) []types.SystemdDropin {
-		var res []types.SystemdDropin
+	translateDropinSlice := func(old []from.Dropin) []types.Dropin {
+		var res []types.Dropin
 		for _, x := range old {
-			res = append(res, types.SystemdDropin{
+			res = append(res, types.Dropin{
 				Contents: x.Contents,
 				Name:     x.Name,
 			})
@@ -349,7 +328,7 @@ func Translate(old from.Config) types.Config {
 		for _, x := range old {
 			res = append(res, types.Unit{
 				Contents: x.Contents,
-				Dropins:  translateSystemdDropinSlice(x.Dropins),
+				Dropins:  translateDropinSlice(x.Dropins),
 				Enable:   x.Enable,
 				Enabled:  x.Enabled,
 				Mask:     x.Mask,
@@ -374,9 +353,6 @@ func Translate(old from.Config) types.Config {
 					CertificateAuthorities: translateCertificateAuthoritySlice(old.Ignition.Security.TLS.CertificateAuthorities),
 				},
 			},
-		},
-		Networkd: types.Networkd{
-			Units: translateNetworkdUnitSlice(old.Networkd.Units),
 		},
 		Passwd: types.Passwd{
 			Groups: translatePasswdGroupSlice(old.Passwd.Groups),
