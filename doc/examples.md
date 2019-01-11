@@ -34,14 +34,14 @@ WantedBy=multi-user.target
 
 ### Modify Services
 
-This config will add a [systemd unit drop-in](https://coreos.com/os/docs/latest/using-systemd-drop-in-units.html) to modify the existing service `systemd-networkd` and sets its environment variable `SYSTEMD_LOG_LEVEL` to `debug`.
+This config will add a [systemd unit drop-in](https://coreos.com/os/docs/latest/using-systemd-drop-in-units.html) to modify the existing service `systemd-journald` and sets its environment variable `SYSTEMD_LOG_LEVEL` to `debug`.
 
 ```json ignition
 {
   "ignition": { "version": "2.2.0" },
   "systemd": {
     "units": [{
-      "name": "systemd-networkd.service",
+      "name": "systemd-journald.service",
       "dropins": [{
         "name": "debug.conf",
         "contents": "[Service]\nEnvironment=SYSTEMD_LOG_LEVEL=debug"
@@ -51,7 +51,7 @@ This config will add a [systemd unit drop-in](https://coreos.com/os/docs/latest/
 }
 ```
 
-#### systemd-networkd.service.d/debug.conf
+#### systemd-journald.service.d/debug.conf
 
 ```INI
 [Service]

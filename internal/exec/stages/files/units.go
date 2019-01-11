@@ -22,7 +22,7 @@ import (
 	"github.com/coreos/ignition/internal/exec/util"
 )
 
-// createUnits creates the units listed under systemd.units and networkd.units.
+// createUnits creates the units listed under systemd.units.
 func (s *stage) createUnits(config types.Config) error {
 	enabledOneUnit := false
 	for _, unit := range config.Systemd.Units {
@@ -69,11 +69,6 @@ func (s *stage) createUnits(config types.Config) error {
 	// and relabel the preset file itself if we enabled/disabled something
 	if enabledOneUnit {
 		s.relabel(util.PresetPath)
-	}
-	for _, unit := range config.Networkd.Units {
-		if err := s.writeNetworkdUnit(unit); err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -123,50 +118,6 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 		}
 		if err := s.Logger.LogOp(
 			func() error { return u.PerformFetch(f) },
-			"writing unit %q at %q", unit.Name, f.Path,
-		); err != nil {
-			return err
-		}
-		s.relabel("/" + f.Path)
-
-		return nil
-	}, "processing unit %q", unit.Name)
-}
-
-// writeNetworkdUnit creates the specified unit and any dropins for that unit.
-// If the contents of the unit or are empty, the unit is not created. The same
-// applies to the unit's dropins.
-func (s *stage) writeNetworkdUnit(unit types.Networkdunit) error {
-	return s.Logger.LogOp(func() error {
-		for _, dropin := range unit.Dropins {
-			if dropin.Contents == "" {
-				continue
-			}
-
-			f, err := util.FileFromNetworkdUnitDropin(unit, dropin)
-			if err != nil {
-				s.Logger.Crit("error converting networkd dropin: %v", err)
-				return err
-			}
-			if err := s.Logger.LogOp(
-				func() error { return s.PerformFetch(f) },
-				"writing networkd drop-in %q at %q", dropin.Name, f.Path,
-			); err != nil {
-				return err
-			}
-			s.relabel("/" + f.Path)
-		}
-		if unit.Contents == "" {
-			return nil
-		}
-
-		f, err := util.FileFromNetworkdUnit(unit)
-		if err != nil {
-			s.Logger.Crit("error converting unit: %v", err)
-			return err
-		}
-		if err := s.Logger.LogOp(
-			func() error { return s.PerformFetch(f) },
 			"writing unit %q at %q", unit.Name, f.Path,
 		); err != nil {
 			return err

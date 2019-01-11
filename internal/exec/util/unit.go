@@ -52,19 +52,7 @@ func FileFromSystemdUnit(unit types.Unit, runtime bool) (*FetchOp, error) {
 	}, nil
 }
 
-func FileFromNetworkdUnit(unit types.Networkdunit) (*FetchOp, error) {
-	u, err := url.Parse(dataurl.EncodeBytes([]byte(unit.Contents)))
-	if err != nil {
-		return nil, err
-	}
-	return &FetchOp{
-		Path: filepath.Join(NetworkdUnitsPath(), string(unit.Name)),
-		Url:  *u,
-		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
-	}, nil
-}
-
-func FileFromSystemdUnitDropin(unit types.Unit, dropin types.SystemdDropin, runtime bool) (*FetchOp, error) {
+func FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, runtime bool) (*FetchOp, error) {
 	u, err := url.Parse(dataurl.EncodeBytes([]byte(dropin.Contents)))
 	if err != nil {
 		return nil, err
@@ -79,18 +67,6 @@ func FileFromSystemdUnitDropin(unit types.Unit, dropin types.SystemdDropin, runt
 
 	return &FetchOp{
 		Path: filepath.Join(path, string(dropin.Name)),
-		Url:  *u,
-		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
-	}, nil
-}
-
-func FileFromNetworkdUnitDropin(unit types.Networkdunit, dropin types.NetworkdDropin) (*FetchOp, error) {
-	u, err := url.Parse(dataurl.EncodeBytes([]byte(dropin.Contents)))
-	if err != nil {
-		return nil, err
-	}
-	return &FetchOp{
-		Path: filepath.Join(NetworkdDropinsPath(string(unit.Name)), string(dropin.Name)),
 		Url:  *u,
 		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
 	}, nil

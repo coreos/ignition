@@ -79,11 +79,9 @@ var (
 	ErrPasswdCreateAndSystem       = errors.New("cannot use both the create object and the user-level system field")
 	ErrPasswdCreateAndUID          = errors.New("cannot use both the create object and the user-level uid field")
 
-	// Systemd and Networkd section errors
-	ErrInvalidSystemdExt        = errors.New("invalid systemd unit extension")
-	ErrInvalidSystemdDropinExt  = errors.New("invalid systemd drop-in extension")
-	ErrInvalidNetworkdExt       = errors.New("invalid networkd unit extension")
-	ErrInvalidNetworkdDropinExt = errors.New("invalid networkd drop-in extension")
+	// Systemd section errors
+	ErrInvalidSystemdExt       = errors.New("invalid systemd unit extension")
+	ErrInvalidSystemdDropinExt = errors.New("invalid systemd drop-in extension")
 
 	// Misc errors
 	ErrInvalidScheme       = errors.New("invalid url scheme")

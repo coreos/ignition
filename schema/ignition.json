@@ -12,9 +12,6 @@
     "systemd": {
       "$ref": "#/definitions/systemd"
     },
-    "networkd": {
-      "$ref": "#/definitions/networkd"
-    },
     "passwd": {
       "$ref": "#/definitions/passwd"
     }
@@ -448,53 +445,6 @@
               "type": "array",
               "items": {
                 "$ref": "#/definitions/systemd/definitions/dropin"
-              }
-            }
-          },
-          "required": [
-              "name"
-          ]
-        },
-        "dropin": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string"
-            },
-            "contents": {
-              "type": "string"
-            }
-          },
-          "required": [
-              "name"
-          ]
-        }
-      }
-    },
-    "networkd": {
-      "type": "object",
-      "properties": {
-        "units": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/networkd/definitions/networkdunit"
-          }
-        }
-      },
-      "definitions": {
-        "networkdunit": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string"
-            },
-            "contents": {
-              "type": "string"
-            },
-            "dropins": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/networkd/definitions/dropin"
               }
             }
           },
