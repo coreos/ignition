@@ -1,5 +1,5 @@
-hash: d195fce920f315dff5a4b297f28c5c8d8dd300604db056329216585117f2a1af
-updated: 2018-11-01T14:02:22.228835659Z
+hash: 4d63e5d4ed4d8e49310c62b6d44adb4ba07057a1302495cdbe90593975782f16
+updated: 2019-01-10T12:58:19.828574148+05:30
 imports:
 - name: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
@@ -46,8 +46,6 @@ imports:
   version: 300e940a926eb277d3901b20bdfcc54928ad3642
 - name: github.com/godbus/dbus
   version: 66d97aec3384421e393c2a76b770a1b5c31d07a8
-- name: github.com/inconshreveable/mousetrap
-  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmespath/go-jmespath
   version: 0b12d6b521d83fc7f755e7cfc1b1fbdd35a01a74
 - name: github.com/pborman/uuid
@@ -64,10 +62,6 @@ imports:
   subpackages:
   - rpcvmx
   - vmcheck
-- name: github.com/spf13/cobra
-  version: 7b2c5ac9fc04fc5efafb60700713d4fa609b777b
-- name: github.com/spf13/pflag
-  version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/vincent-petithory/dataurl
   version: 9a301d65acbb728fcc3ace14f45f511a4cfeea9c
 - name: github.com/vmware/vmw-guestinfo
