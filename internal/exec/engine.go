@@ -78,12 +78,6 @@ func (e Engine) Run(stageName string) error {
 	cfg, err := e.acquireConfig()
 	if err == errors.ErrEmpty {
 		e.Logger.Info("%v: ignoring user-provided config", err)
-		cfg, r, err = system.FetchDefaultConfig(e.Logger)
-		e.logReport(r)
-		if err != nil && err != providers.ErrNoProvider {
-			e.Logger.Crit("failed to acquire default config: %v", err)
-			return err
-		}
 	} else if err != nil {
 		e.Logger.Crit("failed to acquire config: %v", err)
 		return err

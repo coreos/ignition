@@ -23,29 +23,21 @@ import (
 )
 
 func init() {
-	// Default config is applied
-	register.Register(register.PositiveTest, makePreemptTest("D"))
-	// Base and default configs are both applied
-	register.Register(register.PositiveTest, makePreemptTest("BD"))
 	// Base and provider configs are both applied
 	register.Register(register.PositiveTest, makePreemptTest("BP"))
-	// Provider config is applied; default config is ignored
-	register.Register(register.PositiveTest, makePreemptTest("dP"))
-	// Base and user configs are applied; provider and default
-	// configs are ignored
-	register.Register(register.PositiveTest, makePreemptTest("BdUp"))
+	// Base and user configs are applied; provider config is ignored
+	register.Register(register.PositiveTest, makePreemptTest("BUp"))
 	// No configs provided; Ignition should still run successfully
 	register.Register(register.PositiveTest, makePreemptTest(""))
 }
 
 // makePreemptTest returns a config preemption test that executes some
-// combination of "b"ase, "d"efault, "u"ser (user.ign), and "p"rovider
+// combination of "b"ase, "u"ser (user.ign), and "p"rovider
 // (IGNITION_CONFIG_FILE) configs. Capital letters indicate configs that
 // Ignition should apply.
 func makePreemptTest(components string) types.Test {
 	longnames := map[string]string{
 		"b": "base",
-		"d": "default",
 		"u": "user",
 		"p": "provider",
 	}
@@ -82,7 +74,7 @@ func makePreemptTest(components string) types.Test {
 	}
 
 	var systemFiles []types.File
-	for _, component := range []string{"b", "d", "u"} {
+	for _, component := range []string{"b", "u"} {
 		if enabled(component) {
 			systemFiles = append(systemFiles, types.File{
 				Node: types.Node{
