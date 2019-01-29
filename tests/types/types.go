@@ -92,15 +92,15 @@ type MntDevice struct {
 
 type Test struct {
 	Name              string
-	In                []Disk
-	Out               []Disk
+	In                []Disk // Disk state before running Ignition
+	Out               []Disk // Expected disk state after running Ignition
 	MntDevices        []MntDevice
 	OEMLookasideFiles []File
 	SystemDirFiles    []File
 	Config            string
 	ConfigMinVersion  string
 	ConfigVersion     string
-	ConfigShouldBeBad bool
+	ConfigShouldBeBad bool // Set to true to skip config validation step
 }
 
 func (ps Partitions) GetPartition(label string) *Partition {
