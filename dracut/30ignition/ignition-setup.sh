@@ -30,3 +30,8 @@ done
 if [[ -e "${src}/config.ign" ]]; then
     cp "${src}/config.ign" "${dst}/user.ign"
 fi
+
+# if we have config.ign on boot, overwrite it
+if [[ -e "/boot/config.ign" ]]; then
+    cp "/boot/config.ign" "${dst}/user.ign"
+fi
