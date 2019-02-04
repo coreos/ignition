@@ -15,6 +15,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -22,22 +23,24 @@ import (
 
 	config "github.com/coreos/ignition/config/v2_4_experimental"
 	"github.com/coreos/ignition/internal/version"
-
-	"github.com/spf13/cobra"
 )
 
 var (
 	flagVersion bool
-	rootCmd     = &cobra.Command{
-		Use:   "ignition-validate config.ign",
-		Short: "ignition-validate will validate Ignition configs",
-		Run:   runIgnValidate,
-	}
 )
 
+func init() {
+	flag.BoolVar(&flagVersion, "version", false, "print the version of ignition-validate")
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage:\n  %s config.ign [flags]\n\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+}
+
 func main() {
-	rootCmd.Flags().BoolVar(&flagVersion, "version", false, "print the version of ignition-validate")
-	rootCmd.Execute()
+	flag.Parse()
+
+	runIgnValidate(os.Args[1:])
 }
 
 func stdout(format string, a ...interface{}) {
@@ -53,13 +56,14 @@ func die(format string, a ...interface{}) {
 	os.Exit(1)
 }
 
-func runIgnValidate(cmd *cobra.Command, args []string) {
+func runIgnValidate(args []string) {
 	if flagVersion {
 		stdout(version.String)
 		return
 	}
+
 	if len(args) != 1 {
-		cmd.Usage()
+		flag.Usage()
 		os.Exit(1)
 	}
 	var blob []byte
