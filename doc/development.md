@@ -63,6 +63,18 @@ HELPERS=HOST ./build_blackbox_tests
 sudo sh -c 'PATH=$PWD/bin/amd64:$PATH ./tests.test'
 ```
 
+To run a subset of the blackbox tests, pass a regular expression into `-test.run`. As an example:
+
+```
+sudo sh -c 'PATH=$PWD/bin/amd64:$PATH ./tests.test -test.run TestIgnitionBlackBox/Preemption.*'
+```
+
+You can get a list of available tests to run by passing the `-list` option, like so:
+
+```
+sudo sh -c 'PATH=$PWD/bin/amd64:$PATH ./tests.test -list'
+```
+
 ## Test Host System Dependencies
 
 The following packages are required by the Blackbox Test:
