@@ -19,13 +19,6 @@ type ConfigReference struct {
 	Verification Verification `json:"verification,omitempty"`
 }
 
-type Create struct {
-	Force   bool           `json:"force,omitempty"`
-	Options []CreateOption `json:"options,omitempty"`
-}
-
-type CreateOption string
-
 type Device string
 
 type Directory struct {
@@ -66,10 +59,16 @@ type FileEmbedded1 struct {
 }
 
 type Filesystem struct {
-	Mount *Mount  `json:"mount,omitempty"`
-	Name  string  `json:"name,omitempty"`
-	Path  *string `json:"path,omitempty"`
+	Device         string             `json:"device"`
+	Format         string             `json:"format"`
+	Label          *string            `json:"label,omitempty"`
+	Options        []FilesystemOption `json:"options,omitempty"`
+	Path           string             `json:"path"`
+	UUID           *string            `json:"uuid,omitempty"`
+	WipeFilesystem bool               `json:"wipeFilesystem,omitempty"`
 }
+
+type FilesystemOption string
 
 type Group string
 
@@ -95,24 +94,11 @@ type LinkEmbedded1 struct {
 	Target string `json:"target"`
 }
 
-type Mount struct {
-	Create         *Create       `json:"create,omitempty"`
-	Device         string        `json:"device"`
-	Format         string        `json:"format"`
-	Label          *string       `json:"label,omitempty"`
-	Options        []MountOption `json:"options,omitempty"`
-	UUID           *string       `json:"uuid,omitempty"`
-	WipeFilesystem bool          `json:"wipeFilesystem,omitempty"`
-}
-
-type MountOption string
-
 type Node struct {
-	Filesystem string     `json:"filesystem"`
-	Group      *NodeGroup `json:"group,omitempty"`
-	Overwrite  *bool      `json:"overwrite,omitempty"`
-	Path       string     `json:"path"`
-	User       *NodeUser  `json:"user,omitempty"`
+	Group     *NodeGroup `json:"group,omitempty"`
+	Overwrite *bool      `json:"overwrite,omitempty"`
+	Path      string     `json:"path"`
+	User      *NodeUser  `json:"user,omitempty"`
 }
 
 type NodeGroup struct {

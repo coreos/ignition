@@ -30,7 +30,6 @@ var (
 // Util encapsulates logging and destdir indirection for the util methods.
 type Util struct {
 	DestDir string // directory prefix to use in applying fs paths.
-	IsRoot  bool   // whether or not DestDir is the root filesystem
 	Fetcher resource.Fetcher
 	*log.Logger
 }
@@ -52,10 +51,8 @@ func wantsToEscape(p string) bool {
 }
 
 // JoinPath returns a path into the context ala filepath.Join(d, args)
-// If u.IsRoot is true, it resolves symlinks as if they were rooted at
-// u.DestDir. This means that the resulting path will always be under
-// u.DestDir. If u.IsRoot is false, it fails if a symlink resolves such
-// that it would escape u.DestDir.
+// It resolves symlinks as if they were rooted at u.DestDir. This means
+// that the resulting path will always be under u.DestDir.
 // The last element of the path is never followed.
 func (u Util) JoinPath(path ...string) (string, error) {
 	components := []string{}
@@ -86,13 +83,7 @@ func (u Util) JoinPath(path ...string) (string, error) {
 			return "", err
 		}
 		if filepath.IsAbs(symlinkPath) {
-			if u.IsRoot {
-				realpath = "/"
-			} else {
-				return "", errEscapedMountpoint
-			}
-		} else if !u.IsRoot && wantsToEscape(symlinkPath) {
-			return "", errEscapedMountpoint
+			realpath = "/"
 		}
 		realpath = filepath.Join(realpath, symlinkPath)
 	}

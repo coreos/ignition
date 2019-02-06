@@ -16,11 +16,9 @@ package files
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
-	"syscall"
 
 	configUtil "github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/internal/config/types"
@@ -30,21 +28,13 @@ import (
 
 // createFilesystemsEntries creates the files described in config.Storage.{Files,Directories}.
 func (s *stage) createFilesystemsEntries(config types.Config) error {
-	if len(config.Storage.Filesystems) == 0 {
-		return nil
-	}
 	s.Logger.PushPrefix("createFilesystemsFiles")
 	defer s.Logger.PopPrefix()
 
-	entryMap, err := s.mapEntriesToFilesystems(config)
-	if err != nil {
-		return err
-	}
+	entryMap := s.getOrderedCreationList(config)
 
-	for fs, f := range entryMap {
-		if err := s.createEntries(fs, f); err != nil {
-			return fmt.Errorf("failed to create files: %v", err)
-		}
+	if err := s.createEntries(entryMap); err != nil {
+		return fmt.Errorf("failed to create files: %v", err)
 	}
 
 	return nil
@@ -181,22 +171,22 @@ func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	return nil
 }
 
-// ByDirectorySegments is used to sort directories so /foo gets created before /foo/bar if they are both specified.
-type ByDirectorySegments []types.Directory
+// ByPathSegments is used to sort directories so /foo gets created before /foo/bar if they are both specified.
+type ByPathSegments []filesystemEntry
 
-func (lst ByDirectorySegments) Len() int { return len(lst) }
+func (lst ByPathSegments) Len() int { return len(lst) }
 
-func (lst ByDirectorySegments) Swap(i, j int) {
+func (lst ByPathSegments) Swap(i, j int) {
 	lst[i], lst[j] = lst[j], lst[i]
 }
 
-func (lst ByDirectorySegments) Less(i, j int) bool {
-	return depth(lst[i].Node) < depth(lst[j].Node)
+func (lst ByPathSegments) Less(i, j int) bool {
+	return depth(lst[i].getPath()) < depth(lst[j].getPath())
 }
 
-func depth(n types.Node) uint {
+func depth(path string) uint {
 	var count uint = 0
-	for p := filepath.Clean(string(n.Path)); p != "/"; count++ {
+	for p := filepath.Clean(path); p != "/"; count++ {
 		p = filepath.Dir(p)
 	}
 	return count
@@ -205,91 +195,34 @@ func depth(n types.Node) uint {
 // mapEntriesToFilesystems builds a map of filesystems to files. If multiple
 // definitions of the same filesystem are present, only the final definition is
 // used. The directories are sorted to ensure /foo gets created before /foo/bar.
-func (s stage) mapEntriesToFilesystems(config types.Config) (map[types.Filesystem][]filesystemEntry, error) {
-	filesystems := map[string]types.Filesystem{}
-	for _, fs := range config.Storage.Filesystems {
-		filesystems[fs.Name] = fs
-	}
-
-	entryMap := map[types.Filesystem][]filesystemEntry{}
-
-	// Sort directories to ensure /a gets created before /a/b.
-	sortedDirs := config.Storage.Directories
-	sort.Stable(ByDirectorySegments(sortedDirs))
+func (s stage) getOrderedCreationList(config types.Config) []filesystemEntry {
+	entries := []filesystemEntry{}
 
 	// Add directories first to ensure they are created before files.
-	for _, d := range sortedDirs {
-		if fs, ok := filesystems[d.Filesystem]; ok {
-			entryMap[fs] = append(entryMap[fs], dirEntry(d))
-		} else {
-			s.Logger.Crit("the filesystem (%q), was not defined", d.Filesystem)
-			return nil, ErrFilesystemUndefined
-		}
+	for _, d := range config.Storage.Directories {
+		entries = append(entries, dirEntry(d))
 	}
 
 	for _, f := range config.Storage.Files {
-		if fs, ok := filesystems[f.Filesystem]; ok {
-			entryMap[fs] = append(entryMap[fs], fileEntry(f))
-		} else {
-			s.Logger.Crit("the filesystem (%q), was not defined", f.Filesystem)
-			return nil, ErrFilesystemUndefined
-		}
+		entries = append(entries, fileEntry(f))
 	}
 
 	for _, sy := range config.Storage.Links {
-		if fs, ok := filesystems[sy.Filesystem]; ok {
-			entryMap[fs] = append(entryMap[fs], linkEntry(sy))
-		} else {
-			s.Logger.Crit("the filesystem (%q), was not defined", sy.Filesystem)
-			return nil, ErrFilesystemUndefined
-		}
+		entries = append(entries, linkEntry(sy))
 	}
+	sort.Stable(ByPathSegments(entries))
 
-	return entryMap, nil
+	return entries
 }
 
 // createEntries creates any files or directories listed for the filesystem in Storage.{Files,Directories}.
-func (s *stage) createEntries(fs types.Filesystem, files []filesystemEntry) error {
+func (s *stage) createEntries(files []filesystemEntry) error {
 	s.Logger.PushPrefix("createFiles")
 	defer s.Logger.PopPrefix()
 
-	var mnt string
-	if fs.Path == nil {
-		var err error
-		mnt, err = ioutil.TempDir("", "ignition-files")
-		if err != nil {
-			return fmt.Errorf("failed to create temp directory: %v", err)
-		}
-		defer os.Remove(mnt)
-
-		dev := string(fs.Mount.Device)
-		format := string(fs.Mount.Format)
-
-		if err := s.Logger.LogOp(
-			func() error { return syscall.Mount(dev, mnt, format, 0, "") },
-			"mounting %q at %q", dev, mnt,
-		); err != nil {
-			return fmt.Errorf("failed to mount device %q at %q: %v", dev, mnt, err)
-		}
-		defer s.Logger.LogOp(
-			func() error { return syscall.Unmount(mnt, 0) },
-			"unmounting %q at %q", dev, mnt,
-		)
-	} else {
-		mnt = *fs.Path
-	}
-
-	u := util.Util{
-		DestDir: mnt,
-		IsRoot:  fs.Name == "root",
-		Fetcher: s.Util.Fetcher,
-		Logger:  s.Logger,
-	}
-
 	for _, e := range files {
 		path := e.getPath()
-		// only relabel things on the root filesystem
-		if fs.Name == "root" && s.relabeling() {
+		if s.relabeling() {
 			// relabel from the first parent dir that we'll have to create --
 			// alternatively, we could make `MkdirForFile` fancier instead of
 			// using `os.MkdirAll`, though that's quite a lot of levels to plumb
@@ -297,7 +230,7 @@ func (s *stage) createEntries(fs types.Filesystem, files []filesystemEntry) erro
 			relabelFrom := path
 			dir := filepath.Dir(path)
 			for {
-				exists, err := u.PathExists(dir)
+				exists, err := s.Util.PathExists(dir)
 				if err != nil {
 					return err
 				}
@@ -311,7 +244,7 @@ func (s *stage) createEntries(fs types.Filesystem, files []filesystemEntry) erro
 			}
 			s.relabel(relabelFrom)
 		}
-		if err := e.create(s.Logger, u); err != nil {
+		if err := e.create(s.Logger, s.Util); err != nil {
 			return err
 		}
 	}

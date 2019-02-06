@@ -21,8 +21,14 @@ import (
 )
 
 func validatePath(p string) error {
+	if p == "" {
+		return errors.ErrNoPath
+	}
 	if !path.IsAbs(p) {
 		return errors.ErrPathRelative
+	}
+	if path.Clean(p) != p {
+		return errors.ErrDirtyPath
 	}
 	return nil
 }

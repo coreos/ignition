@@ -102,7 +102,6 @@ func (u Util) EnableRuntimeUnit(unit types.Unit, target string) error {
 
 	link := types.Link{
 		Node: types.Node{
-			Filesystem: "root",
 			// XXX(jl): make Wants/Required a parameter
 			Path: filepath.Join(SystemdRuntimeUnitWantsPath(target), string(unit.Name)),
 		},

@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/config/shared/errors"
-	configUtil "github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/config"
 	"github.com/coreos/ignition/internal/config/types"
@@ -62,12 +61,6 @@ func (e Engine) Run(stageName string) error {
 	}
 	baseConfig := types.Config{
 		Ignition: types.Ignition{Version: types.MaxVersion.String()},
-		Storage: types.Storage{
-			Filesystems: []types.Filesystem{{
-				Name: "root",
-				Path: configUtil.StrToPtr(e.Root),
-			}},
-		},
 	}
 
 	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger)

@@ -21,26 +21,9 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func (n Node) ValidateFilesystem() report.Report {
-	r := report.Report{}
-	if n.Filesystem == "" {
-		r.Add(report.Entry{
-			Message: errors.ErrNoFilesystem.Error(),
-			Kind:    report.EntryError,
-		})
-	}
-	return r
-}
-
-func (n Node) ValidatePath() report.Report {
-	r := report.Report{}
-	if err := validatePath(n.Path); err != nil {
-		r.Add(report.Entry{
-			Message: err.Error(),
-			Kind:    report.EntryError,
-		})
-	}
-	return r
+func (n Node) ValidatePath() (r report.Report) {
+	r.AddOnError(validatePath(n.Path))
+	return
 }
 
 func (n Node) Depth() int {
@@ -51,23 +34,15 @@ func (n Node) Depth() int {
 	return count
 }
 
-func (nu NodeUser) Validate() report.Report {
-	r := report.Report{}
+func (nu NodeUser) Validate() (r report.Report) {
 	if nu.ID != nil && nu.Name != "" {
-		r.Add(report.Entry{
-			Message: errors.ErrBothIDAndNameSet.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrBothIDAndNameSet)
 	}
-	return r
+	return
 }
-func (ng NodeGroup) Validate() report.Report {
-	r := report.Report{}
+func (ng NodeGroup) Validate() (r report.Report) {
 	if ng.ID != nil && ng.Name != "" {
-		r.Add(report.Entry{
-			Message: errors.ErrBothIDAndNameSet.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrBothIDAndNameSet)
 	}
-	return r
+	return
 }

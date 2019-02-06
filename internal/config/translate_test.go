@@ -391,34 +391,20 @@ func TestTranslate(t *testing.T) {
 				Storage: from.Storage{
 					Filesystems: []from.Filesystem{
 						{
-							Name: "filesystem-0",
-							Mount: &from.Mount{
-								Device: "/dev/disk/by-partlabel/ROOT",
-								Format: "btrfs",
-								Create: &from.Create{
-									Force:   true,
-									Options: []from.CreateOption{"-L", "ROOT"},
-								},
-								Label:          strToPtr("ROOT"),
-								Options:        []from.MountOption{"--nodiscard"},
-								UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-46215D4696AC"),
-								WipeFilesystem: true,
-							},
+							Device:         "/dev/disk/by-partlabel/ROOT",
+							Format:         "btrfs",
+							Label:          strToPtr("ROOT"),
+							Options:        []from.FilesystemOption{"--nodiscard"},
+							UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-46215D4696AC"),
+							WipeFilesystem: true,
 						},
 						{
-							Name: "filesystem-1",
-							Mount: &from.Mount{
-								Device:         "/dev/disk/by-partlabel/DATA",
-								Format:         "ext4",
-								Label:          strToPtr("DATA"),
-								Options:        []from.MountOption{"-b", "1024"},
-								UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-DEADBEEF0101"),
-								WipeFilesystem: false,
-							},
-						},
-						{
-							Name: "filesystem-2",
-							Path: func(p string) *string { return &p }("/foo"),
+							Device:         "/dev/disk/by-partlabel/DATA",
+							Format:         "ext4",
+							Label:          strToPtr("DATA"),
+							Options:        []from.FilesystemOption{"-b", "1024"},
+							UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-DEADBEEF0101"),
+							WipeFilesystem: false,
 						},
 					},
 				},
@@ -428,34 +414,20 @@ func TestTranslate(t *testing.T) {
 				Storage: types.Storage{
 					Filesystems: []types.Filesystem{
 						{
-							Name: "filesystem-0",
-							Mount: &types.Mount{
-								Device: "/dev/disk/by-partlabel/ROOT",
-								Format: "btrfs",
-								Create: &types.Create{
-									Force:   true,
-									Options: []types.CreateOption{"-L", "ROOT"},
-								},
-								Label:          strToPtr("ROOT"),
-								Options:        []types.MountOption{"--nodiscard"},
-								UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-46215D4696AC"),
-								WipeFilesystem: true,
-							},
+							Device:         "/dev/disk/by-partlabel/ROOT",
+							Format:         "btrfs",
+							Label:          strToPtr("ROOT"),
+							Options:        []types.FilesystemOption{"--nodiscard"},
+							UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-46215D4696AC"),
+							WipeFilesystem: true,
 						},
 						{
-							Name: "filesystem-1",
-							Mount: &types.Mount{
-								Device:         "/dev/disk/by-partlabel/DATA",
-								Format:         "ext4",
-								Label:          strToPtr("DATA"),
-								Options:        []types.MountOption{"-b", "1024"},
-								UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-DEADBEEF0101"),
-								WipeFilesystem: false,
-							},
-						},
-						{
-							Name: "filesystem-2",
-							Path: strToPtr("/foo"),
+							Device:         "/dev/disk/by-partlabel/DATA",
+							Format:         "ext4",
+							Label:          strToPtr("DATA"),
+							Options:        []types.FilesystemOption{"-b", "1024"},
+							UUID:           strToPtr("8A7A6E26-5E8F-4CCA-A654-DEADBEEF0101"),
+							WipeFilesystem: false,
 						},
 					},
 				},
@@ -468,11 +440,10 @@ func TestTranslate(t *testing.T) {
 					Files: []from.File{
 						{
 							Node: from.Node{
-								Filesystem: "filesystem-0",
-								Path:       "/opt/file1",
-								User:       &from.NodeUser{ID: intToPtr(500)},
-								Group:      &from.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(false),
+								Path:      "/opt/file1",
+								User:      &from.NodeUser{ID: intToPtr(500)},
+								Group:     &from.NodeGroup{ID: intToPtr(501)},
+								Overwrite: boolToPtr(false),
 							},
 							FileEmbedded1: from.FileEmbedded1{
 								Mode: intToPtr(0664),
@@ -489,10 +460,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: from.Node{
-								Filesystem: "filesystem-0",
-								Path:       "/opt/file2",
-								User:       &from.NodeUser{ID: intToPtr(502)},
-								Group:      &from.NodeGroup{ID: intToPtr(503)},
+								Path:  "/opt/file2",
+								User:  &from.NodeUser{ID: intToPtr(502)},
+								Group: &from.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: from.FileEmbedded1{
 								Mode:   intToPtr(0644),
@@ -508,10 +478,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: from.Node{
-								Filesystem: "filesystem-1",
-								Path:       "/opt/file3",
-								User:       &from.NodeUser{ID: intToPtr(1000)},
-								Group:      &from.NodeGroup{ID: intToPtr(1001)},
+								Path:  "/opt/file3",
+								User:  &from.NodeUser{ID: intToPtr(1000)},
+								Group: &from.NodeGroup{ID: intToPtr(1001)},
 							},
 							FileEmbedded1: from.FileEmbedded1{
 								Mode: intToPtr(0400),
@@ -532,11 +501,10 @@ func TestTranslate(t *testing.T) {
 					Files: []types.File{
 						{
 							Node: types.Node{
-								Filesystem: "filesystem-0",
-								Path:       "/opt/file1",
-								User:       &types.NodeUser{ID: intToPtr(500)},
-								Group:      &types.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(false),
+								Path:      "/opt/file1",
+								User:      &types.NodeUser{ID: intToPtr(500)},
+								Group:     &types.NodeGroup{ID: intToPtr(501)},
+								Overwrite: boolToPtr(false),
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: intToPtr(0664),
@@ -553,10 +521,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: types.Node{
-								Filesystem: "filesystem-0",
-								Path:       "/opt/file2",
-								User:       &types.NodeUser{ID: intToPtr(502)},
-								Group:      &types.NodeGroup{ID: intToPtr(503)},
+								Path:  "/opt/file2",
+								User:  &types.NodeUser{ID: intToPtr(502)},
+								Group: &types.NodeGroup{ID: intToPtr(503)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode:   intToPtr(0644),
@@ -572,10 +539,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: types.Node{
-								Filesystem: "filesystem-1",
-								Path:       "/opt/file3",
-								User:       &types.NodeUser{ID: intToPtr(1000)},
-								Group:      &types.NodeGroup{ID: intToPtr(1001)},
+								Path:  "/opt/file3",
+								User:  &types.NodeUser{ID: intToPtr(1000)},
+								Group: &types.NodeGroup{ID: intToPtr(1001)},
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Mode: intToPtr(0400),
@@ -598,11 +564,10 @@ func TestTranslate(t *testing.T) {
 					Directories: []from.Directory{
 						{
 							Node: from.Node{
-								Filesystem: "filesystem-1",
-								Path:       "/opt/dir1",
-								User:       &from.NodeUser{ID: intToPtr(500)},
-								Group:      &from.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(false),
+								Path:      "/opt/dir1",
+								User:      &from.NodeUser{ID: intToPtr(500)},
+								Group:     &from.NodeGroup{ID: intToPtr(501)},
+								Overwrite: boolToPtr(false),
 							},
 							DirectoryEmbedded1: from.DirectoryEmbedded1{
 								Mode: intToPtr(0664),
@@ -610,10 +575,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: from.Node{
-								Filesystem: "filesystem-2",
-								Path:       "/opt/dir2",
-								User:       &from.NodeUser{ID: intToPtr(502)},
-								Group:      &from.NodeGroup{ID: intToPtr(503)},
+								Path:  "/opt/dir2",
+								User:  &from.NodeUser{ID: intToPtr(502)},
+								Group: &from.NodeGroup{ID: intToPtr(503)},
 							},
 							DirectoryEmbedded1: from.DirectoryEmbedded1{
 								Mode: intToPtr(0644),
@@ -621,10 +585,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: from.Node{
-								Filesystem: "filesystem-2",
-								Path:       "/opt/dir3",
-								User:       &from.NodeUser{ID: intToPtr(1000)},
-								Group:      &from.NodeGroup{ID: intToPtr(1001)},
+								Path:  "/opt/dir3",
+								User:  &from.NodeUser{ID: intToPtr(1000)},
+								Group: &from.NodeGroup{ID: intToPtr(1001)},
 							},
 							DirectoryEmbedded1: from.DirectoryEmbedded1{
 								Mode: intToPtr(0400),
@@ -639,11 +602,10 @@ func TestTranslate(t *testing.T) {
 					Directories: []types.Directory{
 						{
 							Node: types.Node{
-								Filesystem: "filesystem-1",
-								Path:       "/opt/dir1",
-								User:       &types.NodeUser{ID: intToPtr(500)},
-								Group:      &types.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(false),
+								Path:      "/opt/dir1",
+								User:      &types.NodeUser{ID: intToPtr(500)},
+								Group:     &types.NodeGroup{ID: intToPtr(501)},
+								Overwrite: boolToPtr(false),
 							},
 							DirectoryEmbedded1: types.DirectoryEmbedded1{
 								Mode: intToPtr(0664),
@@ -651,10 +613,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: types.Node{
-								Filesystem: "filesystem-2",
-								Path:       "/opt/dir2",
-								User:       &types.NodeUser{ID: intToPtr(502)},
-								Group:      &types.NodeGroup{ID: intToPtr(503)},
+								Path:  "/opt/dir2",
+								User:  &types.NodeUser{ID: intToPtr(502)},
+								Group: &types.NodeGroup{ID: intToPtr(503)},
 							},
 							DirectoryEmbedded1: types.DirectoryEmbedded1{
 								Mode: intToPtr(0644),
@@ -662,10 +623,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: types.Node{
-								Filesystem: "filesystem-2",
-								Path:       "/opt/dir3",
-								User:       &types.NodeUser{ID: intToPtr(1000)},
-								Group:      &types.NodeGroup{ID: intToPtr(1001)},
+								Path:  "/opt/dir3",
+								User:  &types.NodeUser{ID: intToPtr(1000)},
+								Group: &types.NodeGroup{ID: intToPtr(1001)},
 							},
 							DirectoryEmbedded1: types.DirectoryEmbedded1{
 								Mode: intToPtr(0400),
@@ -682,11 +642,10 @@ func TestTranslate(t *testing.T) {
 					Links: []from.Link{
 						{
 							Node: from.Node{
-								Filesystem: "filesystem-1",
-								Path:       "/opt/link1",
-								User:       &from.NodeUser{ID: intToPtr(500)},
-								Group:      &from.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(true),
+								Path:      "/opt/link1",
+								User:      &from.NodeUser{ID: intToPtr(500)},
+								Group:     &from.NodeGroup{ID: intToPtr(501)},
+								Overwrite: boolToPtr(true),
 							},
 							LinkEmbedded1: from.LinkEmbedded1{
 								Hard:   false,
@@ -695,10 +654,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: from.Node{
-								Filesystem: "filesystem-2",
-								Path:       "/opt/link2",
-								User:       &from.NodeUser{ID: intToPtr(502)},
-								Group:      &from.NodeGroup{ID: intToPtr(503)},
+								Path:  "/opt/link2",
+								User:  &from.NodeUser{ID: intToPtr(502)},
+								Group: &from.NodeGroup{ID: intToPtr(503)},
 							},
 							LinkEmbedded1: from.LinkEmbedded1{
 								Hard:   true,
@@ -707,10 +665,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: from.Node{
-								Filesystem: "filesystem-2",
-								Path:       "/opt/link3",
-								User:       &from.NodeUser{ID: intToPtr(1000)},
-								Group:      &from.NodeGroup{ID: intToPtr(1001)},
+								Path:  "/opt/link3",
+								User:  &from.NodeUser{ID: intToPtr(1000)},
+								Group: &from.NodeGroup{ID: intToPtr(1001)},
 							},
 							LinkEmbedded1: from.LinkEmbedded1{
 								Hard:   true,
@@ -726,11 +683,10 @@ func TestTranslate(t *testing.T) {
 					Links: []types.Link{
 						{
 							Node: types.Node{
-								Filesystem: "filesystem-1",
-								Path:       "/opt/link1",
-								User:       &types.NodeUser{ID: intToPtr(500)},
-								Group:      &types.NodeGroup{ID: intToPtr(501)},
-								Overwrite:  boolToPtr(true),
+								Path:      "/opt/link1",
+								User:      &types.NodeUser{ID: intToPtr(500)},
+								Group:     &types.NodeGroup{ID: intToPtr(501)},
+								Overwrite: boolToPtr(true),
 							},
 							LinkEmbedded1: types.LinkEmbedded1{
 								Hard:   false,
@@ -739,10 +695,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: types.Node{
-								Filesystem: "filesystem-2",
-								Path:       "/opt/link2",
-								User:       &types.NodeUser{ID: intToPtr(502)},
-								Group:      &types.NodeGroup{ID: intToPtr(503)},
+								Path:  "/opt/link2",
+								User:  &types.NodeUser{ID: intToPtr(502)},
+								Group: &types.NodeGroup{ID: intToPtr(503)},
 							},
 							LinkEmbedded1: types.LinkEmbedded1{
 								Hard:   true,
@@ -751,10 +706,9 @@ func TestTranslate(t *testing.T) {
 						},
 						{
 							Node: types.Node{
-								Filesystem: "filesystem-2",
-								Path:       "/opt/link3",
-								User:       &types.NodeUser{ID: intToPtr(1000)},
-								Group:      &types.NodeGroup{ID: intToPtr(1001)},
+								Path:  "/opt/link3",
+								User:  &types.NodeUser{ID: intToPtr(1000)},
+								Group: &types.NodeGroup{ID: intToPtr(1001)},
 							},
 							LinkEmbedded1: types.LinkEmbedded1{
 								Hard:   true,

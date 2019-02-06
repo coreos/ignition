@@ -15,8 +15,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/coreos/go-semver/semver"
 
 	"github.com/coreos/ignition/config/validate/report"
@@ -32,10 +30,7 @@ var (
 
 func (c Config) Validate() report.Report {
 	r := report.Report{}
-	rules := []rule{
-		checkFilesFilesystems,
-		checkDuplicateFilesystems,
-	}
+	rules := []rule{}
 
 	for _, rule := range rules {
 		rule(c, &r)
@@ -44,49 +39,3 @@ func (c Config) Validate() report.Report {
 }
 
 type rule func(cfg Config, report *report.Report)
-
-func checkNodeFilesystems(node Node, filesystems map[string]struct{}, nodeType string) report.Report {
-	r := report.Report{}
-	if node.Filesystem == "" {
-		// Filesystem was not specified. This is an error, but its handled in types.File's Validate, not here
-		return r
-	}
-	_, ok := filesystems[node.Filesystem]
-	if !ok {
-		r.Add(report.Entry{
-			Kind: report.EntryWarning,
-			Message: fmt.Sprintf("%v %q references nonexistent filesystem %q. (This is ok if it is defined in a referenced config)",
-				nodeType, node.Path, node.Filesystem),
-		})
-	}
-	return r
-}
-
-func checkFilesFilesystems(cfg Config, r *report.Report) {
-	filesystems := map[string]struct{}{"root": {}}
-	for _, filesystem := range cfg.Storage.Filesystems {
-		filesystems[filesystem.Name] = struct{}{}
-	}
-	for _, file := range cfg.Storage.Files {
-		r.Merge(checkNodeFilesystems(file.Node, filesystems, "File"))
-	}
-	for _, link := range cfg.Storage.Links {
-		r.Merge(checkNodeFilesystems(link.Node, filesystems, "Link"))
-	}
-	for _, dir := range cfg.Storage.Directories {
-		r.Merge(checkNodeFilesystems(dir.Node, filesystems, "Directory"))
-	}
-}
-
-func checkDuplicateFilesystems(cfg Config, r *report.Report) {
-	filesystems := map[string]struct{}{"root": {}}
-	for _, filesystem := range cfg.Storage.Filesystems {
-		if _, ok := filesystems[filesystem.Name]; ok {
-			r.Add(report.Entry{
-				Kind:    report.EntryWarning,
-				Message: fmt.Sprintf("Filesystem %q shadows exising filesystem definition", filesystem.Name),
-			})
-		}
-		filesystems[filesystem.Name] = struct{}{}
-	}
-}
