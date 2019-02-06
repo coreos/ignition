@@ -29,17 +29,12 @@ import (
 )
 
 const (
-	baseFilename    = "base.ign"
-	defaultFilename = "default.ign"
-	userFilename    = "user.ign"
+	baseFilename = "base.ign"
+	userFilename = "user.ign"
 )
 
 func FetchBaseConfig(logger *log.Logger) (types.Config, report.Report, error) {
 	return fetchConfig(logger, baseFilename)
-}
-
-func FetchDefaultConfig(logger *log.Logger) (types.Config, report.Report, error) {
-	return fetchConfig(logger, defaultFilename)
 }
 
 func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
