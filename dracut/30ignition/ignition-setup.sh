@@ -7,7 +7,8 @@ src=/usr/share/oem
 
 dst=/usr/lib/ignition
 mkdir -p "${dst}"
-for name in base.ign default.ign; do
+
+for name in base.ign; do
     if [[ -e "${src}/base/${name}" ]]; then
         cp "${src}/base/${name}" "${dst}"
     fi
