@@ -70,6 +70,7 @@ After=dev-disk-by\x2dlabel-boot.device
 
 [Service]
 Type=oneshot
+EnvironmentFile=/run/ignition.env
 ExecStart=/usr/sbin/ignition-setup
 EOF
 

@@ -1,23 +1,22 @@
 #!/bin/bash
+set -eux
 
-set -e
+# Grab our ignition configs from:
+#  - A platform specific directory for this platform
+#  - The boot partition (user/installer overrides)
+sources=("/usr/share/platforms/${OEM_ID}/"
+         "/boot/ignition/")
 
-# OEM directory in the initramfs itself
-src=/usr/share/oem
-
+# files go into the /usr/lib/ignition directory
 dst=/usr/lib/ignition
 mkdir -p "${dst}"
 
-for name in base.ign; do
-    if [[ -e "${src}/base/${name}" ]]; then
-        cp "${src}/base/${name}" "${dst}"
+for src in ${sources[*]}; do
+    if [ -d "$src" ]; then
+        for name in 'base.ign' 'user.ign'; do
+            if [ -f "${src}/${name}" ]; then
+                cp "${src}/${name}" "${dst}"
+            fi
+        done
     fi
 done
-if [[ -e "${src}/config.ign" ]]; then
-    cp "${src}/config.ign" "${dst}/user.ign"
-fi
-
-# if we have config.ign on boot, overwrite it
-if [[ -e "/boot/config.ign" ]]; then
-    cp "/boot/config.ign" "${dst}/user.ign"
-fi
