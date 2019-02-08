@@ -46,7 +46,6 @@ func makePreemptTest(components string) types.Test {
 			"ignition": {"version": "3.0.0-experimental"},
 			"storage": {
 				"files": [{
-					"filesystem": "root",
 					"path": "/ignition/%s",
 					"contents": {"source": "data:,%s"}
 				}]}

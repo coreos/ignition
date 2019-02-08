@@ -70,7 +70,6 @@ func IncreaseHTTPResponseHeadersTimeout() types.Test {
 		"storage": {
 		    "files": [
 			    {
-					"filesystem": "root",
 					"path": "/foo/bar",
 					"contents": {
 						"source": %q
@@ -110,7 +109,6 @@ func ConfirmHTTPBackoffWorks() types.Test {
 		"storage": {
 		    "files": [
 			    {
-					"filesystem": "root",
 					"path": "/foo/bar",
 					"contents": {
 						"source": "%s/$version"

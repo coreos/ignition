@@ -38,7 +38,6 @@ func CreateFileOnRoot() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": { "source": "data:,example%20file%0A" }
 	    }]
@@ -72,7 +71,6 @@ func UserGroupByID() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": { "source": "data:,example%20file%0A" },
 		  "user": {"id": 500},
@@ -110,7 +108,6 @@ func UserGroupByName() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": { "source": "data:,example%20file%0A" },
 		  "user": {"name": "core"},
@@ -148,7 +145,6 @@ func ForceFileCreation() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
@@ -194,7 +190,6 @@ func ForceFileCreationNoOverwrite() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
@@ -239,13 +234,11 @@ func AppendToAFile() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": { "source": "data:,example%20file%0A" },
 	      "user": {"id": 500},
 	      "group": {"id": 500}
 	    },{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": { "source": "data:,hello%20world%0A" },
 	      "group": {"id": 0},
@@ -283,7 +276,6 @@ func AppendToNonexistentFile() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": { "source": "data:,hello%20world%0A" },
 	      "group": {"id": 500},

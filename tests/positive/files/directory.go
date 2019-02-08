@@ -33,7 +33,6 @@ func CreateDirectoryOnRoot() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "directories": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar"
 	    }]
 	  }
@@ -65,7 +64,6 @@ func ForceDirCreation() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "directories": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 		  "overwrite": true
 	    }]
@@ -107,7 +105,6 @@ func ForceDirCreationOverNonemptyDir() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "directories": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 		  "overwrite": true
 	    }]

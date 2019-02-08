@@ -32,9 +32,8 @@ func (server *HTTPServer) Config(w http.ResponseWriter, r *http.Request) {
 	"ignition": { "version": "3.0.0-experimental" },
 	"storage": {
 		"files": [{
-		  "filesystem": "root",
-		  "path": "/foo/bar",
-		  "contents": { "source": "data:,example%20file%0A" }
+			"path": "/foo/bar",
+			"contents": { "source": "data:,example%20file%0A" }
 		}]
 	}
 }`))
@@ -63,14 +62,13 @@ func (server *TFTPServer) ReadHandler(filename string, rf io.ReaderFrom) error {
 fdsa`))
 	} else if strings.Contains(filename, "config") {
 		buf = bytes.NewReader([]byte(`{
-        "ignition": { "version": "3.0.0-experimental" },
-        "storage": {
-                "files": [{
-                  "filesystem": "root",
-                  "path": "/foo/bar",
-                  "contents": { "source": "data:,example%20file%0A" }
-                }]
-        }
+	"ignition": { "version": "3.0.0-experimental" },
+	"storage": {
+		"files": [{
+			"path": "/foo/bar",
+			"contents": { "source": "data:,example%20file%0A" }
+		}]
+	}
 }`))
 	} else {
 		return fmt.Errorf("no such file %q", filename)

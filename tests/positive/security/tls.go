@@ -77,7 +77,6 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 			"ignition": { "version": "3.0.0-experimental" },
 			"storage": {
 				"files": [{
-					"filesystem": "root",
 					"path": "/foo/bar",
 					"contents": { "source": "data:,example%20file%0A" }
 				}]
@@ -148,7 +147,6 @@ func FetchFileCustomCert() types.Test {
 		},
 		"storage": {
 			"files": [{
-				"filesystem": "root",
 				"path": "/foo/bar",
 				"contents": {
 					"source": %q

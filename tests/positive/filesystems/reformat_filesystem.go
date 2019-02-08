@@ -41,14 +41,10 @@ func ReformatToBTRFS() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
-	      "mount": {
-	        "device": "$DEVICE",
-	        "format": "btrfs",
-	        "create": {
-	          "force": true,
-	          "options": [ "--label=OEM", "--uuid=$uuid0" ]
-	        }
-	      }
+	      "path": "/tmp0",
+	      "device": "$DEVICE",
+	      "format": "btrfs",
+	      "wipeFilesystem": true
 	    }]
 	  }
 	}`
@@ -79,14 +75,12 @@ func ReformatToXFS() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
-	      "mount": {
-	        "device": "$DEVICE",
-	        "format": "xfs",
-	        "create": {
-	          "force": true,
-	          "options": [ "-L", "OEM", "-m", "uuid=$uuid0" ]
-	        }
-	      }
+	      "path": "/tmp0",
+	      "device": "$DEVICE",
+	      "format": "xfs",
+	      "label": "OEM",
+	      "uuid": "$uuid0",
+	      "wipeFilesystem": true
 	    }]
 	  }
 	}`
@@ -117,13 +111,12 @@ func ReformatToVFAT() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
-	      "mount": {
-	        "device": "$DEVICE",
-	        "format": "vfat",
-	        "label": "OEM",
-		"uuid": "2e24ec82",
-		"wipeFilesystem": true
-	      }
+	      "path": "/tmp0",
+	      "device": "$DEVICE",
+	      "format": "vfat",
+	      "label": "OEM",
+	      "uuid": "2e24ec82",
+	      "wipeFilesystem": true
 	    }]
 	  }
 	}`
@@ -155,14 +148,12 @@ func ReformatToEXT4() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
-	      "mount": {
-	        "device": "$DEVICE",
-	        "format": "ext4",
-	        "create": {
-	          "force": true,
-	          "options": [ "-L", "OEM", "-U", "$uuid0" ]
-	        }
-	      }
+	      "path": "/tmp0",
+	      "device": "$DEVICE",
+	      "format": "ext4",
+	      "label": "OEM",
+	      "uuid": "$uuid0",
+	      "wipeFilesystem": true
 	    }]
 	  }
 	}`
@@ -195,13 +186,12 @@ func ReformatToSWAP() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "filesystems": [{
-	      "mount": {
-	        "device": "$DEVICE",
-	        "format": "swap",
-	        "label": "OEM",
-	        "uuid": "$uuid0",
-		"wipeFilesystem": true
-	      }
+	      "path": "/tmp0",
+	      "device": "$DEVICE",
+	      "format": "swap",
+	      "label": "OEM",
+	      "uuid": "$uuid0",
+	      "wipeFilesystem": true
 	    }]
 	  }
 	}`

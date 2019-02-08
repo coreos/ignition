@@ -26,7 +26,6 @@ import (
 	_ "github.com/coreos/ignition/tests/positive/files"
 	_ "github.com/coreos/ignition/tests/positive/filesystems"
 	_ "github.com/coreos/ignition/tests/positive/general"
-	_ "github.com/coreos/ignition/tests/positive/oem"
 	_ "github.com/coreos/ignition/tests/positive/partitions"
 	_ "github.com/coreos/ignition/tests/positive/passwd"
 	_ "github.com/coreos/ignition/tests/positive/regression"

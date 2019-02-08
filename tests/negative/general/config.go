@@ -88,7 +88,6 @@ func AppendConfigWithInvalidHash() types.Test {
 	  },
       "storage": {
         "files": [{
-          "filesystem": "root",
           "path": "/foo/bar2",
           "contents": { "source": "data:,another%20example%20file%0A" }
         }]

@@ -39,7 +39,6 @@ func AppendToDirectory() types.Test {
 	    "ignition": {"version": "$version" },
 	    "storage": {
 	      "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": { "source": "data:,hello%20world%0A" },
 	      "append": true
@@ -81,7 +80,6 @@ func AppendAndOverwrite() types.Test {
 		"ignition": {"version": "$version" },
 		"storage": {
 		  "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": { "source": "data:,hello%20world%0A" },
 	      "append": true,

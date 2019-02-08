@@ -26,8 +26,6 @@ func init() {
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTP())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigTFTP())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigTFTP())
-	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigOEM())
-	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigOEM())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigData())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigData())
 	register.Register(register.PositiveTest, VersionOnlyConfig())
@@ -48,16 +46,13 @@ func ReformatFilesystemAndWriteFile() types.Test {
 		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
-				"mount": {
-					"device": "$DEVICE",
-					"format": "ext4",
-					"create": {
-						"force": true
-					}},
-				 "name": "test"}],
+				"path": "/tmp0",
+				"device": "$DEVICE",
+				"format": "ext4",
+				"wipeFilesystem": true
+			}],
 			"files": [{
-				"filesystem": "test",
-				"path": "/ignition/test",
+				"path": "/tmp0/test",
 				"contents": {"source": "data:,asdf"}
 			}]}
 	}`
@@ -68,7 +63,7 @@ func ReformatFilesystemAndWriteFile() types.Test {
 		{
 			Node: types.Node{
 				Name:      "test",
-				Directory: "ignition",
+				Directory: "/",
 			},
 			Contents: "asdf",
 		},
@@ -94,7 +89,7 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	    "config": {
 	      "replace": {
 	        "source": "http://127.0.0.1:8080/config",
-			"verification": { "hash": "sha512-c81f3b2185ccc39e995b199c8d22a7ae2972575c826300a9d8e930def33d99351f2d308fbe96ef9fd82a4c30e68920623e64ae7ffd884bf5ea6cd9b288fc886b" }
+			"verification": { "hash": "sha512-3917a12839de1fc23681bf6efe55b8d721fe136d8d059b8800cfe2f79581170aed7de36b68c54821015d9dda256e5a5310be1aa86e07f65adc1bdd7c3f4da639" }
 	      }
 	    }
 	  }
@@ -129,64 +124,12 @@ func ReplaceConfigWithRemoteConfigTFTP() types.Test {
             "config": {
               "replace": {
                 "source": "tftp://127.0.0.1:69/config",
-                        "verification": { "hash": "sha512-89f6601d56c37071b7529e47b7cfc91ada2871230e5e23847885e78bfb573a801200301ee3b370bb9d6d12e556775817b49695e71bd8ebb61909e482d5079416" }
+                        "verification": { "hash": "sha512-3917a12839de1fc23681bf6efe55b8d721fe136d8d059b8800cfe2f79581170aed7de36b68c54821015d9dda256e5a5310be1aa86e07f65adc1bdd7c3f4da639" }
               }
             }
           }
         }`
 	configMinVersion := "3.0.0-experimental"
-	out[0].Partitions.AddFiles("ROOT", []types.File{
-		{
-			Node: types.Node{
-				Name:      "bar",
-				Directory: "foo",
-			},
-			Contents: "example file\n",
-		},
-	})
-
-	return types.Test{
-		Name:             name,
-		In:               in,
-		Out:              out,
-		Config:           config,
-		ConfigMinVersion: configMinVersion,
-	}
-}
-
-func ReplaceConfigWithRemoteConfigOEM() types.Test {
-	name := "Replacing the Config with a Remote Config from OEM"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	config := `{
-          "ignition": {
-            "version": "$version",
-            "config": {
-              "replace": {
-                "source": "oem:///config",
-                        "verification": { "hash": "sha512-c81f3b2185ccc39e995b199c8d22a7ae2972575c826300a9d8e930def33d99351f2d308fbe96ef9fd82a4c30e68920623e64ae7ffd884bf5ea6cd9b288fc886b" }
-              }
-            }
-          }
-        }`
-	configMinVersion := "3.0.0-experimental"
-	in[0].Partitions.AddFiles("OEM", []types.File{
-		{
-			Node: types.Node{
-				Name: "config",
-			},
-			Contents: `{
-	"ignition": { "version": "3.0.0-experimental" },
-	"storage": {
-		"files": [{
-		  "filesystem": "root",
-		  "path": "/foo/bar",
-		  "contents": { "source": "data:,example%20file%0A" }
-		}]
-	}
-}`,
-		},
-	})
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -216,13 +159,12 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
 	    "config": {
 	      "append": [{
 	        "source": "http://127.0.0.1:8080/config",
-			"verification": { "hash": "sha512-c81f3b2185ccc39e995b199c8d22a7ae2972575c826300a9d8e930def33d99351f2d308fbe96ef9fd82a4c30e68920623e64ae7ffd884bf5ea6cd9b288fc886b" }
+			"verification": { "hash": "sha512-3917a12839de1fc23681bf6efe55b8d721fe136d8d059b8800cfe2f79581170aed7de36b68c54821015d9dda256e5a5310be1aa86e07f65adc1bdd7c3f4da639" }
 	      }]
 	    }
 	  },
       "storage": {
         "files": [{
-          "filesystem": "root",
           "path": "/foo/bar2",
           "contents": { "source": "data:,another%20example%20file%0A" }
         }]
@@ -265,85 +207,18 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
             "config": {
               "append": [{
                 "source": "tftp://127.0.0.1:69/config",
-                        "verification": { "hash": "sha512-89f6601d56c37071b7529e47b7cfc91ada2871230e5e23847885e78bfb573a801200301ee3b370bb9d6d12e556775817b49695e71bd8ebb61909e482d5079416" }
+                        "verification": { "hash": "sha512-3917a12839de1fc23681bf6efe55b8d721fe136d8d059b8800cfe2f79581170aed7de36b68c54821015d9dda256e5a5310be1aa86e07f65adc1bdd7c3f4da639" }
               }]
             }
           },
       "storage": {
         "files": [{
-          "filesystem": "root",
           "path": "/foo/bar2",
           "contents": { "source": "data:,another%20example%20file%0A" }
         }]
       }
         }`
 	configMinVersion := "3.0.0-experimental"
-	out[0].Partitions.AddFiles("ROOT", []types.File{
-		{
-			Node: types.Node{
-				Name:      "bar",
-				Directory: "foo",
-			},
-			Contents: "example file\n",
-		},
-		{
-			Node: types.Node{
-				Name:      "bar2",
-				Directory: "foo",
-			},
-			Contents: "another example file\n",
-		},
-	})
-
-	return types.Test{
-		Name:             name,
-		In:               in,
-		Out:              out,
-		Config:           config,
-		ConfigMinVersion: configMinVersion,
-	}
-}
-
-func AppendConfigWithRemoteConfigOEM() types.Test {
-	name := "Appending to the Config with a Remote Config from OEM"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	config := `{
-          "ignition": {
-            "version": "$version",
-            "config": {
-              "append": [{
-                "source": "oem:///config",
-                        "verification": { "hash": "sha512-c81f3b2185ccc39e995b199c8d22a7ae2972575c826300a9d8e930def33d99351f2d308fbe96ef9fd82a4c30e68920623e64ae7ffd884bf5ea6cd9b288fc886b" }
-              }]
-            }
-          },
-      "storage": {
-        "files": [{
-          "filesystem": "root",
-          "path": "/foo/bar2",
-          "contents": { "source": "data:,another%20example%20file%0A" }
-        }]
-      }
-        }`
-	configMinVersion := "3.0.0-experimental"
-	in[0].Partitions.AddFiles("OEM", []types.File{
-		{
-			Node: types.Node{
-				Name: "config",
-			},
-			Contents: `{
-	"ignition": { "version": "3.0.0-experimental" },
-	"storage": {
-		"files": [{
-		  "filesystem": "root",
-		  "path": "/foo/bar",
-		  "contents": { "source": "data:,example%20file%0A" }
-		}]
-	}
-}`,
-		},
-	})
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

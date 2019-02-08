@@ -20,100 +20,7 @@ import (
 )
 
 func init() {
-	register.Register(register.NegativeTest, WriteThroughRelativeSymlink())
-	register.Register(register.NegativeTest, WriteThroughAbsoluteSymlink())
 	register.Register(register.NegativeTest, WriteOverBrokenSymlink())
-}
-func WriteThroughRelativeSymlink() types.Test {
-	name := "Write Through Relative Symlink off the Root Filesystem"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	mntDevices := []types.MntDevice{
-		{
-			Label:        "OEM",
-			Substitution: "$DEVICE",
-		},
-	}
-	// note this abuses the order in which ignition writes links and will break with 3.0.0
-	// Also tests that Ignition does not try to resolve symlink targets
-	config := `{
-	  "ignition": { "version": "$version" },
-	  "storage": {
-	    "filesystems": [{
-	      "name": "oem",
-	      "mount": {
-                "device": "$DEVICE",
-		"format": "ext4"
-              }
-	    }],
-	    "links": [{
-	      "filesystem": "oem",
-	      "path": "/foo/bar",
-	      "target": "../etc"
-	    },
-	    {
-	      "filesystem": "oem",
-	      "path": "/foo/bar/baz",
-	      "target": "somewhere/over/the/rainbow"
-	    }]
-	  }
-	}`
-	configMinVersion := "3.0.0-experimental"
-
-	return types.Test{
-		Name:             name,
-		In:               in,
-		Out:              out,
-		MntDevices:       mntDevices,
-		Config:           config,
-		ConfigMinVersion: configMinVersion,
-	}
-}
-
-func WriteThroughAbsoluteSymlink() types.Test {
-	name := "Write Through Absolute Symlink off the Root Filesystem"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	mntDevices := []types.MntDevice{
-		{
-			Label:        "OEM",
-			Substitution: "$DEVICE",
-		},
-	}
-	// note this abuses the order in which ignition writes links and will break with 3.0.0
-	// Also tests that Ignition does not try to resolve symlink targets
-	config := `{
-	  "ignition": { "version": "$version" },
-	  "storage": {
-	    "filesystems": [{
-	      "name": "oem",
-	      "mount": {
-                "device": "$DEVICE",
-		"format": "ext4"
-              }
-	    }],
-	    "links": [{
-	      "filesystem": "oem",
-	      "path": "/foo/bar",
-	      "target": "/etc"
-	    },
-	    {
-	      "filesystem": "oem",
-	      "path": "/foo/bar/baz",
-	      "target": "somewhere/over/the/rainbow"
-	    }]
-	  }
-	}`
-	configMinVersion := "3.0.0-experimental"
-
-	return types.Test{
-		Name:             name,
-		In:               in,
-		Out:              out,
-		MntDevices:       mntDevices,
-		Config:           config,
-		ConfigMinVersion: configMinVersion,
-	}
 }
 
 func WriteOverBrokenSymlink() types.Test {
@@ -124,7 +31,6 @@ func WriteOverBrokenSymlink() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/etc/file",
 	      "overwrite": false,
 	      "mode": 420

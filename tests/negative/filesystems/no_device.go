@@ -21,9 +21,6 @@ import (
 
 func init() {
 	register.Register(register.NegativeTest, NoDevice())
-	register.Register(register.NegativeTest, NoDeviceWithForce())
-	register.Register(register.NegativeTest, NoDeviceWithWipeFilesystemTrue())
-	register.Register(register.NegativeTest, NoDeviceWithWipeFilesystemFalse())
 }
 
 func NoDevice() types.Test {
@@ -34,96 +31,8 @@ func NoDevice() types.Test {
 		"ignition": {"version": "$version"},
 		"storage": {
 			"filesystems": [{
-				"mount": {
-					"format": "ext4"
-				},
-				"name": "foobar"
-			}]
-		}
-	}`
-	configMinVersion := "3.0.0-experimental"
-
-	return types.Test{
-		Name:              name,
-		In:                in,
-		Out:               out,
-		Config:            config,
-		ConfigShouldBeBad: true,
-		ConfigMinVersion:  configMinVersion,
-	}
-}
-
-func NoDeviceWithForce() types.Test {
-	name := "No Device w/ Force"
-	in := types.GetBaseDisk()
-	out := in
-	config := `{
-		"ignition": {"version": "$version"},
-		"storage": {
-			"filesystems": [{
-				"mount": {
-					"format": "ext4",
-					"create": {
-						"force": true
-					}
-				},
-				"name": "foobar"
-			}]
-		}
-	}`
-	configMinVersion := "3.0.0-experimental"
-
-	return types.Test{
-		Name:              name,
-		In:                in,
-		Out:               out,
-		Config:            config,
-		ConfigShouldBeBad: true,
-		ConfigMinVersion:  configMinVersion,
-	}
-}
-
-func NoDeviceWithWipeFilesystemTrue() types.Test {
-	name := "No Device w/ wipeFilesystem true"
-	in := types.GetBaseDisk()
-	out := in
-	config := `{
-		"ignition": {"version": "$version"},
-		"storage": {
-			"filesystems": [{
-				"mount": {
-					"format": "ext4",
-					"wipeFilesystem": true
-				},
-				"name": "foobar"
-			}]
-		}
-	}`
-	configMinVersion := "3.0.0-experimental"
-
-	return types.Test{
-		Name:              name,
-		In:                in,
-		Out:               out,
-		Config:            config,
-		ConfigShouldBeBad: true,
-		ConfigMinVersion:  configMinVersion,
-	}
-}
-
-func NoDeviceWithWipeFilesystemFalse() types.Test {
-	name := "No Device w/ wipeFilesystem false"
-	in := types.GetBaseDisk()
-	out := in
-	config := `{
-		"ignition": {"version": "$version"},
-		"storage": {
-			"filesystems": [{
-				"mount": {
-					"format": "ext4",
-					"wipeFilesystem": false
-				},
-				"name": "foobar"
+				"format": "ext4",
+				"path": "/tmp0",
 			}]
 		}
 	}`

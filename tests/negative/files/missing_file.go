@@ -33,7 +33,6 @@ func MissingRemoteContentsHTTP() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/asdf"
@@ -60,7 +59,6 @@ func MissingRemoteContentsTFTP() types.Test {
           "ignition": { "version": "$version" },
           "storage": {
             "files": [{
-              "filesystem": "root",
               "path": "/foo/bar",
               "contents": {
                 "source": "tftp://127.0.0.1:69/asdf"
@@ -87,7 +85,6 @@ func MissingRemoteContentsOEM() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": {
 	        "source": "oem:///source"

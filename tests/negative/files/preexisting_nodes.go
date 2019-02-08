@@ -36,7 +36,6 @@ func ForceFileCreation() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
@@ -72,7 +71,6 @@ func ForceDirCreation() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "directories": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar"
 	    }]
 	  }
@@ -105,14 +103,12 @@ func ForceLinkCreation() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/target",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
 	      }
 	    }],
 	    "links": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "target": "/foo/target"
 	    }]
@@ -146,14 +142,12 @@ func ForceHardLinkCreation() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/target",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
 	      }
 	    }],
 	    "links": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "target": "/foo/target",
 		  "hard": true
@@ -188,7 +182,6 @@ func ForceFileCreationOverNonemptyDir() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
@@ -225,14 +218,12 @@ func ForceLinkCreationOverNonemptyDir() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/target",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
 	      }
 	    }],
 	    "links": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "target": "/foo/target"
 	    }]
