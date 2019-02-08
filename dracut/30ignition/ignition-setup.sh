@@ -1,11 +1,17 @@
 #!/bin/bash
 set -eux
 
+bootmnt=/mnt/boot_partition
+
 # Grab our ignition configs from:
 #  - A platform specific directory for this platform
 #  - The boot partition (user/installer overrides)
 sources=("/usr/share/platforms/${OEM_ID}/"
-         "/boot/ignition/")
+         "${bootmnt}/ignition/")
+
+# mount the boot partition
+mkdir -p $bootmnt
+mount /dev/disk/by-label/boot $bootmnt
 
 # files go into the /usr/lib/ignition directory
 dst=/usr/lib/ignition
@@ -20,3 +26,5 @@ for src in ${sources[*]}; do
         done
     fi
 done
+
+umount $bootmnt
