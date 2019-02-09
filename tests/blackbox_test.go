@@ -283,33 +283,32 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		"IGNITION_OEM_LOOKASIDE_DIR=" + oemLookasideDir,
 		"IGNITION_SYSTEM_CONFIG_DIR=" + systemConfigDir,
 	}
-	disksErr := runIgnition(t, ctx, "disks", rootPartition.MountPath, tmpDirectory, appendEnv)
-	if !negativeTests && disksErr != nil {
-		return disksErr
-	}
 
-	var filesErr error
-	if disksErr == nil {
-		// Even if we're running negative tests, we shouldn't run the files stage if the disks stage
-		// failed. This is how Ignition was designed to be used.
+	if !negativeTests {
+		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv); err != nil {
+			return err
+		}
+
 		if err := mountPartition(ctx, rootPartition); err != nil {
 			return err
 		}
-		filesErr = runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv)
+
+		if err := runIgnition(t, ctx, "mount", rootPartition.MountPath, tmpDirectory, appendEnv); err != nil {
+			return err
+		}
+
+		filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv)
+		if err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv); err != nil {
+			return err
+		}
 		if err := umountPartition(rootPartition); err != nil {
 			return err
 		}
-	}
+		if filesErr != nil {
+			return filesErr
+		}
 
-	if !negativeTests && filesErr != nil {
-		return filesErr
-	}
-	if negativeTests && disksErr == nil && filesErr == nil {
-		return fmt.Errorf("Expected failure and ignition succeeded")
-	}
-
-	for _, disk := range test.Out {
-		if !negativeTests {
+		for _, disk := range test.Out {
 			err = validateDisk(t, disk)
 			if err != nil {
 				return err
@@ -320,6 +319,30 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 			}
 			validateFilesDirectoriesAndLinks(t, ctx, disk.Partitions)
 		}
+		return nil
+	} else {
+		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv); err != nil {
+			return nil // error is expected
+		}
+
+		if err := mountPartition(ctx, rootPartition); err != nil {
+			return err
+		}
+
+		if err := runIgnition(t, ctx, "mount", rootPartition.MountPath, tmpDirectory, appendEnv); err != nil {
+			return nil // error is expected
+		}
+
+		filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv)
+		if err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv); err != nil {
+			return nil
+		}
+		if err := umountPartition(rootPartition); err != nil {
+			return nil
+		}
+		if filesErr != nil {
+			return nil // error is expected
+		}
+		return fmt.Errorf("Expected failure and ignition succeeded")
 	}
-	return nil
 }
