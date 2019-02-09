@@ -61,11 +61,11 @@ func TestEntrySort(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		dirs := make([]filesystemEntry, len(test.in.data))
+		dirs := make([]pathWrapper, len(test.in.data))
 		for j := range dirs {
 			dirs[j] = pathWrapper(test.in.data[j])
 		}
-		sort.Sort(ByPathSegments(dirs))
+		sort.Slice(dirs, func(i, j int) bool { return util.Depth(dirs[i].getPath()) < util.Depth(dirs[j].getPath()) })
 		outpaths := make([]string, len(test.in.data))
 		for j, dir := range dirs {
 			outpaths[j] = dir.getPath()

@@ -171,27 +171,6 @@ func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	return nil
 }
 
-// ByPathSegments is used to sort directories so /foo gets created before /foo/bar if they are both specified.
-type ByPathSegments []filesystemEntry
-
-func (lst ByPathSegments) Len() int { return len(lst) }
-
-func (lst ByPathSegments) Swap(i, j int) {
-	lst[i], lst[j] = lst[j], lst[i]
-}
-
-func (lst ByPathSegments) Less(i, j int) bool {
-	return depth(lst[i].getPath()) < depth(lst[j].getPath())
-}
-
-func depth(path string) uint {
-	var count uint = 0
-	for p := filepath.Clean(path); p != "/"; count++ {
-		p = filepath.Dir(p)
-	}
-	return count
-}
-
 // mapEntriesToFilesystems builds a map of filesystems to files. If multiple
 // definitions of the same filesystem are present, only the final definition is
 // used. The directories are sorted to ensure /foo gets created before /foo/bar.
@@ -210,7 +189,7 @@ func (s stage) getOrderedCreationList(config types.Config) []filesystemEntry {
 	for _, sy := range config.Storage.Links {
 		entries = append(entries, linkEntry(sy))
 	}
-	sort.Stable(ByPathSegments(entries))
+	sort.Slice(entries, func(i, j int) bool { return util.Depth(entries[i].getPath()) < util.Depth(entries[j].getPath()) })
 
 	return entries
 }
