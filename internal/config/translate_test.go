@@ -25,6 +25,18 @@ import (
 	"github.com/coreos/ignition/internal/config/types"
 )
 
+func strToPtr(s string) *string {
+	return &s
+}
+
+func intToPtr(i int) *int {
+	return &i
+}
+
+func boolToPtr(b bool) *bool {
+	return &b
+}
+
 func TestTranslate(t *testing.T) {
 	type in struct {
 		config from.Config
