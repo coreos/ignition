@@ -282,6 +282,7 @@ func (s *stage) createEntries(fs types.Filesystem, files []filesystemEntry) erro
 	u := util.Util{
 		DestDir: mnt,
 		IsRoot:  fs.Name == "root",
+		Root:    s.Util.Root,
 		Fetcher: s.Util.Fetcher,
 		Logger:  s.Logger,
 	}

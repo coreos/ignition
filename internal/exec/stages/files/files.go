@@ -46,6 +46,7 @@ func (creator) Create(logger *log.Logger, root string, f resource.Fetcher) stage
 	return &stage{
 		Util: util.Util{
 			DestDir: root,
+			Root:    root,
 			Logger:  logger,
 			Fetcher: f,
 		},

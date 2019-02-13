@@ -27,11 +27,11 @@ import (
 	"os/user"
 )
 
-// userLookup looks up the user in u.DestDir.
+// userLookup looks up the user in u.Root.
 func (u Util) userLookup(name string) (*user.User, error) {
 	res := &C.lookup_res_t{}
 
-	if ret, err := C.user_lookup(C.CString(u.DestDir),
+	if ret, err := C.user_lookup(C.CString(u.Root),
 		C.CString(name), res); ret < 0 {
 		return nil, fmt.Errorf("lookup failed: %v", err)
 	}
@@ -57,11 +57,11 @@ func (u Util) userLookup(name string) (*user.User, error) {
 	return usr, nil
 }
 
-// groupLookup looks up the group in u.DestDir.
+// groupLookup looks up the group in u.Root.
 func (u Util) groupLookup(name string) (*user.Group, error) {
 	res := &C.lookup_res_t{}
 
-	if ret, err := C.group_lookup(C.CString(u.DestDir),
+	if ret, err := C.group_lookup(C.CString(u.Root),
 		C.CString(name), res); ret < 0 {
 		return nil, fmt.Errorf("lookup failed: %v", err)
 	}
