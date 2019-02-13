@@ -240,7 +240,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		return fmt.Errorf("ROOT filesystem not found! A partition labeled ROOT is requred")
 	}
 
-	if strings.Contains(test.Config, "passwd") {
+	if strings.Contains(test.Config, "passwd") || strings.Contains(test.Config, "\"user\"") {
 		if err := prepareRootPartitionForPasswd(ctx, rootPartition); err != nil {
 			return err
 		}
