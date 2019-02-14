@@ -88,9 +88,17 @@ func (e Engine) Run(stageName string) error {
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
 
-	if err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(config.Append(baseConfig, config.Append(systemBaseConfig, cfg))); err != nil {
+	fullConfig := config.Append(baseConfig, config.Append(systemBaseConfig, cfg))
+	if err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(fullConfig); err != nil {
 		// e.Logger could be nil
 		fmt.Fprintf(os.Stderr, "%s failed", stageName)
+		tmp, jsonerr := json.MarshalIndent(fullConfig, "", "  ")
+		if jsonerr != nil {
+			// Nothing else to do with this error
+			fmt.Fprintf(os.Stderr, "Could not marshal full config: %v", err)
+		} else {
+			fmt.Fprintf(os.Stderr, "Full config:\n%s", string(tmp))
+		}
 		return err
 	}
 	e.Logger.Info("%s passed", stageName)
@@ -263,8 +271,14 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 	if err != nil {
 		return types.Config{}, err
 	}
+
 	hash := sha512.Sum512(rawCfg)
-	e.Logger.Debug("fetched referenced config with SHA512: %s", hex.EncodeToString(hash[:]))
+	if u.Scheme != "data" {
+		e.Logger.Debug("fetched referenced config at %s with SHA512: %s", cfgRef.Source, hex.EncodeToString(hash[:]))
+	} else {
+		// data url's might contain secrets
+		e.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))
+	}
 
 	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
 		return types.Config{}, err
