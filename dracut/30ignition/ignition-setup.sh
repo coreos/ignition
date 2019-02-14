@@ -24,4 +24,6 @@ bootmnt=/mnt/boot_partition
 mkdir -p $bootmnt
 mount /dev/disk/by-label/boot $bootmnt
 copy_file "${bootmnt}/ignition/config.ign" "${destination}/user.ign"
+# This script is run from a systemd unit with MountFlags=slave. This
+# unmount isn't strictly necessary, but we still exercise it here.
 umount $bootmnt
