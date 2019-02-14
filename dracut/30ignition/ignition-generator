@@ -39,7 +39,6 @@ if $(cmdline_bool 'ignition.firstboot' 0); then
     add_requires ignition-disks.service
     add_requires ignition-files.service
     add_requires ignition-ask-var-mount.service
-    add_requires ignition-setup.service
     #if [[ $(cmdline_arg coreos.oem.id) == "packet" ]]; then
     #    add_requires coreos-static-network.service
     #fi

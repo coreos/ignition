@@ -6,6 +6,11 @@ DefaultDependencies=false
 Requires=initrd-root-fs.target
 After=initrd-root-fs.target
 
+# Require and run after ignition-setup has run because ignition-setup
+# may copy in new/different ignition configs for us to consume.
+Requires=ignition-setup.service
+After=ignition-setup.service
+
 # Make sure root filesystem is mounted read-write
 Requires=ignition-remount-sysroot.service
 After=ignition-remount-sysroot.service
@@ -15,6 +20,10 @@ Before=initrd-parse-etc.service
 
 # Network may be required to fetch userdata content.
 After=network.target
+
+# This is guaranteed through After=initrd-root-fs.target but just to
+# be explicit we'll add an After=ignition-disks.service here.
+After=ignition-disks.service
 
 [Service]
 Type=oneshot
