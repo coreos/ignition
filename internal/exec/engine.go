@@ -281,6 +281,7 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 
 func (e Engine) logReport(r report.Report) {
 	for _, entry := range r.Entries {
+		entry.Highlight = "" // might contain secrets, don't log when Ignition runs
 		switch entry.Kind {
 		case report.EntryError:
 			e.Logger.Crit("%v", entry)
