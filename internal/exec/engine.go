@@ -15,6 +15,8 @@
 package exec
 
 import (
+	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -261,7 +263,8 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 	if err != nil {
 		return types.Config{}, err
 	}
-	e.Logger.Debug("fetched referenced config: %s", string(rawCfg))
+	hash := sha512.Sum512(rawCfg)
+	e.Logger.Debug("fetched referenced config with SHA512: %s", hex.EncodeToString(hash[:]))
 
 	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
 		return types.Config{}, err
