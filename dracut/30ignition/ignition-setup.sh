@@ -19,11 +19,10 @@ mkdir -p $destination
 copy_file_if_exists "/usr/lib/ignition/platform/${OEM_ID}/base.ign" "${destination}/base.ign"
 
 # We will support a user embedded config in the boot partition
-# under $bootmnt/ignition/config.ign
+# under $bootmnt/ignition/config.ign. Note that we mount /boot
+# but we don't unmount boot because we are run in a systemd unit
+# with MountFlags=slave so it is unmounted for us.
 bootmnt=/mnt/boot_partition
 mkdir -p $bootmnt
 mount /dev/disk/by-label/boot $bootmnt
 copy_file_if_exists "${bootmnt}/ignition/config.ign" "${destination}/user.ign"
-# This script is run from a systemd unit with MountFlags=slave. This
-# unmount isn't strictly necessary, but we still exercise it here.
-umount $bootmnt
