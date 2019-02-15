@@ -15,7 +15,6 @@
 package validate
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"testing"
@@ -259,9 +258,7 @@ func TestValidateLineCol(t *testing.T) {
 			t.Errorf("#%d: Failed to unmarshal into ast. This is most likely an error with the test: %v", i, err)
 		}
 
-		reader := bytes.NewReader([]byte(test.in.cfg))
-
-		r := Validate(v, astjson.FromJsonRoot(ast), reader, false)
+		r := Validate(v, astjson.FromJsonRoot(ast), []byte(test.in.cfg), false)
 		// highlight strings are hard to generate by hand, so ignore them for now
 		// TODO(ajeddeloh) test highlight strings
 		for i := range r.Entries {

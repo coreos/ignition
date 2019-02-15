@@ -15,9 +15,7 @@
 package validate
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"reflect"
 	"strings"
 
@@ -44,7 +42,7 @@ func ValidateConfig(rawConfig []byte, config interface{}) report.Report {
 		})
 		r.Merge(ValidateWithoutSource(configValue))
 	} else {
-		r.Merge(Validate(configValue, astjson.FromJsonRoot(ast), bytes.NewReader(rawConfig), true))
+		r.Merge(Validate(configValue, astjson.FromJsonRoot(ast), rawConfig, true))
 	}
 	return r
 }
@@ -52,7 +50,7 @@ func ValidateConfig(rawConfig []byte, config interface{}) report.Report {
 // Validate walks down a struct tree calling Validate on every node that implements it, building
 // A report of all the errors, warnings, info, and deprecations it encounters. If checkUnusedKeys
 // is true, Validate will generate warnings for unused keys in the ast, otherwise it will not.
-func Validate(vObj reflect.Value, ast astnode.AstNode, source io.ReadSeeker, checkUnusedKeys bool) (r report.Report) {
+func Validate(vObj reflect.Value, ast astnode.AstNode, source []byte, checkUnusedKeys bool) (r report.Report) {
 	if !vObj.IsValid() {
 		return
 	}
@@ -134,7 +132,7 @@ func getFields(vObj reflect.Value) []field {
 	return ret
 }
 
-func validateStruct(vObj reflect.Value, ast astnode.AstNode, source io.ReadSeeker, checkUnusedKeys bool) report.Report {
+func validateStruct(vObj reflect.Value, ast astnode.AstNode, source []byte, checkUnusedKeys bool) report.Report {
 	r := report.Report{}
 
 	// isFromObject will be true if this struct was unmarshalled from a JSON object.
@@ -154,7 +152,7 @@ func validateStruct(vObj reflect.Value, ast astnode.AstNode, source io.ReadSeeke
 		var sub_node astnode.AstNode
 		// Default to passing a nil source if the field's corrosponding node cannot be found.
 		// This ensures the line numbers reported from all sub-structs are 0 and will be changed by AddPosition
-		var src io.ReadSeeker
+		var src []byte
 
 		// Try to determine the json.Node that corrosponds with the struct field
 		if isFromObject {
