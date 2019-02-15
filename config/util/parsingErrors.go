@@ -15,15 +15,14 @@
 package util
 
 import (
-	"bytes"
 	"errors"
 
 	configErrors "github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/v3_0_experimental/types"
 	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/config/validate/util"
 
 	json "github.com/ajeddeloh/go-json"
-	"go4.org/errorutil"
 )
 
 var (
@@ -43,7 +42,7 @@ func HandleParseErrors(rawConfig []byte) (report.Report, error) {
 
 	// Handle json syntax and type errors first, since they are fatal but have offset info
 	if serr, ok := err.(*json.SyntaxError); ok {
-		line, col, highlight := errorutil.HighlightBytePosition(bytes.NewReader(rawConfig), serr.Offset)
+		line, col, highlight := util.Highlight(rawConfig, serr.Offset)
 		return report.Report{
 				Entries: []report.Entry{{
 					Kind:      report.EntryError,
@@ -57,7 +56,7 @@ func HandleParseErrors(rawConfig []byte) (report.Report, error) {
 	}
 
 	if terr, ok := err.(*json.UnmarshalTypeError); ok {
-		line, col, highlight := errorutil.HighlightBytePosition(bytes.NewReader(rawConfig), terr.Offset)
+		line, col, highlight := util.Highlight(rawConfig, terr.Offset)
 		return report.Report{
 				Entries: []report.Entry{{
 					Kind:      report.EntryError,

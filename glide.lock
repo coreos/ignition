@@ -1,5 +1,5 @@
-hash: 4d63e5d4ed4d8e49310c62b6d44adb4ba07057a1302495cdbe90593975782f16
-updated: 2019-01-10T12:58:19.828574148+05:30
+hash: bb6084608a8fec987558652cc6d306a28734d1e420f3bd572f3ed571899f1e0d
+updated: 2019-02-15T10:51:12.591860906-08:00
 imports:
 - name: github.com/ajeddeloh/go-json
   version: 73d058cf8437a1989030afe571eeab9f90eebbbd
@@ -72,10 +72,6 @@ imports:
   - rpcout
 - name: github.com/vmware/vmw-ovflib
   version: 1f217b9dc714d5f340d0a3cc3e9d49255c536f68
-- name: go4.org
-  version: 03efcb870d84809319ea509714dd6d19a1498483
-  subpackages:
-  - errorutil
 testImports:
 - name: github.com/davecgh/go-spew
   version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
