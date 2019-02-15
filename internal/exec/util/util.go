@@ -30,6 +30,7 @@ var (
 // Util encapsulates logging and destdir indirection for the util methods.
 type Util struct {
 	DestDir string // directory prefix to use in applying fs paths.
+	Root    string // path to rootfs for resolving uids and gids
 	IsRoot  bool   // whether or not DestDir is the root filesystem
 	Fetcher resource.Fetcher
 	*log.Logger

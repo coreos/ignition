@@ -22,6 +22,7 @@ import (
 func init() {
 	register.Register(register.PositiveTest, CreateFileOnRoot())
 	register.Register(register.PositiveTest, UserGroupByID())
+	register.Register(register.PositiveTest, UserGroupByName())
 	register.Register(register.PositiveTest, ForceFileCreation())
 	register.Register(register.PositiveTest, ForceFileCreationNoOverwrite())
 	register.Register(register.PositiveTest, AppendToAFile())
@@ -106,25 +107,54 @@ func UserGroupByName() types.Test {
 	name := "User/Group by name"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "passwd",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:0:root:/root:/bin/bash\ncore:x:500:500:CoreOS Admin:/home/core:/bin/bash\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "group",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:root\nwheel:x:10:root,core\n",
+		},
+	})
+	mntDevices := []types.MntDevice{
+		{
+			Label:        "OEM",
+			Substitution: "$DEVICE",
+		},
+	}
 	config := `{
 	  "ignition": { "version": "$version" },
 	  "storage": {
+	    "filesystems": [{
+	      "name": "oem",
+	      "mount": {
+	        "device": "$DEVICE",
+		"format": "ext4"
+	      }
+	    }],
 	    "files": [{
-	      "filesystem": "root",
+	      "filesystem": "oem",
 	      "path": "/foo/bar",
 	      "contents": { "source": "data:,example%20file%0A" },
 		  "user": {"name": "core"},
-		  "group": {"name": "core"}
+		  "group": {"name": "wheel"}
 	    }]
 	  }
 	}`
-	out[0].Partitions.AddFiles("ROOT", []types.File{
+	out[0].Partitions.AddFiles("OEM", []types.File{
 		{
 			Node: types.Node{
 				Name:      "bar",
 				Directory: "foo",
 				User:      500,
-				Group:     500,
+				Group:     10,
 			},
 			Contents: "example file\n",
 		},
@@ -137,6 +167,7 @@ func UserGroupByName() types.Test {
 		Out:              out,
 		Config:           config,
 		ConfigMinVersion: configMinVersion,
+		MntDevices:       mntDevices,
 	}
 }
 
