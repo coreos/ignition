@@ -45,21 +45,15 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **devices** (list of strings): the list of devices (referenced by their absolute path) in the array.
     * **_spares_** (integer): the number of spares (if applicable) in the array.
     * **_options_** (list of strings): any additional options to be passed to mdadm.
-  * **_filesystems_** (list of objects): the list of filesystems to be configured and/or used in the "files" section. Either "mount" or "path" needs to be specified.
-    * **_name_** (string): the identifier for the filesystem, internal to Ignition. This is only required if the filesystem needs to be referenced in the "files" section.
-    * **_mount_** (object): contains the set of mount and formatting options for the filesystem. A non-null entry indicates that the filesystem should be mounted before it is used by Ignition.
-      * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-      * **format** (string): the filesystem format (ext4, btrfs, xfs, vfat, or swap).
-      * **_wipeFilesystem_** (boolean): whether or not to wipe the device before filesystem creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information.
-      * **_label_** (string): the label of the filesystem.
-      * **_uuid_** (string): the uuid of the filesystem.
-      * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
-      * **_create_** (object, DEPRECATED): contains the set of options to be used when creating the filesystem.
-        * **_force_** (boolean, DEPRECATED): whether or not the create operation shall overwrite an existing filesystem.
-        * **_options_** (list of strings, DEPRECATED): any additional options to be passed to the format-specific mkfs utility.
-    * **_path_** (string): the mount-point of the filesystem. A non-null entry indicates that the filesystem has already been mounted by the system at the specified path. This is really only useful for "/sysroot".
+  * **_filesystems_** (list of objects): the list of filesystems to be configured. "path", "device", and "format" all need to be specified.
+    * **path** (string): the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
+    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
+    * **format** (string): the filesystem format (ext4, btrfs, xfs, vfat, or swap).
+    * **_wipeFilesystem_** (boolean): whether or not to wipe the device before filesystem creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information.
+    * **_label_** (string): the label of the filesystem.
+    * **_uuid_** (string): the uuid of the filesystem.
+    * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
   * **_files_** (list of objects): the list of files to be written.
-    * **filesystem** (string): the internal identifier of the filesystem in which to write the file. This matches the last filesystem with the given identifier.
     * **path** (string): the absolute path to the file.
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. Defaults to true.
     * **_append_** (boolean): whether to append to the specified file. Creates a new file if nothing exists at the path. Cannot be set if overwrite is set to true.
@@ -76,7 +70,6 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_id_** (integer): the group ID of the owner.
       * **_name_** (string): the group name of the owner.
   * **_directories_** (list of objects): the list of directories to be created.
-    * **filesystem** (string): the internal identifier of the filesystem in which to create the directory. This matches the last filesystem with the given identifier.
     * **path** (string): the absolute path to the directory.
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path.
     * **_mode_** (integer): the directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0755 -> 493).
@@ -87,7 +80,6 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_id_** (integer): the group ID of the owner.
       * **_name_** (string): the group name of the owner.
   * **_links_** (list of objects): the list of links to be created
-    * **filesystem** (string): the internal identifier of the filesystem in which to write the link. This matches the last filesystem with the given identifier.
     * **path** (string): the absolute path to the link
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path.
     * **_user_** (object): specifies the symbolic link's owner.
