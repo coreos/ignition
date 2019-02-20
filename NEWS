@@ -1,3 +1,18 @@
+20-Feb-2019 IGNITION v0.31.0
+
+  Security Fixes:
+
+    - Log hashes of fetched configs instead of the full configs
+
+  Bug Fixes:
+
+    - Fix uid/gid lookup by name when creating files, directories, and links on
+      filesystems that are not the root filesystem
+
+  Test Changes:
+
+    - Fix concurrency panic when running blackbox tests
+
 14-Dec-2018 IGNITION v0.30.0
 
   Features:
