@@ -127,6 +127,10 @@ func init() {
 		name:  "file",
 		fetch: file.FetchConfig,
 	})
+	configs.Register(Config{
+		name:  "metal",
+		fetch: noop.FetchConfig,
+	})
 }
 
 func Get(name string) (config Config, ok bool) {
