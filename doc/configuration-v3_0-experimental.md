@@ -60,7 +60,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_path_** (string): the mount-point of the filesystem. A non-null entry indicates that the filesystem has already been mounted by the system at the specified path. This is really only useful for "/sysroot".
   * **_files_** (list of objects): the list of files to be written.
     * **filesystem** (string): the internal identifier of the filesystem in which to write the file. This matches the last filesystem with the given identifier.
-    * **path** (string): the absolute path to the file.
+    * **path** (string): the absolute path to the file; any nonexistent intermediate directories will be created owned by uid 0 and mode 0755.
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. Defaults to true.
     * **_append_** (boolean): whether to append to the specified file. Creates a new file if nothing exists at the path. Cannot be set if overwrite is set to true.
     * **_contents_** (object): options related to the contents of the file.
@@ -77,7 +77,7 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_name_** (string): the group name of the owner.
   * **_directories_** (list of objects): the list of directories to be created.
     * **filesystem** (string): the internal identifier of the filesystem in which to create the directory. This matches the last filesystem with the given identifier.
-    * **path** (string): the absolute path to the directory.
+    * **path** (string): the absolute path to the file; any nonexistent intermediate directories will be created with the same owner and mode.
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path.
     * **_mode_** (integer): the directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0755 -> 493).
     * **_user_** (object): specifies the directory's owner.
