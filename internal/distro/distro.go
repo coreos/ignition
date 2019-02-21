@@ -26,14 +26,11 @@ var (
 	diskByIDDir       = "/dev/disk/by-id"
 	diskByLabelDir    = "/dev/disk/by-label"
 	diskByPartUUIDDir = "/dev/disk/by-partuuid"
-	oemDevicePath     = "/dev/disk/by-label/OEM"
 
 	// File paths
 	kernelCmdlinePath = "/proc/cmdline"
 	// initramfs directory containing distro-provided base config
 	systemConfigDir = "/usr/lib/ignition"
-	// initramfs directory to check before retrieving file from OEM partition
-	oemLookasideDir = "/usr/share/oem"
 
 	// Helper programs
 	chrootCmd     = "/usr/bin/chroot"
@@ -62,11 +59,9 @@ var (
 func DiskByIDDir() string       { return diskByIDDir }
 func DiskByLabelDir() string    { return diskByLabelDir }
 func DiskByPartUUIDDir() string { return diskByPartUUIDDir }
-func OEMDevicePath() string     { return fromEnv("OEM_DEVICE", oemDevicePath) }
 
 func KernelCmdlinePath() string { return kernelCmdlinePath }
 func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
-func OEMLookasideDir() string   { return fromEnv("OEM_LOOKASIDE_DIR", oemLookasideDir) }
 
 func ChrootCmd() string     { return chrootCmd }
 func GroupaddCmd() string   { return groupaddCmd }

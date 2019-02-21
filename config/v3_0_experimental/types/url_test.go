@@ -46,10 +46,6 @@ func TestURLValidate(t *testing.T) {
 			out: out{},
 		},
 		{
-			in:  in{u: "oem:///foobar"},
-			out: out{},
-		},
-		{
 			in:  in{u: "tftp://example.com:69/foobar.txt"},
 			out: out{},
 		},
