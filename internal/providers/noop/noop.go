@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The noop provider does nothing, for use by unimplemented oems.
+// The noop provider does nothing, for use by unimplemented platforms.
 
 package noop
 

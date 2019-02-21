@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package oem
+package platform
 
 import (
 	"fmt"
 )
 
-// Name is used to identify an OEM. It must be in the set of registered OEMs.
+// Name is used to identify an platform. It must be in the set of registered platforms.
 type Name string
 
 func (s Name) String() string {
@@ -27,7 +27,7 @@ func (s Name) String() string {
 
 func (s *Name) Set(val string) error {
 	if _, ok := Get(val); !ok {
-		return fmt.Errorf("%s is not a valid oem", val)
+		return fmt.Errorf("%s is not a valid platform", val)
 	}
 
 	*s = Name(val)

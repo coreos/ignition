@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package oem
+package platform
 
 import (
 	"fmt"
@@ -35,7 +35,7 @@ import (
 	"github.com/coreos/ignition/internal/resource"
 )
 
-// Config represents a set of options that map to a particular OEM.
+// Config represents a set of options that map to a particular platform.
 type Config struct {
 	name       string
 	fetch      providers.FuncFetchConfig
@@ -70,7 +70,7 @@ func (c Config) Status(stageName string, f resource.Fetcher, statusErr error) er
 	return nil
 }
 
-var configs = registry.Create("oem configs")
+var configs = registry.Create("platform configs")
 
 func init() {
 	configs.Register(Config{
@@ -138,7 +138,7 @@ func MustGet(name string) Config {
 	if config, ok := Get(name); ok {
 		return config
 	} else {
-		panic(fmt.Sprintf("invalid OEM name %q provided", name))
+		panic(fmt.Sprintf("invalid platform name %q provided", name))
 	}
 }
 

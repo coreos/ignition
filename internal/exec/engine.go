@@ -30,7 +30,7 @@ import (
 	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/oem"
+	"github.com/coreos/ignition/internal/platform"
 	"github.com/coreos/ignition/internal/providers"
 	"github.com/coreos/ignition/internal/providers/cmdline"
 	"github.com/coreos/ignition/internal/providers/system"
@@ -44,12 +44,12 @@ const (
 
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
-	ConfigCache  string
-	FetchTimeout time.Duration
-	Logger       *log.Logger
-	Root         string
-	OEMConfig    oem.Config
-	Fetcher      *resource.Fetcher
+	ConfigCache    string
+	FetchTimeout   time.Duration
+	Logger         *log.Logger
+	Root           string
+	PlatformConfig platform.Config
+	Fetcher        *resource.Fetcher
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -173,7 +173,7 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 	fetchers := []providers.FuncFetchConfig{
 		cmdline.FetchConfig,
 		system.FetchConfig,
-		e.OEMConfig.FetchFunc(),
+		e.PlatformConfig.FetchFunc(),
 	}
 
 	var cfg types.Config

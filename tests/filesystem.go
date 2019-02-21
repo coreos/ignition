@@ -160,7 +160,7 @@ func umountPartition(p *types.Partition) error {
 
 // returns true if no error, false if error
 func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, appendEnv []string) error {
-	args := []string{"-clear-cache", "-oem", "file", "-stage", stage,
+	args := []string{"-clear-cache", "-platform", "file", "-stage", stage,
 		"-root", root, "-log-to-stdout", "--config-cache", filepath.Join(cwd, "ignition.json")}
 	cmd := exec.CommandContext(ctx, "ignition", args...)
 	t.Log("ignition", args)
