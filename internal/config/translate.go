@@ -157,11 +157,10 @@ func Translate(old from.Config) types.Config {
 	}
 	translateNode := func(old from.Node) types.Node {
 		return types.Node{
-			Filesystem: old.Filesystem,
-			Group:      translateNodeGroup(old.Group),
-			Path:       old.Path,
-			User:       translateNodeUser(old.User),
-			Overwrite:  old.Overwrite,
+			Group:     translateNodeGroup(old.Group),
+			Path:      old.Path,
+			User:      translateNodeUser(old.User),
+			Overwrite: old.Overwrite,
 		}
 	}
 	translateDirectorySlice := func(old []from.Directory) []types.Directory {
@@ -225,50 +224,24 @@ func Translate(old from.Config) types.Config {
 		}
 		return res
 	}
-	translateMountCreateOptionSlice := func(old []from.CreateOption) []types.CreateOption {
-		var res []types.CreateOption
+	translateFilesystemOptionSlice := func(old []from.FilesystemOption) []types.FilesystemOption {
+		var res []types.FilesystemOption
 		for _, x := range old {
-			res = append(res, types.CreateOption(x))
+			res = append(res, types.FilesystemOption(x))
 		}
 		return res
-	}
-	translateMountCreate := func(old *from.Create) *types.Create {
-		if old == nil {
-			return nil
-		}
-		return &types.Create{
-			Force:   old.Force,
-			Options: translateMountCreateOptionSlice(old.Options),
-		}
-	}
-	translateMountOptionSlice := func(old []from.MountOption) []types.MountOption {
-		var res []types.MountOption
-		for _, x := range old {
-			res = append(res, types.MountOption(x))
-		}
-		return res
-	}
-	translateMount := func(old *from.Mount) *types.Mount {
-		if old == nil {
-			return nil
-		}
-		return &types.Mount{
-			Create:         translateMountCreate(old.Create),
-			Device:         old.Device,
-			Format:         old.Format,
-			Label:          old.Label,
-			Options:        translateMountOptionSlice(old.Options),
-			UUID:           old.UUID,
-			WipeFilesystem: old.WipeFilesystem,
-		}
 	}
 	translateFilesystemSlice := func(old []from.Filesystem) []types.Filesystem {
 		var res []types.Filesystem
 		for _, x := range old {
 			res = append(res, types.Filesystem{
-				Mount: translateMount(x.Mount),
-				Name:  x.Name,
-				Path:  x.Path,
+				Path:           x.Path,
+				Device:         x.Device,
+				Format:         x.Format,
+				Label:          x.Label,
+				Options:        translateFilesystemOptionSlice(x.Options),
+				UUID:           x.UUID,
+				WipeFilesystem: x.WipeFilesystem,
 			})
 		}
 		return res

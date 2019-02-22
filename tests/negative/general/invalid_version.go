@@ -31,7 +31,6 @@ func InvalidVersion() types.Test {
 		"ignition": {"version": 4.0.0"},
 		"storage": {
 			"files": [{
-				"filesystem": "test",
 				"path": "/ignition/test",
 				"contents": {"source": "data:,asdf"}
 			}]}

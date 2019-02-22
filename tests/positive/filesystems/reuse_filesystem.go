@@ -36,17 +36,15 @@ func ReuseExistingFilesystem() types.Test {
 	config := `{
 		"ignition": {"version": "$version"},
 		"storage": {
-		    "filesystems": [
-			    {
-					"mount": {
-						"device": "$DEVICE",
-						"wipeFilesystem": false,
-						"format": "xfs",
-						"label": "data",
-						"uuid": "$uuid0"
-					}
-				}
-			]
+			"filesystems": [
+			{
+				"path": "/tmp0",
+				"device": "$DEVICE",
+				"wipeFilesystem": false,
+				"format": "xfs",
+				"label": "data",
+				"uuid": "$uuid0"
+			}]
 		}
 	}`
 	configMinVersion := "3.0.0-experimental"

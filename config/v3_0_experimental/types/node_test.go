@@ -30,27 +30,6 @@ func TestNodeValidatePath(t *testing.T) {
 	}
 }
 
-func TestNodeValidateFilesystem(t *testing.T) {
-	tests := []struct {
-		node Node
-		r    report.Report
-	}{
-		{
-			node: Node{Filesystem: "foo", Path: "/"},
-			r:    report.Report{},
-		},
-		{
-			node: Node{Path: "/"},
-			r:    report.ReportFromError(errors.ErrNoFilesystem, report.EntryError),
-		},
-	}
-	for i, test := range tests {
-		if receivedRep := test.node.ValidateFilesystem(); !reflect.DeepEqual(test.r, receivedRep) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.r, receivedRep)
-		}
-	}
-}
-
 func intToPtr(x int) *int {
 	return &x
 }

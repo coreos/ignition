@@ -39,16 +39,13 @@ func InvalidHash() types.Test {
 		"ignition": {"version": "$version" },
 		"storage": {
 			"filesystems": [{
-				"mount": {
-					"device": "$DEVICE",
-					"format": "ext4",
-					"create": {
-						"force": true
-					}},
-				 "name": "test"}],
+				"path": "/tmp0",
+				"device": "$DEVICE",
+				"format": "ext4",
+				"wipeFilesystem": true
+			}],
 			"files": [{
-				"filesystem": "test",
-				"path": "/ignition/test",
+				"path": "/tmp0/test",
 				"contents": {
 					"source": "data:,asdf", "verification": {"hash": "sha512-1a04c76c17079cd99e688ba4f1ba095b927d3fecf2b1e027af361dfeafb548f7f5f6fdd675aaa2563950db441d893ca77b0c3e965cdcb891784af96e330267d7"}}
 			}]}
@@ -73,7 +70,6 @@ func InvalidHashFromHTTPURL() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents",

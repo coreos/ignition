@@ -40,11 +40,10 @@ func EquivalentFilesystemUUIDsTreatedDistinctEXT4() types.Test {
 		"storage": {
 		    "filesystems": [
 		      {
-		        "mount": {
-		          "device": "$DEVICE",
-		          "format": "ext4",
-		          "uuid": "$uuid0"
-		        }
+		        "path": "/tmp0",
+		        "device": "$DEVICE",
+		        "format": "ext4",
+		        "uuid": "$uuid0"
 		      }
 		    ]
 		  }
@@ -81,11 +80,10 @@ func EquivalentFilesystemUUIDsTreatedDistinctVFAT() types.Test {
 		"storage": {
 		    "filesystems": [
 		      {
-		        "mount": {
-		          "device": "$DEVICE",
-		          "format": "vfat",
-		          "uuid": "2E24EC82"
-		        }
+		        "path": "/tmp0",
+		        "device": "$DEVICE",
+		        "format": "vfat",
+		        "uuid": "2E24EC82"
 		      }
 		    ]
 		  }

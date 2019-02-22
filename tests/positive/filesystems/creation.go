@@ -22,63 +22,8 @@ import (
 )
 
 func init() {
-	register.Register(register.PositiveTest, ForceNewFilesystemOfSameType())
 	register.Register(register.PositiveTest, WipeFilesystemWithSameType())
 	register.Register(register.PositiveTest, FilesystemCreationOnMultipleDisks())
-}
-
-func ForceNewFilesystemOfSameType() types.Test {
-	name := "Force new Filesystem Creation of same type"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	mntDevices := []types.MntDevice{
-		{
-			Label:        "EFI-SYSTEM",
-			Substitution: "$DEVICE",
-		},
-	}
-	config := `{
-		"ignition": {"version": "$version"},
-		"storage": {
-			"filesystems": [{
-				"mount": {
-					"device": "$DEVICE",
-					"format": "ext4",
-					"create": {
-						"force": true
-					}}
-				 }]
-			}
-	}`
-	configMinVersion := "3.0.0-experimental"
-
-	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
-	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
-	out[0].Partitions.GetPartition("EFI-SYSTEM").Files = []types.File{}
-	out[0].Partitions.AddRemovedNodes("EFI-SYSTEM", []types.Node{
-		{
-			Name:      "multiLine",
-			Directory: "path/example",
-		}, {
-			Name:      "singleLine",
-			Directory: "another/path/example",
-		}, {
-			Name:      "emptyFile",
-			Directory: "empty",
-		}, {
-			Name:      "noPath",
-			Directory: "",
-		},
-	})
-
-	return types.Test{
-		Name:             name,
-		In:               in,
-		Out:              out,
-		MntDevices:       mntDevices,
-		Config:           config,
-		ConfigMinVersion: configMinVersion,
-	}
 }
 
 func WipeFilesystemWithSameType() types.Test {
@@ -95,12 +40,12 @@ func WipeFilesystemWithSameType() types.Test {
 		"ignition": { "version": "$version" },
 		"storage": {
 			"filesystems": [{
-				"mount": {
-					"device": "$DEVICE",
-					"format": "ext4",
-					"wipeFilesystem": true
-				}}]
-			}
+				"device": "$DEVICE",
+				"format": "ext4",
+				"path": "/boot",
+				"wipeFilesystem": true
+			}]
+		}
 	}`
 	configMinVersion := "3.0.0-experimental"
 
@@ -177,36 +122,28 @@ func FilesystemCreationOnMultipleDisks() types.Test {
 		"storage": {
 			"filesystems": [
 				{
-					"name": "xfs-0",
-					"mount": {
-						"device": "$dev0",
-						"format": "xfs",
-						"label": "data-0"
-					}
+					"path": "/tmp-0",
+					"device": "$dev0",
+					"format": "xfs",
+					"label": "data-0"
 				},
 				{
-					"name": "xfs-1",
-					"mount": {
-						"device": "$dev1",
-						"format": "xfs",
-						"label": "data-1"
-					}
+					"path": "/tmp-1",
+					"device": "$dev1",
+					"format": "xfs",
+					"label": "data-1"
 				},
 				{
-					"name": "xfs-2",
-					"mount": {
-						"device": "$dev2",
-						"format": "xfs",
-						"label": "data-2"
-					}
+					"path": "/tmp-2",
+					"device": "$dev2",
+					"format": "xfs",
+					"label": "data-2"
 				},
 				{
-					"name": "xfs-3",
-					"mount": {
-						"device": "$dev3",
-						"format": "xfs",
-						"label": "data-3"
-					}
+					"path": "/tmp-3",
+					"device": "$dev3",
+					"format": "xfs",
+					"label": "data-3"
 				}
 			]
 		}

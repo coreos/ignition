@@ -76,7 +76,6 @@ func DecreaseHTTPResponseHeadersTimeout() types.Test {
 		"storage": {
 		    "files": [
 			    {
-					"filesystem": "root",
 					"path": "/foo/bar",
 					"contents": {
 						"source": %q

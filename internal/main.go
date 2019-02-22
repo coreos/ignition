@@ -24,6 +24,8 @@ import (
 	"github.com/coreos/ignition/internal/exec/stages"
 	_ "github.com/coreos/ignition/internal/exec/stages/disks"
 	_ "github.com/coreos/ignition/internal/exec/stages/files"
+	_ "github.com/coreos/ignition/internal/exec/stages/mount"
+	_ "github.com/coreos/ignition/internal/exec/stages/umount"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/oem"
 	"github.com/coreos/ignition/internal/version"

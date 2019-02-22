@@ -36,16 +36,13 @@ var (
 
 // createFilesystems creates the filesystems described in config.Storage.Filesystems.
 func (s stage) createFilesystems(config types.Config) error {
-	fss := make([]types.Mount, 0, len(config.Storage.Filesystems))
-	for _, fs := range config.Storage.Filesystems {
-		if fs.Mount != nil {
-			fss = append(fss, *fs.Mount)
-		}
-	}
+	fss := config.Storage.Filesystems
+	s.Logger.Info("fss: %v", fss)
 
 	if len(fss) == 0 {
 		return nil
 	}
+
 	s.Logger.PushPrefix("createFilesystems")
 	defer s.Logger.PopPrefix()
 
@@ -60,7 +57,7 @@ func (s stage) createFilesystems(config types.Config) error {
 
 	// Create filesystems concurrently up to GOMAXPROCS
 	concurrency := runtime.GOMAXPROCS(-1)
-	work := make(chan types.Mount, len(fss))
+	work := make(chan types.Filesystem, len(fss))
 	results := make(chan error)
 
 	for i := 0; i < concurrency; i++ {
@@ -91,23 +88,15 @@ func (s stage) createFilesystems(config types.Config) error {
 	return nil
 }
 
-func (s stage) createFilesystem(fs types.Mount) error {
+func (s stage) createFilesystem(fs types.Filesystem) error {
 	info, err := s.readFilesystemInfo(fs)
 	if err != nil {
 		return err
 	}
 
-	if fs.Create != nil {
-		// If we are using 2.0.0 semantics...
-
-		if !fs.Create.Force && info.format != "" {
-			s.Logger.Err("filesystem detected at %q (found %s) and force was not requested", fs.Device, info.format)
-			return ErrBadFilesystem
-		}
-	} else if !fs.WipeFilesystem {
+	if !fs.WipeFilesystem {
 		// If the filesystem isn't forcefully being created, then we need
 		// to check if it is of the correct type or that no filesystem exists.
-
 		if info.format == fs.Format &&
 			(fs.Label == nil || info.label == *fs.Label) &&
 			(fs.UUID == nil || canonicalizeFilesystemUUID(info.format, info.uuid) == canonicalizeFilesystemUUID(fs.Format, *fs.UUID)) {
@@ -120,12 +109,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 	}
 
 	mkfs := ""
-	var args []string
-	if fs.Create == nil {
-		args = translateMountOptionSliceToStringSlice(fs.Options)
-	} else {
-		args = translateCreateOptionSliceToStringSlice(fs.Create.Options)
-	}
+	args := translateOptionSliceToStringSlice(fs.Options)
 	switch fs.Format {
 	case "btrfs":
 		mkfs = distro.BtrfsMkfsCmd()
@@ -191,16 +175,7 @@ func (s stage) createFilesystem(fs types.Mount) error {
 }
 
 // golang--
-func translateMountOptionSliceToStringSlice(opts []types.MountOption) []string {
-	newOpts := make([]string, len(opts))
-	for i, o := range opts {
-		newOpts[i] = string(o)
-	}
-	return newOpts
-}
-
-// golang--
-func translateCreateOptionSliceToStringSlice(opts []types.CreateOption) []string {
+func translateOptionSliceToStringSlice(opts []types.FilesystemOption) []string {
 	newOpts := make([]string, len(opts))
 	for i, o := range opts {
 		newOpts[i] = string(o)
@@ -214,7 +189,7 @@ type filesystemInfo struct {
 	label  string
 }
 
-func (s stage) readFilesystemInfo(fs types.Mount) (filesystemInfo, error) {
+func (s stage) readFilesystemInfo(fs types.Filesystem) (filesystemInfo, error) {
 	res := filesystemInfo{}
 	err := s.Logger.LogOp(
 		func() error {

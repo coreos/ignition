@@ -19,91 +19,21 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
 )
 
-func TestMapEntriesToFilesystems(t *testing.T) {
-	type in struct {
-		config types.Config
-	}
-	type out struct {
-		files map[types.Filesystem][]filesystemEntry
-		err   error
-	}
+type pathWrapper string
 
-	fs1 := "/fs1"
-	fs2 := "/fs2"
-
-	tests := []struct {
-		in  in
-		out out
-	}{
-		{
-			in:  in{config: types.Config{}},
-			out: out{files: map[types.Filesystem][]filesystemEntry{}},
-		},
-		{
-			in:  in{config: types.Config{Storage: types.Storage{Files: []types.File{{Node: types.Node{Filesystem: "foo"}}}}}},
-			out: out{err: ErrFilesystemUndefined},
-		},
-		{
-			in: in{config: types.Config{Storage: types.Storage{
-				Filesystems: []types.Filesystem{{Name: "fs1"}},
-				Files: []types.File{
-					{Node: types.Node{Filesystem: "fs1", Path: "/foo"}},
-					{Node: types.Node{Filesystem: "fs1", Path: "/bar"}},
-				},
-			}}},
-			out: out{files: map[types.Filesystem][]filesystemEntry{{Name: "fs1"}: {
-				fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/foo"}}),
-				fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/bar"}}),
-			}}},
-		},
-		{
-			in: in{config: types.Config{Storage: types.Storage{
-				Filesystems: []types.Filesystem{{Name: "fs1", Path: &fs1}, {Name: "fs2", Path: &fs2}},
-				Files: []types.File{
-					{Node: types.Node{Filesystem: "fs1", Path: "/foo"}},
-					{Node: types.Node{Filesystem: "fs2", Path: "/bar"}},
-				},
-			}}},
-			out: out{files: map[types.Filesystem][]filesystemEntry{
-				{Name: "fs1", Path: &fs1}: {fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/foo"}})},
-				{Name: "fs2", Path: &fs2}: {fileEntry(types.File{Node: types.Node{Filesystem: "fs2", Path: "/bar"}})},
-			}},
-		},
-		{
-			in: in{config: types.Config{Storage: types.Storage{
-				Filesystems: []types.Filesystem{{Name: "fs1"}, {Name: "fs1", Path: &fs1}},
-				Files: []types.File{
-					{Node: types.Node{Filesystem: "fs1", Path: "/foo"}},
-					{Node: types.Node{Filesystem: "fs1", Path: "/bar"}},
-				},
-			}}},
-			out: out{files: map[types.Filesystem][]filesystemEntry{
-				{Name: "fs1", Path: &fs1}: {
-					fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/foo"}}),
-					fileEntry(types.File{Node: types.Node{Filesystem: "fs1", Path: "/bar"}}),
-				},
-			}},
-		},
-	}
-
-	for i, test := range tests {
-		logger := log.New(false)
-		files, err := stage{Util: util.Util{Logger: &logger}}.mapEntriesToFilesystems(test.in.config)
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
-		}
-		if !reflect.DeepEqual(test.out.files, files) {
-			t.Errorf("#%d: bad map: want %#v, got %#v", i, test.out.files, files)
-		}
-	}
+func (pw pathWrapper) getPath() string {
+	return string(pw)
 }
 
-func TestDirectorySort(t *testing.T) {
+func (pw pathWrapper) create(l *log.Logger, u util.Util) error {
+	return nil
+}
+
+func TestEntrySort(t *testing.T) {
 	type in struct {
 		data []string
 	}
@@ -131,14 +61,14 @@ func TestDirectorySort(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		dirs := make([]types.Directory, len(test.in.data))
+		dirs := make([]pathWrapper, len(test.in.data))
 		for j := range dirs {
-			dirs[j].Path = test.in.data[j]
+			dirs[j] = pathWrapper(test.in.data[j])
 		}
-		sort.Sort(ByDirectorySegments(dirs))
+		sort.Slice(dirs, func(i, j int) bool { return util.Depth(dirs[i].getPath()) < util.Depth(dirs[j].getPath()) })
 		outpaths := make([]string, len(test.in.data))
 		for j, dir := range dirs {
-			outpaths[j] = dir.Path
+			outpaths[j] = dir.getPath()
 		}
 		if !reflect.DeepEqual(test.out.data, outpaths) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.data, outpaths)

@@ -39,14 +39,12 @@ func CreateHardLinkOnRoot() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/target",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
 	      }
 	    }],
 	    "links": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 		  "target": "/foo/target",
 		  "hard": true
@@ -91,7 +89,6 @@ func CreateSymlinkOnRoot() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "links": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "target": "/foo/target",
 	      "hard": false
@@ -137,12 +134,10 @@ func WriteThroughRelativeSymlink() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "links": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "target": "../etc"
 	    },
 	    {
-	      "filesystem": "root",
 	      "path": "/foo/bar/baz",
 	      "target": "somewhere/over/the/rainbow"
 	    }]
@@ -187,12 +182,10 @@ func WriteThroughRelativeSymlinkBeyondRoot() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "links": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "target": "../../etc"
 	    },
 	    {
-	      "filesystem": "root",
 	      "path": "/foo/bar/baz",
 	      "target": "somewhere/over/the/rainbow"
 	    }]
@@ -237,12 +230,10 @@ func WriteThroughAbsoluteSymlink() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "links": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "target": "/etc"
 	    },
 	    {
-	      "filesystem": "root",
 	      "path": "/foo/bar/baz",
 	      "target": "somewhere/over/the/rainbow"
 	    }]
@@ -285,14 +276,12 @@ func ForceLinkCreation() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/target",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
 	      }
 	    }],
 	    "links": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "target": "/foo/target",
 	      "overwrite": true
@@ -345,14 +334,12 @@ func ForceHardLinkCreation() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/foo/target",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/contents"
 	      }
 	    }],
 	    "links": [{
-	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "target": "/foo/target",
 		  "hard": true,
@@ -409,7 +396,6 @@ func WriteOverSymlink() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/etc/file",
 	      "mode": 420
 	    }]
@@ -473,7 +459,6 @@ func WriteOverBrokenSymlink() types.Test {
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
-	      "filesystem": "root",
 	      "path": "/etc/file",
 	      "mode": 420
 	    }]

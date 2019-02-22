@@ -22,7 +22,7 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func TestMountValidate(t *testing.T) {
+func TestFilesystemValidateFormat(t *testing.T) {
 	type in struct {
 		format string
 	}
@@ -49,14 +49,14 @@ func TestMountValidate(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := Mount{Format: test.in.format, Device: "/"}.Validate()
+		err := Filesystem{Format: test.in.format, Device: "/"}.ValidateFormat()
 		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
 	}
 }
 
-func TestFilesystemValidate(t *testing.T) {
+func TestFilesystemValidatePath(t *testing.T) {
 	type in struct {
 		filesystem Filesystem
 	}
@@ -69,25 +69,21 @@ func TestFilesystemValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{filesystem: Filesystem{Mount: &Mount{Device: "/foo", Format: "ext4"}}},
+			in:  in{filesystem: Filesystem{Path: "/foo"}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Path: func(p string) *string { return &p }("/mount")}},
-			out: out{},
+			in:  in{filesystem: Filesystem{Path: ""}},
+			out: out{errors.ErrNoPath},
 		},
 		{
-			in:  in{filesystem: Filesystem{Path: func(p string) *string { return &p }("/mount"), Mount: &Mount{Device: "/foo", Format: "ext4"}}},
-			out: out{err: errors.ErrFilesystemMountAndPath},
-		},
-		{
-			in:  in{filesystem: Filesystem{}},
-			out: out{err: errors.ErrFilesystemNoMountPath},
+			in:  in{filesystem: Filesystem{Path: "foo"}},
+			out: out{err: errors.ErrPathRelative},
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.filesystem.Validate()
+		err := test.in.filesystem.ValidatePath()
 		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
@@ -96,7 +92,7 @@ func TestFilesystemValidate(t *testing.T) {
 
 func TestLabelValidate(t *testing.T) {
 	type in struct {
-		mount Mount
+		filesystem Filesystem
 	}
 	type out struct {
 		err error
@@ -109,69 +105,69 @@ func TestLabelValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{mount: Mount{Format: "ext4", Label: nil}},
+			in:  in{filesystem: Filesystem{Format: "ext4", Label: nil}},
 			out: out{},
 		},
 		{
-			in:  in{mount: Mount{Format: "ext4", Label: strToPtr("data")}},
+			in:  in{filesystem: Filesystem{Format: "ext4", Label: strToPtr("data")}},
 			out: out{},
 		},
 		{
-			in:  in{mount: Mount{Format: "ext4", Label: strToPtr("thislabelistoolong")}},
+			in:  in{filesystem: Filesystem{Format: "ext4", Label: strToPtr("thislabelistoolong")}},
 			out: out{err: errors.ErrExt4LabelTooLong},
 		},
 		{
-			in:  in{mount: Mount{Format: "btrfs", Label: nil}},
+			in:  in{filesystem: Filesystem{Format: "btrfs", Label: nil}},
 			out: out{},
 		},
 		{
-			in:  in{mount: Mount{Format: "btrfs", Label: strToPtr("thislabelisnottoolong")}},
+			in:  in{filesystem: Filesystem{Format: "btrfs", Label: strToPtr("thislabelisnottoolong")}},
 			out: out{},
 		},
 		{
-			in:  in{mount: Mount{Format: "btrfs", Label: strToPtr("thislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolong")}},
+			in:  in{filesystem: Filesystem{Format: "btrfs", Label: strToPtr("thislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolong")}},
 			out: out{err: errors.ErrBtrfsLabelTooLong},
 		},
 		{
-			in:  in{mount: Mount{Format: "xfs", Label: nil}},
+			in:  in{filesystem: Filesystem{Format: "xfs", Label: nil}},
 			out: out{},
 		},
 		{
-			in:  in{mount: Mount{Format: "xfs", Label: strToPtr("data")}},
+			in:  in{filesystem: Filesystem{Format: "xfs", Label: strToPtr("data")}},
 			out: out{},
 		},
 		{
-			in:  in{mount: Mount{Format: "xfs", Label: strToPtr("thislabelistoolong")}},
+			in:  in{filesystem: Filesystem{Format: "xfs", Label: strToPtr("thislabelistoolong")}},
 			out: out{err: errors.ErrXfsLabelTooLong},
 		},
 		{
-			in:  in{mount: Mount{Format: "swap", Label: nil}},
+			in:  in{filesystem: Filesystem{Format: "swap", Label: nil}},
 			out: out{},
 		},
 		{
-			in:  in{mount: Mount{Format: "swap", Label: strToPtr("data")}},
+			in:  in{filesystem: Filesystem{Format: "swap", Label: strToPtr("data")}},
 			out: out{},
 		},
 		{
-			in:  in{mount: Mount{Format: "swap", Label: strToPtr("thislabelistoolong")}},
+			in:  in{filesystem: Filesystem{Format: "swap", Label: strToPtr("thislabelistoolong")}},
 			out: out{err: errors.ErrSwapLabelTooLong},
 		},
 		{
-			in:  in{mount: Mount{Format: "vfat", Label: nil}},
+			in:  in{filesystem: Filesystem{Format: "vfat", Label: nil}},
 			out: out{},
 		},
 		{
-			in:  in{mount: Mount{Format: "vfat", Label: strToPtr("data")}},
+			in:  in{filesystem: Filesystem{Format: "vfat", Label: strToPtr("data")}},
 			out: out{},
 		},
 		{
-			in:  in{mount: Mount{Format: "vfat", Label: strToPtr("thislabelistoolong")}},
+			in:  in{filesystem: Filesystem{Format: "vfat", Label: strToPtr("thislabelistoolong")}},
 			out: out{err: errors.ErrVfatLabelTooLong},
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.mount.ValidateLabel()
+		err := test.in.filesystem.ValidateLabel()
 		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}

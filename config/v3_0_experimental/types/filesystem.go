@@ -15,132 +15,61 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func (f Filesystem) Validate() report.Report {
-	r := report.Report{}
-	if f.Mount == nil && f.Path == nil {
-		r.Add(report.Entry{
-			Message: errors.ErrFilesystemNoMountPath.Error(),
-			Kind:    report.EntryError,
-		})
-	}
-	if f.Mount != nil {
-		if f.Path != nil {
-			r.Add(report.Entry{
-				Message: errors.ErrFilesystemMountAndPath.Error(),
-				Kind:    report.EntryError,
-			})
-		}
-		if f.Mount.Create != nil {
-			if f.Mount.WipeFilesystem {
-				r.Add(report.Entry{
-					Message: errors.ErrUsedCreateAndWipeFilesystem.Error(),
-					Kind:    report.EntryError,
-				})
-			}
-			if len(f.Mount.Options) > 0 {
-				r.Add(report.Entry{
-					Message: errors.ErrUsedCreateAndMountOpts.Error(),
-					Kind:    report.EntryError,
-				})
-			}
-			r.Add(report.Entry{
-				Message: errors.ErrWarningCreateDeprecated.Error(),
-				Kind:    report.EntryWarning,
-			})
-		}
-	}
-	return r
+func (f Filesystem) ValidatePath() (r report.Report) {
+	r.AddOnError(validatePath(f.Path))
+	return
 }
 
-func (f Filesystem) ValidatePath() report.Report {
-	r := report.Report{}
-	if f.Path != nil && validatePath(*f.Path) != nil {
-		r.Add(report.Entry{
-			Message: fmt.Sprintf("filesystem %q: path not absolute", f.Name),
-			Kind:    report.EntryError,
-		})
-	}
-	return r
+func (f Filesystem) ValidateDevice() (r report.Report) {
+	r.AddOnError(validatePath(f.Device))
+	return
 }
 
-func (m Mount) Validate() report.Report {
-	r := report.Report{}
-	switch m.Format {
+func (f Filesystem) ValidateFormat() (r report.Report) {
+	switch f.Format {
 	case "ext4", "btrfs", "xfs", "swap", "vfat":
 	default:
-		r.Add(report.Entry{
-			Message: errors.ErrFilesystemInvalidFormat.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrFilesystemInvalidFormat)
 	}
-	return r
+	return
 }
 
-func (m Mount) ValidateDevice() report.Report {
-	r := report.Report{}
-	if err := validatePath(m.Device); err != nil {
-		r.Add(report.Entry{
-			Message: err.Error(),
-			Kind:    report.EntryError,
-		})
+func (f Filesystem) ValidateLabel() (r report.Report) {
+	if f.Label == nil || *f.Label == "" {
+		return
 	}
-	return r
-}
-
-func (m Mount) ValidateLabel() report.Report {
-	r := report.Report{}
-	if m.Label == nil {
-		return r
-	}
-	switch m.Format {
+	switch f.Format {
 	case "ext4":
-		if len(*m.Label) > 16 {
+		if len(*f.Label) > 16 {
 			// source: man mkfs.ext4
-			r.Add(report.Entry{
-				Message: errors.ErrExt4LabelTooLong.Error(),
-				Kind:    report.EntryError,
-			})
+			r.AddOnError(errors.ErrExt4LabelTooLong)
 		}
 	case "btrfs":
-		if len(*m.Label) > 256 {
+		if len(*f.Label) > 256 {
 			// source: man mkfs.btrfs
-			r.Add(report.Entry{
-				Message: errors.ErrBtrfsLabelTooLong.Error(),
-				Kind:    report.EntryError,
-			})
+			r.AddOnError(errors.ErrBtrfsLabelTooLong)
 		}
 	case "xfs":
-		if len(*m.Label) > 12 {
+		if len(*f.Label) > 12 {
 			// source: man mkfs.xfs
-			r.Add(report.Entry{
-				Message: errors.ErrXfsLabelTooLong.Error(),
-				Kind:    report.EntryError,
-			})
+			r.AddOnError(errors.ErrXfsLabelTooLong)
 		}
 	case "swap":
 		// mkswap's man page does not state a limit on label size, but through
 		// experimentation it appears that mkswap will truncate long labels to
 		// 15 characters, so let's enforce that.
-		if len(*m.Label) > 15 {
-			r.Add(report.Entry{
-				Message: errors.ErrSwapLabelTooLong.Error(),
-				Kind:    report.EntryError,
-			})
+		if len(*f.Label) > 15 {
+			r.AddOnError(errors.ErrSwapLabelTooLong)
 		}
 	case "vfat":
-		if len(*m.Label) > 11 {
+		if len(*f.Label) > 11 {
 			// source: man mkfs.fat
-			r.Add(report.Entry{
-				Message: errors.ErrVfatLabelTooLong.Error(),
-				Kind:    report.EntryError,
-			})
+			r.AddOnError(errors.ErrVfatLabelTooLong)
 		}
 	}
-	return r
+	return
 }

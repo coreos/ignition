@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2019 RedHat, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,23 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package types
+package util
 
 import (
-	"path"
-
-	"github.com/coreos/ignition/config/shared/errors"
+	"path/filepath"
 )
 
-func validatePath(p string) error {
-	if p == "" {
-		return errors.ErrNoPath
+func Depth(path string) uint {
+	var count uint = 0
+	for p := filepath.Clean(path); p != "/"; count++ {
+		p = filepath.Dir(p)
 	}
-	if !path.IsAbs(p) {
-		return errors.ErrPathRelative
-	}
-	if path.Clean(p) != p {
-		return errors.ErrDirtyPath
-	}
-	return nil
+	return count
 }

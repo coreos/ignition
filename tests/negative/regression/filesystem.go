@@ -39,12 +39,12 @@ func VFATIgnoresWipeFilesystem() types.Test {
                 "ignition": {"version": "$version"},
                 "storage": {
                         "filesystems": [{
-                                "mount": {
-                                        "device": "$DEVICE",
-                                        "format": "vfat",
-                                        "wipeFilesystem": false
-                                }}]
-                        }
+                                "device": "$DEVICE",
+                                "format": "vfat",
+                                "path": "/tmp0",
+                                "wipeFilesystem": false
+                        }]
+                }
         }`
 	configMinVersion := "3.0.0-experimental"
 

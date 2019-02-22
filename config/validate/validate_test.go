@@ -89,25 +89,9 @@ func TestValidate(t *testing.T) {
 				Storage: Storage{
 					Filesystems: []Filesystem{
 						{
-							Name: "filesystem1",
-							Mount: &Mount{
-								Device: "/dev/disk/by-partlabel/ROOT",
-								Format: "btrfs",
-							},
-						},
-					},
-				},
-			}},
-			out: out{},
-		},
-		{
-			in: in{cfg: Config{
-				Ignition: Ignition{Version: "3.0.0-experimental"},
-				Storage: Storage{
-					Filesystems: []Filesystem{
-						{
-							Name: "filesystem1",
-							Path: func(p string) *string { return &p }("/sysroot"),
+							Path:   "/",
+							Device: "/dev/disk/by-partlabel/ROOT",
+							Format: "btrfs",
 						},
 					},
 				},

@@ -209,16 +209,36 @@
         "filesystem": {
           "type": "object",
           "properties": {
-            "name": {
+            "path": {
               "type": "string"
             },
-            "mount": {
-              "$ref": "#/definitions/storage/definitions/mount"
+            "device": {
+              "type": "string"
             },
-            "path": {
+            "format": {
+              "type": "string"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "wipeFilesystem": {
+              "type": "boolean"
+            },
+            "label": {
+              "type": ["string", "null"]
+            },
+            "uuid": {
               "type": ["string", "null"]
             }
-          }
+          },
+          "required": [
+              "device",
+	      "format",
+	      "path"
+          ]
         },
         "file": {
           "allOf": [
@@ -312,50 +332,6 @@
             }
           }
         },
-        "mount": {
-          "type": ["object", "null"],
-          "properties": {
-            "device": {
-              "type": "string"
-            },
-            "format": {
-              "type": "string"
-            },
-            "options": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "wipeFilesystem": {
-              "type": "boolean"
-            },
-            "label": {
-              "type": ["string", "null"]
-            },
-            "uuid": {
-              "type": ["string", "null"]
-            },
-            "create": {
-              "type": ["object", "null"],
-              "properties": {
-                "force": {
-                  "type": "boolean"
-                },
-                "options": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "required": [
-              "device",
-              "format"
-          ]
-        },
         "file-contents": {
           "type": "object",
           "properties": {
@@ -373,9 +349,6 @@
         "node": {
           "type": "object",
           "properties": {
-            "filesystem": {
-              "type": "string"
-            },
             "path": {
               "type": "string"
             },
@@ -406,7 +379,6 @@
             }
           },
           "required": [
-              "filesystem",
               "path"
           ]
         }
