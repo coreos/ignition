@@ -243,7 +243,7 @@ func (u Util) PerformFetch(f *FetchOp) error {
 
 		// Ensure the ownership and mode are as requested (since WriteFile can be affected by sticky bit)
 
-		mode := os.FileMode(0)
+		mode := DefaultFilePermissions
 		if f.Mode != nil {
 			mode = os.FileMode(*f.Mode)
 		}

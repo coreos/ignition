@@ -34,7 +34,8 @@ var (
 	ErrInvalidVersion = errors.New("invalid config version (couldn't parse)")
 
 	// Storage section errors
-	ErrPermissionsUnset            = errors.New("permissions unset, defaulting to 0000")
+	ErrFilePermissionsUnset        = errors.New("permissions unset, defaulting to 0644")
+	ErrDirectoryPermissionsUnset   = errors.New("permissions unset, defaulting to 0755")
 	ErrDiskDeviceRequired          = errors.New("disk device is required")
 	ErrPartitionNumbersCollide     = errors.New("partition numbers collide")
 	ErrPartitionsOverlap           = errors.New("partitions overlap")

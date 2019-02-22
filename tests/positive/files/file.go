@@ -26,6 +26,7 @@ func init() {
 	register.Register(register.PositiveTest, ForceFileCreationNoOverwrite())
 	register.Register(register.PositiveTest, AppendToAFile())
 	register.Register(register.PositiveTest, AppendToNonexistentFile())
+	register.Register(register.PositiveTest, ApplyDefaultFilePermissions())
 	// TODO: Investigate why ignition's C code hates our environment
 	// register.Register(register.PositiveTest, UserGroupByName())
 }
@@ -291,6 +292,41 @@ func AppendToNonexistentFile() types.Test {
 				Group:     500,
 			},
 			Contents: "hello world\n",
+		},
+	})
+	configMinVersion := "3.0.0-experimental"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ApplyDefaultFilePermissions() types.Test {
+	name := "Apply Default File Permissions"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": { "source": "data:,hello%20world%0A" }
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: "hello world\n",
+			Mode:     0644,
 		},
 	})
 	configMinVersion := "3.0.0-experimental"
