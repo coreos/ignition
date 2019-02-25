@@ -305,7 +305,7 @@ func validateMode(t *testing.T, path string, mode int) {
 		}
 
 		if fileInfo.Mode() != os.FileMode(mode) {
-			t.Error("Node Mode does not match", path, mode, fileInfo.Mode())
+			t.Error("Node Mode does not match", path, os.FileMode(mode), fileInfo.Mode())
 		}
 	}
 }

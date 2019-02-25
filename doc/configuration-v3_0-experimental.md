@@ -62,7 +62,7 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_verification_** (object): options related to the verification of the file contents.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
-    * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).
+    * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). If not specified, the permission mode for files defaults to 0644.
     * **_user_** (object): specifies the file's owner.
       * **_id_** (integer): the user ID of the owner.
       * **_name_** (string): the user name of the owner.
@@ -72,7 +72,7 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_directories_** (list of objects): the list of directories to be created.
     * **path** (string): the absolute path to the directory.
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path.
-    * **_mode_** (integer): the directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0755 -> 493).
+    * **_mode_** (integer): the directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0755 -> 493). If not specified, the permission mode for directories defaults to 0755.
     * **_user_** (object): specifies the directory's owner.
       * **_id_** (integer): the user ID of the owner.
       * **_name_** (string): the user name of the owner.

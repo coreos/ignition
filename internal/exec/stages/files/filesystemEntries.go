@@ -121,7 +121,7 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 		}
 
 		if d.Mode == nil {
-			d.Mode = configUtil.IntToPtr(0)
+			d.Mode = configUtil.IntToPtr(int(util.DefaultDirectoryPermissions))
 		}
 
 		if err := os.MkdirAll(path, os.FileMode(*d.Mode)); err != nil {
