@@ -27,7 +27,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/tests/types"
 )
 
@@ -81,7 +80,8 @@ func prepareRootPartitionForPasswd(ctx context.Context, root *types.Partition) e
 	}
 
 	// TODO: use the architecture, not hardcode amd64
-	_, err := run(ctx, "cp", "bin/amd64/id-stub", filepath.Join(mountPath, distro.IdCmd()))
+	// copy to mountPath/usr/bin/id as it's used by Ignition via a chroot to the mountPath
+	_, err := run(ctx, "cp", "bin/amd64/id-stub", filepath.Join(mountPath, "usr", "bin", "id"))
 	if err != nil {
 		return err
 	}

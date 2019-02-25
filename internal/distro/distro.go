@@ -33,23 +33,26 @@ var (
 	systemConfigDir = "/usr/lib/ignition"
 
 	// Helper programs
-	chrootCmd     = "/usr/bin/chroot"
-	groupaddCmd   = "/usr/sbin/groupadd"
-	idCmd         = "/usr/bin/id"
-	mdadmCmd      = "/usr/sbin/mdadm"
-	mountCmd      = "/usr/bin/mount"
-	sgdiskCmd     = "/usr/sbin/sgdisk"
-	udevadmCmd    = "/usr/bin/udevadm"
-	usermodCmd    = "/usr/sbin/usermod"
-	useraddCmd    = "/usr/sbin/useradd"
+	chrootCmd   = "chroot"
+	groupaddCmd = "groupadd"
+	idCmd       = "id"
+	mdadmCmd    = "mdadm"
+	mountCmd    = "mount"
+	sgdiskCmd   = "sgdisk"
+	udevadmCmd  = "udevadm"
+	usermodCmd  = "usermod"
+	useraddCmd  = "useradd"
+
+	// The restorecon tool is embedded inside of a systemd unit
+	// and as such requires the absolute path
 	restoreconCmd = "/usr/sbin/restorecon"
 
 	// Filesystem tools
-	btrfsMkfsCmd = "/usr/sbin/mkfs.btrfs"
-	ext4MkfsCmd  = "/usr/sbin/mkfs.ext4"
-	swapMkfsCmd  = "/usr/sbin/mkswap"
-	vfatMkfsCmd  = "/usr/sbin/mkfs.vfat"
-	xfsMkfsCmd   = "/usr/sbin/mkfs.xfs"
+	btrfsMkfsCmd = "mkfs.btrfs"
+	ext4MkfsCmd  = "mkfs.ext4"
+	swapMkfsCmd  = "mkswap"
+	vfatMkfsCmd  = "mkfs.vfat"
+	xfsMkfsCmd   = "mkfs.xfs"
 
 	// Flags
 	selinuxRelabel  = "false"

@@ -56,10 +56,8 @@ sudo -E PATH=$PWD/bin/amd64:$PATH ./tests.test
 
 ## Runnning Blackbox Tests on platforms other than Container Linux
 
-Build Ignition and the test binaries with HELPERS=HOST to use the paths of the binaries from your host system instead of those found in Container linux. Then run blackbox tests. The subshell ensures the root PATH is used instead of your user's.
-
 ```sh
-HELPERS=HOST ./build_blackbox_tests
+./build_blackbox_tests
 sudo sh -c 'PATH=$PWD/bin/amd64:$PATH ./tests.test'
 ```
 
