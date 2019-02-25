@@ -95,7 +95,6 @@ type Test struct {
 	In                []Disk // Disk state before running Ignition
 	Out               []Disk // Expected disk state after running Ignition
 	MntDevices        []MntDevice
-	OEMLookasideFiles []File
 	SystemDirFiles    []File
 	Config            string
 	ConfigMinVersion  string
@@ -320,7 +319,7 @@ func (t *Test) ReplaceAllVersionVars(version string) {
 	t.Name += " " + version
 }
 
-// Deep copy Test struct fields In, Out, MntDevices, OEMLookasideFiles, SystemDirFiles
+// Deep copy Test struct fields In, Out, MntDevices, SystemDirFiles
 // so each BB test with identical Test structs have their own independent Test copies
 func DeepCopy(t Test) Test {
 	In_diskArr := make([]Disk, len(t.In))
@@ -334,10 +333,6 @@ func DeepCopy(t Test) Test {
 	mntdevice := make([]MntDevice, len(t.MntDevices))
 	copy(mntdevice, t.MntDevices)
 	t.MntDevices = mntdevice
-
-	OEMLookasideFiles := make([]File, len(t.OEMLookasideFiles))
-	copy(OEMLookasideFiles, t.OEMLookasideFiles)
-	t.OEMLookasideFiles = OEMLookasideFiles
 
 	SystemDirFiles := make([]File, len(t.SystemDirFiles))
 	copy(SystemDirFiles, t.SystemDirFiles)

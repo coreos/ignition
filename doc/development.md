@@ -100,8 +100,6 @@ Out: `[]Disk` object, which describes the Disks that should be present after Ign
 
 MntDevices: `MntDevice` object, which describes any disk related variable replacements that need to be done to the Ignition config before Ignition is run. This is done so that disks which are created during the test run can be referenced inside of an Ignition config.
 
-OEMLookasideFiles: `[]File` object which describes the Files that should be written into the OEM lookaside directory before Ignition is run.
-
 SystemDirFiles: `[]File` object which describes the Files that should be written into Ignition's system config directory before Ignition is run.
 
 Config: `string` type where the specific config version should be replaced by `$version` and will be updated before Ignition is run.
