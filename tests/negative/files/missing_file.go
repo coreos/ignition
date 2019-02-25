@@ -22,7 +22,6 @@ import (
 func init() {
 	register.Register(register.NegativeTest, MissingRemoteContentsHTTP())
 	register.Register(register.NegativeTest, MissingRemoteContentsTFTP())
-	register.Register(register.NegativeTest, MissingRemoteContentsOEM())
 }
 
 func MissingRemoteContentsHTTP() types.Test {
@@ -66,32 +65,6 @@ func MissingRemoteContentsTFTP() types.Test {
             }]
           }
         }`
-	configMinVersion := "3.0.0-experimental"
-
-	return types.Test{
-		Name:             name,
-		In:               in,
-		Out:              out,
-		Config:           config,
-		ConfigMinVersion: configMinVersion,
-	}
-}
-
-func MissingRemoteContentsOEM() types.Test {
-	name := "Create Files from Remote Contents - OEM"
-	in := types.GetBaseDisk()
-	out := in
-	config := `{
-	  "ignition": { "version": "$version" },
-	  "storage": {
-	    "files": [{
-	      "path": "/foo/bar",
-	      "contents": {
-	        "source": "oem:///source"
-	      }
-	    }]
-	  }
-	}`
 	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{

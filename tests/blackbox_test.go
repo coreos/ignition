@@ -139,19 +139,13 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		return fmt.Errorf("failed to change mode of temp dir: %v", err)
 	}
 
-	oemLookasideDir := filepath.Join(tmpDirectory, "oem-lookaside")
 	systemConfigDir := filepath.Join(tmpDirectory, "system")
 	var rootPartition *types.Partition
 
 	// Setup
-	err = createFilesFromSlice(oemLookasideDir, test.OEMLookasideFiles)
+	err = createFilesFromSlice(systemConfigDir, test.SystemDirFiles)
 	// Defer before the error handling because the createFilesFromSlice function
 	// can fail after partially-creating things
-	defer os.RemoveAll(oemLookasideDir)
-	if err != nil {
-		return err
-	}
-	err = createFilesFromSlice(systemConfigDir, test.SystemDirFiles)
 	defer os.RemoveAll(systemConfigDir)
 	if err != nil {
 		return err
@@ -279,8 +273,6 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 
 	// Ignition
 	appendEnv := []string{
-		"IGNITION_OEM_DEVICE=" + test.In[0].Partitions.GetPartition("OEM").Device,
-		"IGNITION_OEM_LOOKASIDE_DIR=" + oemLookasideDir,
 		"IGNITION_SYSTEM_CONFIG_DIR=" + systemConfigDir,
 	}
 
