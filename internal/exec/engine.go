@@ -113,7 +113,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 		}
 		// Create an http client and fetcher with the timeouts from the cached
 		// config
-		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
+		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities, cfg.Ignition.Proxy)
 		if err != nil {
 			e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
 			return
@@ -124,7 +124,8 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 	// Create a new http client and fetcher with the timeouts set via the flags,
 	// since we don't have a config with timeout values we can use
 	timeout := int(e.FetchTimeout.Seconds())
-	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(types.Timeouts{HTTPTotal: &timeout}, nil)
+	emptyProxy := types.Proxy{}
+	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(types.Timeouts{HTTPTotal: &timeout}, nil, emptyProxy)
 	if err != nil {
 		e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
 		return
@@ -139,7 +140,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 
 	// Update the http client to use the timeouts and CAs from the newly fetched
 	// config
-	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
+	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities, cfg.Ignition.Proxy)
 	if err != nil {
 		e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
 		return
@@ -205,7 +206,7 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 
 	// Replace the HTTP client in the fetcher to be configured with the
 	// timeouts of the config
-	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities)
+	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities, cfg.Ignition.Proxy)
 	if err != nil {
 		return types.Config{}, err
 	}
@@ -229,7 +230,7 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 
 		// Replace the HTTP client in the fetcher to be configured with the
 		// timeouts of the new config
-		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(newCfg.Ignition.Timeouts, newCfg.Ignition.Security.TLS.CertificateAuthorities)
+		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(newCfg.Ignition.Timeouts, newCfg.Ignition.Security.TLS.CertificateAuthorities, newCfg.Ignition.Proxy)
 		if err != nil {
 			return types.Config{}, err
 		}
@@ -248,7 +249,7 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 		// been rendered, so we can use the new config's timeouts and CAs when
 		// fetching more configs.
 		cfgForFetcherSettings := latest.Merge(appendedCfg, newCfg)
-		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfgForFetcherSettings.Ignition.Timeouts, cfgForFetcherSettings.Ignition.Security.TLS.CertificateAuthorities)
+		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfgForFetcherSettings.Ignition.Timeouts, cfgForFetcherSettings.Ignition.Security.TLS.CertificateAuthorities, cfgForFetcherSettings.Ignition.Proxy)
 		if err != nil {
 			return types.Config{}, err
 		}
