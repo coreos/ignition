@@ -90,7 +90,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 			if dropin.Contents == "" {
 				continue
 			}
-			f, err := util.FileFromSystemdUnitDropin(unit, dropin, runtime)
+			f, err := u.FileFromSystemdUnitDropin(unit, dropin, runtime)
 			if err != nil {
 				s.Logger.Crit("error converting systemd dropin: %v", err)
 				return err
@@ -111,7 +111,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 			return nil
 		}
 
-		f, err := util.FileFromSystemdUnit(unit, runtime)
+		f, err := u.FileFromSystemdUnit(unit, runtime)
 		if err != nil {
 			s.Logger.Crit("error converting unit: %v", err)
 			return err
