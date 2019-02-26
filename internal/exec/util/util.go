@@ -34,16 +34,16 @@ type Util struct {
 	*log.Logger
 }
 
-// splitPath splits /a/b/c/d into [a, b, c, d]
+// SplitPath splits /a/b/c/d into [a, b, c, d]
 // golang-- for making me write this
 
-func splitPath(p string) []string {
+func SplitPath(p string) []string {
 	dir, file := filepath.Split(p)
 	if dir == "" || dir == "/" {
 		return []string{file}
 	}
 	dir = filepath.Clean(dir)
-	return append(splitPath(dir), file)
+	return append(SplitPath(dir), file)
 }
 
 func wantsToEscape(p string) bool {
@@ -57,7 +57,7 @@ func wantsToEscape(p string) bool {
 func (u Util) JoinPath(path ...string) (string, error) {
 	components := []string{}
 	for _, tmp := range path {
-		components = append(components, splitPath(tmp)...)
+		components = append(components, SplitPath(tmp)...)
 	}
 	last := components[len(components)-1]
 	components = components[:len(components)-1]
