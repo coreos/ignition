@@ -28,4 +28,4 @@ After=ignition-disks.service
 [Service]
 Type=oneshot
 EnvironmentFile=/run/ignition.env
-ExecStart=/usr/bin/ignition --root=/sysroot --oem=${OEM_ID} --stage=files --log-to-stdout
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=files --log-to-stdout

@@ -17,6 +17,9 @@ cmdline_arg() {
     echo "${value}"
 }
 
+# check *both* old and new keys for now
+platform_id=$(cmdline_arg ignition.platform.id "$(cmdline_arg coreos.oem.id)")
+
 cmdline_bool() {
     local value=$(cmdline_arg "$@")
     case "$value" in
@@ -39,13 +42,13 @@ if $(cmdline_bool 'ignition.firstboot' 0); then
     add_requires ignition-disks.service
     add_requires ignition-files.service
     add_requires ignition-ask-var-mount.service
-    #if [[ $(cmdline_arg coreos.oem.id) == "packet" ]]; then
+    #if [[ $platform_id == "packet" ]]; then
     #    add_requires coreos-static-network.service
     #fi
 
     # On EC2, shut down systemd-networkd if ignition fails so that the instance
     # fails EC2 instance checks.
-    #if [[ $(cmdline_arg coreos.oem.id) == "ec2" ]]; then
+    #if [[ $platform_id == "ec2" ]]; then
     #    mkdir -p ${UNIT_DIR}/systemd-networkd.service.d
     #    cat > ${UNIT_DIR}/systemd-networkd.service.d/10-conflict-emergency.conf <<EOF
 #[Unit]
@@ -86,7 +89,7 @@ if [ -n "$RANDOMIZE_DISK_GUID" ]; then
     add_requires "disk-uuid@${escaped_guid}.service"
 fi
 
-if [[ $(cmdline_arg coreos.oem.id) == "digitalocean" ]]; then
+if [[ $platform_id == "digitalocean" ]]; then
     add_requires coreos-digitalocean-network.service
 fi
 
@@ -95,4 +98,4 @@ if [[ $(systemd-detect-virt || true) =~ ^(kvm|qemu)$ ]]; then
     oem_id=qemu
 fi
 
-echo "OEM_ID=$(cmdline_arg coreos.oem.id ${oem_id})" > /run/ignition.env
+echo "PLATFORM_ID=$platform_id" > /run/ignition.env
