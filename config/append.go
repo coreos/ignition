@@ -17,7 +17,7 @@ package config
 import (
 	"reflect"
 
-	"github.com/coreos/ignition/internal/config/types"
+	"github.com/coreos/ignition/config/v3_0_experimental/types"
 )
 
 // Append appends newConfig to oldConfig and returns the result. Appending one

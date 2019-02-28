@@ -26,8 +26,8 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/config/shared/errors"
+	config "github.com/coreos/ignition/config/v3_0_experimental"
 	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/config"
 )
 
 const (

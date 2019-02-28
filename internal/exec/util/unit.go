@@ -20,7 +20,7 @@ import (
 	"os"
 
 	configUtil "github.com/coreos/ignition/config/util"
-	"github.com/coreos/ignition/internal/config/types"
+	"github.com/coreos/ignition/config/v3_0_experimental/types"
 	"github.com/coreos/ignition/internal/distro"
 
 	"github.com/vincent-petithory/dataurl"
