@@ -12,6 +12,10 @@ hash schematyper 2>/dev/null || {
     exit 1
 }
 
-echo "Generating schema..."
-schematyper --package=types schema/ignition.json -o internal/config/types/schema.go --root-type=Config
-cp internal/config/types/schema.go $(find config -name \*_experimental -type d)/types/schema.go
+specs="v3_0_experimental"
+
+for spec in $specs
+do
+	echo "Generating schema..."
+	schematyper --package=types "config/${spec}/schema/ignition.json" -o "config/${spec}/types/schema.go" --root-type=Config
+done
