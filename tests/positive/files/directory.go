@@ -25,6 +25,7 @@ func init() {
 	register.Register(register.PositiveTest, CreateDirectoryOnRoot())
 	register.Register(register.PositiveTest, ForceDirCreation())
 	register.Register(register.PositiveTest, ForceDirCreationOverNonemptyDir())
+	register.Register(register.PositiveTest, CheckOrdering())
 	register.Register(register.PositiveTest, ApplyDefaultDirectoryPermissions())
 }
 
@@ -142,6 +143,60 @@ func ForceDirCreationOverNonemptyDir() types.Test {
 	}
 }
 
+func CheckOrdering() types.Test {
+	name := "TODO"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "directories": [{
+	      "path": "/foo/bar/baz",
+	      "mode": 511,
+	      "overwrite": false
+	    },
+	    {
+	      "path": "/baz/quux",
+	      "mode": 493,
+	      "overwrite": false
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Target: "/",
+		},
+	})
+	out[0].Partitions.AddDirectories("ROOT", []types.Directory{
+		{
+			Node: types.Node{
+				Directory: "/",
+				Name:      "baz",
+			},
+			Mode: 0777 | int(os.ModeDir),
+		},
+		{
+			Node: types.Node{
+				Directory: "baz",
+				Name:      "quux",
+			},
+			Mode: 0755 | int(os.ModeDir),
+		},
+	})
+	configMinVersion := "3.0.0-experimental"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
 func ApplyDefaultDirectoryPermissions() types.Test {
 	name := "Apply Default Directory Permissions"
 	in := types.GetBaseDisk()
