@@ -19,7 +19,9 @@
 package disks
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"syscall"
 
@@ -72,12 +74,33 @@ func (s stage) Run(config types.Config) error {
 	return nil
 }
 
+// checkForNonDirectories returns an error if any element of path is not a directory
+func checkForNonDirectories(path string) error {
+	p := "/"
+	for _, component := range util.SplitPath(path) {
+		p = filepath.Join(p, component)
+		st, err := os.Lstat(p)
+		if err != nil && os.IsNotExist(err) {
+			return nil // nonexistent is ok
+		} else if err != nil {
+			return err
+		}
+		if !st.Mode().IsDir() {
+			return fmt.Errorf("Mount path %q contains non-directory component %q", path, p)
+		}
+	}
+	return nil
+}
+
 func (s stage) mountFs(fs types.Filesystem) error {
 	if fs.Format == "swap" {
 		return nil
 	}
-	path, err := s.JoinPath(fs.Path)
-	if err != nil {
+
+	// mount paths shouldn't include symlinks or other non-directories so we can use filepath.Join()
+	// instead of s.JoinPath(). Check that the resulting path is composed of only directories.
+	path := filepath.Join(s.DestDir, fs.Path)
+	if err := checkForNonDirectories(path); err != nil {
 		return err
 	}
 
@@ -85,8 +108,10 @@ func (s stage) mountFs(fs types.Filesystem) error {
 		if err := os.MkdirAll(path, 0755); err != nil {
 			return err
 		}
+	} else if err != nil {
+		return err
 	}
-	// TODO disallow symlinks
+
 	if err := s.Logger.LogOp(func() error { return syscall.Mount(fs.Device, path, fs.Format, 0, "") },
 		"mounting %q at %q with type %q", fs.Device, path, fs.Format,
 	); err != nil {
