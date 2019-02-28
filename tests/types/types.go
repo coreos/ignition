@@ -244,7 +244,7 @@ func GetBaseDisk() []Disk {
 	}
 }
 
-// Replace all UUID variables (format $uuid<num>) in configs and partitions with an UUID
+// ReplaceAllUUIDVars replaces all UUID variables (format $uuid<num>) in configs and partitions with an UUID
 func (test *Test) ReplaceAllUUIDVars() error {
 	var err error
 	UUIDmap := make(map[string]string)
@@ -311,7 +311,7 @@ func getUUID(key string, UUIDmap map[string]string) string {
 	return UUIDmap[key]
 }
 
-// Replace Version variable (format $version) in configs with ConfigMinVersion
+// ReplaceAllVersionVars replaces Version variable (format $version) in configs with ConfigMinVersion
 // Updates the old config version (oldVersion) with a new one (newVersion)
 func (t *Test) ReplaceAllVersionVars(version string) {
 	pattern := regexp.MustCompile("\\$version")

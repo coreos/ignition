@@ -160,7 +160,7 @@ func translateV2_1PasswdUserGroupSliceToStringSlice(groups []types.Group) []stri
 	return newGroups
 }
 
-// Add the provided SSH public keys to the user's authorized keys.
+// AuthorizeSSHKeys adds the provided SSH public keys to the user's authorized keys.
 func (u Util) AuthorizeSSHKeys(c types.PasswdUser) error {
 	if len(c.SSHAuthorizedKeys) == 0 {
 		return nil
