@@ -31,7 +31,10 @@ func (s *stage) createFilesystemsEntries(config types.Config) error {
 	s.Logger.PushPrefix("createFilesystemsFiles")
 	defer s.Logger.PopPrefix()
 
-	entryMap := s.getOrderedCreationList(config)
+	entryMap, err := s.getOrderedCreationList(config)
+	if err != nil {
+		return err
+	}
 
 	if err := s.createEntries(entryMap); err != nil {
 		return fmt.Errorf("failed to create files: %v", err)
@@ -73,7 +76,7 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 			}
 
 			return u.PerformFetch(fetchOp)
-		}, msg, string(f.Path),
+		}, msg, f.Path,
 	); err != nil {
 		return fmt.Errorf("failed to create file %q: %v", fetchOp.Path, err)
 	}
@@ -91,10 +94,7 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 	d := types.Directory(tmp)
 
 	err := l.LogOp(func() error {
-		path, err := u.JoinPath(string(d.Path))
-		if err != nil {
-			return err
-		}
+		path := d.Path
 
 		if err := u.DeletePathOnOverwrite(d.Node); err != nil {
 			return err
@@ -171,27 +171,41 @@ func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	return nil
 }
 
-// mapEntriesToFilesystems builds a map of filesystems to files. If multiple
-// definitions of the same filesystem are present, only the final definition is
-// used. The directories are sorted to ensure /foo gets created before /foo/bar.
-func (s stage) getOrderedCreationList(config types.Config) []filesystemEntry {
+// getOrderedCreationList resolves all symlinks in the node paths and sets the path to be
+// prepended by the sysroot. It orders the list from shallowest (e.g. /a) to deepeset
+// (e.g. /a/b/c/d/e).
+func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, error) {
 	entries := []filesystemEntry{}
-
 	// Add directories first to ensure they are created before files.
 	for _, d := range config.Storage.Directories {
+		path, err := s.JoinPath(d.Path)
+		if err != nil {
+			return nil, err
+		}
+		d.Path = path
 		entries = append(entries, dirEntry(d))
 	}
 
 	for _, f := range config.Storage.Files {
+		path, err := s.JoinPath(f.Path)
+		if err != nil {
+			return nil, err
+		}
+		f.Path = path
 		entries = append(entries, fileEntry(f))
 	}
 
-	for _, sy := range config.Storage.Links {
-		entries = append(entries, linkEntry(sy))
+	for _, l := range config.Storage.Links {
+		path, err := s.JoinPath(l.Path)
+		if err != nil {
+			return nil, err
+		}
+		l.Path = path
+		entries = append(entries, linkEntry(l))
 	}
 	sort.Slice(entries, func(i, j int) bool { return util.Depth(entries[i].getPath()) < util.Depth(entries[j].getPath()) })
 
-	return entries
+	return entries, nil
 }
 
 // createEntries creates any files or directories listed for the filesystem in Storage.{Files,Directories}.
@@ -209,10 +223,13 @@ func (s *stage) createEntries(files []filesystemEntry) error {
 			relabelFrom := path
 			dir := filepath.Dir(path)
 			for {
-				exists, err := s.Util.PathExists(dir)
-				if err != nil {
+				exists := true
+				if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
+					exists = false
+				} else if err != nil {
 					return err
 				}
+
 				// we're done on the first hit -- also sanity check we didn't
 				// somehow get all the way up to /
 				if exists || dir == "/" {
