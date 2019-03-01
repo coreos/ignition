@@ -36,27 +36,12 @@ add_requires() {
 }
 
 # This can't be done with ConditionKernelCommandLine because that always
-# starts the unit's dependencies. We want to start networkd only on first
+# starts the unit's dependencies. We want to start networking only on first
 # boot.
 if $(cmdline_bool 'ignition.firstboot' 0); then
     add_requires ignition-disks.service
     add_requires ignition-files.service
     add_requires ignition-ask-var-mount.service
-    #if [[ $platform_id == "packet" ]]; then
-    #    add_requires coreos-static-network.service
-    #fi
-
-    # On EC2, shut down systemd-networkd if ignition fails so that the instance
-    # fails EC2 instance checks.
-    #if [[ $platform_id == "ec2" ]]; then
-    #    mkdir -p ${UNIT_DIR}/systemd-networkd.service.d
-    #    cat > ${UNIT_DIR}/systemd-networkd.service.d/10-conflict-emergency.conf <<EOF
-#[Unit]
-#Conflicts=emergency.target
-#Conflicts=emergency.service
-#Conflicts=dracut-emergency.service
-#EOF
-    #fi
 fi
 
 # Write ignition-setup.service customized for PXE/ISO or regular boot
@@ -87,15 +72,6 @@ RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)
 if [ -n "$RANDOMIZE_DISK_GUID" ]; then
     escaped_guid=$(systemd-escape --path "/dev/disk/by-diskuuid/$RANDOMIZE_DISK_GUID")
     add_requires "disk-uuid@${escaped_guid}.service"
-fi
-
-if [[ $platform_id == "digitalocean" ]]; then
-    add_requires coreos-digitalocean-network.service
-fi
-
-oem_id=pxe
-if [[ $(systemd-detect-virt || true) =~ ^(kvm|qemu)$ ]]; then
-    oem_id=qemu
 fi
 
 echo "PLATFORM_ID=$platform_id" > /run/ignition.env

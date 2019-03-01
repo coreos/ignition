@@ -29,9 +29,6 @@ install() {
     inst_script "$moddir/ignition-setup.sh" \
         "/usr/sbin/ignition-setup"
 
-#   inst_script "$moddir/retry-umount.sh" \
-#       "/usr/sbin/retry-umount"
-
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
 
@@ -46,15 +43,6 @@ install() {
 
     inst_simple "$moddir/ignition-remount-sysroot.service" \
         "$systemdutildir/system/ignition-remount-sysroot.service"
-
-#   inst_simple "$moddir/sysroot-boot.service" \
-#       "$systemdsystemunitdir/sysroot-boot.service"
-
-#   inst_simple "$moddir/coreos-digitalocean-network.service" \
-#       "$systemdsystemunitdir/coreos-digitalocean-network.service"
-
-#   inst_simple "$moddir/coreos-static-network.service" \
-#       "$systemdsystemunitdir/coreos-static-network.service"
 }
 
 has_builtin_fw_cfg() {
