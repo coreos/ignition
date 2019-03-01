@@ -2,10 +2,13 @@
 
 set -eu
 
+export GO111MODULE=on
+
 NAME="ignition"
 ORG_PATH="github.com/coreos"
 REPO_PATH="${ORG_PATH}/${NAME}"
 GLDFLAGS=${GLDFLAGS:-}
+GOFLAGS=-mod=vendor
 
 if [ -z ${VERSION+a} ]; then
 	echo "Using version from git..."
@@ -14,18 +17,12 @@ fi
 
 GLDFLAGS+="-X github.com/coreos/ignition/internal/version.Raw=${VERSION}"
 
-if [ ! -h gopath/src/${REPO_PATH} ]; then
-	mkdir -p gopath/src/${ORG_PATH}
-	ln -s ../../../.. gopath/src/${REPO_PATH} || exit 255
-fi
-
 eval $(go env)
 
 if [ -z ${BIN_PATH+a} ]; then
 	export BIN_PATH=${PWD}/bin/${GOARCH}
 fi
 
-export GOPATH=${PWD}/gopath
 export CGO_ENABLED=1
 
 echo "Building ${NAME}..."
