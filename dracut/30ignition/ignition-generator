@@ -42,10 +42,9 @@ if $(cmdline_bool 'ignition.firstboot' 0); then
     add_requires ignition-disks.service
     add_requires ignition-files.service
     add_requires ignition-ask-var-mount.service
-fi
 
-# Write ignition-setup.service customized for PXE/ISO or regular boot
-cat > ${UNIT_DIR}/ignition-setup.service <<EOF
+    # Write ignition-setup.service customized for PXE/ISO or regular boot
+    cat > ${UNIT_DIR}/ignition-setup.service <<EOF
 [Unit]
 Description=Ignition (setup)
 DefaultDependencies=false
@@ -67,6 +66,7 @@ EnvironmentFile=/run/ignition.env
 MountFlags=slave
 ExecStart=/usr/sbin/ignition-setup
 EOF
+fi
 
 RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)
 if [ -n "$RANDOMIZE_DISK_GUID" ]; then
