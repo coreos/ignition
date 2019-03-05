@@ -1,7 +1,13 @@
 #!/bin/sh
 exec tail -n +3 $0
+# We store the file on the /boot/ partition so find the
+# boot partition. On UEFI this may different than the grub
+# $root so we search for it here.
+# https://github.com/coreos/ignition-dracut/issues/51
+search --set=bootpart --label boot
+# Determine if this is a first boot and set the variable
+# to be used later on the kernel command line.
 set ignition_firstboot=""
-# Determine if this is a first boot.
-if [ -f "/ignition.firstboot" ]; then
+if [ -f "(${bootpart})/ignition.firstboot" ]; then
     set ignition_firstboot="ignition.firstboot"
 fi
