@@ -272,9 +272,8 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	}
 
 	// Ignition
-	appendEnv := []string{
-		"IGNITION_SYSTEM_CONFIG_DIR=" + systemConfigDir,
-	}
+	appendEnv := test.Env
+	appendEnv = append(appendEnv, "IGNITION_SYSTEM_CONFIG_DIR="+systemConfigDir)
 
 	if !negativeTests {
 		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv); err != nil {
