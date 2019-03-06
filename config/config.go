@@ -1,4 +1,4 @@
-// Copyright 2015 CoreOS, Inc.
+// Copyright 2019 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,44 +12,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v3_0_experimental
+package config
 
 import (
 	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/util"
+	"github.com/coreos/ignition/config/v3_0_experimental"
 	"github.com/coreos/ignition/config/v3_0_experimental/types"
-	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
 
 	"github.com/coreos/go-semver/semver"
 )
 
-// Parse parses the raw config into a types.Config struct and generates a report of any
-// errors, warnings, info, and deprecations it encountered
-func Parse(rawConfig []byte) (types.Config, report.Report, error) {
-	if isEmpty(rawConfig) {
+type versionStub struct {
+	Ignition struct {
+		Version string
+	}
+}
+
+// Parse parses a config of any supported version and returns the equivalent config at the latest
+// supported version.
+func Parse(raw []byte) (types.Config, report.Report, error) {
+	if len(raw) == 0 {
 		return types.Config{}, report.Report{}, errors.ErrEmpty
 	}
 
-	var config types.Config
-	if rpt, err := util.HandleParseErrors(rawConfig, &config); err != nil {
+	stub := versionStub{}
+	rpt, err := util.HandleParseErrors(raw, &stub)
+	if err != nil {
 		return types.Config{}, rpt, err
 	}
 
-	version, err := semver.NewVersion(config.Ignition.Version)
+	version, err := semver.NewVersion(stub.Ignition.Version)
+	if err != nil {
+		return types.Config{}, report.Report{}, errors.ErrInvalidVersion
+	}
 
-	if err != nil || *version != types.MaxVersion {
+	switch *version {
+	case types.MaxVersion:
+		return v3_0_experimental.Parse(raw)
+	default:
 		return types.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
-
-	rpt := validate.ValidateConfig(rawConfig, config)
-	if rpt.IsFatal() {
-		return types.Config{}, rpt, errors.ErrInvalid
-	}
-
-	return config, rpt, nil
-}
-
-func isEmpty(userdata []byte) bool {
-	return len(userdata) == 0
 }

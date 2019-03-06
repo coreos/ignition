@@ -46,7 +46,7 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: semver.Version{Major: 2}.String()}}},
-			out: out{err: errors.ErrOldVersion},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{cfg: Config{}},
@@ -58,15 +58,15 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: "3.1.0"}}},
-			out: out{err: errors.ErrNewVersion},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: "3.0.0"}}},
-			out: out{err: errors.ErrNewVersion},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: "1.0.0"}}},
-			out: out{err: errors.ErrOldVersion},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in: in{cfg: Config{

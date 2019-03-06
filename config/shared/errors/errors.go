@@ -22,16 +22,15 @@ import (
 
 var (
 	// Parsing / general errors
-	ErrInvalid            = errors.New("config is not valid")
-	ErrEmpty              = errors.New("not a config (empty)")
-	ErrUnknownVersion     = errors.New("unsupported config version")
-	ErrDeprecated         = errors.New("config format deprecated")
-	ErrCompressionInvalid = errors.New("invalid compression method")
+	ErrInvalid = errors.New("config is not valid")
+	ErrEmpty   = errors.New("not a config (empty)")
 
 	// Ignition section errors
-	ErrOldVersion     = errors.New("incorrect config version (too old)")
-	ErrNewVersion     = errors.New("incorrect config version (too new)")
 	ErrInvalidVersion = errors.New("invalid config version (couldn't parse)")
+	ErrUnknownVersion = errors.New("unsupported config version")
+
+	ErrDeprecated         = errors.New("config format deprecated")
+	ErrCompressionInvalid = errors.New("invalid compression method")
 
 	// Storage section errors
 	ErrFilePermissionsUnset        = errors.New("permissions unset, defaulting to 0644")
