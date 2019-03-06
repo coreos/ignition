@@ -104,7 +104,7 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_users_** (list of objects): the list of accounts that shall exist.
     * **name** (string): the username for the account.
     * **_passwordHash_** (string): the encrypted password for the account.
-    * **_sshAuthorizedKeys_** (list of strings): a list of SSH keys to be added to the user's authorized_keys.
+    * **_sshAuthorizedKeys_** (list of strings): a list of SSH keys to be added as an SSH key fragment at `.ssh/authorized_keys.d/ignition` in the user's home directory.
     * **_uid_** (integer): the user ID of the account.
     * **_gecos_** (string): the GECOS field of the account.
     * **_homeDir_** (string): the home directory of the account.

@@ -17,11 +17,13 @@ package util
 import (
 	"fmt"
 	"os/exec"
+	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
 
-	keys "github.com/coreos/ignition/internal/authorized_keys_d"
+	"github.com/coreos/ignition/internal/as_user"
 	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
@@ -160,6 +162,26 @@ func translateV2_1PasswdUserGroupSliceToStringSlice(groups []types.Group) []stri
 	return newGroups
 }
 
+// writeAuthKeysFile writes the content in keys to the path fp for the user,
+// creating any directories in fp as needed.
+func writeAuthKeysFile(u *user.User, fp string, keys []byte) error {
+	if err := as_user.MkdirAll(u, filepath.Dir(fp), 0700); err != nil {
+		return err
+	}
+
+	f, err := as_user.OpenFile(u, fp, syscall.O_WRONLY|syscall.O_CREAT|syscall.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+	if _, err = f.Write(keys); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return nil
+}
+
 // AuthorizeSSHKeys adds the provided SSH public keys to the user's authorized keys.
 func (u Util) AuthorizeSSHKeys(c types.PasswdUser) error {
 	if len(c.SSHAuthorizedKeys) == 0 {
@@ -172,12 +194,6 @@ func (u Util) AuthorizeSSHKeys(c types.PasswdUser) error {
 			return fmt.Errorf("unable to lookup user %q", c.Name)
 		}
 
-		akd, err := keys.Open(usr, true)
-		if err != nil {
-			return err
-		}
-		defer akd.Close()
-
 		// TODO(vc): introduce key names to config?
 		// TODO(vc): validate c.SSHAuthorizedKeys well-formedness.
 		ks := strings.Join(translateV2_1SSHAuthorizedKeySliceToStringSlice(c.SSHAuthorizedKeys), "\n")
@@ -189,12 +205,10 @@ func (u Util) AuthorizeSSHKeys(c types.PasswdUser) error {
 			ks = ks + "\n"
 		}
 
-		if err := akd.Add("ignition", []byte(ks), true, true); err != nil {
-			return err
-		}
-
-		if err := akd.Sync(); err != nil {
-			return err
+		if distro.WriteAuthorizedKeysFragment() {
+			writeAuthKeysFile(usr, filepath.Join(usr.HomeDir, ".ssh", "authorized_keys.d", "ignition"), []byte(ks))
+		} else {
+			writeAuthKeysFile(usr, filepath.Join(usr.HomeDir, ".ssh", "authorized_keys"), []byte(ks))
 		}
 
 		return nil
