@@ -39,9 +39,7 @@ add_requires() {
 # starts the unit's dependencies. We want to start networking only on first
 # boot.
 if $(cmdline_bool 'ignition.firstboot' 0); then
-    add_requires ignition-disks.service
-    add_requires ignition-files.service
-    add_requires ignition-ask-var-mount.service
+    add_requires ignition-complete.target
 fi
 
 RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)

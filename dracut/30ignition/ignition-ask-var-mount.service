@@ -9,6 +9,7 @@ Description=Ask OSTree to mount /var in initramfs
 DefaultDependencies=false
 After=basic.target
 Before=ostree-prepare-root.service
+Before=ignition-complete.target
 
 [Service]
 Type=oneshot
