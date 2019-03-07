@@ -140,13 +140,10 @@ func (u Util) WriteLink(s types.Link) error {
 func (u Util) PerformFetch(f *FetchOp) error {
 	path := f.Path
 
-	if f.Overwrite != nil && *f.Overwrite == false {
-		// Both directories and links will fail to be created if the target path
-		// already exists. Because files are downloaded into a temporary file
-		// and then renamed to the target path, we don't have the same
-		// guarantees here. If the user explicitly doesn't want us to overwrite
-		// preexisting nodes, check the target path and fail if something's
-		// there.
+	if (f.Overwrite == nil || !*f.Overwrite) && !f.Append {
+		// If the user does not explicitly want to overwrite preexisting
+		// nodes or the user set overwrite to false, and we are not appending,
+		// check the target path and fail if something's there.
 		_, err := os.Lstat(path)
 		switch {
 		case os.IsNotExist(err):
@@ -157,9 +154,9 @@ func (u Util) PerformFetch(f *FetchOp) error {
 			return fmt.Errorf("error creating %q: something else exists at that path", f.Path)
 		}
 	}
-	if f.Overwrite == nil && !f.Append {
-		// For files, overwrite defaults to true if append is false. If
-		// overwrite wasn't specified, delete the path.
+	if f.Overwrite != nil && *f.Overwrite && !f.Append {
+		// Only delete existing path if overwrite was specified
+		// as true and append is false.
 		err := os.RemoveAll(path)
 		if err != nil {
 			return err
