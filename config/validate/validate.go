@@ -29,6 +29,14 @@ type validator interface {
 	Validate() report.Report
 }
 
+type mergesKeys interface {
+	MergedKeys() map[string]string
+}
+
+type keyed interface {
+	Key() string
+}
+
 // ValidateConfig validates a raw config object into a given config version
 func ValidateConfig(rawConfig []byte, config interface{}) report.Report {
 	// Unmarshal again to a json.Node to get offset information for building a report
@@ -147,6 +155,17 @@ func validateStruct(vObj reflect.Value, ast astnode.AstNode, source []byte, chec
 	// Maintain a list of all the tags in the struct for fuzzy matching later.
 	tags := []string{}
 
+	// We need to do duplication checking at the struct level even though its lists that can't have duplicates.
+	// This is because some parts (i.e. links, files, dirs) can't have duplicates across the sum of all their members.
+	// map of field names to sets of strings from Key()
+	dupLists := map[string]map[string]struct{}{}
+	// List of fields that are lists that cannot include duplicates across themselves. Use the first element in the list
+	// to refer to the collective set
+	mergedKeys := map[string]string{}
+	if merger, ok := vObj.Interface().(mergesKeys); ok {
+		mergedKeys = merger.MergedKeys()
+	}
+
 	for _, f := range getFields(vObj) {
 		// Default to nil astnode.AstNode if the field's corrosponding node cannot be found.
 		var sub_node astnode.AstNode
@@ -192,6 +211,46 @@ func validateStruct(vObj reflect.Value, ast astnode.AstNode, source []byte, chec
 
 		sub_report := Validate(f.Value, sub_node, src, checkUnusedKeys)
 		sub_report.AddPosition(line, col, highlight)
+
+		// duplicate checking time
+		if f.Value.Kind() == reflect.Slice {
+			// get the correct list of dups
+			dupListKey := f.Type.Name
+			if k, ok := mergedKeys[dupListKey]; ok {
+				dupListKey = k
+			}
+			if dupLists[dupListKey] == nil {
+				dupLists[dupListKey] = map[string]struct{}{}
+			}
+
+			for i := 0; i < f.Value.Len(); i++ {
+				key := ""
+				if f.Value.Index(i).Kind() == reflect.String {
+					key = f.Value.Index(i).Convert(reflect.TypeOf("")).Interface().(string)
+				} else {
+					key = f.Value.Index(i).Interface().(keyed).Key()
+				}
+				if _, alreadyDefined := dupLists[dupListKey][key]; alreadyDefined {
+					// duplicate entry!
+					line, col, highlight := 0, 0, ""
+					if sub_node != nil {
+						sub_sub_node, ok := sub_node.SliceChild(i)
+						if sub_sub_node != nil && ok {
+							line, col, highlight = sub_sub_node.ValueLineCol(src)
+						}
+					}
+					sub_report.Add(report.Entry{
+						Message:   fmt.Sprintf("Entry defined by %q is already defined in this config", key),
+						Kind:      report.EntryError,
+						Line:      line,
+						Column:    col,
+						Highlight: highlight,
+					})
+				}
+				dupLists[dupListKey][key] = struct{}{}
+			}
+		}
+
 		r.Merge(sub_report)
 	}
 	if !isFromObject || !checkUnusedKeys {
