@@ -96,6 +96,7 @@ type Test struct {
 	Out               []Disk // Expected disk state after running Ignition
 	MntDevices        []MntDevice
 	SystemDirFiles    []File
+	Env               []string // Environment variables for Ignition
 	Config            string
 	ConfigMinVersion  string
 	ConfigVersion     string

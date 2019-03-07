@@ -21,12 +21,14 @@ import (
 
 func init() {
 	register.Register(register.PositiveTest, AddPasswdUsers())
+	register.Register(register.PositiveTest, UseAuthorizedKeysFile())
 }
 
 func AddPasswdUsers() types.Test {
 	name := "Adding users"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
+	env := []string{"IGNITION_WRITE_AUTHORIZED_KEYS_FRAGMENT=true"}
 	config := `{
 		"ignition": {
 			"version": "$version"
@@ -142,12 +144,12 @@ ENCRYPT_METHOD SHA512
 		},
 		{
 			Node: types.Node{
-				Name:      "authorized_keys",
-				Directory: "home/test/.ssh",
+				Name:      "ignition",
+				Directory: "home/test/.ssh/authorized_keys.d",
 				User:      1000,
 				Group:     1000,
 			},
-			Contents: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBRZPFJNOvQRfokigTtl0IBi71LHZrFOk4EJ3Zowtk/bX5uIVai0Cd4+hqlocYL10idgtFBH28skeKfsmHwgS9XwOvP+g+kqAl7yCz8JEzIUzl1fxNZDToi0jA3B5MwXkpt+IWfnabwi2cRZhlzrz9rO+eExu5s3NfaRmmmCYrjCJIRPKSCrW8U0n9fVSbX4PDdMXVmH7r+t8MtR8523vCbakFR/Y0YIqkPVdfuUXHh9rDCdH4B7mt7nYX2LWQXGUvmI13mgQoy04ifkaR3ImuOMp3Y1J1gm6clO74IMCq/sK9+XJhbxMPPHUoUJ2EwbaG7Dbh3iqz47e9oVki4gIH stephenlowrie@localhost.localdomain\n\n",
+			Contents: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBRZPFJNOvQRfokigTtl0IBi71LHZrFOk4EJ3Zowtk/bX5uIVai0Cd4+hqlocYL10idgtFBH28skeKfsmHwgS9XwOvP+g+kqAl7yCz8JEzIUzl1fxNZDToi0jA3B5MwXkpt+IWfnabwi2cRZhlzrz9rO+eExu5s3NfaRmmmCYrjCJIRPKSCrW8U0n9fVSbX4PDdMXVmH7r+t8MtR8523vCbakFR/Y0YIqkPVdfuUXHh9rDCdH4B7mt7nYX2LWQXGUvmI13mgQoy04ifkaR3ImuOMp3Y1J1gm6clO74IMCq/sK9+XJhbxMPPHUoUJ2EwbaG7Dbh3iqz47e9oVki4gIH stephenlowrie@localhost.localdomain\n",
 		},
 	})
 
@@ -155,6 +157,83 @@ ENCRYPT_METHOD SHA512
 		Name:             name,
 		In:               in,
 		Out:              out,
+		Env:              env,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// UseAuthorizedKeysFile verifies that ~/.ssh/authorized_keys is written
+// when IGNITION_WRITE_AUTHORIZED_KEYS_FRAGMENT=false.
+func UseAuthorizedKeysFile() types.Test {
+	name := "Use authorized_keys file"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	env := []string{"IGNITION_WRITE_AUTHORIZED_KEYS_FRAGMENT=false"}
+	config := `{
+		"ignition": {
+			"version": "$version"
+		},
+		"passwd": {
+			"users": [{
+					"name": "test",
+					"create": {},
+					"passwordHash": "zJW/EKqqIk44o",
+					"sshAuthorizedKeys": [
+						"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBRZPFJNOvQRfokigTtl0IBi71LHZrFOk4EJ3Zowtk/bX5uIVai0Cd4+hqlocYL10idgtFBH28skeKfsmHwgS9XwOvP+g+kqAl7yCz8JEzIUzl1fxNZDToi0jA3B5MwXkpt+IWfnabwi2cRZhlzrz9rO+eExu5s3NfaRmmmCYrjCJIRPKSCrW8U0n9fVSbX4PDdMXVmH7r+t8MtR8523vCbakFR/Y0YIqkPVdfuUXHh9rDCdH4B7mt7nYX2LWQXGUvmI13mgQoy04ifkaR3ImuOMp3Y1J1gm6clO74IMCq/sK9+XJhbxMPPHUoUJ2EwbaG7Dbh3iqz47e9oVki4gIH stephenlowrie@localhost.localdomain"
+					]
+				}
+			]
+		}
+	}`
+	configMinVersion := "3.0.0-experimental"
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "passwd",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:0:root:/root:/bin/bash\ncore:x:500:500:CoreOS Admin:/home/core:/bin/bash\nsystemd-coredump:x:998:998:systemd Core Dumper:/:/sbin/nologin\nfleet:x:253:253::/:/sbin/nologin\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "shadow",
+				Directory: "etc",
+			},
+			Contents: "root:*:15887:0:::::\ncore:*:15887:0:::::\nsystemd-coredump:!!:17301::::::\nfleet:!!:17301::::::\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "group",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "gshadow",
+				Directory: "etc",
+			},
+			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\n",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "authorized_keys",
+				Directory: "home/test/.ssh",
+				User:      1000,
+				Group:     1000,
+			},
+			Contents: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBRZPFJNOvQRfokigTtl0IBi71LHZrFOk4EJ3Zowtk/bX5uIVai0Cd4+hqlocYL10idgtFBH28skeKfsmHwgS9XwOvP+g+kqAl7yCz8JEzIUzl1fxNZDToi0jA3B5MwXkpt+IWfnabwi2cRZhlzrz9rO+eExu5s3NfaRmmmCYrjCJIRPKSCrW8U0n9fVSbX4PDdMXVmH7r+t8MtR8523vCbakFR/Y0YIqkPVdfuUXHh9rDCdH4B7mt7nYX2LWQXGUvmI13mgQoy04ifkaR3ImuOMp3Y1J1gm6clO74IMCq/sK9+XJhbxMPPHUoUJ2EwbaG7Dbh3iqz47e9oVki4gIH stephenlowrie@localhost.localdomain\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Env:              env,
 		Config:           config,
 		ConfigMinVersion: configMinVersion,
 	}

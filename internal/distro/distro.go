@@ -57,6 +57,11 @@ var (
 	// Flags
 	selinuxRelabel  = "false"
 	blackboxTesting = "false"
+	// writeAuthorizedKeysFragment indicates whether to write SSH keys
+	// specified in the Ignition config as a fragment to
+	// ".ssh/authorized_keys.d/ignition" ("true"), or to
+	// ".ssh/authorized_keys" ("false").
+	writeAuthorizedKeysFragment = "true"
 )
 
 func DiskByIDDir() string       { return diskByIDDir }
@@ -85,6 +90,9 @@ func XfsMkfsCmd() string   { return xfsMkfsCmd }
 
 func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) }
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
+func WriteAuthorizedKeysFragment() bool {
+	return bakedStringToBool(fromEnv("WRITE_AUTHORIZED_KEYS_FRAGMENT", writeAuthorizedKeysFragment))
+}
 
 func fromEnv(nameSuffix, defaultValue string) string {
 	value := os.Getenv("IGNITION_" + nameSuffix)
