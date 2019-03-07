@@ -21,6 +21,10 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func (c ConfigReference) Key() string {
+	return c.Source
+}
+
 func (c ConfigReference) ValidateSource() report.Report {
 	r := report.Report{}
 	err := validateURL(c.Source)
@@ -42,11 +46,9 @@ func (v Ignition) Validate() report.Report {
 	if err != nil {
 		return report.ReportFromError(errors.ErrInvalidVersion, report.EntryError)
 	}
-	if MaxVersion.Major > tv.Major {
-		return report.ReportFromError(errors.ErrOldVersion, report.EntryError)
-	}
-	if MaxVersion.LessThan(*tv) {
-		return report.ReportFromError(errors.ErrNewVersion, report.EntryError)
+
+	if MaxVersion != *tv {
+		return report.ReportFromError(errors.ErrUnknownVersion, report.EntryError)
 	}
 	return report.Report{}
 }

@@ -35,6 +35,10 @@ func (f File) ValidateMode() report.Report {
 	return r
 }
 
+func (fc FileContents) Key() string {
+	return fc.Source
+}
+
 func (fc FileContents) ValidateCompression() report.Report {
 	r := report.Report{}
 	switch fc.Compression {

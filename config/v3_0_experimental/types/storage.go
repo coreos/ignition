@@ -1,4 +1,4 @@
-// Copyright 2018 CoreOS, Inc.
+// Copyright 2019 Red Hat, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,18 +14,10 @@
 
 package types
 
-import (
-	"github.com/coreos/ignition/config/validate/report"
-)
-
-func (c CaReference) Key() string {
-	return c.Source
-}
-
-func (c CaReference) ValidateSource() report.Report {
-	err := validateURL(c.Source)
-	if err != nil {
-		return report.ReportFromError(err, report.EntryError)
+func (s Storage) MergedKeys() map[string]string {
+	return map[string]string{
+		"Directories": "Node",
+		"Files":       "Node",
+		"Links":       "Node",
 	}
-	return report.Report{}
 }

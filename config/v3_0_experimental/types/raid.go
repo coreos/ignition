@@ -19,6 +19,10 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func (r Raid) Key() string {
+	return r.Name
+}
+
 func (n Raid) ValidateLevel() report.Report {
 	r := report.Report{}
 	switch n.Level {

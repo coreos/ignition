@@ -19,6 +19,14 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func (p PasswdUser) Key() string {
+	return p.Name
+}
+
+func (g PasswdGroup) Key() string {
+	return g.Name
+}
+
 func (p PasswdUser) Validate() report.Report {
 	r := report.Report{}
 	if p.Create != nil {

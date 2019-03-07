@@ -19,6 +19,10 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func (f Filesystem) Key() string {
+	return f.Device
+}
+
 func (f Filesystem) ValidatePath() (r report.Report) {
 	r.AddOnError(validatePath(f.Path))
 	return

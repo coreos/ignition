@@ -19,6 +19,10 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func (d Disk) Key() string {
+	return d.Device
+}
+
 func (n Disk) Validate() report.Report {
 	return report.Report{}
 }

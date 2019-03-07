@@ -17,6 +17,7 @@ package types
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/coreos/ignition/config/shared/errors"
@@ -26,6 +27,10 @@ import (
 const (
 	guidRegexStr = "^(|[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12})$"
 )
+
+func (p Partition) Key() string {
+	return strconv.Itoa(p.Number)
+}
 
 func (p Partition) Validate() report.Report {
 	r := report.Report{}
