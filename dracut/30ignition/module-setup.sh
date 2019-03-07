@@ -32,6 +32,9 @@ install() {
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
 
+    inst_simple "$moddir/ignition-setup.service" \
+        "$systemdsystemunitdir/ignition-setup.service"
+
     inst_simple "$moddir/ignition-disks.service" \
         "$systemdsystemunitdir/ignition-disks.service"
 

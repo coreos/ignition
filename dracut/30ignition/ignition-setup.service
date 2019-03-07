@@ -1,0 +1,20 @@
+[Unit]
+Description=Ignition (setup)
+DefaultDependencies=false
+
+Requires=local-fs-pre.target
+Before=local-fs-pre.target
+Before=ignition-disks.service
+Before=ignition-files.service
+
+Requires=dev-disk-by\x2dlabel-boot.device
+After=dev-disk-by\x2dlabel-boot.device
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/run/ignition.env
+# The MountFlags=slave is so the umount of /boot is guaranteed to happen
+# /boot will only be mounted for the lifetime of the unit.
+MountFlags=slave
+ExecStart=/usr/sbin/ignition-setup
