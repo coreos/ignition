@@ -21,6 +21,7 @@ import (
 
 func init() {
 	register.Register(register.NegativeTest, ForceFileCreation())
+	register.Register(register.NegativeTest, ForceFileCreationNoOverwrite())
 	register.Register(register.NegativeTest, ForceDirCreation())
 	register.Register(register.NegativeTest, ForceLinkCreation())
 	register.Register(register.NegativeTest, ForceHardLinkCreation())
@@ -53,6 +54,41 @@ func ForceFileCreation() types.Test {
 			},
 		},
 	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ForceFileCreationNoOverwrite() types.Test {
+	name := "Force File Creation No Overwrite"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": {
+	        "source": "http://127.0.0.1:8080/contents"
+	      }
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: "hello, world",
+		},
+	})
+	configMinVersion := "3.0.0-experimental"
 
 	return types.Test{
 		Name:             name,
