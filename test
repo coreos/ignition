@@ -35,11 +35,11 @@ source ./build
 
 SRC=$(find . -name '*.go' -not -path "./vendor/*")
 
-PKG=$(cd gopath/src/${REPO_PATH}; go list ./... | \
+PKG=$(go list ./... | \
 	grep --invert-match vendor | grep --invert-match tests)
 
 # https://github.com/golang/go/issues/15067
-PKG_VET=$(cd gopath/src/${REPO_PATH}; go list ./... | \
+PKG_VET=$(go list ./... | \
 	grep --invert-match vendor | \
 	grep --invert-match internal/log)
 
