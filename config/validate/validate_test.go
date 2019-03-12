@@ -101,6 +101,54 @@ func TestValidate(t *testing.T) {
 		{
 			in: in{cfg: Config{
 				Ignition: Ignition{Version: "3.0.0-experimental"},
+				Storage: Storage{
+					Filesystems: []Filesystem{
+						{
+							Path:   "/",
+							Device: "/dev/disk/by-partlabel/ROOT",
+							Format: "btrfs",
+						},
+						{
+							Path:   "/",
+							Device: "/dev/disk/by-partlabel/ROOT",
+							Format: "xfs",
+						},
+					},
+				},
+			}},
+			out: out{err: fmt.Errorf("Entry defined by %q is already defined in this config", "/dev/disk/by-partlabel/ROOT")},
+		},
+		{
+			in: in{cfg: Config{
+				Ignition: Ignition{Version: "3.0.0-experimental"},
+				Storage: Storage{
+					Files: []File{
+						{
+							Node: Node{
+								Path: "/",
+							},
+							FileEmbedded1: FileEmbedded1{
+								Mode: util.IntToPtr(421),
+							},
+						},
+					},
+					Directories: []Directory{
+						{
+							Node: Node{
+								Path: "/",
+							},
+							DirectoryEmbedded1: DirectoryEmbedded1{
+								Mode: util.IntToPtr(420),
+							},
+						},
+					},
+				},
+			}},
+			out: out{err: fmt.Errorf("Entry defined by %q is already defined in this config", "/")},
+		},
+		{
+			in: in{cfg: Config{
+				Ignition: Ignition{Version: "3.0.0-experimental"},
 				Systemd:  Systemd{Units: []Unit{{Name: "foo.bar", Contents: "[Foo]\nfoo=qux"}}},
 			}},
 			out: out{err: fmt.Errorf("invalid systemd unit extension")},
