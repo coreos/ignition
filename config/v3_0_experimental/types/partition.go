@@ -17,7 +17,6 @@ package types
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/coreos/ignition/config/shared/errors"
@@ -29,7 +28,11 @@ const (
 )
 
 func (p Partition) Key() string {
-	return strconv.Itoa(p.Number)
+	if p.Number != 0 {
+		return fmt.Sprintf("number:%d", p.Number)
+	} else {
+		return fmt.Sprintf("label:%s", *p.Label)
+	}
 }
 
 func (p Partition) Validate() report.Report {
@@ -46,6 +49,9 @@ func (p Partition) Validate() report.Report {
 			Message: errors.ErrShouldNotExistWithOthers.Error(),
 			Kind:    report.EntryError,
 		})
+	}
+	if p.Number == 0 && p.Label == nil {
+		r.AddOnError(errors.ErrNeedLabelOrNumber)
 	}
 	return r
 }

@@ -67,6 +67,8 @@ var (
 	ErrPartitionsUnitsMismatch     = errors.New("cannot mix MBs and sectors within a disk")
 	ErrSizeDeprecated              = errors.New("size is deprecated; use sizeMB instead")
 	ErrStartDeprecated             = errors.New("start is deprecated; use startMB instead")
+	ErrNeedLabelOrNumber           = errors.New("a partition number >= 1 or a label must be specified")
+	ErrDuplicateLabels             = errors.New("cannot use the same partition label twice")
 
 	// Passwd section errors
 	ErrPasswdCreateDeprecated      = errors.New("the create object has been deprecated in favor of user-level options")
