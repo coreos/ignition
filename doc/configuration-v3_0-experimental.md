@@ -56,11 +56,15 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_files_** (list of objects): the list of files to be written.
     * **path** (string): the absolute path to the file.
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. Defaults to false.
-    * **_append_** (boolean): whether to append to the specified file. Creates a new file if nothing exists at the path. Cannot be set if overwrite is set to true.
     * **_contents_** (object): options related to the contents of the file.
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
       * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_verification_** (object): options related to the verification of the file contents.
+        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
+    * **_append_** (list of objects): list of contents to be appended to the file. Follows the same stucture as `contents`
+      * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
+      * **_source_** (string): the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_verification_** (object): options related to the verification of the appended contents.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). If not specified, the permission mode for files defaults to 0644.
     * **_user_** (object): specifies the file's owner.
