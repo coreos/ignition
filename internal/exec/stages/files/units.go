@@ -97,12 +97,12 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 			}
 			if err := s.Logger.LogOp(
 				func() error { return u.PerformFetch(f) },
-				"writing systemd drop-in %q at %q", dropin.Name, f.Path,
+				"writing systemd drop-in %q at %q", dropin.Name, f.Node.Path,
 			); err != nil {
 				return err
 			}
 			if !relabeledDropinDir {
-				s.relabel(filepath.Dir("/" + f.Path))
+				s.relabel(filepath.Dir("/" + f.Node.Path))
 				relabeledDropinDir = true
 			}
 		}
@@ -118,11 +118,11 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 		}
 		if err := s.Logger.LogOp(
 			func() error { return u.PerformFetch(f) },
-			"writing unit %q at %q", unit.Name, f.Path,
+			"writing unit %q at %q", unit.Name, f.Node.Path,
 		); err != nil {
 			return err
 		}
-		s.relabel("/" + f.Path)
+		s.relabel("/" + f.Node.Path)
 
 		return nil
 	}, "processing unit %q", unit.Name)

@@ -21,13 +21,6 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func (f File) Validate() report.Report {
-	if f.Overwrite != nil && *f.Overwrite && f.Append {
-		return report.ReportFromError(errors.ErrAppendAndOverwrite, report.EntryError)
-	}
-	return report.Report{}
-}
-
 func (f File) ValidateMode() report.Report {
 	r := report.Report{}
 	if err := validateMode(f.Mode); err != nil {

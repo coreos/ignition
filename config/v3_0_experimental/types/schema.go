@@ -53,9 +53,9 @@ type FileContents struct {
 }
 
 type FileEmbedded1 struct {
-	Append   bool         `json:"append,omitempty"`
-	Contents FileContents `json:"contents,omitempty"`
-	Mode     *int         `json:"mode,omitempty"`
+	Append   []FileContents `json:"append,omitempty"`
+	Contents *FileContents  `json:"contents,omitempty"`
+	Mode     *int           `json:"mode,omitempty"`
 }
 
 type Filesystem struct {

@@ -255,7 +255,10 @@
                   "$ref": "#/definitions/storage/definitions/file-contents"
                 },
                 "append": {
-                    "type": "boolean"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/storage/definitions/file-contents"
+                  }
                 }
               }
             }
@@ -333,7 +336,7 @@
           }
         },
         "file-contents": {
-          "type": "object",
+          "type": ["object", "null"],
           "properties": {
             "compression": {
               "type": "string"

@@ -58,28 +58,60 @@ func (tmp fileEntry) getPath() string {
 func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	f := types.File(tmp)
 
-	fetchOp := u.PrepareFetch(l, f)
-	if fetchOp == nil {
-		return fmt.Errorf("failed to resolve file %q", f.Path)
+	canOverwrite := f.Overwrite != nil && *f.Overwrite
+	st, err := os.Lstat(f.Path)
+	regular := (st == nil) || st.Mode().IsRegular()
+	switch {
+	case os.IsNotExist(err) && f.Contents == nil:
+		// set f.Contents so we create an empty file
+		f.Contents = &types.FileContents{}
+	case os.IsNotExist(err):
+		break
+	case err != nil:
+		return err
+	// 3/8 cases where we need to overwrite but can't
+	case !canOverwrite && !regular:
+		return fmt.Errorf("error creating file %q: A non regular file exists there already and overwrite is false", f.Path)
+	case !canOverwrite && regular && f.Contents != nil:
+		return fmt.Errorf("error creating file %q: A file exists there already and overwrite is false", f.Path)
+	// 2/8 cases where we don't need to do anything
+	case regular && f.Contents == nil:
+		break
+	//  3/8 cases where we need to delete the node first
+	case canOverwrite && !regular && f.Contents == nil:
+		// If we're deleting the file we need set f.Contents so it creates an empty file
+		f.Contents = &types.FileContents{}
+		fallthrough
+	case canOverwrite && !regular && f.Contents != nil:
+		fallthrough
+	case canOverwrite && f.Contents != nil:
+		if err := os.RemoveAll(f.Path); err != nil {
+			return fmt.Errorf("error creating file %q: could not remove existing node at that path: %v", f.Path, err)
+		}
+	// somehow we missed a case, internal bug
+	default:
+		return fmt.Errorf("Ignition encountered an internal error processing %q and must die now. Please file a bug", f.Path)
 	}
 
-	msg := "writing file %q"
-	if f.Append {
-		msg = "appending to file %q"
+	fetchOps, err := u.PrepareFetches(l, f)
+	if err != nil {
+		return fmt.Errorf("failed to resolve file %q: %v", f.Path, err)
 	}
 
-	if err := l.LogOp(
-		func() error {
-			err := u.DeletePathOnOverwrite(f.Node)
-			if err != nil {
-				return err
-			}
-
-			return u.PerformFetch(fetchOp)
-		}, msg, f.Path,
-	); err != nil {
-		return fmt.Errorf("failed to create file %q: %v", fetchOp.Path, err)
+	for _, op := range fetchOps {
+		msg := "writing file %q"
+		if op.Append {
+			msg = "appending to file %q"
+		}
+		if err := l.LogOp(
+			func() error {
+				return u.PerformFetch(op)
+			}, msg, f.Path,
+		); err != nil {
+			return fmt.Errorf("failed to create file %q: %v", op.Node.Path, err)
+		}
 	}
+	u.SetPermissions(f)
 
 	return nil
 }

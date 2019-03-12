@@ -193,12 +193,8 @@ func AppendToAFile() types.Test {
 	      "path": "/foo/bar",
 	      "contents": { "source": "data:,example%20file%0A" },
 	      "user": {"id": 500},
-	      "group": {"id": 500}
-	    },{
-	      "path": "/foo/bar",
-	      "contents": { "source": "data:,hello%20world%0A" },
-	      "group": {"id": 0},
-	      "append": true
+	      "group": {"id": 500},
+	      "append": [{ "source": "data:,hello%20world%0A" }]
 	    }]
 	  }
 	}`
@@ -208,7 +204,7 @@ func AppendToAFile() types.Test {
 				Name:      "bar",
 				Directory: "foo",
 				User:      500,
-				Group:     0,
+				Group:     500,
 			},
 			Contents: "example file\nhello world\n",
 		},
@@ -233,9 +229,8 @@ func AppendToNonexistentFile() types.Test {
 	  "storage": {
 	    "files": [{
 	      "path": "/foo/bar",
-	      "contents": { "source": "data:,hello%20world%0A" },
-	      "group": {"id": 500},
-	      "append": true
+	      "append": [{ "source": "data:,hello%20world%0A" }],
+	      "group": {"id": 500}
 	    }]
 	  }
 	}`
