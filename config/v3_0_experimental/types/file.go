@@ -35,6 +35,10 @@ func (f File) ValidateMode() report.Report {
 	return r
 }
 
+func (f File) IgnoreDuplicates() []string {
+	return []string{"Append"}
+}
+
 func (fc FileContents) Key() string {
 	return fc.Source
 }

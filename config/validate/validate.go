@@ -33,6 +33,10 @@ type mergesKeys interface {
 	MergedKeys() map[string]string
 }
 
+type ignoresDups interface {
+	IgnoreDuplicates() []string
+}
+
 type keyed interface {
 	Key() string
 }
@@ -166,6 +170,14 @@ func validateStruct(vObj reflect.Value, ast astnode.AstNode, source []byte, chec
 		mergedKeys = merger.MergedKeys()
 	}
 
+	ignoreDupsList := map[string]struct{}{}
+	if ignorer, ok := vObj.Interface().(ignoresDups); ok {
+		tmp := ignorer.IgnoreDuplicates()
+		for _, elem := range tmp {
+			ignoreDupsList[elem] = struct{}{}
+		}
+	}
+
 	for _, f := range getFields(vObj) {
 		// Default to nil astnode.AstNode if the field's corrosponding node cannot be found.
 		var sub_node astnode.AstNode
@@ -223,31 +235,33 @@ func validateStruct(vObj reflect.Value, ast astnode.AstNode, source []byte, chec
 				dupLists[dupListKey] = map[string]struct{}{}
 			}
 
-			for i := 0; i < f.Value.Len(); i++ {
-				key := ""
-				if f.Value.Index(i).Kind() == reflect.String {
-					key = f.Value.Index(i).Convert(reflect.TypeOf("")).Interface().(string)
-				} else {
-					key = f.Value.Index(i).Interface().(keyed).Key()
-				}
-				if _, alreadyDefined := dupLists[dupListKey][key]; alreadyDefined {
-					// duplicate entry!
-					line, col, highlight := 0, 0, ""
-					if sub_node != nil {
-						sub_sub_node, ok := sub_node.SliceChild(i)
-						if sub_sub_node != nil && ok {
-							line, col, highlight = sub_sub_node.ValueLineCol(src)
-						}
+			if _, ignored := ignoreDupsList[f.Type.Name]; !ignored {
+				for i := 0; i < f.Value.Len(); i++ {
+					key := ""
+					if f.Value.Index(i).Kind() == reflect.String {
+						key = f.Value.Index(i).Convert(reflect.TypeOf("")).Interface().(string)
+					} else {
+						key = f.Value.Index(i).Interface().(keyed).Key()
 					}
-					sub_report.Add(report.Entry{
-						Message:   fmt.Sprintf("Entry defined by %q is already defined in this config", key),
-						Kind:      report.EntryError,
-						Line:      line,
-						Column:    col,
-						Highlight: highlight,
-					})
+					if _, alreadyDefined := dupLists[dupListKey][key]; alreadyDefined {
+						// duplicate entry!
+						line, col, highlight := 0, 0, ""
+						if sub_node != nil {
+							sub_sub_node, ok := sub_node.SliceChild(i)
+							if sub_sub_node != nil && ok {
+								line, col, highlight = sub_sub_node.ValueLineCol(src)
+							}
+						}
+						sub_report.Add(report.Entry{
+							Message:   fmt.Sprintf("Entry defined by %q is already defined in this config", key),
+							Kind:      report.EntryError,
+							Line:      line,
+							Column:    col,
+							Highlight: highlight,
+						})
+					}
+					dupLists[dupListKey][key] = struct{}{}
 				}
-				dupLists[dupListKey][key] = struct{}{}
 			}
 		}
 

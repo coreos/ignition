@@ -149,6 +149,32 @@ func TestValidate(t *testing.T) {
 		{
 			in: in{cfg: Config{
 				Ignition: Ignition{Version: "3.0.0-experimental"},
+				Storage: Storage{
+					Files: []File{
+						{
+							Node: Node{
+								Path: "/",
+							},
+							FileEmbedded1: FileEmbedded1{
+								Mode: util.IntToPtr(421),
+								Append: []FileContents{
+									{
+										Source: "http://example.com",
+									},
+									{
+										Source: "http://example.com",
+									},
+								},
+							},
+						},
+					},
+				},
+			}},
+			out: out{},
+		},
+		{
+			in: in{cfg: Config{
+				Ignition: Ignition{Version: "3.0.0-experimental"},
 				Systemd:  Systemd{Units: []Unit{{Name: "foo.bar", Contents: "[Foo]\nfoo=qux"}}},
 			}},
 			out: out{err: fmt.Errorf("invalid systemd unit extension")},
