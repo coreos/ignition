@@ -39,33 +39,7 @@ add_requires() {
 # starts the unit's dependencies. We want to start networking only on first
 # boot.
 if $(cmdline_bool 'ignition.firstboot' 0); then
-    add_requires ignition-disks.service
-    add_requires ignition-files.service
-    add_requires ignition-ask-var-mount.service
-
-    # Write ignition-setup.service customized for PXE/ISO or regular boot
-    cat > ${UNIT_DIR}/ignition-setup.service <<EOF
-[Unit]
-Description=Ignition (setup)
-DefaultDependencies=false
-
-Requires=local-fs-pre.target
-Before=local-fs-pre.target
-Before=ignition-disks.service
-Before=ignition-files.service
-
-Requires=dev-disk-by\x2dlabel-boot.device
-After=dev-disk-by\x2dlabel-boot.device
-
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-EnvironmentFile=/run/ignition.env
-# The MountFlags=slave is so the umount of /boot is guaranteed to happen
-# /boot will only be mounted for the lifetime of the unit.
-MountFlags=slave
-ExecStart=/usr/sbin/ignition-setup
-EOF
+    add_requires ignition-complete.target
 fi
 
 RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)

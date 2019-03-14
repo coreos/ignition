@@ -1,18 +1,17 @@
 [Unit]
 Description=Ignition (files)
 DefaultDependencies=false
+Before=ignition-complete.target
 
 # Ignition files stage starts after /sysroot is mounted.
 Requires=initrd-root-fs.target
 After=initrd-root-fs.target
 
-# Require and run after ignition-setup has run because ignition-setup
+# Run after ignition-setup has run because ignition-setup
 # may copy in new/different ignition configs for us to consume.
-Requires=ignition-setup.service
 After=ignition-setup.service
 
 # Make sure root filesystem is mounted read-write
-Requires=ignition-remount-sysroot.service
 After=ignition-remount-sysroot.service
 
 # Run before initrd-parse-etc so that we can drop files it then picks up.

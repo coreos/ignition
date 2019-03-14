@@ -6,6 +6,12 @@ depends() {
     echo qemu systemd url-lib network
 }
 
+install_ignition_unit() {
+    unit=$1; shift
+    inst_simple "$moddir/$unit" "$systemdsystemunitdir/$unit"
+    ln_r "../$unit" "$systemdsystemunitdir/ignition-complete.target.requires/$unit"
+}
+
 install() {
     inst_multiple \
         chroot \
@@ -32,17 +38,16 @@ install() {
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
 
-    inst_simple "$moddir/ignition-disks.service" \
-        "$systemdsystemunitdir/ignition-disks.service"
+    inst_simple "$moddir/ignition-complete.target" \
+        "$systemdsystemunitdir/ignition-complete.target"
 
-    inst_simple "$moddir/ignition-files.service" \
-        "$systemdsystemunitdir/ignition-files.service"
+    mkdir -p "$initdir/$systemdsystemunitdir/ignition-complete.target.requires"
 
-    inst_simple "$moddir/ignition-ask-var-mount.service" \
-        "$systemdsystemunitdir/ignition-ask-var-mount.service"
-
-    inst_simple "$moddir/ignition-remount-sysroot.service" \
-        "$systemdutildir/system/ignition-remount-sysroot.service"
+    install_ignition_unit ignition-setup.service
+    install_ignition_unit ignition-disks.service
+    install_ignition_unit ignition-files.service
+    install_ignition_unit ignition-ask-var-mount.service
+    install_ignition_unit ignition-remount-sysroot.service
 }
 
 has_fw_cfg_module() {

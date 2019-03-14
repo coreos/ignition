@@ -1,6 +1,7 @@
 [Unit]
 Description=Ignition (disks)
 DefaultDependencies=false
+Before=ignition-complete.target
 
 # This stage runs between `basic.target` and `initrd-root-fs.target`,
 # see https://www.freedesktop.org/software/systemd/man/bootup.html
@@ -12,9 +13,8 @@ After=basic.target
 Before=initrd-root-fs.target
 Before=sysroot.mount
 
-# Require and run after ignition-setup has run because ignition-setup
+# Run after ignition-setup has run because ignition-setup
 # may copy in new/different ignition configs for us to consume.
-Requires=ignition-setup.service
 After=ignition-setup.service
 
 # Network may be used to fetch userdata content.

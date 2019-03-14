@@ -5,6 +5,7 @@ Description=Remount /sysroot read-write for Ignition
 # this case, remount /sysroot to rw (issue #37)
 DefaultDependencies=no
 After=sysroot.mount
+Before=ignition-complete.target
 ConditionPathIsReadWrite=!/sysroot
 
 [Service]
