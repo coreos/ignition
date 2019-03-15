@@ -47,7 +47,8 @@ func makePreemptTest(components string) types.Test {
 			"storage": {
 				"files": [{
 					"path": "/ignition/%s",
-					"contents": {"source": "data:,%s"}
+					"contents": {"source": "data:,%s"},
+					"overwrite": true
 				}]}
 		}`, longnames[component], component)
 	}

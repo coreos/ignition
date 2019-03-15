@@ -55,7 +55,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
   * **_files_** (list of objects): the list of files to be written.
     * **path** (string): the absolute path to the file.
-    * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. Defaults to true.
+    * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. Defaults to false.
     * **_append_** (boolean): whether to append to the specified file. Creates a new file if nothing exists at the path. Cannot be set if overwrite is set to true.
     * **_contents_** (object): options related to the contents of the file.
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
@@ -71,7 +71,7 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_name_** (string): the group name of the owner.
   * **_directories_** (list of objects): the list of directories to be created.
     * **path** (string): the absolute path to the directory.
-    * **_overwrite_** (boolean): whether to delete preexisting nodes at the path.
+    * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. Defaults to false.
     * **_mode_** (integer): the directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0755 -> 493). If not specified, the permission mode for directories defaults to 0755.
     * **_user_** (object): specifies the directory's owner.
       * **_id_** (integer): the user ID of the owner.
@@ -81,7 +81,7 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_name_** (string): the group name of the owner.
   * **_links_** (list of objects): the list of links to be created
     * **path** (string): the absolute path to the link
-    * **_overwrite_** (boolean): whether to delete preexisting nodes at the path.
+    * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. Defaults to false.
     * **_user_** (object): specifies the symbolic link's owner.
       * **_id_** (integer): the user ID of the owner.
       * **_name_** (string): the user name of the owner.
