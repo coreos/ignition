@@ -243,8 +243,6 @@ func WriteOverSymlink() types.Test {
 	name := "Write Over Symlink at end of path"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	// note this abuses the order in which ignition writes links and will break with 3.0.0
-	// Also tests that Ignition does not try to resolve symlink targets
 	config := `{
 	  "ignition": { "version": "$version" },
 	  "storage": {
@@ -307,8 +305,6 @@ func WriteOverBrokenSymlink() types.Test {
 	name := "Write Over Broken Symlink at end of path"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	// note this abuses the order in which ignition writes links and will break with 3.0.0
-	// Also tests that Ignition does not try to resolve symlink targets
 	config := `{
 	  "ignition": { "version": "$version" },
 	  "storage": {
