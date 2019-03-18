@@ -14,62 +14,10 @@
 
 package types
 
-import (
-	"github.com/coreos/ignition/config/shared/errors"
-	"github.com/coreos/ignition/config/validate/report"
-)
-
 func (p PasswdUser) Key() string {
 	return p.Name
 }
 
 func (g PasswdGroup) Key() string {
 	return g.Name
-}
-
-func (p PasswdUser) Validate() report.Report {
-	r := report.Report{}
-	if p.Create != nil {
-		r.Add(report.Entry{
-			Message: errors.ErrPasswdCreateDeprecated.Error(),
-			Kind:    report.EntryWarning,
-		})
-		addErr := func(err error) {
-			r.Add(report.Entry{
-				Message: err.Error(),
-				Kind:    report.EntryError,
-			})
-		}
-		if p.Gecos != "" {
-			addErr(errors.ErrPasswdCreateAndGecos)
-		}
-		if len(p.Groups) > 0 {
-			addErr(errors.ErrPasswdCreateAndGroups)
-		}
-		if p.HomeDir != "" {
-			addErr(errors.ErrPasswdCreateAndHomeDir)
-		}
-		if p.NoCreateHome {
-			addErr(errors.ErrPasswdCreateAndNoCreateHome)
-		}
-		if p.NoLogInit {
-			addErr(errors.ErrPasswdCreateAndNoLogInit)
-		}
-		if p.NoUserGroup {
-			addErr(errors.ErrPasswdCreateAndNoUserGroup)
-		}
-		if p.PrimaryGroup != "" {
-			addErr(errors.ErrPasswdCreateAndPrimaryGroup)
-		}
-		if p.Shell != "" {
-			addErr(errors.ErrPasswdCreateAndShell)
-		}
-		if p.System {
-			addErr(errors.ErrPasswdCreateAndSystem)
-		}
-		if p.UID != nil {
-			addErr(errors.ErrPasswdCreateAndUID)
-		}
-	}
-	return r
 }

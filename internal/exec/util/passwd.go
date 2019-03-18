@@ -37,19 +37,6 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 	if err != nil {
 		return err
 	}
-	if c.Create != nil {
-		cu := c.Create
-		c.Gecos = cu.Gecos
-		c.Groups = translateV2_1UsercreateGroupSliceToPasswdUserGroupSlice(cu.Groups)
-		c.HomeDir = cu.HomeDir
-		c.NoCreateHome = cu.NoCreateHome
-		c.NoLogInit = cu.NoLogInit
-		c.NoUserGroup = cu.NoUserGroup
-		c.PrimaryGroup = cu.PrimaryGroup
-		c.Shell = cu.Shell
-		c.System = cu.System
-		c.UID = cu.UID
-	}
 	args := []string{"--root", u.DestDir}
 
 	var cmd string
@@ -123,15 +110,6 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 	_, err = u.LogCmd(exec.Command(cmd, args...),
 		"creating or modifying user %q", c.Name)
 	return err
-}
-
-// golang--
-func translateV2_1UsercreateGroupSliceToPasswdUserGroupSlice(groups []types.UsercreateGroup) []types.Group {
-	newGroups := make([]types.Group, len(groups))
-	for i, g := range groups {
-		newGroups[i] = types.Group(g)
-	}
-	return newGroups
 }
 
 // CheckIfUserExists will return Info log when user is empty
