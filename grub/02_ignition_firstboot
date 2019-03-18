@@ -9,5 +9,5 @@ search --set=bootpart --label boot
 # to be used later on the kernel command line.
 set ignition_firstboot=""
 if [ -f "(${bootpart})/ignition.firstboot" ]; then
-    set ignition_firstboot="ignition.firstboot"
+    set ignition_firstboot="ignition.firstboot rd.neednet=1 ip=dhcp"
 fi
