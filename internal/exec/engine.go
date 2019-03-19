@@ -24,10 +24,11 @@ import (
 	"os"
 	"time"
 
+	commonconfig "github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/shared/errors"
+	config "github.com/coreos/ignition/config/v3_0_experimental"
+	"github.com/coreos/ignition/config/v3_0_experimental/types"
 	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/config"
-	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/platform"
@@ -81,7 +82,7 @@ func (e Engine) Run(stageName string) error {
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
 
-	fullConfig := config.Append(baseConfig, config.Append(systemBaseConfig, cfg))
+	fullConfig := commonconfig.Append(baseConfig, commonconfig.Append(systemBaseConfig, cfg))
 	if err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(fullConfig); err != nil {
 		// e.Logger could be nil
 		fmt.Fprintf(os.Stderr, "%s failed", stageName)
@@ -236,7 +237,7 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 		// Append the old config with the new config before the new config has
 		// been rendered, so we can use the new config's timeouts and CAs when
 		// fetching more configs.
-		cfgForFetcherSettings := config.Append(appendedCfg, newCfg)
+		cfgForFetcherSettings := commonconfig.Append(appendedCfg, newCfg)
 		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfgForFetcherSettings.Ignition.Timeouts, cfgForFetcherSettings.Ignition.Security.TLS.CertificateAuthorities)
 		if err != nil {
 			return types.Config{}, err
@@ -247,7 +248,7 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 			return types.Config{}, err
 		}
 
-		appendedCfg = config.Append(appendedCfg, newCfg)
+		appendedCfg = commonconfig.Append(appendedCfg, newCfg)
 	}
 	return appendedCfg, nil
 }

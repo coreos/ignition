@@ -19,8 +19,7 @@ import (
 	"net/url"
 	"os"
 
-	configUtil "github.com/coreos/ignition/config/util"
-	"github.com/coreos/ignition/internal/config/types"
+	"github.com/coreos/ignition/config/v3_0_experimental/types"
 	"github.com/coreos/ignition/internal/distro"
 
 	"github.com/vincent-petithory/dataurl"
@@ -31,10 +30,10 @@ const (
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (*FetchOp, error) {
+func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, error) {
 	u, err := url.Parse(dataurl.EncodeBytes([]byte(unit.Contents)))
 	if err != nil {
-		return nil, err
+		return FetchOp{}, err
 	}
 
 	var path string
@@ -45,20 +44,21 @@ func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (*FetchOp, err
 	}
 
 	if path, err = ut.JoinPath(path, unit.Name); err != nil {
-		return nil, err
+		return FetchOp{}, err
 	}
 
-	return &FetchOp{
-		Path: path,
-		Url:  *u,
-		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
+	return FetchOp{
+		Node: types.Node{
+			Path: path,
+		},
+		Url: *u,
 	}, nil
 }
 
-func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, runtime bool) (*FetchOp, error) {
+func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, runtime bool) (FetchOp, error) {
 	u, err := url.Parse(dataurl.EncodeBytes([]byte(dropin.Contents)))
 	if err != nil {
-		return nil, err
+		return FetchOp{}, err
 	}
 
 	var path string
@@ -69,13 +69,14 @@ func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, r
 	}
 
 	if path, err = ut.JoinPath(path, dropin.Name); err != nil {
-		return nil, err
+		return FetchOp{}, err
 	}
 
-	return &FetchOp{
-		Path: path,
-		Url:  *u,
-		Mode: configUtil.IntToPtr(int(DefaultFilePermissions)),
+	return FetchOp{
+		Node: types.Node{
+			Path: path,
+		},
+		Url: *u,
 	}, nil
 }
 

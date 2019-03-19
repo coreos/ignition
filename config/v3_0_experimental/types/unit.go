@@ -26,6 +26,14 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func (u Unit) Key() string {
+	return u.Name
+}
+
+func (d Dropin) Key() string {
+	return d.Name
+}
+
 func (u Unit) ValidateContents() report.Report {
 	r := report.Report{}
 	opts, err := validateUnitContent(u.Contents)

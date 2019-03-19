@@ -27,6 +27,14 @@ const (
 	guidRegexStr = "^(|[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12})$"
 )
 
+func (p Partition) Key() string {
+	if p.Number != 0 {
+		return fmt.Sprintf("number:%d", p.Number)
+	} else {
+		return fmt.Sprintf("label:%s", *p.Label)
+	}
+}
+
 func (p Partition) Validate() report.Report {
 	r := report.Report{}
 	if (p.Start != nil || p.Size != nil) && (p.StartMiB != nil || p.SizeMiB != nil) {
@@ -41,6 +49,9 @@ func (p Partition) Validate() report.Report {
 			Message: errors.ErrShouldNotExistWithOthers.Error(),
 			Kind:    report.EntryError,
 		})
+	}
+	if p.Number == 0 && p.Label == nil {
+		r.AddOnError(errors.ErrNeedLabelOrNumber)
 	}
 	return r
 }

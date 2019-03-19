@@ -18,6 +18,10 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func (c CaReference) Key() string {
+	return c.Source
+}
+
 func (c CaReference) ValidateSource() report.Report {
 	err := validateURL(c.Source)
 	if err != nil {

@@ -21,6 +21,10 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func (n Node) Key() string {
+	return n.Path
+}
+
 func (n Node) ValidatePath() (r report.Report) {
 	r.AddOnError(validatePath(n.Path))
 	return

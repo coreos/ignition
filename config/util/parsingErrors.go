@@ -15,29 +15,19 @@
 package util
 
 import (
-	"errors"
-
-	configErrors "github.com/coreos/ignition/config/shared/errors"
-	"github.com/coreos/ignition/config/v3_0_experimental/types"
+	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/config/validate/util"
 
 	json "github.com/ajeddeloh/go-json"
 )
 
-var (
-	ErrValidConfig = errors.New("HandleParseErrors called with a valid config")
-)
-
-// HandleParseErrors will attempt to unmarshal an invalid rawConfig into the
-// latest config struct, so as to generate a report.Report from the errors. It
-// will always return an error. This is called after config/v* parse functions
-// chain has failed to parse a config.
-func HandleParseErrors(rawConfig []byte) (report.Report, error) {
-	config := types.Config{}
-	err := json.Unmarshal(rawConfig, &config)
+// HandleParseErrors will attempt to unmarshal an invalid rawConfig into "to".
+// If it fails to unmarsh it will generate a report.Report from the errors.
+func HandleParseErrors(rawConfig []byte, to interface{}) (report.Report, error) {
+	err := json.Unmarshal(rawConfig, to)
 	if err == nil {
-		return report.Report{}, ErrValidConfig
+		return report.Report{}, nil
 	}
 
 	// Handle json syntax and type errors first, since they are fatal but have offset info
@@ -52,7 +42,7 @@ func HandleParseErrors(rawConfig []byte) (report.Report, error) {
 					Highlight: highlight,
 				}},
 			},
-			configErrors.ErrInvalid
+			errors.ErrInvalid
 	}
 
 	if terr, ok := err.(*json.UnmarshalTypeError); ok {
@@ -66,8 +56,8 @@ func HandleParseErrors(rawConfig []byte) (report.Report, error) {
 					Highlight: highlight,
 				}},
 			},
-			configErrors.ErrInvalid
+			errors.ErrInvalid
 	}
 
-	return report.ReportFromError(err, report.EntryError), err
+	return report.ReportFromError(err, report.EntryError), errors.ErrInvalid
 }

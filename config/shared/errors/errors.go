@@ -22,16 +22,15 @@ import (
 
 var (
 	// Parsing / general errors
-	ErrInvalid            = errors.New("config is not valid")
-	ErrEmpty              = errors.New("not a config (empty)")
-	ErrUnknownVersion     = errors.New("unsupported config version")
-	ErrDeprecated         = errors.New("config format deprecated")
-	ErrCompressionInvalid = errors.New("invalid compression method")
+	ErrInvalid = errors.New("config is not valid")
+	ErrEmpty   = errors.New("not a config (empty)")
 
 	// Ignition section errors
-	ErrOldVersion     = errors.New("incorrect config version (too old)")
-	ErrNewVersion     = errors.New("incorrect config version (too new)")
 	ErrInvalidVersion = errors.New("invalid config version (couldn't parse)")
+	ErrUnknownVersion = errors.New("unsupported config version")
+
+	ErrDeprecated         = errors.New("config format deprecated")
+	ErrCompressionInvalid = errors.New("invalid compression method")
 
 	// Storage section errors
 	ErrFilePermissionsUnset        = errors.New("permissions unset, defaulting to 0644")
@@ -68,6 +67,8 @@ var (
 	ErrPartitionsUnitsMismatch     = errors.New("cannot mix MBs and sectors within a disk")
 	ErrSizeDeprecated              = errors.New("size is deprecated; use sizeMB instead")
 	ErrStartDeprecated             = errors.New("start is deprecated; use startMB instead")
+	ErrNeedLabelOrNumber           = errors.New("a partition number >= 1 or a label must be specified")
+	ErrDuplicateLabels             = errors.New("cannot use the same partition label twice")
 
 	// Passwd section errors
 	ErrPasswdCreateDeprecated      = errors.New("the create object has been deprecated in favor of user-level options")

@@ -1,4 +1,4 @@
-// Copyright 2018 CoreOS, Inc.
+// Copyright 2019 Red Hat, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package types
 
-import (
-	currentExperimental "github.com/coreos/ignition/config/v3_0_experimental"
-	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/config/types"
-)
-
-func Parse(rawConfig []byte) (types.Config, report.Report, error) {
-	cfg, rpt, err := currentExperimental.Parse(rawConfig)
-	if err != nil || rpt.IsFatal() {
-		return types.Config{}, rpt, err
+func (s Storage) MergedKeys() map[string]string {
+	return map[string]string{
+		"Directories": "Node",
+		"Files":       "Node",
+		"Links":       "Node",
 	}
-	return Translate(cfg), rpt, nil
 }

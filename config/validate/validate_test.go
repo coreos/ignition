@@ -46,7 +46,7 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: semver.Version{Major: 2}.String()}}},
-			out: out{err: errors.ErrOldVersion},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{cfg: Config{}},
@@ -58,15 +58,15 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: "3.1.0"}}},
-			out: out{err: errors.ErrNewVersion},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: "3.0.0"}}},
-			out: out{err: errors.ErrNewVersion},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{cfg: Config{Ignition: Ignition{Version: "1.0.0"}}},
-			out: out{err: errors.ErrOldVersion},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in: in{cfg: Config{
@@ -92,6 +92,80 @@ func TestValidate(t *testing.T) {
 							Path:   "/",
 							Device: "/dev/disk/by-partlabel/ROOT",
 							Format: "btrfs",
+						},
+					},
+				},
+			}},
+			out: out{},
+		},
+		{
+			in: in{cfg: Config{
+				Ignition: Ignition{Version: "3.0.0-experimental"},
+				Storage: Storage{
+					Filesystems: []Filesystem{
+						{
+							Path:   "/",
+							Device: "/dev/disk/by-partlabel/ROOT",
+							Format: "btrfs",
+						},
+						{
+							Path:   "/",
+							Device: "/dev/disk/by-partlabel/ROOT",
+							Format: "xfs",
+						},
+					},
+				},
+			}},
+			out: out{err: fmt.Errorf("Entry defined by %q is already defined in this config", "/dev/disk/by-partlabel/ROOT")},
+		},
+		{
+			in: in{cfg: Config{
+				Ignition: Ignition{Version: "3.0.0-experimental"},
+				Storage: Storage{
+					Files: []File{
+						{
+							Node: Node{
+								Path: "/",
+							},
+							FileEmbedded1: FileEmbedded1{
+								Mode: util.IntToPtr(421),
+							},
+						},
+					},
+					Directories: []Directory{
+						{
+							Node: Node{
+								Path: "/",
+							},
+							DirectoryEmbedded1: DirectoryEmbedded1{
+								Mode: util.IntToPtr(420),
+							},
+						},
+					},
+				},
+			}},
+			out: out{err: fmt.Errorf("Entry defined by %q is already defined in this config", "/")},
+		},
+		{
+			in: in{cfg: Config{
+				Ignition: Ignition{Version: "3.0.0-experimental"},
+				Storage: Storage{
+					Files: []File{
+						{
+							Node: Node{
+								Path: "/",
+							},
+							FileEmbedded1: FileEmbedded1{
+								Mode: util.IntToPtr(421),
+								Append: []FileContents{
+									{
+										Source: "http://example.com",
+									},
+									{
+										Source: "http://example.com",
+									},
+								},
+							},
 						},
 					},
 				},

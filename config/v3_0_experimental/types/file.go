@@ -21,13 +21,6 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func (f File) Validate() report.Report {
-	if f.Overwrite != nil && *f.Overwrite && f.Append {
-		return report.ReportFromError(errors.ErrAppendAndOverwrite, report.EntryError)
-	}
-	return report.Report{}
-}
-
 func (f File) ValidateMode() report.Report {
 	r := report.Report{}
 	if err := validateMode(f.Mode); err != nil {
@@ -40,6 +33,14 @@ func (f File) ValidateMode() report.Report {
 		r.AddOnWarning(errors.ErrFilePermissionsUnset)
 	}
 	return r
+}
+
+func (f File) IgnoreDuplicates() []string {
+	return []string{"Append"}
+}
+
+func (fc FileContents) Key() string {
+	return fc.Source
 }
 
 func (fc FileContents) ValidateCompression() report.Report {

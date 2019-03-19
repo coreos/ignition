@@ -30,11 +30,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/coreos/ignition/config/v3_0_experimental/types"
 	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/config"
-	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/internal/providers/util"
 	"github.com/coreos/ignition/internal/resource"
 )
 
@@ -88,7 +88,7 @@ func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
 		f.Logger.Info("neither config drive nor metadata service were available in time. Continuing without a config...")
 	}
 
-	return config.Parse(data)
+	return util.ParseConfig(f.Logger, data)
 }
 
 func fileExists(path string) bool {

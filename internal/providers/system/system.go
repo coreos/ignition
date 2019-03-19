@@ -19,8 +19,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/coreos/ignition/config/v3_0_experimental/types"
 	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/config/types"
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"

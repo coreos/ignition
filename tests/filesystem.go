@@ -436,8 +436,7 @@ func createFilesFromSlice(basedir string, files []types.File) error {
 		if err != nil {
 			return err
 		}
-		f, err := os.Create(filepath.Join(
-			basedir, file.Directory, file.Name))
+		f, err := os.OpenFile(filepath.Join(basedir, file.Directory, file.Name), os.O_CREATE|os.O_WRONLY, os.FileMode(file.Mode))
 		if err != nil {
 			return err
 		}
@@ -450,6 +449,7 @@ func createFilesFromSlice(basedir string, files []types.File) error {
 			}
 			writer.Flush()
 		}
+		os.Chown(filepath.Join(basedir, file.Directory, file.Name), file.User, file.Group)
 	}
 	return nil
 }

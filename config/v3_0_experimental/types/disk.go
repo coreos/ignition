@@ -19,6 +19,10 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
+func (d Disk) Key() string {
+	return d.Device
+}
+
 func (n Disk) Validate() report.Report {
 	return report.Report{}
 }
@@ -65,6 +69,9 @@ func (n Disk) ValidatePartitions() report.Report {
 			Kind:    report.EntryError,
 		})
 	}
+	if n.partitionLabelsCollide() {
+		r.AddOnError(errors.ErrDuplicateLabels)
+	}
 	// Disks which have no errors at this point will likely succeed in sgdisk
 	return r
 }
@@ -82,6 +89,20 @@ func (n Disk) partitionNumbersCollide() bool {
 		if len(n) > 1 {
 			// TODO(vc): return information describing the collision for logging
 			return true
+		}
+	}
+	return false
+}
+
+func (d Disk) partitionLabelsCollide() bool {
+	m := map[string]struct{}{}
+	for _, p := range d.Partitions {
+		if p.Label != nil {
+			// a number of 0 means next available number, multiple devices can specify this
+			if _, exists := m[*p.Label]; exists {
+				return true
+			}
+			m[*p.Label] = struct{}{}
 		}
 	}
 	return false
