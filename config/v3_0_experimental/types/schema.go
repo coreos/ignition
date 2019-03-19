@@ -137,7 +137,6 @@ type PasswdGroup struct {
 }
 
 type PasswdUser struct {
-	Create            *Usercreate        `json:"create,omitempty"`
 	Gecos             string             `json:"gecos,omitempty"`
 	Groups            []Group            `json:"groups,omitempty"`
 	HomeDir           string             `json:"homeDir,omitempty"`
@@ -199,21 +198,6 @@ type Unit struct {
 	Mask     bool     `json:"mask,omitempty"`
 	Name     string   `json:"name"`
 }
-
-type Usercreate struct {
-	Gecos        string            `json:"gecos,omitempty"`
-	Groups       []UsercreateGroup `json:"groups,omitempty"`
-	HomeDir      string            `json:"homeDir,omitempty"`
-	NoCreateHome bool              `json:"noCreateHome,omitempty"`
-	NoLogInit    bool              `json:"noLogInit,omitempty"`
-	NoUserGroup  bool              `json:"noUserGroup,omitempty"`
-	PrimaryGroup string            `json:"primaryGroup,omitempty"`
-	Shell        string            `json:"shell,omitempty"`
-	System       bool              `json:"system,omitempty"`
-	UID          *int              `json:"uid,omitempty"`
-}
-
-type UsercreateGroup string
 
 type Verification struct {
 	Hash *string `json:"hash,omitempty"`

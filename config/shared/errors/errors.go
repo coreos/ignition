@@ -45,7 +45,6 @@ var (
 	ErrFilesystemMountAndPath      = errors.New("filesystem has both mount and path defined")
 	ErrUsedCreateAndMountOpts      = errors.New("cannot use both create object and mount-level options field")
 	ErrUsedCreateAndWipeFilesystem = errors.New("cannot use both create object and wipeFilesystem field")
-	ErrWarningCreateDeprecated     = errors.New("the create object has been deprecated in favor of mount-level options")
 	ErrExt4LabelTooLong            = errors.New("filesystem labels cannot be longer than 16 characters when using ext4")
 	ErrBtrfsLabelTooLong           = errors.New("filesystem labels cannot be longer than 256 characters when using btrfs")
 	ErrXfsLabelTooLong             = errors.New("filesystem labels cannot be longer than 12 characters when using xfs")
@@ -71,7 +70,6 @@ var (
 	ErrDuplicateLabels             = errors.New("cannot use the same partition label twice")
 
 	// Passwd section errors
-	ErrPasswdCreateDeprecated      = errors.New("the create object has been deprecated in favor of user-level options")
 	ErrPasswdCreateAndGecos        = errors.New("cannot use both the create object and the user-level gecos field")
 	ErrPasswdCreateAndGroups       = errors.New("cannot use both the create object and the user-level groups field")
 	ErrPasswdCreateAndHomeDir      = errors.New("cannot use both the create object and the user-level homeDir field")
