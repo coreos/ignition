@@ -130,11 +130,7 @@ func (s *stage) addRelabelUnit(config types.Config) error {
 	if s.toRelabel == nil || len(s.toRelabel) == 0 {
 		return nil
 	}
-
-	// create the unit file itself
-	unit := types.Unit{
-		Name: "ignition-relabel.service",
-		Contents: `[Unit]
+	contents := `[Unit]
 Description=Relabel files created by Ignition
 DefaultDependencies=no
 After=local-fs.target
@@ -148,7 +144,12 @@ OnFailureJobMode=replace-irreversibly
 Type=oneshot
 ExecStart=` + distro.RestoreconCmd() + ` -0vRif /etc/selinux/ignition.relabel
 ExecStart=/usr/bin/rm /etc/selinux/ignition.relabel
-RemainAfterExit=yes`,
+RemainAfterExit=yes`
+
+	// create the unit file itself
+	unit := types.Unit{
+		Name:     "ignition-relabel.service",
+		Contents: &contents,
 	}
 
 	if err := s.writeSystemdUnit(unit, true); err != nil {

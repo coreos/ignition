@@ -27,53 +27,35 @@ func (n Disk) Validate() report.Report {
 	return report.Report{}
 }
 
-func (n Disk) ValidateDevice() report.Report {
+func (n Disk) ValidateDevice() (r report.Report) {
 	if len(n.Device) == 0 {
-		return report.ReportFromError(errors.ErrDiskDeviceRequired, report.EntryError)
+		r.AddOnError(errors.ErrDiskDeviceRequired)
+		return
 	}
-	if err := validatePath(string(n.Device)); err != nil {
-		return report.ReportFromError(err, report.EntryError)
-	}
-	return report.Report{}
+	r.AddOnError(validatePath(n.Device))
+	return
 }
 
-func (n Disk) ValidatePartitions() report.Report {
-	r := report.Report{}
+func (n Disk) ValidatePartitions() (r report.Report) {
 	if n.partitionNumbersCollide() {
-		r.Add(report.Entry{
-			Message: errors.ErrPartitionNumbersCollide.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrPartitionNumbersCollide)
 	}
 	if n.partitionsOverlap() {
-		r.Add(report.Entry{
-			Message: errors.ErrPartitionsOverlap.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrPartitionsOverlap)
 	}
 	if n.partitionsMisaligned() {
-		r.Add(report.Entry{
-			Message: errors.ErrPartitionsMisaligned.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrPartitionsMisaligned)
 	}
 	if n.partitionsMixZeroesAndNonexistence() {
-		r.Add(report.Entry{
-			Message: errors.ErrZeroesWithShouldNotExist.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrZeroesWithShouldNotExist)
 	}
 	if n.partitionsUnitsMismatch() {
-		r.Add(report.Entry{
-			Message: errors.ErrPartitionsUnitsMismatch.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrPartitionsUnitsMismatch)
 	}
 	if n.partitionLabelsCollide() {
 		r.AddOnError(errors.ErrDuplicateLabels)
 	}
-	// Disks which have no errors at this point will likely succeed in sgdisk
-	return r
+	return
 }
 
 // partitionNumbersCollide returns true if partition numbers in n.Partitions are not unique.

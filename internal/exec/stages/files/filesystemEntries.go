@@ -57,14 +57,15 @@ func (tmp fileEntry) getPath() string {
 
 func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	f := types.File(tmp)
+	empty := "" // golang--
 
 	canOverwrite := f.Overwrite != nil && *f.Overwrite
 	st, err := os.Lstat(f.Path)
 	regular := (st == nil) || st.Mode().IsRegular()
 	switch {
-	case os.IsNotExist(err) && f.Contents == nil:
+	case os.IsNotExist(err) && f.Contents.Source == nil:
 		// set f.Contents so we create an empty file
-		f.Contents = &types.FileContents{}
+		f.Contents.Source = &empty
 	case os.IsNotExist(err):
 		break
 	case err != nil:
@@ -72,19 +73,19 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	// 3/8 cases where we need to overwrite but can't
 	case !canOverwrite && !regular:
 		return fmt.Errorf("error creating file %q: A non regular file exists there already and overwrite is false", f.Path)
-	case !canOverwrite && regular && f.Contents != nil:
+	case !canOverwrite && regular && f.Contents.Source != nil:
 		return fmt.Errorf("error creating file %q: A file exists there already and overwrite is false", f.Path)
 	// 2/8 cases where we don't need to do anything
-	case regular && f.Contents == nil:
+	case regular && f.Contents.Source == nil:
 		break
 	//  3/8 cases where we need to delete the node first
-	case canOverwrite && !regular && f.Contents == nil:
+	case canOverwrite && !regular && f.Contents.Source == nil:
 		// If we're deleting the file we need set f.Contents so it creates an empty file
-		f.Contents = &types.FileContents{}
+		f.Contents.Source = &empty
 		fallthrough
-	case canOverwrite && !regular && f.Contents != nil:
+	case canOverwrite && !regular && f.Contents.Source != nil:
 		fallthrough
-	case canOverwrite && f.Contents != nil:
+	case canOverwrite && f.Contents.Source != nil:
 		if err := os.RemoveAll(f.Path); err != nil {
 			return fmt.Errorf("error creating file %q: could not remove existing node at that path: %v", f.Path, err)
 		}

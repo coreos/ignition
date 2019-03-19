@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/config/shared/errors"
+	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -40,19 +41,19 @@ func TestNodeValidateUser(t *testing.T) {
 		out report.Report
 	}{
 		{
-			in:  NodeUser{intToPtr(0), ""},
+			in:  NodeUser{intToPtr(0), util.StrToPtr("")},
 			out: report.Report{},
 		},
 		{
-			in:  NodeUser{intToPtr(1000), ""},
+			in:  NodeUser{intToPtr(1000), util.StrToPtr("")},
 			out: report.Report{},
 		},
 		{
-			in:  NodeUser{nil, "core"},
+			in:  NodeUser{nil, util.StrToPtr("core")},
 			out: report.Report{},
 		},
 		{
-			in:  NodeUser{intToPtr(1000), "core"},
+			in:  NodeUser{intToPtr(1000), util.StrToPtr("core")},
 			out: report.ReportFromError(errors.ErrBothIDAndNameSet, report.EntryError),
 		},
 	}
@@ -71,19 +72,19 @@ func TestNodeValidateGroup(t *testing.T) {
 		out report.Report
 	}{
 		{
-			in:  NodeGroup{intToPtr(0), ""},
+			in:  NodeGroup{intToPtr(0), util.StrToPtr("")},
 			out: report.Report{},
 		},
 		{
-			in:  NodeGroup{intToPtr(1000), ""},
+			in:  NodeGroup{intToPtr(1000), util.StrToPtr("")},
 			out: report.Report{},
 		},
 		{
-			in:  NodeGroup{nil, "core"},
+			in:  NodeGroup{nil, util.StrToPtr("core")},
 			out: report.Report{},
 		},
 		{
-			in:  NodeGroup{intToPtr(1000), "core"},
+			in:  NodeGroup{intToPtr(1000), util.StrToPtr("core")},
 			out: report.ReportFromError(errors.ErrBothIDAndNameSet, report.EntryError),
 		},
 	}

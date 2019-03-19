@@ -61,9 +61,14 @@ func (stage) Name() string {
 }
 
 func (s stage) Run(config types.Config) error {
-	fss := config.Storage.Filesystems
+	fss := []types.Filesystem{}
+	for _, fs := range config.Storage.Filesystems {
+		if fs.Path != nil && *fs.Path != "" {
+			fss = append(fss, fs)
+		}
+	}
 	// n.b. sorted backwards
-	sort.Slice(fss, func(i, j int) bool { return util.Depth(fss[j].Path) < util.Depth(fss[i].Path) })
+	sort.Slice(fss, func(i, j int) bool { return util.Depth(*fss[j].Path) < util.Depth(*fss[i].Path) })
 	for _, fs := range fss {
 		if err := s.umountFs(fs); err != nil {
 			return err
@@ -73,10 +78,10 @@ func (s stage) Run(config types.Config) error {
 }
 
 func (s stage) umountFs(fs types.Filesystem) error {
-	if fs.Format == "swap" {
+	if fs.Format != nil && *fs.Format == "swap" {
 		return nil
 	}
-	path, err := s.JoinPath(fs.Path)
+	path, err := s.JoinPath(*fs.Path)
 	if err != nil {
 		return err
 	}

@@ -38,40 +38,29 @@ func (v Verification) HashParts() (string, string, error) {
 	return parts[0], parts[1], nil
 }
 
-func (v Verification) Validate() report.Report {
-	r := report.Report{}
-
+func (v Verification) Validate() (r report.Report) {
 	if v.Hash == nil {
 		// The hash can be nil
-		return r
+		return
 	}
 
 	function, sum, err := v.HashParts()
 	if err != nil {
-		r.Add(report.Entry{
-			Message: err.Error(),
-			Kind:    report.EntryError,
-		})
-		return r
+		r.AddOnError(err)
+		return
 	}
 	var hash crypto.Hash
 	switch function {
 	case "sha512":
 		hash = crypto.SHA512
 	default:
-		r.Add(report.Entry{
-			Message: errors.ErrHashUnrecognized.Error(),
-			Kind:    report.EntryError,
-		})
-		return r
+		r.AddOnError(errors.ErrHashUnrecognized)
+		return
 	}
 
 	if len(sum) != hex.EncodedLen(hash.Size()) {
-		r.Add(report.Entry{
-			Message: errors.ErrHashWrongSize.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrHashWrongSize)
 	}
 
-	return r
+	return
 }

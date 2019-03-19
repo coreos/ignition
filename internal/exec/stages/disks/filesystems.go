@@ -89,17 +89,20 @@ func (s stage) createFilesystems(config types.Config) error {
 }
 
 func (s stage) createFilesystem(fs types.Filesystem) error {
+	if fs.Format == nil {
+		return nil
+	}
 	info, err := s.readFilesystemInfo(fs)
 	if err != nil {
 		return err
 	}
 
-	if !fs.WipeFilesystem {
+	if fs.WipeFilesystem == nil || !*fs.WipeFilesystem {
 		// If the filesystem isn't forcefully being created, then we need
 		// to check if it is of the correct type or that no filesystem exists.
-		if info.format == fs.Format &&
+		if info.format == *fs.Format &&
 			(fs.Label == nil || info.label == *fs.Label) &&
-			(fs.UUID == nil || canonicalizeFilesystemUUID(info.format, info.uuid) == canonicalizeFilesystemUUID(fs.Format, *fs.UUID)) {
+			(fs.UUID == nil || canonicalizeFilesystemUUID(info.format, info.uuid) == canonicalizeFilesystemUUID(*fs.Format, *fs.UUID)) {
 			s.Logger.Info("filesystem at %q is already correctly formatted. Skipping mkfs...", fs.Device)
 			return nil
 		} else if info.format != "" {
@@ -110,12 +113,12 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 
 	mkfs := ""
 	args := translateOptionSliceToStringSlice(fs.Options)
-	switch fs.Format {
+	switch *fs.Format {
 	case "btrfs":
 		mkfs = distro.BtrfsMkfsCmd()
 		args = append(args, "--force")
 		if fs.UUID != nil {
-			args = append(args, "-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID))
+			args = append(args, "-U", canonicalizeFilesystemUUID(*fs.Format, *fs.UUID))
 		}
 		if fs.Label != nil {
 			args = append(args, "-L", *fs.Label)
@@ -124,7 +127,7 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		mkfs = distro.Ext4MkfsCmd()
 		args = append(args, "-F")
 		if fs.UUID != nil {
-			args = append(args, "-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID))
+			args = append(args, "-U", canonicalizeFilesystemUUID(*fs.Format, *fs.UUID))
 		}
 		if fs.Label != nil {
 			args = append(args, "-L", *fs.Label)
@@ -133,7 +136,7 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		mkfs = distro.XfsMkfsCmd()
 		args = append(args, "-f")
 		if fs.UUID != nil {
-			args = append(args, "-m", "uuid="+canonicalizeFilesystemUUID(fs.Format, *fs.UUID))
+			args = append(args, "-m", "uuid="+canonicalizeFilesystemUUID(*fs.Format, *fs.UUID))
 		}
 		if fs.Label != nil {
 			args = append(args, "-L", *fs.Label)
@@ -142,7 +145,7 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		mkfs = distro.SwapMkfsCmd()
 		args = append(args, "-f")
 		if fs.UUID != nil {
-			args = append(args, "-U", canonicalizeFilesystemUUID(fs.Format, *fs.UUID))
+			args = append(args, "-U", canonicalizeFilesystemUUID(*fs.Format, *fs.UUID))
 		}
 		if fs.Label != nil {
 			args = append(args, "-L", *fs.Label)
@@ -152,13 +155,13 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		// There is no force flag for mkfs.vfat, it always destroys any data on
 		// the device at which it is pointed.
 		if fs.UUID != nil {
-			args = append(args, "-i", canonicalizeFilesystemUUID(fs.Format, *fs.UUID))
+			args = append(args, "-i", canonicalizeFilesystemUUID(*fs.Format, *fs.UUID))
 		}
 		if fs.Label != nil {
 			args = append(args, "-n", *fs.Label)
 		}
 	default:
-		return fmt.Errorf("unsupported filesystem format: %q", fs.Format)
+		return fmt.Errorf("unsupported filesystem format: %q", *fs.Format)
 	}
 
 	devAlias := util.DeviceAlias(string(fs.Device))
@@ -166,7 +169,7 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 	if _, err := s.Logger.LogCmd(
 		exec.Command(mkfs, args...),
 		"creating %q filesystem on %q",
-		fs.Format, devAlias,
+		*fs.Format, devAlias,
 	); err != nil {
 		return fmt.Errorf("mkfs failed: %v", err)
 	}

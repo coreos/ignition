@@ -25,16 +25,9 @@ func (c ConfigReference) Key() string {
 	return c.Source
 }
 
-func (c ConfigReference) ValidateSource() report.Report {
-	r := report.Report{}
-	err := validateURL(c.Source)
-	if err != nil {
-		r.Add(report.Entry{
-			Message: err.Error(),
-			Kind:    report.EntryError,
-		})
-	}
-	return r
+func (c ConfigReference) ValidateSource() (r report.Report) {
+	r.AddOnError(validateURL(c.Source))
+	return
 }
 
 func (v Ignition) Semver() (*semver.Version, error) {

@@ -89,9 +89,9 @@ func TestValidate(t *testing.T) {
 				Storage: Storage{
 					Filesystems: []Filesystem{
 						{
-							Path:   "/",
+							Path:   util.StrToPtr("/"),
 							Device: "/dev/disk/by-partlabel/ROOT",
-							Format: "btrfs",
+							Format: util.StrToPtr("btrfs"),
 						},
 					},
 				},
@@ -104,14 +104,14 @@ func TestValidate(t *testing.T) {
 				Storage: Storage{
 					Filesystems: []Filesystem{
 						{
-							Path:   "/",
+							Path:   util.StrToPtr("/"),
 							Device: "/dev/disk/by-partlabel/ROOT",
-							Format: "btrfs",
+							Format: util.StrToPtr("btrfs"),
 						},
 						{
-							Path:   "/",
+							Path:   util.StrToPtr("/"),
 							Device: "/dev/disk/by-partlabel/ROOT",
-							Format: "xfs",
+							Format: util.StrToPtr("xfs"),
 						},
 					},
 				},
@@ -159,10 +159,10 @@ func TestValidate(t *testing.T) {
 								Mode: util.IntToPtr(421),
 								Append: []FileContents{
 									{
-										Source: "http://example.com",
+										Source: util.StrToPtr("http://example.com"),
 									},
 									{
-										Source: "http://example.com",
+										Source: util.StrToPtr("http://example.com"),
 									},
 								},
 							},
@@ -175,14 +175,14 @@ func TestValidate(t *testing.T) {
 		{
 			in: in{cfg: Config{
 				Ignition: Ignition{Version: "3.0.0-experimental"},
-				Systemd:  Systemd{Units: []Unit{{Name: "foo.bar", Contents: "[Foo]\nfoo=qux"}}},
+				Systemd:  Systemd{Units: []Unit{{Name: "foo.bar", Contents: util.StrToPtr("[Foo]\nfoo=qux")}}},
 			}},
 			out: out{err: fmt.Errorf("invalid systemd unit extension")},
 		},
 		{
 			in: in{cfg: Config{
 				Ignition: Ignition{Version: "3.0.0-experimental"},
-				Systemd:  Systemd{Units: []Unit{{Name: "enable-but-no-install.service", Enabled: util.BoolToPtr(true), Contents: "[Foo]\nlemon=lime"}}},
+				Systemd:  Systemd{Units: []Unit{{Name: "enable-but-no-install.service", Enabled: util.BoolToPtr(true), Contents: util.StrToPtr("[Foo]\nlemon=lime")}}},
 			}},
 			out: out{warning: errors.NewNoInstallSectionError("enable-but-no-install.service")},
 		},

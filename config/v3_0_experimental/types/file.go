@@ -21,14 +21,8 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func (f File) ValidateMode() report.Report {
-	r := report.Report{}
-	if err := validateMode(f.Mode); err != nil {
-		r.Add(report.Entry{
-			Message: err.Error(),
-			Kind:    report.EntryError,
-		})
-	}
+func (f File) ValidateMode() (r report.Report) {
+	r.AddOnError(validateMode(f.Mode))
 	if f.Mode == nil {
 		r.AddOnWarning(errors.ErrFilePermissionsUnset)
 	}
@@ -39,31 +33,25 @@ func (f File) IgnoreDuplicates() []string {
 	return []string{"Append"}
 }
 
-func (fc FileContents) Key() string {
-	return fc.Source
-}
-
-func (fc FileContents) ValidateCompression() report.Report {
-	r := report.Report{}
-	switch fc.Compression {
+func (fc FileContents) ValidateCompression() (r report.Report) {
+	if fc.Compression == nil {
+		return
+	}
+	switch *fc.Compression {
 	case "", "gzip":
 	default:
-		r.Add(report.Entry{
-			Message: errors.ErrCompressionInvalid.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrCompressionInvalid)
 	}
-	return r
+	return
 }
 
-func (fc FileContents) ValidateSource() report.Report {
-	r := report.Report{}
-	err := validateURL(fc.Source)
-	if err != nil {
-		r.Add(report.Entry{
-			Message: fmt.Sprintf("invalid url %q: %v", fc.Source, err),
-			Kind:    report.EntryError,
-		})
+func (fc FileContents) ValidateSource() (r report.Report) {
+	if fc.Source == nil {
+		return
 	}
-	return r
+	err := validateURL(*fc.Source)
+	if err != nil {
+		r.AddOnError(fmt.Errorf("invalid url %q: %v", *fc.Source, err))
+	}
+	return
 }

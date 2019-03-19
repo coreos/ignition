@@ -32,7 +32,7 @@ func CreateSystemdService() types.Test {
 		"systemd": {
 			"units": [{
 				"name": "example.service",
-				"enable": true,
+				"enabled": true,
 				"contents": "[Service]\nType=oneshot\nExecStart=/usr/bin/echo Hello World\n\n[Install]\nWantedBy=multi-user.target"
 			}]
 		}

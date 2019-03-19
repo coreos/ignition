@@ -79,11 +79,11 @@ func partitionMatches(existing, spec types.Partition) error {
 	if spec.Size != nil && *spec.Size != *existing.Size {
 		return fmt.Errorf("size did not match (specified %d, got %d)", *spec.Size, *existing.Size)
 	}
-	if spec.GUID != "" && strings.ToLower(spec.GUID) != strings.ToLower(existing.GUID) {
-		return fmt.Errorf("GUID did not match (specified %q, got %q)", spec.GUID, existing.GUID)
+	if spec.GUID != nil && *spec.GUID != "" && strings.ToLower(*spec.GUID) != strings.ToLower(*existing.GUID) {
+		return fmt.Errorf("GUID did not match (specified %q, got %q)", *spec.GUID, *existing.GUID)
 	}
-	if spec.TypeGUID != "" && strings.ToLower(spec.TypeGUID) != strings.ToLower(existing.TypeGUID) {
-		return fmt.Errorf("type GUID did not match (specified %q, got %q)", spec.TypeGUID, existing.TypeGUID)
+	if spec.TypeGUID != nil && *spec.TypeGUID != "" && strings.ToLower(*spec.TypeGUID) != strings.ToLower(*existing.TypeGUID) {
+		return fmt.Errorf("type GUID did not match (specified %q, got %q)", *spec.TypeGUID, *existing.TypeGUID)
 	}
 	if spec.Label != nil && *spec.Label != *existing.Label {
 		return fmt.Errorf("label did not match (specified %q, got %q)", *spec.Label, *existing.Label)
@@ -112,12 +112,12 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, existanceMap
 		if exists {
 			// delete all existing partitions
 			op.DeletePartition(part.Number)
-			if part.Start == nil && part.StartMiB == nil && !part.WipePartitionEntry {
+			if part.Start == nil && part.StartMiB == nil && (part.WipePartitionEntry == nil || !*part.WipePartitionEntry) {
 				// don't care means keep the same if we can't wipe, otherwise stick it at start 0
 				part.StartMiB = nil
 				part.Start = info.Start
 			}
-			if part.Size == nil && part.SizeMiB == nil && !part.WipePartitionEntry {
+			if part.Size == nil && part.SizeMiB == nil && (part.WipePartitionEntry == nil || !*part.WipePartitionEntry) {
 				part.SizeMiB = nil
 				part.Size = info.Size
 			}
@@ -300,7 +300,7 @@ func (p PartitionList) Swap(i, j int) {
 
 // partitionDisk partitions devAlias according to the spec given by dev
 func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
-	if dev.WipeTable {
+	if dev.WipeTable != nil && *dev.WipeTable {
 		op := sgdisk.Begin(s.Logger, devAlias)
 		s.Logger.Info("wiping partition table requested on %q", devAlias)
 		op.WipeTable(true)
@@ -332,6 +332,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 			matchErr = partitionMatches(info, part)
 		}
 		matches := exists && matchErr == nil
+		wipeEntry := part.WipePartitionEntry != nil && *part.WipePartitionEntry
 
 		// This is a translation of the matrix in the operator notes.
 		switch {
@@ -339,15 +340,15 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 			s.Logger.Info("partition %d specified as nonexistant and no partition was found. Success.", part.Number)
 		case !exists && shouldExist:
 			op.CreatePartition(part)
-		case exists && !shouldExist && !part.WipePartitionEntry:
+		case exists && !shouldExist && !wipeEntry:
 			return fmt.Errorf("partition %d exists but is specified as nonexistant and wipePartitionEntry is false", part.Number)
-		case exists && !shouldExist && part.WipePartitionEntry:
+		case exists && !shouldExist && wipeEntry:
 			op.DeletePartition(part.Number)
 		case exists && shouldExist && matches:
 			s.Logger.Info("partition %d found with correct specifications", part.Number)
-		case exists && shouldExist && !part.WipePartitionEntry && !matches:
+		case exists && shouldExist && !wipeEntry && !matches:
 			return fmt.Errorf("Partition %d didn't match: %v", part.Number, matchErr)
-		case exists && shouldExist && part.WipePartitionEntry && !matches:
+		case exists && shouldExist && wipeEntry && !matches:
 			s.Logger.Info("partition %d did not meet specifications, wiping partition entry and recreating", part.Number)
 			op.DeletePartition(part.Number)
 			op.CreatePartition(part)

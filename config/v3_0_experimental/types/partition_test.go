@@ -19,13 +19,9 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/config/shared/errors"
+	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/report"
 )
-
-// redefined here to avoid import cycles
-func strToPtrStrict(s string) *string {
-	return &s
-}
 
 func TestValidateLabel(t *testing.T) {
 	type in struct {
@@ -39,11 +35,11 @@ func TestValidateLabel(t *testing.T) {
 		out out
 	}{
 		{
-			in{strToPtrStrict("root")},
+			in{util.StrToPtr("root")},
 			out{report.Report{}},
 		},
 		{
-			in{strToPtrStrict("")},
+			in{util.StrToPtr("")},
 			out{report.Report{}},
 		},
 		{
@@ -51,16 +47,16 @@ func TestValidateLabel(t *testing.T) {
 			out{report.Report{}},
 		},
 		{
-			in{strToPtrStrict("111111111111111111111111111111111111")},
+			in{util.StrToPtr("111111111111111111111111111111111111")},
 			out{report.Report{}},
 		},
 		{
-			in{strToPtrStrict("1111111111111111111111111111111111111")},
+			in{util.StrToPtr("1111111111111111111111111111111111111")},
 			out{report.ReportFromError(errors.ErrLabelTooLong, report.EntryError)},
 		},
 		{
-			in{strToPtrStrict("test:")},
-			out{report.ReportFromError(errors.ErrLabelContainsColon, report.EntryWarning)},
+			in{util.StrToPtr("test:")},
+			out{report.ReportFromError(errors.ErrLabelContainsColon, report.EntryError)},
 		},
 	}
 	for i, test := range tests {
@@ -96,7 +92,7 @@ func TestValidateTypeGUID(t *testing.T) {
 		},
 	}
 	for i, test := range tests {
-		r := Partition{TypeGUID: test.in.typeguid}.ValidateTypeGUID()
+		r := Partition{TypeGUID: &test.in.typeguid}.ValidateTypeGUID()
 		if !reflect.DeepEqual(r, test.out.report) {
 			t.Errorf("#%d: wanted %v, got %v", i, test.out.report, r)
 		}
@@ -128,7 +124,7 @@ func TestValidateGUID(t *testing.T) {
 		},
 	}
 	for i, test := range tests {
-		r := Partition{GUID: test.in.guid}.ValidateGUID()
+		r := Partition{GUID: &test.in.guid}.ValidateGUID()
 		if !reflect.DeepEqual(r, test.out.report) {
 			t.Errorf("#%d: wanted %v, got %v", i, test.out.report, r)
 		}
