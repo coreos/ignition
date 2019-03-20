@@ -7,6 +7,8 @@ DefaultDependencies=no
 After=sysroot.mount
 Before=ignition-complete.target
 ConditionPathIsReadWrite=!/sysroot
+OnFailure=emergency.target
+OnFailureJobMode=isolate
 
 [Service]
 Type=oneshot

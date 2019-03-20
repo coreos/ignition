@@ -2,6 +2,8 @@
 Description=Ignition (files)
 DefaultDependencies=false
 Before=ignition-complete.target
+OnFailure=emergency.target
+OnFailureJobMode=isolate
 
 # Ignition files stage starts after /sysroot is mounted.
 Requires=initrd-root-fs.target

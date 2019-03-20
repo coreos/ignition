@@ -10,6 +10,8 @@ DefaultDependencies=false
 After=basic.target
 Before=ostree-prepare-root.service
 Before=ignition-complete.target
+OnFailure=emergency.target
+OnFailureJobMode=isolate
 
 [Service]
 Type=oneshot

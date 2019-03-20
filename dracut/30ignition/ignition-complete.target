@@ -5,11 +5,9 @@
 # initrd.
 [Unit]
 Description=Ignition Complete
+OnFailure=emergency.target
+OnFailureJobMode=isolate
 
 # Make sure we stop all the units before switching root
 Conflicts=initrd-switch-root.target umount.target
 Conflicts=dracut-emergency.service emergency.service emergency.target
-
-# This ensures that we fail the boot if the stopping units fails
-OnFailure=emergency.target
-OnFailureJobMode=isolate
