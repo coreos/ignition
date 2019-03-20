@@ -38,6 +38,8 @@ func (s *stage) createPasswd(config types.Config) error {
 			"/etc/group*",
 			"/etc/shadow*",
 			"/etc/gshadow*",
+			"/etc/subuid*",
+			"/etc/subgid*",
 			"/etc/.pwd.lock",
 			"/home",
 			"/root",
