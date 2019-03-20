@@ -23,8 +23,10 @@ func (r Raid) Key() string {
 	return r.Name
 }
 
-func (r Raid) IgnoreDuplicates() []string {
-	return []string{"Options"}
+func (r Raid) IgnoreDuplicates() map[string]struct{} {
+	return map[string]struct{}{
+		"Options": {},
+	}
 }
 
 func (n Raid) ValidateLevel() (r report.Report) {

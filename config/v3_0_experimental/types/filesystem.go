@@ -23,8 +23,10 @@ func (f Filesystem) Key() string {
 	return f.Device
 }
 
-func (f Filesystem) IgnoreDuplicates() []string {
-	return []string{"Options"}
+func (f Filesystem) IgnoreDuplicates() map[string]struct{} {
+	return map[string]struct{}{
+		"Options": {},
+	}
 }
 
 func (f Filesystem) ValidatePath() (r report.Report) {

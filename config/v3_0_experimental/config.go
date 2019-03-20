@@ -15,6 +15,9 @@
 package v3_0_experimental
 
 import (
+	"reflect"
+
+	"github.com/coreos/ignition/config/merge"
 	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/v3_0_experimental/types"
@@ -23,6 +26,15 @@ import (
 
 	"github.com/coreos/go-semver/semver"
 )
+
+func Merge(parent, child types.Config) types.Config {
+	vParent := reflect.ValueOf(parent)
+	vChild := reflect.ValueOf(child)
+
+	vRes := merge.MergeStruct(vParent, vChild)
+	res := vRes.Interface().(types.Config)
+	return res
+}
 
 // Parse parses the raw config into a types.Config struct and generates a report of any
 // errors, warnings, info, and deprecations it encountered

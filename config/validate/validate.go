@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	json "github.com/ajeddeloh/go-json"
+	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/astjson"
 	"github.com/coreos/ignition/config/validate/astnode"
 	"github.com/coreos/ignition/config/validate/report"
@@ -27,18 +28,6 @@ import (
 
 type validator interface {
 	Validate() report.Report
-}
-
-type mergesKeys interface {
-	MergedKeys() map[string]string
-}
-
-type ignoresDups interface {
-	IgnoreDuplicates() []string
-}
-
-type keyed interface {
-	Key() string
 }
 
 // ValidateConfig validates a raw config object into a given config version
@@ -166,16 +155,13 @@ func validateStruct(vObj reflect.Value, ast astnode.AstNode, source []byte, chec
 	// List of fields that are lists that cannot include duplicates across themselves. Use the first element in the list
 	// to refer to the collective set
 	mergedKeys := map[string]string{}
-	if merger, ok := vObj.Interface().(mergesKeys); ok {
+	if merger, ok := vObj.Interface().(util.MergesKeys); ok {
 		mergedKeys = merger.MergedKeys()
 	}
 
 	ignoreDupsList := map[string]struct{}{}
-	if ignorer, ok := vObj.Interface().(ignoresDups); ok {
-		tmp := ignorer.IgnoreDuplicates()
-		for _, elem := range tmp {
-			ignoreDupsList[elem] = struct{}{}
-		}
+	if ignorer, ok := vObj.Interface().(util.IgnoresDups); ok {
+		ignoreDupsList = ignorer.IgnoreDuplicates()
 	}
 
 	for _, f := range getFields(vObj) {
@@ -241,7 +227,7 @@ func validateStruct(vObj reflect.Value, ast astnode.AstNode, source []byte, chec
 					if f.Value.Index(i).Kind() == reflect.String {
 						key = f.Value.Index(i).Convert(reflect.TypeOf("")).Interface().(string)
 					} else {
-						key = f.Value.Index(i).Interface().(keyed).Key()
+						key = f.Value.Index(i).Interface().(util.Keyed).Key()
 					}
 					if _, alreadyDefined := dupLists[dupListKey][key]; alreadyDefined {
 						// duplicate entry!
