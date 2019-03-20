@@ -19,12 +19,12 @@ import (
 
 	"github.com/coreos/ignition/internal/log"
 	"github.com/coreos/ignition/internal/providers"
+	"github.com/coreos/ignition/internal/providers/aws"
 	"github.com/coreos/ignition/internal/providers/azure"
 	"github.com/coreos/ignition/internal/providers/cloudstack"
 	"github.com/coreos/ignition/internal/providers/digitalocean"
-	"github.com/coreos/ignition/internal/providers/ec2"
 	"github.com/coreos/ignition/internal/providers/file"
-	"github.com/coreos/ignition/internal/providers/gce"
+	"github.com/coreos/ignition/internal/providers/gcp"
 	"github.com/coreos/ignition/internal/providers/noop"
 	"github.com/coreos/ignition/internal/providers/openstack"
 	"github.com/coreos/ignition/internal/providers/packet"
@@ -94,13 +94,19 @@ func init() {
 		fetch: openstack.FetchConfig,
 	})
 	configs.Register(Config{
+		name:       "aws",
+		fetch:      aws.FetchConfig,
+		newFetcher: aws.NewFetcher,
+	})
+	// FIXME: compatibility alias; delete after a transition period
+	configs.Register(Config{
 		name:       "ec2",
-		fetch:      ec2.FetchConfig,
-		newFetcher: ec2.NewFetcher,
+		fetch:      aws.FetchConfig,
+		newFetcher: aws.NewFetcher,
 	})
 	configs.Register(Config{
-		name:  "gce",
-		fetch: gce.FetchConfig,
+		name:  "gcp",
+		fetch: gcp.FetchConfig,
 	})
 	configs.Register(Config{
 		name:   "packet",

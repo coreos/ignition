@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The ec2 provider fetches a remote configuration from the ec2 user-data
+// The aws provider fetches a remote configuration from the EC2 user-data
 // metadata service URL.
 
-package ec2
+package aws
 
 import (
 	"net/url"
@@ -58,7 +58,7 @@ func NewFetcher(l *log.Logger) (resource.Fetcher, error) {
 	}
 	sess.Config.Credentials = ec2rolecreds.NewCredentials(sess)
 
-	// Determine the partition and region this ec2 is in
+	// Determine the partition and region this instance is in
 	regionHint, err := ec2metadata.New(sess).Region()
 	if err != nil {
 		regionHint = "us-east-1"

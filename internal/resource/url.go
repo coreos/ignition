@@ -73,7 +73,7 @@ type Fetcher struct {
 	// used to set credentials.
 	AWSSession *session.Session
 
-	// The region where the EC2 machine trying to fetch is.
+	// The region where the AWS machine trying to fetch is.
 	// This is used as a hint to fetch the S3 bucket from the right partition and region.
 	S3RegionHint string
 }
