@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/config/shared/errors"
+	"github.com/coreos/ignition/config/util"
 )
 
 func TestModeValidate(t *testing.T) {
@@ -38,23 +39,23 @@ func TestModeValidate(t *testing.T) {
 			out: out{},
 		},
 		{
-			in:  in{mode: intToPtr(0)},
+			in:  in{mode: util.IntToPtr(0)},
 			out: out{},
 		},
 		{
-			in:  in{mode: intToPtr(0644)},
+			in:  in{mode: util.IntToPtr(0644)},
 			out: out{},
 		},
 		{
-			in:  in{mode: intToPtr(01755)},
+			in:  in{mode: util.IntToPtr(01755)},
 			out: out{},
 		},
 		{
-			in:  in{mode: intToPtr(07777)},
+			in:  in{mode: util.IntToPtr(07777)},
 			out: out{},
 		},
 		{
-			in:  in{mode: intToPtr(010000)},
+			in:  in{mode: util.IntToPtr(010000)},
 			out: out{errors.ErrFileIllegalMode},
 		},
 	}

@@ -31,7 +31,11 @@ const (
 )
 
 func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, error) {
-	u, err := url.Parse(dataurl.EncodeBytes([]byte(unit.Contents)))
+	if unit.Contents == nil {
+		empty := ""
+		unit.Contents = &empty
+	}
+	u, err := url.Parse(dataurl.EncodeBytes([]byte(*unit.Contents)))
 	if err != nil {
 		return FetchOp{}, err
 	}
@@ -56,7 +60,11 @@ func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, erro
 }
 
 func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, runtime bool) (FetchOp, error) {
-	u, err := url.Parse(dataurl.EncodeBytes([]byte(dropin.Contents)))
+	if dropin.Contents == nil {
+		empty := ""
+		dropin.Contents = &empty
+	}
+	u, err := url.Parse(dataurl.EncodeBytes([]byte(*dropin.Contents)))
 	if err != nil {
 		return FetchOp{}, err
 	}

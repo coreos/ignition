@@ -33,12 +33,12 @@ type DirectoryEmbedded1 struct {
 type Disk struct {
 	Device     string      `json:"device"`
 	Partitions []Partition `json:"partitions,omitempty"`
-	WipeTable  bool        `json:"wipeTable,omitempty"`
+	WipeTable  *bool       `json:"wipeTable,omitempty"`
 }
 
 type Dropin struct {
-	Contents string `json:"contents,omitempty"`
-	Name     string `json:"name"`
+	Contents *string `json:"contents,omitempty"`
+	Name     string  `json:"name"`
 }
 
 type File struct {
@@ -47,25 +47,25 @@ type File struct {
 }
 
 type FileContents struct {
-	Compression  string       `json:"compression,omitempty"`
-	Source       string       `json:"source,omitempty"`
+	Compression  *string      `json:"compression,omitempty"`
+	Source       *string      `json:"source,omitempty"`
 	Verification Verification `json:"verification,omitempty"`
 }
 
 type FileEmbedded1 struct {
 	Append   []FileContents `json:"append,omitempty"`
-	Contents *FileContents  `json:"contents,omitempty"`
+	Contents FileContents   `json:"contents,omitempty"`
 	Mode     *int           `json:"mode,omitempty"`
 }
 
 type Filesystem struct {
 	Device         string             `json:"device"`
-	Format         string             `json:"format"`
+	Format         *string            `json:"format,omitempty"`
 	Label          *string            `json:"label,omitempty"`
 	Options        []FilesystemOption `json:"options,omitempty"`
-	Path           string             `json:"path"`
+	Path           *string            `json:"path,omitempty"`
 	UUID           *string            `json:"uuid,omitempty"`
-	WipeFilesystem bool               `json:"wipeFilesystem,omitempty"`
+	WipeFilesystem *bool              `json:"wipeFilesystem,omitempty"`
 }
 
 type FilesystemOption string
@@ -90,29 +90,29 @@ type Link struct {
 }
 
 type LinkEmbedded1 struct {
-	Hard   bool   `json:"hard,omitempty"`
+	Hard   *bool  `json:"hard,omitempty"`
 	Target string `json:"target"`
 }
 
 type Node struct {
-	Group     *NodeGroup `json:"group,omitempty"`
-	Overwrite *bool      `json:"overwrite,omitempty"`
-	Path      string     `json:"path"`
-	User      *NodeUser  `json:"user,omitempty"`
+	Group     NodeGroup `json:"group,omitempty"`
+	Overwrite *bool     `json:"overwrite,omitempty"`
+	Path      string    `json:"path"`
+	User      NodeUser  `json:"user,omitempty"`
 }
 
 type NodeGroup struct {
-	ID   *int   `json:"id,omitempty"`
-	Name string `json:"name,omitempty"`
+	ID   *int    `json:"id,omitempty"`
+	Name *string `json:"name,omitempty"`
 }
 
 type NodeUser struct {
-	ID   *int   `json:"id,omitempty"`
-	Name string `json:"name,omitempty"`
+	ID   *int    `json:"id,omitempty"`
+	Name *string `json:"name,omitempty"`
 }
 
 type Partition struct {
-	GUID               string  `json:"guid,omitempty"`
+	GUID               *string `json:"guid,omitempty"`
 	Label              *string `json:"label,omitempty"`
 	Number             int     `json:"number,omitempty"`
 	ShouldExist        *bool   `json:"shouldExist,omitempty"`
@@ -120,8 +120,8 @@ type Partition struct {
 	SizeMiB            *int    `json:"sizeMiB,omitempty"`
 	Start              *int    `json:"start,omitempty"`
 	StartMiB           *int    `json:"startMiB,omitempty"`
-	TypeGUID           string  `json:"typeGuid,omitempty"`
-	WipePartitionEntry bool    `json:"wipePartitionEntry,omitempty"`
+	TypeGUID           *string `json:"typeGuid,omitempty"`
+	WipePartitionEntry *bool   `json:"wipePartitionEntry,omitempty"`
 }
 
 type Passwd struct {
@@ -130,25 +130,25 @@ type Passwd struct {
 }
 
 type PasswdGroup struct {
-	Gid          *int   `json:"gid,omitempty"`
-	Name         string `json:"name"`
-	PasswordHash string `json:"passwordHash,omitempty"`
-	System       bool   `json:"system,omitempty"`
+	Gid          *int    `json:"gid,omitempty"`
+	Name         string  `json:"name"`
+	PasswordHash *string `json:"passwordHash,omitempty"`
+	System       *bool   `json:"system,omitempty"`
 }
 
 type PasswdUser struct {
-	Gecos             string             `json:"gecos,omitempty"`
+	Gecos             *string            `json:"gecos,omitempty"`
 	Groups            []Group            `json:"groups,omitempty"`
-	HomeDir           string             `json:"homeDir,omitempty"`
+	HomeDir           *string            `json:"homeDir,omitempty"`
 	Name              string             `json:"name"`
-	NoCreateHome      bool               `json:"noCreateHome,omitempty"`
-	NoLogInit         bool               `json:"noLogInit,omitempty"`
-	NoUserGroup       bool               `json:"noUserGroup,omitempty"`
+	NoCreateHome      *bool              `json:"noCreateHome,omitempty"`
+	NoLogInit         *bool              `json:"noLogInit,omitempty"`
+	NoUserGroup       *bool              `json:"noUserGroup,omitempty"`
 	PasswordHash      *string            `json:"passwordHash,omitempty"`
-	PrimaryGroup      string             `json:"primaryGroup,omitempty"`
+	PrimaryGroup      *string            `json:"primaryGroup,omitempty"`
 	SSHAuthorizedKeys []SSHAuthorizedKey `json:"sshAuthorizedKeys,omitempty"`
-	Shell             string             `json:"shell,omitempty"`
-	System            bool               `json:"system,omitempty"`
+	Shell             *string            `json:"shell,omitempty"`
+	System            *bool              `json:"system,omitempty"`
 	UID               *int               `json:"uid,omitempty"`
 }
 
@@ -157,7 +157,7 @@ type Raid struct {
 	Level   string       `json:"level"`
 	Name    string       `json:"name"`
 	Options []RaidOption `json:"options,omitempty"`
-	Spares  int          `json:"spares,omitempty"`
+	Spares  *int         `json:"spares,omitempty"`
 }
 
 type RaidOption string
@@ -191,11 +191,10 @@ type Timeouts struct {
 }
 
 type Unit struct {
-	Contents string   `json:"contents,omitempty"`
+	Contents *string  `json:"contents,omitempty"`
 	Dropins  []Dropin `json:"dropins,omitempty"`
-	Enable   bool     `json:"enable,omitempty"`
 	Enabled  *bool    `json:"enabled,omitempty"`
-	Mask     bool     `json:"mask,omitempty"`
+	Mask     *bool    `json:"mask,omitempty"`
 	Name     string   `json:"name"`
 }
 

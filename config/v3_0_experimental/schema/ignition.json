@@ -162,7 +162,7 @@
               "type": "string"
             },
             "wipeTable": {
-              "type": "boolean"
+              "type": ["boolean", "null"]
             },
             "partitions": {
               "type": "array",
@@ -185,7 +185,7 @@
               "type": "string"
             },
             "spares": {
-              "type": "integer"
+              "type": ["integer", "null"]
             },
             "devices": {
               "type": "array",
@@ -210,13 +210,13 @@
           "type": "object",
           "properties": {
             "path": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "device": {
               "type": "string"
             },
             "format": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "options": {
               "type": "array",
@@ -225,7 +225,7 @@
               }
             },
             "wipeFilesystem": {
-              "type": "boolean"
+              "type": ["boolean", "null"]
             },
             "label": {
               "type": ["string", "null"]
@@ -235,9 +235,7 @@
             }
           },
           "required": [
-              "device",
-	      "format",
-	      "path"
+              "device"
           ]
         },
         "file": {
@@ -291,7 +289,7 @@
                   "type": "string"
                 },
                 "hard": {
-                  "type": "boolean"
+                  "type": ["boolean", "null"]
                 }
               },
               "required": [
@@ -322,13 +320,13 @@
               "type": ["integer", "null"]
             },
             "typeGuid": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "guid": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "wipePartitionEntry": {
-              "type": "boolean"
+              "type": ["boolean", "null"]
             },
             "shouldExist": {
               "type": ["boolean", "null"]
@@ -336,13 +334,13 @@
           }
         },
         "file-contents": {
-          "type": ["object", "null"],
+          "type": "object",
           "properties": {
             "compression": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "source": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "verification": {
               "$ref": "#/definitions/verification"
@@ -359,24 +357,24 @@
               "type": ["boolean", "null"]
             },
             "user": {
-              "type": ["object", "null"],
+              "type": "object",
               "properties": {
                 "id": {
                   "type": ["integer", "null"]
                 },
                 "name": {
-                  "type": "string"
+                  "type": ["string", "null"]
                 }
               }
             },
             "group": {
-              "type": ["object", "null"],
+              "type": "object",
               "properties": {
                 "id": {
                   "type": ["integer", "null"]
                 },
                 "name": {
-                  "type": "string"
+                  "type": ["string", "null"]
                 }
               }
             }
@@ -404,17 +402,14 @@
             "name": {
               "type": "string"
             },
-            "enable": {
-              "type": "boolean"
-            },
             "enabled": {
               "type": ["boolean", "null"]
             },
             "mask": {
-              "type": "boolean"
+              "type": ["boolean", "null"]
             },
             "contents": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "dropins": {
               "type": "array",
@@ -434,7 +429,7 @@
               "type": "string"
             },
             "contents": {
-              "type": "string"
+              "type": ["string", "null"]
             }
           },
           "required": [
@@ -479,16 +474,16 @@
               "type": ["integer", "null"]
             },
             "gecos": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "homeDir": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "noCreateHome": {
-              "type": "boolean"
+              "type": ["boolean", "null"]
             },
             "primaryGroup": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "groups": {
               "type": "array",
@@ -497,16 +492,16 @@
               }
             },
             "noUserGroup": {
-              "type": "boolean"
+              "type": ["boolean", "null"]
             },
             "system": {
-              "type": "boolean"
+              "type": ["boolean", "null"]
             },
             "noLogInit": {
-              "type": "boolean"
+              "type": ["boolean", "null"]
             },
             "shell": {
-              "type": "string"
+              "type": ["string", "null"]
             }
           },
           "required": [
@@ -523,10 +518,10 @@
               "type": ["integer", "null"]
             },
             "passwordHash": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "system": {
-              "type": "boolean"
+              "type": ["boolean", "null"]
             }
           },
           "required": [

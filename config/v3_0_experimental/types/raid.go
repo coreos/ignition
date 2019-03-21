@@ -27,15 +27,11 @@ func (r Raid) IgnoreDuplicates() []string {
 	return []string{"Options"}
 }
 
-func (n Raid) ValidateLevel() report.Report {
-	r := report.Report{}
+func (n Raid) ValidateLevel() (r report.Report) {
 	switch n.Level {
 	case "linear", "raid0", "0", "stripe":
-		if n.Spares != 0 {
-			r.Add(report.Entry{
-				Message: errors.ErrSparesUnsupportedForLevel.Error(),
-				Kind:    report.EntryError,
-			})
+		if n.Spares != nil && *n.Spares != 0 {
+			r.AddOnError(errors.ErrSparesUnsupportedForLevel)
 		}
 	case "raid1", "1", "mirror":
 	case "raid4", "4":
@@ -43,23 +39,16 @@ func (n Raid) ValidateLevel() report.Report {
 	case "raid6", "6":
 	case "raid10", "10":
 	default:
-		r.Add(report.Entry{
-			Message: errors.ErrUnrecognizedRaidLevel.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrUnrecognizedRaidLevel)
 	}
 	return r
 }
 
-func (n Raid) ValidateDevices() report.Report {
-	r := report.Report{}
+func (n Raid) ValidateDevices() (r report.Report) {
 	for _, d := range n.Devices {
 		if err := validatePath(string(d)); err != nil {
-			r.Add(report.Entry{
-				Message: errors.ErrPathRelative.Error(),
-				Kind:    report.EntryError,
-			})
+			r.AddOnError(errors.ErrPathRelative)
 		}
 	}
-	return r
+	return
 }

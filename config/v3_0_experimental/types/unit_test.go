@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/config/shared/errors"
+	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
@@ -36,15 +37,15 @@ func TestSystemdUnitValidateContents(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{unit: Unit{Name: "test.service", Contents: "[Foo]\nQux=Bar"}},
+			in:  in{unit: Unit{Name: "test.service", Contents: util.StrToPtr("[Foo]\nQux=Bar")}},
 			out: out{err: nil},
 		},
 		{
-			in:  in{unit: Unit{Name: "test.service", Contents: "[Foo"}},
+			in:  in{unit: Unit{Name: "test.service", Contents: util.StrToPtr("[Foo")}},
 			out: out{err: fmt.Errorf("invalid unit content: unable to find end of section")},
 		},
 		{
-			in:  in{unit: Unit{Name: "test.service", Contents: "", Dropins: []Dropin{{}}}},
+			in:  in{unit: Unit{Name: "test.service", Contents: util.StrToPtr(""), Dropins: []Dropin{{}}}},
 			out: out{err: nil},
 		},
 	}
@@ -84,7 +85,7 @@ func TestSystemdUnitValidateName(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := Unit{Name: test.in.unit, Contents: "[Foo]\nQux=Bar"}.ValidateName()
+		err := Unit{Name: test.in.unit, Contents: util.StrToPtr("[Foo]\nQux=Bar")}.ValidateName()
 		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
@@ -104,11 +105,11 @@ func TestSystemdUnitDropInValidate(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{unit: Dropin{Name: "test.conf", Contents: "[Foo]\nQux=Bar"}},
+			in:  in{unit: Dropin{Name: "test.conf", Contents: util.StrToPtr("[Foo]\nQux=Bar")}},
 			out: out{err: nil},
 		},
 		{
-			in:  in{unit: Dropin{Name: "test.conf", Contents: "[Foo"}},
+			in:  in{unit: Dropin{Name: "test.conf", Contents: util.StrToPtr("[Foo")}},
 			out: out{err: fmt.Errorf("invalid unit content: unable to find end of section")},
 		},
 	}

@@ -64,8 +64,13 @@ func (stage) Name() string {
 }
 
 func (s stage) Run(config types.Config) error {
-	fss := config.Storage.Filesystems
-	sort.Slice(fss, func(i, j int) bool { return util.Depth(fss[i].Path) < util.Depth(fss[j].Path) })
+	fss := []types.Filesystem{}
+	for _, fs := range config.Storage.Filesystems {
+		if fs.Path != nil || *fs.Path != "" {
+			fss = append(fss, fs)
+		}
+	}
+	sort.Slice(fss, func(i, j int) bool { return util.Depth(*fss[i].Path) < util.Depth(*fss[j].Path) })
 	for _, fs := range fss {
 		if err := s.mountFs(fs); err != nil {
 			return err
@@ -93,13 +98,13 @@ func checkForNonDirectories(path string) error {
 }
 
 func (s stage) mountFs(fs types.Filesystem) error {
-	if fs.Format == "swap" {
+	if fs.Format == nil || *fs.Format == "swap" || *fs.Format == "" {
 		return nil
 	}
 
 	// mount paths shouldn't include symlinks or other non-directories so we can use filepath.Join()
 	// instead of s.JoinPath(). Check that the resulting path is composed of only directories.
-	path := filepath.Join(s.DestDir, fs.Path)
+	path := filepath.Join(s.DestDir, *fs.Path)
 	if err := checkForNonDirectories(path); err != nil {
 		return err
 	}
@@ -112,8 +117,8 @@ func (s stage) mountFs(fs types.Filesystem) error {
 		return err
 	}
 
-	if err := s.Logger.LogOp(func() error { return syscall.Mount(fs.Device, path, fs.Format, 0, "") },
-		"mounting %q at %q with type %q", fs.Device, path, fs.Format,
+	if err := s.Logger.LogOp(func() error { return syscall.Mount(fs.Device, path, *fs.Format, 0, "") },
+		"mounting %q at %q with type %q", fs.Device, path, *fs.Format,
 	); err != nil {
 		return err
 	}

@@ -28,7 +28,10 @@ func (f Filesystem) IgnoreDuplicates() []string {
 }
 
 func (f Filesystem) ValidatePath() (r report.Report) {
-	r.AddOnError(validatePath(f.Path))
+	if f.Path == nil || *f.Path == "" {
+		return
+	}
+	r.AddOnError(validatePath(*f.Path))
 	return
 }
 
@@ -38,7 +41,17 @@ func (f Filesystem) ValidateDevice() (r report.Report) {
 }
 
 func (f Filesystem) ValidateFormat() (r report.Report) {
-	switch f.Format {
+	if f.Format == nil || *f.Format == "" {
+		if (f.Path == nil || *f.Path == "") &&
+			(f.Label == nil || *f.Label == "") &&
+			(f.UUID == nil || *f.UUID == "") &&
+			len(f.Options) == 0 {
+			return
+		}
+		r.AddOnError(errors.ErrFormatNilWithOthers)
+		return
+	}
+	switch *f.Format {
 	case "ext4", "btrfs", "xfs", "swap", "vfat":
 	default:
 		r.AddOnError(errors.ErrFilesystemInvalidFormat)
@@ -50,7 +63,11 @@ func (f Filesystem) ValidateLabel() (r report.Report) {
 	if f.Label == nil || *f.Label == "" {
 		return
 	}
-	switch f.Format {
+	if f.Format == nil || *f.Format == "" {
+		r.AddOnError(errors.ErrLabelNeedsFormat)
+		return
+	}
+	switch *f.Format {
 	case "ext4":
 		if len(*f.Label) > 16 {
 			// source: man mkfs.ext4

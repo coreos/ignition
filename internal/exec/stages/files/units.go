@@ -29,16 +29,6 @@ func (s *stage) createUnits(config types.Config) error {
 		if err := s.writeSystemdUnit(unit, false); err != nil {
 			return err
 		}
-		if unit.Enable {
-			s.Logger.Warning("the enable field has been deprecated in favor of enabled")
-			if err := s.Logger.LogOp(
-				func() error { return s.EnableUnit(unit) },
-				"enabling unit %q", unit.Name,
-			); err != nil {
-				return err
-			}
-			enabledOneUnit = true
-		}
 		if unit.Enabled != nil {
 			if *unit.Enabled {
 				if err := s.Logger.LogOp(
@@ -57,7 +47,7 @@ func (s *stage) createUnits(config types.Config) error {
 			}
 			enabledOneUnit = true
 		}
-		if unit.Mask {
+		if unit.Mask != nil && *unit.Mask {
 			if err := s.Logger.LogOp(
 				func() error { return s.MaskUnit(unit) },
 				"masking unit %q", unit.Name,
@@ -87,7 +77,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 	return s.Logger.LogOp(func() error {
 		relabeledDropinDir := false
 		for _, dropin := range unit.Dropins {
-			if dropin.Contents == "" {
+			if dropin.Contents == nil || *dropin.Contents == "" {
 				continue
 			}
 			f, err := u.FileFromSystemdUnitDropin(unit, dropin, runtime)
@@ -107,7 +97,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 			}
 		}
 
-		if unit.Contents == "" {
+		if unit.Contents == nil || *unit.Contents == "" {
 			return nil
 		}
 

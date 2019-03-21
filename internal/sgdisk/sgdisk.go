@@ -129,11 +129,11 @@ func (op Operation) buildOptions() []string {
 		if p.Label != nil {
 			opts = append(opts, fmt.Sprintf("--change-name=%d:%s", p.Number, *p.Label))
 		}
-		if p.TypeGUID != "" {
-			opts = append(opts, fmt.Sprintf("--typecode=%d:%s", p.Number, p.TypeGUID))
+		if p.TypeGUID != nil && *p.TypeGUID != "" {
+			opts = append(opts, fmt.Sprintf("--typecode=%d:%s", p.Number, *p.TypeGUID))
 		}
-		if p.GUID != "" {
-			opts = append(opts, fmt.Sprintf("--partition-guid=%d:%s", p.Number, p.GUID))
+		if p.GUID != nil && *p.GUID != "" {
+			opts = append(opts, fmt.Sprintf("--partition-guid=%d:%s", p.Number, *p.GUID))
 		}
 	}
 

@@ -19,14 +19,8 @@ import (
 	"github.com/coreos/ignition/config/validate/report"
 )
 
-func (d Directory) ValidateMode() report.Report {
-	r := report.Report{}
-	if err := validateMode(d.Mode); err != nil {
-		r.Add(report.Entry{
-			Message: err.Error(),
-			Kind:    report.EntryError,
-		})
-	}
+func (d Directory) ValidateMode() (r report.Report) {
+	r.AddOnError(validateMode(d.Mode))
 	if d.Mode == nil {
 		r.AddOnWarning(errors.ErrDirectoryPermissionsUnset)
 	}

@@ -39,13 +39,13 @@ func (n Node) Depth() int {
 }
 
 func (nu NodeUser) Validate() (r report.Report) {
-	if nu.ID != nil && nu.Name != "" {
+	if nu.ID != nil && (nu.Name != nil && *nu.Name != "") {
 		r.AddOnError(errors.ErrBothIDAndNameSet)
 	}
 	return
 }
 func (ng NodeGroup) Validate() (r report.Report) {
-	if ng.ID != nil && ng.Name != "" {
+	if ng.ID != nil && (ng.Name != nil && *ng.Name != "") {
 		r.AddOnError(errors.ErrBothIDAndNameSet)
 	}
 	return

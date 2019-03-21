@@ -19,12 +19,13 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/config/shared/errors"
+	"github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
 func TestFilesystemValidateFormat(t *testing.T) {
 	type in struct {
-		format string
+		filesystem Filesystem
 	}
 	type out struct {
 		err error
@@ -35,21 +36,33 @@ func TestFilesystemValidateFormat(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{format: "ext4"},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("ext4")}},
 			out: out{},
 		},
 		{
-			in:  in{format: "btrfs"},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("btrfs")}},
 			out: out{},
 		},
 		{
-			in:  in{format: ""},
-			out: out{err: errors.ErrFilesystemInvalidFormat},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("")}},
+			out: out{},
+		},
+		{
+			in:  in{filesystem: Filesystem{Format: nil}},
+			out: out{},
+		},
+		{
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr(""), Path: util.StrToPtr("/")}},
+			out: out{errors.ErrFormatNilWithOthers},
+		},
+		{
+			in:  in{filesystem: Filesystem{Format: nil, Path: util.StrToPtr("/")}},
+			out: out{errors.ErrFormatNilWithOthers},
 		},
 	}
 
 	for i, test := range tests {
-		err := Filesystem{Format: test.in.format, Device: "/"}.ValidateFormat()
+		err := test.in.filesystem.ValidateFormat()
 		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
@@ -69,15 +82,19 @@ func TestFilesystemValidatePath(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{filesystem: Filesystem{Path: "/foo"}},
+			in:  in{filesystem: Filesystem{Path: util.StrToPtr("/foo")}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Path: ""}},
-			out: out{errors.ErrNoPath},
+			in:  in{filesystem: Filesystem{Path: util.StrToPtr("")}},
+			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Path: "foo"}},
+			in:  in{filesystem: Filesystem{Path: nil}},
+			out: out{},
+		},
+		{
+			in:  in{filesystem: Filesystem{Path: util.StrToPtr("foo")}},
 			out: out{err: errors.ErrPathRelative},
 		},
 	}
@@ -98,70 +115,68 @@ func TestLabelValidate(t *testing.T) {
 		err error
 	}
 
-	strToPtr := func(p string) *string { return &p }
-
 	tests := []struct {
 		in  in
 		out out
 	}{
 		{
-			in:  in{filesystem: Filesystem{Format: "ext4", Label: nil}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("ext4"), Label: nil}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "ext4", Label: strToPtr("data")}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("ext4"), Label: util.StrToPtr("data")}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "ext4", Label: strToPtr("thislabelistoolong")}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("ext4"), Label: util.StrToPtr("thislabelistoolong")}},
 			out: out{err: errors.ErrExt4LabelTooLong},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "btrfs", Label: nil}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("btrfs"), Label: nil}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "btrfs", Label: strToPtr("thislabelisnottoolong")}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("btrfs"), Label: util.StrToPtr("thislabelisnottoolong")}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "btrfs", Label: strToPtr("thislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolong")}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("btrfs"), Label: util.StrToPtr("thislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolongthislabelistoolong")}},
 			out: out{err: errors.ErrBtrfsLabelTooLong},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "xfs", Label: nil}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("xfs"), Label: nil}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "xfs", Label: strToPtr("data")}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("xfs"), Label: util.StrToPtr("data")}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "xfs", Label: strToPtr("thislabelistoolong")}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("xfs"), Label: util.StrToPtr("thislabelistoolong")}},
 			out: out{err: errors.ErrXfsLabelTooLong},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "swap", Label: nil}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("swap"), Label: nil}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "swap", Label: strToPtr("data")}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("swap"), Label: util.StrToPtr("data")}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "swap", Label: strToPtr("thislabelistoolong")}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("swap"), Label: util.StrToPtr("thislabelistoolong")}},
 			out: out{err: errors.ErrSwapLabelTooLong},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "vfat", Label: nil}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("vfat"), Label: nil}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "vfat", Label: strToPtr("data")}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("vfat"), Label: util.StrToPtr("data")}},
 			out: out{},
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: "vfat", Label: strToPtr("thislabelistoolong")}},
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("vfat"), Label: util.StrToPtr("thislabelistoolong")}},
 			out: out{err: errors.ErrVfatLabelTooLong},
 		},
 	}

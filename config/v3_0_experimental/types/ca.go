@@ -22,10 +22,7 @@ func (c CaReference) Key() string {
 	return c.Source
 }
 
-func (c CaReference) ValidateSource() report.Report {
-	err := validateURL(c.Source)
-	if err != nil {
-		return report.ReportFromError(err, report.EntryError)
-	}
-	return report.Report{}
+func (c CaReference) ValidateSource() (r report.Report) {
+	r.AddOnError(validateURL(c.Source))
+	return
 }

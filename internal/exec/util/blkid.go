@@ -119,10 +119,13 @@ func DumpPartitionTable(device string) ([]types.Partition, error) {
 		if err := cResultToErr(C.blkid_get_partition(cDevice, C.int(i), cInfoRef), device); err != nil {
 			return []types.Partition{}, err
 		}
+		guid := strings.ToUpper(CBufToGoStr(cInfo.uuid))
+		typeGuid := strings.ToUpper(CBufToGoStr(cInfo.type_guid))
+
 		current := types.Partition{
 			Label:    CBufToGoPtr(cInfo.label),
-			GUID:     strings.ToUpper(CBufToGoStr(cInfo.uuid)),
-			TypeGUID: strings.ToUpper(CBufToGoStr(cInfo.type_guid)),
+			GUID:     &guid,
+			TypeGUID: &typeGuid,
 			Number:   int(cInfo.number),
 			Start:    util.IntToPtr(int(cInfo.start)),
 			Size:     util.IntToPtr(int(cInfo.size)),

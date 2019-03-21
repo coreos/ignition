@@ -43,31 +43,31 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 	if exists {
 		cmd = distro.UsermodCmd()
 
-		if c.HomeDir != "" {
-			args = append(args, "--home", c.HomeDir, "--move-home")
+		if c.HomeDir != nil && *c.HomeDir != "" {
+			args = append(args, "--home", *c.HomeDir, "--move-home")
 		}
 	} else {
 		cmd = distro.UseraddCmd()
 
-		if c.HomeDir != "" {
-			args = append(args, "--home-dir", c.HomeDir)
+		if c.HomeDir != nil && *c.HomeDir != "" {
+			args = append(args, "--home-dir", *c.HomeDir)
 		}
 
-		if c.NoCreateHome {
+		if c.NoCreateHome != nil && *c.NoCreateHome {
 			args = append(args, "--no-create-home")
 		} else {
 			args = append(args, "--create-home")
 		}
 
-		if c.NoUserGroup {
+		if c.NoUserGroup != nil && *c.NoUserGroup {
 			args = append(args, "--no-user-group")
 		}
 
-		if c.System {
+		if c.System != nil && *c.System {
 			args = append(args, "--system")
 		}
 
-		if c.NoLogInit {
+		if c.NoLogInit != nil && *c.NoLogInit {
 			args = append(args, "--no-log-init")
 		}
 	}
@@ -89,20 +89,20 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 			strconv.FormatUint(uint64(*c.UID), 10))
 	}
 
-	if c.Gecos != "" {
-		args = append(args, "--comment", c.Gecos)
+	if c.Gecos != nil && *c.Gecos != "" {
+		args = append(args, "--comment", *c.Gecos)
 	}
 
-	if c.PrimaryGroup != "" {
-		args = append(args, "--gid", c.PrimaryGroup)
+	if c.PrimaryGroup != nil && *c.PrimaryGroup != "" {
+		args = append(args, "--gid", *c.PrimaryGroup)
 	}
 
 	if len(c.Groups) > 0 {
 		args = append(args, "--groups", strings.Join(translateV2_1PasswdUserGroupSliceToStringSlice(c.Groups), ","))
 	}
 
-	if c.Shell != "" {
-		args = append(args, "--shell", c.Shell)
+	if c.Shell != nil && *c.Shell != "" {
+		args = append(args, "--shell", *c.Shell)
 	}
 
 	args = append(args, c.Name)
@@ -234,13 +234,13 @@ func (u Util) CreateGroup(g types.PasswdGroup) error {
 			strconv.FormatUint(uint64(*g.Gid), 10))
 	}
 
-	if g.PasswordHash != "" {
-		args = append(args, "--password", g.PasswordHash)
+	if g.PasswordHash != nil && *g.PasswordHash != "" {
+		args = append(args, "--password", *g.PasswordHash)
 	} else {
 		args = append(args, "--password", "*")
 	}
 
-	if g.System {
+	if g.System != nil && *g.System {
 		args = append(args, "--system")
 	}
 

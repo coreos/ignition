@@ -59,7 +59,7 @@ func newHashedReader(reader io.ReadCloser, hasher hash.Hash) io.ReadCloser {
 func newFetchOp(l *log.Logger, node types.Node, contents types.FileContents) (FetchOp, error) {
 	var expectedSum []byte
 
-	uri, err := url.Parse(contents.Source)
+	uri, err := url.Parse(*contents.Source)
 	if err != nil {
 		return FetchOp{}, err
 	}
@@ -80,6 +80,10 @@ func newFetchOp(l *log.Logger, node types.Node, contents types.FileContents) (Fe
 			return FetchOp{}, err
 		}
 	}
+	compression := ""
+	if contents.Compression != nil {
+		compression = *contents.Compression
+	}
 
 	return FetchOp{
 		Hash: hasher,
@@ -87,7 +91,7 @@ func newFetchOp(l *log.Logger, node types.Node, contents types.FileContents) (Fe
 		Url:  *uri,
 		FetchOptions: resource.FetchOptions{
 			Hash:        hasher,
-			Compression: contents.Compression,
+			Compression: compression,
 			ExpectedSum: expectedSum,
 		},
 	}, nil
@@ -100,8 +104,8 @@ func newFetchOp(l *log.Logger, node types.Node, contents types.FileContents) (Fe
 func (u Util) PrepareFetches(l *log.Logger, f types.File) ([]FetchOp, error) {
 	ops := []FetchOp{}
 
-	if f.Contents != nil {
-		if base, err := newFetchOp(l, f.Node, *f.Contents); err != nil {
+	if f.Contents.Source != nil {
+		if base, err := newFetchOp(l, f.Node, f.Contents); err != nil {
 			return nil, err
 		} else {
 			ops = append(ops, base)
@@ -127,7 +131,7 @@ func (u Util) WriteLink(s types.Link) error {
 		return fmt.Errorf("Could not create leading directories: %v", err)
 	}
 
-	if s.Hard {
+	if s.Hard != nil && *s.Hard {
 		targetPath, err := u.JoinPath(s.Target)
 		if err != nil {
 			return err
@@ -278,24 +282,22 @@ func getFileOwnerAndMode(path string) (int, int, os.FileMode) {
 func (u Util) ResolveNodeUidAndGid(n types.Node, defaultUid, defaultGid int) (int, int, error) {
 	var err error
 	uid, gid := defaultUid, defaultGid
-	if n.User != nil {
-		if n.User.ID != nil {
-			uid = *n.User.ID
-		} else if n.User.Name != "" {
-			uid, err = u.getUserID(n.User.Name)
-			if err != nil {
-				return 0, 0, err
-			}
+
+	if n.User.ID != nil {
+		uid = *n.User.ID
+	} else if n.User.Name != nil && *n.User.Name != "" {
+		uid, err = u.getUserID(*n.User.Name)
+		if err != nil {
+			return 0, 0, err
 		}
 	}
-	if n.Group != nil {
-		if n.Group.ID != nil {
-			gid = *n.Group.ID
-		} else if n.Group.Name != "" {
-			gid, err = u.getGroupID(n.Group.Name)
-			if err != nil {
-				return 0, 0, err
-			}
+
+	if n.Group.ID != nil {
+		gid = *n.Group.ID
+	} else if n.Group.Name != nil && *n.Group.Name != "" {
+		gid, err = u.getGroupID(*n.Group.Name)
+		if err != nil {
+			return 0, 0, err
 		}
 	}
 	return uid, gid, nil

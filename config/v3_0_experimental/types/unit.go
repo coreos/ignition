@@ -34,59 +34,45 @@ func (d Dropin) Key() string {
 	return d.Name
 }
 
-func (u Unit) ValidateContents() report.Report {
-	r := report.Report{}
+func (u Unit) ValidateContents() (r report.Report) {
 	opts, err := validateUnitContent(u.Contents)
-	if err != nil {
-		r.Add(report.Entry{
-			Message: err.Error(),
-			Kind:    report.EntryError,
-		})
-	}
+	r.AddOnError(err)
 
-	isEnabled := u.Enable || (u.Enabled != nil && *u.Enabled)
-	r.Merge(validations.ValidateInstallSection(u.Name, isEnabled, u.Contents == "", opts))
+	isEnabled := u.Enabled != nil && *u.Enabled
+	r.Merge(validations.ValidateInstallSection(u.Name, isEnabled, (u.Contents == nil || *u.Contents == ""), opts))
 
 	return r
 }
 
-func (u Unit) ValidateName() report.Report {
-	r := report.Report{}
+func (u Unit) ValidateName() (r report.Report) {
 	switch path.Ext(u.Name) {
 	case ".service", ".socket", ".device", ".mount", ".automount", ".swap", ".target", ".path", ".timer", ".snapshot", ".slice", ".scope":
 	default:
-		r.Add(report.Entry{
-			Message: errors.ErrInvalidSystemdExt.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrInvalidSystemdExt)
 	}
-	return r
+	return
 }
 
 func (d Dropin) Validate() report.Report {
 	r := report.Report{}
 
-	if _, err := validateUnitContent(d.Contents); err != nil {
-		r.Add(report.Entry{
-			Message: err.Error(),
-			Kind:    report.EntryError,
-		})
-	}
+	_, err := validateUnitContent(d.Contents)
+	r.AddOnError(err)
 
 	switch path.Ext(d.Name) {
 	case ".conf":
 	default:
-		r.Add(report.Entry{
-			Message: errors.ErrInvalidSystemdDropinExt.Error(),
-			Kind:    report.EntryError,
-		})
+		r.AddOnError(errors.ErrInvalidSystemdDropinExt)
 	}
 
 	return r
 }
 
-func validateUnitContent(content string) ([]*unit.UnitOption, error) {
-	c := strings.NewReader(content)
+func validateUnitContent(content *string) ([]*unit.UnitOption, error) {
+	if content == nil {
+		return []*unit.UnitOption{}, nil
+	}
+	c := strings.NewReader(*content)
 	opts, err := unit.Deserialize(c)
 	if err != nil {
 		return nil, fmt.Errorf("invalid unit content: %s", err)
