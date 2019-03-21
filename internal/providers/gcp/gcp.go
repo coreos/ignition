@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The gce provider fetches a remote configuration from the gce user-data
+// The gcp provider fetches a remote configuration from the GCE user-data
 // metadata service URL.
 
-package gce
+package gcp
 
 import (
 	"net/url"
