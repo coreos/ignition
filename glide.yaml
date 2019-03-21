@@ -31,6 +31,9 @@ import:
 # in testImport
 - package: github.com/pborman/uuid
   version: v1.1
+- package: golang.org/x/net
+  subpackages:
+  - http/httpproxy
 testImport:
 - package: github.com/stretchr/testify
   version: 4d4bfba8f1d1027c4fdbe371823030df51419987
