@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -euo pipefail
 
 copy_file_if_exists() {
     src="${1}"; dst="${2}"

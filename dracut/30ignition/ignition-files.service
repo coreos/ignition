@@ -5,26 +5,12 @@ Before=ignition-complete.target
 OnFailure=emergency.target
 OnFailureJobMode=isolate
 
-# Ignition files stage starts after /sysroot is mounted.
-Requires=initrd-root-fs.target
-After=initrd-root-fs.target
-
-# Run after ignition-setup has run because ignition-setup
-# may copy in new/different ignition configs for us to consume.
-After=ignition-setup.service
-
-# Make sure root filesystem is mounted read-write
-After=ignition-remount-sysroot.service
+# We need all the filesystems already mounted.
+Requires=ignition-mount.service
+After=ignition-mount.service
 
 # Run before initrd-parse-etc so that we can drop files it then picks up.
 Before=initrd-parse-etc.service
-
-# Network may be required to fetch userdata content.
-After=network.target
-
-# This is guaranteed through After=initrd-root-fs.target but just to
-# be explicit we'll add an After=ignition-disks.service here.
-After=ignition-disks.service
 
 [Service]
 Type=oneshot

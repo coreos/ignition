@@ -49,8 +49,8 @@ install() {
 
     install_ignition_unit ignition-setup.service
     install_ignition_unit ignition-disks.service
+    install_ignition_unit ignition-mount.service
     install_ignition_unit ignition-files.service
-    install_ignition_unit ignition-ask-var-mount.service
     install_ignition_unit ignition-remount-sysroot.service
 }
 
