@@ -228,13 +228,13 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 	}
 
 	appendedCfg := cfg
-	for _, cfgRef := range cfg.Ignition.Config.Append {
+	for _, cfgRef := range cfg.Ignition.Config.Merge {
 		newCfg, err := e.fetchReferencedConfig(cfgRef)
 		if err != nil {
 			return types.Config{}, err
 		}
 
-		// Append the old config with the new config before the new config has
+		// Merge the old config with the new config before the new config has
 		// been rendered, so we can use the new config's timeouts and CAs when
 		// fetching more configs.
 		cfgForFetcherSettings := commonconfig.Append(appendedCfg, newCfg)

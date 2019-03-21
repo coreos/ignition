@@ -46,7 +46,7 @@
         "ignition-config": {
           "type": "object",
           "properties": {
-            "append": {
+            "merge": {
               "type": "array",
               "items": {
                 "$ref": "#/definitions/ignition/definitions/config-reference"

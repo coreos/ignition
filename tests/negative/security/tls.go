@@ -97,7 +97,7 @@ func AppendConfigCustomCert() types.Test {
 		"ignition": {
 			"version": "$version",
 			"config": {
-			  "append": [{
+			  "merge": [{
 				"source": %q
 			  }]
 			},

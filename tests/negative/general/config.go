@@ -78,7 +78,7 @@ func AppendConfigWithInvalidHash() types.Test {
 	  "ignition": {
 	    "version": "$version",
 	    "config": {
-	      "append": [{
+	      "merge": [{
 	        "source": "http://127.0.0.1:8080/config",
 			"verification": { "hash": "sha512-1a04c76c17079cd99e688ba4f1ba095b927d3fecf2b1e027af361dfeafb548f7f5f6fdd675aaa2563950db441d893ca77b0c3e965cdcb891784af96e330267d7" }
 	      }]
@@ -161,7 +161,7 @@ func AppendConfigWithMissingFileHTTP() types.Test {
 	  "ignition": {
 	    "version": "$version",
 	    "config": {
-	      "append": [{
+	      "merge": [{
 	        "source": "http://127.0.0.1:8080/asdf"
 	      }]
 	    }
@@ -186,7 +186,7 @@ func AppendConfigWithMissingFileTFTP() types.Test {
 	  "ignition": {
 	    "version": "$version",
 	    "config": {
-	      "append": [{
+	      "merge": [{
 	        "source": "tftp://127.0.0.1:69/asdf"
 	      }]
 	    }

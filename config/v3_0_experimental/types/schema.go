@@ -80,7 +80,7 @@ type Ignition struct {
 }
 
 type IgnitionConfig struct {
-	Append  []ConfigReference `json:"append,omitempty"`
+	Merge   []ConfigReference `json:"merge,omitempty"`
 	Replace *ConfigReference  `json:"replace,omitempty"`
 }
 
