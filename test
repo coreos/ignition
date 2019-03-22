@@ -1,5 +1,0 @@
-#!/bin/sh
-
-set -e
-
-./dracut/10usr-generator/testsuite.sh
