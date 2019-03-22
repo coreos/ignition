@@ -9,5 +9,16 @@ search --set=bootpart --label boot
 # to be used later on the kernel command line.
 set ignition_firstboot=""
 if [ -f "(${bootpart})/ignition.firstboot" ]; then
-    set ignition_firstboot="ignition.firstboot rd.neednet=1 ip=dhcp"
+    # default to dhcp networking parameters to be used with ignition 
+    set ignition_network_kcmdline='rd.neednet=1 ip=dhcp'
+
+    # source in the `ignition.firstboot` file which could override the
+    # above $ignition_network_kcmdline with static networking config.
+    # This override feature is primarily used by coreos-installer to
+    # persist static networking config provided during install to the    
+    # first boot of the machine.
+    source "(${bootpart})/ignition.firstboot"
+    
+    # we support setting variables in the 
+    set ignition_firstboot="ignition.firstboot $ignition_network_kcmdline"
 fi
