@@ -210,8 +210,8 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 // provided config will be returned unmodified. An updated fetcher will be
 // returned with any new timeouts set.
 func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
-	if cfgRef := cfg.Ignition.Config.Replace; cfgRef != nil {
-		newCfg, err := e.fetchReferencedConfig(*cfgRef)
+	if cfgRef := cfg.Ignition.Config.Replace; cfgRef.Source != nil {
+		newCfg, err := e.fetchReferencedConfig(cfgRef)
 		if err != nil {
 			return types.Config{}, err
 		}
@@ -253,8 +253,9 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 }
 
 // fetchReferencedConfig fetches and parses the requested config.
+// cfgRef.Source must not ve nil
 func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
-	u, err := url.Parse(cfgRef.Source)
+	u, err := url.Parse(*cfgRef.Source)
 	if err != nil {
 		return types.Config{}, err
 	}
@@ -267,7 +268,7 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 
 	hash := sha512.Sum512(rawCfg)
 	if u.Scheme != "data" {
-		e.Logger.Debug("fetched referenced config at %s with SHA512: %s", cfgRef.Source, hex.EncodeToString(hash[:]))
+		e.Logger.Debug("fetched referenced config at %s with SHA512: %s", *cfgRef.Source, hex.EncodeToString(hash[:]))
 	} else {
 		// data url's might contain secrets
 		e.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))

@@ -74,10 +74,10 @@
           }
         },
         "config-reference": {
-          "type": ["object", "null"],
+          "type": "object",
           "properties": {
             "source": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "verification": {
               "$ref": "#/definitions/verification"

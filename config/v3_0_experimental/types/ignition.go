@@ -22,11 +22,17 @@ import (
 )
 
 func (c ConfigReference) Key() string {
-	return c.Source
+	if c.Source == nil {
+		return ""
+	}
+	return *c.Source
 }
 
 func (c ConfigReference) ValidateSource() (r report.Report) {
-	r.AddOnError(validateURL(c.Source))
+	if c.Source == nil {
+		return
+	}
+	r.AddOnError(validateURL(*c.Source))
 	return
 }
 
