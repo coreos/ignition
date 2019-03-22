@@ -29,7 +29,7 @@ func (f File) ValidateMode() (r report.Report) {
 	return r
 }
 
-func (f File) IgnoreDuplicates() map[string]struct{} {
+func (f FileEmbedded1) IgnoreDuplicates() map[string]struct{} {
 	return map[string]struct{}{
 		"Append": {},
 	}
