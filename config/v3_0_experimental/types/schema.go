@@ -15,7 +15,7 @@ type Config struct {
 }
 
 type ConfigReference struct {
-	Source       string       `json:"source"`
+	Source       *string      `json:"source"`
 	Verification Verification `json:"verification,omitempty"`
 }
 
@@ -80,8 +80,8 @@ type Ignition struct {
 }
 
 type IgnitionConfig struct {
-	Append  []ConfigReference `json:"append,omitempty"`
-	Replace *ConfigReference  `json:"replace,omitempty"`
+	Merge   []ConfigReference `json:"merge,omitempty"`
+	Replace ConfigReference   `json:"replace,omitempty"`
 }
 
 type Link struct {

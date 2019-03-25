@@ -22,12 +22,13 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"reflect"
 	"time"
 
-	commonconfig "github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/shared/errors"
 	config "github.com/coreos/ignition/config/v3_0_experimental"
 	"github.com/coreos/ignition/config/v3_0_experimental/types"
+	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/log"
@@ -82,7 +83,7 @@ func (e Engine) Run(stageName string) error {
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
 
-	fullConfig := commonconfig.Append(baseConfig, commonconfig.Append(systemBaseConfig, cfg))
+	fullConfig := config.Merge(baseConfig, config.Merge(systemBaseConfig, cfg))
 	if err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(fullConfig); err != nil {
 		// e.Logger could be nil
 		fmt.Fprintf(os.Stderr, "%s failed", stageName)
@@ -149,6 +150,14 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 		return
 	}
 
+	rpt := validate.ValidateWithoutSource(reflect.ValueOf(cfg))
+	e.logReport(rpt)
+	if rpt.IsFatal() {
+		err = errors.ErrInvalid
+		e.Logger.Crit("merging configs resulted in an invalid config")
+		return
+	}
+
 	// Populate the config cache.
 	b, err = json.Marshal(cfg)
 	if err != nil {
@@ -211,8 +220,8 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 // provided config will be returned unmodified. An updated fetcher will be
 // returned with any new timeouts set.
 func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
-	if cfgRef := cfg.Ignition.Config.Replace; cfgRef != nil {
-		newCfg, err := e.fetchReferencedConfig(*cfgRef)
+	if cfgRef := cfg.Ignition.Config.Replace; cfgRef.Source != nil {
+		newCfg, err := e.fetchReferencedConfig(cfgRef)
 		if err != nil {
 			return types.Config{}, err
 		}
@@ -228,16 +237,16 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 	}
 
 	appendedCfg := cfg
-	for _, cfgRef := range cfg.Ignition.Config.Append {
+	for _, cfgRef := range cfg.Ignition.Config.Merge {
 		newCfg, err := e.fetchReferencedConfig(cfgRef)
 		if err != nil {
 			return types.Config{}, err
 		}
 
-		// Append the old config with the new config before the new config has
+		// Merge the old config with the new config before the new config has
 		// been rendered, so we can use the new config's timeouts and CAs when
 		// fetching more configs.
-		cfgForFetcherSettings := commonconfig.Append(appendedCfg, newCfg)
+		cfgForFetcherSettings := config.Merge(appendedCfg, newCfg)
 		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfgForFetcherSettings.Ignition.Timeouts, cfgForFetcherSettings.Ignition.Security.TLS.CertificateAuthorities)
 		if err != nil {
 			return types.Config{}, err
@@ -248,14 +257,15 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 			return types.Config{}, err
 		}
 
-		appendedCfg = commonconfig.Append(appendedCfg, newCfg)
+		appendedCfg = config.Merge(appendedCfg, newCfg)
 	}
 	return appendedCfg, nil
 }
 
 // fetchReferencedConfig fetches and parses the requested config.
+// cfgRef.Source must not ve nil
 func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
-	u, err := url.Parse(cfgRef.Source)
+	u, err := url.Parse(*cfgRef.Source)
 	if err != nil {
 		return types.Config{}, err
 	}
@@ -268,7 +278,7 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 
 	hash := sha512.Sum512(rawCfg)
 	if u.Scheme != "data" {
-		e.Logger.Debug("fetched referenced config at %s with SHA512: %s", cfgRef.Source, hex.EncodeToString(hash[:]))
+		e.Logger.Debug("fetched referenced config at %s with SHA512: %s", *cfgRef.Source, hex.EncodeToString(hash[:]))
 	} else {
 		// data url's might contain secrets
 		e.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))

@@ -157,7 +157,7 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
 	  "ignition": {
 	    "version": "$version",
 	    "config": {
-	      "append": [{
+	      "merge": [{
 	        "source": "http://127.0.0.1:8080/config",
 			"verification": { "hash": "sha512-3917a12839de1fc23681bf6efe55b8d721fe136d8d059b8800cfe2f79581170aed7de36b68c54821015d9dda256e5a5310be1aa86e07f65adc1bdd7c3f4da639" }
 	      }]
@@ -205,7 +205,7 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
           "ignition": {
             "version": "$version",
             "config": {
-              "append": [{
+              "merge": [{
                 "source": "tftp://127.0.0.1:69/config",
                         "verification": { "hash": "sha512-3917a12839de1fc23681bf6efe55b8d721fe136d8d059b8800cfe2f79581170aed7de36b68c54821015d9dda256e5a5310be1aa86e07f65adc1bdd7c3f4da639" }
               }]
@@ -287,7 +287,7 @@ func AppendConfigWithRemoteConfigData() types.Test {
           "ignition": {
             "version": "$version",
             "config": {
-              "append": [{
+              "merge": [{
 				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%223.0.0-experimental%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
               }]
             }

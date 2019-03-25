@@ -42,13 +42,13 @@ var (
 	configDelayServer    = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Hold the connection open for 2 seconds, then return
 		time.Sleep(time.Second * 2)
-		// Give a config that appends ourselves and sets the timeouts to 1
+		// Give a config that merges ourselves and sets the timeouts to 1
 		// second (less than we wait!)
 		w.Write([]byte(fmt.Sprintf(`{
 			"ignition": {
 				"version": "$version",
 				"config": {
-					"append": [{
+					"merge": [{
 						"source": %q
 					}]
 				},
@@ -103,7 +103,7 @@ func AppendWithHTTPTimeouts() types.Test {
 		"ignition": {
 			"version": "$version",
 			"config": {
-				"append": [{
+				"merge": [{
 					"source": %q
 				}]
 			},
@@ -133,7 +133,7 @@ func AppendLowerHTTPTimeouts() types.Test {
 		"ignition": {
 			"version": "$version",
 			"config": {
-				"append": [{
+				"merge": [{
 					"source": %q
 				}]
 			}
@@ -152,14 +152,14 @@ func AppendLowerHTTPTimeouts() types.Test {
 }
 
 func AppendNoneThenLowerHTTPTimeouts() types.Test {
-	// If an initial config specifies timeouts, and then appends a config with
+	// If an initial config specifies timeouts, and then merges a config with
 	// no timeouts, the initial timeouts should still apply
 
 	var (
 		emptyConfigDelayServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Hold the connection open for 2 seconds, then return
 			time.Sleep(time.Second * 2)
-			// Give a config that appends ourselves and sets the timeouts to 1
+			// Give a config that merges ourselves and sets the timeouts to 1
 			// second (less than we wait!)
 			w.Write([]byte(`{
 				"ignition": {
@@ -169,13 +169,13 @@ func AppendNoneThenLowerHTTPTimeouts() types.Test {
 		}))
 
 		configNoDelayServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Give a config that appends ourselves and sets the timeouts to 1
+			// Give a config that merges ourselves and sets the timeouts to 1
 			// second (less than we wait!)
 			w.Write([]byte(fmt.Sprintf(`{
 			"ignition": 
 				"version": "$version",
 				"config": {
-					"append": [{
+					"merge": [{
 						"source": %q
 					}]
 				}
@@ -191,7 +191,7 @@ func AppendNoneThenLowerHTTPTimeouts() types.Test {
 		"ignition": {
 			"version": "$version",
 			"config": {
-				"append": [{
+				"merge": [{
 					"source": %q
 				}]
 			},

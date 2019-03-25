@@ -73,7 +73,7 @@ func TestValidate(t *testing.T) {
 				Ignition: Ignition{
 					Version: "3.0.0-experimental",
 					Config: IgnitionConfig{
-						Replace: &ConfigReference{
+						Replace: ConfigReference{
 							Verification: Verification{
 								Hash: func(s string) *string { return &s }("foobar-"),
 							},

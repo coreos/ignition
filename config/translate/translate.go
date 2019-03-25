@@ -17,6 +17,8 @@ package translate
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/coreos/ignition/config/util"
 )
 
 /*
@@ -31,42 +33,6 @@ import (
  * other fields through the Translator.Translate() function.
  */
 
-func isPrimitive(k reflect.Kind) bool {
-	switch k {
-	case reflect.Bool,
-		reflect.Int,
-		reflect.Int8,
-		reflect.Int16,
-		reflect.Int32,
-		reflect.Int64,
-		reflect.Uint,
-		reflect.Uint8,
-		reflect.Uint16,
-		reflect.Uint32,
-		reflect.Uint64,
-		reflect.Uintptr,
-		reflect.Float32,
-		reflect.Float64,
-		reflect.Complex64,
-		reflect.Complex128,
-		reflect.String:
-		return true
-	default:
-		return false
-	}
-}
-
-func isInvalidInConfig(k reflect.Kind) bool {
-	switch {
-	case isPrimitive(k):
-		return false
-	case k == reflect.Ptr || k == reflect.Slice || k == reflect.Struct:
-		return false
-	default:
-		return true
-	}
-}
-
 // Returns if this type can be translated without a custom translator. Children or other
 // ancestors might require custom translators however
 func (t translator) translatable(t1, t2 reflect.Type) bool {
@@ -76,9 +42,9 @@ func (t translator) translatable(t1, t2 reflect.Type) bool {
 		return false
 	}
 	switch {
-	case isPrimitive(k1):
+	case util.IsPrimitive(k1):
 		return true
-	case isInvalidInConfig(k1):
+	case util.IsInvalidInConfig(k1):
 		panic(fmt.Sprintf("Encountered invalid kind %s in config. This is a bug, please file a report", k1))
 	case k1 == reflect.Ptr || k1 == reflect.Slice:
 		return t.translatable(t1.Elem(), t2.Elem()) || t.hasTranslator(t1.Elem(), t2.Elem())
@@ -116,7 +82,7 @@ func couldBeValidTranslator(t reflect.Type) bool {
 	if t.NumIn() != 1 || t.NumOut() != 1 {
 		return false
 	}
-	if isInvalidInConfig(t.In(0).Kind()) || isInvalidInConfig(t.Out(0).Kind()) {
+	if util.IsInvalidInConfig(t.In(0).Kind()) || util.IsInvalidInConfig(t.Out(0).Kind()) {
 		return false
 	}
 	return true
@@ -128,7 +94,7 @@ func couldBeValidTranslator(t reflect.Type) bool {
 func (t translator) translateSameType(vFrom, vTo reflect.Value) {
 	k := vFrom.Kind()
 	switch {
-	case isPrimitive(k):
+	case util.IsPrimitive(k):
 		// Use convert, even if not needed; type alias to primitives are not
 		// directly assignable and calling Convert on primitives does no harm
 		vTo.Set(vFrom.Convert(vTo.Type()))

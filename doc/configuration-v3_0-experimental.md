@@ -7,7 +7,7 @@ The Ignition configuration is a JSON document conforming to the following specif
 * **ignition** (object): metadata about the configuration itself.
   * **version** (string): the semantic version number of the spec. The spec version must be compatible with the latest version (`3.0.0-experimental`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
   * **_config_** (objects): options related to the configuration.
-    * **_append_** (list of objects): a list of the configs to be appended to the current config.
+    * **_merge_** (list of objects): a list of the configs to be merged to the current config.
       * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
