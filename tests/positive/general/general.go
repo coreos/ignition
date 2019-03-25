@@ -15,7 +15,10 @@
 package general
 
 import (
+	"strings"
+
 	"github.com/coreos/ignition/tests/register"
+	"github.com/coreos/ignition/tests/servers"
 	"github.com/coreos/ignition/tests/types"
 )
 
@@ -83,17 +86,17 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	name := "Replacing the Config with a Remote Config from HTTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	config := `{
+	config := strings.Replace(`{
 	  "ignition": {
 	    "version": "$version",
 	    "config": {
 	      "replace": {
 	        "source": "http://127.0.0.1:8080/config",
-			"verification": { "hash": "sha512-3917a12839de1fc23681bf6efe55b8d721fe136d8d059b8800cfe2f79581170aed7de36b68c54821015d9dda256e5a5310be1aa86e07f65adc1bdd7c3f4da639" }
+			"verification": { "hash": "sha512-HASH" }
 	      }
 	    }
 	  }
-	}`
+	}`, "HASH", servers.ConfigHash, 1)
 	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
@@ -118,17 +121,17 @@ func ReplaceConfigWithRemoteConfigTFTP() types.Test {
 	name := "Replacing the Config with a Remote Config from TFTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	config := `{
+	config := strings.Replace(`{
           "ignition": {
             "version": "$version",
             "config": {
               "replace": {
                 "source": "tftp://127.0.0.1:69/config",
-                        "verification": { "hash": "sha512-3917a12839de1fc23681bf6efe55b8d721fe136d8d059b8800cfe2f79581170aed7de36b68c54821015d9dda256e5a5310be1aa86e07f65adc1bdd7c3f4da639" }
+                        "verification": { "hash": "sha512-HASH" }
               }
             }
           }
-        }`
+        }`, "HASH", servers.ConfigHash, 1)
 	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
@@ -153,13 +156,13 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
 	name := "Appending to the Config with a Remote Config from HTTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	config := `{
+	config := strings.Replace(`{
 	  "ignition": {
 	    "version": "$version",
 	    "config": {
 	      "merge": [{
 	        "source": "http://127.0.0.1:8080/config",
-			"verification": { "hash": "sha512-3917a12839de1fc23681bf6efe55b8d721fe136d8d059b8800cfe2f79581170aed7de36b68c54821015d9dda256e5a5310be1aa86e07f65adc1bdd7c3f4da639" }
+			"verification": { "hash": "sha512-HASH" }
 	      }]
 	    }
 	  },
@@ -169,7 +172,7 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
           "contents": { "source": "data:,another%20example%20file%0A" }
         }]
       }
-	}`
+	}`, "HASH", servers.ConfigHash, 1)
 	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
@@ -201,13 +204,13 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
 	name := "Appending to the Config with a Remote Config from TFTP"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	config := `{
+	config := strings.Replace(`{
           "ignition": {
             "version": "$version",
             "config": {
               "merge": [{
                 "source": "tftp://127.0.0.1:69/config",
-                        "verification": { "hash": "sha512-3917a12839de1fc23681bf6efe55b8d721fe136d8d059b8800cfe2f79581170aed7de36b68c54821015d9dda256e5a5310be1aa86e07f65adc1bdd7c3f4da639" }
+                        "verification": { "hash": "sha512-HASH" }
               }]
             }
           },
@@ -217,7 +220,7 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
           "contents": { "source": "data:,another%20example%20file%0A" }
         }]
       }
-        }`
+        }`, "HASH", servers.ConfigHash, 1)
 	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
