@@ -254,6 +254,8 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		}
 	}
 
+	t.Logf("Rendered Ignition Config:\n%s", test.Config)
+
 	// If we're not expecting the config to be bad, make sure it passes
 	// validation.
 	if !test.ConfigShouldBeBad {
