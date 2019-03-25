@@ -15,8 +15,12 @@
 package general
 
 import (
+	"fmt"
+
 	"github.com/coreos/ignition/tests/register"
 	"github.com/coreos/ignition/tests/types"
+
+	"github.com/vincent-petithory/dataurl"
 )
 
 func init() {
@@ -29,6 +33,7 @@ func init() {
 	register.Register(register.NegativeTest, VersionOnlyConfig24())
 	register.Register(register.NegativeTest, VersionOnlyConfig30())
 	register.Register(register.NegativeTest, VersionOnlyConfig31())
+	register.Register(register.NegativeTest, MergingCanFail())
 }
 
 func ReplaceConfigWithInvalidHash() types.Test {
@@ -257,5 +262,59 @@ func VersionOnlyConfig31() types.Test {
 		Out:               out,
 		Config:            config,
 		ConfigShouldBeBad: true,
+	}
+}
+
+func MergingCanFail() types.Test {
+	name := "Merging Can Fail"
+	configMinVersion := "3.0.0-experimental"
+	in := types.GetBaseDisk()
+	out := in
+	mntDevices := []types.MntDevice{
+		{
+			Label:        "OEM",
+			Substitution: "DEVICE", // no $, since it'll get mangled by the url encoding
+		},
+	}
+	appendedConfig := `{
+	  "ignition": {
+	    "version": "3.0.0-experimental"
+	  },
+	  "storage": {
+	    "filesystems": [{
+	      "format": "",
+	      "device": "DEVICE"
+	    }]
+	  }
+	}`
+	du := dataurl.New([]byte(appendedConfig), "text/plain")
+	du.Encoding = dataurl.EncodingASCII // needed to make sure $DEVICE gets decoded correctly
+
+	config := fmt.Sprintf(`{
+	  "ignition": {
+	    "version": "3.0.0-experimental",
+	    "config": {
+	      "merge": [{
+	        "source": "%s"
+	      }]
+	    }
+	  },
+	  "storage": {
+	    "filesystems": [{
+	      "path": "/foo",
+	      "format": "ext4",
+	      "device": "DEVICE"
+	    }]
+	  }
+	}`, du.String())
+
+	return types.Test{
+		Name:              name,
+		In:                in,
+		Out:               out,
+		Config:            config,
+		MntDevices:        mntDevices,
+		ConfigShouldBeBad: false,
+		ConfigMinVersion:  configMinVersion,
 	}
 }
