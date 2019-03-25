@@ -29,6 +29,7 @@ import (
 
 	config "github.com/coreos/ignition/config/v3_0"
 	"github.com/coreos/ignition/tests/register"
+	"github.com/coreos/ignition/tests/servers"
 	"github.com/coreos/ignition/tests/types"
 
 	// Register the tests
@@ -68,9 +69,9 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 
 	if !listSubtests {
-		httpServer := &HTTPServer{}
+		httpServer := &servers.HTTPServer{}
 		httpServer.Start()
-		tftpServer := &TFTPServer{}
+		tftpServer := &servers.TFTPServer{}
 		tftpServer.Start()
 	}
 	os.Exit(m.Run())
