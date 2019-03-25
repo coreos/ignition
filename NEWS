@@ -1,3 +1,26 @@
+25-Mar-2019 Ignition 2.0.0-alpha
+
+  NOTE: This is an alpha release. While the spec is marked as stable (i.e no
+    "-experimental" suffix) we still reserve the right to change it until the
+    stable 2.0.0 release. However, we do not anticipate any backwards
+    incompatible changes aside from removing deprecated fields.
+
+  NOTE: In order to allow types from both the 2.x.y and 3.0.0 specs to be
+    vendored and imported in the same project, we are skipping version 1.0.0.
+    Go mod (and some other tools) treat v0.x and v1.x as the same when
+    importing packages with semantic import versioning.
+
+  Features:
+
+    - Ignition now understands config specification 3.0.0
+    - Configs are now merged instead of appended
+
+  Changes:
+
+    - Configs with version < 3.0.0 are now rejected
+    - Duplicate entries are now disallowed in lists
+    - Removal of almost all deprecated fields
+
 14-Dec-2018 IGNITION v0.30.0
 
   Features:
