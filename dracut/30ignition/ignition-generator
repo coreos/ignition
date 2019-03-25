@@ -39,10 +39,4 @@ if $(cmdline_bool 'ignition.firstboot' 0); then
     add_requires ignition-complete.target
 fi
 
-RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)
-if [ -n "$RANDOMIZE_DISK_GUID" ]; then
-    escaped_guid=$(systemd-escape --path "/dev/disk/by-diskuuid/$RANDOMIZE_DISK_GUID")
-    add_requires "disk-uuid@${escaped_guid}.service"
-fi
-
 echo "PLATFORM_ID=$(cmdline_arg ignition.platform.id)" > /run/ignition.env
