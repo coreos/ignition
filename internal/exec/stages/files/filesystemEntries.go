@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	configUtil "github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/v3_0_experimental/types"
@@ -248,6 +249,9 @@ func (s *stage) createEntries(files []filesystemEntry) error {
 
 	for _, e := range files {
 		path := e.getPath()
+		if !strings.HasPrefix(path, s.DestDir) {
+			panic(fmt.Sprintf("Entry path %s isn't under prefix %s", path, s.DestDir))
+		}
 		if s.relabeling() {
 			// relabel from the first parent dir that we'll have to create --
 			// alternatively, we could make `MkdirForFile` fancier instead of
@@ -264,14 +268,15 @@ func (s *stage) createEntries(files []filesystemEntry) error {
 				}
 
 				// we're done on the first hit -- also sanity check we didn't
-				// somehow get all the way up to /
-				if exists || dir == "/" {
+				// somehow get all the way up to /sysroot
+				if exists || dir == s.DestDir {
 					break
 				}
 				relabelFrom = dir
 				dir = filepath.Dir(dir)
 			}
-			s.relabel(relabelFrom)
+			// trim off prefix since this needs to be relative to the sysroot
+			s.relabel(relabelFrom[len(s.DestDir):])
 		}
 		if err := e.create(s.Logger, s.Util); err != nil {
 			return err
