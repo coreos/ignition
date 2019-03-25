@@ -49,7 +49,7 @@ func ValidateFileHashFromDataURL() types.Test {
 			Contents: "example file\n",
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -85,7 +85,7 @@ func ValidateFileHashFromHTTPURL() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,

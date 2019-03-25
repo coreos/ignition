@@ -56,7 +56,7 @@ func ReformatFilesystemAndWriteFile() types.Test {
 				"contents": {"source": "data:,asdf"}
 			}]}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").Files = []types.File{
@@ -94,7 +94,7 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -129,7 +129,7 @@ func ReplaceConfigWithRemoteConfigTFTP() types.Test {
             }
           }
         }`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -170,7 +170,7 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
         }]
       }
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -218,7 +218,7 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
         }]
       }
         }`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -254,12 +254,12 @@ func ReplaceConfigWithRemoteConfigData() types.Test {
             "version": "$version",
             "config": {
               "replace": {
-				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%223.0.0-experimental%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
+				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%223.0.0%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
               }
             }
           }
         }`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -288,12 +288,12 @@ func AppendConfigWithRemoteConfigData() types.Test {
             "version": "$version",
             "config": {
               "merge": [{
-				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%223.0.0-experimental%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
+				  "source": "data:,%7B%22ignition%22%3A%7B%22version%22%3A%20%223.0.0%22%7D%2C%22storage%22%3A%20%7B%22files%22%3A%20%5B%7B%22filesystem%22%3A%20%22root%22%2C%22path%22%3A%20%22%2Ffoo%2Fbar%22%2C%22contents%22%3A%7B%22source%22%3A%22data%3A%2Canother%2520example%2520file%250A%22%7D%7D%5D%7D%7D%0A"
               }]
             }
           }
         }`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -320,7 +320,7 @@ func VersionOnlyConfig() types.Test {
 	config := `{
 		"ignition": {"version": "$version"}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,

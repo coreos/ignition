@@ -16,7 +16,7 @@ package register
 
 import (
 	"github.com/coreos/go-semver/semver"
-	types30 "github.com/coreos/ignition/config/v3_0_experimental/types"
+	types30 "github.com/coreos/ignition/config/v3_0/types"
 	"github.com/coreos/ignition/tests/types"
 )
 

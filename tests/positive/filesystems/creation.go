@@ -47,7 +47,7 @@ func WipeFilesystemWithSameType() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
@@ -148,7 +148,7 @@ func FilesystemCreationOnMultipleDisks() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,

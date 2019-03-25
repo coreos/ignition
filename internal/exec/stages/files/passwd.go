@@ -17,7 +17,7 @@ package files
 import (
 	"fmt"
 
-	"github.com/coreos/ignition/config/v3_0_experimental/types"
+	"github.com/coreos/ignition/config/v3_0/types"
 )
 
 // createPasswd creates the users and groups as described in config.Passwd.

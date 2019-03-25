@@ -31,7 +31,6 @@ func init() {
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileHTTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileTFTP())
 	register.Register(register.NegativeTest, VersionOnlyConfig24())
-	register.Register(register.NegativeTest, VersionOnlyConfig30())
 	register.Register(register.NegativeTest, VersionOnlyConfig31())
 	register.Register(register.NegativeTest, MergingCanFail())
 }
@@ -57,7 +56,7 @@ func ReplaceConfigWithInvalidHash() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -96,7 +95,7 @@ func AppendConfigWithInvalidHash() types.Test {
         }]
       }
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -122,7 +121,7 @@ func ReplaceConfigWithMissingFileHTTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -147,7 +146,7 @@ func ReplaceConfigWithMissingFileTFTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -172,7 +171,7 @@ func AppendConfigWithMissingFileHTTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -197,7 +196,7 @@ func AppendConfigWithMissingFileTFTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -215,25 +214,6 @@ func VersionOnlyConfig24() types.Test {
 	config := `{
 	  "ignition": {
 	    "version": "2.4.0-experimental"
-	  }
-	}`
-
-	return types.Test{
-		Name:              name,
-		In:                in,
-		Out:               out,
-		Config:            config,
-		ConfigShouldBeBad: true,
-	}
-}
-
-func VersionOnlyConfig30() types.Test {
-	name := "Version Only Config 3.0.0"
-	in := types.GetBaseDisk()
-	out := in
-	config := `{
-	  "ignition": {
-	    "version": "3.0.0"
 	  }
 	}`
 
@@ -278,7 +258,7 @@ func MergingCanFail() types.Test {
 	}
 	appendedConfig := `{
 	  "ignition": {
-	    "version": "3.0.0-experimental"
+	    "version": "3.0.0"
 	  },
 	  "storage": {
 	    "filesystems": [{
@@ -292,7 +272,7 @@ func MergingCanFail() types.Test {
 
 	config := fmt.Sprintf(`{
 	  "ignition": {
-	    "version": "3.0.0-experimental",
+	    "version": "3.0.0",
 	    "config": {
 	      "merge": [{
 	        "source": "%s"

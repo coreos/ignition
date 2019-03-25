@@ -49,7 +49,7 @@ func CreateDirectoryOnRoot() types.Test {
 			},
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -90,7 +90,7 @@ func ForceDirCreation() types.Test {
 			},
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -131,7 +131,7 @@ func ForceDirCreationOverNonemptyDir() types.Test {
 			},
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	// TODO: add ability to ensure that foo/bar/baz doesn't exist here.
 
 	return types.Test{
@@ -187,7 +187,7 @@ func CheckOrdering() types.Test {
 			Mode: 0755 | int(os.ModeDir),
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -219,7 +219,7 @@ func ApplyDefaultDirectoryPermissions() types.Test {
 			Mode: 0755 | int(os.ModeDir),
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,

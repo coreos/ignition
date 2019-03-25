@@ -67,7 +67,7 @@ func CreateHardLinkOnRoot() types.Test {
 			Hard:   true,
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -110,7 +110,7 @@ func CreateSymlinkOnRoot() types.Test {
 			Hard:   false,
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -168,7 +168,7 @@ func ForceLinkCreation() types.Test {
 			Target: "/foo/target",
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -228,7 +228,7 @@ func ForceHardLinkCreation() types.Test {
 			Hard:   true,
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -290,7 +290,7 @@ func WriteOverSymlink() types.Test {
 			Mode:     420,
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -334,7 +334,7 @@ func WriteOverBrokenSymlink() types.Test {
 			Mode:     420,
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,

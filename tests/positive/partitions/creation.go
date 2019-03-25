@@ -63,7 +63,7 @@ func CreatePartition() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -107,7 +107,7 @@ func WipeAndCreateNewPartitions() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	// Create dummy partitions. The UUIDs in the input partitions
 	// are intentionally different so if Ignition doesn't do the right thing the
 	// validation will fail.
@@ -188,7 +188,7 @@ func AppendPartitions() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	in = append(in, types.Disk{
 		Alignment: types.IgnitionAlignment,
@@ -276,7 +276,7 @@ func ResizeRoot() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,

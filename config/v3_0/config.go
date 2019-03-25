@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v3_0_experimental
+package v3_0
 
 import (
 	"reflect"
@@ -20,7 +20,7 @@ import (
 	"github.com/coreos/ignition/config/merge"
 	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/util"
-	"github.com/coreos/ignition/config/v3_0_experimental/types"
+	"github.com/coreos/ignition/config/v3_0/types"
 	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
 

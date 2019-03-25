@@ -78,7 +78,7 @@ func IncreaseHTTPResponseHeadersTimeout() types.Test {
 			]
 		}
 	}`, respondDelayServer.URL)
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -117,7 +117,7 @@ func ConfirmHTTPBackoffWorks() types.Test {
 			]
 		}
 	}`, respondThrottledServer.URL)
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

@@ -39,7 +39,7 @@ func MissingRemoteContentsHTTP() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -65,7 +65,7 @@ func MissingRemoteContentsTFTP() types.Test {
             }]
           }
         }`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
