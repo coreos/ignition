@@ -17,9 +17,6 @@ cmdline_arg() {
     echo "${value}"
 }
 
-# check *both* old and new keys for now
-platform_id=$(cmdline_arg ignition.platform.id "$(cmdline_arg coreos.oem.id)")
-
 cmdline_bool() {
     local value=$(cmdline_arg "$@")
     case "$value" in
@@ -48,4 +45,4 @@ if [ -n "$RANDOMIZE_DISK_GUID" ]; then
     add_requires "disk-uuid@${escaped_guid}.service"
 fi
 
-echo "PLATFORM_ID=$platform_id" > /run/ignition.env
+echo "PLATFORM_ID=$(cmdline_arg ignition.platform.id)" > /run/ignition.env
