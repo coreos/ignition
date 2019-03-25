@@ -22,11 +22,13 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/coreos/ignition/config/shared/errors"
 	config "github.com/coreos/ignition/config/v3_0_experimental"
 	"github.com/coreos/ignition/config/v3_0_experimental/types"
+	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/log"
@@ -145,6 +147,14 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 	err = e.Fetcher.RewriteCAsWithDataUrls(cfg.Ignition.Security.TLS.CertificateAuthorities)
 	if err != nil {
 		e.Logger.Crit("error handling CAs: %v", err)
+		return
+	}
+
+	rpt := validate.ValidateWithoutSource(reflect.ValueOf(cfg))
+	e.logReport(rpt)
+	if rpt.IsFatal() {
+		err = errors.ErrInvalid
+		e.Logger.Crit("merging configs resulted in an invalid config")
 		return
 	}
 
