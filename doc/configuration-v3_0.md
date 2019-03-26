@@ -1,11 +1,11 @@
-# Configuration Specification v3.0.0-experimental #
+# Configuration Specification v3.0.0 #
 
-*NOTE*: This pre-release version of the specification is experimental and is subject to change without notice or regard to backward compatibility.
+*NOTE*: Deprecated fields may be removed without notice until the stable Ignition 2.0.0 release.
 
 The Ignition configuration is a JSON document conforming to the following specification, with **_italicized_** entries being optional:
 
 * **ignition** (object): metadata about the configuration itself.
-  * **version** (string): the semantic version number of the spec. The spec version must be compatible with the latest version (`3.0.0-experimental`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
+  * **version** (string): the semantic version number of the spec. The spec version must be compatible with the latest version (`3.0.0`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
   * **_config_** (objects): options related to the configuration.
     * **_merge_** (list of objects): a list of the configs to be merged to the current config.
       * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
