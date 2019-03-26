@@ -17,9 +17,6 @@ cmdline_arg() {
     echo "${value}"
 }
 
-# check *both* old and new keys for now
-platform_id=$(cmdline_arg ignition.platform.id "$(cmdline_arg coreos.oem.id)")
-
 cmdline_bool() {
     local value=$(cmdline_arg "$@")
     case "$value" in
@@ -42,10 +39,4 @@ if $(cmdline_bool 'ignition.firstboot' 0); then
     add_requires ignition-complete.target
 fi
 
-RANDOMIZE_DISK_GUID=$(cmdline_arg coreos.randomize_disk_guid)
-if [ -n "$RANDOMIZE_DISK_GUID" ]; then
-    escaped_guid=$(systemd-escape --path "/dev/disk/by-diskuuid/$RANDOMIZE_DISK_GUID")
-    add_requires "disk-uuid@${escaped_guid}.service"
-fi
-
-echo "PLATFORM_ID=$platform_id" > /run/ignition.env
+echo "PLATFORM_ID=$(cmdline_arg ignition.platform.id)" > /run/ignition.env
