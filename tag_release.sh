@@ -7,7 +7,7 @@ set -e
 VER=$1
 COMMIT=$2
 
-[[ "${VER}" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$ ]] || {
+[[ "${VER}" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.+)?$ ]] || {
 	echo "malformed version: \"${VER}\""
 	exit 2
 }
