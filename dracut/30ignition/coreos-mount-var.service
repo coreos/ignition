@@ -1,0 +1,19 @@
+[Unit]
+Description=Mount OSTree /var
+DefaultDependencies=false
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+# Make sure /sysroot is mounted first, since we're mounting under there
+Requires=initrd-root-fs.target
+After=initrd-root-fs.target
+
+# Need to do this before Ignition mounts any other filesystems (potentially
+# shadowing our own bind mount).
+Before=ignition-mount.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/coreos-mount-var mount
+ExecStop=/usr/sbin/coreos-mount-var umount

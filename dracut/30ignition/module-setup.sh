@@ -26,6 +26,8 @@ install() {
         systemd-detect-virt \
         useradd \
         usermod \
+        realpath \
+        systemd-tmpfiles \
         touch
 
     # This one is optional; https://src.fedoraproject.org/rpms/ignition/pull-request/9
@@ -49,9 +51,17 @@ install() {
 
     install_ignition_unit ignition-setup.service
     install_ignition_unit ignition-disks.service
+    install_ignition_unit ignition-mount.service
     install_ignition_unit ignition-files.service
-    install_ignition_unit ignition-ask-var-mount.service
     install_ignition_unit ignition-remount-sysroot.service
+
+    install_ignition_unit coreos-mount-var.service
+    inst_script "$moddir/coreos-mount-var.sh" \
+        "/usr/sbin/coreos-mount-var"
+
+    install_ignition_unit coreos-populate-var.service
+    inst_script "$moddir/coreos-populate-var.sh" \
+        "/usr/sbin/coreos-populate-var"
 }
 
 has_fw_cfg_module() {

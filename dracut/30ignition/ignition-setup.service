@@ -2,6 +2,8 @@
 Description=Ignition (setup)
 DefaultDependencies=false
 Before=ignition-complete.target
+OnFailure=emergency.target
+OnFailureJobMode=isolate
 
 Requires=local-fs-pre.target
 Before=local-fs-pre.target

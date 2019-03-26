@@ -1,0 +1,23 @@
+[Unit]
+Description=Ignition (mount)
+DefaultDependencies=false
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+# Make sure the final /sysroot is ready first, since we're mounting under there
+Requires=initrd-root-fs.target
+After=initrd-root-fs.target
+
+# Make sure root filesystem is remounted read-write if needed
+After=ignition-remount-sysroot.service
+
+# This is guaranteed through After=initrd-root-fs.target but just to
+# be explicit.
+After=ignition-disks.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=mount --log-to-stdout
+ExecStop=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=umount --log-to-stdout
