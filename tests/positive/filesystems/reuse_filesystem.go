@@ -47,7 +47,7 @@ func ReuseExistingFilesystem() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 	in = append(in, types.Disk{
 		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{

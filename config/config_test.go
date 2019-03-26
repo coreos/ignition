@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/config/util"
-	v3_0_experimental "github.com/coreos/ignition/config/v3_0_experimental/types"
+	v3_0 "github.com/coreos/ignition/config/v3_0/types"
 )
 
 func testConfigType(t reflect.Type) error {
@@ -83,7 +83,7 @@ func testConfigType(t reflect.Type) error {
 // anything the merge, translation, or validation logic doesn't know how to handle
 func TestConfigStructure(t *testing.T) {
 	configs := []reflect.Type{
-		reflect.TypeOf(v3_0_experimental.Config{}),
+		reflect.TypeOf(v3_0.Config{}),
 	}
 
 	for _, configType := range configs {

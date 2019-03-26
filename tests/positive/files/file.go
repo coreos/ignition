@@ -53,7 +53,7 @@ func CreateFileOnRoot() types.Test {
 			Contents: "example file\n",
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -90,7 +90,7 @@ func UserGroupByID() types.Test {
 			Contents: "example file\n",
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -127,7 +127,7 @@ func UserGroupByName() types.Test {
 			Contents: "example file\n",
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -172,7 +172,7 @@ func ForceFileCreation() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -210,7 +210,7 @@ func AppendToAFile() types.Test {
 			Contents: "example file\nhello world\n",
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -256,7 +256,7 @@ func AppendToExistingFile() types.Test {
 			Contents: "example file\nhello world\n",
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -291,7 +291,7 @@ func AppendToNonexistentFile() types.Test {
 			Contents: "hello world\n",
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -326,7 +326,7 @@ func ApplyDefaultFilePermissions() types.Test {
 			Mode:     0644,
 		},
 	})
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,

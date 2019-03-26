@@ -52,7 +52,7 @@ func PartitionSizeStart0() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	in = append(in, types.Disk{
 		Alignment: types.IgnitionAlignment,
@@ -112,7 +112,7 @@ func PartitionStartNumber0() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	in = append(in, types.Disk{
 		Alignment: types.IgnitionAlignment,
@@ -177,7 +177,7 @@ func ResizeRootFillDisk() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -210,7 +210,7 @@ func VerifyRootFillsDisk() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -245,7 +245,7 @@ func VerifyUnspecifiedIsDoNotCare() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -307,7 +307,7 @@ func NumberZeroHappensLast() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,

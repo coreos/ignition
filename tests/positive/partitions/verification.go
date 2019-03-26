@@ -92,7 +92,7 @@ func VerifyBaseDisk() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
@@ -178,7 +178,7 @@ func VerifyBaseDiskWithWipe() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.0.0-experimental"
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,

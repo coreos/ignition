@@ -43,7 +43,7 @@ func makePreemptTest(components string) types.Test {
 	}
 	makeConfig := func(component string) string {
 		return fmt.Sprintf(`{
-			"ignition": {"version": "3.0.0-experimental"},
+			"ignition": {"version": "3.0.0"},
 			"storage": {
 				"files": [{
 					"path": "/ignition/%s",

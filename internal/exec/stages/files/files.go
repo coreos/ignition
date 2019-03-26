@@ -20,7 +20,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/coreos/ignition/config/v3_0_experimental/types"
+	"github.com/coreos/ignition/config/v3_0/types"
 	"github.com/coreos/ignition/internal/distro"
 	"github.com/coreos/ignition/internal/exec/stages"
 	"github.com/coreos/ignition/internal/exec/util"

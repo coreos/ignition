@@ -17,8 +17,8 @@ package config
 import (
 	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/util"
-	"github.com/coreos/ignition/config/v3_0_experimental"
-	"github.com/coreos/ignition/config/v3_0_experimental/types"
+	"github.com/coreos/ignition/config/v3_0"
+	"github.com/coreos/ignition/config/v3_0/types"
 	"github.com/coreos/ignition/config/validate/report"
 
 	"github.com/coreos/go-semver/semver"
@@ -50,7 +50,7 @@ func Parse(raw []byte) (types.Config, report.Report, error) {
 
 	switch *version {
 	case types.MaxVersion:
-		return v3_0_experimental.Parse(raw)
+		return v3_0.Parse(raw)
 	default:
 		return types.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
