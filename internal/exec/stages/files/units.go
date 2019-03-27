@@ -15,7 +15,9 @@
 package files
 
 import (
+	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/coreos/ignition/config/v3_0/types"
 	"github.com/coreos/ignition/internal/distro"
@@ -85,6 +87,14 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 				s.Logger.Crit("error converting systemd dropin: %v", err)
 				return err
 			}
+			relabelPath := f.Node.Path
+			if !runtime {
+				// trim off prefix since this needs to be relative to the sysroot
+				if !strings.HasPrefix(f.Node.Path, s.DestDir) {
+					panic(fmt.Sprintf("Dropin path %s isn't under prefix %s", f.Node.Path, s.DestDir))
+				}
+				relabelPath = f.Node.Path[len(s.DestDir):]
+			}
 			if err := s.Logger.LogOp(
 				func() error { return u.PerformFetch(f) },
 				"writing systemd drop-in %q at %q", dropin.Name, f.Node.Path,
@@ -92,7 +102,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 				return err
 			}
 			if !relabeledDropinDir {
-				s.relabel(filepath.Dir("/" + f.Node.Path))
+				s.relabel(filepath.Dir(relabelPath))
 				relabeledDropinDir = true
 			}
 		}
@@ -106,13 +116,21 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 			s.Logger.Crit("error converting unit: %v", err)
 			return err
 		}
+		relabelPath := f.Node.Path
+		if !runtime {
+			// trim off prefix since this needs to be relative to the sysroot
+			if !strings.HasPrefix(f.Node.Path, s.DestDir) {
+				panic(fmt.Sprintf("Unit path %s isn't under prefix %s", f.Node.Path, s.DestDir))
+			}
+			relabelPath = f.Node.Path[len(s.DestDir):]
+		}
 		if err := s.Logger.LogOp(
 			func() error { return u.PerformFetch(f) },
 			"writing unit %q at %q", unit.Name, f.Node.Path,
 		); err != nil {
 			return err
 		}
-		s.relabel("/" + f.Node.Path)
+		s.relabel(relabelPath)
 
 		return nil
 	}, "processing unit %q", unit.Name)
