@@ -53,7 +53,7 @@ func CreatePartition() types.Test {
 				"partitions": [
 				{
 					"number": 1,
-					"size": 65536,
+					"sizeMiB": 32,
 					"label": "create-partition",
 					"typeGuid": "$uuid0",
 					"guid": "$uuid1"
@@ -91,14 +91,14 @@ func WipeAndCreateNewPartitions() types.Test {
 				{
 					"label": "important-data",
 					"number": 1,
-					"size": 65536,
+					"sizeMiB": 32,
 					"typeGuid": "$uuid0",
 					"guid": "$uuid1"
 				},
 				{
 					"label": "ephemeral-data",
 					"number": 2,
-					"size": 131072,
+					"sizeMiB": 64,
 					"typeGuid": "$uuid2",
 					"guid": "$uuid3"
 				}
@@ -174,14 +174,14 @@ func AppendPartitions() types.Test {
 				"partitions": [{
 					"label": "additional-partition",
 					"number": 3,
-					"size": 65536,
+					"sizeMiB": 32,
 					"typeGuid": "$uuid0",
 					"guid": "$uuid1"
 				},
 				{
 					"label": "additional-partition2",
 					"number": 4,
-					"size": 65536,
+					"sizeMiB": 32,
 					"typeGuid": "$uuid0",
 					"guid": "$uuid2"
 				}]
@@ -267,7 +267,7 @@ func ResizeRoot() types.Test {
 				"partitions": [{
 					"label": "ROOT",
 					"number": 9,
-					"size": 13008896,
+					"sizeMiB": 6352,
 					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E",
 					"guid": "$uuid0",
 					"wipePartitionEntry": true
