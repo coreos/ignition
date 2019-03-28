@@ -36,29 +36,12 @@ func (p Partition) Key() string {
 }
 
 func (p Partition) Validate() (r report.Report) {
-	if (p.Start != nil || p.Size != nil) && (p.StartMiB != nil || p.SizeMiB != nil) {
-		r.AddOnError(errors.ErrPartitionsUnitsMismatch)
-	}
 	if p.ShouldExist != nil && !*p.ShouldExist &&
-		(p.Label != nil || (p.TypeGUID != nil && *p.TypeGUID != "") || (p.GUID != nil && *p.GUID != "") || p.Start != nil || p.Size != nil) {
+		(p.Label != nil || (p.TypeGUID != nil && *p.TypeGUID != "") || (p.GUID != nil && *p.GUID != "") || p.StartMiB != nil || p.SizeMiB != nil) {
 		r.AddOnError(errors.ErrShouldNotExistWithOthers)
 	}
 	if p.Number == 0 && p.Label == nil {
 		r.AddOnError(errors.ErrNeedLabelOrNumber)
-	}
-	return
-}
-
-func (p Partition) ValidateSize() (r report.Report) {
-	if p.Size != nil {
-		r.AddOnDeprecated(errors.ErrSizeDeprecated)
-	}
-	return
-}
-
-func (p Partition) ValidateStart() (r report.Report) {
-	if p.Start != nil {
-		r.AddOnDeprecated(errors.ErrStartDeprecated)
 	}
 	return
 }
