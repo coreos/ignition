@@ -12,7 +12,7 @@ GLDFLAGS+="-X github.com/coreos/ignition/internal/distro.blackboxTesting=true "
 
 . build
 
-PKG=$(cd gopath/src/${REPO_PATH}; go list ./tests/)
+PKG=$(go list ./tests/)
 
 echo "Compiling tests..."
 go test -c $PKG
