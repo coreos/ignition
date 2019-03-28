@@ -210,12 +210,18 @@ func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 // (e.g. /a/b/c/d/e).
 func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, error) {
 	entries := []filesystemEntry{}
-	// Add directories first to ensure they are created before files.
+	// Map from paths in the config to where they resolve for duplicate checking
+	paths := map[string]string{}
 	for _, d := range config.Storage.Directories {
 		path, err := s.JoinPath(d.Path)
 		if err != nil {
 			return nil, err
 		}
+		if existing, ok := paths[path]; ok {
+			return nil, fmt.Errorf("Directory at %s resolved to %s after symlink chasing, but another entry with path %s also resolves there",
+				d.Path, path, existing)
+		}
+		paths[path] = d.Path
 		d.Path = path
 		entries = append(entries, dirEntry(d))
 	}
@@ -225,6 +231,11 @@ func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, e
 		if err != nil {
 			return nil, err
 		}
+		if existing, ok := paths[path]; ok {
+			return nil, fmt.Errorf("File at %s resolved to %s after symlink chasing, but another entry with path %s also resolves there",
+				f.Path, path, existing)
+		}
+		paths[path] = f.Path
 		f.Path = path
 		entries = append(entries, fileEntry(f))
 	}
@@ -234,6 +245,11 @@ func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, e
 		if err != nil {
 			return nil, err
 		}
+		if existing, ok := paths[path]; ok {
+			return nil, fmt.Errorf("Link at %s resolved to %s after symlink chasing, but another entry with path %s also resolves there",
+				l.Path, path, existing)
+		}
+		paths[path] = l.Path
 		l.Path = path
 		entries = append(entries, linkEntry(l))
 	}
