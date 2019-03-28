@@ -150,21 +150,15 @@ func (op Operation) buildOptions() []string {
 }
 
 func partitionGetStart(p types.Partition) string {
-	if p.Start != nil {
-		return fmt.Sprintf("%d", *p.Start)
-	}
 	if p.StartMiB != nil {
-		return fmt.Sprintf("%dM", *p.StartMiB)
+		return fmt.Sprintf("%d", *p.StartMiB)
 	}
 	return "0"
 }
 
 func partitionGetSize(p types.Partition) string {
-	if p.Size != nil {
-		return fmt.Sprintf("%d", *p.Size)
-	}
 	if p.SizeMiB != nil {
-		return fmt.Sprintf("%dM", *p.SizeMiB)
+		return fmt.Sprintf("%d", *p.SizeMiB)
 	}
 	return "0"
 }

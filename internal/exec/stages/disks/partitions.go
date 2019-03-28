@@ -69,24 +69,25 @@ func (s stage) createPartitions(config types.Config) error {
 // partitionMatches determines if the existing partition matches the spec given. See doc/operator notes for what
 // what it means for an existing partition to match the spec. spec must have non-zero Start and Size. existing must
 // also have non-zero start and size and non-nil start and size and label.
-func partitionMatches(existing, spec types.Partition) error {
+// n.b. existing.{Size,Start}MiB must be converted to sectors first (yes the variable name becomes misleading)
+func partitionMatches(existing util.PartitionInfo, spec types.Partition) error {
 	if spec.Number != existing.Number {
 		return fmt.Errorf("partition numbers did not match (specified %d, got %d). This should not happen, please file a bug.", spec.Number, existing.Number)
 	}
-	if spec.Start != nil && *spec.Start != *existing.Start {
-		return fmt.Errorf("starting sector did not match (specified %d, got %d)", *spec.Start, *existing.Start)
+	if spec.StartMiB != nil && *spec.StartMiB != existing.StartSector {
+		return fmt.Errorf("starting sector did not match (specified %d, got %d)", *spec.StartMiB, existing.StartSector)
 	}
-	if spec.Size != nil && *spec.Size != *existing.Size {
-		return fmt.Errorf("size did not match (specified %d, got %d)", *spec.Size, *existing.Size)
+	if spec.SizeMiB != nil && *spec.SizeMiB != existing.SizeInSectors {
+		return fmt.Errorf("size did not match (specified %d, got %d)", *spec.SizeMiB, existing.SizeInSectors)
 	}
-	if spec.GUID != nil && *spec.GUID != "" && strings.ToLower(*spec.GUID) != strings.ToLower(*existing.GUID) {
-		return fmt.Errorf("GUID did not match (specified %q, got %q)", *spec.GUID, *existing.GUID)
+	if spec.GUID != nil && *spec.GUID != "" && strings.ToLower(*spec.GUID) != strings.ToLower(existing.GUID) {
+		return fmt.Errorf("GUID did not match (specified %q, got %q)", *spec.GUID, existing.GUID)
 	}
-	if spec.TypeGUID != nil && *spec.TypeGUID != "" && strings.ToLower(*spec.TypeGUID) != strings.ToLower(*existing.TypeGUID) {
-		return fmt.Errorf("type GUID did not match (specified %q, got %q)", *spec.TypeGUID, *existing.TypeGUID)
+	if spec.TypeGUID != nil && *spec.TypeGUID != "" && strings.ToLower(*spec.TypeGUID) != strings.ToLower(existing.TypeGUID) {
+		return fmt.Errorf("type GUID did not match (specified %q, got %q)", *spec.TypeGUID, existing.TypeGUID)
 	}
-	if spec.Label != nil && *spec.Label != *existing.Label {
-		return fmt.Errorf("label did not match (specified %q, got %q)", *spec.Label, *existing.Label)
+	if spec.Label != nil && *spec.Label != existing.Label {
+		return fmt.Errorf("label did not match (specified %q, got %q)", *spec.Label, existing.Label)
 	}
 	return nil
 }
@@ -96,30 +97,35 @@ func partitionShouldBeInspected(part types.Partition) bool {
 	if part.Number == 0 {
 		return false
 	}
-	return (part.Start != nil && *part.Start == 0) ||
-		(part.StartMiB != nil && *part.StartMiB == 0) ||
-		(part.Size != nil && *part.Size == 0) ||
+	return (part.StartMiB != nil && *part.StartMiB == 0) ||
 		(part.SizeMiB != nil && *part.SizeMiB == 0)
+}
+
+func convertMiBToSectors(mib *int, sectorSize int) {
+	if mib != nil {
+		*mib = (*mib) * (1024 * 1024 / sectorSize)
+	}
 }
 
 // getRealStartAndSize returns a map of partition numbers to a struct that contains what their real start
 // and end sector should be. It runs sgdisk --pretend to determine what the partitions would look like if
 // everything specified were to be (re)created.
-func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, existanceMap map[int]types.Partition) ([]types.Partition, error) {
+// It also converts everything to sectors so the StartMiB/SizeMiB will NOT be in MiB after this call
+func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo util.DiskInfo) ([]types.Partition, error) {
 	op := sgdisk.Begin(s.Logger, devAlias)
 	for _, part := range dev.Partitions {
-		info, exists := existanceMap[part.Number]
-		if exists {
+		convertMiBToSectors(part.SizeMiB, diskInfo.LogicalSectorSize)
+		convertMiBToSectors(part.StartMiB, diskInfo.LogicalSectorSize)
+
+		if info, exists := diskInfo.GetPartition(part.Number); exists {
 			// delete all existing partitions
 			op.DeletePartition(part.Number)
-			if part.Start == nil && part.StartMiB == nil && (part.WipePartitionEntry == nil || !*part.WipePartitionEntry) {
+			if part.StartMiB == nil && (part.WipePartitionEntry == nil || !*part.WipePartitionEntry) {
 				// don't care means keep the same if we can't wipe, otherwise stick it at start 0
-				part.StartMiB = nil
-				part.Start = info.Start
+				part.StartMiB = &info.StartSector
 			}
-			if part.Size == nil && part.SizeMiB == nil && (part.WipePartitionEntry == nil || !*part.WipePartitionEntry) {
-				part.SizeMiB = nil
-				part.Size = info.Size
+			if part.SizeMiB == nil && (part.WipePartitionEntry == nil || !*part.WipePartitionEntry) {
+				part.SizeMiB = &info.SizeInSectors
 			}
 		}
 		if partitionShouldExist(part) {
@@ -151,13 +157,11 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, existanceMap
 	result := []types.Partition{}
 	for _, part := range dev.Partitions {
 		if dims, ok := realDimensions[part.Number]; ok {
-			if part.Start != nil {
-				part.StartMiB = nil
-				part.Start = &dims.start
+			if part.StartMiB != nil {
+				part.StartMiB = &dims.start
 			}
-			if part.Size != nil {
-				part.SizeMiB = nil
-				part.Size = &dims.size
+			if part.SizeMiB != nil {
+				part.SizeMiB = &dims.size
 			}
 		}
 		result = append(result, part)
@@ -259,25 +263,18 @@ func partitionShouldExist(part types.Partition) bool {
 }
 
 // getPartitionMap returns a map of partitions on device, indexed by partition number
-func (s stage) getPartitionMap(device string) (map[int]types.Partition, error) {
-	parts := []types.Partition{}
+func (s stage) getPartitionMap(device string) (util.DiskInfo, error) {
+	info := util.DiskInfo{}
 	err := s.Logger.LogOp(
 		func() error {
-			p, err := util.DumpPartitionTable(device)
-			if err != nil {
-				return err
-			}
-			parts = p
-			return nil
+			var err error
+			info, err = util.DumpDisk(device)
+			return err
 		}, "reading partition table of %q", device)
 	if err != nil {
-		return nil, err
+		return util.DiskInfo{}, err
 	}
-	m := map[int]types.Partition{}
-	for _, part := range parts {
-		m[part.Number] = part
-	}
-	return m, nil
+	return info, nil
 }
 
 // Allow sorting partitions (must be a stable sort) so partition number 0 happens last
@@ -312,21 +309,22 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 
 	op := sgdisk.Begin(s.Logger, devAlias)
 
-	originalParts, err := s.getPartitionMap(devAlias)
+	diskInfo, err := s.getPartitionMap(devAlias)
 	if err != nil {
 		return err
 	}
 
 	// get a list of parititions that have size and start 0 replaced with the real sizes
 	// that would be used if all specified partitions were to be created anew.
-	resolvedPartitions, err := s.getRealStartAndSize(dev, devAlias, originalParts)
+	// Also change all of the start/size values into sectors.
+	resolvedPartitions, err := s.getRealStartAndSize(dev, devAlias, diskInfo)
 	if err != nil {
 		return err
 	}
 
 	for _, part := range resolvedPartitions {
 		shouldExist := partitionShouldExist(part)
-		info, exists := originalParts[part.Number]
+		info, exists := diskInfo.GetPartition(part.Number)
 		var matchErr error
 		if exists {
 			matchErr = partitionMatches(info, part)

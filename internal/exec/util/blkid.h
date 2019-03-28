@@ -50,6 +50,8 @@ result_t blkid_lookup(const char *device, const char *field_name, char buf[], si
 
 result_t blkid_get_num_partitions(const char *device, int *ret);
 
+result_t blkid_get_logical_sector_size(const char *device, int *ret_sector_size);
+
 // WARNING part_num may not be what you expect. see the .c file's comment for why
 result_t blkid_get_partition(const char *device, int part_num, struct partition_info *info);
 

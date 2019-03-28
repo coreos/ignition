@@ -119,6 +119,32 @@ result_t blkid_get_num_partitions(const char *device, int *n_parts_ret)
 	return RESULT_OK;
 }
 
+result_t blkid_get_logical_sector_size(const char *device, int *ret_sector_size) {
+	if (!device || !ret_sector_size)
+		return RESULT_BAD_PARAMS;
+
+	blkid_probe pr _cleanup_probe_ = blkid_new_probe_from_filename(device);
+	if (!pr)
+		return RESULT_OPEN_FAILED;
+	
+	// topo points inside of pr and will be freed when pr is freed
+	blkid_topology topo = blkid_probe_get_topology(pr);
+	if (!topo) {
+		return RESULT_NO_TOPO;
+	}
+
+	long sector_size = blkid_topology_get_logical_sector_size(topo);
+	if (sector_size == 0) {
+		return RESULT_NO_SECTOR_SIZE;
+	}
+	if (sector_size % 512 != 0) {
+		return RESULT_BAD_SECTOR_SIZE;
+	}
+
+	*ret_sector_size = sector_size;
+	return RESULT_OK;
+}
+
 // WARNING, part_num is probably not what you expect!
 // part_num refers to a number 0..blkid_get_num_partitions()-1, NOT
 // the partition number like in /dev/sdaX. See blkid_partlist_devno_to_partition()'s
