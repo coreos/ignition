@@ -24,6 +24,7 @@ func init() {
 	register.Register(register.NegativeTest, WriteThroughRelativeSymlink())
 	register.Register(register.NegativeTest, WriteThroughRelativeSymlinkBeyondRoot())
 	register.Register(register.NegativeTest, WriteThroughAbsoluteSymlink())
+	register.Register(register.NegativeTest, SymlinkResolutionCausesConflicts())
 }
 
 func WriteOverBrokenSymlink() types.Test {
@@ -190,6 +191,42 @@ func WriteThroughAbsoluteSymlink() types.Test {
 				Directory: "etc",
 			},
 			Target: "somewhere/over/the/rainbow",
+			Hard:   false,
+		},
+	})
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func SymlinkResolutionCausesConflicts() types.Test {
+	name := "Symlink resolution causes conflicts"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar/baz"
+	    },
+	    {
+	      "path": "/bar/baz"
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Name:      "foo",
+				Directory: "/",
+			},
+			Target: "/",
 			Hard:   false,
 		},
 	})
