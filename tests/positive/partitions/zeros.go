@@ -44,8 +44,8 @@ func PartitionSizeStart0() types.Test {
 				"partitions": [{
 					"label": "fills-disk",
 					"number": 1,
-					"start": 0,
-					"size": 0,
+					"startMiB": 0,
+					"sizeMiB": 0,
 					"typeGuid": "$uuid0",
 					"guid": "$uuid1"
 				}]
@@ -93,19 +93,19 @@ func PartitionStartNumber0() types.Test {
 				"wipeTable": false,
 				"partitions": [{
 					"label": "uno",
-					"size": 65536,
+					"sizeMiB": 32,
 					"typeGuid": "$uuid0",
 					"guid": "$uuid1"
 				},
 				{
 					"label": "dos",
-					"size": 65536,
+					"sizeMiB": 32,
 					"typeGuid": "$uuid0",
 					"guid": "$uuid2"
 				},
 				{
 					"label": "tres",
-					"size": 65536,
+					"sizeMiB": 32,
 					"typeGuid": "$uuid0",
 					"guid": "$uuid3"
 				}]
@@ -168,8 +168,8 @@ func ResizeRootFillDisk() types.Test {
 				"partitions": [{
 					"label": "ROOT",
 					"number": 9,
-					"start": 0,
-					"size": 0,
+					"startMiB": 0,
+					"sizeMiB": 0,
 					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E",
 					"wipePartitionEntry": true
 				}
@@ -202,8 +202,8 @@ func VerifyRootFillsDisk() types.Test {
 				"partitions": [{
 					"label": "ROOT",
 					"number": 9,
-					"start": 0,
-					"size": 0,
+					"startMiB": 0,
+					"sizeMiB": 0,
 					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E"
 				}
 				]

@@ -71,7 +71,7 @@ func DoesNotMatchNoWipeEntry() types.Test {
 				"partitions": [
 				{
 					"number": 9,
-					"size": 4096
+					"sizeMiB": 2
 				}
 				]
 			}
@@ -105,7 +105,7 @@ func ValidAndDoesNotMatchNoWipeEntry() types.Test {
 				},
 				{
 					"number": 9,
-					"size": 4096
+					"sizeMiB": 2
 				}
 				]
 			}
@@ -140,7 +140,7 @@ func NotThereAndDoesNotMatchNoWipeEntry() types.Test {
 				},
 				{
 					"number": 9,
-					"size": 4096
+					"sizeMiB": 2
 				}
 				]
 			}

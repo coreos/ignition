@@ -307,12 +307,6 @@
             "number": {
               "type": "integer"
             },
-            "size": {
-              "type": ["integer", "null"]
-            },
-            "start": {
-              "type": ["integer", "null"]
-            },
             "sizeMiB": {
               "type": ["integer", "null"]
             },
