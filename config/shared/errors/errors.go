@@ -49,7 +49,6 @@ var (
 	ErrSwapLabelTooLong          = errors.New("filesystem labels cannot be longer than 15 characters when using swap")
 	ErrVfatLabelTooLong          = errors.New("filesystem labels cannot be longer than 11 characters when using vfat")
 	ErrFileIllegalMode           = errors.New("illegal file mode")
-	ErrNoFilesystem              = errors.New("no filesystem specified")
 	ErrBothIDAndNameSet          = errors.New("cannot set both id and name")
 	ErrLabelTooLong              = errors.New("partition labels may not exceed 36 characters")
 	ErrDoesntMatchGUIDRegex      = errors.New("doesn't match the form \"01234567-89AB-CDEF-EDCB-A98765432101\"")
@@ -66,18 +65,6 @@ var (
 	ErrStartDeprecated           = errors.New("start is deprecated; use startMB instead")
 	ErrNeedLabelOrNumber         = errors.New("a partition number >= 1 or a label must be specified")
 	ErrDuplicateLabels           = errors.New("cannot use the same partition label twice")
-
-	// Passwd section errors
-	ErrPasswdCreateAndGecos        = errors.New("cannot use both the create object and the user-level gecos field")
-	ErrPasswdCreateAndGroups       = errors.New("cannot use both the create object and the user-level groups field")
-	ErrPasswdCreateAndHomeDir      = errors.New("cannot use both the create object and the user-level homeDir field")
-	ErrPasswdCreateAndNoCreateHome = errors.New("cannot use both the create object and the user-level noCreateHome field")
-	ErrPasswdCreateAndNoLogInit    = errors.New("cannot use both the create object and the user-level noLogInit field")
-	ErrPasswdCreateAndNoUserGroup  = errors.New("cannot use both the create object and the user-level noUserGroup field")
-	ErrPasswdCreateAndPrimaryGroup = errors.New("cannot use both the create object and the user-level primaryGroup field")
-	ErrPasswdCreateAndShell        = errors.New("cannot use both the create object and the user-level shell field")
-	ErrPasswdCreateAndSystem       = errors.New("cannot use both the create object and the user-level system field")
-	ErrPasswdCreateAndUID          = errors.New("cannot use both the create object and the user-level uid field")
 
 	// Systemd section errors
 	ErrInvalidSystemdExt       = errors.New("invalid systemd unit extension")
