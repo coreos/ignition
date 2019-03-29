@@ -98,12 +98,6 @@ func init() {
 		fetch:      aws.FetchConfig,
 		newFetcher: aws.NewFetcher,
 	})
-	// FIXME: compatibility alias; delete after a transition period
-	configs.Register(Config{
-		name:       "ec2",
-		fetch:      aws.FetchConfig,
-		newFetcher: aws.NewFetcher,
-	})
 	configs.Register(Config{
 		name:  "gcp",
 		fetch: gcp.FetchConfig,
