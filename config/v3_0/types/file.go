@@ -47,9 +47,16 @@ func (fc FileContents) ValidateCompression() (r report.Report) {
 	return
 }
 
-func (f File) ValidateContents() (r report.Report) {
+func (f File) ValidateOverwrite() (r report.Report) {
 	if f.Overwrite != nil && *f.Overwrite && f.Contents.Source == nil {
 		r.AddOnError(errors.ErrOverwriteAndNilSource)
+	}
+	return
+}
+
+func (fc FileContents) ValidateVerification() (r report.Report) {
+	if fc.Verification.Hash != nil && fc.Source == nil {
+		r.AddOnError(errors.ErrVerificationAndNilSource)
 	}
 	return
 }

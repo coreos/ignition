@@ -43,6 +43,7 @@ var (
 	ErrPartitionsOverlap         = errors.New("partitions overlap")
 	ErrPartitionsMisaligned      = errors.New("partitions misaligned")
 	ErrOverwriteAndNilSource     = errors.New("overwrite must be false if source is unspecified")
+	ErrVerificationAndNilSource  = errors.New("source must be specified if verification is specified")
 	ErrFilesystemInvalidFormat   = errors.New("invalid filesystem format")
 	ErrLabelNeedsFormat          = errors.New("filesystem must specify format if label is specified")
 	ErrFormatNilWithOthers       = errors.New("format cannot be empty when path, label, uuid, or options are specified")
