@@ -117,7 +117,7 @@ func CBufToGoStr(s [C.PART_INFO_BUF_SIZE]C.char) string {
 }
 
 func CBufToGoPtr(s [C.PART_INFO_BUF_SIZE]C.char) *string {
-	return util.StrToPtrStrict(CBufToGoStr(s))
+	return util.StrToPtr(CBufToGoStr(s))
 }
 
 // DumpPartitionTable returns a list of all partitions on device (e.g. /dev/vda). The list
