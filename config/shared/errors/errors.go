@@ -42,7 +42,7 @@ var (
 	ErrPartitionNumbersCollide   = errors.New("partition numbers collide")
 	ErrPartitionsOverlap         = errors.New("partitions overlap")
 	ErrPartitionsMisaligned      = errors.New("partitions misaligned")
-	ErrAppendAndOverwrite        = errors.New("cannot set both append and overwrite to true")
+	ErrOverwriteAndNilSource     = errors.New("overwrite must be false if source is unspecified")
 	ErrFilesystemInvalidFormat   = errors.New("invalid filesystem format")
 	ErrLabelNeedsFormat          = errors.New("filesystem must specify format if label is specified")
 	ErrFormatNilWithOthers       = errors.New("format cannot be empty when path, label, uuid, or options are specified")

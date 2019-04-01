@@ -249,7 +249,8 @@ func WriteOverSymlink() types.Test {
 	    "files": [{
 	      "path": "/etc/file",
 	      "mode": 420,
-	      "overwrite": true
+	      "overwrite": true,
+	      "contents": { "source": "" }
 	    }]
 	  }
 	}`
@@ -311,7 +312,8 @@ func WriteOverBrokenSymlink() types.Test {
 	    "files": [{
 	      "path": "/etc/file",
 	      "mode": 420,
-	      "overwrite": true
+	      "overwrite": true,
+	      "contents": { "source": "" }
 	    }]
 	  }
 	}`

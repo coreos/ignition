@@ -47,6 +47,13 @@ func (fc FileContents) ValidateCompression() (r report.Report) {
 	return
 }
 
+func (f File) ValidateContents() (r report.Report) {
+	if f.Overwrite != nil && *f.Overwrite && f.Contents.Source == nil {
+		r.AddOnError(errors.ErrOverwriteAndNilSource)
+	}
+	return
+}
+
 func (fc FileContents) ValidateSource() (r report.Report) {
 	if fc.Source == nil {
 		return
