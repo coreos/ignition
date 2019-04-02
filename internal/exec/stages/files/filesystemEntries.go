@@ -21,7 +21,6 @@ import (
 	"sort"
 	"strings"
 
-	configUtil "github.com/coreos/ignition/config/util"
 	"github.com/coreos/ignition/config/v3_0/types"
 	"github.com/coreos/ignition/internal/exec/util"
 	"github.com/coreos/ignition/internal/log"
@@ -100,8 +99,9 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 			return fmt.Errorf("failed to create file %q: %v", op.Node.Path, err)
 		}
 	}
-	u.SetPermissions(f)
-
+	if err := u.SetPermissions(f.Mode, f.Node); err != nil {
+		return fmt.Errorf("error setting file permissions for %s: %v", f.Path, err)
+	}
 	return nil
 }
 
@@ -113,53 +113,22 @@ func (tmp dirEntry) node() types.Node {
 
 func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 	d := types.Directory(tmp)
-
-	err := l.LogOp(func() error {
-		path := d.Path
-
-		uid, gid, err := u.ResolveNodeUidAndGid(d.Node, 0, 0)
-		if err != nil {
-			return err
+	st, err := os.Lstat(d.Path)
+	switch {
+	case os.IsNotExist(err):
+		// use default perms, we'll fix it later
+		if err := os.MkdirAll(d.Path, util.DefaultDirectoryPermissions); err != nil {
+			return fmt.Errorf("Failed to create directory %s: %v", d.Path, err)
 		}
-
-		// Build a list of paths to create. Since os.MkdirAll only sets the mode for new directories and not the
-		// ownership, we need to determine which directories will be created so we don't chown something that already
-		// exists.
-		newPaths := []string{path}
-		for p := filepath.Dir(path); p != "/"; p = filepath.Dir(p) {
-			_, err := os.Stat(p)
-			if err == nil {
-				break
-			}
-			if !os.IsNotExist(err) {
-				return err
-			}
-			newPaths = append(newPaths, p)
-		}
-
-		if d.Mode == nil {
-			d.Mode = configUtil.IntToPtr(int(util.DefaultDirectoryPermissions))
-		}
-
-		if err := os.MkdirAll(path, os.FileMode(*d.Mode)); err != nil {
-			return err
-		}
-
-		for _, newPath := range newPaths {
-			if err := os.Chmod(newPath, os.FileMode(*d.Mode)); err != nil {
-				return err
-			}
-			if err := os.Chown(newPath, uid, gid); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}, "creating directory %q", string(d.Path))
-	if err != nil {
-		return fmt.Errorf("failed to create directory %q: %v", d.Path, err)
+	case err != nil:
+		return fmt.Errorf("stat() failed on %s: %v", d.Path, err)
+	case !st.Mode().IsDir():
+		return fmt.Errorf("error creating directory %s: A non-directory already exists and overwrite is false", d.Path)
 	}
 
+	if err := u.SetPermissions(d.Mode, d.Node); err != nil {
+		return fmt.Errorf("error setting directory permissions for %s: %v", d.Path, err)
+	}
 	return nil
 }
 
@@ -287,13 +256,13 @@ func (s *stage) createEntries(entries []filesystemEntry) error {
 		}
 
 		if err := s.relabelDirsForFile(path); err != nil {
-			return err
+			return fmt.Errorf("error relabeling paths for %s: %v", path, err)
 		}
 		if err := s.removePathOnOverwrite(e); err != nil {
-			return err
+			return fmt.Errorf("error removing existing file %s: %v", path, err)
 		}
 		if err := e.create(s.Logger, s.Util); err != nil {
-			return err
+			return fmt.Errorf("error creating %s: %v", path, err)
 		}
 	}
 	return nil
