@@ -326,10 +326,3 @@ func (u Util) getGroupID(name string) (int, error) {
 	}
 	return int(gid), nil
 }
-
-func (u Util) DeletePathOnOverwrite(n types.Node) error {
-	if n.Overwrite == nil || !*n.Overwrite {
-		return nil
-	}
-	return os.RemoveAll(n.Path)
-}

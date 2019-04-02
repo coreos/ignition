@@ -1,7 +1,5 @@
 # Configuration Specification v3.0.0 #
 
-*NOTE*: Deprecated fields may be removed without notice until the stable Ignition 2.0.0 release.
-
 The Ignition configuration is a JSON document conforming to the following specification, with **_italicized_** entries being optional:
 
 * **ignition** (object): metadata about the configuration itself.
@@ -53,10 +51,10 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
   * **_files_** (list of objects): the list of files to be written.
     * **path** (string): the absolute path to the file.
-    * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. Defaults to false.
+    * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. `source` must be specified if `overwrite` is true. Defaults to false.
     * **_contents_** (object): options related to the contents of the file.
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
-      * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created.
       * **_verification_** (object): options related to the verification of the file contents.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_append_** (list of objects): list of contents to be appended to the file. Follows the same stucture as `contents`

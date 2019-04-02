@@ -32,12 +32,12 @@ func (s *stage) createFilesystemsEntries(config types.Config) error {
 	s.Logger.PushPrefix("createFilesystemsFiles")
 	defer s.Logger.PopPrefix()
 
-	entryMap, err := s.getOrderedCreationList(config)
+	entries, err := s.getOrderedCreationList(config)
 	if err != nil {
 		return err
 	}
 
-	if err := s.createEntries(entryMap); err != nil {
+	if err := s.createEntries(entries); err != nil {
 		return fmt.Errorf("failed to create files: %v", err)
 	}
 
@@ -47,20 +47,20 @@ func (s *stage) createFilesystemsEntries(config types.Config) error {
 // filesystemEntry represent a thing that knows how to create itself.
 type filesystemEntry interface {
 	create(l *log.Logger, u util.Util) error
-	getPath() string
+	node() types.Node
 }
 
 type fileEntry types.File
 
-func (tmp fileEntry) getPath() string {
-	return types.File(tmp).Path
+func (tmp fileEntry) node() types.Node {
+	return types.File(tmp).Node
 }
 
 func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	f := types.File(tmp)
+
 	empty := "" // golang--
 
-	canOverwrite := f.Overwrite != nil && *f.Overwrite
 	st, err := os.Lstat(f.Path)
 	regular := (st == nil) || st.Mode().IsRegular()
 	switch {
@@ -71,26 +71,13 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 		break
 	case err != nil:
 		return err
-	// 3/8 cases where we need to overwrite but can't
-	case !canOverwrite && !regular:
+	// Cases where there is file there
+	case !regular:
 		return fmt.Errorf("error creating file %q: A non regular file exists there already and overwrite is false", f.Path)
-	case !canOverwrite && regular && f.Contents.Source != nil:
+	case f.Contents.Source != nil:
 		return fmt.Errorf("error creating file %q: A file exists there already and overwrite is false", f.Path)
-	// 2/8 cases where we don't need to do anything
 	case regular && f.Contents.Source == nil:
 		break
-	//  3/8 cases where we need to delete the node first
-	case canOverwrite && !regular && f.Contents.Source == nil:
-		// If we're deleting the file we need set f.Contents so it creates an empty file
-		f.Contents.Source = &empty
-		fallthrough
-	case canOverwrite && !regular && f.Contents.Source != nil:
-		fallthrough
-	case canOverwrite && f.Contents.Source != nil:
-		if err := os.RemoveAll(f.Path); err != nil {
-			return fmt.Errorf("error creating file %q: could not remove existing node at that path: %v", f.Path, err)
-		}
-	// somehow we missed a case, internal bug
 	default:
 		return fmt.Errorf("Ignition encountered an internal error processing %q and must die now. Please file a bug", f.Path)
 	}
@@ -120,8 +107,8 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 
 type dirEntry types.Directory
 
-func (tmp dirEntry) getPath() string {
-	return types.Directory(tmp).Path
+func (tmp dirEntry) node() types.Node {
+	return types.Directory(tmp).Node
 }
 
 func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
@@ -129,10 +116,6 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 
 	err := l.LogOp(func() error {
 		path := d.Path
-
-		if err := u.DeletePathOnOverwrite(d.Node); err != nil {
-			return err
-		}
 
 		uid, gid, err := u.ResolveNodeUidAndGid(d.Node, 0, 0)
 		if err != nil {
@@ -182,8 +165,8 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 
 type linkEntry types.Link
 
-func (tmp linkEntry) getPath() string {
-	return types.Link(tmp).Path
+func (tmp linkEntry) node() types.Node {
+	return types.Link(tmp).Node
 }
 
 func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
@@ -191,11 +174,6 @@ func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 
 	if err := l.LogOp(
 		func() error {
-			err := u.DeletePathOnOverwrite(s.Node)
-			if err != nil {
-				return err
-			}
-
 			return u.WriteLink(s)
 		}, "writing link %q -> %q", s.Path, s.Target,
 	); err != nil {
@@ -253,46 +231,66 @@ func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, e
 		l.Path = path
 		entries = append(entries, linkEntry(l))
 	}
-	sort.Slice(entries, func(i, j int) bool { return util.Depth(entries[i].getPath()) < util.Depth(entries[j].getPath()) })
+	sort.Slice(entries, func(i, j int) bool { return util.Depth(entries[i].node().Path) < util.Depth(entries[j].node().Path) })
 
 	return entries, nil
 }
 
+func (s *stage) removePathOnOverwrite(e filesystemEntry) error {
+	if e.node().Overwrite != nil && *e.node().Overwrite {
+		return os.RemoveAll(e.node().Path)
+	}
+	return nil
+}
+
+func (s *stage) relabelDirsForFile(path string) error {
+	if !s.relabeling() {
+		return nil
+	}
+	// relabel from the first parent dir that we'll have to create --
+	// alternatively, we could make `MkdirForFile` fancier instead of
+	// using `os.MkdirAll`, though that's quite a lot of levels to plumb
+	// through
+	relabelFrom := path
+	dir := filepath.Dir(path)
+	for {
+		exists := true
+		if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
+			exists = false
+		} else if err != nil {
+			return err
+		}
+
+		// we're done on the first hit -- also sanity check we didn't
+		// somehow get all the way up to /sysroot
+		if exists || dir == s.DestDir {
+			break
+		}
+		relabelFrom = dir
+		dir = filepath.Dir(dir)
+	}
+	// trim off prefix since this needs to be relative to the sysroot
+	s.relabel(relabelFrom[len(s.DestDir):])
+
+	return nil
+}
+
 // createEntries creates any files or directories listed for the filesystem in Storage.{Files,Directories}.
-func (s *stage) createEntries(files []filesystemEntry) error {
+func (s *stage) createEntries(entries []filesystemEntry) error {
 	s.Logger.PushPrefix("createFiles")
 	defer s.Logger.PopPrefix()
 
-	for _, e := range files {
-		path := e.getPath()
+	for _, e := range entries {
+		path := e.node().Path
 		if !strings.HasPrefix(path, s.DestDir) {
 			panic(fmt.Sprintf("Entry path %s isn't under prefix %s", path, s.DestDir))
 		}
-		if s.relabeling() {
-			// relabel from the first parent dir that we'll have to create --
-			// alternatively, we could make `MkdirForFile` fancier instead of
-			// using `os.MkdirAll`, though that's quite a lot of levels to plumb
-			// through
-			relabelFrom := path
-			dir := filepath.Dir(path)
-			for {
-				exists := true
-				if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
-					exists = false
-				} else if err != nil {
-					return err
-				}
 
-				// we're done on the first hit -- also sanity check we didn't
-				// somehow get all the way up to /sysroot
-				if exists || dir == s.DestDir {
-					break
-				}
-				relabelFrom = dir
-				dir = filepath.Dir(dir)
-			}
-			// trim off prefix since this needs to be relative to the sysroot
-			s.relabel(relabelFrom[len(s.DestDir):])
+		if err := s.relabelDirsForFile(path); err != nil {
+			return err
+		}
+		if err := s.removePathOnOverwrite(e); err != nil {
+			return err
 		}
 		if err := e.create(s.Logger, s.Util); err != nil {
 			return err
