@@ -98,12 +98,16 @@ func (s *stage) checkRelabeling() error {
 		return nil
 	}
 
-	exists, err := s.PathExists(distro.RestoreconCmd())
+	path, err := s.JoinPath(distro.RestoreconCmd())
 	if err != nil {
-		return err
-	} else if !exists {
-		s.Logger.Debug("targeting root without %s, skipping relabel", distro.RestoreconCmd())
-		return nil
+		return fmt.Errorf("error resolving path for %s: %v", distro.RestoreconCmd(), err)
+	}
+
+	_, err = os.Lstat(path)
+	if err != nil && os.IsNotExist(err) {
+		return fmt.Errorf("targeting root without %s, cannot relabel", distro.RestoreconCmd())
+	} else if err != nil {
+		return fmt.Errorf("error checking for %s in root: %v", distro.RestoreconCmd(), err)
 	}
 
 	// initialize to non-nil (whereas a nil slice means not to append, even
