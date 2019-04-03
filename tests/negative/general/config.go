@@ -31,7 +31,7 @@ func init() {
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileHTTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileTFTP())
 	register.Register(register.NegativeTest, VersionOnlyConfig24())
-	register.Register(register.NegativeTest, VersionOnlyConfig31())
+	register.Register(register.NegativeTest, VersionOnlyConfig32())
 	register.Register(register.NegativeTest, MergingCanFail())
 }
 
@@ -226,13 +226,13 @@ func VersionOnlyConfig24() types.Test {
 	}
 }
 
-func VersionOnlyConfig31() types.Test {
-	name := "Version Only Config 3.1.0-experimental"
+func VersionOnlyConfig32() types.Test {
+	name := "Version Only Config 3.2.0-experimental"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "3.1.0-experimental"
+	    "version": "3.2.0-experimental"
 	  }
 	}`
 
