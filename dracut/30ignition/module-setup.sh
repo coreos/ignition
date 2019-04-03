@@ -62,6 +62,9 @@ install() {
     install_ignition_unit coreos-populate-var.service
     inst_script "$moddir/coreos-populate-var.sh" \
         "/usr/sbin/coreos-populate-var"
+
+    # needed for openstack config drive support
+    inst_rules 60-cdrom_id.rules
 }
 
 has_fw_cfg_module() {
