@@ -1,6 +1,7 @@
 [Unit]
 Description=Ignition (mount)
 DefaultDependencies=false
+Before=ignition-complete.target
 
 # Make sure the final /sysroot is ready first, since we're mounting under there
 Requires=initrd-root-fs.target
