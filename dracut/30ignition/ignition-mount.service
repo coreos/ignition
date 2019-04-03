@@ -3,6 +3,9 @@ Description=Ignition (mount)
 DefaultDependencies=false
 Before=ignition-complete.target
 
+# Make sure ExecStop= runs before we switch root
+Before=initrd-switch-root.target
+
 # Make sure the final /sysroot is ready first, since we're mounting under there
 Requires=initrd-root-fs.target
 After=initrd-root-fs.target
