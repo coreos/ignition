@@ -18,7 +18,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 
-	config "github.com/coreos/ignition/config/v3_0"
+	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/v3_0/types"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/log"
