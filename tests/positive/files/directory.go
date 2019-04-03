@@ -25,6 +25,7 @@ func init() {
 	register.Register(register.PositiveTest, CreateDirectoryOnRoot())
 	register.Register(register.PositiveTest, ForceDirCreation())
 	register.Register(register.PositiveTest, ForceDirCreationOverNonemptyDir())
+	register.Register(register.PositiveTest, DirCreationOverNonemptyDir())
 	register.Register(register.PositiveTest, CheckOrdering())
 	register.Register(register.PositiveTest, ApplyDefaultDirectoryPermissions())
 }
@@ -88,6 +89,57 @@ func ForceDirCreation() types.Test {
 				Directory: "foo",
 				Name:      "bar",
 			},
+		},
+	})
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func DirCreationOverNonemptyDir() types.Test {
+	name := "Force Directory Creation Over Nonempty Directory"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "directories": [{
+	      "path": "/foo/bar",
+	      "mode": 511
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo/bar",
+				Name:      "baz",
+			},
+			Contents: "hello, world",
+		},
+	})
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo/bar",
+				Name:      "baz",
+			},
+			Contents: "hello, world",
+		},
+	})
+	out[0].Partitions.AddDirectories("ROOT", []types.Directory{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Mode: 0777 | int(os.ModeDir),
 		},
 	})
 	configMinVersion := "3.0.0"
