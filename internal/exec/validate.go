@@ -18,7 +18,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	config "github.com/coreos/ignition/config/v3_0"
+	config "github.com/coreos/ignition/config/v3_1_experimental"
 	"github.com/coreos/ignition/config/validate/report"
 )
 

@@ -27,7 +27,6 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	return
 }
 
-
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)

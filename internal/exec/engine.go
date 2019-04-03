@@ -27,8 +27,8 @@ import (
 
 	"github.com/coreos/ignition/config"
 	"github.com/coreos/ignition/config/shared/errors"
-	latest "github.com/coreos/ignition/config/v3_0"
-	"github.com/coreos/ignition/config/v3_0/types"
+	latest "github.com/coreos/ignition/config/v3_1_experimental"
+	"github.com/coreos/ignition/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/config/validate"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/exec/stages"
