@@ -5,6 +5,10 @@ DefaultDependencies=false
 # Make sure ExecStop= runs before we switch root
 Before=initrd-switch-root.target
 
+# Make sure if ExecStop= fails, the boot fails
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
 # Make sure /sysroot is mounted first, since we're mounting under there
 Requires=initrd-root-fs.target
 After=initrd-root-fs.target
