@@ -2,8 +2,6 @@
 Description=Ignition (files)
 DefaultDependencies=false
 Before=ignition-complete.target
-OnFailure=emergency.target
-OnFailureJobMode=isolate
 
 # We need all the filesystems already mounted.
 Requires=ignition-mount.service

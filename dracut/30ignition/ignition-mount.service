@@ -1,6 +1,12 @@
 [Unit]
 Description=Ignition (mount)
 DefaultDependencies=false
+Before=ignition-complete.target
+
+# Make sure ExecStop= runs before we switch root
+Before=initrd-switch-root.target
+
+# Make sure if ExecStop= fails, the boot fails
 OnFailure=emergency.target
 OnFailureJobMode=isolate
 

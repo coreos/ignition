@@ -1,8 +1,6 @@
 [Unit]
 Description=Populate OSTree /var
 DefaultDependencies=false
-OnFailure=emergency.target
-OnFailureJobMode=isolate
 
 # Need to do this with all mount points active
 After=ignition-mount.service
