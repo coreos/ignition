@@ -7,7 +7,9 @@
 Description=Ignition Complete
 Before=initrd.target
 
-# Make sure if any ExecStart= fail, the boot fails
+# Make sure if any ExecStart= fail, the boot fails. This normally would
+# already be guaranteed by `initrd.target` failing, but that doesn't seem to be
+# enough: https://bugzilla.redhat.com/show_bug.cgi?id=1696796
 OnFailure=emergency.target
 OnFailureJobMode=isolate
 
