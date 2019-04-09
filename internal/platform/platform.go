@@ -114,10 +114,6 @@ func init() {
 		status: packet.PostStatus,
 	})
 	configs.Register(Config{
-		name:  "pxe",
-		fetch: noop.FetchConfig,
-	})
-	configs.Register(Config{
 		name:  "virtualbox",
 		fetch: virtualbox.FetchConfig,
 	})
