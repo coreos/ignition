@@ -74,6 +74,7 @@ type Group string
 
 type Ignition struct {
 	Config   IgnitionConfig `json:"config,omitempty"`
+	Proxy    Proxy          `json:"proxy,omitempty"`
 	Security Security       `json:"security,omitempty"`
 	Timeouts Timeouts       `json:"timeouts,omitempty"`
 	Version  string         `json:"version,omitempty"`
@@ -93,6 +94,8 @@ type LinkEmbedded1 struct {
 	Hard   *bool  `json:"hard,omitempty"`
 	Target string `json:"target"`
 }
+
+type NoProxyItem string
 
 type Node struct {
 	Group     NodeGroup `json:"group,omitempty"`
@@ -148,6 +151,12 @@ type PasswdUser struct {
 	Shell             *string            `json:"shell,omitempty"`
 	System            *bool              `json:"system,omitempty"`
 	UID               *int               `json:"uid,omitempty"`
+}
+
+type Proxy struct {
+	HTTPProxy  *string       `json:"httpProxy,omitempty"`
+	HTTPSProxy *string       `json:"httpsProxy,omitempty"`
+	NoProxy    []NoProxyItem `json:"noProxy,omitempty"`
 }
 
 type Raid struct {
