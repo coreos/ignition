@@ -15,10 +15,10 @@
 package stages
 
 import (
-	"github.com/coreos/ignition/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/registry"
-	"github.com/coreos/ignition/internal/resource"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/registry"
+	"github.com/coreos/ignition/v2/internal/resource"
 )
 
 // Stage is responsible for actually executing a stage of the configuration.

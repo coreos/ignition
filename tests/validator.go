@@ -27,8 +27,8 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/coreos/ignition/internal/exec/util"
-	"github.com/coreos/ignition/tests/types"
+	"github.com/coreos/ignition/v2/internal/exec/util"
+	"github.com/coreos/ignition/v2/tests/types"
 )
 
 func regexpSearch(itemName, pattern string, data []byte) (string, error) {

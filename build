@@ -6,7 +6,7 @@ export GO111MODULE=on
 
 NAME="ignition"
 ORG_PATH="github.com/coreos"
-REPO_PATH="${ORG_PATH}/${NAME}"
+REPO_PATH="${ORG_PATH}/${NAME}/v2"
 GLDFLAGS=${GLDFLAGS:-}
 GOFLAGS=-mod=vendor
 
@@ -15,7 +15,7 @@ if [ -z ${VERSION+a} ]; then
 	VERSION=$(git describe --dirty)
 fi
 
-GLDFLAGS+="-X github.com/coreos/ignition/internal/version.Raw=${VERSION}"
+GLDFLAGS+="-X github.com/coreos/ignition/v2/internal/version.Raw=${VERSION}"
 
 eval $(go env)
 

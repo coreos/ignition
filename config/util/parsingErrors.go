@@ -15,9 +15,9 @@
 package util
 
 import (
-	"github.com/coreos/ignition/config/shared/errors"
-	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/config/validate/util"
+	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/validate/report"
+	"github.com/coreos/ignition/v2/config/validate/util"
 
 	json "github.com/ajeddeloh/go-json"
 )

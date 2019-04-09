@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/coreos/ignition/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/shared/errors"
 )
 
 func TestURLValidate(t *testing.T) {

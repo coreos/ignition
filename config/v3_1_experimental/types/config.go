@@ -17,7 +17,7 @@ package types
 import (
 	"github.com/coreos/go-semver/semver"
 
-	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 var (

@@ -27,11 +27,11 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/coreos/ignition/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/internal/earlyrand"
-	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/util"
-	"github.com/coreos/ignition/internal/version"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/internal/earlyrand"
+	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/util"
+	"github.com/coreos/ignition/v2/internal/version"
 
 	"github.com/vincent-petithory/dataurl"
 )

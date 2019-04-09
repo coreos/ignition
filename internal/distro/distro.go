@@ -20,7 +20,7 @@ import (
 )
 
 // Distro-specific settings that can be overridden at link time with e.g.
-// -X github.com/coreos/ignition/internal/distro.mdadmCmd=/opt/bin/mdadm
+// -X github.com/coreos/ignition/v2/internal/distro.mdadmCmd=/opt/bin/mdadm
 var (
 	// Device node directories and paths
 	diskByIDDir       = "/dev/disk/by-id"

@@ -15,7 +15,7 @@
 package types
 
 import (
-	"github.com/coreos/ignition/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/shared/errors"
 )
 
 func validateMode(m *int) error {

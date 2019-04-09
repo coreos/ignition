@@ -27,13 +27,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coreos/ignition/config"
-	"github.com/coreos/ignition/tests/register"
-	"github.com/coreos/ignition/tests/servers"
-	"github.com/coreos/ignition/tests/types"
+	"github.com/coreos/ignition/v2/config"
+	"github.com/coreos/ignition/v2/tests/register"
+	"github.com/coreos/ignition/v2/tests/servers"
+	"github.com/coreos/ignition/v2/tests/types"
 
 	// Register the tests
-	_ "github.com/coreos/ignition/tests/registry"
+	_ "github.com/coreos/ignition/v2/tests/registry"
 
 	// UUID generation tool
 	"github.com/pborman/uuid"

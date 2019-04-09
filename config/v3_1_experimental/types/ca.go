@@ -15,7 +15,7 @@
 package types
 
 import (
-	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 func (c CaReference) Key() string {

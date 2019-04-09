@@ -31,7 +31,7 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/coreos/ignition/config/util"
+	"github.com/coreos/ignition/v2/config/util"
 )
 
 const (

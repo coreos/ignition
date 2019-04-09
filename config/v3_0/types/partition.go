@@ -19,8 +19,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/coreos/ignition/config/shared/errors"
-	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 const (

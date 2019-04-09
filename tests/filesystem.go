@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coreos/ignition/tests/types"
+	"github.com/coreos/ignition/v2/tests/types"
 )
 
 func run(ctx context.Context, command string, args ...string) ([]byte, error) {

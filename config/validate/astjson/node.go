@@ -16,8 +16,8 @@ package astjson
 
 import (
 	json "github.com/ajeddeloh/go-json"
-	"github.com/coreos/ignition/config/validate/astnode"
-	"github.com/coreos/ignition/config/validate/util"
+	"github.com/coreos/ignition/v2/config/validate/astnode"
+	"github.com/coreos/ignition/v2/config/validate/util"
 )
 
 type JsonNode json.Node

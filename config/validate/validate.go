@@ -20,10 +20,10 @@ import (
 	"strings"
 
 	json "github.com/ajeddeloh/go-json"
-	"github.com/coreos/ignition/config/util"
-	"github.com/coreos/ignition/config/validate/astjson"
-	"github.com/coreos/ignition/config/validate/astnode"
-	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/v2/config/util"
+	"github.com/coreos/ignition/v2/config/validate/astjson"
+	"github.com/coreos/ignition/v2/config/validate/astnode"
+	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 type validator interface {

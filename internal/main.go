@@ -20,15 +20,15 @@ import (
 	"os"
 	"time"
 
-	"github.com/coreos/ignition/internal/exec"
-	"github.com/coreos/ignition/internal/exec/stages"
-	_ "github.com/coreos/ignition/internal/exec/stages/disks"
-	_ "github.com/coreos/ignition/internal/exec/stages/files"
-	_ "github.com/coreos/ignition/internal/exec/stages/mount"
-	_ "github.com/coreos/ignition/internal/exec/stages/umount"
-	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/platform"
-	"github.com/coreos/ignition/internal/version"
+	"github.com/coreos/ignition/v2/internal/exec"
+	"github.com/coreos/ignition/v2/internal/exec/stages"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/disks"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/files"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/mount"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/umount"
+	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/platform"
+	"github.com/coreos/ignition/v2/internal/version"
 )
 
 func main() {

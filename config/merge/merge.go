@@ -17,7 +17,7 @@ package merge
 import (
 	"reflect"
 
-	"github.com/coreos/ignition/config/util"
+	"github.com/coreos/ignition/v2/config/util"
 )
 
 // Rules of Config Merging:
