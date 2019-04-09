@@ -237,6 +237,121 @@ func TestTranslate(t *testing.T) {
 		},
 		{
 			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Proxy: from.Proxy{
+						HTTPProxy:  "http://127.0.0.1:8080",
+						HTTPSProxy: "",
+						NoProxy:    nil,
+					},
+				},
+			}},
+			out: out{config: types.Config{
+				Ignition: types.Ignition{
+					Version: types.MaxVersion.String(),
+					Proxy: types.Proxy{
+						HTTPProxy:  "http://127.0.0.1:8080",
+						HTTPSProxy: "",
+						NoProxy:    nil,
+					},
+				},
+			}},
+		},
+		{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Proxy: from.Proxy{
+						HTTPProxy:  "http://127.0.0.1:8080",
+						HTTPSProxy: "http://127.0.0.1:8080",
+						NoProxy:    nil,
+					},
+				},
+			}},
+			out: out{config: types.Config{
+				Ignition: types.Ignition{
+					Version: types.MaxVersion.String(),
+					Proxy: types.Proxy{
+						HTTPProxy:  "http://127.0.0.1:8080",
+						HTTPSProxy: "http://127.0.0.1:8080",
+						NoProxy:    nil,
+					},
+				},
+			}},
+		},
+		{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Proxy: from.Proxy{
+						HTTPProxy:  "http://proxy.tld:1234",
+						HTTPSProxy: "https://proxy.tld:1235",
+						NoProxy:    nil,
+					},
+				},
+			}},
+			out: out{config: types.Config{
+				Ignition: types.Ignition{
+					Version: types.MaxVersion.String(),
+					Proxy: types.Proxy{
+						HTTPProxy:  "http://proxy.tld:1234",
+						HTTPSProxy: "https://proxy.tld:1235",
+						NoProxy:    nil,
+					},
+				},
+			}},
+		},
+		{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Proxy: from.Proxy{
+						HTTPProxy:  "http://proxy.tld:1234",
+						HTTPSProxy: "https://proxy.tld:1235",
+						NoProxy: []from.NoProxyItem{
+							from.NoProxyItem("noproxy.tld"),
+						},
+					},
+				},
+			}},
+			out: out{config: types.Config{
+				Ignition: types.Ignition{
+					Version: types.MaxVersion.String(),
+					Proxy: types.Proxy{
+						HTTPProxy:  "http://proxy.tld:1234",
+						HTTPSProxy: "https://proxy.tld:1235",
+						NoProxy: []types.NoProxyItem{
+							types.NoProxyItem("noproxy.tld"),
+						},
+					},
+				},
+			}},
+		},
+		{
+			in: in{config: from.Config{
+				Ignition: from.Ignition{
+					Proxy: from.Proxy{
+						HTTPProxy:  "http://proxy.tld:1234",
+						HTTPSProxy: "https://proxy.tld:1235",
+						NoProxy: []from.NoProxyItem{
+							from.NoProxyItem("noproxy.tld"),
+							from.NoProxyItem("example.com"),
+						},
+					},
+				},
+			}},
+			out: out{config: types.Config{
+				Ignition: types.Ignition{
+					Version: types.MaxVersion.String(),
+					Proxy: types.Proxy{
+						HTTPProxy:  "http://proxy.tld:1234",
+						HTTPSProxy: "https://proxy.tld:1235",
+						NoProxy: []types.NoProxyItem{
+							types.NoProxyItem("noproxy.tld"),
+							types.NoProxyItem("example.com"),
+						},
+					},
+				},
+			}},
+		},
+		{
+			in: in{config: from.Config{
 				Ignition: from.Ignition{Version: from.MaxVersion.String()},
 				Storage: from.Storage{
 					Disks: []from.Disk{

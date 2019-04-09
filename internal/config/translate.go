@@ -65,6 +65,13 @@ func Translate(old from.Config) types.Config {
 		}
 		return res
 	}
+	translateNoProxySlice := func(old []from.NoProxyItem) []types.NoProxyItem {
+		var res []types.NoProxyItem
+		for _, x := range old {
+			res = append(res, types.NoProxyItem(x))
+		}
+		return res
+	}
 	translateNetworkdDropinSlice := func(old []from.NetworkdDropin) []types.NetworkdDropin {
 		var res []types.NetworkdDropin
 		for _, x := range old {
@@ -373,6 +380,11 @@ func Translate(old from.Config) types.Config {
 				TLS: types.TLS{
 					CertificateAuthorities: translateCertificateAuthoritySlice(old.Ignition.Security.TLS.CertificateAuthorities),
 				},
+			},
+			Proxy: types.Proxy{
+				HTTPProxy:  old.Ignition.Proxy.HTTPProxy,
+				HTTPSProxy: old.Ignition.Proxy.HTTPSProxy,
+				NoProxy:    translateNoProxySlice(old.Ignition.Proxy.NoProxy),
 			},
 		},
 		Networkd: types.Networkd{
