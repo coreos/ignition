@@ -103,3 +103,25 @@ Specifying `size` as 0 means the partition should span to the end of the largest
 ### Unspecified partition size
 If `size` is not specified and a partition with the same number exists, it will use the value of the existing partition, unless wipePartitionEntry is set.
 If `size` is not specified and there is no existing partition, or wipePartitionEntry is set, `size` act as if it were set to 0 and use the size of the largest block.
+
+## Config Merging
+
+Ignition supports fetching and merging multiple configs. This replaces the `append` functionality of the Ignition 2.x.0 specification. There are several rules that determine how configs get merged. When a child config is merged with a parent, generally the child config's values override the parent config's values.
+
+### Child configs take precedence when specified
+
+If a parent and child object are being merged, the fields in the child object take precedence over the fields in the parent config. If a field in the child object is not specified, the field from the parent is used instead.
+
+### Most lists are deduplicated
+
+All lists of objects have a field that uniquely identifies that object. If a child config contains an entry that matches an entry already specified in the parent config, those entries are merged. A few sections of the config are exempt from this behavior. See the [configuration specification][config-spec] for a complete listing. Generally the only lists that are simply appended are those that specify arguments to commands like `mkfs` or `mdadm`.
+
+### Files, Directories, and Links are deduplicated across each other
+
+Since files, directories, and links all describe filesystem entries can conflict, these lists are deduplicated across each other. This means a file in a child config can replace a link in the parent, or a directory in a child config can replace a file in the parent.
+
+### Configs are merged in a depth first traversal
+
+A child config can specify children of its own. Those children are merged into their parent config before that config is merged into its own parent. If a config specifies multiple children, those children are merged in the order they appear.
+
+[config-spec]: configuration-v3_0.md
