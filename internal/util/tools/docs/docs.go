@@ -26,7 +26,7 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/config/shared/errors"
-	config "github.com/coreos/ignition/config/v3_0"
+	config "github.com/coreos/ignition/config/v3_1_experimental"
 	"github.com/coreos/ignition/config/validate/report"
 )
 

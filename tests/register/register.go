@@ -17,6 +17,7 @@ package register
 import (
 	"github.com/coreos/go-semver/semver"
 	types30 "github.com/coreos/ignition/config/v3_0/types"
+	types_exp "github.com/coreos/ignition/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/tests/types"
 )
 
@@ -45,7 +46,7 @@ func Register(tType TestType, t types.Test) {
 		{semver.Version{}}, // place holder 0
 		{semver.Version{}}, // place holder 1
 		{semver.Version{}}, // place holder 2
-		{types30.MaxVersion},
+		{types30.MaxVersion, types_exp.MaxVersion},
 	}
 
 	test := types.DeepCopy(t)
