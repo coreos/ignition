@@ -12,7 +12,7 @@ if [ -z ${VERSION+a} ]; then
 	VERSION=$(git describe --dirty)
 fi
 
-GLDFLAGS+="-X github.com/coreos/ignition/internal/version.Raw=${VERSION}"
+GLDFLAGS+="-X github.com/coreos/ignition/v2/internal/version.Raw=${VERSION}"
 
 if [[ -n "$(git status -s)" ]]; then
     echo "git repo not clean"

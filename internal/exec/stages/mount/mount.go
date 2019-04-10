@@ -25,11 +25,11 @@ import (
 	"sort"
 	"syscall"
 
-	"github.com/coreos/ignition/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/internal/exec/stages"
-	"github.com/coreos/ignition/internal/exec/util"
-	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/resource"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/internal/exec/stages"
+	"github.com/coreos/ignition/v2/internal/exec/util"
+	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/resource"
 )
 
 const (

@@ -19,8 +19,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/coreos/ignition/config/translate/tests/pkga"
-	"github.com/coreos/ignition/config/translate/tests/pkgb"
+	"github.com/coreos/ignition/v2/config/translate/tests/pkga"
+	"github.com/coreos/ignition/v2/config/translate/tests/pkgb"
 )
 
 // Note: we need different input and output types which unfortunately means a lot of tests

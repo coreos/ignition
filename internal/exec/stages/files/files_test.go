@@ -19,8 +19,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/coreos/ignition/internal/exec/util"
-	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/v2/internal/exec/util"
+	"github.com/coreos/ignition/v2/internal/log"
 )
 
 type pathWrapper string

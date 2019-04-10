@@ -23,9 +23,9 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/coreos/ignition/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/internal/distro"
-	"github.com/coreos/ignition/internal/exec/util"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/internal/distro"
+	"github.com/coreos/ignition/v2/internal/exec/util"
 )
 
 func (s stage) createRaids(config types.Config) error {

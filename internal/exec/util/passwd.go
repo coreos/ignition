@@ -23,10 +23,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/coreos/ignition/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/internal/as_user"
-	"github.com/coreos/ignition/internal/distro"
-	"github.com/coreos/ignition/internal/log"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/internal/as_user"
+	"github.com/coreos/ignition/v2/internal/distro"
+	"github.com/coreos/ignition/v2/internal/log"
 )
 
 // EnsureUser ensures that the user exists as described. If the user does not

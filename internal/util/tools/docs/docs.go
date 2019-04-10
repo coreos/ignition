@@ -25,9 +25,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/coreos/ignition/config/shared/errors"
-	config "github.com/coreos/ignition/config/v3_1_experimental"
-	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/v2/config/shared/errors"
+	config "github.com/coreos/ignition/v2/config/v3_1_experimental"
+	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 const (

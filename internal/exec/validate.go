@@ -18,8 +18,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	config "github.com/coreos/ignition/config/v3_1_experimental"
-	"github.com/coreos/ignition/config/validate/report"
+	config "github.com/coreos/ignition/v2/config/v3_1_experimental"
+	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 func Validate(filename string) (report.Report, error) {

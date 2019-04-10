@@ -19,8 +19,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/coreos/ignition/config/util"
-	v3_0 "github.com/coreos/ignition/config/v3_0/types"
+	"github.com/coreos/ignition/v2/config/util"
+	v3_0 "github.com/coreos/ignition/v2/config/v3_0/types"
 )
 
 func testConfigType(t reflect.Type) error {

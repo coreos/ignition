@@ -19,8 +19,8 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/coreos/ignition/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/internal/distro"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/internal/distro"
 
 	"github.com/vincent-petithory/dataurl"
 )
@@ -108,7 +108,7 @@ func (ut Util) EnableUnit(unit types.Unit) error {
 }
 
 // presets link in /etc, which doesn't make sense for runtime units
-// Related: https://github.com/coreos/ignition/issues/588
+// Related: https://github.com/coreos/ignition/v2/issues/588
 func (ut Util) EnableRuntimeUnit(unit types.Unit, target string) error {
 	// unless we're running tests locally, we want to affect /run, which will
 	// be carried into the pivot, not a directory named /$DestDir/run

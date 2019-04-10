@@ -15,14 +15,14 @@
 package config
 
 import (
-	"github.com/coreos/ignition/config/shared/errors"
-	"github.com/coreos/ignition/config/util"
-	"github.com/coreos/ignition/config/v3_0"
-	types_3_0 "github.com/coreos/ignition/config/v3_0/types"
-	"github.com/coreos/ignition/config/v3_1_experimental"
-	trans_exp "github.com/coreos/ignition/config/v3_1_experimental/translate"
-	types_exp "github.com/coreos/ignition/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/util"
+	"github.com/coreos/ignition/v2/config/v3_0"
+	types_3_0 "github.com/coreos/ignition/v2/config/v3_0/types"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental"
+	trans_exp "github.com/coreos/ignition/v2/config/v3_1_experimental/translate"
+	types_exp "github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/config/validate/report"
 
 	"github.com/coreos/go-semver/semver"
 )

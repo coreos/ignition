@@ -20,11 +20,11 @@ package aws
 import (
 	"net/url"
 
-	"github.com/coreos/ignition/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/providers/util"
-	"github.com/coreos/ignition/internal/resource"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/config/validate/report"
+	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/providers/util"
+	"github.com/coreos/ignition/v2/internal/resource"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"

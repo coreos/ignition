@@ -19,13 +19,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/coreos/ignition/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/distro"
-	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/providers/util"
-	"github.com/coreos/ignition/internal/resource"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/config/validate/report"
+	"github.com/coreos/ignition/v2/internal/distro"
+	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/providers"
+	"github.com/coreos/ignition/v2/internal/providers/util"
+	"github.com/coreos/ignition/v2/internal/resource"
 )
 
 const (

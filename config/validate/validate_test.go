@@ -23,12 +23,12 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	json "github.com/ajeddeloh/go-json"
-	"github.com/coreos/ignition/config/shared/errors"
-	"github.com/coreos/ignition/config/util"
-	"github.com/coreos/ignition/config/validate/astjson"
-	"github.com/coreos/ignition/config/validate/report"
+	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/util"
+	"github.com/coreos/ignition/v2/config/validate/astjson"
+	"github.com/coreos/ignition/v2/config/validate/report"
 	// Import into the same namespace to keep config definitions clean
-	. "github.com/coreos/ignition/config/v3_0/types"
+	. "github.com/coreos/ignition/v2/config/v3_0/types"
 )
 
 func TestValidate(t *testing.T) {

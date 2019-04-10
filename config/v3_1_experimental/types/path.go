@@ -17,7 +17,7 @@ package types
 import (
 	"path"
 
-	"github.com/coreos/ignition/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/shared/errors"
 )
 
 func validatePath(p string) error {

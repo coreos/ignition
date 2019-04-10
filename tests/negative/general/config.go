@@ -17,8 +17,8 @@ package general
 import (
 	"fmt"
 
-	"github.com/coreos/ignition/tests/register"
-	"github.com/coreos/ignition/tests/types"
+	"github.com/coreos/ignition/v2/tests/register"
+	"github.com/coreos/ignition/v2/tests/types"
 
 	"github.com/vincent-petithory/dataurl"
 )

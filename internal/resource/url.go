@@ -29,9 +29,9 @@ import (
 	"os"
 	"strings"
 
-	configErrors "github.com/coreos/ignition/config/shared/errors"
-	"github.com/coreos/ignition/internal/log"
-	"github.com/coreos/ignition/internal/util"
+	configErrors "github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/util"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"

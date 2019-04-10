@@ -18,11 +18,11 @@
 package vmware
 
 import (
-	"github.com/coreos/ignition/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/config/validate/report"
-	"github.com/coreos/ignition/internal/providers"
-	"github.com/coreos/ignition/internal/providers/util"
-	"github.com/coreos/ignition/internal/resource"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/config/validate/report"
+	"github.com/coreos/ignition/v2/internal/providers"
+	"github.com/coreos/ignition/v2/internal/providers/util"
+	"github.com/coreos/ignition/v2/internal/resource"
 
 	"github.com/sigma/vmw-guestinfo/rpcvmx"
 	"github.com/sigma/vmw-guestinfo/vmcheck"
