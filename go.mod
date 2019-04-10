@@ -5,7 +5,7 @@ go 1.11
 require (
 	github.com/ajeddeloh/go-json v0.0.0-20160803184958-73d058cf8437
 	github.com/aws/aws-sdk-go v1.19.11
-	github.com/coreos/go-semver v0.1.0
+	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 	github.com/godbus/dbus v0.0.0-20181025153459-66d97aec3384 // indirect
 	github.com/pborman/uuid v0.0.0-20170612153648-e790cca94e6c
