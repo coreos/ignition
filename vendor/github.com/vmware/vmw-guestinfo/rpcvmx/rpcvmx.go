@@ -1,10 +1,29 @@
+// Copyright 2016 VMware, Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package rpcvmx
 
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/vmware/vmw-guestinfo/rpcout"
+)
+
+const (
+	prefix = "guestinfo"
 )
 
 // Config gives access to the vmx config through the VMware backdoor
@@ -17,7 +36,12 @@ func NewConfig() *Config {
 
 // String returns the config string in the guestinfo.* namespace
 func (c *Config) String(key string, defaultValue string) (string, error) {
-	out, ok, err := rpcout.SendOne("info-get guestinfo.%s", key)
+	// add "guestinfo." prefix if missing
+	if !strings.HasPrefix(key, prefix) {
+		key = fmt.Sprintf("%s.%s", prefix, key)
+	}
+
+	out, ok, err := rpcout.SendOne("info-get %s", key)
 	if err != nil {
 		return "", err
 	} else if !ok {
@@ -54,7 +78,12 @@ func (c *Config) Int(key string, defaultValue int) (int, error) {
 
 // SetString sets the guestinfo.KEY with the string VALUE
 func (c *Config) SetString(key string, value string) error {
-	_, _, err := rpcout.SendOne("info-set guestinfo.%s %s", key, value)
+	// add "guestinfo." prefix if missing
+	if !strings.HasPrefix(key, prefix) {
+		key = fmt.Sprintf("%s.%s", prefix, key)
+	}
+
+	_, _, err := rpcout.SendOne("info-set %s %s", key, value)
 	if err != nil {
 		return err
 	}
