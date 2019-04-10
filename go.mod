@@ -8,7 +8,7 @@ require (
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 	github.com/godbus/dbus v0.0.0-20181025153459-66d97aec3384 // indirect
-	github.com/pborman/uuid v0.0.0-20170612153648-e790cca94e6c
+	github.com/google/uuid v1.1.1
 	github.com/pin/tftp v2.1.0+incompatible
 	github.com/sigma/bdoor v0.0.0-20160202064022-babf2a4017b0 // indirect
 	github.com/sigma/vmw-guestinfo v0.0.0-20160204083807-95dd4126d6e8

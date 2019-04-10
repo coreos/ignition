@@ -46,10 +46,10 @@ github.com/coreos/go-systemd/dbus
 github.com/davecgh/go-spew/spew
 # github.com/godbus/dbus v0.0.0-20181025153459-66d97aec3384
 github.com/godbus/dbus
+# github.com/google/uuid v1.1.1
+github.com/google/uuid
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
-# github.com/pborman/uuid v0.0.0-20170612153648-e790cca94e6c
-github.com/pborman/uuid
 # github.com/pin/tftp v2.1.0+incompatible
 github.com/pin/tftp
 github.com/pin/tftp/netascii

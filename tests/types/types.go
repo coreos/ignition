@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	// UUID generation tool
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 )
 
 const (

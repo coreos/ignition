@@ -36,7 +36,7 @@ import (
 	_ "github.com/coreos/ignition/v2/tests/registry"
 
 	// UUID generation tool
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 )
 
 var (
