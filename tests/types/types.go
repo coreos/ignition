@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	// UUID generation tool
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 )
 
 const (
@@ -307,7 +307,7 @@ func replaceUUIDVars(str string, UUIDmap map[string]string) (string, error) {
 // value is the UUID for this uuid variable
 func getUUID(key string, UUIDmap map[string]string) string {
 	if _, ok := UUIDmap[key]; !ok {
-		UUIDmap[key] = uuid.New()
+		UUIDmap[key] = uuid.New().String()
 	}
 	return UUIDmap[key]
 }

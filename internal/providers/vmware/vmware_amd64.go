@@ -24,13 +24,15 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
-	"github.com/sigma/vmw-guestinfo/rpcvmx"
-	"github.com/sigma/vmw-guestinfo/vmcheck"
+	"github.com/vmware/vmw-guestinfo/rpcvmx"
+	"github.com/vmware/vmw-guestinfo/vmcheck"
 	"github.com/vmware/vmw-ovflib"
 )
 
 func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
-	if !vmcheck.IsVirtualWorld() {
+	if isVM, err := vmcheck.IsVirtualWorld(); err != nil {
+		return types.Config{}, report.Report{}, err
+	} else if !isVM {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
 

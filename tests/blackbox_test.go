@@ -36,7 +36,7 @@ import (
 	_ "github.com/coreos/ignition/v2/tests/registry"
 
 	// UUID generation tool
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 )
 
 var (
@@ -166,7 +166,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		// Finish data setup
 		for _, part := range disk.Partitions {
 			if part.GUID == "" {
-				part.GUID = uuid.New()
+				part.GUID = uuid.New().String()
 				if err != nil {
 					return err
 				}
