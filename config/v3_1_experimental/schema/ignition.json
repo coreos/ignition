@@ -40,6 +40,9 @@
         },
         "security": {
           "$ref": "#/definitions/ignition/definitions/security"
+        },
+        "proxy": {
+          "$ref": "#/definitions/ignition/definitions/proxy"
         }
       },
       "definitions": {
@@ -69,6 +72,23 @@
                     "$ref": "#/definitions/ignition/definitions/ca-reference"
                   }
                 }
+              }
+            }
+          }
+        },
+        "proxy": {
+          "type": "object",
+          "properties": {
+            "httpProxy": {
+              "type": ["string", "null"]
+            },
+            "httpsProxy": {
+              "type": ["string", "null"]
+            },
+            "noProxy": {
+              "type": "array",
+              "items": {
+                "type": ["string", "null"]
               }
             }
           }

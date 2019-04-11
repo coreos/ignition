@@ -22,7 +22,10 @@ import (
 
 func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	// use a new translator so we don't recurse infintitely
-	translate.NewTranslator().Translate(&old, &ret)
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Config, &ret.Config)
+	tr.Translate(&old.Security, &ret.Security)
+	tr.Translate(&old.Timeouts, &ret.Timeouts)
 	ret.Version = types.MaxVersion.String()
 	return
 }

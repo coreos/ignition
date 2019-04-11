@@ -25,6 +25,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
@@ -34,6 +35,8 @@ import (
 	"github.com/coreos/ignition/v2/internal/version"
 
 	"github.com/vincent-petithory/dataurl"
+
+	"golang.org/x/net/http/httpproxy"
 )
 
 const (
@@ -60,7 +63,7 @@ type HttpClient struct {
 	cas       map[types.CaReference][]byte
 }
 
-func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.CaReference) error {
+func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.CaReference, proxy types.Proxy) error {
 	if f.client == nil {
 		if err := f.newHttpClient(); err != nil {
 			return err
@@ -81,6 +84,12 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 	f.client.timeout = f.client.client.Timeout
 
 	f.client.transport.ResponseHeaderTimeout = time.Duration(responseHeader) * time.Second
+	f.client.client.Transport = f.client.transport
+
+	// Update proxy
+	f.client.transport.Proxy = func(req *http.Request) (*url.URL, error) {
+		return proxyFuncFromIgnitionConfig(proxy)(req.URL)
+	}
 	f.client.client.Transport = f.client.transport
 
 	// Update CAs
@@ -116,7 +125,7 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 	}
 
 	f.client.transport.TLSClientConfig = &tls.Config{RootCAs: pool}
-	f.client.client.Transport = f.client.transport
+
 	return nil
 }
 
@@ -271,4 +280,32 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 			return nil, 0, cancelFn, ErrTimeout
 		}
 	}
+}
+
+func proxyFuncFromIgnitionConfig(proxy types.Proxy) func(*url.URL) (*url.URL, error) {
+	noProxy := translateNoProxySliceToString(proxy.NoProxy)
+
+	if proxy.HTTPProxy == nil {
+		proxy.HTTPProxy = new(string)
+	}
+
+	if proxy.HTTPSProxy == nil {
+		proxy.HTTPSProxy = new(string)
+	}
+
+	cfg := &httpproxy.Config{
+		HTTPProxy:  *proxy.HTTPProxy,
+		HTTPSProxy: *proxy.HTTPSProxy,
+		NoProxy:    noProxy,
+	}
+
+	return cfg.ProxyFunc()
+}
+
+func translateNoProxySliceToString(items []types.NoProxyItem) string {
+	newItems := make([]string, len(items))
+	for i, o := range items {
+		newItems[i] = string(o)
+	}
+	return strings.Join(newItems, ",")
 }

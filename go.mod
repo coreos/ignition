@@ -19,7 +19,7 @@ require (
 	github.com/vincent-petithory/dataurl v0.0.0-20160330182126-9a301d65acbb
 	github.com/vmware/vmw-guestinfo v0.0.0-20170707015358-25eff159a728 // indirect
 	github.com/vmware/vmw-ovflib v0.0.0-20170608004843-1f217b9dc714
-	golang.org/x/net v0.0.0-20190228165749-92fc7df08ae7 // indirect
+	golang.org/x/net v0.0.0-20190228165749-92fc7df08ae7
 	golang.org/x/text v0.3.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
