@@ -26,6 +26,7 @@ func init() {
 	register.Register(register.PositiveTest, ForceHardLinkCreation())
 	register.Register(register.PositiveTest, WriteOverSymlink())
 	register.Register(register.PositiveTest, WriteOverBrokenSymlink())
+	register.Register(register.PositiveTest, CreateHardLinkToSymlink())
 }
 
 func CreateHardLinkOnRoot() types.Test {
@@ -334,6 +335,57 @@ func WriteOverBrokenSymlink() types.Test {
 			},
 			Contents: "",
 			Mode:     420,
+		},
+	})
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateHardLinkToSymlink() types.Test {
+	name := "Create a Hard Link on the Root Filesystem"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "links": [{
+	      "path": "/foo",
+	      "target": "/bar",
+	      "hard": true
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "/",
+				Name:      "bar",
+			},
+			Target: "nonexistent",
+		},
+	})
+	out[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "/",
+				Name:      "bar",
+			},
+			Target: "nonexistent",
+		},
+		{
+			Node: types.Node{
+				Directory: "/",
+				Name:      "foo",
+			},
+			Target: "/bar",
+			Hard:   true,
 		},
 	})
 	configMinVersion := "3.0.0"
