@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
@@ -109,6 +110,25 @@ func TestStorageValidate(t *testing.T) {
 				},
 			},
 			out: nil,
+		},
+		{
+			in: Storage{
+				Links: []Link{
+					{
+						Node: Node{Path: "/quux"},
+						LinkEmbedded1: LinkEmbedded1{
+							Target: "/foo/bar",
+							Hard:   util.BoolToPtr(true),
+						},
+					},
+				},
+				Directories: []Directory{
+					{
+						Node: Node{Path: "/foo/bar"},
+					},
+				},
+			},
+			out: errors.ErrHardLinkToDirectory,
 		},
 	}
 

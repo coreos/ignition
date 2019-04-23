@@ -15,6 +15,7 @@
 package types
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
@@ -48,6 +49,18 @@ func (s Storage) Validate() (r report.Report) {
 		for _, l2 := range s.Links {
 			if strings.HasPrefix(l1.Path, l2.Path+"/") {
 				r.AddOnError(errors.ErrLinkUsedSymlink)
+			}
+		}
+		if l1.Hard == nil || !*l1.Hard {
+			continue
+		}
+		target := filepath.Clean(l1.Target)
+		if !filepath.IsAbs(target) {
+			target = filepath.Join(l1.Path, l1.Target)
+		}
+		for _, d := range s.Directories {
+			if target == d.Path {
+				r.AddOnError(errors.ErrHardLinkToDirectory)
 			}
 		}
 	}
