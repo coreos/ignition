@@ -478,7 +478,7 @@ func createLinksFromSlice(basedir string, links []types.Link) error {
 			return err
 		}
 		if link.Hard {
-			err = os.Link(link.Target, filepath.Join(basedir, link.Directory, link.Name))
+			err = os.Link(filepath.Join(basedir, link.Target), filepath.Join(basedir, link.Directory, link.Name))
 		} else {
 			err = os.Symlink(link.Target, filepath.Join(basedir, link.Directory, link.Name))
 		}

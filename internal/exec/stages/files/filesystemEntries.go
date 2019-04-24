@@ -45,6 +45,8 @@ func (s *stage) createFilesystemsEntries(config types.Config) error {
 
 // filesystemEntry represent a thing that knows how to create itself.
 type filesystemEntry interface {
+	// create creates the entry if specified. It assumes that if overwrite=true then any existing
+	// files at the path will have been deleted.
 	create(l *log.Logger, u util.Util) error
 	node() types.Node
 }
@@ -140,6 +142,42 @@ func (tmp linkEntry) node() types.Node {
 
 func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	s := types.Link(tmp)
+	hard := s.Hard != nil && *s.Hard
+	st, err := os.Lstat(s.Path)
+	switch {
+	case os.IsNotExist(err):
+		break
+	case err != nil:
+		return fmt.Errorf("stat() failed on %s: %v", s.Path, err)
+	case hard:
+		// check that the file at that path points to the same inode as target
+		targetPath, err := u.JoinPath(s.Target)
+		if err != nil {
+			return fmt.Errorf("error resolving target path of hard link %s: %v", s.Path, err)
+		}
+		targetst, err := os.Lstat(targetPath)
+		if err != nil {
+			return fmt.Errorf("error creating hard link %s: target does not exist or stat() returned an err: %v", s.Path, err)
+		}
+		if !os.SameFile(st, targetst) {
+			return fmt.Errorf("error creating hard link %s: a file already exists at that path but is not the target and overwrite is false", s.Path)
+		}
+		l.Info("Hardlink %s to %s already exists, doing nothing", s.Path, s.Target)
+		return nil
+	case !hard:
+		// if the existing file is a symlink, check that its target is correct
+		if st.Mode()&os.ModeSymlink != 0 {
+			if target, err := os.Readlink(s.Path); err != nil {
+				return fmt.Errorf("error reading link at %s: %v", s.Path, err)
+			} else if filepath.Clean(target) != filepath.Clean(s.Target) {
+				return fmt.Errorf("error creating symlink %s: a symlink exists at that path but points to %s, not %s and overwrite is false", s.Path, target, s.Target)
+			} else {
+				l.Info("Symlink %s to %s already exists, doing nothing", s.Path, s.Target)
+				return nil
+			}
+		}
+		return fmt.Errorf("error creating symlink %s: a non-symlink already exists at that path and overwrite is false", s.Path)
+	}
 
 	if err := l.LogOp(
 		func() error {

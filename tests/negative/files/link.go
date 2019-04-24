@@ -22,6 +22,8 @@ import (
 func init() {
 	register.Register(register.NegativeTest, WriteOverBrokenSymlink())
 	register.Register(register.NegativeTest, SymlinkResolutionCausesConflicts())
+	register.Register(register.NegativeTest, FailMatchHardLinkOnRoot())
+	register.Register(register.NegativeTest, FailMatchSymlinkOnRoot())
 }
 
 func WriteOverBrokenSymlink() types.Test {
@@ -81,6 +83,88 @@ func SymlinkResolutionCausesConflicts() types.Test {
 			},
 			Target: "/",
 			Hard:   false,
+		},
+	})
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FailMatchHardLinkOnRoot() types.Test {
+	name := "Fail to match a Hard Link on the Root Filesystem"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "links": [{
+	      "path": "/existing",
+	      "target": "/target",
+	      "hard": true
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "/",
+				Name:      "WrongTarget",
+			},
+		},
+		{
+			Node: types.Node{
+				Directory: "/",
+				Name:      "target",
+			},
+		},
+	})
+	in[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "/",
+				Name:      "existing",
+			},
+			Target: "/WrongTarget",
+			Hard:   true,
+		},
+	})
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FailMatchSymlinkOnRoot() types.Test {
+	name := "Fail to match a Symlink on the Root Filesystem"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "links": [{
+	      "path": "/existing",
+	      "target": "/target"
+	    }]
+	  }
+	}`
+	in[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "/",
+				Name:      "existing",
+			},
+			Target: "/WrongTarget",
 		},
 	})
 	configMinVersion := "3.0.0"

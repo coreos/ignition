@@ -143,15 +143,9 @@ func (u Util) WriteLink(s types.Link) error {
 		return fmt.Errorf("Could not create symlink: %v", err)
 	}
 
-	uid, gid, err := u.ResolveNodeUidAndGid(s.Node, 0, 0)
-	if err != nil {
-		return err
+	if err := u.SetPermissions(nil, s.Node); err != nil {
+		return fmt.Errorf("error setting permissions of %s: %v", s.Path, err)
 	}
-
-	if err := os.Lchown(path, uid, gid); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -168,7 +162,7 @@ func (u Util) SetPermissions(mode *int, node types.Node) error {
 	if err != nil {
 		return fmt.Errorf("failed to determine correct uid and gid for %s: %v", node.Path, err)
 	}
-	if err := os.Chown(node.Path, uid, gid); err != nil {
+	if err := os.Lchown(node.Path, uid, gid); err != nil {
 		return fmt.Errorf("failed to change ownership of %s: %v", node.Path, err)
 	}
 	return nil
