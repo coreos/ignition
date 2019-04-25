@@ -27,7 +27,6 @@ install() {
         useradd \
         usermod \
         realpath \
-        systemd-tmpfiles \
         touch
 
     # This one is optional; https://src.fedoraproject.org/rpms/ignition/pull-request/9
@@ -54,14 +53,6 @@ install() {
     install_ignition_unit ignition-mount.service
     install_ignition_unit ignition-files.service
     install_ignition_unit ignition-remount-sysroot.service
-
-    install_ignition_unit coreos-mount-var.service
-    inst_script "$moddir/coreos-mount-var.sh" \
-        "/usr/sbin/coreos-mount-var"
-
-    install_ignition_unit coreos-populate-var.service
-    inst_script "$moddir/coreos-populate-var.sh" \
-        "/usr/sbin/coreos-populate-var"
 
     # needed for openstack config drive support
     inst_rules 60-cdrom_id.rules
