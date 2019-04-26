@@ -1,3 +1,24 @@
+26-Apr-2019 Ignition 2.0.0-beta
+
+  Features:
+    - Add configuration spec 3.1.0-experimental
+    - Allow specifying HTTP(S) proxies in spec 3.1.0-experimental
+    - Validate hard links do not link to directories
+    - Validate paths do not include links specified in the config
+
+  Bug Fixes:
+    - Include major version in go.mod correctly
+    - Fix SELinux relabeling of systemd unit files
+    - Update documentation for spec 3.0.0+
+
+  Changes:
+    - Remove all deprecated fields in configuration specs
+    - Remove `ec2` platform id in favor of `aws`
+    - Remove `pxe` platform as it is not a platform
+    - Fail if files, links, and directories conflict after symlink resolution
+    - Do not fail when writing directories or links if overwrite is false and a
+      matching directory or link already exists
+
 25-Mar-2019 Ignition 2.0.0-alpha
 
   NOTE: This is an alpha release. While the spec is marked as stable (i.e no
