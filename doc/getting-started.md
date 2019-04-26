@@ -8,20 +8,11 @@ Ignition uses a JSON configuration file to represent the set of changes to be ma
 
 Ignition will choose where to look for configuration based on the underlying platform. A list of [supported platforms][platforms] and metadata sources is provided for reference.
 
-The configuration must be passed to Ignition through the designated data source. Please refer to Ignition [config examples][examples] to learn about writing config files. The provided configuration will be appended to the universal base configuration:
+The configuration must be passed to Ignition through the designated data source. Please refer to Ignition [config examples][examples] to learn about writing config files.
 
-```json ignition
-...
-"storage": {
-  "filesystems": [{
-    "name": "root",
-    "path": "/sysroot"
-  }]
-}
-...
-```
+This data source can be overridden by specifying a configuration URL via the kernel command-line options.
 
-This data source can be overriden by specifying a configuration URL via the kernel command-line options.
+The Linux distro may provide a base config which specifies default configuration, such as a default user. This data source is merged with this base config before it is applied. See the [operator notes][operator-notes] for more information on config merging.
 
 ## Troubleshooting
 
@@ -55,6 +46,7 @@ Ignition is not typically run more than once during a machine's lifetime in a gi
 [configspec]: configuration-v3_0.md
 [examples]: examples.md
 [mime]: http://www.iana.org/assignments/media-types/application/vnd.coreos.ignition+json
+[operator-notes]: operator-notes.md
 [platforms]: supported-platforms.md
 [preset]: https://www.freedesktop.org/software/systemd/man/systemd.preset.html
 [troubleshooting]: #troubleshooting

@@ -2,544 +2,130 @@
 
 Occasionally, there are changes made to Ignition's configuration that break backward compatibility. While this is not a concern for running machines (since Ignition only runs one time during first boot), it is a concern for those who maintain configuration files. This document serves to detail each of the breaking changes and tries to provide some reasoning for the change. This does not cover all of the changes to the spec - just those that need to be considered when migrating from one version to the next.
 
-## From Version 2.2.0 to 2.3.0
+## From 2.x.0 to 2.3.0
 
-There are not any breaking changes between versions 2.2.0 and versions 2.3.0 of the configuration specification. Any valid 2.2.0 configuration can be updated to a 2.3.0 configuration by simply changing the version string in the config.
+Refer to [this doc in the `spec2x`](https://github.com/coreos/ignition/tree/spec2x/doc/migrating-configs.md) branch of this repository.
 
-The following is a list of notable new features, deprecations, and changes.
+## From Version 2.3.0 to 3.0.0
 
-### More expressive partitioning
+The 3.0.0 version of the configuration is fully incompatible with prior versions (i.e. v1, v2.x.0) of the config. The previous versions had bugs that are not representable as a 3.0.0 config, so Ignition does not support older versions.
 
-The `disks` section gained support for more complex partitioning operations. The `partitions` field has gained two new fields: `wipePartitionEntry` and `shouldExist`. The former indicates that Ignition is allowed to wipe a partition entry from the disk's partition table if necessary to satisfy the config. The latter indicates whether a partition with the specified number should exist on the disk. See the [Operator Notes](operator-notes.md) for more details.
+### All deprecated fields are dropped
 
-This allows for existing partitions to be resized (when possible) and for partitions to be deleted.
+All deprecated fields have been dropped. Refer to this migration guide in the `spec2x` branch for how to migrate to their replacements first.
 
-The `start` and `size` fields which specify the starting sector and size of a partition (in sectors) are deprecated in favor of `startMiB` and `sizeMiB`, which are specified in mebibytes. Specifying 0 for the new fields has the same meaning as specifying 0 for the old fields.
+### Filesystems now specify path
 
-```json ignition
+Ignition now will mount filesystems at the mountpoint specified by `path` when running. Filesystems no longer have the `name` field and files, links, and directories no longer specify the filesystem by name. To create a file on a specified filesystem, ensure that the specified `path` for that filesystem is below the mountpoint for that filesystem. The following two configs are equivalent and both specify `/dev/disk/by-label/VAR` should be an XFS filesystem with an empty file named `example-file` at that filesystem's root. Note the path change in the files section to account for the filesystem's mountpoint.
+
+```json
 {
   "ignition": { "version": "2.3.0" },
   "storage": {
-    "disks": [{
-      "device": "/dev/sda",
-      "partitions": [{
-        "number": 9,
-        "sizeMiB": 0,
-        "startMiB": 0,
-        "label": "ROOT",
-        "typeGuid": "4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709",
-        "wipePartitionEntry": true
-      }]
-    }]
-  }
-}
-```
-
-## From Version 2.1.0 to 2.2.0
-
-There are not any breaking changes between versions 2.1.0 and versions 2.2.0 of the configuration specification. Any valid 2.1.0 configuration can be updated to a 2.2.0 configuration by simply changing the version string in the config.
-
-The 2.2.0 version of the configuration is greatly improved over version 2.1.0, with many new fields and behaviors added to the specification.
-
-The following is a list of notable new features, deprecations, and changes.
-
-### File appending
-
-The `files` section of the config has gained a new field called `append`. When this field is set to `true`, if there's a file at the path then the contents will be appended to the existing file.
-
-```json ignition
-{
-  "ignition": { "version": "2.2.0" },
-  "storage": {
-    "files": [{
-      "filesystem": "root",
-      "path": "/etc/hosts",
-      "append": true,
-      "mode": 420,
-      "contents": {
-        "source": "data:,10.0.0.2%20myname"
-      }
-    }]
-  }
-}
-```
-
-### Node overwriting
-
-The `files`, `directories`, and `links` sections of the config have each gained a new field called `overwrite`. When this field is set to `true`, any preexisting nodes at the path of the thing to be created will be overwritten. This field defaults to `true` for files, and `false` for directories and links.
-
-```json ignition
-{
- "ignition": { "version": "2.2.0" },
- "storage": {
-   "links": [{
-     "filesystem": "root",
-     "path": "/etc/localtime",
-     "target": "/usr/share/zoneinfo/US/Pacific",
-     "overwrite": true
-   }]
- }
-}
-```
-
-### Custom RAID options
-
-The `raid` section has gained a new field called `options`, that allows arbitrary mdadm arguments to be specified. These arguments are passed directly on to mdadm when raid arrays are being created.
-
-```json ignition
-{
-  "ignition": { "version": "2.2.0" },
-  "storage": {
-    "disks": [
-      {
-        "device": "/dev/sdb",
-        "wipeTable": true,
-        "partitions": [{
-          "label": "raid.1.1",
-          "number": 1,
-          "size": 20480,
-          "start": 0
-        }]
-      },
-      {
-        "device": "/dev/sdc",
-        "wipeTable": true,
-        "partitions": [{
-          "label": "raid.1.2",
-          "number": 1,
-          "size": 20480,
-          "start": 0
-        }]
-      }
-    ],
-    "raid": [{
-      "devices": [
-        "/dev/disk/by-partlabel/raid.1.1",
-        "/dev/disk/by-partlabel/raid.1.2"
-      ],
-      "level": "stripe",
-      "name": "data",
-      "options": [
-        "--verbose"
-      ]
-    }],
     "filesystems": [{
+      "name": "var",
       "mount": {
-        "device": "/dev/md/data",
-        "format": "ext4",
-        "label": "DATA"
+        "device": "/dev/disk/by-label/VAR",
+        "format": "xfs",
+        "wipeFilesystem": true,
+        "label": "var"
       }
-    }]
-  },
-  "systemd": {
-    "units": [{
-      "name": "var-lib-data.mount",
-      "enable": true,
-      "contents": "[Mount]\nWhat=/dev/md/data\nWhere=/var/lib/data\nType=ext4\n\n[Install]\nWantedBy=local-fs.target"
-    }]
-  }
-}
-```
-
-### Custom certificate authorities
-
-The `ignition` section has gained a new section named `security`, which can be used to specify custom certificate authorities to be used when fetching objects over `https`. These are used in addition to the system pool. These are not added to the system pool for the booted machine, and will only impact Ignition.
-
-```json ignition
-{
-  "ignition": {
-    "version": "2.2.0-experimental",
-    "config": {
-      "append": [{
-        "source": "https://s3.com/securely-fetched-config.ign"
-      }]
-    },
-    "security": {
-      "tls": {
-        "certificateAuthorities": [
-          {
-            "source": "http://www.example.com/root.pem",
-            "verification": {
-              "hash": "sha512-ab800f66a7544c0a8dbed0c57b38a3c1487c3369e2e9e90704d0c07743557ab2a28c528720566ffc64e3dfd5df1a557a4979b33009f5fd493fea02a7e30041d2"
-            }
-          }
-        ]
-      }
-    }
-  }
-}
-```
-
-### networkd dropins
-
-With the release of systemd v232, networkd dropins are now supported as a means of configuring existing networkd units. The `networkd` section has gained a `dropins` field to reflect this.
-
-```json ignition
-{
-  "ignition": {
-    "version": "2.2.0-experimental"
-  },
-  "networkd": {
-    "units": [{
-      "name": "zz-default.network",
-      "dropins": [{
-        "name": "disable-dhcp.conf",
-        "contents": "data:,%5BNetwork%5D%0ADHCP%3Dno"
-      }]
+    }],
+    "files": [{
+      "filesystem": "var",
+      "path": "/example-file",
+      "mode": 420,
+      "contents": { "source": "" }
     }]
   }
 }
 ```
 
-## From Version 2.0.0 to 2.1.0
-
-There are not any breaking changes between versions 2.0.0 and versions 2.1.0 of the configuration specification. Any valid 2.0.0 configuration can be updated to a 2.1.0 configuration by simply changing the version string in the config.
-
-The 2.1.0 version of the configuration is greatly improved over version 2.0.0, with many new fields and behaviors added to the specification.
-
-The following is a list of notable new features, deprecations, and changes.
-
-### HTTP timeouts
-
-The values used to control the backoff when retrying in HTTP requests can now be set in the config. For details on how the backoff logic works, please see the section in the [operator's notes][operator-notes].
-
-The fields to do this are in a new object called `timeouts`, and they can alter the time spent waiting for HTTP response headers and the total time limit for the operation.
-
 ```json ignition
 {
-  "ignition": {
-    "version": "2.1.0",
-    "timeouts": {
-      "httpResponseHeaders": 20,
-      "httpTotal": 600
-    }
-  }
-}
-```
-
-### Partition GUIDs
-
-The GPT unique partition GUID can now be set on partitions in a configuration.
-
-```json ignition
-{
-  "ignition": {
-    "version": "2.1.0"
-  },
+  "ignition": { "version": "3.0.0" },
   "storage": {
-    "disks": [
-      {
-        "device": "/dev/disk/by-uuid/ecdbeb92-174e-4d24-9d6f-fbd9cb668a48",
-        "partitions": [
-          {
-            "guid": "8a7a6e26-5e8f-4cca-a654-46215d4696ac"
-          }
-        ]
-      }
-    ]
+    "filesystems": [{
+      "path": "/var",
+      "device": "/dev/disk/by-label/VAR",
+      "format": "xfs",
+      "wipeFilesystem": true,
+      "label": "var"
+    }],
+    "files": [{
+      "path": "/var/example-file",
+      "mode": 420,
+      "contents": { "source": "" }
+    }]
   }
 }
 ```
 
-### Directories, links, and files
+### Files now default to overwrite=false
 
-Version 2.1.0 of the configuration specification now supports specifying directories and links (both symbolic and hard) to be created, and when creating either of these or creating a file the owner's user and group can be specified by name in addition to UID and GID.
+Files do not overwrite existing files by default. If no source is specified, Ignition will simply ensure a file exists at that path, creating an empty file if necessary.
 
-```json ignition
+### File permissions now default to 0644
+
+If file permissions are unspecified, the permissions default to 0644. If Ignition does not need to create or overwrite the file (i.e. `overwrite` is false, a file exists at that path, and `source` is nil), it will not change the mode, owner or group.
+
+### Directories now create leading directories with mode 0755 and uid/gid 0
+
+When a file, directory, or link is specified but the parent directory does not exist, Ignition will create the directory(ies) leading up to it. Previously, when a directory was specified, any leading directories were created with the same mode/uid/gid as the specified directory. Now they are created with mode 0755, uid 0, and gid 0. This ensures the behavior is consistent with files and links.
+
+### Duplicate entries are no longer allowed
+
+Configs cannot specify contradictory entries. This means a config cannot contain two file entries with the same `path`, or specify a path as both a link and a file.
+
+### Configuration appending is replaced by configuration merging
+
+`ignition.config.append` has been replaced by `ignition.config.merge`. Instead of appending entries from the child configs, Ignition merges them. Refer to the [operator notes][operator-notes] for more information.
+
+### Files now have a list of sources to append
+
+Files now have a list of contents to append instead of multiple entries with `append=true`. The following two configs are equivalent. Since `overwrite` is false and `contents.source` is unspecified, Ignition will first ensure a file exists at the path (creating it if necessary) and then append both contents to it. 
+
+```json
 {
-  "ignition": { "version": "2.1.0" },
+  "ignition": { "version": "2.3.0" },
   "storage": {
     "files": [{
       "filesystem": "root",
-      "path": "/home/core/foo.txt",
+      "path": "/example-file",
       "mode": 420,
-      "contents": { "source": "data:,helloworld" },
-      "user": {
-        "name": "core"
-      },
-      "group": {
-        "name": "core"
-      }
-    }],
-    "directories": [{
+      "append": true,
+      "contents": { "source": "data:,hello" }
+    },
+    {
       "filesystem": "root",
-      "path": "/home/core/bar",
-      "mode": 493,
-      "user": {
-        "name": "core"
-      },
-      "group": {
-        "name": "core"
-      }
-    }],
-    "links": [{
-      "filesystem": "root",
-      "path": "/home/core/baz.txt",
-      "target": "/home/core/foo.txt",
-      "hard": true,
-      "user": {
-        "name": "core"
-      },
-      "group": {
-        "name": "core"
-      }
+      "path": "/example-file",
+      "mode": 420,
+      "append": true,
+      "contents": { "source": "data:,world" }
     }]
   }
 }
 ```
 
-### Filesystem create object deprecation
-
-Version 2.0.0 of the configuration specification included an object named `create` in the `mount` object under the `filesystems` section.
-
 ```json ignition
 {
-  "ignition": {
-    "version": "2.0.0"
-  },
+  "ignition": { "version": "3.0.0" },
   "storage": {
-    "filesystems": [
-      {
-        "name": "data",
-        "mount": {
-          "device": "/dev/disk/by-uuid/ecdbeb92-174e-4d24-9d6f-fbd9cb668a48",
-          "format": "ext4",
-          "create": {
-            "force": true,
-            "options": ["-L", "DATA", "-b", "1024"]
-          }
-        }
-      }
-    ]
+    "files": [{
+      "path": "/example-file",
+      "mode": 420,
+      "append": [
+        { "source": "data:,hello" },
+        { "source": "data:,world" }
+      ]
+    }]
   }
 }
 ```
 
-This `create` object has been deprecated. Configurations of version 2.1.0 that use the `create` object will still work, but will cause Ignition to log a warning.
+### Networkd section is removed
 
-It is now advised to use the new fields that have been added to the `mount` object.
+The networkd section has been removed. Use the files section instead. Refer to the [networkd documentation][networkd-docs] for more information.
 
-```json ignition
-{
-  "ignition": {
-    "version": "2.1.0"
-  },
-  "storage": {
-    "filesystems": [
-      {
-        "name": "data",
-        "mount": {
-          "device": "/dev/disk/by-uuid/ecdbeb92-174e-4d24-9d6f-fbd9cb668a48",
-          "format": "ext4",
-          "wipeFilesystem": true,
-          "label": "DATA",
-          "options": ["-b", "1024"]
-        }
-      }
-    ]
-  }
-}
-```
-
-The `wipeFilesystem` flag that replaces the `force` flag has rather different semantics, and can allow for existing filesystems to be reused. For more information, please see the [filesystems document][filesystems].
-
-### Passwd create object deprecation
-
-Similar to the `create` object in the `filesystems` section, version 2.0.0 of the configuration specification included an object named `create` in the `users` list in the `passwd` object.
-
-```json ignition
-{
-  "ignition": {
-    "version": "2.0.0"
-  },
-  "passwd": {
-    "users": [
-      {
-        "name": "test",
-        "create": {
-          "uid": 1010,
-          "gecos": "user creation test",
-          "noCreateHome": true,
-          "noUserGroup": true
-        }
-      }
-    ]
-  }
-}
-```
-
-This `create` object has been deprecated. Configurations of version 2.1.0 that use the `create` object will still work, but will cause Ignition to log a warning.
-
-The fields that existed in the `create` object have been added directly to the `users` object, and it's advised to use these new fields instead of the `create` object.
-
-```json ignition
-{
-  "ignition": {
-    "version": "2.1.0"
-  },
-  "passwd": {
-    "users": [
-      {
-        "name": "test",
-        "uid": 1010,
-        "gecos": "user creation test",
-        "noCreateHome": true,
-        "noUserGroup": true
-      }
-    ]
-  }
-}
-```
-
-## From Version 1 to 2.0.0
-
-This section will cover the breaking changes made between versions 1 and 2.0.0 of the configuration specification.
-
-### Version
-
-One of the more notable changes was the representation of the config version, moving from an integer to a [Semantic Version][semver] string. Using a Semantic Version will allow the configuration specification to pick up additions and other backward-compatible changes in the future without necessarily requiring the user to update their config. The version number has also moved locations and is now in an Ignition metadata section named "ignition".
-
-The following shows the changes to the version section:
-
-```json ignition
-{
-  "ignitionVersion": 1
-}
-```
-
-```json ignition
-{
-  "ignition": {
-    "version": "2.0.0"
-  }
-}
-```
-
-### Files
-
-The `files` section was moved out from under `filesystems` and is now directly under the `storage` section. This was done in order to decouple file definitions from filesystem definitions. This is particularly useful when merging multiple configs together. One config may define a filesystem while another can write files to that filesystem without needing to know the specifics of that filesystem. A common example of this is referencing the universally-defined "root" filesystem which is defined by default inside of Ignition.
-
-The following shows this particular change to the files section:
-
-```json ignition
-{
-  "ignitionVersion": 1,
-  "storage": {
-    "filesystems": [
-      {
-        "device": "/dev/sdb1",
-        "format": "ext4",
-        "files": [
-          {
-            "path": "/foo/bar"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-```json ignition
-{
-  "ignition": {
-    "version": "2.0.0"
-  },
-  "storage": {
-    "filesystems": [
-      {
-        "name": "example",
-        "mount": {
-          "device": "/dev/sdb1",
-          "format": "ext4"
-	}
-      }
-    ],
-    "files": [
-      {
-        "filesystem": "example",
-        "path": "/foo/bar"
-      }
-    ]
-  }
-}
-```
-
-#### Contents
-
-The `contents` section was changed from a simple string to an object. This allows extra properties to be added to file contents (e.g. compression type, content hashs). The source for the file contents has also changed from being inline in the config to a URL. This provides the ability to include the contents inline (via a [data URL][rfc2397]) or to reference a remote resource (via an http URL).
-
-The following shows the changes to the file contents (snipped for clarity):
-
-```json ignition
-...
-
-"files": [
-  {
-    "path": "/foo/bar",
-    "contents": "example file\n"
-  }
-]
-
-...
-```
-
-```json ignition
-...
-
-"files": [
-  {
-    "path": "/foo/bar",
-    "contents": {
-      "source": "data:,example%20file%0A"
-    }
-  }
-]
-
-...
-```
-
-#### User and Group
-
-The `uid` and `gid` sections have been moved into new `id` sections under new `user` and `group` sections. This will allow alternate methods of identifying a user or a group (e.g. by name) in the future.
-
-The following shows the changes to the file uid and gid:
-
-```json ignition
-...
-
-"files": [
-  {
-    "path": "/foo/bar",
-    "uid": 500,
-    "gid": 500
-  }
-]
-
-...
-
-```
-
-```json ignition
-...
-
-"files": [
-  {
-    "path": "/foo/bar",
-    "user": {
-      "id": 500
-    },
-    "group": {
-      "id": 500
-    }
-  }
-]
-
-...
-
-```
-
-[semver]: http://semver.org
-[rfc2397]: https://tools.ietf.org/html/rfc2397
+[networkd-docs]: https://www.freedesktop.org/software/systemd/man/systemd-networkd.html#
 [operator-notes]: operator-notes.md
-[filesystems]: operator-notes.md#filesystem-reuse-semantics

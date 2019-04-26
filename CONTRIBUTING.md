@@ -17,7 +17,7 @@ Please avoid emailing maintainers found in the MAINTAINERS file directly. They a
 ## Getting Started
 
 - Fork the repository on GitHub
-- Read the [README](README.md) for build and test instructions
+- Read the [README](README.md) and [development guide][dev-guide] for build and test instructions
 - Play with the project, submit bugs, submit patches!
 
 ## Contribution Flow
@@ -57,3 +57,5 @@ The format can be described more formally as follows:
 ```
 
 The first line is the subject and should be no longer than 50 characters, the second line is always blank, and other lines should be wrapped at 72 characters. This allows the message to be easier to read on GitHub as well as in various git tools.
+
+[dev-guide]: doc/development.md

@@ -1,6 +1,6 @@
 # Development
 
-A Go 1.7+ [environment](https://golang.org/doc/install) and the `blkid.h` headers are required.
+A Go 1.11+ [environment](https://golang.org/doc/install) and the `blkid.h` headers are required. Using go 1.10 may work, but isn't directly supported since it does not support go modules.
 
 ```sh
 # Debian/Ubuntu
@@ -18,32 +18,28 @@ Install [schematyper](https://github.com/idubinskiy/schematyper) to generate Go 
 go get -u github.com/idubinskiy/schematyper
 ```
 
-Modify `schema/ignition.json` as necessary. This file adheres to the [json schema spec](http://json-schema.org/).
+Modify `config/v${LATEST_EXPERIMENTAL}/schema/ignition.json` as necessary. This file adheres to the [json schema spec](http://json-schema.org/).
 
-Run the `generate` script to create `internal/config/types/schema.go` and `config/v${LATEST_EXPERIMENTAL}/types/schema.go`. The first of the two files is used internally by Ignition, and the second is presented to library consumers and used for validation.
+Run the `generate` script to create `config/vX_Y/types/schema.go`. Once a configuration is stabilized (i.e. it is no longer `-experimental`), it is considered frozen. The json schemas used to create stable specs are kept for reference only and should not be changed.
 
 ```sh
 ./generate
 ```
 
-Add whatever validation logic is necessary to `config/v${LATEST_EXPERIMENTAL}/types`, modify the translator at `internal/config/translate.go` to handle the changes, and update `internal/config/translate_test.go` to properly test the changes.
+Add whatever validation logic is necessary to `config/v${LATEST_EXPERIMENTAL}/types`, modify the translator at `config/v${LATEST_EXPERIMENTAL}/translate/translate.go` to handle the changes if necessary, and update `config/v${LATEST_EXPERIMENTAL/translate/translate_test.go` to properly test the changes.
 
 Finally, make whatever changes are necessary to `internal` to handle the new spec.
 
 ## Vendor
 
-Install [glide](https://github.com/Masterminds/glide) and [glide-vc](https://github.com/sgotti/glide-vc) to manage dependencies in the `vendor` directory.
+Ignition uses go modules. Additionally, we keep all of the dependencies vendored in the repo. This has a few benefits:
+ - Ensures modification to `go.mod` is intentional, since `go build` can update it without `-mod=vendor`
+ - Ensures all builds occur with the same set of sources, since `go build` will only pull in sources for the targeted `GOOS` and `GOARCH`
+ - Simplifies packaging in some cases since some package managers restrict network access during compilation.
 
-```sh
-go get -u github.com/Masterminds/glide
-go get -u github.com/sgotti/glide-vc
-```
+After modifying `go.mod` run `make vendor` to update the vendor directory.
 
-Edit the `glide.yaml` file to update a dependency or add a new dependency. Then make vendor.
-
-```sh
-make vendor
-```
+Group changes to `go.mod`, `go.sum` and `vendor/` in their own commit; do not make code changes and vendoring changes in the same commit.
 
 ## Running Blackbox Tests on Container Linux
 
@@ -114,11 +110,11 @@ Create a new [release checklist](https://github.com/coreos/ignition/issues/new?l
 
 ## Marking an experimental spec as stable
 
-When an experimental version of the Ignition config spec (e.g.: `2.3.0-experimental`) is to be declared stable (e.g. `2.3.0`), there are a handful of changes that must be made to the code base. These changes should have the following effects:
+When an experimental version of the Ignition config spec (e.g.: `3.1.0-experimental`) is to be declared stable (e.g. `3.1.0`), there are a handful of changes that must be made to the code base. These changes should have the following effects:
 
-- Any configs with a `version` field set to the previously experimental version will no longer pass validation. For example, if `2.3.0-experimental` is being marked as stable, any configs written for `2.3.0-experimental` should have their version fields changed to `2.3.0`, for Ignition will no longer accept them.
-- A new experimental spec version will be created. For example, if `2.3.0-experimental` is being marked as stable, a new version of `2.4.0-experimental` will now be accepted, and start to accumulate new changes to the spec.
-- The new stable spec and the new experimental spec will be identical. The new experimental spec is a direct copy of the old experimental spec, and no new changes to the spec have been made yet, so initially the two specs will have the same fields and semantics.
+- Any configs with a `version` field set to the previously experimental version will no longer pass validation. For example, if `3.1.0-experimental` is being marked as stable, any configs written for `3.1.0-experimental` should have their version fields changed to `3.1.0`, for Ignition will no longer accept them.
+- A new experimental spec version will be created. For example, if `3.1.0-experimental` is being marked as stable, a new version of `3.2.0-experimental` (or `4.0.0-experimental` if backwards incompatible changes are being made) will now be accepted, and start to accumulate new changes to the spec.
+- The new stable spec and the new experimental spec will be identical except for the accepted versions. The new experimental spec is a direct copy of the old experimental spec, and no new changes to the spec have been made yet, so initially the two specs will have the same fields and semantics.
 - The HTTP `user-agent` header that Ignition uses whenever fetching an object and the HTTP `accept` header that Ignition uses whenever fetching a config will be updated to advertise the new stable spec.
 - New features will be documented in the [migrating configs](doc/migrating-configs.md) documentation.
 
@@ -136,18 +132,12 @@ The code changes that are required to achieve these effects are typically the fo
 - Update `MaxVersion` in `config/vX_(Y+1)_experimental/types/config.go` to have the correct major/minor versions and `PreRelease` set to `"experimental"`
 - Update `config/vX_(Y+1)_experimental/config.go` to use `config/vX_Y` for parsing
 - Update `config/vX_(Y+1)_experimental/config_test.go` to test that the new stable version is valid, the new experimental version is valid, and the old experimental version is invalid
-- Copy `internal/config/translate.go` and `internal/config/translate_test.go` to `config/vX_(Y+1)_experimental`, and update their golang `package` statements
+- Update `config/vX_(Y+1)_experimental/translate/translate.go` to only set the new version.
+- Update `config/config.go` to handle the new config.
 
 ### Update all relevant places to use the new experimental package
 
-Next, all places that imported `config/vX_Y_experimental` should be updated to `config/vX_(Y+1)_experimental`. As of the time of writing (please check for more!) this is the list of places to update:
-
-- `config/util`
-- `config/validate`
-- `internal/config`
-- `internal/config/types`
-- `tests`
-- `validate`
+Next, all places that imported `config/vX_Y_experimental` should be updated to `config/vX_(Y+1)_experimental`.
 
 Update `tests/register/register.go` in the following ways:
 
