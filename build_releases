@@ -4,7 +4,7 @@ set -eu
 
 NAME="ignition"
 ORG_PATH="github.com/coreos"
-REPO_PATH="${ORG_PATH}/${NAME}"
+REPO_PATH="${ORG_PATH}/${NAME}/v2"
 GLDFLAGS=${GLDFLAGS:-}
 
 if [ -z ${VERSION+a} ]; then
@@ -19,19 +19,13 @@ if [[ -n "$(git status -s)" ]]; then
     exit 1
 fi
 
-if [ ! -h gopath/src/${REPO_PATH} ]; then
-	mkdir -p gopath/src/${ORG_PATH}
-	ln -s ../../../.. gopath/src/${REPO_PATH} || exit 255
-fi
-
-eval $(go env)
-
 if [ -z ${BIN_PATH+a} ]; then
 	export BIN_PATH=${PWD}/bin/releases/
 fi
 
-export GOPATH=${PWD}/gopath
+export GO11MODULE=on
 export CGO_ENABLED=0
+export GOFLAGS='-mod=vendor'
 
 build_release() {
     export NAME="ignition-validate-${1}"
