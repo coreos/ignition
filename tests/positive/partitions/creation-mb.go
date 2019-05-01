@@ -29,7 +29,7 @@ func init() {
 }
 
 func CreatePartitionMiB() types.Test {
-	name := "Create a single partition on a blank disk using MiBs"
+	name := "partition.create"
 	in := append(types.GetBaseDisk(), types.Disk{Alignment: types.IgnitionAlignment})
 	out := append(types.GetBaseDisk(), types.Disk{
 		Alignment: types.IgnitionAlignment,
@@ -74,7 +74,7 @@ func CreatePartitionMiB() types.Test {
 }
 
 func CreatePartitionMiBWithStart() types.Test {
-	name := "Create a single partition on a blank disk using MiBs providing the starting sector"
+	name := "partition.create.withstartmib"
 	in := append(types.GetBaseDisk(), types.Disk{Alignment: types.IgnitionAlignment})
 	out := append(types.GetBaseDisk(), types.Disk{
 		Alignment: types.IgnitionAlignment,
@@ -120,7 +120,7 @@ func CreatePartitionMiBWithStart() types.Test {
 }
 
 func WipeAndCreateNewPartitionsMiB() types.Test {
-	name := "Wipe disk and create new partitions using MiB"
+	name := "partition.create.wipetable"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -204,7 +204,7 @@ func WipeAndCreateNewPartitionsMiB() types.Test {
 }
 
 func AppendPartitionsMiB() types.Test {
-	name := "Append partition to an existing partition table using MiBs"
+	name := "partition.append"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -296,7 +296,7 @@ func AppendPartitionsMiB() types.Test {
 }
 
 func ResizeRootMiB() types.Test {
-	name := "Resize the ROOT partition to be bigger using MiBs"
+	name := "partition.resizeroot"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	out[0].Partitions[9-2-1].Length = 12943360 + 65536

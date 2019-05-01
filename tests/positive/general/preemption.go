@@ -63,7 +63,7 @@ func makePreemptTest(components string) types.Test {
 	if len(longnameList) == 0 {
 		longnameList = append(longnameList, "no")
 	}
-	name := "Preemption with " + strings.Join(longnameList, ", ") + " config"
+	name := "preemption." + strings.Join(longnameList, ".") + ".config"
 
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()

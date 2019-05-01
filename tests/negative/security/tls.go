@@ -90,7 +90,7 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 )
 
 func AppendConfigCustomCert() types.Test {
-	name := "Append config with custom tls cert"
+	name := "tls.config.merge.needsca"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
@@ -118,7 +118,7 @@ func AppendConfigCustomCert() types.Test {
 }
 
 func FetchFileCustomCert() types.Test {
-	name := "Fetch file with custom tls cert"
+	name := "tls.file.create.needsca"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{

@@ -25,7 +25,7 @@ func init() {
 }
 
 func MissingRemoteContentsHTTP() types.Test {
-	name := "Missing File from Remote Contents - HTTP"
+	name := "files.create.http.notfound"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -51,7 +51,7 @@ func MissingRemoteContentsHTTP() types.Test {
 }
 
 func MissingRemoteContentsTFTP() types.Test {
-	name := "Missing File from Remote Contents - TFTP"
+	name := "files.create.tftp.notfound"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{

@@ -89,7 +89,7 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 )
 
 func AppendConfigCustomCert() types.Test {
-	name := "Append config with custom tls cert_positive"
+	name := "tls.appendconfig"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
@@ -131,7 +131,7 @@ func AppendConfigCustomCert() types.Test {
 }
 
 func FetchFileCustomCert() types.Test {
-	name := "Fetch file with custom tls cert"
+	name := "tls.fetchfile"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{

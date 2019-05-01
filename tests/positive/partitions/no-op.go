@@ -26,7 +26,7 @@ func init() {
 }
 
 func DoNothing() types.Test {
-	name := "Do nothing when told to add no partitions"
+	name := "parition.no-op"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -53,7 +53,7 @@ func DoNothing() types.Test {
 }
 
 func SpecifiedNonexistent() types.Test {
-	name := "Verify partitions with shouldexist=false do not get created"
+	name := "partition.no-op.nonexistent"
 	in := append(types.GetBaseDisk(), types.Disk{Alignment: types.IgnitionAlignment})
 	out := append(types.GetBaseDisk(), types.Disk{Alignment: types.IgnitionAlignment})
 	config := `{

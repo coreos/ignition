@@ -24,7 +24,7 @@ func init() {
 }
 
 func ReuseExistingFilesystem() types.Test {
-	name := "Reuse Existing Filesystem"
+	name := "filesystem.reuse"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{

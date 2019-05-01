@@ -32,7 +32,7 @@ func init() {
 }
 
 func CreateHardLinkOnRoot() types.Test {
-	name := "Create a Hard Link on the Root Filesystem"
+	name := "links.hard.create"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -82,7 +82,7 @@ func CreateHardLinkOnRoot() types.Test {
 }
 
 func MatchHardLinkOnRoot() types.Test {
-	name := "Match a Hard Link on the Root Filesystem"
+	name := "links.hard.match"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -143,7 +143,7 @@ func MatchHardLinkOnRoot() types.Test {
 }
 
 func CreateSymlinkOnRoot() types.Test {
-	name := "Create a Symlink on the Root Filesystem"
+	name := "links.sym.create"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -186,7 +186,7 @@ func CreateSymlinkOnRoot() types.Test {
 }
 
 func MatchSymlinkOnRoot() types.Test {
-	name := "Match a Symlink on the Root Filesystem"
+	name := "links.sym.match"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -244,7 +244,7 @@ func MatchSymlinkOnRoot() types.Test {
 }
 
 func ForceLinkCreation() types.Test {
-	name := "Force Link Creation"
+	name := "links.sym.create.force"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -302,7 +302,7 @@ func ForceLinkCreation() types.Test {
 }
 
 func ForceHardLinkCreation() types.Test {
-	name := "Force Hard Link Creation"
+	name := "links.hard.create.force"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -362,7 +362,7 @@ func ForceHardLinkCreation() types.Test {
 }
 
 func WriteOverSymlink() types.Test {
-	name := "Write Over Symlink at end of path"
+	name := "links.sym.writeover"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -425,7 +425,7 @@ func WriteOverSymlink() types.Test {
 }
 
 func WriteOverBrokenSymlink() types.Test {
-	name := "Write Over Broken Symlink at end of path"
+	name := "links.sym.writeover.broken"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -470,7 +470,7 @@ func WriteOverBrokenSymlink() types.Test {
 }
 
 func CreateHardLinkToSymlink() types.Test {
-	name := "Create a Hard Link on the Root Filesystem"
+	name := "links.hard.create.tosym"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{

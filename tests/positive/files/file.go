@@ -32,7 +32,7 @@ func init() {
 }
 
 func CreateFileOnRoot() types.Test {
-	name := "Create Files on the Root Filesystem"
+	name := "files.create"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -65,7 +65,7 @@ func CreateFileOnRoot() types.Test {
 }
 
 func UserGroupByID() types.Test {
-	name := "User/Group by id"
+	name := "files.owner.byid"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -102,7 +102,7 @@ func UserGroupByID() types.Test {
 }
 
 func UserGroupByName() types.Test {
-	name := "User/Group by name"
+	name := "files.owner.byname"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -139,7 +139,7 @@ func UserGroupByName() types.Test {
 }
 
 func ForceFileCreation() types.Test {
-	name := "Force File Creation"
+	name := "files.create.force"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -184,7 +184,7 @@ func ForceFileCreation() types.Test {
 }
 
 func AppendToAFile() types.Test {
-	name := "Append to a file"
+	name := "files.append.withcreate"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -222,7 +222,7 @@ func AppendToAFile() types.Test {
 }
 
 func AppendToExistingFile() types.Test {
-	name := "Append to existing file"
+	name := "files.append.existing"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -268,7 +268,7 @@ func AppendToExistingFile() types.Test {
 }
 
 func AppendToNonexistentFile() types.Test {
-	name := "Append to a non-existent file"
+	name := "files.append.nonexistent"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -303,7 +303,7 @@ func AppendToNonexistentFile() types.Test {
 }
 
 func ApplyDefaultFilePermissions() types.Test {
-	name := "Apply Default File Permissions"
+	name := "files.defaultperms"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{

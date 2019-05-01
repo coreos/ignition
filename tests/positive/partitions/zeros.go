@@ -30,7 +30,7 @@ func init() {
 }
 
 func PartitionSizeStart0() types.Test {
-	name := "Create a partition with size and start 0"
+	name := "partition.create.startsize0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -80,7 +80,7 @@ func PartitionSizeStart0() types.Test {
 }
 
 func PartitionStartNumber0() types.Test {
-	name := "Create a partition with number and start 0"
+	name := "partition.create.numbersize0"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -154,7 +154,7 @@ func PartitionStartNumber0() types.Test {
 }
 
 func ResizeRootFillDisk() types.Test {
-	name := "Resize the ROOT partition to fill the disk"
+	name := "partition.resizeroot.withzeros"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	out[0].Partitions[9-2-1].Length = 12943360 + 65536
@@ -189,7 +189,7 @@ func ResizeRootFillDisk() types.Test {
 }
 
 func VerifyRootFillsDisk() types.Test {
-	name := "Verify the ROOT partition to fills the default disk"
+	name := "partition.match.rootfillsdisk"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -222,7 +222,7 @@ func VerifyRootFillsDisk() types.Test {
 }
 
 func VerifyUnspecifiedIsDoNotCare() types.Test {
-	name := "Verify unspecified size/start matches even when its not the max size"
+	name := "partition.match.sizestart.unspecd"
 	in := types.GetBaseDisk()
 	in[0].Partitions = append(in[0].Partitions, &types.Partition{
 		TypeCode: "blank",
@@ -257,7 +257,7 @@ func VerifyUnspecifiedIsDoNotCare() types.Test {
 }
 
 func NumberZeroHappensLast() types.Test {
-	name := "Verify the partitions with number=0 happen are processed last"
+	name := "partition.number0"
 	in := append(types.GetBaseDisk(), types.Disk{
 		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{

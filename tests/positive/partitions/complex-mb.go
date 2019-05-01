@@ -25,7 +25,7 @@ func init() {
 }
 
 func KitchenSinkMiB() types.Test {
-	name := "Complex partitioning case using MiBs"
+	name := "partitions.complex"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	// Ignition should not clobber by default, so omit the partition 5 entry

@@ -25,7 +25,7 @@ func init() {
 }
 
 func InvalidHash() types.Test {
-	name := "Invalid File Hash"
+	name := "files.verification.badhash.dataurl"
 	in := types.GetBaseDisk()
 	out := in
 	mntDevices := []types.MntDevice{
@@ -63,7 +63,7 @@ func InvalidHash() types.Test {
 }
 
 func InvalidHashFromHTTPURL() types.Test {
-	name := "Invalid File Hash from HTTP URL"
+	name := "files.verification.badhash.http"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{

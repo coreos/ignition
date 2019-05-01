@@ -36,7 +36,7 @@ func init() {
 }
 
 func ReplaceConfigWithInvalidHash() types.Test {
-	name := "Replace Config with Invalid Hash"
+	name := "config.replace.badhash"
 	in := types.GetBaseDisk()
 	out := in
 	mntDevices := []types.MntDevice{
@@ -69,7 +69,7 @@ func ReplaceConfigWithInvalidHash() types.Test {
 }
 
 func AppendConfigWithInvalidHash() types.Test {
-	name := "Append Config with Invalid Hash"
+	name := "config.merge.badhash"
 	in := types.GetBaseDisk()
 	out := in
 	mntDevices := []types.MntDevice{
@@ -108,7 +108,7 @@ func AppendConfigWithInvalidHash() types.Test {
 }
 
 func ReplaceConfigWithMissingFileHTTP() types.Test {
-	name := "Replace Config with Missing File - HTTP"
+	name := "config.replace.http.notfound"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -133,7 +133,7 @@ func ReplaceConfigWithMissingFileHTTP() types.Test {
 }
 
 func ReplaceConfigWithMissingFileTFTP() types.Test {
-	name := "Replace Config with Missing File - TFTP"
+	name := "config.replace.tftp.notfound"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -158,7 +158,7 @@ func ReplaceConfigWithMissingFileTFTP() types.Test {
 }
 
 func AppendConfigWithMissingFileHTTP() types.Test {
-	name := "Append Config with Missing File - HTTP"
+	name := "config.merge.http.notfound"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -183,7 +183,7 @@ func AppendConfigWithMissingFileHTTP() types.Test {
 }
 
 func AppendConfigWithMissingFileTFTP() types.Test {
-	name := "Append Config with Missing File - TFTP"
+	name := "config.merge.tftp.notfound"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -208,7 +208,7 @@ func AppendConfigWithMissingFileTFTP() types.Test {
 }
 
 func VersionOnlyConfig24() types.Test {
-	name := "Version Only Config 2.4.0-experimental"
+	name := "config.version.2.4.0-exp"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -227,7 +227,7 @@ func VersionOnlyConfig24() types.Test {
 }
 
 func VersionOnlyConfig32() types.Test {
-	name := "Version Only Config 3.2.0-experimental"
+	name := "config.versions.3.2.0-exp"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -246,7 +246,7 @@ func VersionOnlyConfig32() types.Test {
 }
 
 func MergingCanFail() types.Test {
-	name := "Merging Can Fail"
+	name := "config.merge.failed"
 	configMinVersion := "3.0.0-experimental"
 	in := types.GetBaseDisk()
 	out := in
@@ -289,12 +289,11 @@ func MergingCanFail() types.Test {
 	}`, du.String())
 
 	return types.Test{
-		Name:              name,
-		In:                in,
-		Out:               out,
-		Config:            config,
-		MntDevices:        mntDevices,
-		ConfigShouldBeBad: false,
-		ConfigMinVersion:  configMinVersion,
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		MntDevices:       mntDevices,
+		ConfigMinVersion: configMinVersion,
 	}
 }

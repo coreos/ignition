@@ -27,7 +27,7 @@ func init() {
 }
 
 func Match1Recreate1Delete1Create1() types.Test {
-	name := "Match 1, recreate 2, delete 3, add 4"
+	name := "partition.match.recreate.delete.add"
 	in := append(types.GetBaseDisk(), types.Disk{
 		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{
@@ -124,7 +124,7 @@ func Match1Recreate1Delete1Create1() types.Test {
 }
 
 func NothingMatches() types.Test {
-	name := "Recreate all three partitions because nothing matches"
+	name := "partition.match.recreate"
 	// partition 1 has the wrong type guid, 2 has the wrong guid and 3 has the wrong size and label
 	// there's a test in complex.go that is similar, but 1 has the wrong size and thus everything
 	// gets moved around (with start/size 0)

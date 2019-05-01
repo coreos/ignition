@@ -26,7 +26,7 @@ func init() {
 }
 
 func Partition9DoesNotFillDisk() types.Test {
-	name := "Partition 9 is size 0 but does not fill the disk"
+	name := "partition.match.failstofill"
 	in := types.GetBaseDisk()
 	in[0].Partitions = append(in[0].Partitions, &types.Partition{
 		Number: 10,
@@ -61,7 +61,7 @@ func Partition9DoesNotFillDisk() types.Test {
 }
 
 func Partition9DoesNotStartCorrectly() types.Test {
-	name := "Partition 9 does not start at the largest chunk"
+	name := "partition.match.failstostart"
 	in := types.GetBaseDisk()
 	//insert a gap before 9
 	tmp := in[0].Partitions[9-2-1]

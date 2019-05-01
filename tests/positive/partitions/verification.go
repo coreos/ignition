@@ -26,7 +26,7 @@ func init() {
 }
 
 func VerifyBaseDisk() types.Test {
-	name := "Verify the base disk does not change with a matching Ignition spec"
+	name := "partition.match.all"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -104,7 +104,7 @@ func VerifyBaseDisk() types.Test {
 }
 
 func VerifyBaseDiskWithWipe() types.Test {
-	name := "Verify the base disk does not change with a matching Ignition spec with wipePartitionEntry as true"
+	name := "partition.match.all.withwipe"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	// guid from USR-A is removed so if it does try to recreate partitions, it will assign a random

@@ -26,7 +26,7 @@ func init() {
 }
 
 func DeleteOne() types.Test {
-	name := "Delete single partition"
+	name := "partition.delete"
 	in := append(types.GetBaseDisk(), types.Disk{
 		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{
@@ -69,7 +69,7 @@ func DeleteOne() types.Test {
 }
 
 func DeleteAll() types.Test {
-	name := "Delete all partitions on a disk"
+	name := "partition.delete.all"
 	in := append(types.GetBaseDisk(), types.GetBaseDisk()...)
 	out := append(types.GetBaseDisk(), types.Disk{Alignment: types.IgnitionAlignment})
 	config := `{

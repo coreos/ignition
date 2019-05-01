@@ -62,7 +62,7 @@ var (
 )
 
 func DecreaseHTTPResponseHeadersTimeout() types.Test {
-	name := "Decrease HTTP Response Headers Timeout"
+	name := "timeouts.file.create.http.timesout"
 	in := types.GetBaseDisk()
 	out := in
 	config := fmt.Sprintf(`{
@@ -96,7 +96,7 @@ func DecreaseHTTPResponseHeadersTimeout() types.Test {
 }
 
 func AppendWithHTTPTimeouts() types.Test {
-	name := "AppendWithHTTPTimeouts"
+	name := "timeouts.config.merge.timesout"
 	in := types.GetBaseDisk()
 	out := in
 	config := fmt.Sprintf(`{
@@ -126,7 +126,7 @@ func AppendWithHTTPTimeouts() types.Test {
 }
 
 func AppendLowerHTTPTimeouts() types.Test {
-	name := "AppendLowerHTTPTimeouts"
+	name := "timeouts.config.mergeslowertimeout"
 	in := types.GetBaseDisk()
 	out := in
 	config := fmt.Sprintf(`{
@@ -184,7 +184,7 @@ func AppendNoneThenLowerHTTPTimeouts() types.Test {
 		}))
 	)
 
-	name := "AppendNoneThenLowerHTTPTimeouts"
+	name := "timeouts.config.merge.nonethenlower"
 	in := types.GetBaseDisk()
 	out := in
 	config := fmt.Sprintf(`{

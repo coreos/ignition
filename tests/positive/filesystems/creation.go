@@ -27,7 +27,7 @@ func init() {
 }
 
 func WipeFilesystemWithSameType() types.Test {
-	name := "Wipe Filesystem with Filesystem of same type"
+	name := "filesystem.create.wipe.sametype"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -79,7 +79,7 @@ func WipeFilesystemWithSameType() types.Test {
 }
 
 func FilesystemCreationOnMultipleDisks() types.Test {
-	name := "Filesystem creation on multiple disks"
+	name := "filesystem.create.multipledisks"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 
