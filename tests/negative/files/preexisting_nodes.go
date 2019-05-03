@@ -21,7 +21,6 @@ import (
 
 func init() {
 	register.Register(register.NegativeTest, ForceFileCreation())
-	register.Register(register.NegativeTest, ForceFileCreationNoOverwrite())
 	register.Register(register.NegativeTest, ForceDirCreation())
 	register.Register(register.NegativeTest, ForceLinkCreation())
 	register.Register(register.NegativeTest, ForceHardLinkCreation())
@@ -30,7 +29,7 @@ func init() {
 }
 
 func ForceFileCreation() types.Test {
-	name := "Force File Creation"
+	name := "files.create.overwrite.false"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -64,43 +63,8 @@ func ForceFileCreation() types.Test {
 	}
 }
 
-func ForceFileCreationNoOverwrite() types.Test {
-	name := "Force File Creation No Overwrite"
-	in := types.GetBaseDisk()
-	out := types.GetBaseDisk()
-	config := `{
-	  "ignition": { "version": "$version" },
-	  "storage": {
-	    "files": [{
-	      "path": "/foo/bar",
-	      "contents": {
-	        "source": "http://127.0.0.1:8080/contents"
-	      }
-	    }]
-	  }
-	}`
-	in[0].Partitions.AddFiles("ROOT", []types.File{
-		{
-			Node: types.Node{
-				Directory: "foo",
-				Name:      "bar",
-			},
-			Contents: "hello, world",
-		},
-	})
-	configMinVersion := "3.0.0"
-
-	return types.Test{
-		Name:             name,
-		In:               in,
-		Out:              out,
-		Config:           config,
-		ConfigMinVersion: configMinVersion,
-	}
-}
-
 func ForceDirCreation() types.Test {
-	name := "Force Directory Creation"
+	name := "directories.create.overwrite.false"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -132,7 +96,7 @@ func ForceDirCreation() types.Test {
 }
 
 func ForceLinkCreation() types.Test {
-	name := "Force Link Creation"
+	name := "links.sym.create.overwrite.false"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -171,7 +135,7 @@ func ForceLinkCreation() types.Test {
 }
 
 func ForceHardLinkCreation() types.Test {
-	name := "Force Hard Link Creation"
+	name := "links.hard.create.overwrite.false"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -211,7 +175,7 @@ func ForceHardLinkCreation() types.Test {
 }
 
 func ForceFileCreationOverNonemptyDir() types.Test {
-	name := "Force File Creation Over Non-Empty Directory"
+	name := "files.creates.overwrite.false.overdir"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -247,7 +211,7 @@ func ForceFileCreationOverNonemptyDir() types.Test {
 }
 
 func ForceLinkCreationOverNonemptyDir() types.Test {
-	name := "Force Link Creation Over Nonempty Directory"
+	name := "links.sym.create.overwrite.false.overdir"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{

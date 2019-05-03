@@ -24,7 +24,7 @@ func init() {
 }
 
 func CreateSystemdService() types.Test {
-	name := "Create a systemd service"
+	name := "systemd.unit.create"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{

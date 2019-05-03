@@ -25,7 +25,7 @@ func init() {
 }
 
 func AddPasswdUsers() types.Test {
-	name := "Adding users"
+	name := "users.add"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	env := []string{"IGNITION_WRITE_AUTHORIZED_KEYS_FRAGMENT=true"}
@@ -163,7 +163,7 @@ ENCRYPT_METHOD SHA512
 // UseAuthorizedKeysFile verifies that ~/.ssh/authorized_keys is written
 // when IGNITION_WRITE_AUTHORIZED_KEYS_FRAGMENT=false.
 func UseAuthorizedKeysFile() types.Test {
-	name := "Use authorized_keys file"
+	name := "users.authorized_keys"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	env := []string{"IGNITION_WRITE_AUTHORIZED_KEYS_FRAGMENT=false"}

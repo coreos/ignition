@@ -31,7 +31,7 @@ func init() {
 }
 
 func CreateDirectoryOnRoot() types.Test {
-	name := "Create a Directory on the Root Filesystem"
+	name := "directories.create"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -62,7 +62,7 @@ func CreateDirectoryOnRoot() types.Test {
 }
 
 func ForceDirCreation() types.Test {
-	name := "Force Directory Creation"
+	name := "directories.create.force"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -103,7 +103,7 @@ func ForceDirCreation() types.Test {
 }
 
 func DirCreationOverNonemptyDir() types.Test {
-	name := "Force Directory Creation Over Nonempty Directory"
+	name := "directories.match"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -154,7 +154,7 @@ func DirCreationOverNonemptyDir() types.Test {
 }
 
 func ForceDirCreationOverNonemptyDir() types.Test {
-	name := "Force Directory Creation Over Nonempty Directory"
+	name := "directories.match.overwrite"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -196,7 +196,7 @@ func ForceDirCreationOverNonemptyDir() types.Test {
 }
 
 func CheckOrdering() types.Test {
-	name := "TODO"
+	name := "directories.ordering"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -250,7 +250,7 @@ func CheckOrdering() types.Test {
 	}
 }
 func ApplyDefaultDirectoryPermissions() types.Test {
-	name := "Apply Default Directory Permissions"
+	name := "directories.defaultperms"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{

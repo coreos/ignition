@@ -25,7 +25,7 @@ func init() {
 }
 
 func ModifySystemdService() types.Test {
-	name := "Modify Services"
+	name := "systemd.unit.modify"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -61,7 +61,7 @@ func ModifySystemdService() types.Test {
 }
 
 func MaskSystemdServices() types.Test {
-	name := "Mask Services"
+	name := "systemd.unit.mask"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{

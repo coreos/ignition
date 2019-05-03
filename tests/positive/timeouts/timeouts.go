@@ -57,7 +57,7 @@ var (
 )
 
 func IncreaseHTTPResponseHeadersTimeout() types.Test {
-	name := "Increase HTTP Response Headers Timeout"
+	name := "timeouts.http"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
@@ -99,7 +99,7 @@ func IncreaseHTTPResponseHeadersTimeout() types.Test {
 }
 
 func ConfirmHTTPBackoffWorks() types.Test {
-	name := "Confirm HTTP Backoff Works"
+	name := "timeouts.http.backoff"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{

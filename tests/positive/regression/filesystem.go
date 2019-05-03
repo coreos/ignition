@@ -26,7 +26,7 @@ func init() {
 
 func EquivalentFilesystemUUIDsTreatedDistinctEXT4() types.Test {
 	// Originally found in https://github.com/coreos/bugs/issues/2064
-	name := "Regression: Equivalent Filesystem UUIDs treated as distinct - ext4"
+	name := "regression.uuids.ext4"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -66,7 +66,7 @@ func EquivalentFilesystemUUIDsTreatedDistinctEXT4() types.Test {
 
 func EquivalentFilesystemUUIDsTreatedDistinctVFAT() types.Test {
 	// Originally found in https://github.com/coreos/bugs/issues/2064
-	name := "Regression: Equivalent Filesystem UUIDs treated as distinct - vfat"
+	name := "regression.uuids.vfat"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{

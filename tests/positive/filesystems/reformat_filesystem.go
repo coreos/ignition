@@ -28,7 +28,7 @@ func init() {
 }
 
 func ReformatToBTRFS() types.Test {
-	name := "Reformat a Filesystem to Btrfs"
+	name := "filesystem.create.btrfs.wipe"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -62,7 +62,7 @@ func ReformatToBTRFS() types.Test {
 }
 
 func ReformatToXFS() types.Test {
-	name := "Reformat a Filesystem to XFS"
+	name := "filesystem.create.xfs.wipe"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -98,7 +98,7 @@ func ReformatToXFS() types.Test {
 }
 
 func ReformatToVFAT() types.Test {
-	name := "Reformat a Filesystem to VFAT"
+	name := "filesystem.create.vfat.wipe"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -135,7 +135,7 @@ func ReformatToVFAT() types.Test {
 }
 
 func ReformatToEXT4() types.Test {
-	name := "Reformat a Filesystem to EXT4"
+	name := "filesystem.create.ext4.wipe"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -173,7 +173,7 @@ func ReformatToEXT4() types.Test {
 }
 
 func ReformatToSWAP() types.Test {
-	name := "Reformat a Filesystem to SWAP"
+	name := "filesystem.create.swap.wipe"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{

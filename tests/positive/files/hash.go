@@ -25,7 +25,7 @@ func init() {
 }
 
 func ValidateFileHashFromDataURL() types.Test {
-	name := "Validate File Hash from Data URL"
+	name := "files.create.withhash.dataurl"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -61,7 +61,7 @@ func ValidateFileHashFromDataURL() types.Test {
 }
 
 func ValidateFileHashFromHTTPURL() types.Test {
-	name := "Validate File Hash from HTTP URL"
+	name := "files.create.withhash.http"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{

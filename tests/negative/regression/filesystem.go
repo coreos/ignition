@@ -25,8 +25,7 @@ func init() {
 
 func VFATIgnoresWipeFilesystem() types.Test {
 	// Originally found in https://github.com/coreos/bugs/issues/2055
-
-	name := "Regression: VFAT ignores WipeFilesystem"
+	name := "regression.filesystem.ignoreswipe"
 	in := types.GetBaseDisk()
 	out := in
 	mntDevices := []types.MntDevice{

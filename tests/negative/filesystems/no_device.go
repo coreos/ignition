@@ -24,7 +24,7 @@ func init() {
 }
 
 func NoDevice() types.Test {
-	name := "No Device"
+	name := "filesystems.nodevice"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{

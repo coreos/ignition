@@ -28,7 +28,7 @@ func init() {
 }
 
 func ShouldNotExistNoWipeEntry() types.Test {
-	name := "Partition should not exist but wipePartitionEntry is false"
+	name := "partition.delete.nowipe"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -59,7 +59,7 @@ func ShouldNotExistNoWipeEntry() types.Test {
 }
 
 func DoesNotMatchNoWipeEntry() types.Test {
-	name := "Partition does not match and wipePartitionEntry is false"
+	name := "partition.match.fail"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -90,7 +90,7 @@ func DoesNotMatchNoWipeEntry() types.Test {
 }
 
 func ValidAndDoesNotMatchNoWipeEntry() types.Test {
-	name := "Partition does not match and wipePartitionEntry is false but the first partition matches"
+	name := "partition.partialmatch.fail"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
@@ -124,7 +124,7 @@ func ValidAndDoesNotMatchNoWipeEntry() types.Test {
 }
 
 func NotThereAndDoesNotMatchNoWipeEntry() types.Test {
-	name := "Partition does not match and wipePartitionEntry is false but a partition matches not existing"
+	name := "partition.partialmatch.fail.nonexistent"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{

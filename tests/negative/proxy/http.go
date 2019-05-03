@@ -37,7 +37,7 @@ func init() {
 }
 
 func ErrorsWhenProxyIsUnavailable() types.Test {
-	name := "Errors When Proxy Is Unavailable"
+	name := "proxy.unreachable"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{

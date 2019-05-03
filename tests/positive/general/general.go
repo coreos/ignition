@@ -36,7 +36,7 @@ func init() {
 }
 
 func ReformatFilesystemAndWriteFile() types.Test {
-	name := "Reformat Filesystem to ext4 & drop file in /ignition/test"
+	name := "genernal.reformat.withfile"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	mntDevices := []types.MntDevice{
@@ -83,7 +83,7 @@ func ReformatFilesystemAndWriteFile() types.Test {
 }
 
 func ReplaceConfigWithRemoteConfigHTTP() types.Test {
-	name := "Replacing the Config with a Remote Config from HTTP"
+	name := "config.replace.http"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := strings.Replace(`{
@@ -118,7 +118,7 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 }
 
 func ReplaceConfigWithRemoteConfigTFTP() types.Test {
-	name := "Replacing the Config with a Remote Config from TFTP"
+	name := "config.replace.tftp"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := strings.Replace(`{
@@ -153,7 +153,7 @@ func ReplaceConfigWithRemoteConfigTFTP() types.Test {
 }
 
 func AppendConfigWithRemoteConfigHTTP() types.Test {
-	name := "Appending to the Config with a Remote Config from HTTP"
+	name := "config.merge.http"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := strings.Replace(`{
@@ -201,7 +201,7 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
 }
 
 func AppendConfigWithRemoteConfigTFTP() types.Test {
-	name := "Appending to the Config with a Remote Config from TFTP"
+	name := "config.merge.tftp"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := strings.Replace(`{
@@ -249,7 +249,7 @@ func AppendConfigWithRemoteConfigTFTP() types.Test {
 }
 
 func ReplaceConfigWithRemoteConfigData() types.Test {
-	name := "Replacing the Config with a Remote Config from Data"
+	name := "config.replace.dataurl"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -283,7 +283,7 @@ func ReplaceConfigWithRemoteConfigData() types.Test {
 }
 
 func AppendConfigWithRemoteConfigData() types.Test {
-	name := "Appending to the Config with a Remote Config from Data"
+	name := "config.merge.dataurl"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -317,7 +317,7 @@ func AppendConfigWithRemoteConfigData() types.Test {
 }
 
 func VersionOnlyConfig() types.Test {
-	name := "Version Only Config"
+	name := "general.versiononly"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -335,7 +335,7 @@ func VersionOnlyConfig() types.Test {
 }
 
 func EmptyUserdata() types.Test {
-	name := "Empty Userdata"
+	name := "general.empty"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := ``

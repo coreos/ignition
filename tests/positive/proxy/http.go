@@ -47,7 +47,7 @@ func init() {
 }
 
 func CanUseProxyForRetrievingConfig() types.Test {
-	name := "Can Use Proxy For Retrieving Config"
+	name := "proxy.getconfig"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
@@ -86,7 +86,7 @@ func CanUseProxyForRetrievingConfig() types.Test {
 }
 
 func CanUseNoProxyForRetrievingConfig() types.Test {
-	name := "Can Use No Proxy For Retrieving Config"
+	name := "proxy.getconfig.noproxy"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{

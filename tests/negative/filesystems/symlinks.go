@@ -24,7 +24,7 @@ func init() {
 }
 
 func UsesSymlinks() types.Test {
-	name := "No Device"
+	name := "filesystem.pathusessymlinks"
 	in := types.GetBaseDisk()
 	in[0].Partitions.AddLinks("ROOT", []types.Link{
 		{

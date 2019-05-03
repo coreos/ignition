@@ -25,7 +25,7 @@ func init() {
 }
 
 func CreateFileFromRemoteContentsHTTP() types.Test {
-	name := "Create Files from Remote Contents - HTTP"
+	name := "files.create.http"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -60,7 +60,7 @@ func CreateFileFromRemoteContentsHTTP() types.Test {
 }
 
 func CreateFileFromRemoteContentsTFTP() types.Test {
-	name := "Create Files from Remote Contents - TFTP"
+	name := "files.create.tftp"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{

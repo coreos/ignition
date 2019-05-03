@@ -27,7 +27,7 @@ func init() {
 }
 
 func WriteOverBrokenSymlink() types.Test {
-	name := "Write Over Broken Symlink at end of path"
+	name := "links.sym.overwritelink"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -61,7 +61,7 @@ func WriteOverBrokenSymlink() types.Test {
 }
 
 func SymlinkResolutionCausesConflicts() types.Test {
-	name := "Symlink resolution causes conflicts"
+	name := "links.sym.resovledconflicts"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -97,7 +97,7 @@ func SymlinkResolutionCausesConflicts() types.Test {
 }
 
 func FailMatchHardLinkOnRoot() types.Test {
-	name := "Fail to match a Hard Link on the Root Filesystem"
+	name := "links.hard.badmatch"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
@@ -146,7 +146,7 @@ func FailMatchHardLinkOnRoot() types.Test {
 }
 
 func FailMatchSymlinkOnRoot() types.Test {
-	name := "Fail to match a Symlink on the Root Filesystem"
+	name := "links.sym.badmatch"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := `{
