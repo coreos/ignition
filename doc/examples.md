@@ -206,6 +206,7 @@ Setting the hostname of a system is as simple as writing `/etc/hostname`:
     "files": [{
       "path": "/etc/hostname",
       "mode": 420,
+      "overwrite": true,
       "contents": { "source": "data:,core1" }
     }]
   }
