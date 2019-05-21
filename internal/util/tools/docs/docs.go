@@ -25,9 +25,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/coreos/ignition/v2/config/shared/errors"
 	config "github.com/coreos/ignition/v2/config/v3_1_experimental"
-	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 const (
@@ -66,7 +64,7 @@ func main() {
 		for _, json := range jsonSections {
 			_, r, _ := config.Parse([]byte(strings.Join(json, "\n")))
 			reportStr := r.String()
-			if reportStr != "" && !isDeprecatedConfig(r) {
+			if reportStr != "" {
 				return fmt.Errorf("non-empty parsing report in %s: %s", info.Name(), reportStr)
 			}
 		}
@@ -76,17 +74,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed while validating docs: %v", err)
 		os.Exit(1)
 	}
-}
-
-// isDeprecatedConfig returns if a report is from a deprecated config format.
-func isDeprecatedConfig(r report.Report) bool {
-	if len(r.Entries) != 1 {
-		return false
-	}
-	if r.Entries[0].Kind == report.EntryDeprecated && r.Entries[0].Message == errors.ErrDeprecated.Error() {
-		return true
-	}
-	return false
 }
 
 func findJsonSections(fileLines []string) [][]string {
