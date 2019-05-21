@@ -19,11 +19,11 @@ package vmware
 
 import (
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/v2/config/validate/report"
 	"github.com/coreos/ignition/v2/internal/providers"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
+	"github.com/ajeddeloh/vcontext/report"
 	"github.com/vmware/vmw-guestinfo/rpcvmx"
 	"github.com/vmware/vmw-guestinfo/vmcheck"
 	"github.com/vmware/vmw-ovflib"

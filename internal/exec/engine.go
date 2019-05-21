@@ -22,15 +22,12 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
-	"reflect"
 	"time"
 
 	"github.com/coreos/ignition/v2/config"
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	latest "github.com/coreos/ignition/v2/config/v3_1_experimental"
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/v2/config/validate"
-	"github.com/coreos/ignition/v2/config/validate/report"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/platform"
@@ -39,6 +36,9 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/system"
 	"github.com/coreos/ignition/v2/internal/resource"
 	"github.com/coreos/ignition/v2/internal/util"
+
+	"github.com/ajeddeloh/vcontext/report"
+	"github.com/ajeddeloh/vcontext/validate"
 )
 
 const (
@@ -152,7 +152,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 		return
 	}
 
-	rpt := validate.ValidateWithoutSource(reflect.ValueOf(cfg))
+	rpt := validate.Validate(cfg, "json")
 	e.logReport(rpt)
 	if rpt.IsFatal() {
 		err = errors.ErrInvalid
@@ -301,15 +301,12 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 
 func (e Engine) logReport(r report.Report) {
 	for _, entry := range r.Entries {
-		entry.Highlight = "" // might contain secrets, don't log when Ignition runs
 		switch entry.Kind {
-		case report.EntryError:
+		case report.Error:
 			e.Logger.Crit("%v", entry)
-		case report.EntryWarning:
+		case report.Warn:
 			e.Logger.Warning("%v", entry)
-		case report.EntryDeprecated:
-			e.Logger.Warning("%v: the provided config format is deprecated and will not be supported in the future.", entry)
-		case report.EntryInfo:
+		case report.Info:
 			e.Logger.Info("%v", entry)
 		}
 	}
