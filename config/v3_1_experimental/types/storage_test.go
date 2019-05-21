@@ -20,12 +20,15 @@ import (
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/ajeddeloh/vcontext/path"
+	"github.com/ajeddeloh/vcontext/report"
 )
 
 func TestStorageValidate(t *testing.T) {
 	tests := []struct {
 		in  Storage
+		at  path.ContextPath
 		out error
 	}{
 		{
@@ -69,6 +72,7 @@ func TestStorageValidate(t *testing.T) {
 				},
 			},
 			out: errors.ErrFileUsedSymlink,
+			at:  path.New("", "files", 0),
 		},
 		{
 			in: Storage{
@@ -84,6 +88,7 @@ func TestStorageValidate(t *testing.T) {
 				},
 			},
 			out: errors.ErrDirectoryUsedSymlink,
+			at:  path.New("", "directories", 0),
 		},
 		{
 			in: Storage{
@@ -97,6 +102,7 @@ func TestStorageValidate(t *testing.T) {
 				},
 			},
 			out: errors.ErrLinkUsedSymlink,
+			at:  path.New("", "links", 1),
 		},
 		{
 			in: Storage{
@@ -129,12 +135,14 @@ func TestStorageValidate(t *testing.T) {
 				},
 			},
 			out: errors.ErrHardLinkToDirectory,
+			at:  path.New("", "links", 0),
 		},
 	}
 
 	for i, test := range tests {
-		r := test.in.Validate()
-		expected := report.ReportFromError(test.out, report.EntryError)
+		r := test.in.Validate(path.ContextPath{})
+		expected := report.Report{}
+		expected.AddOnError(test.at, test.out)
 		if !reflect.DeepEqual(expected, r) {
 			t.Errorf("#%d: bad report: want %v, got %v", i, expected, r)
 		}

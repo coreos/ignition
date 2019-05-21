@@ -20,11 +20,17 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/ajeddeloh/vcontext/path"
+	"github.com/ajeddeloh/vcontext/report"
 )
 
 const (
 	guidRegexStr = "^(|[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12})$"
+)
+
+var (
+	guidRegex = regexp.MustCompile(guidRegexStr)
 )
 
 func (p Partition) Key() string {
@@ -35,20 +41,24 @@ func (p Partition) Key() string {
 	}
 }
 
-func (p Partition) Validate() (r report.Report) {
+func (p Partition) Validate(c path.ContextPath) (r report.Report) {
 	if p.ShouldExist != nil && !*p.ShouldExist &&
 		(p.Label != nil || (p.TypeGUID != nil && *p.TypeGUID != "") || (p.GUID != nil && *p.GUID != "") || p.StartMiB != nil || p.SizeMiB != nil) {
-		r.AddOnError(errors.ErrShouldNotExistWithOthers)
+		r.AddOnError(c, errors.ErrShouldNotExistWithOthers)
 	}
 	if p.Number == 0 && p.Label == nil {
-		r.AddOnError(errors.ErrNeedLabelOrNumber)
+		r.AddOnError(c, errors.ErrNeedLabelOrNumber)
 	}
+
+	r.AddOnError(c.Append("label"), p.validateLabel())
+	r.AddOnError(c.Append("guid"), validateGUID(p.GUID))
+	r.AddOnError(c.Append("typeGuid"), validateGUID(p.TypeGUID))
 	return
 }
 
-func (p Partition) ValidateLabel() (r report.Report) {
+func (p Partition) validateLabel() error {
 	if p.Label == nil {
-		return
+		return nil
 	}
 	// http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_entries:
 	// 56 (0x38) 	72 bytes 	Partition name (36 UTF-16LE code units)
@@ -56,34 +66,23 @@ func (p Partition) ValidateLabel() (r report.Report) {
 	// XXX(vc): note GPT calls it a name, we're using label for consistency
 	// with udev naming /dev/disk/by-partlabel/*.
 	if len(*p.Label) > 36 {
-		r.AddOnError(errors.ErrLabelTooLong)
+		return errors.ErrLabelTooLong
 	}
 
 	// sgdisk uses colons for delimitting compound arguments and does not allow escaping them.
 	if strings.Contains(*p.Label, ":") {
-		r.AddOnError(errors.ErrLabelContainsColon)
+		return errors.ErrLabelContainsColon
 	}
-	return
+	return nil
 }
 
-func (p Partition) ValidateTypeGUID() report.Report {
-	return validateGUID(p.TypeGUID)
-}
-
-func (p Partition) ValidateGUID() report.Report {
-	return validateGUID(p.GUID)
-}
-
-func validateGUID(guidPointer *string) (r report.Report) {
+func validateGUID(guidPointer *string) error {
 	if guidPointer == nil {
-		return
+		return nil
 	}
 	guid := *guidPointer
-	ok, err := regexp.MatchString(guidRegexStr, guid)
-	if err != nil {
-		r.AddOnError(fmt.Errorf("error matching guid regexp: %v", err))
-	} else if !ok {
-		r.AddOnError(errors.ErrDoesntMatchGUIDRegex)
+	if ok := guidRegex.MatchString(guid); !ok {
+		return errors.ErrDoesntMatchGUIDRegex
 	}
-	return r
+	return nil
 }

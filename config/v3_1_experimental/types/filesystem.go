@@ -16,7 +16,10 @@ package types
 
 import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
+	"github.com/coreos/ignition/v2/config/util"
+
+	"github.com/ajeddeloh/vcontext/path"
+	"github.com/ajeddeloh/vcontext/report"
 )
 
 func (f Filesystem) Key() string {
@@ -29,74 +32,72 @@ func (f Filesystem) IgnoreDuplicates() map[string]struct{} {
 	}
 }
 
-func (f Filesystem) ValidatePath() (r report.Report) {
-	if f.Path == nil || *f.Path == "" {
-		return
-	}
-	r.AddOnError(validatePath(*f.Path))
+func (f Filesystem) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c.Append("path"), f.validatePath())
+	r.AddOnError(c.Append("device"), validatePath(f.Device))
+	r.AddOnError(c.Append("format"), f.validateFormat())
+	r.AddOnError(c.Append("label"), f.validateLabel())
 	return
 }
 
-func (f Filesystem) ValidateDevice() (r report.Report) {
-	r.AddOnError(validatePath(f.Device))
-	return
+func (f Filesystem) validatePath() error {
+	return validatePathNilOK(f.Path)
 }
 
-func (f Filesystem) ValidateFormat() (r report.Report) {
-	if f.Format == nil || *f.Format == "" {
-		if (f.Path == nil || *f.Path == "") &&
-			(f.Label == nil || *f.Label == "") &&
-			(f.UUID == nil || *f.UUID == "") &&
-			len(f.Options) == 0 {
-			return
+func (f Filesystem) validateFormat() error {
+	if util.NilOrEmpty(f.Format) {
+		if util.NotEmpty(f.Path) ||
+			util.NotEmpty(f.Label) ||
+			util.NotEmpty(f.UUID) ||
+			len(f.Options) != 0 {
+			return errors.ErrFormatNilWithOthers
 		}
-		r.AddOnError(errors.ErrFormatNilWithOthers)
-		return
+	} else {
+		switch *f.Format {
+		case "ext4", "btrfs", "xfs", "swap", "vfat":
+		default:
+			return errors.ErrFilesystemInvalidFormat
+		}
 	}
-	switch *f.Format {
-	case "ext4", "btrfs", "xfs", "swap", "vfat":
-	default:
-		r.AddOnError(errors.ErrFilesystemInvalidFormat)
-	}
-	return
+	return nil
 }
 
-func (f Filesystem) ValidateLabel() (r report.Report) {
-	if f.Label == nil || *f.Label == "" {
-		return
+func (f Filesystem) validateLabel() error {
+	if util.NilOrEmpty(f.Label) {
+		return nil
 	}
-	if f.Format == nil || *f.Format == "" {
-		r.AddOnError(errors.ErrLabelNeedsFormat)
-		return
+	if util.NilOrEmpty(f.Format) {
+		return errors.ErrLabelNeedsFormat
 	}
+
 	switch *f.Format {
 	case "ext4":
 		if len(*f.Label) > 16 {
 			// source: man mkfs.ext4
-			r.AddOnError(errors.ErrExt4LabelTooLong)
+			return errors.ErrExt4LabelTooLong
 		}
 	case "btrfs":
 		if len(*f.Label) > 256 {
 			// source: man mkfs.btrfs
-			r.AddOnError(errors.ErrBtrfsLabelTooLong)
+			return errors.ErrBtrfsLabelTooLong
 		}
 	case "xfs":
 		if len(*f.Label) > 12 {
 			// source: man mkfs.xfs
-			r.AddOnError(errors.ErrXfsLabelTooLong)
+			return errors.ErrXfsLabelTooLong
 		}
 	case "swap":
 		// mkswap's man page does not state a limit on label size, but through
 		// experimentation it appears that mkswap will truncate long labels to
 		// 15 characters, so let's enforce that.
 		if len(*f.Label) > 15 {
-			r.AddOnError(errors.ErrSwapLabelTooLong)
+			return errors.ErrSwapLabelTooLong
 		}
 	case "vfat":
 		if len(*f.Label) > 11 {
 			// source: man mkfs.fat
-			r.AddOnError(errors.ErrVfatLabelTooLong)
+			return errors.ErrVfatLabelTooLong
 		}
 	}
-	return
+	return nil
 }

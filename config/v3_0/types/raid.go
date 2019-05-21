@@ -16,7 +16,9 @@ package types
 
 import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/ajeddeloh/vcontext/path"
+	"github.com/ajeddeloh/vcontext/report"
 )
 
 func (r Raid) Key() string {
@@ -29,11 +31,16 @@ func (r Raid) IgnoreDuplicates() map[string]struct{} {
 	}
 }
 
-func (n Raid) ValidateLevel() (r report.Report) {
-	switch n.Level {
+func (ra Raid) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c.Append("level"), ra.validateLevel())
+	return
+}
+
+func (r Raid) validateLevel() error {
+	switch r.Level {
 	case "linear", "raid0", "0", "stripe":
-		if n.Spares != nil && *n.Spares != 0 {
-			r.AddOnError(errors.ErrSparesUnsupportedForLevel)
+		if r.Spares != nil && *r.Spares != 0 {
+			return errors.ErrSparesUnsupportedForLevel
 		}
 	case "raid1", "1", "mirror":
 	case "raid4", "4":
@@ -41,16 +48,8 @@ func (n Raid) ValidateLevel() (r report.Report) {
 	case "raid6", "6":
 	case "raid10", "10":
 	default:
-		r.AddOnError(errors.ErrUnrecognizedRaidLevel)
+		return errors.ErrUnrecognizedRaidLevel
 	}
-	return r
-}
 
-func (n Raid) ValidateDevices() (r report.Report) {
-	for _, d := range n.Devices {
-		if err := validatePath(string(d)); err != nil {
-			r.AddOnError(errors.ErrPathRelative)
-		}
-	}
-	return
+	return nil
 }

@@ -16,8 +16,6 @@ package types
 
 import (
 	"github.com/coreos/go-semver/semver"
-
-	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 var (
@@ -26,15 +24,3 @@ var (
 		Minor: 0,
 	}
 )
-
-func (c Config) Validate() report.Report {
-	r := report.Report{}
-	rules := []rule{}
-
-	for _, rule := range rules {
-		rule(c, &r)
-	}
-	return r
-}
-
-type rule func(cfg Config, report *report.Report)

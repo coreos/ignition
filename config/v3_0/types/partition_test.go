@@ -15,118 +15,80 @@
 package types
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 func TestValidateLabel(t *testing.T) {
-	type in struct {
-		label *string
-	}
-	type out struct {
-		report report.Report
-	}
 	tests := []struct {
-		in  in
-		out out
+		in  *string
+		out error
 	}{
 		{
-			in{util.StrToPtr("root")},
-			out{report.Report{}},
+			util.StrToPtr("root"),
+			nil,
 		},
 		{
-			in{util.StrToPtr("")},
-			out{report.Report{}},
+			util.StrToPtr(""),
+			nil,
 		},
 		{
-			in{nil},
-			out{report.Report{}},
+			nil,
+			nil,
 		},
 		{
-			in{util.StrToPtr("111111111111111111111111111111111111")},
-			out{report.Report{}},
+			util.StrToPtr("111111111111111111111111111111111111"),
+			nil,
 		},
 		{
-			in{util.StrToPtr("1111111111111111111111111111111111111")},
-			out{report.ReportFromError(errors.ErrLabelTooLong, report.EntryError)},
+			util.StrToPtr("1111111111111111111111111111111111111"),
+			errors.ErrLabelTooLong,
 		},
 		{
-			in{util.StrToPtr("test:")},
-			out{report.ReportFromError(errors.ErrLabelContainsColon, report.EntryError)},
+			util.StrToPtr("test:"),
+			errors.ErrLabelContainsColon,
 		},
 	}
 	for i, test := range tests {
-		r := Partition{Label: test.in.label}.ValidateLabel()
-		if !reflect.DeepEqual(r, test.out.report) {
-			t.Errorf("#%d: wanted %v, got %v", i, test.out.report, r)
-		}
-	}
-}
-
-func TestValidateTypeGUID(t *testing.T) {
-	type in struct {
-		typeguid string
-	}
-	type out struct {
-		report report.Report
-	}
-	tests := []struct {
-		in  in
-		out out
-	}{
-		{
-			in{"5DFBF5F4-2848-4BAC-AA5E-0D9A20B745A6"},
-			out{report.Report{}},
-		},
-		{
-			in{""},
-			out{report.Report{}},
-		},
-		{
-			in{"not-a-valid-typeguid"},
-			out{report.ReportFromError(errors.ErrDoesntMatchGUIDRegex, report.EntryError)},
-		},
-	}
-	for i, test := range tests {
-		r := Partition{TypeGUID: &test.in.typeguid}.ValidateTypeGUID()
-		if !reflect.DeepEqual(r, test.out.report) {
-			t.Errorf("#%d: wanted %v, got %v", i, test.out.report, r)
+		err := Partition{Label: test.in}.validateLabel()
+		if err != test.out {
+			t.Errorf("#%d: wanted %v, got %v", i, test.out, err)
 		}
 	}
 }
 
 func TestValidateGUID(t *testing.T) {
-	type in struct {
-		guid string
-	}
-	type out struct {
-		report report.Report
-	}
 	tests := []struct {
-		in  in
-		out out
+		in  *string
+		out error
 	}{
 		{
-			in{"5DFBF5F4-2848-4BAC-AA5E-0D9A20B745A6"},
-			out{report.Report{}},
+			util.StrToPtr("5DFBF5F4-2848-4BAC-AA5E-0D9A20B745A6"),
+			nil,
 		},
 		{
-			in{""},
-			out{report.Report{}},
+			util.StrToPtr("5dfbf5f4-2848-4bac-aa5e-0d9a20b745a6"),
+			nil,
 		},
 		{
-			in{"not-a-valid-typeguid"},
-			out{report.ReportFromError(errors.ErrDoesntMatchGUIDRegex, report.EntryError)},
+			util.StrToPtr(""),
+			nil,
+		},
+		{
+			nil,
+			nil,
+		},
+		{
+			util.StrToPtr("not-a-valid-typeguid"),
+			errors.ErrDoesntMatchGUIDRegex,
 		},
 	}
 	for i, test := range tests {
-		r := Partition{GUID: &test.in.guid}.ValidateGUID()
-		if !reflect.DeepEqual(r, test.out.report) {
-			t.Errorf("#%d: wanted %v, got %v", i, test.out.report, r)
+		err := validateGUID(test.in)
+		if err != test.out {
+			t.Errorf("#%d: wanted %v, got %v", i, test.out, err)
 		}
 	}
 }

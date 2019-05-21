@@ -15,12 +15,10 @@
 package types
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 func TestFileValidateOverwrite(t *testing.T) {
@@ -29,19 +27,19 @@ func TestFileValidateOverwrite(t *testing.T) {
 		out error
 	}{
 		{
-			in:  File{},
-			out: nil,
+			File{},
+			nil,
 		},
 		{
-			in: File{
+			File{
 				Node: Node{
 					Overwrite: util.BoolToPtr(true),
 				},
 			},
-			out: errors.ErrOverwriteAndNilSource,
+			errors.ErrOverwriteAndNilSource,
 		},
 		{
-			in: File{
+			File{
 				Node: Node{
 					Overwrite: util.BoolToPtr(true),
 				},
@@ -51,10 +49,10 @@ func TestFileValidateOverwrite(t *testing.T) {
 					},
 				},
 			},
-			out: nil,
+			nil,
 		},
 		{
-			in: File{
+			File{
 				Node: Node{
 					Overwrite: util.BoolToPtr(true),
 				},
@@ -64,15 +62,14 @@ func TestFileValidateOverwrite(t *testing.T) {
 					},
 				},
 			},
-			out: nil,
+			nil,
 		},
 	}
 
 	for i, test := range tests {
-		r := test.in.ValidateOverwrite()
-		expected := report.ReportFromError(test.out, report.EntryError)
-		if !reflect.DeepEqual(expected, r) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, expected, r)
+		err := test.in.validateOverwrite()
+		if test.out != err {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out, err)
 		}
 	}
 }
@@ -83,39 +80,38 @@ func TestFileContentsValidate(t *testing.T) {
 		out error
 	}{
 		{
-			in:  FileContents{},
-			out: nil,
+			FileContents{},
+			nil,
 		},
 		{
-			in: FileContents{
+			FileContents{
 				Source: util.StrToPtr(""),
 			},
-			out: nil,
+			nil,
 		},
 		{
-			in: FileContents{
+			FileContents{
 				Source: util.StrToPtr(""),
 				Verification: Verification{
 					Hash: util.StrToPtr(""),
 				},
 			},
-			out: nil,
+			nil,
 		},
 		{
-			in: FileContents{
+			FileContents{
 				Verification: Verification{
 					Hash: util.StrToPtr(""),
 				},
 			},
-			out: errors.ErrVerificationAndNilSource,
+			errors.ErrVerificationAndNilSource,
 		},
 	}
 
 	for i, test := range tests {
-		r := test.in.ValidateVerification()
-		expected := report.ReportFromError(test.out, report.EntryError)
-		if !reflect.DeepEqual(expected, r) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, expected, r)
+		err := test.in.validateVerification()
+		if test.out != err {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out, err)
 		}
 	}
 }

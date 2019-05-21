@@ -23,7 +23,9 @@ import (
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/shared/validations"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	cpath "github.com/ajeddeloh/vcontext/path"
+	"github.com/ajeddeloh/vcontext/report"
 )
 
 func (u Unit) Key() string {
@@ -34,38 +36,38 @@ func (d Dropin) Key() string {
 	return d.Name
 }
 
-func (u Unit) ValidateContents() (r report.Report) {
+func (u Unit) Validate(c cpath.ContextPath) (r report.Report) {
+	r.AddOnError(c.Append("name"), validateName(u.Name))
+	c = c.Append("contents")
 	opts, err := validateUnitContent(u.Contents)
-	r.AddOnError(err)
+	r.AddOnError(c, err)
 
 	isEnabled := u.Enabled != nil && *u.Enabled
-	r.Merge(validations.ValidateInstallSection(u.Name, isEnabled, (u.Contents == nil || *u.Contents == ""), opts))
+	r.AddOnWarn(c, validations.ValidateInstallSection(u.Name, isEnabled, (u.Contents == nil || *u.Contents == ""), opts))
 
-	return r
-}
-
-func (u Unit) ValidateName() (r report.Report) {
-	switch path.Ext(u.Name) {
-	case ".service", ".socket", ".device", ".mount", ".automount", ".swap", ".target", ".path", ".timer", ".snapshot", ".slice", ".scope":
-	default:
-		r.AddOnError(errors.ErrInvalidSystemdExt)
-	}
 	return
 }
 
-func (d Dropin) Validate() report.Report {
-	r := report.Report{}
+func validateName(name string) error {
+	switch path.Ext(name) {
+	case ".service", ".socket", ".device", ".mount", ".automount", ".swap", ".target", ".path", ".timer", ".snapshot", ".slice", ".scope":
+	default:
+		return errors.ErrInvalidSystemdExt
+	}
+	return nil
+}
 
+func (d Dropin) Validate(c cpath.ContextPath) (r report.Report) {
 	_, err := validateUnitContent(d.Contents)
-	r.AddOnError(err)
+	r.AddOnError(c.Append("contents"), err)
 
 	switch path.Ext(d.Name) {
 	case ".conf":
 	default:
-		r.AddOnError(errors.ErrInvalidSystemdDropinExt)
+		r.AddOnError(c.Append("name"), errors.ErrInvalidSystemdDropinExt)
 	}
 
-	return r
+	return
 }
 
 func validateUnitContent(content *string) ([]*unit.UnitOption, error) {

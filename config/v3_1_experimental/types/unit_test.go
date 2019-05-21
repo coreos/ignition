@@ -21,103 +21,88 @@ import (
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/ajeddeloh/vcontext/path"
+	"github.com/ajeddeloh/vcontext/report"
 )
 
 func TestSystemdUnitValidateContents(t *testing.T) {
-	type in struct {
-		unit Unit
-	}
-	type out struct {
-		err error
-	}
-
 	tests := []struct {
-		in  in
-		out out
+		in  Unit
+		out error
 	}{
 		{
-			in:  in{unit: Unit{Name: "test.service", Contents: util.StrToPtr("[Foo]\nQux=Bar")}},
-			out: out{err: nil},
+			Unit{Name: "test.service", Contents: util.StrToPtr("[Foo]\nQux=Bar")},
+			nil,
 		},
 		{
-			in:  in{unit: Unit{Name: "test.service", Contents: util.StrToPtr("[Foo")}},
-			out: out{err: fmt.Errorf("invalid unit content: unable to find end of section")},
+			Unit{Name: "test.service", Contents: util.StrToPtr("[Foo")},
+			fmt.Errorf("invalid unit content: unable to find end of section"),
 		},
 		{
-			in:  in{unit: Unit{Name: "test.service", Contents: util.StrToPtr(""), Dropins: []Dropin{{}}}},
-			out: out{err: nil},
+			Unit{Name: "test.service", Contents: util.StrToPtr(""), Dropins: []Dropin{{}}},
+			nil,
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.unit.ValidateContents()
-		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		err := test.in.Validate(path.ContextPath{})
+		expected := report.Report{}
+		expected.AddOnError(path.New("", "contents"), test.out)
+		if !reflect.DeepEqual(expected, err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, expected, err)
 		}
 	}
 }
 
 func TestSystemdUnitValidateName(t *testing.T) {
-	type in struct {
-		unit string
-	}
-	type out struct {
-		err error
-	}
-
 	tests := []struct {
-		in  in
-		out out
+		in  string
+		out error
 	}{
 		{
-			in:  in{unit: "test.service"},
-			out: out{err: nil},
+			"test.service",
+			nil,
 		},
 		{
-			in:  in{unit: "test.socket"},
-			out: out{err: nil},
+			"test.socket",
+			nil,
 		},
 		{
-			in:  in{unit: "test.blah"},
-			out: out{err: errors.ErrInvalidSystemdExt},
+			"test.blah",
+			errors.ErrInvalidSystemdExt,
 		},
 	}
 
 	for i, test := range tests {
-		err := Unit{Name: test.in.unit, Contents: util.StrToPtr("[Foo]\nQux=Bar")}.ValidateName()
-		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		err := validateName(test.in)
+		if test.out != err {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out, err)
 		}
 	}
 }
 
 func TestSystemdUnitDropInValidate(t *testing.T) {
-	type in struct {
-		unit Dropin
-	}
-	type out struct {
-		err error
-	}
-
 	tests := []struct {
-		in  in
-		out out
+		in  Dropin
+		out error
 	}{
 		{
-			in:  in{unit: Dropin{Name: "test.conf", Contents: util.StrToPtr("[Foo]\nQux=Bar")}},
-			out: out{err: nil},
+			Dropin{Name: "test.conf", Contents: util.StrToPtr("[Foo]\nQux=Bar")},
+			nil,
 		},
 		{
-			in:  in{unit: Dropin{Name: "test.conf", Contents: util.StrToPtr("[Foo")}},
-			out: out{err: fmt.Errorf("invalid unit content: unable to find end of section")},
+			Dropin{Name: "test.conf", Contents: util.StrToPtr("[Foo")},
+			fmt.Errorf("invalid unit content: unable to find end of section"),
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.unit.Validate()
-		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		err := test.in.Validate(path.ContextPath{})
+		expected := report.Report{}
+		expected.AddOnError(path.New("", "contents"), test.out)
+		if !reflect.DeepEqual(expected, err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, expected, err)
 		}
 	}
 }

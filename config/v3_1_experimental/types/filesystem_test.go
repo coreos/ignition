@@ -15,94 +15,78 @@
 package types
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 func TestFilesystemValidateFormat(t *testing.T) {
-	type in struct {
-		filesystem Filesystem
-	}
-	type out struct {
-		err error
-	}
-
 	tests := []struct {
-		in  in
-		out out
+		in  Filesystem
+		out error
 	}{
 		{
-			in:  in{filesystem: Filesystem{Format: util.StrToPtr("ext4")}},
-			out: out{},
+			Filesystem{Format: util.StrToPtr("ext4")},
+			nil,
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: util.StrToPtr("btrfs")}},
-			out: out{},
+			Filesystem{Format: util.StrToPtr("btrfs")},
+			nil,
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: util.StrToPtr("")}},
-			out: out{},
+			Filesystem{Format: util.StrToPtr("")},
+			nil,
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: nil}},
-			out: out{},
+			Filesystem{Format: nil},
+			nil,
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: util.StrToPtr(""), Path: util.StrToPtr("/")}},
-			out: out{errors.ErrFormatNilWithOthers},
+			Filesystem{Format: util.StrToPtr(""), Path: util.StrToPtr("/")},
+			errors.ErrFormatNilWithOthers,
 		},
 		{
-			in:  in{filesystem: Filesystem{Format: nil, Path: util.StrToPtr("/")}},
-			out: out{errors.ErrFormatNilWithOthers},
+			Filesystem{Format: nil, Path: util.StrToPtr("/")},
+			errors.ErrFormatNilWithOthers,
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.filesystem.ValidateFormat()
-		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		err := test.in.validateFormat()
+		if test.out != err {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out, err)
 		}
 	}
 }
 
 func TestFilesystemValidatePath(t *testing.T) {
-	type in struct {
-		filesystem Filesystem
-	}
-	type out struct {
-		err error
-	}
-
 	tests := []struct {
-		in  in
-		out out
+		in  Filesystem
+		out error
 	}{
 		{
-			in:  in{filesystem: Filesystem{Path: util.StrToPtr("/foo")}},
-			out: out{},
+			Filesystem{Path: util.StrToPtr("/foo")},
+			nil,
 		},
 		{
-			in:  in{filesystem: Filesystem{Path: util.StrToPtr("")}},
-			out: out{},
+			Filesystem{Path: util.StrToPtr("")},
+			nil,
 		},
 		{
-			in:  in{filesystem: Filesystem{Path: nil}},
-			out: out{},
+			Filesystem{Path: nil},
+			nil,
 		},
 		{
-			in:  in{filesystem: Filesystem{Path: util.StrToPtr("foo")}},
-			out: out{err: errors.ErrPathRelative},
+			Filesystem{Path: util.StrToPtr("foo")},
+			errors.ErrPathRelative,
 		},
 	}
 
 	for i, test := range tests {
-		err := test.in.filesystem.ValidatePath()
-		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		err := test.in.validatePath()
+		if test.out != err {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out, err)
 		}
 	}
 }
@@ -182,8 +166,8 @@ func TestLabelValidate(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		err := test.in.filesystem.ValidateLabel()
-		if !reflect.DeepEqual(report.ReportFromError(test.out.err, report.EntryError), err) {
+		err := test.in.filesystem.validateLabel()
+		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
 		}
 	}

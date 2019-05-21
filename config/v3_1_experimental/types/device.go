@@ -1,4 +1,4 @@
-// Copyright 2017 CoreOS, Inc.
+// Copyright 2019 Red Hat, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,16 +15,11 @@
 package types
 
 import (
-	"github.com/coreos/ignition/v2/config/shared/errors"
-
 	"github.com/ajeddeloh/vcontext/path"
 	"github.com/ajeddeloh/vcontext/report"
 )
 
-func (d Directory) Validate(c path.ContextPath) (r report.Report) {
-	r.AddOnError(c.Append("mode"), validateMode(d.Mode))
-	if d.Mode == nil {
-		r.AddOnWarn(c.Append("mode"), errors.ErrDirectoryPermissionsUnset)
-	}
+func (d Device) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c, validatePath(string(d)))
 	return
 }
