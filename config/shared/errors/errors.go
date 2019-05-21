@@ -22,8 +22,9 @@ import (
 
 var (
 	// Parsing / general errors
-	ErrInvalid = errors.New("config is not valid")
-	ErrEmpty   = errors.New("not a config (empty)")
+	ErrInvalid   = errors.New("config is not valid")
+	ErrEmpty     = errors.New("not a config (empty)")
+	ErrDuplicate = errors.New("duplicate entry defined")
 
 	// Ignition section errors
 	ErrInvalidVersion = errors.New("invalid config version (couldn't parse)")
