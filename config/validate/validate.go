@@ -15,6 +15,7 @@
 package validate
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
@@ -23,6 +24,7 @@ import (
 	"github.com/ajeddeloh/vcontext/json"
 	"github.com/ajeddeloh/vcontext/path"
 	"github.com/ajeddeloh/vcontext/report"
+	"github.com/ajeddeloh/vcontext/tree"
 	"github.com/ajeddeloh/vcontext/validate"
 )
 
@@ -68,11 +70,48 @@ func ValidateDups(v reflect.Value, c path.ContextPath) (r report.Report) {
 	return
 }
 
+func ValidateUnusedKeys(v reflect.Value, c path.ContextPath, root tree.Node) (r report.Report) {
+	if v.Kind() != reflect.Struct {
+		return
+	}
+	node, err := root.Get(c)
+	if err != nil {
+		// not every node will have corresponding json
+		return
+	}
+
+	mapNode, ok := node.(tree.MapNode)
+	if !ok {
+		// Something is wrong, we won't be able to report unused keys here, so just warn about it and stop trying
+		r.AddOnWarn(c, fmt.Errorf("context tree does not match content tree at %s. Line and column reporting may be inconsistent. Unused keys may not be reported.", c.String()))
+		return
+	}
+
+	fields := validate.GetFields(v)
+	fieldMap := make(map[string]struct{}, len(fields))
+	for _, field := range fields {
+		fieldMap[validate.FieldName(field, c.Tag)] = struct{}{}
+	}
+	for key := range mapNode.Keys {
+		if _, ok := fieldMap[key]; !ok {
+			r.AddOnWarn(c.Append(tree.Key(key)), fmt.Errorf("Unused key %s", key))
+		}
+	}
+	return
+}
+
 func ValidateWithContext(cfg interface{}, raw []byte) report.Report {
 	r := validate.Validate(cfg, "json")
 	r.Merge(validate.ValidateCustom(cfg, "json", ValidateDups))
+	if raw == nil {
+		return r
+	}
 
 	if cxt, err := json.UnmarshalToContext(raw); err == nil {
+		unusedKeyCheck := func(v reflect.Value, c path.ContextPath) report.Report {
+			return ValidateUnusedKeys(v, c, cxt)
+		}
+		r.Merge(validate.ValidateCustom(cfg, "json", unusedKeyCheck))
 		r.Correlate(cxt)
 	}
 	return r
