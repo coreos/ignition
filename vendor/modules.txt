@@ -1,5 +1,11 @@
-# github.com/ajeddeloh/go-json v0.0.0-20160803184958-73d058cf8437
+# github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083
 github.com/ajeddeloh/go-json
+# github.com/ajeddeloh/vcontext v0.0.0-20190522224101-145e8d161522
+github.com/ajeddeloh/vcontext/report
+github.com/ajeddeloh/vcontext/path
+github.com/ajeddeloh/vcontext/tree
+github.com/ajeddeloh/vcontext/json
+github.com/ajeddeloh/vcontext/validate
 # github.com/aws/aws-sdk-go v1.19.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
