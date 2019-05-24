@@ -20,6 +20,8 @@ import (
 	"reflect"
 	"testing"
 
+	ignerrors "github.com/coreos/ignition/v2/config/shared/errors"
+
 	"github.com/ajeddeloh/vcontext/path"
 	"github.com/ajeddeloh/vcontext/report"
 	"github.com/ajeddeloh/vcontext/tree"
@@ -57,8 +59,40 @@ func (t test) Validate(c path.ContextPath) (r report.Report) {
 	return
 }
 
+type testDup struct{}
+
+func (t testDup) Key() string {
+	return "same"
+}
+
 type test2 struct {
 	Test test `json:"foobar"`
+}
+
+type test3 struct {
+	NoDups []testDup `json:"dups"`
+}
+
+type test4 struct {
+	Ignored []testDup `json:"dups"`
+}
+
+func (t test4) IgnoreDuplicates() map[string]struct{} {
+	return map[string]struct{}{
+		"Ignored": {},
+	}
+}
+
+type test5 struct {
+	NoDups1 []testDup `json:"dups1"`
+	NoDups2 []testDup `json:"dups2"`
+}
+
+func (t test5) MergedKeys() map[string]string {
+	return map[string]string{
+		"NoDups1": "dups",
+		"NoDups2": "dups",
+	}
 }
 
 func TestValidateWithContext(t *testing.T) {
@@ -68,8 +102,7 @@ func TestValidateWithContext(t *testing.T) {
 		out   report.Report
 	}{
 		{
-			in:  struct{}{},
-			out: report.Report{},
+			in: struct{}{},
 		},
 		{
 			in:  test{},
@@ -89,6 +122,37 @@ func TestValidateWithContext(t *testing.T) {
 			in:    test2{},
 			inRaw: `{"foobar": {}}`,
 			out:   mkReport(dummy, path.New("json", "foobar"), report.Error, 1, 13),
+		},
+		{
+			in: test3{},
+		},
+		{
+			in: test3{
+				NoDups: make([]testDup, 1, 1),
+			},
+		},
+		{
+			in: test3{
+				NoDups: make([]testDup, 2, 2),
+			},
+			out: mkReport(ignerrors.ErrDuplicate, path.New("json", "dups", 1), report.Error, 0, 0),
+		},
+		{
+			in: test4{
+				Ignored: make([]testDup, 2, 2),
+			},
+		},
+		{
+			in: test5{
+				NoDups1: make([]testDup, 1, 1),
+			},
+		},
+		{
+			in: test5{
+				NoDups1: make([]testDup, 1, 1),
+				NoDups2: make([]testDup, 1, 1),
+			},
+			out: mkReport(ignerrors.ErrDuplicate, path.New("json", "dups2", 0), report.Error, 0, 0),
 		},
 	}
 
