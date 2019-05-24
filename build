@@ -8,7 +8,7 @@ NAME="ignition"
 ORG_PATH="github.com/coreos"
 REPO_PATH="${ORG_PATH}/${NAME}/v2"
 GLDFLAGS=${GLDFLAGS:-}
-GOFLAGS=-mod=vendor
+export GOFLAGS=-mod=vendor
 
 if [ -z ${VERSION+a} ]; then
 	echo "Using version from git..."
