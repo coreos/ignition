@@ -37,8 +37,8 @@ import (
 	"github.com/coreos/ignition/v2/internal/resource"
 	"github.com/coreos/ignition/v2/internal/util"
 
-	"github.com/ajeddeloh/vcontext/report"
-	"github.com/ajeddeloh/vcontext/validate"
+	"github.com/coreos/vcontext/report"
+	"github.com/coreos/vcontext/validate"
 )
 
 const (

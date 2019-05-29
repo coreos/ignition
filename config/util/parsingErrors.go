@@ -20,9 +20,9 @@ import (
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 
-	"github.com/ajeddeloh/vcontext/path"
-	"github.com/ajeddeloh/vcontext/report"
-	"github.com/ajeddeloh/vcontext/tree"
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
+	"github.com/coreos/vcontext/tree"
 )
 
 // HandleParseErrors will attempt to unmarshal an invalid rawConfig into "to".

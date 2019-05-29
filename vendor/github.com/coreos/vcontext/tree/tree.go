@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/ajeddeloh/vcontext/path"
+	"github.com/coreos/vcontext/path"
 )
 
 var (
@@ -70,7 +70,7 @@ func fixLineColumn(p []*Pos, source []byte) {
 // a key starts and where a value starts.
 type Key string
 
-// Pos represents a single location in a string
+// Pos represents a single location in a string.
 type Pos struct {
 	Index  int64
 	Line   int64

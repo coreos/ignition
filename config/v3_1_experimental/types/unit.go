@@ -24,8 +24,8 @@ import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/shared/validations"
 
-	cpath "github.com/ajeddeloh/vcontext/path"
-	"github.com/ajeddeloh/vcontext/report"
+	cpath "github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
 func (u Unit) Key() string {

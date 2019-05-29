@@ -3,10 +3,10 @@ module github.com/coreos/ignition/v2
 go 1.11
 
 require (
-	github.com/ajeddeloh/vcontext v0.0.0-20190522224101-145e8d161522
 	github.com/aws/aws-sdk-go v1.19.11
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
+	github.com/coreos/vcontext v0.0.0-20190529201340-22b159166068
 	github.com/godbus/dbus v0.0.0-20181025153459-66d97aec3384 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/kr/pretty v0.1.0 // indirect

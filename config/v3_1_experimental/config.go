@@ -23,8 +23,8 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/config/validate"
 
-	"github.com/ajeddeloh/vcontext/report"
 	"github.com/coreos/go-semver/semver"
+	"github.com/coreos/vcontext/report"
 )
 
 func Merge(parent, child types.Config) types.Config {

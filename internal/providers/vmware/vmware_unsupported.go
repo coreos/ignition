@@ -25,7 +25,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/resource"
 
-	"github.com/ajeddeloh/vcontext/report"
+	"github.com/coreos/vcontext/report"
 )
 
 func FetchConfig(_ resource.Fetcher) (types.Config, report.Report, error) {

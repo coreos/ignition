@@ -1,11 +1,5 @@
 # github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083
 github.com/ajeddeloh/go-json
-# github.com/ajeddeloh/vcontext v0.0.0-20190522224101-145e8d161522
-github.com/ajeddeloh/vcontext/report
-github.com/ajeddeloh/vcontext/path
-github.com/ajeddeloh/vcontext/tree
-github.com/ajeddeloh/vcontext/json
-github.com/ajeddeloh/vcontext/validate
 # github.com/aws/aws-sdk-go v1.19.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
@@ -48,6 +42,12 @@ github.com/coreos/go-semver/semver
 # github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 github.com/coreos/go-systemd/unit
 github.com/coreos/go-systemd/dbus
+# github.com/coreos/vcontext v0.0.0-20190529201340-22b159166068
+github.com/coreos/vcontext/report
+github.com/coreos/vcontext/path
+github.com/coreos/vcontext/tree
+github.com/coreos/vcontext/json
+github.com/coreos/vcontext/validate
 # github.com/davecgh/go-spew v1.1.0
 github.com/davecgh/go-spew/spew
 # github.com/godbus/dbus v0.0.0-20181025153459-66d97aec3384

@@ -17,22 +17,22 @@ package report
 import (
 	"fmt"
 
-	"github.com/ajeddeloh/vcontext/path"
-	"github.com/ajeddeloh/vcontext/tree"
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/tree"
 )
 
-// EntryKind represents an Entry's severity
+// EntryKind represents an Entry's severity.
 type EntryKind interface {
 	String() string
 	IsFatal() bool
 }
 
-// Report is a collection of information from validating a struct
+// Report is a collection of information from validating a struct.
 type Report struct {
 	Entries []Entry
 }
 
-// Merge adds the entries from child to r
+// Merge adds the entries from child to r.
 func (r *Report) Merge(child Report) {
 	r.Entries = append(r.Entries, child.Entries...)
 }
@@ -54,7 +54,7 @@ func (r *Report) Correlate(n tree.Node) {
 	}
 }
 
-// IsFatal returns true if any entries are fatal
+// IsFatal returns true if any entries are fatal.
 func (r Report) IsFatal() bool {
 	for _, e := range r.Entries {
 		if e.Kind.IsFatal() {
@@ -74,14 +74,14 @@ func (r Report) String() string {
 
 // Entry represents one error or message from validation.
 type Entry struct {
-	// Kind is the severity of the message
+	// Kind is the severity of the message.
 	Kind    EntryKind
 	Message string
 
 	// Context is the logical location of the error.
 	Context path.ContextPath
 
-	// Marker is the literal location in a json or yaml blob of the error
+	// Marker is the literal location in a json or yaml blob of the error.
 	Marker tree.Marker
 }
 
@@ -89,17 +89,17 @@ func (e Entry) String() string {
 	at := ""
 	switch {
 	case e.Marker.StartP != nil && e.Context.Len() != 0:
-		at = fmt.Sprintf("at %s, %s", e.Context.String(), e.Marker.String())
+		at = fmt.Sprintf(" at %s, %s", e.Context.String(), e.Marker.String())
 	case e.Marker.StartP != nil:
-		at = fmt.Sprintf("at %s", e.Marker.String())
+		at = fmt.Sprintf(" at %s", e.Marker.String())
 	case e.Context.Len() != 0:
-		at = fmt.Sprintf("at %s", e.Context.String())
+		at = fmt.Sprintf(" at %s", e.Context.String())
 	}
 
-	return fmt.Sprintf("%s %s: %s", e.Kind.String(), at, e.Message)
+	return fmt.Sprintf("%s%s: %s", e.Kind.String(), at, e.Message)
 }
 
-// Kind is a default set of EntryKind
+// Kind is a default set of EntryKind.
 type Kind int
 
 const (
@@ -117,7 +117,7 @@ func (k Kind) String() string {
 	case Info:
 		return "info"
 	default:
-		return ""
+		return "unknown severity"
 	}
 }
 
@@ -136,18 +136,18 @@ func (r *Report) AddOn(c path.ContextPath, err error, k EntryKind) {
 	})
 }
 
-// AddOnError adds err to report with kind "Error" if err is not nil
+// AddOnError adds err to report with kind "Error" if err is not nil.
 func (r *Report) AddOnError(c path.ContextPath, err error) {
 	r.AddOn(c, err, Error)
 
 }
 
-// AddOnWarn adds err to report with kind "Warning" if err is not nil
+// AddOnWarn adds err to report with kind "Warning" if err is not nil.
 func (r *Report) AddOnWarn(c path.ContextPath, err error) {
 	r.AddOn(c, err, Warn)
 }
 
-// AddOnInfo adds err to report with kind "Info" if err is not nil
+// AddOnInfo adds err to report with kind "Info" if err is not nil.
 func (r *Report) AddOnInfo(c path.ContextPath, err error) {
 	r.AddOn(c, err, Info)
 }

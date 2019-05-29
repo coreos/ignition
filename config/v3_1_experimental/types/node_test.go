@@ -21,8 +21,8 @@ import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
 
-	"github.com/ajeddeloh/vcontext/path"
-	"github.com/ajeddeloh/vcontext/report"
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
 func TestNodeValidatePath(t *testing.T) {

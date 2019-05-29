@@ -15,7 +15,7 @@
 package json
 
 import (
-	"github.com/ajeddeloh/vcontext/tree"
+	"github.com/coreos/vcontext/tree"
 	// todo: rewrite this dep
 	json "github.com/ajeddeloh/go-json"
 )

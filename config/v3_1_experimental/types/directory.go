@@ -17,8 +17,8 @@ package types
 import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
 
-	"github.com/ajeddeloh/vcontext/path"
-	"github.com/ajeddeloh/vcontext/report"
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
 func (d Directory) Validate(c path.ContextPath) (r report.Report) {

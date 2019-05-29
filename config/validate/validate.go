@@ -21,11 +21,11 @@ import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
 
-	"github.com/ajeddeloh/vcontext/json"
-	"github.com/ajeddeloh/vcontext/path"
-	"github.com/ajeddeloh/vcontext/report"
-	"github.com/ajeddeloh/vcontext/tree"
-	"github.com/ajeddeloh/vcontext/validate"
+	"github.com/coreos/vcontext/json"
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
+	"github.com/coreos/vcontext/tree"
+	"github.com/coreos/vcontext/validate"
 )
 
 func ValidateDups(v reflect.Value, c path.ContextPath) (r report.Report) {
