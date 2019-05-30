@@ -9,7 +9,7 @@ GLDFLAGS=${GLDFLAGS:-}
 
 if [ -z ${VERSION+a} ]; then
 	echo "Using version from git..."
-	VERSION=$(git describe --dirty)
+	VERSION=$(git describe --dirty --always)
 fi
 
 GLDFLAGS+="-X github.com/coreos/ignition/internal/version.Raw=${VERSION}"
