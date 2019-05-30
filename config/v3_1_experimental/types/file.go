@@ -15,18 +15,26 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
-func (f File) ValidateMode() (r report.Report) {
-	r.AddOnError(validateMode(f.Mode))
+func (f File) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c.Append("mode"), validateMode(f.Mode))
 	if f.Mode == nil {
-		r.AddOnWarning(errors.ErrFilePermissionsUnset)
+		r.AddOnWarn(c.Append("mode"), errors.ErrFilePermissionsUnset)
 	}
-	return r
+	r.AddOnError(c.Append("overwrite"), f.validateOverwrite())
+	return
+}
+
+func (f File) validateOverwrite() error {
+	if f.Overwrite != nil && *f.Overwrite && f.Contents.Source == nil {
+		return errors.ErrOverwriteAndNilSource
+	}
+	return nil
 }
 
 func (f FileEmbedded1) IgnoreDuplicates() map[string]struct{} {
@@ -35,39 +43,27 @@ func (f FileEmbedded1) IgnoreDuplicates() map[string]struct{} {
 	}
 }
 
-func (fc FileContents) ValidateCompression() (r report.Report) {
-	if fc.Compression == nil {
-		return
-	}
-	switch *fc.Compression {
-	case "", "gzip":
-	default:
-		r.AddOnError(errors.ErrCompressionInvalid)
-	}
+func (fc FileContents) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c.Append("compression"), fc.validateCompression())
+	r.AddOnError(c.Append("verification", "hash"), fc.validateVerification())
+	r.AddOnError(c.Append("source"), validateURLNilOK(fc.Source))
 	return
 }
 
-func (f File) ValidateOverwrite() (r report.Report) {
-	if f.Overwrite != nil && *f.Overwrite && f.Contents.Source == nil {
-		r.AddOnError(errors.ErrOverwriteAndNilSource)
+func (fc FileContents) validateCompression() error {
+	if fc.Compression != nil {
+		switch *fc.Compression {
+		case "", "gzip":
+		default:
+			return errors.ErrCompressionInvalid
+		}
 	}
-	return
+	return nil
 }
 
-func (fc FileContents) ValidateVerification() (r report.Report) {
+func (fc FileContents) validateVerification() error {
 	if fc.Verification.Hash != nil && fc.Source == nil {
-		r.AddOnError(errors.ErrVerificationAndNilSource)
+		return errors.ErrVerificationAndNilSource
 	}
-	return
-}
-
-func (fc FileContents) ValidateSource() (r report.Report) {
-	if fc.Source == nil {
-		return
-	}
-	err := validateURL(*fc.Source)
-	if err != nil {
-		r.AddOnError(fmt.Errorf("invalid url %q: %v", *fc.Source, err))
-	}
-	return
+	return nil
 }

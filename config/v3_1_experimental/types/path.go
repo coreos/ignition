@@ -18,6 +18,7 @@ import (
 	"path"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/util"
 )
 
 func validatePath(p string) error {
@@ -31,4 +32,11 @@ func validatePath(p string) error {
 		return errors.ErrDirtyPath
 	}
 	return nil
+}
+
+func validatePathNilOK(p *string) error {
+	if util.NilOrEmpty(p) {
+		return nil
+	}
+	return validatePath(*p)
 }

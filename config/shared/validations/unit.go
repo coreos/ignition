@@ -19,36 +19,30 @@ package validations
 import (
 	"github.com/coreos/go-systemd/unit"
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
 )
 
 // ValidateInstallSection is a helper to validate a given unit
-func ValidateInstallSection(name string, enabled bool, contentsEmpty bool, contentSections []*unit.UnitOption) report.Report {
+func ValidateInstallSection(name string, enabled bool, contentsEmpty bool, contentSections []*unit.UnitOption) error {
 	if !enabled {
 		// install sections don't matter for not-enabled units
-		return report.Report{}
+		return nil
 	}
 	if contentsEmpty {
 		// install sections don't matter if it has no contents, e.g. it's being masked or just has dropins or such
-		return report.Report{}
+		return nil
 	}
 	if contentSections == nil {
 		// Should only happen if the unit could not be parsed, at which point an
 		// error is probably already in the report so we don't need to double-up on
 		// errors + warnings.
-		return report.Report{}
+		return nil
 	}
 
 	for _, section := range contentSections {
 		if section.Section == "Install" {
-			return report.Report{}
+			return nil
 		}
 	}
 
-	return report.Report{
-		Entries: []report.Entry{{
-			Message: errors.NewNoInstallSectionError(name).Error(),
-			Kind:    report.EntryWarning,
-		}},
-	}
+	return errors.NewNoInstallSectionError(name)
 }

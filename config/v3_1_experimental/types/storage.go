@@ -19,7 +19,9 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
 func (s Storage) MergedKeys() map[string]string {
@@ -30,25 +32,25 @@ func (s Storage) MergedKeys() map[string]string {
 	}
 }
 
-func (s Storage) Validate() (r report.Report) {
-	for _, d := range s.Directories {
+func (s Storage) Validate(c path.ContextPath) (r report.Report) {
+	for i, d := range s.Directories {
 		for _, l := range s.Links {
 			if strings.HasPrefix(d.Path, l.Path+"/") {
-				r.AddOnError(errors.ErrDirectoryUsedSymlink)
+				r.AddOnError(c.Append("directories", i), errors.ErrDirectoryUsedSymlink)
 			}
 		}
 	}
-	for _, f := range s.Files {
+	for i, f := range s.Files {
 		for _, l := range s.Links {
 			if strings.HasPrefix(f.Path, l.Path+"/") {
-				r.AddOnError(errors.ErrFileUsedSymlink)
+				r.AddOnError(c.Append("files", i), errors.ErrFileUsedSymlink)
 			}
 		}
 	}
-	for _, l1 := range s.Links {
+	for i, l1 := range s.Links {
 		for _, l2 := range s.Links {
 			if strings.HasPrefix(l1.Path, l2.Path+"/") {
-				r.AddOnError(errors.ErrLinkUsedSymlink)
+				r.AddOnError(c.Append("links", i), errors.ErrLinkUsedSymlink)
 			}
 		}
 		if l1.Hard == nil || !*l1.Hard {
@@ -60,7 +62,7 @@ func (s Storage) Validate() (r report.Report) {
 		}
 		for _, d := range s.Directories {
 			if target == d.Path {
-				r.AddOnError(errors.ErrHardLinkToDirectory)
+				r.AddOnError(c.Append("links", i), errors.ErrHardLinkToDirectory)
 			}
 		}
 	}

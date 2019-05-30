@@ -18,15 +18,17 @@ import (
 	"path/filepath"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
 func (n Node) Key() string {
 	return n.Path
 }
 
-func (n Node) ValidatePath() (r report.Report) {
-	r.AddOnError(validatePath(n.Path))
+func (n Node) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c.Append("path"), validatePath(n.Path))
 	return
 }
 
@@ -38,15 +40,19 @@ func (n Node) Depth() int {
 	return count
 }
 
-func (nu NodeUser) Validate() (r report.Report) {
-	if nu.ID != nil && (nu.Name != nil && *nu.Name != "") {
-		r.AddOnError(errors.ErrBothIDAndNameSet)
+func validateIDorName(id *int, name *string) error {
+	if id != nil && (name != nil && *name != "") {
+		return errors.ErrBothIDAndNameSet
 	}
+	return nil
+}
+
+func (nu NodeUser) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c, validateIDorName(nu.ID, nu.Name))
 	return
 }
-func (ng NodeGroup) Validate() (r report.Report) {
-	if ng.ID != nil && (ng.Name != nil && *ng.Name != "") {
-		r.AddOnError(errors.ErrBothIDAndNameSet)
-	}
+
+func (ng NodeGroup) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c, validateIDorName(ng.ID, ng.Name))
 	return
 }

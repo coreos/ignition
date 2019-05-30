@@ -22,9 +22,9 @@ import (
 	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/config/validate"
-	"github.com/coreos/ignition/v2/config/validate/report"
 
 	"github.com/coreos/go-semver/semver"
+	"github.com/coreos/vcontext/report"
 )
 
 func Merge(parent, child types.Config) types.Config {
@@ -54,7 +54,7 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 		return types.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
 
-	rpt := validate.ValidateConfig(rawConfig, config)
+	rpt := validate.ValidateWithContext(config, rawConfig)
 	if rpt.IsFatal() {
 		return types.Config{}, rpt, errors.ErrInvalid
 	}

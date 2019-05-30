@@ -20,7 +20,9 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
 // HashParts will return the sum and function (in that order) of the hash stored
@@ -38,7 +40,8 @@ func (v Verification) HashParts() (string, string, error) {
 	return parts[0], parts[1], nil
 }
 
-func (v Verification) Validate() (r report.Report) {
+func (v Verification) Validate(c path.ContextPath) (r report.Report) {
+	c = c.Append("hash")
 	if v.Hash == nil {
 		// The hash can be nil
 		return
@@ -46,7 +49,7 @@ func (v Verification) Validate() (r report.Report) {
 
 	function, sum, err := v.HashParts()
 	if err != nil {
-		r.AddOnError(err)
+		r.AddOnError(c, err)
 		return
 	}
 	var hash crypto.Hash
@@ -54,12 +57,12 @@ func (v Verification) Validate() (r report.Report) {
 	case "sha512":
 		hash = crypto.SHA512
 	default:
-		r.AddOnError(errors.ErrHashUnrecognized)
+		r.AddOnError(c, errors.ErrHashUnrecognized)
 		return
 	}
 
 	if len(sum) != hex.EncodedLen(hash.Size()) {
-		r.AddOnError(errors.ErrHashWrongSize)
+		r.AddOnError(c, errors.ErrHashWrongSize)
 	}
 
 	return

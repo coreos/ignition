@@ -19,7 +19,8 @@ import (
 	"os"
 
 	config "github.com/coreos/ignition/v2/config/v3_1_experimental"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/coreos/vcontext/report"
 )
 
 func Validate(filename string) (report.Report, error) {

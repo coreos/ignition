@@ -15,66 +15,63 @@
 package types
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/util"
 )
 
 func TestURLValidate(t *testing.T) {
-	type in struct {
-		u string
-	}
-	type out struct {
-		err error
-	}
-
 	tests := []struct {
-		in  in
-		out out
+		in  *string
+		out error
 	}{
 		{
-			in:  in{u: ""},
-			out: out{},
+			nil,
+			nil,
 		},
 		{
-			in:  in{u: "http://example.com"},
-			out: out{},
+			util.StrToPtr(""),
+			nil,
 		},
 		{
-			in:  in{u: "https://example.com"},
-			out: out{},
+			util.StrToPtr("http://example.com"),
+			nil,
 		},
 		{
-			in:  in{u: "tftp://example.com:69/foobar.txt"},
-			out: out{},
+			util.StrToPtr("https://example.com"),
+			nil,
 		},
 		{
-			in:  in{u: "data:,example%20file%0A"},
-			out: out{},
+			util.StrToPtr("tftp://example.com:69/foobar.txt"),
+			nil,
 		},
 		{
-			in:  in{u: "bad://"},
-			out: out{err: errors.ErrInvalidScheme},
+			util.StrToPtr("data:,example%20file%0A"),
+			nil,
 		},
 		{
-			in:  in{u: "s3://bucket/key"},
-			out: out{},
+			util.StrToPtr("bad://"),
+			errors.ErrInvalidScheme,
 		},
 		{
-			in:  in{u: "s3://bucket/key?versionId="},
-			out: out{err: errors.ErrInvalidS3ObjectVersionId},
+			util.StrToPtr("s3://bucket/key"),
+			nil,
 		},
 		{
-			in:  in{u: "s3://bucket/key?versionId=aVersionHash"},
-			out: out{},
+			util.StrToPtr("s3://bucket/key?versionId="),
+			errors.ErrInvalidS3ObjectVersionId,
+		},
+		{
+			util.StrToPtr("s3://bucket/key?versionId=aVersionHash"),
+			nil,
 		},
 	}
 
 	for i, test := range tests {
-		err := validateURL(test.in.u)
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		err := validateURLNilOK(test.in)
+		if test.out != err {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out, err)
 		}
 	}
 }

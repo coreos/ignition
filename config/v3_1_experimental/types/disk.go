@@ -16,72 +16,68 @@ package types
 
 import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
 func (d Disk) Key() string {
 	return d.Device
 }
 
-func (n Disk) Validate() report.Report {
-	return report.Report{}
-}
-
-func (n Disk) ValidateDevice() (r report.Report) {
+func (n Disk) Validate(c path.ContextPath) (r report.Report) {
 	if len(n.Device) == 0 {
-		r.AddOnError(errors.ErrDiskDeviceRequired)
+		r.AddOnError(c.Append("device"), errors.ErrDiskDeviceRequired)
 		return
 	}
-	r.AddOnError(validatePath(n.Device))
-	return
-}
+	r.AddOnError(c.Append("device"), validatePath(n.Device))
 
-func (n Disk) ValidatePartitions() (r report.Report) {
-	if n.partitionNumbersCollide() {
-		r.AddOnError(errors.ErrPartitionNumbersCollide)
+	if collides, p := n.partitionNumbersCollide(); collides {
+		r.AddOnError(c.Append("partitions", p), errors.ErrPartitionNumbersCollide)
 	}
-	if n.partitionsOverlap() {
-		r.AddOnError(errors.ErrPartitionsOverlap)
+	if overlaps, p := n.partitionsOverlap(); overlaps {
+		r.AddOnError(c.Append("partitions", p), errors.ErrPartitionsOverlap)
 	}
 	if n.partitionsMixZeroesAndNonexistence() {
-		r.AddOnError(errors.ErrZeroesWithShouldNotExist)
+		r.AddOnError(c.Append("partitions"), errors.ErrZeroesWithShouldNotExist)
 	}
-	if n.partitionLabelsCollide() {
-		r.AddOnError(errors.ErrDuplicateLabels)
+	if collides, p := n.partitionLabelsCollide(); collides {
+		r.AddOnError(c.Append("partitions", p), errors.ErrDuplicateLabels)
 	}
 	return
 }
 
-// partitionNumbersCollide returns true if partition numbers in n.Partitions are not unique.
-func (n Disk) partitionNumbersCollide() bool {
-	m := map[int][]Partition{}
-	for _, p := range n.Partitions {
+// partitionNumbersCollide returns true if partition numbers in n.Partitions are not unique. It also returns the
+// index of the colliding partition
+func (n Disk) partitionNumbersCollide() (bool, int) {
+	m := map[int][]int{} // from partition number to index into array
+	for i, p := range n.Partitions {
 		if p.Number != 0 {
 			// a number of 0 means next available number, multiple devices can specify this
-			m[p.Number] = append(m[p.Number], p)
+			m[p.Number] = append(m[p.Number], i)
 		}
 	}
 	for _, n := range m {
 		if len(n) > 1 {
 			// TODO(vc): return information describing the collision for logging
-			return true
+			return true, n[1]
 		}
 	}
-	return false
+	return false, 0
 }
 
-func (d Disk) partitionLabelsCollide() bool {
+func (d Disk) partitionLabelsCollide() (bool, int) {
 	m := map[string]struct{}{}
-	for _, p := range d.Partitions {
+	for i, p := range d.Partitions {
 		if p.Label != nil {
 			// a number of 0 means next available number, multiple devices can specify this
 			if _, exists := m[*p.Label]; exists {
-				return true
+				return true, i
 			}
 			m[*p.Label] = struct{}{}
 		}
 	}
-	return false
+	return false, 0
 }
 
 // end returns the last sector of a partition. Only used by partitionsOverlap. Requires non-nil Start and Size.
@@ -93,8 +89,9 @@ func (p Partition) end() int {
 	return *p.StartMiB + *p.SizeMiB - 1
 }
 
-// partitionsOverlap returns true if any explicitly dimensioned partitions overlap
-func (n Disk) partitionsOverlap() bool {
+// partitionsOverlap returns true if any explicitly dimensioned partitions overlap. It also returns the index of
+// the overlapping partition
+func (n Disk) partitionsOverlap() (bool, int) {
 	for _, p := range n.Partitions {
 		// Starts of 0 are placed by sgdisk into the "largest available block" at that time.
 		// We aren't going to check those for overlap since we don't have the disk geometry.
@@ -102,28 +99,28 @@ func (n Disk) partitionsOverlap() bool {
 			continue
 		}
 
-		for _, o := range n.Partitions {
+		for i, o := range n.Partitions {
 			if o.StartMiB == nil || o.SizeMiB == nil || p == o || *o.StartMiB == 0 {
 				continue
 			}
 
 			// is p.StartMiB within o?
 			if *p.StartMiB >= *o.StartMiB && *p.StartMiB <= o.end() {
-				return true
+				return true, i
 			}
 
 			// is p.end() within o?
 			if p.end() >= *o.StartMiB && p.end() <= o.end() {
-				return true
+				return true, i
 			}
 
 			// do p.StartMiB and p.end() straddle o?
 			if *p.StartMiB < *o.StartMiB && p.end() > o.end() {
-				return true
+				return true, i
 			}
 		}
 	}
-	return false
+	return false, 0
 }
 
 func (n Disk) partitionsMixZeroesAndNonexistence() bool {

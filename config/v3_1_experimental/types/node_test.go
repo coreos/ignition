@@ -20,48 +20,49 @@ import (
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
 func TestNodeValidatePath(t *testing.T) {
 	node := Node{Path: "not/absolute"}
-	rep := report.ReportFromError(errors.ErrPathRelative, report.EntryError)
-	if receivedRep := node.ValidatePath(); !reflect.DeepEqual(rep, receivedRep) {
+	rep := report.Report{}
+	rep.AddOnError(path.ContextPath{}.Append("path"), errors.ErrPathRelative)
+	if receivedRep := node.Validate(path.ContextPath{}); !reflect.DeepEqual(rep, receivedRep) {
 		t.Errorf("bad error: want %v, got %v", rep, receivedRep)
 	}
-}
-
-func intToPtr(x int) *int {
-	return &x
 }
 
 func TestNodeValidateUser(t *testing.T) {
 	tests := []struct {
 		in  NodeUser
-		out report.Report
+		out error
 	}{
 		{
-			in:  NodeUser{intToPtr(0), util.StrToPtr("")},
-			out: report.Report{},
+			NodeUser{util.IntToPtr(0), util.StrToPtr("")},
+			nil,
 		},
 		{
-			in:  NodeUser{intToPtr(1000), util.StrToPtr("")},
-			out: report.Report{},
+			NodeUser{util.IntToPtr(1000), util.StrToPtr("")},
+			nil,
 		},
 		{
-			in:  NodeUser{nil, util.StrToPtr("core")},
-			out: report.Report{},
+			NodeUser{nil, util.StrToPtr("core")},
+			nil,
 		},
 		{
-			in:  NodeUser{intToPtr(1000), util.StrToPtr("core")},
-			out: report.ReportFromError(errors.ErrBothIDAndNameSet, report.EntryError),
+			NodeUser{util.IntToPtr(1000), util.StrToPtr("core")},
+			errors.ErrBothIDAndNameSet,
 		},
 	}
 
 	for i, test := range tests {
-		report := test.in.Validate()
-		if !reflect.DeepEqual(test.out, report) {
-			t.Errorf("#%d: bad report: want %v got %v", i, test.out, report)
+		r := test.in.Validate(path.ContextPath{})
+		expected := report.Report{}
+		expected.AddOnError(path.New(""), test.out)
+		if !reflect.DeepEqual(expected, r) {
+			t.Errorf("#%d: bad report: want %v got %v", i, test.out, r)
 		}
 	}
 }
@@ -69,30 +70,32 @@ func TestNodeValidateUser(t *testing.T) {
 func TestNodeValidateGroup(t *testing.T) {
 	tests := []struct {
 		in  NodeGroup
-		out report.Report
+		out error
 	}{
 		{
-			in:  NodeGroup{intToPtr(0), util.StrToPtr("")},
-			out: report.Report{},
+			NodeGroup{util.IntToPtr(0), util.StrToPtr("")},
+			nil,
 		},
 		{
-			in:  NodeGroup{intToPtr(1000), util.StrToPtr("")},
-			out: report.Report{},
+			NodeGroup{util.IntToPtr(1000), util.StrToPtr("")},
+			nil,
 		},
 		{
-			in:  NodeGroup{nil, util.StrToPtr("core")},
-			out: report.Report{},
+			NodeGroup{nil, util.StrToPtr("core")},
+			nil,
 		},
 		{
-			in:  NodeGroup{intToPtr(1000), util.StrToPtr("core")},
-			out: report.ReportFromError(errors.ErrBothIDAndNameSet, report.EntryError),
+			NodeGroup{util.IntToPtr(1000), util.StrToPtr("core")},
+			errors.ErrBothIDAndNameSet,
 		},
 	}
 
 	for i, test := range tests {
-		report := test.in.Validate()
-		if !reflect.DeepEqual(test.out, report) {
-			t.Errorf("#%d: bad report: want %v got %v", i, test.out, report)
+		r := test.in.Validate(path.ContextPath{})
+		expected := report.Report{}
+		expected.AddOnError(path.New(""), test.out)
+		if !reflect.DeepEqual(expected, r) {
+			t.Errorf("#%d: bad report: want %v got %v", i, test.out, r)
 		}
 	}
 }

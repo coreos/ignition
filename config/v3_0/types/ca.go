@@ -15,14 +15,15 @@
 package types
 
 import (
-	"github.com/coreos/ignition/v2/config/validate/report"
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
 func (c CaReference) Key() string {
 	return c.Source
 }
 
-func (c CaReference) ValidateSource() (r report.Report) {
-	r.AddOnError(validateURL(c.Source))
+func (ca CaReference) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c.Append("source"), validateURL(ca.Source))
 	return
 }

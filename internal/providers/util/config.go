@@ -20,8 +20,9 @@ import (
 
 	"github.com/coreos/ignition/v2/config"
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/v2/config/validate/report"
 	"github.com/coreos/ignition/v2/internal/log"
+
+	"github.com/coreos/vcontext/report"
 )
 
 func ParseConfig(logger *log.Logger, rawConfig []byte) (types.Config, report.Report, error) {

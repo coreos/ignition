@@ -18,9 +18,10 @@ import (
 	"errors"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
-	"github.com/coreos/ignition/v2/config/validate/report"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/resource"
+
+	"github.com/coreos/vcontext/report"
 )
 
 var (

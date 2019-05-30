@@ -23,47 +23,40 @@ import (
 )
 
 func TestModeValidate(t *testing.T) {
-	type in struct {
-		mode *int
-	}
-	type out struct {
-		err error
-	}
-
 	tests := []struct {
-		in  in
-		out out
+		in  *int
+		out error
 	}{
 		{
-			in:  in{mode: nil},
-			out: out{},
+			nil,
+			nil,
 		},
 		{
-			in:  in{mode: util.IntToPtr(0)},
-			out: out{},
+			util.IntToPtr(0),
+			nil,
 		},
 		{
-			in:  in{mode: util.IntToPtr(0644)},
-			out: out{},
+			util.IntToPtr(0644),
+			nil,
 		},
 		{
-			in:  in{mode: util.IntToPtr(01755)},
-			out: out{},
+			util.IntToPtr(01755),
+			nil,
 		},
 		{
-			in:  in{mode: util.IntToPtr(07777)},
-			out: out{},
+			util.IntToPtr(07777),
+			nil,
 		},
 		{
-			in:  in{mode: util.IntToPtr(010000)},
-			out: out{errors.ErrFileIllegalMode},
+			util.IntToPtr(010000),
+			errors.ErrFileIllegalMode,
 		},
 	}
 
 	for i, test := range tests {
-		err := validateMode(test.in.mode)
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad err: want %v, got %v", i, test.out.err, err)
+		err := validateMode(test.in)
+		if !reflect.DeepEqual(test.out, err) {
+			t.Errorf("#%d: bad err: want %v, got %v", i, test.out, err)
 		}
 	}
 }

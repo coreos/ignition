@@ -22,43 +22,36 @@ import (
 )
 
 func TestPathValidate(t *testing.T) {
-	type in struct {
-		device string
-	}
-	type out struct {
-		err error
-	}
-
 	tests := []struct {
-		in  in
-		out out
+		in  string
+		out error
 	}{
 		{
-			in:  in{device: "/good/path"},
-			out: out{},
+			"/good/path",
+			nil,
 		},
 		{
-			in:  in{device: "/name"},
-			out: out{},
+			"/name",
+			nil,
 		},
 		{
-			in:  in{device: "/this/is/a/fairly/long/path/to/a/device."},
-			out: out{},
+			"/this/is/a/fairly/long/path/to/a/device.",
+			nil,
 		},
 		{
-			in:  in{device: "/this one has spaces"},
-			out: out{},
+			"/this one has spaces",
+			nil,
 		},
 		{
-			in:  in{device: "relative/path"},
-			out: out{err: errors.ErrPathRelative},
+			"relative/path",
+			errors.ErrPathRelative,
 		},
 	}
 
 	for i, test := range tests {
-		err := validatePath(test.in.device)
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		err := validatePath(test.in)
+		if !reflect.DeepEqual(test.out, err) {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out, err)
 		}
 	}
 }

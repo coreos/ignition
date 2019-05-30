@@ -18,7 +18,9 @@ import (
 	"github.com/coreos/go-semver/semver"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
 func (c ConfigReference) Key() string {
@@ -28,11 +30,8 @@ func (c ConfigReference) Key() string {
 	return *c.Source
 }
 
-func (c ConfigReference) ValidateSource() (r report.Report) {
-	if c.Source == nil {
-		return
-	}
-	r.AddOnError(validateURL(*c.Source))
+func (cr ConfigReference) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c.Append("source"), validateURLNilOK(cr.Source))
 	return
 }
 
@@ -40,14 +39,16 @@ func (v Ignition) Semver() (*semver.Version, error) {
 	return semver.NewVersion(v.Version)
 }
 
-func (v Ignition) Validate() report.Report {
+func (v Ignition) Validate(c path.ContextPath) (r report.Report) {
+	c = c.Append("version")
 	tv, err := v.Semver()
 	if err != nil {
-		return report.ReportFromError(errors.ErrInvalidVersion, report.EntryError)
+		r.AddOnError(c, errors.ErrInvalidVersion)
+		return
 	}
 
 	if MaxVersion != *tv {
-		return report.ReportFromError(errors.ErrUnknownVersion, report.EntryError)
+		r.AddOnError(c, errors.ErrUnknownVersion)
 	}
-	return report.Report{}
+	return
 }

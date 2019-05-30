@@ -25,3 +25,11 @@ func StrToPtr(s string) *string {
 func BoolToPtr(b bool) *bool {
 	return &b
 }
+
+func NilOrEmpty(s *string) bool {
+	return s == nil || *s == ""
+}
+
+func NotEmpty(s *string) bool {
+	return s != nil && *s != ""
+}

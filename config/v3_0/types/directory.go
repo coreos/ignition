@@ -16,13 +16,15 @@ package types
 
 import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
+
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
 )
 
-func (d Directory) ValidateMode() (r report.Report) {
-	r.AddOnError(validateMode(d.Mode))
+func (d Directory) Validate(c path.ContextPath) (r report.Report) {
+	r.AddOnError(c.Append("mode"), validateMode(d.Mode))
 	if d.Mode == nil {
-		r.AddOnWarning(errors.ErrDirectoryPermissionsUnset)
+		r.AddOnWarn(c.Append("mode"), errors.ErrDirectoryPermissionsUnset)
 	}
-	return r
+	return
 }

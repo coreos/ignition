@@ -15,49 +15,36 @@
 package util
 
 import (
-	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/validate/report"
-	"github.com/coreos/ignition/v2/config/validate/util"
+	"encoding/json"
+	"fmt"
 
-	json "github.com/ajeddeloh/go-json"
+	"github.com/coreos/ignition/v2/config/shared/errors"
+
+	"github.com/coreos/vcontext/path"
+	"github.com/coreos/vcontext/report"
+	"github.com/coreos/vcontext/tree"
 )
 
 // HandleParseErrors will attempt to unmarshal an invalid rawConfig into "to".
 // If it fails to unmarsh it will generate a report.Report from the errors.
 func HandleParseErrors(rawConfig []byte, to interface{}) (report.Report, error) {
+	r := report.Report{}
 	err := json.Unmarshal(rawConfig, to)
 	if err == nil {
 		return report.Report{}, nil
 	}
 
-	// Handle json syntax and type errors first, since they are fatal but have offset info
-	if serr, ok := err.(*json.SyntaxError); ok {
-		line, col, highlight := util.Highlight(rawConfig, serr.Offset)
-		return report.Report{
-				Entries: []report.Entry{{
-					Kind:      report.EntryError,
-					Message:   serr.Error(),
-					Line:      line,
-					Column:    col,
-					Highlight: highlight,
-				}},
-			},
-			errors.ErrInvalid
+	var node tree.Leaf
+	switch t := err.(type) {
+	case *json.SyntaxError:
+		node.Marker = tree.MarkerFromIndices(t.Offset, -1)
+	case *json.UnmarshalTypeError:
+		node.Marker = tree.MarkerFromIndices(t.Offset, -1)
 	}
+	tree.FixLineColumn(node, rawConfig)
+	fmt.Printf("%+v\n", node.Marker.StartP.Index)
+	r.AddOnError(path.ContextPath{Tag: "json"}, err)
+	r.Correlate(node)
 
-	if terr, ok := err.(*json.UnmarshalTypeError); ok {
-		line, col, highlight := util.Highlight(rawConfig, terr.Offset)
-		return report.Report{
-				Entries: []report.Entry{{
-					Kind:      report.EntryError,
-					Message:   terr.Error(),
-					Line:      line,
-					Column:    col,
-					Highlight: highlight,
-				}},
-			},
-			errors.ErrInvalid
-	}
-
-	return report.ReportFromError(err, report.EntryError), errors.ErrInvalid
+	return r, errors.ErrInvalid
 }
