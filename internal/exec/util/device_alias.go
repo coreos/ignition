@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	deviceAliasDir      = "/dev_aliases"
+	deviceAliasDir      = "/run/ignition/dev_aliases"
 	retrySymlinkDelay   = 10 * time.Millisecond
 	retrySymlinkTimeout = 30 * time.Second
 	retrySymlinkCount   = int(retrySymlinkTimeout / retrySymlinkDelay)
