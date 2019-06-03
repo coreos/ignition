@@ -1,3 +1,20 @@
+03-Jun-2019 Ignition 2.0.0
+
+  Bug Fixes:
+
+    - Use /run/ignition/dev_aliases instead of /dev_aliases when creating our
+      own symlinks to devices in /dev
+
+  Test Changes:
+
+    - Rename tests to use dots.with.lowercase
+
+  Public Go API Changes:
+
+    - Replace config/validate api with github.com/coreos/vcontext
+    - Validate() functions in config/* now follow the vcontext validation
+      interface
+
 26-Apr-2019 Ignition 2.0.0-beta
 
   Features:
