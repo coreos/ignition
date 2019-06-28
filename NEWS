@@ -1,3 +1,14 @@
+28-Jun-2019 IGNITION v0.33.0
+
+  Bug Fixes:
+
+    - Fix regression where Ignition would panic if the guestinfo.* keys were
+      missing on vmware
+
+  Changes:
+
+    - Create /dev aliases under /run/ignition instead of /
+
 15-Apr-2019 IGNITION v0.32.0
 
   Features:
