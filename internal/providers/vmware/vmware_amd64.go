@@ -54,8 +54,8 @@ func fetchRawConfig(f resource.Fetcher) (config, error) {
 
 	var ovfData string
 	var ovfEncoding string
-	var ovfDataKey string
-	var ovfEncodingKey string
+	ovfDataKey := "coreos.config.data"
+	ovfEncodingKey := "coreos.config.data.encoding"
 
 	ovfEnv, err := info.String("ovfenv", "")
 	if err != nil {
@@ -67,27 +67,22 @@ func fetchRawConfig(f resource.Fetcher) (config, error) {
 			f.Logger.Warning("failed to parse OVF environment: %v. Continuing...", err)
 		}
 
-		if _, ok := env.Properties["guestinfo.coreos.config.data"]; ok {
-			ovfDataKey = "guestinfo.coreos.config.data"
-			ovfEncodingKey = "guestinfo.coreos.config.data.encoding"
-		} else if _, ok := env.Properties["guestinfo.ignition.config.data"]; ok {
-			ovfDataKey = "guestinfo.ignition.config.data"
-			ovfEncodingKey = "guestinfo.ignition.config.data.encoding"
-		} else {
-			f.Logger.Debug("failed to find guestinfo ignition properties")
+		if _, ok := env.Properties["guestinfo.ignition.config.data"]; ok {
+			ovfDataKey = "ignition.config.data"
+			ovfEncodingKey = "ignition.config.data.encoding"
 		}
 
-		ovfData = env.Properties[ovfDataKey]
-		ovfEncoding = env.Properties[ovfEncodingKey]
+		ovfData = env.Properties["guestinfo."+ovfDataKey]
+		ovfEncoding = env.Properties["guestinfo."+ovfEncodingKey]
 	}
 
-	data, err := info.String(ovfDataKey[len("guestinfo."):], ovfData)
+	data, err := info.String(ovfDataKey, ovfData)
 	if err != nil {
 		f.Logger.Debug("failed to fetch config: %v", err)
 		return config{}, err
 	}
 
-	encoding, err := info.String(ovfEncodingKey[len("guestinfo."):], ovfEncoding)
+	encoding, err := info.String(ovfEncodingKey, ovfEncoding)
 	if err != nil {
 		f.Logger.Debug("failed to fetch config encoding: %v", err)
 		return config{}, err
