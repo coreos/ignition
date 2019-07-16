@@ -28,6 +28,6 @@ var (
 	ErrNoProvider = errors.New("config provider was not online")
 )
 
-type FuncFetchConfig func(f resource.Fetcher) (types.Config, report.Report, error)
+type FuncFetchConfig func(f *resource.Fetcher) (types.Config, report.Report, error)
 type FuncNewFetcher func(logger *log.Logger) (resource.Fetcher, error)
 type FuncPostStatus func(stageName string, f resource.Fetcher, e error) error

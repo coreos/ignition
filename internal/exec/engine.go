@@ -192,7 +192,7 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 	var r report.Report
 	var err error
 	for _, fetcher := range fetchers {
-		cfg, r, err = fetcher(*e.Fetcher)
+		cfg, r, err = fetcher(e.Fetcher)
 		if err != providers.ErrNoProvider {
 			// successful, or failed on another error
 			break
