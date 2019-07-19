@@ -52,7 +52,7 @@ const (
 	CDS_DISC_OK
 )
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	devicePath := filepath.Join(distro.DiskByIDDir(), configDeviceID)
 
 	logger := f.Logger

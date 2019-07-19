@@ -28,6 +28,6 @@ import (
 	"github.com/coreos/vcontext/report"
 )
 
-func FetchConfig(_ resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(_ *resource.Fetcher) (types.Config, report.Report, error) {
 	return types.Config{}, report.Report{}, errors.New("vmware provider is not supported on this architecture")
 }

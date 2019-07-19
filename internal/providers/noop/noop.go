@@ -24,7 +24,7 @@ import (
 	"github.com/coreos/vcontext/report"
 )
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	f.Logger.Debug("noop provider fetching empty config")
 	return types.Config{}, report.Report{}, errors.ErrEmpty
 }

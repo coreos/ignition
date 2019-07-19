@@ -52,7 +52,7 @@ var (
 	}
 )
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	// Packet's metadata service returns "Not Acceptable" when queried
 	// with the default Accept header.
 	headers := resource.ConfigHeaders

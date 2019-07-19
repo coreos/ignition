@@ -36,7 +36,7 @@ const (
 	partUUID = "99570a8a-f826-4eb0-ba4e-9dd72d55ea13"
 )
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	f.Logger.Debug("Attempting to read config drive")
 	rawConfig, err := ioutil.ReadFile(filepath.Join(distro.DiskByPartUUIDDir(), partUUID))
 	if os.IsNotExist(err) {
