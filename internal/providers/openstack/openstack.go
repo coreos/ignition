@@ -50,7 +50,7 @@ var (
 	}
 )
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	var data []byte
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
@@ -129,7 +129,7 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 	return ioutil.ReadFile(filepath.Join(mnt, configDriveUserdataPath))
 }
 
-func fetchConfigFromMetadataService(f resource.Fetcher) ([]byte, error) {
+func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{
 		Headers: resource.ConfigHeaders,
 	})

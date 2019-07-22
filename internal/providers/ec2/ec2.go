@@ -40,7 +40,7 @@ var (
 	}
 )
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{
 		Headers: resource.ConfigHeaders,
 	})

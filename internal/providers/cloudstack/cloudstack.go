@@ -45,7 +45,7 @@ const (
 	LeaseRetryInterval      = 500 * time.Millisecond
 )
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	var data []byte
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
@@ -191,7 +191,7 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, label string
 	return ioutil.ReadFile(filepath.Join(mnt, configDriveUserdataPath))
 }
 
-func fetchConfigFromMetadataService(f resource.Fetcher) ([]byte, error) {
+func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 	addr, err := getDHCPServerAddress()
 	if err != nil {
 		return nil, err
