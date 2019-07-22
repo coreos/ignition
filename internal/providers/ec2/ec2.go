@@ -40,13 +40,20 @@ var (
 	}
 )
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{
 		Headers: resource.ConfigHeaders,
 	})
 	if err != nil && err != resource.ErrNotFound {
 		return types.Config{}, report.Report{}, err
 	}
+
+	// Determine the partition and region this instance is in
+	regionHint, err := ec2metadata.New(f.AWSSession).Region()
+	if err != nil {
+		regionHint = "us-east-1"
+	}
+	f.S3RegionHint = regionHint
 
 	return util.ParseConfig(f.Logger, data)
 }
@@ -58,14 +65,8 @@ func NewFetcher(l *log.Logger) (resource.Fetcher, error) {
 	}
 	sess.Config.Credentials = ec2rolecreds.NewCredentials(sess)
 
-	// Determine the partition and region this ec2 is in
-	regionHint, err := ec2metadata.New(sess).Region()
-	if err != nil {
-		regionHint = "us-east-1"
-	}
 	return resource.Fetcher{
-		Logger:       l,
-		AWSSession:   sess,
-		S3RegionHint: regionHint,
+		Logger:     l,
+		AWSSession: sess,
 	}, nil
 }

@@ -29,7 +29,7 @@ const (
 	defaultFilename   = "config.ign"
 )
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	filename := os.Getenv(cfgFilenameEnvVar)
 	if filename == "" {
 		filename = defaultFilename

@@ -29,7 +29,7 @@ import (
 	"github.com/vmware/vmw-ovflib"
 )
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	if !vmcheck.IsVirtualWorld() {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
@@ -49,7 +49,7 @@ func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
 	return util.ParseConfig(f.Logger, decodedData)
 }
 
-func fetchRawConfig(f resource.Fetcher) (config, error) {
+func fetchRawConfig(f *resource.Fetcher) (config, error) {
 	info := rpcvmx.NewConfig()
 
 	var ovfData string

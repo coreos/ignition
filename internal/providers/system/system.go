@@ -42,7 +42,7 @@ func FetchDefaultConfig(logger *log.Logger) (types.Config, report.Report, error)
 	return fetchConfig(logger, defaultFilename)
 }
 
-func FetchConfig(f resource.Fetcher) (types.Config, report.Report, error) {
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	return fetchConfig(f.Logger, userFilename)
 }
 
