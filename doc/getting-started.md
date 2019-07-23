@@ -34,7 +34,7 @@ In cases where the machine fails to boot, it's sometimes helpful to ask journald
 
 ### Validating the Configuration
 
-One common cause for Ignition failures is a malformed configuration (e.g. a misspelled section or incorrect hierarchy). Ignition will log errors, warnings, and other notes about the configuration that it parsed, so this can be used to debug issues with the configuration provided. As a convenience, CoreOS hosts an [online validator][validator] which can be used to quickly verify configurations.
+One common cause for Ignition failures is a malformed configuration (e.g. a misspelled section or incorrect hierarchy). Ignition will log errors, warnings, and other notes about the configuration that it parsed, so this can be used to debug issues with the configuration provided.
 
 ### Enabling systemd Services
 
@@ -50,4 +50,3 @@ Ignition is not typically run more than once during a machine's lifetime in a gi
 [platforms]: supported-platforms.md
 [preset]: https://www.freedesktop.org/software/systemd/man/systemd.preset.html
 [troubleshooting]: #troubleshooting
-[validator]: https://coreos.com/validate
