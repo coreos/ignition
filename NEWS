@@ -1,3 +1,10 @@
+24-Jul-2019 Ignition 2.0.1
+
+  Bug Fixes:
+
+    - Fix getting AWS region when networking is slow to come up
+    - Validate file/directory paths correctly
+
 03-Jun-2019 Ignition 2.0.0
 
   Bug Fixes:
