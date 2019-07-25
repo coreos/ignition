@@ -26,3 +26,10 @@ For 2.x.y+ releases:
  - [ ] Create a PR to bump the Ignition spec file in [Fedora](https://src.fedoraproject.org/rpms/ignition).
  - [ ] Once that PR merges to master, merge master into the other relevant branches (e.g. f30) then push those.
  - [ ] On each of those branches (including master) run `fedpkg build`
+ - [ ] Once the builds have finished, submit them to [bodhi](https://bodhi.fedoraproject.org/updates/new), filling in:
+   - `ignition` for `Packages`
+   - Selecting the build(s) that just completed, except for the rawhide one (which gets submitted automatically)
+   - Writing brief release notes like "New upstream release. See release notes at `link to NEWS on GH tag`"
+   - Leave `Update name` blank
+   - `Type`, `Severity` and `Suggestion` can be left as `unspecified` unless it is a security release. In that case select `security` which the appropriate severity.
+   - `Stable karma` and `Unstable` karma can be set to `2` and `-1`, respectively.
