@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
@@ -88,19 +89,25 @@ func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, r
 	}, nil
 }
 
-func (ut Util) MaskUnit(unit types.Unit) error {
+// MaskUnit writes a symlink to /dev/null to mask the specified unit and returns the path of that unit
+// without the sysroot prefix
+func (ut Util) MaskUnit(unit types.Unit) (string, error) {
 	path, err := ut.JoinPath(SystemdUnitsPath(), unit.Name)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if err := MkdirForFile(path); err != nil {
-		return err
+		return "", err
 	}
 	if err := os.RemoveAll(path); err != nil {
-		return err
+		return "", err
 	}
-	return os.Symlink("/dev/null", path)
+	if err := os.Symlink("/dev/null", path); err != nil {
+		return "", err
+	}
+	// not the same as the path above, since this lacks the sysroot prefix
+	return filepath.Join("/", SystemdUnitsPath(), unit.Name), nil
 }
 
 func (ut Util) EnableUnit(unit types.Unit) error {
