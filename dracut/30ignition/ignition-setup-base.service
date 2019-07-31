@@ -1,0 +1,14 @@
+[Unit]
+Description=Ignition (setup base config)
+DefaultDependencies=false
+Before=ignition-complete.target
+
+Before=local-fs-pre.target
+Before=ignition-disks.service
+Before=ignition-files.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/sbin/ignition-setup-base

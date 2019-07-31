@@ -14,10 +14,6 @@ copy_file_if_exists() {
 destination=/usr/lib/ignition/
 mkdir -p $destination
 
-# We will support grabbing a platform specific base.ign config
-# from the initrd at /usr/lib/ignition/platform/${PLATFORM_ID}/base.ign
-copy_file_if_exists "/usr/lib/ignition/platform/${PLATFORM_ID}/base.ign" "${destination}/base.ign"
-
 # We will support a user embedded config in the boot partition
 # under $bootmnt/ignition/config.ign. Note that we mount /boot
 # but we don't unmount boot because we are run in a systemd unit
