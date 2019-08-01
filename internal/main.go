@@ -71,6 +71,7 @@ func main() {
 	defer logger.Close()
 
 	logger.Info(version.String)
+	logger.Info("Stage: %v", flags.stage)
 
 	if flags.clearCache {
 		if err := os.Remove(flags.configCache); err != nil {
