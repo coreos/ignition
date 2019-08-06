@@ -19,7 +19,7 @@ install() {
         chroot \
         groupadd \
         id \
-        lslblk \
+        lsblk \
         mkfs.ext4 \
         mkfs.vfat \
         mkfs.xfs \
