@@ -8,8 +8,8 @@ depends() {
 
 # target is optional, used for instantiated units
 install_ignition_unit() {
-    unit=$1; shift
-    target="${1:-$unit}"
+    local unit="$1"; shift
+    local target="${1:-$unit}"
     inst_simple "$moddir/$unit" "$systemdsystemunitdir/$unit"
     ln_r "../$unit" "$systemdsystemunitdir/ignition-complete.target.requires/$target"
 }
