@@ -1,0 +1,16 @@
+# This target contains Ignition units that should only run when we have a
+# boot disk, i.e. when we're not running diskless from a live image in RAM.
+# Like ignition-complete.target, it only runs on first boot.
+[Unit]
+Description=Ignition Boot Disk Setup
+Before=initrd.target
+
+# Make sure if any ExecStart= fail, the boot fails. This normally would
+# already be guaranteed by `initrd.target` failing, but that doesn't seem to be
+# enough: https://bugzilla.redhat.com/show_bug.cgi?id=1696796
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+# Make sure we stop all the units before switching root
+Conflicts=initrd-switch-root.target umount.target
+Conflicts=dracut-emergency.service emergency.service emergency.target
