@@ -200,6 +200,10 @@ static result_t extract_part_info(blkid_partition part, struct partition_info *i
 
 	// label
 	ctmp = blkid_partition_get_name(part);
+	// If the GPT label is empty, then libblkid will return NULL instead of an empty string.
+	// There is no NULL value in GPT, so just reset to empty.
+	if (!ctmp)
+		ctmp = "";
 	err = checked_copy(info->label, ctmp, PART_INFO_BUF_SIZE);
 	if (err)
 		return err;
