@@ -66,7 +66,7 @@ func (stage) Name() string {
 func (s stage) Run(config types.Config) error {
 	fss := []types.Filesystem{}
 	for _, fs := range config.Storage.Filesystems {
-		if fs.Path != nil || *fs.Path != "" {
+		if fs.Path != nil && *fs.Path != "" {
 			fss = append(fss, fs)
 		}
 	}
