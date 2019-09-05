@@ -2,6 +2,7 @@
 Description=Mark boot complete
 Documentation=https://github.com/coreos/ignition
 ConditionKernelCommandLine=ignition.firstboot
+ConditionPathExists=!/run/ostree-live
 RequiresMountsFor=/boot
 
 [Service]
