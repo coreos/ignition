@@ -11,7 +11,7 @@ package.
 The easiest way to test it out is to pick up the latest
 Fedora CoreOS preview artifact from:
 
-http://artifacts.ci.centos.org/fedora-coreos/prod/builds/latest/
+https://getfedora.org/coreos/download/
 
 You can see an example of how to pass a config
 on qemu at least in coreos-assembler:
