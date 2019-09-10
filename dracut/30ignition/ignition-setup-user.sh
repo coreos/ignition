@@ -11,7 +11,7 @@ copy_file_if_exists() {
     fi
 }
 
-destination=/usr/lib/ignition/
+destination=/usr/lib/ignition
 mkdir -p $destination
 
 # We will support a user embedded config in the boot partition

@@ -11,7 +11,7 @@ copy_file_if_exists() {
     fi
 }
 
-destination=/usr/lib/ignition/
+destination=/usr/lib/ignition
 mkdir -p $destination
 
 # We will support grabbing a platform specific base.ign config
