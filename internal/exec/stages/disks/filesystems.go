@@ -37,7 +37,6 @@ var (
 // createFilesystems creates the filesystems described in config.Storage.Filesystems.
 func (s stage) createFilesystems(config types.Config) error {
 	fss := config.Storage.Filesystems
-	s.Logger.Info("fss: %v", fss)
 
 	if len(fss) == 0 {
 		return nil
