@@ -8,7 +8,7 @@ Ignition is currently only supported for the following platforms:
 * [VMware] - Use the VMware Guestinfo variables `ignition.config.data` and `ignition.config.data.encoding` to provide the config and its encoding to the virtual machine. Valid encodings are "", "base64", and "gzip+base64". Guestinfo variables can be provided directly or via an OVF environment, with priority given to variables specified directly.
 * [Google Compute Platform] - Ignition will read its configuration from the instance metadata entry named "user-data". SSH keys are handled by coreos-metadata.
 * [Packet] - Ignition will read its configuration from the instance userdata. SSH keys are handled by coreos-metadata.
-* [QEMU] - Ignition will read its configuration from the 'opt/com.coreos/config' key on the QEMU Firmware Configuration Device.
+* [QEMU] - Ignition will read its configuration from the 'opt/com.coreos/config' key on the QEMU Firmware Configuration Device (available in QEMU 2.4.0 and higher).
 * [DigitalOcean] - Ignition will read its configuration from the droplet userdata. SSH keys and network configuration are handled by coreos-metadata.
 
 Ignition is under active development so expect this list to expand in the coming months.
