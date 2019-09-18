@@ -27,7 +27,8 @@ cmdline_bool() {
 
 add_requires() {
     local name="$1"; shift
-    local requires_dir="${UNIT_DIR}/initrd.target.requires"
+    local target="$1"; shift
+    local requires_dir="${UNIT_DIR}/${target}.requires"
     mkdir -p "${requires_dir}"
     ln -sf "../${name}" "${requires_dir}/${name}"
 }
@@ -36,12 +37,21 @@ add_requires() {
 # starts the unit's dependencies. We want to start networking only on first
 # boot.
 if $(cmdline_bool 'ignition.firstboot' 0); then
-    add_requires ignition-complete.target
+    add_requires ignition-complete.target initrd.target
 
     # Invoke distro hook for detecting whether we're booted from a live image,
     # and therefore won't have a root disk.
     if ! command -v is-live-image >/dev/null || ! is-live-image; then
-        add_requires ignition-diskful.target
+        add_requires ignition-diskful.target ignition-complete.target
+
+        # ignition-setup-user.service should depend on the boot device node
+        # only on diskful boots
+        mkdir -p "${UNIT_DIR}/ignition-setup-user.service.d"
+        cat > "${UNIT_DIR}/ignition-setup-user.service.d/diskful.conf" <<EOF
+[Unit]
+Requires=dev-disk-by\x2dlabel-boot.device
+After=dev-disk-by\x2dlabel-boot.device
+EOF
     fi
 fi
 

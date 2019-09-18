@@ -7,8 +7,8 @@ Before=local-fs-pre.target
 Before=ignition-disks.service
 Before=ignition-files.service
 
-Requires=dev-disk-by\x2dlabel-boot.device
-After=dev-disk-by\x2dlabel-boot.device
+# On diskful boots, ignition-generator adds Requires/After on
+# dev-disk-by\x2dlabel-boot.device.
 
 [Service]
 Type=oneshot
