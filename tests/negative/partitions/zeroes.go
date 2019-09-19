@@ -29,8 +29,9 @@ func Partition9DoesNotFillDisk() types.Test {
 	name := "Partition 9 is size 0 but does not fill the disk"
 	in := types.GetBaseDisk()
 	in[0].Partitions = append(in[0].Partitions, &types.Partition{
-		Number: 10,
-		Length: 65536,
+		Number:   10,
+		Length:   65536,
+		TypeCode: "blank",
 	})
 	out := in
 	config := `{
@@ -66,8 +67,9 @@ func Partition9DoesNotStartCorrectly() types.Test {
 	//insert a gap before 9
 	tmp := in[0].Partitions[9-2-1]
 	in[0].Partitions[9-2-1] = &types.Partition{
-		Number: 10,
-		Length: 65536,
+		Number:   10,
+		Length:   65536,
+		TypeCode: "blank",
 	}
 	in[0].Partitions = append(in[0].Partitions, tmp)
 	out := in
