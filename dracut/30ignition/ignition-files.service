@@ -12,5 +12,6 @@ Before=initrd-parse-etc.service
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 EnvironmentFile=/run/ignition.env
 ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=files --log-to-stdout
