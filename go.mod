@@ -8,6 +8,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 	github.com/coreos/vcontext v0.0.0-20190529201340-22b159166068
 	github.com/godbus/dbus v0.0.0-20181025153459-66d97aec3384 // indirect
+	github.com/google/renameio v0.1.0
 	github.com/google/uuid v1.1.1
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/pin/tftp v2.1.0+incompatible
