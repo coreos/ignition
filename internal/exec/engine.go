@@ -39,6 +39,7 @@ import (
 
 	"github.com/coreos/vcontext/report"
 	"github.com/coreos/vcontext/validate"
+	"github.com/google/renameio"
 )
 
 const (
@@ -166,7 +167,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 		e.Logger.Crit("failed to marshal cached config: %v", err)
 		return
 	}
-	if err = ioutil.WriteFile(e.ConfigCache, b, 0640); err != nil {
+	if err = renameio.WriteFile(e.ConfigCache, b, 0640); err != nil {
 		e.Logger.Crit("failed to write cached config: %v", err)
 		return
 	}
