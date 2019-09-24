@@ -2,6 +2,7 @@
 Description=Generate new UUID for disk GPT %I
 DefaultDependencies=no
 Before=local-fs-pre.target systemd-fsck-root.service
+Before=ignition-diskful.target
 Wants=systemd-udevd.service
 After=systemd-udevd.service
 Requires=%i.device

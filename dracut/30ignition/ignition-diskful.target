@@ -3,7 +3,7 @@
 # Like ignition-complete.target, it only runs on first boot.
 [Unit]
 Description=Ignition Boot Disk Setup
-Before=initrd.target
+Before=ignition-complete.target
 
 # Make sure if any ExecStart= fail, the boot fails. This normally would
 # already be guaranteed by `initrd.target` failing, but that doesn't seem to be
