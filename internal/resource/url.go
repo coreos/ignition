@@ -150,7 +150,7 @@ func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
 
 // FetchFromTFTP fetches a resource from u via TFTP into dest, returning an
 // error if one is encountered.
-func (f *Fetcher) fetchFromTFTP(u url.URL, dest *os.File, opts FetchOptions) error {
+func (f *Fetcher) fetchFromTFTP(u url.URL, dest io.Writer, opts FetchOptions) error {
 	if !strings.ContainsRune(u.Host, ':') {
 		u.Host = u.Host + ":69"
 	}
@@ -212,7 +212,7 @@ func (f *Fetcher) fetchFromTFTP(u url.URL, dest *os.File, opts FetchOptions) err
 
 // FetchFromHTTP fetches a resource from u via HTTP(S) into dest, returning an
 // error if one is encountered.
-func (f *Fetcher) fetchFromHTTP(u url.URL, dest *os.File, opts FetchOptions) error {
+func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) error {
 	// for the case when "config is not valid"
 	// this if necessary if not spawned through kola (e.g. Packet Dashboard)
 	if f.client == nil {
@@ -248,7 +248,7 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest *os.File, opts FetchOptions) err
 
 // FetchFromDataURL writes the data stored in the dataurl u into dest, returning
 // an error if one is encountered.
-func (f *Fetcher) fetchFromDataURL(u url.URL, dest *os.File, opts FetchOptions) error {
+func (f *Fetcher) fetchFromDataURL(u url.URL, dest io.Writer, opts FetchOptions) error {
 	if opts.Compression != "" {
 		return ErrCompressionUnsupported
 	}
@@ -260,11 +260,16 @@ func (f *Fetcher) fetchFromDataURL(u url.URL, dest *os.File, opts FetchOptions) 
 	return f.decompressCopyHashAndVerify(dest, bytes.NewBuffer(url.Data), opts)
 }
 
+type s3target interface {
+	io.WriterAt
+	io.ReadSeeker
+}
+
 // FetchFromS3 gets data from an S3 bucket as described by u and writes it into
 // dest, returning an error if one is encountered. It will attempt to acquire
 // IAM credentials from the EC2 metadata service, and if this fails will attempt
 // to fetch the object with anonymous credentials.
-func (f *Fetcher) fetchFromS3(u url.URL, dest *os.File, opts FetchOptions) error {
+func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error {
 	if opts.Compression != "" {
 		return ErrCompressionUnsupported
 	}
@@ -337,7 +342,7 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest *os.File, opts FetchOptions) error
 	return nil
 }
 
-func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest *os.File, input *s3.GetObjectInput, sess *session.Session) error {
+func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest s3target, input *s3.GetObjectInput, sess *session.Session) error {
 	httpClient, err := defaultHTTPClient()
 	if err != nil {
 		return err
