@@ -81,6 +81,12 @@ func (s stage) umountFs(fs types.Filesystem) error {
 	if fs.Format != nil && *fs.Format == "swap" {
 		return nil
 	}
+
+	// This one is mounted by sysroot.mount in the initramfs already.
+	if *fs.Label == "root" {
+		return nil
+	}
+
 	path, err := s.JoinPath(*fs.Path)
 	if err != nil {
 		return err

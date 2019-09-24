@@ -102,6 +102,11 @@ func (s stage) mountFs(fs types.Filesystem) error {
 		return nil
 	}
 
+	// This one is mounted by sysroot.mount in the initramfs already.
+	if *fs.Label == "root" {
+		return nil
+	}
+
 	// mount paths shouldn't include symlinks or other non-directories so we can use filepath.Join()
 	// instead of s.JoinPath(). Check that the resulting path is composed of only directories.
 	path := filepath.Join(s.DestDir, *fs.Path)
