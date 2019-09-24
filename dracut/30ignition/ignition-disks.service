@@ -2,6 +2,7 @@
 Description=Ignition (disks)
 DefaultDependencies=false
 Before=ignition-complete.target
+After=ignition-fetch.service
 
 # This stage runs between `basic.target` and `initrd-root-fs.target`,
 # see https://www.freedesktop.org/software/systemd/man/bootup.html
@@ -9,17 +10,8 @@ Before=ignition-complete.target
 # Note that CL runs this before `local-fs-pre.target` to allow for configs that
 # completely wipe the rootfs. Though we're not there yet. But we still run
 # before `sysroot.mount` on principle.
-After=basic.target
 Before=initrd-root-fs.target
 Before=sysroot.mount
-
-# Run after ignition-setup has run because ignition-setup
-# may copy in new/different ignition configs for us to consume.
-After=ignition-setup-base.service
-After=ignition-setup-user.service
-
-# Network may be used to fetch userdata content.
-After=network.target
 
 # This stage requires udevd to detect disk partitioning changes.
 Requires=systemd-udevd.service
