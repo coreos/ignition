@@ -23,6 +23,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/exec"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/disks"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/fetch"
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/files"
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/mount"
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/umount"
