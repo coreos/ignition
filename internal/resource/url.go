@@ -100,25 +100,50 @@ type FetchOptions struct {
 // in the contents of the file and delete it. It will return the downloaded
 // contents, or an error if one was encountered.
 func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
-	file, err := ioutil.TempFile("", "ignition")
-	if err != nil {
-		return nil, err
+	var err error
+	dest := new(bytes.Buffer)
+	switch u.Scheme {
+	case "http", "https":
+		err = f.fetchFromHTTP(u, dest, opts)
+	case "tftp":
+		err = f.fetchFromTFTP(u, dest, opts)
+	case "data":
+		err = f.fetchFromDataURL(u, dest, opts)
+	case "s3":
+		buf := &s3buf{
+			WriteAtBuffer: aws.NewWriteAtBuffer([]byte{}),
+		}
+		err = f.fetchFromS3(u, buf, opts)
+		return buf.Bytes(), err
+	case "":
+		return nil, nil
+	default:
+		return nil, ErrSchemeUnsupported
 	}
-	defer os.Remove(file.Name())
-	defer file.Close()
-	err = f.Fetch(u, file, opts)
-	if err != nil {
-		return nil, err
+	return dest.Bytes(), err
+}
+
+// s3buf is a wrapper around the aws.WriteAtBuffer that also allows reading and seeking.
+// Read() and Seek() are only safe to call after the download call is made. This is only for
+// use with fetchFromS3* functions.
+type s3buf struct {
+	*aws.WriteAtBuffer
+	// only safe to call read/seek after finishing writing. Not safe for parallel use
+	reader io.ReadSeeker
+}
+
+func (s *s3buf) Read(p []byte) (int, error) {
+	if s.reader == nil {
+		s.reader = bytes.NewReader(s.Bytes())
 	}
-	_, err = file.Seek(0, os.SEEK_SET)
-	if err != nil {
-		return nil, err
+	return s.reader.Read(p)
+}
+
+func (s *s3buf) Seek(offset int64, whence int) (int64, error) {
+	if s.reader == nil {
+		s.reader = bytes.NewReader(s.Bytes())
 	}
-	res, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
+	return s.reader.Seek(offset, whence)
 }
 
 // Fetch calls the appropriate FetchFrom* function based on the scheme of the
