@@ -16,9 +16,28 @@ package files
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 )
+
+func (s *stage) expandGlobList(globs ...string) ([]string, error) {
+	ret := []string{}
+	for _, glob := range globs {
+		matches, err := filepath.Glob(filepath.Join(s.DestDir, glob))
+		if err != nil {
+			return nil, err
+		}
+		for _, match := range matches {
+			rel, err := filepath.Rel(s.DestDir, match)
+			if err != nil {
+				return nil, err
+			}
+			ret = append(ret, filepath.Join("/", rel))
+		}
+	}
+	return ret, nil
+}
 
 // createPasswd creates the users and groups as described in config.Passwd.
 func (s *stage) createPasswd(config types.Config) error {
@@ -33,13 +52,21 @@ func (s *stage) createPasswd(config types.Config) error {
 	// to be safe, just blanket mark all passwd-related files rather than
 	// trying to make it more granular based on which executables we ran
 	if len(config.Passwd.Groups) != 0 || len(config.Passwd.Users) != 0 {
-		s.relabel(
-			"/etc/passwd*",
+		// Expand the globs now so tools that do not do glob expansion can parse them.
+		// Do this before handling files/links/dirs so we don't accidently expand paths
+		// for those if the user specifies a path which includes globbing characters.
+		deglobbed, err := s.expandGlobList("/etc/passwd*",
 			"/etc/group*",
 			"/etc/shadow*",
 			"/etc/gshadow*",
 			"/etc/subuid*",
-			"/etc/subgid*",
+			"/etc/subgid*")
+		if err != nil {
+			return err
+		}
+
+		s.relabel(deglobbed...)
+		s.relabel(
 			"/etc/.pwd.lock",
 			"/home",
 			"/root",

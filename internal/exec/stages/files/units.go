@@ -50,12 +50,18 @@ func (s *stage) createUnits(config types.Config) error {
 			enabledOneUnit = true
 		}
 		if unit.Mask != nil && *unit.Mask {
+			relabelpath := ""
 			if err := s.Logger.LogOp(
-				func() error { return s.MaskUnit(unit) },
+				func() error {
+					var err error
+					relabelpath, err = s.MaskUnit(unit)
+					return err
+				},
 				"masking unit %q", unit.Name,
 			); err != nil {
 				return err
 			}
+			s.relabel(relabelpath)
 		}
 	}
 	// and relabel the preset file itself if we enabled/disabled something

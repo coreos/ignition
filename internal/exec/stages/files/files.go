@@ -17,7 +17,9 @@ package files
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
@@ -30,6 +32,9 @@ import (
 
 const (
 	name = "files"
+
+	// see https://github.com/systemd/systemd/commit/65e183d7899eb3725d3009196ac4decf1090b580
+	relabelExtraDir = "/run/systemd/relabel-extra.d"
 )
 
 var (
@@ -83,8 +88,16 @@ func (s stage) Run(config types.Config) error {
 	}
 
 	// add systemd unit to relabel files
-	if err := s.addRelabelUnit(config); err != nil {
+	if err := s.addRelabelUnit(); err != nil {
 		return fmt.Errorf("failed to add relabel unit: %v", err)
+	}
+
+	// Add a file in /run/systemd/relabel-extra.d/ with paths that need to be relabeled
+	// as early as possible (e.g. systemd units so systemd can read them while building its
+	// graph). These are relabeled very early (right after policy load) so it cannot relabel
+	// across mounts. Only relabel things in /etc here.
+	if err := s.addRelabelExtraFile(); err != nil {
+		return fmt.Errorf("failed to write systemd relabel file: %v", err)
 	}
 
 	return nil
@@ -130,8 +143,8 @@ func (s *stage) relabel(paths ...string) {
 
 // addRelabelUnit creates and enables a runtime systemd unit to run restorecon
 // if there are files that need to be relabeled.
-func (s *stage) addRelabelUnit(config types.Config) error {
-	if s.toRelabel == nil || len(s.toRelabel) == 0 {
+func (s *stage) addRelabelUnit() error {
+	if len(s.toRelabel) == 0 {
 		return nil
 	}
 	contents := `[Unit]
@@ -178,4 +191,28 @@ RemainAfterExit=yes`
 	// yes, apparently the final \0 is needed
 	_, err = f.WriteString(strings.Join(s.toRelabel, "\000") + "\000")
 	return err
+}
+
+// addRelabelExtraFile writes a file to /run/systemd/relabel-extra.d/ with a list of files
+// that should be relabeled immediately after policy load. In our case that's everything we
+// wrote under /etc. This ensures systemd can access the files when building it's graph.
+func (s stage) addRelabelExtraFile() error {
+	relabelFilePath := filepath.Join(relabelExtraDir, "ignition.relabel")
+	s.Logger.Info("adding relabel-extra.d/ file: %q", relabelFilePath)
+	defer s.Logger.Info("finished adding relabel file")
+
+	relabelFileContents := ""
+	for _, file := range s.toRelabel {
+		if strings.HasPrefix(file, "/etc") {
+			relabelFileContents += file + "\n"
+		}
+	}
+	if relabelFileContents == "" {
+		return nil
+	}
+	if err := os.MkdirAll(relabelExtraDir, 0755); err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(relabelFilePath, []byte(relabelFileContents), 0644)
 }
