@@ -60,6 +60,7 @@ install() {
 
     install_ignition_unit ignition-setup-base.service
     install_ignition_unit ignition-setup-user.service
+    install_ignition_unit ignition-fetch.service
     install_ignition_unit ignition-disks.service
     install_ignition_unit ignition-mount.service
     install_ignition_unit ignition-files.service
