@@ -26,7 +26,6 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/as_user"
 	"github.com/coreos/ignition/v2/internal/distro"
-	"github.com/coreos/ignition/v2/internal/log"
 )
 
 func appendIfTrue(args []string, test *bool, newargs string) []string {
@@ -111,18 +110,11 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 
 // CheckIfUserExists will return Info log when user is empty
 func (u Util) CheckIfUserExists(c types.PasswdUser) (bool, error) {
-	code := -1
-	cmd := exec.Command(distro.ChrootCmd(), u.DestDir, distro.IdCmd(), c.Name)
-	stdout, err := cmd.CombinedOutput()
+	_, err := u.userLookup(c.Name)
+	if _, ok := err.(user.UnknownUserError); ok {
+		return false, nil
+	}
 	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			code = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
-		}
-		if code == 1 {
-			u.Info("checking if user \"%s\" exists: %s", c.Name, fmt.Errorf("[Attention] %v: Cmd: %s Stdout: %s", err, log.QuotedCmd(cmd), stdout))
-			return false, nil
-		}
-		u.Logger.Info("error encountered (%T): %v", err, err)
 		return false, err
 	}
 	return true, nil

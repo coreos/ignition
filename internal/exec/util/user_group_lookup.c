@@ -62,8 +62,14 @@ static int user_lookup_fn(lookup_ctxt_t *ctxt) {
 		goto out_err;
 	}
 
-	if(getpwnam_r(ctxt->name, &p, buf, sizeof(buf), &pptr) != 0 || !pptr) {
+	if(getpwnam_r(ctxt->name, &p, buf, sizeof(buf), &pptr) != 0) {
 		goto out_err;
+	}
+
+	if (!pptr) {
+		// successfully found nothing
+		ctxt->res->name = NULL;
+		return 0;
 	}
 
 	if(!(ctxt->res->name = strdup(p.pw_name))) {
@@ -98,8 +104,14 @@ static int group_lookup_fn(lookup_ctxt_t *ctxt) {
 		goto out_err;
 	}
 
-	if(getgrnam_r(ctxt->name, &g, buf, sizeof(buf), &gptr) != 0 || !gptr) {
+	if(getgrnam_r(ctxt->name, &g, buf, sizeof(buf), &gptr) != 0) {
 		goto out_err;
+	}
+
+	if (!gptr) {
+		// successfully found nothing
+		ctxt->res->name = NULL;
+		return 0;
 	}
 
 	if(!(ctxt->res->name = strdup(g.gr_name))) {
