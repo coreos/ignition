@@ -232,10 +232,10 @@ func (f *Fetcher) newHttpClient() error {
 // provided request header and returns the response body Reader, HTTP status
 // code, a cancel function for the result's context, and error (if any). By
 // default, User-Agent is added to the header but this can be overridden.
-func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, context.CancelFunc, error) {
+func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, http.Header, context.CancelFunc, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, 0, nil, nil, err
 	}
 
 	req.Header.Set("User-Agent", "Ignition/"+version.Raw)
@@ -261,7 +261,7 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 		if err == nil {
 			c.logger.Info("GET result: %s", http.StatusText(resp.StatusCode))
 			if resp.StatusCode < 500 {
-				return resp.Body, resp.StatusCode, cancelFn, nil
+				return resp.Body, resp.StatusCode, resp.Header, cancelFn, nil
 			}
 			resp.Body.Close()
 		} else {
@@ -277,7 +277,7 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 		select {
 		case <-time.After(duration):
 		case <-ctx.Done():
-			return nil, 0, cancelFn, ErrTimeout
+			return nil, 0, nil, cancelFn, ErrTimeout
 		}
 	}
 }

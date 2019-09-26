@@ -83,6 +83,10 @@ type FetchOptions struct {
 	// resources. They have no effect on other fetching schemes.
 	Headers http.Header
 
+	// ResponseHeaders are where to save the headers from the response. Has no effect if nil
+	// or if not fetching over http(s)
+	ResponseHeaders *http.Header
+
 	// Hash is the hash to use when calculating a fetched resource's hash. If
 	// left as nil, no hash will be calculated.
 	Hash hash.Hash
@@ -248,7 +252,7 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 		}
 	}
 
-	dataReader, status, ctxCancel, err := f.client.getReaderWithHeader(u.String(), opts.Headers)
+	dataReader, status, header, ctxCancel, err := f.client.getReaderWithHeader(u.String(), opts.Headers)
 	if ctxCancel != nil {
 		// whatever context getReaderWithHeader created for the request should
 		// be cancelled once we're done reading the response
@@ -258,6 +262,9 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 		return err
 	}
 	defer dataReader.Close()
+	if opts.ResponseHeaders != nil {
+		*opts.ResponseHeaders = header
+	}
 
 	switch status {
 	case http.StatusOK, http.StatusNoContent:
