@@ -20,13 +20,20 @@
 package openstack
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"mime"
+	"mime/multipart"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -49,6 +56,8 @@ var (
 		Host:   "169.254.169.254",
 		Path:   "openstack/latest/user_data",
 	}
+	ErrNoBoundary      = errors.New("found multipart message but no boundary; could not parse")
+	ErrMultipleConfigs = errors.New("found multiple configs in multipart response")
 )
 
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
@@ -131,8 +140,47 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 }
 
 func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
+	var ResponseHeaders http.Header
 	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{
-		Headers: resource.ConfigHeaders,
+		Headers:         resource.ConfigHeaders,
+		ResponseHeaders: &ResponseHeaders,
 	})
-	return res, err
+	if err != nil {
+		return nil, err
+	}
+	// Openstack with Heat returns the Ignition config as a section of a multipart sequence.
+	// Detect if we got a multipart message, ensure that there is only one Ignition config,
+	// and extract it.
+	mediaType, params, err := mime.ParseMediaType(ResponseHeaders.Get("Content-Type"))
+	if err != nil || mediaType != "multipart/mixed" {
+		// either unset or not multipart/mixed, just return the blob
+		// we don't require proper Content-Type headers
+		return res, nil
+	}
+	boundary, ok := params["boundary"]
+	if !ok {
+		return nil, ErrNoBoundary
+	}
+	mpReader := multipart.NewReader(bytes.NewReader(res), boundary)
+	var ignConfig []byte
+	for {
+		part, err := mpReader.NextPart()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		partType := part.Header.Get("Content-Type")
+		if strings.HasPrefix(partType, "application/vnd.coreos.ignition+json") {
+			if ignConfig != nil {
+				// found more than one ignition config, die.
+				return nil, ErrMultipleConfigs
+			}
+			ignConfig, err = ioutil.ReadAll(part)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return ignConfig, nil
 }
