@@ -37,6 +37,7 @@ var (
 	mdadmCmd    = "mdadm"
 	mountCmd    = "mount"
 	sgdiskCmd   = "sgdisk"
+	modprobeCmd = "modprobe"
 	udevadmCmd  = "udevadm"
 	usermodCmd  = "usermod"
 	useraddCmd  = "useradd"
@@ -51,6 +52,11 @@ var (
 	swapMkfsCmd  = "mkswap"
 	vfatMkfsCmd  = "mkfs.vfat"
 	xfsMkfsCmd   = "mkfs.xfs"
+
+	//zVM programs
+	vmurCmd      = "vmur"
+	chccwdevCmd  = "chccwdev"
+	cioIgnoreCmd = "cio_ignore"
 
 	// Flags
 	selinuxRelabel  = "true"
@@ -73,6 +79,7 @@ func GroupaddCmd() string   { return groupaddCmd }
 func MdadmCmd() string      { return mdadmCmd }
 func MountCmd() string      { return mountCmd }
 func SgdiskCmd() string     { return sgdiskCmd }
+func ModprobeCmd() string   { return modprobeCmd }
 func UdevadmCmd() string    { return udevadmCmd }
 func UsermodCmd() string    { return usermodCmd }
 func UseraddCmd() string    { return useraddCmd }
@@ -83,6 +90,10 @@ func Ext4MkfsCmd() string  { return ext4MkfsCmd }
 func SwapMkfsCmd() string  { return swapMkfsCmd }
 func VfatMkfsCmd() string  { return vfatMkfsCmd }
 func XfsMkfsCmd() string   { return xfsMkfsCmd }
+
+func VmurCmd() string      { return vmurCmd }
+func ChccwdevCmd() string  { return chccwdevCmd }
+func CioIgnoreCmd() string { return cioIgnoreCmd }
 
 func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !BlackboxTesting() }
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }

@@ -32,6 +32,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/qemu"
 	"github.com/coreos/ignition/v2/internal/providers/virtualbox"
 	"github.com/coreos/ignition/v2/internal/providers/vmware"
+	"github.com/coreos/ignition/v2/internal/providers/zvm"
 	"github.com/coreos/ignition/v2/internal/registry"
 	"github.com/coreos/ignition/v2/internal/resource"
 )
@@ -131,6 +132,10 @@ func init() {
 	configs.Register(Config{
 		name:  "metal",
 		fetch: noop.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "zvm",
+		fetch: zvm.FetchConfig,
 	})
 }
 
