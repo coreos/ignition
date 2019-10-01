@@ -4,13 +4,16 @@ DefaultDependencies=false
 Before=ignition-complete.target
 After=ignition-fetch.service
 
-# This stage runs between `basic.target` and `initrd-root-fs.target`,
+# This stage runs between `basic.target` and `initrd-root-device.target`,
 # see https://www.freedesktop.org/software/systemd/man/bootup.html
+# Make sure to run before the file system checks, as sgdisk will trigger
+# udev events, potentially resulting in race conditions due to disappearing
+# devices.
 
 # Note that CL runs this before `local-fs-pre.target` to allow for configs that
 # completely wipe the rootfs. Though we're not there yet. But we still run
 # before `sysroot.mount` on principle.
-Before=initrd-root-fs.target
+Before=initrd-root-device.target
 Before=sysroot.mount
 
 # This stage requires udevd to detect disk partitioning changes.
