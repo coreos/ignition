@@ -24,7 +24,7 @@ import (
 func (f File) Validate(c path.ContextPath) (r report.Report) {
 	r.Merge(f.Node.Validate(c))
 	r.AddOnError(c.Append("mode"), validateMode(f.Mode))
-	if f.Mode == nil {
+	if f.Mode == nil && f.Contents.Source != nil {
 		r.AddOnWarn(c.Append("mode"), errors.ErrFilePermissionsUnset)
 	}
 	r.AddOnError(c.Append("overwrite"), f.validateOverwrite())
