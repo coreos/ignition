@@ -14,7 +14,7 @@ for each release artifact. Do not try to sign all of them at once by globbing. I
 
  - [ ] Create a draft release on Github and upload all the release artifacts and their signatures. Copy and paste the release notes from NEWS here as well.
  - [ ] Publish the release
- - [ ] Vendor the new Ignition version in [mantle](https://github.com/coreos/mantle)
+ - [ ] Vendor the new Ignition version in [mantle](https://github.com/coreos/mantle) (backporting to the `cl` branch if a new 0.x.y release is being cut)
 
 For 0.x.y releases:
  - [ ] [Sync the docs](https://jenkins-container-linux.apps.ci.centos.org/job/os/job/sync-docs/build) using `ignition` for `PROJECT` and the version `X.Y.Z` (not `vX.Y.Z`) for `RELEASE`.
