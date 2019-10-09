@@ -19,6 +19,7 @@ import (
 
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/providers"
+	"github.com/coreos/ignition/v2/internal/providers/aliyun"
 	"github.com/coreos/ignition/v2/internal/providers/aws"
 	"github.com/coreos/ignition/v2/internal/providers/azure"
 	"github.com/coreos/ignition/v2/internal/providers/cloudstack"
@@ -73,6 +74,10 @@ func (c Config) Status(stageName string, f resource.Fetcher, statusErr error) er
 var configs = registry.Create("platform configs")
 
 func init() {
+	configs.Register(Config{
+		name:  "aliyun",
+		fetch: aliyun.FetchConfig,
+	})
 	configs.Register(Config{
 		name:  "azure",
 		fetch: azure.FetchConfig,
