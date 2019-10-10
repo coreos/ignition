@@ -18,7 +18,13 @@ RemainAfterExit=yes
 # detected this file. Fail if we are unable to remove it, rather than risking
 # rerunning Ignition at next boot.
 MountFlags=slave
-ExecStart=/bin/sh -c 'mount -o remount,rw /boot && rm /boot/ignition.firstboot'
+# It is better to have a separate script to do this but it might be polluting
+# the target system with some script in i.e. /usr/sbin/firstboot-complete
+# The retval code is still respected with having this if-else block.
+ExecStart=/bin/sh -c \
+	'mount -o remount,rw /boot && \
+	if [[ $(uname -m) = s390x ]]; then zipl; fi && \
+	rm /boot/ignition.firstboot'
 
 [Install]
 # Part of basic.target so this happens early on in firstboot
