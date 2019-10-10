@@ -26,8 +26,21 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/as_user"
 	"github.com/coreos/ignition/v2/internal/distro"
-	"github.com/coreos/ignition/v2/internal/log"
 )
+
+func appendIfTrue(args []string, test *bool, newargs string) []string {
+	if test != nil && *test {
+		return append(args, newargs)
+	}
+	return args
+}
+
+func appendIfStringSet(args []string, arg string, str *string) []string {
+	if str != nil && *str != "" {
+		return append(args, arg, *str)
+	}
+	return args
+}
 
 // EnsureUser ensures that the user exists as described. If the user does not
 // yet exist, they will be created, otherwise the existing user will be
@@ -49,9 +62,7 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 	} else {
 		cmd = distro.UseraddCmd()
 
-		if c.HomeDir != nil && *c.HomeDir != "" {
-			args = append(args, "--home-dir", *c.HomeDir)
-		}
+		args = appendIfStringSet(args, "--home-dir", c.HomeDir)
 
 		if c.NoCreateHome != nil && *c.NoCreateHome {
 			args = append(args, "--no-create-home")
@@ -59,17 +70,9 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 			args = append(args, "--create-home")
 		}
 
-		if c.NoUserGroup != nil && *c.NoUserGroup {
-			args = append(args, "--no-user-group")
-		}
-
-		if c.System != nil && *c.System {
-			args = append(args, "--system")
-		}
-
-		if c.NoLogInit != nil && *c.NoLogInit {
-			args = append(args, "--no-log-init")
-		}
+		args = appendIfTrue(args, c.NoUserGroup, "--no-user-group")
+		args = appendIfTrue(args, c.System, "--system")
+		args = appendIfTrue(args, c.NoLogInit, "--no-log-init")
 	}
 
 	if c.PasswordHash != nil {
@@ -89,21 +92,14 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 			strconv.FormatUint(uint64(*c.UID), 10))
 	}
 
-	if c.Gecos != nil && *c.Gecos != "" {
-		args = append(args, "--comment", *c.Gecos)
-	}
-
-	if c.PrimaryGroup != nil && *c.PrimaryGroup != "" {
-		args = append(args, "--gid", *c.PrimaryGroup)
-	}
+	args = appendIfStringSet(args, "--comment", c.Gecos)
+	args = appendIfStringSet(args, "--gid", c.PrimaryGroup)
 
 	if len(c.Groups) > 0 {
 		args = append(args, "--groups", strings.Join(translateV2_1PasswdUserGroupSliceToStringSlice(c.Groups), ","))
 	}
 
-	if c.Shell != nil && *c.Shell != "" {
-		args = append(args, "--shell", *c.Shell)
-	}
+	args = appendIfStringSet(args, "--shell", c.Shell)
 
 	args = append(args, c.Name)
 
@@ -114,18 +110,11 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 
 // CheckIfUserExists will return Info log when user is empty
 func (u Util) CheckIfUserExists(c types.PasswdUser) (bool, error) {
-	code := -1
-	cmd := exec.Command(distro.ChrootCmd(), u.DestDir, distro.IdCmd(), c.Name)
-	stdout, err := cmd.CombinedOutput()
+	_, err := u.userLookup(c.Name)
+	if _, ok := err.(user.UnknownUserError); ok {
+		return false, nil
+	}
 	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			code = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
-		}
-		if code == 1 {
-			u.Info("checking if user \"%s\" exists: %s", c.Name, fmt.Errorf("[Attention] %v: Cmd: %s Stdout: %s", err, log.QuotedCmd(cmd), stdout))
-			return false, nil
-		}
-		u.Logger.Info("error encountered (%T): %v", err, err)
 		return false, err
 	}
 	return true, nil
@@ -240,9 +229,7 @@ func (u Util) CreateGroup(g types.PasswdGroup) error {
 		args = append(args, "--password", "*")
 	}
 
-	if g.System != nil && *g.System {
-		args = append(args, "--system")
-	}
+	args = appendIfTrue(args, g.System, "--system")
 
 	args = append(args, g.Name)
 

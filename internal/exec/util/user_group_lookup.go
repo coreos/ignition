@@ -37,7 +37,7 @@ func (u Util) userLookup(name string) (*user.User, error) {
 	}
 
 	if res.name == nil {
-		return nil, fmt.Errorf("user %q not found", name)
+		return nil, user.UnknownUserError(fmt.Sprintf("user %q not found", name))
 	}
 
 	homedir, err := u.JoinPath(C.GoString(res.home))
@@ -67,7 +67,7 @@ func (u Util) groupLookup(name string) (*user.Group, error) {
 	}
 
 	if res.name == nil {
-		return nil, fmt.Errorf("user %q not found", name)
+		return nil, user.UnknownGroupError(fmt.Sprintf("group %q not found", name))
 	}
 
 	grp := &user.Group{

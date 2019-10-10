@@ -33,9 +33,7 @@ var (
 	systemConfigDir = "/usr/lib/ignition"
 
 	// Helper programs
-	chrootCmd   = "chroot"
 	groupaddCmd = "groupadd"
-	idCmd       = "id"
 	mdadmCmd    = "mdadm"
 	mountCmd    = "mount"
 	sgdiskCmd   = "sgdisk"
@@ -71,9 +69,7 @@ func DiskByPartUUIDDir() string { return diskByPartUUIDDir }
 func KernelCmdlinePath() string { return kernelCmdlinePath }
 func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
 
-func ChrootCmd() string     { return chrootCmd }
 func GroupaddCmd() string   { return groupaddCmd }
-func IdCmd() string         { return idCmd }
 func MdadmCmd() string      { return mdadmCmd }
 func MountCmd() string      { return mountCmd }
 func SgdiskCmd() string     { return sgdiskCmd }
