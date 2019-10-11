@@ -37,6 +37,10 @@ install() {
     # This one is optional; https://src.fedoraproject.org/rpms/ignition/pull-request/9
     inst_multiple -o mkfs.btrfs
 
+    # Required by s390x's z/VM installation.
+    # Supporting https://github.com/coreos/ignition/pull/865
+    inst_multiple -o chccwdev vmur
+
     inst_script "$moddir/coreos-gpt-setup.sh" \
         "/usr/sbin/coreos-gpt-setup"
 
