@@ -55,6 +55,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_label_** (string): the label of the filesystem.
     * **_uuid_** (string): the uuid of the filesystem.
     * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
+    * **_mountOptions_** (list of strings): any special options to be passed to the mount command.
   * **_files_** (list of objects): the list of files to be written. Every file, directory and link must have a unique `path`.
     * **path** (string): the absolute path to the file.
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. `source` must be specified if `overwrite` is true. Defaults to false.
