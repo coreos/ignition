@@ -21,11 +21,13 @@ package disks
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
-	"syscall"
+	"strings"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -117,10 +119,20 @@ func (s stage) mountFs(fs types.Filesystem) error {
 		return err
 	}
 
-	if err := s.Logger.LogOp(func() error { return syscall.Mount(fs.Device, path, *fs.Format, 0, "") },
-		"mounting %q at %q with type %q", fs.Device, path, *fs.Format,
+	args := translateOptionSliceToString(fs.MountOptions, ",")
+	cmd := exec.Command(distro.MountCmd(), "-o", args, "-t", *fs.Format, fs.Device, path)
+	if _, err := s.Logger.LogCmd(cmd,
+		"mounting %q at %q with type %q and options %q", fs.Device, path, *fs.Format, args,
 	); err != nil {
 		return err
 	}
 	return nil
+}
+
+func translateOptionSliceToString(opts []types.MountOption, separator string) string {
+	mountOpts := make([]string, len(opts))
+	for i, o := range opts {
+		mountOpts[i] = string(o)
+	}
+	return strings.Join(mountOpts, separator)
 }

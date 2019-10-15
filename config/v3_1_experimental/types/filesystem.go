@@ -28,7 +28,8 @@ func (f Filesystem) Key() string {
 
 func (f Filesystem) IgnoreDuplicates() map[string]struct{} {
 	return map[string]struct{}{
-		"Options": {},
+		"Options":      {},
+		"MountOptions": {},
 	}
 }
 
