@@ -80,13 +80,8 @@ func prepareRootPartitionForPasswd(ctx context.Context, root *types.Partition) e
 	}
 
 	// TODO: use the architecture, not hardcode amd64
-	// copy to mountPath/usr/bin/id as it's used by Ignition via a chroot to the mountPath
-	_, err := run(ctx, "cp", "bin/amd64/id-stub", filepath.Join(mountPath, "usr", "bin", "id"))
-	if err != nil {
-		return err
-	}
 	// TODO: needed for user_group_lookup.c
-	_, err = run(ctx, "cp", "/lib64/libnss_files.so.2", filepath.Join(mountPath, "usr", "lib64"))
+	_, err := run(ctx, "cp", "/lib64/libnss_files.so.2", filepath.Join(mountPath, "usr", "lib64"))
 	return err
 }
 

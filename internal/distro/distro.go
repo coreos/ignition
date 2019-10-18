@@ -53,7 +53,7 @@ var (
 	xfsMkfsCmd   = "mkfs.xfs"
 
 	// Flags
-	selinuxRelabel  = "false"
+	selinuxRelabel  = "true"
 	blackboxTesting = "false"
 	// writeAuthorizedKeysFragment indicates whether to write SSH keys
 	// specified in the Ignition config as a fragment to
@@ -84,7 +84,7 @@ func SwapMkfsCmd() string  { return swapMkfsCmd }
 func VfatMkfsCmd() string  { return vfatMkfsCmd }
 func XfsMkfsCmd() string   { return xfsMkfsCmd }
 
-func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) }
+func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !BlackboxTesting() }
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
 func WriteAuthorizedKeysFragment() bool {
 	return bakedStringToBool(fromEnv("WRITE_AUTHORIZED_KEYS_FRAGMENT", writeAuthorizedKeysFragment))
