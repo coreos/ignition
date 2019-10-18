@@ -32,11 +32,23 @@ import (
 	"github.com/coreos/ignition/v2/internal/version"
 )
 
+type flagStringArray []string
+
+func (_ *flagStringArray) String() string {
+	return ""
+}
+
+func (a *flagStringArray) Set(value string) error {
+	*a = append(*a, value)
+	return nil
+}
+
 func main() {
 	flags := struct {
 		clearCache   bool
 		configCache  string
 		fetchTimeout time.Duration
+		fetchHeaders flagStringArray
 		platform     platform.Name
 		root         string
 		stage        stages.Name
@@ -47,6 +59,7 @@ func main() {
 	flag.BoolVar(&flags.clearCache, "clear-cache", false, "clear any cached config")
 	flag.StringVar(&flags.configCache, "config-cache", "/run/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.fetchTimeout, "fetch-timeout", exec.DefaultFetchTimeout, "initial duration for which to wait for config")
+	flag.Var(&flags.fetchHeaders, "fetch-header", "Include HTTP header for fetches")
 	flag.Var(&flags.platform, "platform", fmt.Sprintf("current platform. %v", platform.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
@@ -91,6 +104,7 @@ func main() {
 	engine := exec.Engine{
 		Root:           flags.root,
 		FetchTimeout:   flags.fetchTimeout,
+		FetchHeaders:   flags.fetchHeaders,
 		Logger:         &logger,
 		ConfigCache:    flags.configCache,
 		PlatformConfig: platformConfig,
