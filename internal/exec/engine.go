@@ -272,9 +272,7 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 	if err != nil {
 		return types.Config{}, err
 	}
-	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{
-		Headers: resource.ConfigHeaders,
-	})
+	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{})
 	if err != nil {
 		return types.Config{}, err
 	}

@@ -52,7 +52,7 @@ var (
 
 	// ConfigHeaders are the HTTP headers that should be used when the Ignition
 	// config is being fetched
-	ConfigHeaders = http.Header{
+	configHeaders = http.Header{
 		"Accept-Encoding": []string{"identity"},
 		"Accept":          []string{"application/vnd.coreos.ignition+json;version=3.0.0, */*;q=0.1"},
 	}
@@ -248,7 +248,21 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 		}
 	}
 
-	dataReader, status, ctxCancel, err := f.client.getReaderWithHeader(u.String(), opts.Headers)
+	// TODO use .Clone() when we have a new enough golang
+	// (With Rust, we'd have immutability and wouldn't need to defensively clone)
+	headers := make(http.Header)
+	for k, va := range opts.Headers {
+		for _, v := range va {
+			headers.Add(k, v)
+		}
+	}
+	for k, va := range configHeaders {
+		for _, v := range va {
+			headers.Add(k, v)
+		}
+	}
+
+	dataReader, status, ctxCancel, err := f.client.getReaderWithHeader(u.String(), headers)
 	if ctxCancel != nil {
 		// whatever context getReaderWithHeader created for the request should
 		// be cancelled once we're done reading the response

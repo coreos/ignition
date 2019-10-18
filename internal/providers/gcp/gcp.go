@@ -18,6 +18,7 @@
 package gcp
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
@@ -38,7 +39,7 @@ var (
 )
 
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	headers := resource.ConfigHeaders
+	headers := make(http.Header)
 	headers.Set(metadataHeaderKey, metadataHeaderVal)
 	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{
 		Headers: headers,

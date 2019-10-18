@@ -204,8 +204,6 @@ func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 		Path:   "/latest/user-data",
 	}
 
-	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{
-		Headers: resource.ConfigHeaders,
-	})
+	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{})
 	return res, err
 }
