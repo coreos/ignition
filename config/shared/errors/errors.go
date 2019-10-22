@@ -68,6 +68,8 @@ var (
 	ErrZeroesWithShouldNotExist  = errors.New("shouldExist is false for a partition and other partition(s) has start or size 0")
 	ErrNeedLabelOrNumber         = errors.New("a partition number >= 1 or a label must be specified")
 	ErrDuplicateLabels           = errors.New("cannot use the same partition label twice")
+	ErrInvalidProxy              = errors.New("proxies must be http(s)")
+	ErrInsecureProxy             = errors.New("insecure plaintext HTTP proxy specified for HTTPS resources")
 
 	// Systemd section errors
 	ErrInvalidSystemdExt       = errors.New("invalid systemd unit extension")
