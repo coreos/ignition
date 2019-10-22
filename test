@@ -57,7 +57,11 @@ echo "Checking govet..."
 go vet $PKG_VET
 
 echo "Running tests..."
-go test -timeout 60s -cover $@ ${PKG} --race
+if [ "$GOARCH" == amd64 ]; then
+	go test -timeout 60s -cover $@ ${PKG} --race
+else
+	go test -timeout 60s -cover $@ ${PKG}
+fi
 
 # Disable this until we have spec 3.0.0 stablized and the docs updated
 echo "Checking docs..."
