@@ -21,4 +21,5 @@ MountFlags=slave
 ExecStart=/bin/sh -c 'mount -o remount,rw /boot && rm /boot/ignition.firstboot'
 
 [Install]
-WantedBy=multi-user.target
+# Part of basic.target so this happens early on in firstboot
+WantedBy=basic.target
