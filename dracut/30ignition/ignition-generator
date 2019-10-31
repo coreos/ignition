@@ -53,6 +53,12 @@ Requires=dev-disk-by\x2dlabel-boot.device
 After=dev-disk-by\x2dlabel-boot.device
 EOF
     fi
+else
+    # If we're doing a non-Ignition (subsequent) boot, then
+    # queue a different target.  This is necessary so that units
+    # like `ignition-ostree-mount-sysroot.service`
+    # can cleanly distinguish between the two.
+    add_requires ignition-subsequent.target initrd.target
 fi
 
 echo "PLATFORM_ID=$(cmdline_arg ignition.platform.id)" > /run/ignition.env

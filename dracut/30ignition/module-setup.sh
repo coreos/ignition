@@ -54,6 +54,8 @@ install() {
 
     inst_simple "$moddir/ignition-complete.target" \
         "$systemdsystemunitdir/ignition-complete.target"
+    inst_simple "$moddir/ignition-subsequent.target" \
+        "$systemdsystemunitdir/ignition-subsequent.target"
 
     inst_simple "$moddir/ignition-diskful.target" \
         "$systemdsystemunitdir/ignition-diskful.target"
