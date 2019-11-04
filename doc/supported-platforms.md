@@ -10,6 +10,7 @@ Ignition is currently only supported for the following platforms:
 * [Packet] - Ignition will read its configuration from the instance userdata. SSH keys are handled by coreos-metadata.
 * [QEMU] - Ignition will read its configuration from the 'opt/com.coreos/config' key on the QEMU Firmware Configuration Device (available in QEMU 2.4.0 and higher).
 * [DigitalOcean] - Ignition will read its configuration from the droplet userdata. SSH keys and network configuration are handled by coreos-metadata.
+* [zVM] - Ignition will read its configuration from the reader device directly. The vmur program is necessary, which requires the vmcp and vmur kernel module as prerequisite, and the corresponding z/VM virtual unit record devices (in most cases 000c as reader, 000d as punch) must be set online.
 
 Ignition is under active development so expect this list to expand in the coming months.
 
