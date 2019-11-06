@@ -62,6 +62,7 @@ type Filesystem struct {
 	Device         string             `json:"device"`
 	Format         *string            `json:"format,omitempty"`
 	Label          *string            `json:"label,omitempty"`
+	MountOptions   []MountOption      `json:"mountOptions,omitempty"`
 	Options        []FilesystemOption `json:"options,omitempty"`
 	Path           *string            `json:"path,omitempty"`
 	UUID           *string            `json:"uuid,omitempty"`
@@ -94,6 +95,8 @@ type LinkEmbedded1 struct {
 	Hard   *bool  `json:"hard,omitempty"`
 	Target string `json:"target"`
 }
+
+type MountOption string
 
 type NoProxyItem string
 

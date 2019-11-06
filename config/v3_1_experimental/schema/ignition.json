@@ -244,6 +244,12 @@
                 "type": "string"
               }
             },
+            "mountOptions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
             "wipeFilesystem": {
               "type": ["boolean", "null"]
             },

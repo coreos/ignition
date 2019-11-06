@@ -20,6 +20,19 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 )
 
+func translateFilesystem(old old_types.Filesystem) (ret types.Filesystem) {
+	// use a new translator so we don't recurse infintitely
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Device, &ret.Device)
+	tr.Translate(&old.Format, &ret.Format)
+	tr.Translate(&old.Label, &ret.Label)
+	tr.Translate(&old.Options, &ret.Options)
+	tr.Translate(&old.Path, &ret.Path)
+	tr.Translate(&old.UUID, &ret.UUID)
+	tr.Translate(&old.WipeFilesystem, &ret.WipeFilesystem)
+	return
+}
+
 func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	// use a new translator so we don't recurse infintitely
 	tr := translate.NewTranslator()
@@ -33,6 +46,7 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
+	tr.AddCustomTranslator(translateFilesystem)
 	tr.Translate(&old, &ret)
 	return
 }
