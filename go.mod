@@ -18,6 +18,7 @@ require (
 	github.com/vmware/vmw-guestinfo v0.0.0-20170707015358-25eff159a728
 	github.com/vmware/vmw-ovflib v0.0.0-20170608004843-1f217b9dc714
 	golang.org/x/net v0.0.0-20190228165749-92fc7df08ae7
+	golang.org/x/sys v0.0.0-20191110163157-d32e6e3b99c4
 	golang.org/x/text v0.3.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
