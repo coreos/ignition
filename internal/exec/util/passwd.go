@@ -21,11 +21,11 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/as_user"
 	"github.com/coreos/ignition/v2/internal/distro"
+	"golang.org/x/sys/unix"
 )
 
 func appendIfTrue(args []string, test *bool, newargs string) []string {
@@ -136,7 +136,7 @@ func writeAuthKeysFile(u *user.User, fp string, keys []byte) error {
 		return err
 	}
 
-	f, err := as_user.OpenFile(u, fp, syscall.O_WRONLY|syscall.O_CREAT|syscall.O_TRUNC, 0600)
+	f, err := as_user.OpenFile(u, fp, unix.O_WRONLY|unix.O_CREAT|unix.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}

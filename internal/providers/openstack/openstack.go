@@ -27,7 +27,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"syscall"
 	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
@@ -37,6 +36,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/resource"
 
 	"github.com/coreos/vcontext/report"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -119,7 +119,7 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 		return nil, err
 	}
 	defer logger.LogOp(
-		func() error { return syscall.Unmount(mnt, 0) },
+		func() error { return unix.Unmount(mnt, 0) },
 		"unmounting %q at %q", path, mnt,
 	)
 

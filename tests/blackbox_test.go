@@ -23,7 +23,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -37,6 +36,7 @@ import (
 
 	// UUID generation tool
 	"github.com/google/uuid"
+	"golang.org/x/sys/unix"
 )
 
 var (
@@ -52,14 +52,14 @@ var (
 
 func TestMain(m *testing.M) {
 	interruptChan := make(chan os.Signal, 3)
-	signal.Notify(interruptChan, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(interruptChan, os.Interrupt, unix.SIGTERM)
 	tmp, killCancel := context.WithCancel(context.Background())
 	killContext = tmp
 	go func() {
 		for {
 			sig := <-interruptChan
 			switch sig {
-			case os.Interrupt, syscall.SIGTERM:
+			case os.Interrupt, unix.SIGTERM:
 				killCancel()
 			}
 		}

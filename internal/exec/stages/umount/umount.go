@@ -20,13 +20,14 @@ package disks
 
 import (
 	"sort"
-	"syscall"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/resource"
+
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -86,7 +87,7 @@ func (s stage) umountFs(fs types.Filesystem) error {
 		return err
 	}
 
-	if err := s.Logger.LogOp(func() error { return syscall.Unmount(path, 0) },
+	if err := s.Logger.LogOp(func() error { return unix.Unmount(path, 0) },
 		"umounting %q", path,
 	); err != nil {
 		return err

@@ -24,12 +24,13 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"syscall"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/resource"
 	"github.com/coreos/ignition/v2/internal/util"
+
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -245,11 +246,11 @@ func MkdirForFile(path string) error {
 // file doesn't exist, or some other error is encountered when running stat on
 // the path, 0, 0, and 0 will be returned.
 func getFileOwnerAndMode(path string) (int, int, os.FileMode) {
-	finfo, err := os.Stat(path)
-	if err != nil {
+	info := unix.Stat_t{}
+	if err := unix.Stat(path, &info); err != nil {
 		return 0, 0, 0
 	}
-	return int(finfo.Sys().(*syscall.Stat_t).Uid), int(finfo.Sys().(*syscall.Stat_t).Gid), finfo.Mode()
+	return int(info.Uid), int(info.Gid), os.FileMode(info.Mode)
 }
 
 // ResolveNodeUidAndGid attempts to convert a types.Node into a concrete uid and

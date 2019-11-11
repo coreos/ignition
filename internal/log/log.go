@@ -20,7 +20,8 @@ import (
 	"log/syslog"
 	"os/exec"
 	"strings"
-	"syscall"
+
+	"golang.org/x/sys/unix"
 )
 
 type LoggerOps interface {
@@ -149,7 +150,7 @@ func (l *Logger) LogCmd(cmd *exec.Cmd, format string, a ...interface{}) (int, er
 		cmd.Stderr = stderr
 		if err := cmd.Run(); err != nil {
 			if exitErr, ok := err.(*exec.ExitError); ok {
-				code = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
+				code = exitErr.Sys().(unix.WaitStatus).ExitStatus()
 			}
 			return fmt.Errorf("%v: Cmd: %s Stdout: %q Stderr: %q", err, cmdLine, stdout.Bytes(), stderr.Bytes())
 		}
