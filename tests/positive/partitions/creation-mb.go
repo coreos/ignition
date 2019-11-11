@@ -299,7 +299,7 @@ func ResizeRootMiB() types.Test {
 	name := "partition.resizeroot"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	out[0].Partitions[9-2-1].Length = 12943360 + 65536
+	out[0].Partitions[9-6-1].Length = 12943360 + 65536
 	config := `{
 		"ignition": {
 			"version": "$version"

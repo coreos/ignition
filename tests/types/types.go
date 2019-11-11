@@ -179,49 +179,6 @@ func GetBaseDisk() []Disk {
 					Length:         262144,
 					FilesystemType: "vfat",
 					Hybrid:         true,
-					Files: []File{
-						{
-							Node: Node{
-								Name:      "multiLine",
-								Directory: "path/example",
-							},
-							Contents: "line 1\nline 2",
-						}, {
-							Node: Node{
-								Name:      "singleLine",
-								Directory: "another/path/example",
-							},
-							Contents: "single line",
-						}, {
-							Node: Node{
-								Name:      "emptyFile",
-								Directory: "empty",
-							},
-						}, {
-							Node: Node{
-								Name:      "noPath",
-								Directory: "",
-							},
-						},
-					},
-				}, {
-					Number:   2,
-					Label:    "BIOS-BOOT",
-					TypeCode: "bios",
-					Length:   4096,
-				}, {
-					Number:         3,
-					Label:          "USR-A",
-					GUID:           "7130c94a-213a-4e5a-8e26-6cce9662f132",
-					TypeCode:       "coreos-rootfs",
-					Length:         2097152,
-					FilesystemType: "ext2",
-				}, {
-					Number:   4,
-					Label:    "USR-B",
-					GUID:     "e03dd35c-7c2d-4a47-b3fe-27f15780a57c",
-					TypeCode: "coreos-rootfs",
-					Length:   2097152,
 				}, {
 					Number:         6,
 					Label:          "OEM",
@@ -229,15 +186,10 @@ func GetBaseDisk() []Disk {
 					Length:         262144,
 					FilesystemType: "ext4",
 				}, {
-					Number:   7,
-					Label:    "OEM-CONFIG",
-					TypeCode: "coreos-reserved",
-					Length:   131072,
-				}, {
 					Number:         9,
 					Label:          "ROOT",
 					TypeCode:       "coreos-resize",
-					Length:         12943360,
+					Length:         262144,
 					FilesystemType: "ext4",
 				},
 			},
