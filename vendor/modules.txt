@@ -78,6 +78,8 @@ github.com/vmware/vmw-ovflib
 # golang.org/x/net v0.0.0-20190228165749-92fc7df08ae7
 golang.org/x/net/http/httpproxy
 golang.org/x/net/idna
+# golang.org/x/sys v0.0.0-20191110163157-d32e6e3b99c4
+golang.org/x/sys/unix
 # golang.org/x/text v0.3.0
 golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi

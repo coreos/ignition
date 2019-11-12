@@ -21,7 +21,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"syscall"
 	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
@@ -31,6 +30,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/resource"
 
 	"github.com/coreos/vcontext/report"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -67,13 +67,13 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 
 	logger.Debug("mounting config device")
 	if err := logger.LogOp(
-		func() error { return syscall.Mount(devicePath, mnt, "udf", syscall.MS_RDONLY, "") },
+		func() error { return unix.Mount(devicePath, mnt, "udf", unix.MS_RDONLY, "") },
 		"mounting %q at %q", devicePath, mnt,
 	); err != nil {
 		return types.Config{}, report.Report{}, fmt.Errorf("failed to mount device %q at %q: %v", devicePath, mnt, err)
 	}
 	defer logger.LogOp(
-		func() error { return syscall.Unmount(mnt, 0) },
+		func() error { return unix.Unmount(mnt, 0) },
 		"unmounting %q at %q", devicePath, mnt,
 	)
 
@@ -102,8 +102,8 @@ func isCdromPresent(logger *log.Logger, devicePath string) bool {
 	defer device.Close()
 
 	logger.Debug("getting drive status")
-	status, _, errno := syscall.Syscall(
-		syscall.SYS_IOCTL,
+	status, _, errno := unix.Syscall(
+		unix.SYS_IOCTL,
 		uintptr(device.Fd()),
 		uintptr(CDROM_DRIVE_STATUS),
 		uintptr(0),

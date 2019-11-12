@@ -24,11 +24,12 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"syscall"
 	"testing"
 
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/tests/types"
+
+	"golang.org/x/sys/unix"
 )
 
 func regexpSearch(itemName, pattern string, data []byte) (string, error) {
@@ -213,8 +214,8 @@ func validateFilesDirectoriesAndLinks(t *testing.T, ctx context.Context, expecte
 
 func validateFile(t *testing.T, partition *types.Partition, file types.File) {
 	path := filepath.Join(partition.MountPath, file.Node.Directory, file.Node.Name)
-	fileInfo, err := os.Lstat(path)
-	if err != nil {
+	fileInfo := unix.Stat_t{}
+	if err := unix.Lstat(path, &fileInfo); err != nil {
 		t.Errorf("Error stat'ing file %s: %v", path, err)
 		return
 	}
@@ -238,12 +239,12 @@ func validateFile(t *testing.T, partition *types.Partition, file types.File) {
 
 func validateDirectory(t *testing.T, partition *types.Partition, dir types.Directory) {
 	path := filepath.Join(partition.MountPath, dir.Node.Directory, dir.Node.Name)
-	dirInfo, err := os.Lstat(path)
-	if err != nil {
+	dirInfo := unix.Stat_t{}
+	if err := unix.Lstat(path, &dirInfo); err != nil {
 		t.Errorf("Error stat'ing directory %s: %v", path, err)
 		return
 	}
-	if !dirInfo.IsDir() {
+	if dirInfo.Mode&unix.S_IFDIR == 0 {
 		t.Errorf("Node at %s is not a directory!", path)
 	}
 	validateMode(t, path, dir.Mode)
@@ -252,35 +253,25 @@ func validateDirectory(t *testing.T, partition *types.Partition, dir types.Direc
 
 func validateLink(t *testing.T, partition *types.Partition, link types.Link) {
 	linkPath := filepath.Join(partition.MountPath, link.Node.Directory, link.Node.Name)
-	linkInfo, err := os.Lstat(linkPath)
-	if err != nil {
+	linkInfo := unix.Stat_t{}
+	if err := unix.Lstat(linkPath, &linkInfo); err != nil {
 		t.Error("Error stat'ing link \"" + linkPath + "\": " + err.Error())
 		return
 	}
 	if link.Hard {
 		targetPath := filepath.Join(partition.MountPath, link.Target)
-		targetInfo, err := os.Lstat(targetPath)
-		if err != nil {
+		targetInfo := unix.Stat_t{}
+		if err := unix.Lstat(targetPath, &targetInfo); err != nil {
 			t.Error("Error stat'ing target \"" + targetPath + "\": " + err.Error())
 			return
 		}
-		if linkInfoSys, ok := linkInfo.Sys().(*syscall.Stat_t); ok {
-			if targetInfoSys, ok := targetInfo.Sys().(*syscall.Stat_t); ok {
-				if linkInfoSys.Ino != targetInfoSys.Ino {
-					t.Error("Hard link and target don't have same inode value: " + linkPath + " " + targetPath)
-					return
-				}
-			} else {
-				t.Error("Stat type assertion failed, this will only work on Linux")
-				return
-			}
-		} else {
-			t.Error("Stat type assertion failed, this will only work on Linux")
+		if linkInfo.Ino != targetInfo.Ino {
+			t.Error("Hard link and target don't have same inode value: " + linkPath + " " + targetPath)
 			return
 		}
 	} else {
-		if linkInfo.Mode()&os.ModeType != os.ModeSymlink {
-			t.Errorf("Node at symlink path is not a symlink (it's a %s): %s", linkInfo.Mode().String(), linkPath)
+		if linkInfo.Mode&unix.S_IFLNK == 0 {
+			t.Errorf("Node at symlink path is not a symlink (it's a %s): %s", os.FileMode(linkInfo.Mode).String(), linkPath)
 			return
 		}
 		targetPath, err := os.Readlink(linkPath)
@@ -310,17 +301,12 @@ func validateMode(t *testing.T, path string, mode int) {
 	}
 }
 
-func validateNode(t *testing.T, nodeInfo os.FileInfo, node types.Node) {
-	if nodeInfoSys, ok := nodeInfo.Sys().(*syscall.Stat_t); ok {
-		if nodeInfoSys.Uid != uint32(node.User) {
-			t.Error("Node has the wrong owner", node.User, nodeInfoSys.Uid)
-		}
+func validateNode(t *testing.T, nodeInfo unix.Stat_t, node types.Node) {
+	if nodeInfo.Uid != uint32(node.User) {
+		t.Error("Node has the wrong owner", node.User, nodeInfo.Uid)
+	}
 
-		if nodeInfoSys.Gid != uint32(node.Group) {
-			t.Error("Node has the wrong group owner", node.Group, nodeInfoSys.Gid)
-		}
-	} else {
-		t.Error("Stat type assertion failed, this will only work on Linux")
-		return
+	if nodeInfo.Gid != uint32(node.Group) {
+		t.Error("Node has the wrong group owner", node.Group, nodeInfo.Gid)
 	}
 }

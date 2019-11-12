@@ -23,11 +23,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
 	"github.com/coreos/ignition/v2/tests/types"
+
+	"golang.org/x/sys/unix"
 )
 
 func run(ctx context.Context, command string, args ...string) ([]byte, error) {
@@ -115,7 +116,7 @@ func runGetExit(cmd string, args ...string) (int, string, error) {
 	if !ok {
 		return -1, logs, err
 	}
-	status, ok2 := exitErr.Sys().(syscall.WaitStatus)
+	status, ok2 := exitErr.Sys().(unix.WaitStatus)
 	if !ok2 {
 		return -1, logs, err
 	}
