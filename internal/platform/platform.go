@@ -26,6 +26,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/digitalocean"
 	"github.com/coreos/ignition/v2/internal/providers/file"
 	"github.com/coreos/ignition/v2/internal/providers/gcp"
+	"github.com/coreos/ignition/v2/internal/providers/ibmcloud"
 	"github.com/coreos/ignition/v2/internal/providers/noop"
 	"github.com/coreos/ignition/v2/internal/providers/openstack"
 	"github.com/coreos/ignition/v2/internal/providers/packet"
@@ -136,6 +137,10 @@ func init() {
 	configs.Register(Config{
 		name:  "zvm",
 		fetch: zvm.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "ibmcloud",
+		fetch: ibmcloud.FetchConfig,
 	})
 }
 
