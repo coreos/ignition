@@ -65,8 +65,8 @@ func Partition9DoesNotStartCorrectly() types.Test {
 	name := "partition.match.failstostart"
 	in := types.GetBaseDisk()
 	//insert a gap before 9
-	tmp := in[0].Partitions[9-2-1]
-	in[0].Partitions[9-2-1] = &types.Partition{
+	tmp := in[0].Partitions[9-6-1]
+	in[0].Partitions[9-6-1] = &types.Partition{
 		Number:   10,
 		Length:   65536,
 		TypeCode: "blank",
