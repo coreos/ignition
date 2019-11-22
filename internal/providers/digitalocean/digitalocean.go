@@ -36,9 +36,7 @@ var (
 )
 
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{
-		Headers: resource.ConfigHeaders,
-	})
+	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{})
 	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}

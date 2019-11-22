@@ -131,8 +131,6 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 }
 
 func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
-	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{
-		Headers: resource.ConfigHeaders,
-	})
+	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{})
 	return res, err
 }
