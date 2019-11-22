@@ -59,14 +59,14 @@ Environment=SYSTEMD_LOG_LEVEL=debug
 ```
 ## Create Files on the Root Filesystem
 
-In many cases it is useful to write files to the root filesystem. This example writes a single file to `/foo/bar` on the root filesystem. The contents of the file ("example file") are specified inline in the config using the [data URL scheme][rfc2397].
+In many cases it is useful to write files to the root filesystem. This example writes a single file to `/etc/someconfig` on the root filesystem. The contents of the file ("example file") are specified inline in the config using the [data URL scheme][rfc2397].
 
 ```json ignition
 {
   "ignition": { "version": "3.0.0" },
   "storage": {
     "files": [{
-      "path": "/foo/bar",
+      "path": "/etc/someconfig",
       "mode": 420,
       "contents": { "source": "data:,example%20file%0A" }
     }]
