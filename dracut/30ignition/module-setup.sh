@@ -31,6 +31,7 @@ install() {
         useradd \
         usermod \
         realpath \
+        setfiles \
         touch
 
     # This one is optional; https://src.fedoraproject.org/rpms/ignition/pull-request/9
