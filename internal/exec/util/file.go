@@ -267,6 +267,22 @@ func FindFirstMissingDirForFile(path string) (string, error) {
 	}
 }
 
+// DirIsEmpty checks whether a directory is empty.
+// Adapted from https://stackoverflow.com/a/30708914
+func DirIsEmpty(dirpath string) (bool, error) {
+	dfd, err := os.Open(dirpath)
+	if err != nil {
+		return false, err
+	}
+	defer dfd.Close()
+
+	_, err = dfd.Readdirnames(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err
+}
+
 // getFileOwner will return the uid and gid for the file at a given path. If the
 // file doesn't exist, or some other error is encountered when running stat on
 // the path, 0, 0, and 0 will be returned.

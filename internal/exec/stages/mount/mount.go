@@ -111,12 +111,27 @@ func (s stage) mountFs(fs types.Filesystem) error {
 		return err
 	}
 
+	var firstMissing string
+	if distro.SelinuxRelabel() {
+		var err error
+		firstMissing, err = util.FindFirstMissingDirForFile(path)
+		if err != nil {
+			return err
+		}
+	}
+
 	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
 		if err := os.MkdirAll(path, 0755); err != nil {
 			return err
 		}
 	} else if err != nil {
 		return err
+	}
+
+	if distro.SelinuxRelabel() {
+		if err := s.RelabelFiles([]string{firstMissing}); err != nil {
+			return err
+		}
 	}
 
 	args := translateOptionSliceToString(fs.MountOptions, ",")
@@ -126,6 +141,18 @@ func (s stage) mountFs(fs types.Filesystem) error {
 	); err != nil {
 		return err
 	}
+
+	if distro.SelinuxRelabel() {
+		// relabel the root of the disk if it's fresh
+		if isEmpty, err := util.DirIsEmpty(path); err != nil {
+			return fmt.Errorf("Checking if directory %s is empty: %v", path, err)
+		} else if isEmpty {
+			if err := s.RelabelFiles([]string{path}); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
