@@ -15,9 +15,12 @@
 package types
 
 import (
+	"net/url"
+
 	"github.com/coreos/go-semver/semver"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/util"
 
 	"github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
@@ -32,7 +35,30 @@ func (c ConfigReference) Key() string {
 
 func (cr ConfigReference) Validate(c path.ContextPath) (r report.Report) {
 	r.AddOnError(c.Append("source"), validateURLNilOK(cr.Source))
+	r.AddOnError(c.Append("httpHeaders"), cr.validateSchemeForHTTPHeaders())
 	return
+}
+
+func (cr ConfigReference) validateSchemeForHTTPHeaders() error {
+	if len(cr.HTTPHeaders) < 1 {
+		return nil
+	}
+
+	if util.NilOrEmpty(cr.Source) {
+		return errors.ErrInvalidUrl
+	}
+
+	u, err := url.Parse(*cr.Source)
+	if err != nil {
+		return errors.ErrInvalidUrl
+	}
+
+	switch u.Scheme {
+	case "http", "https":
+		return nil
+	default:
+		return errors.ErrUnsupportedSchemeForHTTPHeaders
+	}
 }
 
 func (v Ignition) Semver() (*semver.Version, error) {

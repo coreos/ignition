@@ -40,6 +40,26 @@ var (
 }`)
 	servedContents = []byte(`asdf
 fdsa`)
+
+	servedPublicKey = []byte(`-----BEGIN CERTIFICATE-----
+MIICzTCCAlKgAwIBAgIJALTP0pfNBMzGMAoGCCqGSM49BAMCMIGZMQswCQYDVQQG
+EwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNj
+bzETMBEGA1UECgwKQ29yZU9TIEluYzEUMBIGA1UECwwLRW5naW5lZXJpbmcxEzAR
+BgNVBAMMCmNvcmVvcy5jb20xHTAbBgkqhkiG9w0BCQEWDm9lbUBjb3Jlb3MuY29t
+MB4XDTE4MDEyNTAwMDczOVoXDTI4MDEyMzAwMDczOVowgZkxCzAJBgNVBAYTAlVT
+MRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1TYW4gRnJhbmNpc2NvMRMw
+EQYDVQQKDApDb3JlT1MgSW5jMRQwEgYDVQQLDAtFbmdpbmVlcmluZzETMBEGA1UE
+AwwKY29yZW9zLmNvbTEdMBsGCSqGSIb3DQEJARYOb2VtQGNvcmVvcy5jb20wdjAQ
+BgcqhkjOPQIBBgUrgQQAIgNiAAQDEhfHEulYKlANw9eR5l455gwzAIQuraa049Rh
+vM7PPywaiD8DobteQmE8wn7cJSzOYw6GLvrL4Q1BO5EFUXknkW50t8lfnUeHveCN
+sqvm82F1NVevVoExAUhDYmMREa6jZDBiMA8GA1UdEQQIMAaHBH8AAAEwHQYDVR0O
+BBYEFEbFy0SPiF1YXt+9T3Jig2rNmBtpMB8GA1UdIwQYMBaAFEbFy0SPiF1YXt+9
+T3Jig2rNmBtpMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwIDaQAwZgIxAOul
+t3MhI02IONjTDusl2YuCxMgpy2uy0MPkEGUHnUOsxmPSG0gEBCNHyeKVeTaPUwIx
+AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
+9g==
+-----END CERTIFICATE-----`)
+
 	// export these so tests don't have to hard-code them everywhere
 	configRawHash   = sha512.Sum512(servedConfig)
 	contentsRawHash = sha512.Sum512(servedContents)
@@ -56,11 +76,171 @@ func (server *HTTPServer) Contents(w http.ResponseWriter, r *http.Request) {
 	w.Write(servedContents)
 }
 
+func (server *HTTPServer) Certificates(w http.ResponseWriter, r *http.Request) {
+	w.Write(servedPublicKey)
+}
+
+func errorHandler(w http.ResponseWriter, message string) {
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte(message))
+}
+
+// headerCheck validates that all required headers are present
+func headerCheck(w http.ResponseWriter, r *http.Request) {
+	headers := map[string]string{
+		"X-Auth":          "r8ewap98gfh4d8",
+		"Keep-Alive":      "300",
+		"Accept":          "application/vnd.coreos.ignition+json;version=3.0.0, */*;q=0.1",
+		"Accept-Encoding": "identity",
+	}
+
+	for headerName, headerValue := range headers {
+		if val, ok := r.Header[headerName]; ok {
+			if val[0] != headerValue {
+				errorHandler(w, headerName+" header value is incorrect")
+				return
+			}
+		} else {
+			errorHandler(w, headerName+" header is missing")
+			return
+		}
+	}
+
+	if val, ok := r.Header["User-Agent"]; ok {
+		if !strings.HasPrefix(val[0], "Ignition/") {
+			errorHandler(w, "User-Agent header value is incorrect")
+			return
+		}
+	} else {
+		errorHandler(w, "User-Agent header is missing")
+		return
+	}
+}
+
+func overwrittenHeaderCheck(w http.ResponseWriter, r *http.Request) {
+	headers := map[string]string{
+		"Keep-Alive":      "1000",
+		"Accept":          "application/json",
+		"Accept-Encoding": "identity, compress",
+		"User-Agent":      "MyUA",
+	}
+
+	for headerName, headerValue := range headers {
+		if val, ok := r.Header[headerName]; ok {
+			if val[0] != headerValue {
+				errorHandler(w, headerName+" header value is incorrect")
+				return
+			}
+		} else {
+			errorHandler(w, headerName+" header is missing")
+			return
+		}
+	}
+}
+
+func (server *HTTPServer) ConfigHeaders(w http.ResponseWriter, r *http.Request) {
+	headerCheck(w, r)
+
+	w.Write(servedConfig)
+}
+
+func (server *HTTPServer) ContentsHeaders(w http.ResponseWriter, r *http.Request) {
+	headerCheck(w, r)
+
+	w.Write(servedContents)
+}
+
+func (server *HTTPServer) CertificatesHeaders(w http.ResponseWriter, r *http.Request) {
+	headerCheck(w, r)
+
+	w.Write(servedPublicKey)
+}
+
+// redirectedHeaderCheck validates that user's headers from the original request are missing
+func redirectedHeaderCheck(w http.ResponseWriter, r *http.Request) {
+	if _, ok := r.Header["X-Auth"]; ok {
+		errorHandler(w, "Found redundant header X-Auth")
+		return
+	}
+
+	if _, ok := r.Header["Keep-Alive"]; ok {
+		errorHandler(w, "Found redundant header Keep-Alive")
+		return
+	}
+}
+
+// ConfigRedirect redirects the request to ConfigRedirected
+func (server *HTTPServer) ConfigRedirect(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "http://127.0.0.1:8080/config_headers_redirected", http.StatusFound)
+}
+
+// ConfigRedirected validates the request from ConfigRedirect
+func (server *HTTPServer) ConfigRedirected(w http.ResponseWriter, r *http.Request) {
+	redirectedHeaderCheck(w, r)
+
+	w.Write(servedConfig)
+}
+
+// ContentsRedirect redirects the request to ContentsRedirected
+func (server *HTTPServer) ContentsRedirect(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "http://127.0.0.1:8080/contents_headers_redirected", http.StatusFound)
+}
+
+// ContentsRedirected validates the request from ContentsRedirect
+func (server *HTTPServer) ContentsRedirected(w http.ResponseWriter, r *http.Request) {
+	redirectedHeaderCheck(w, r)
+
+	w.Write(servedContents)
+}
+
+// CertificatesRedirect redirects the request to CertificatesRedirected
+func (server *HTTPServer) CertificatesRedirect(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "http://127.0.0.1:8080/certificates_headers_redirected", http.StatusFound)
+}
+
+// CertificatesRedirected validates the request from CertificatesRedirect
+func (server *HTTPServer) CertificatesRedirected(w http.ResponseWriter, r *http.Request) {
+	redirectedHeaderCheck(w, r)
+
+	w.Write(servedPublicKey)
+}
+
+func (server *HTTPServer) ConfigHeadersOverwrite(w http.ResponseWriter, r *http.Request) {
+	overwrittenHeaderCheck(w, r)
+
+	w.Write(servedConfig)
+}
+
+func (server *HTTPServer) ContentsHeadersOverwrite(w http.ResponseWriter, r *http.Request) {
+	overwrittenHeaderCheck(w, r)
+
+	w.Write(servedContents)
+}
+
+func (server *HTTPServer) CertificatesHeadersOverwrite(w http.ResponseWriter, r *http.Request) {
+	overwrittenHeaderCheck(w, r)
+
+	w.Write(servedPublicKey)
+}
+
 type HTTPServer struct{}
 
 func (server *HTTPServer) Start() {
 	http.HandleFunc("/contents", server.Contents)
+	http.HandleFunc("/contents_headers", server.ContentsHeaders)
+	http.HandleFunc("/contents_headers_redirect", server.ContentsRedirect)
+	http.HandleFunc("/contents_headers_redirected", server.ContentsRedirected)
+	http.HandleFunc("/contents_headers_overwrite", server.ContentsHeadersOverwrite)
+	http.HandleFunc("/certificates", server.Certificates)
+	http.HandleFunc("/certificates_headers", server.CertificatesHeaders)
+	http.HandleFunc("/certificates_headers_redirect", server.CertificatesRedirect)
+	http.HandleFunc("/certificates_headers_redirected", server.CertificatesRedirected)
+	http.HandleFunc("/certificates_headers_overwrite", server.CertificatesHeadersOverwrite)
 	http.HandleFunc("/config", server.Config)
+	http.HandleFunc("/config_headers", server.ConfigHeaders)
+	http.HandleFunc("/config_headers_redirect", server.ConfigRedirect)
+	http.HandleFunc("/config_headers_redirected", server.ConfigRedirected)
+	http.HandleFunc("/config_headers_overwrite", server.ConfigHeadersOverwrite)
 
 	s := &http.Server{Addr: ":8080"}
 	go s.ListenAndServe()

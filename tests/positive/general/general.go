@@ -26,7 +26,13 @@ func init() {
 	// TODO: Add S3 tests
 	register.Register(register.PositiveTest, ReformatFilesystemAndWriteFile())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTP())
+	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTPUsingHeaders())
+	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTPUsingHeadersWithRedirect())
+	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTPUsingOverwrittenHeaders())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTP())
+	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTPUsingHeaders())
+	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTPUsingHeadersWithRedirect())
+	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTPUsingOverwrittenHeaders())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigTFTP())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigTFTP())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigData())
@@ -117,6 +123,119 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	}
 }
 
+func ReplaceConfigWithRemoteConfigHTTPUsingHeaders() types.Test {
+	name := "config.replace.http.headers"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := strings.Replace(`{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "replace": {
+			"source": "http://127.0.0.1:8080/config_headers",
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
+			"verification": { "hash": "sha512-HASH" }
+	      }
+	    }
+	  }
+	}`, "HASH", servers.ConfigHash, 1)
+	configMinVersion := "3.1.0-experimental"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ReplaceConfigWithRemoteConfigHTTPUsingHeadersWithRedirect() types.Test {
+	name := "config.replace.http.headers.redirect"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := strings.Replace(`{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "replace": {
+			"source": "http://127.0.0.1:8080/config_headers_redirect",
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
+			"verification": { "hash": "sha512-HASH" }
+	      }
+	    }
+	  }
+	}`, "HASH", servers.ConfigHash, 1)
+	configMinVersion := "3.1.0-experimental"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ReplaceConfigWithRemoteConfigHTTPUsingOverwrittenHeaders() types.Test {
+	name := "config.replace.http.headers.overwrite"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := strings.Replace(`{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "replace": {
+			"source": "http://127.0.0.1:8080/config_headers_overwrite",
+			"httpHeaders": [
+				{"name": "Keep-Alive", "value": "1000"},
+				{"name": "Accept", "value": "application/json"},
+				{"name": "Accept-Encoding", "value": "identity, compress"},
+				{"name": "User-Agent", "value": "MyUA"}
+			],
+			"verification": { "hash": "sha512-HASH" }
+	      }
+	    }
+	  }
+	}`, "HASH", servers.ConfigHash, 1)
+	configMinVersion := "3.1.0-experimental"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
 func ReplaceConfigWithRemoteConfigTFTP() types.Test {
 	name := "config.replace.tftp"
 	in := types.GetBaseDisk()
@@ -174,6 +293,158 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
       }
 	}`, "HASH", servers.ConfigHash, 1)
 	configMinVersion := "3.0.0"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "bar2",
+				Directory: "foo",
+			},
+			Contents: "another example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigWithRemoteConfigHTTPUsingHeaders() types.Test {
+	name := "config.merge.http.headers"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := strings.Replace(`{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "merge": [{
+			"source": "http://127.0.0.1:8080/config_headers",
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
+			"verification": { "hash": "sha512-HASH" }
+	      }]
+	    }
+	  },
+      "storage": {
+        "files": [{
+          "path": "/foo/bar2",
+          "contents": { "source": "data:,another%20example%20file%0A" }
+        }]
+      }
+	}`, "HASH", servers.ConfigHash, 1)
+	configMinVersion := "3.1.0-experimental"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "bar2",
+				Directory: "foo",
+			},
+			Contents: "another example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigWithRemoteConfigHTTPUsingHeadersWithRedirect() types.Test {
+	name := "config.merge.http.headers.redirect"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := strings.Replace(`{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "merge": [{
+			"source": "http://127.0.0.1:8080/config_headers_redirect",
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
+			"verification": { "hash": "sha512-HASH" }
+	      }]
+	    }
+	  },
+      "storage": {
+        "files": [{
+          "path": "/foo/bar2",
+          "contents": { "source": "data:,another%20example%20file%0A" }
+        }]
+      }
+	}`, "HASH", servers.ConfigHash, 1)
+	configMinVersion := "3.1.0-experimental"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "bar2",
+				Directory: "foo",
+			},
+			Contents: "another example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigWithRemoteConfigHTTPUsingOverwrittenHeaders() types.Test {
+	name := "config.merge.http.headers.overwrite"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := strings.Replace(`{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "merge": [{
+			"source": "http://127.0.0.1:8080/config_headers_overwrite",
+			"httpHeaders": [
+				{"name": "Keep-Alive", "value": "1000"},
+				{"name": "Accept", "value": "application/json"},
+				{"name": "Accept-Encoding", "value": "identity, compress"},
+				{"name": "User-Agent", "value": "MyUA"}
+			],
+			"verification": { "hash": "sha512-HASH" }
+	      }]
+	    }
+	  },
+      "storage": {
+        "files": [{
+          "path": "/foo/bar2",
+          "contents": { "source": "data:,another%20example%20file%0A" }
+        }]
+      }
+	}`, "HASH", servers.ConfigHash, 1)
+	configMinVersion := "3.1.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

@@ -248,6 +248,12 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 		}
 	}
 
+	// We do not want to redirect HTTP headers
+	f.client.client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		req.Header = make(http.Header)
+		return nil
+	}
+
 	// TODO use .Clone() when we have a new enough golang
 	// (With Rust, we'd have immutability and wouldn't need to defensively clone)
 	headers := make(http.Header)

@@ -21,6 +21,9 @@ import (
 
 func init() {
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTP())
+	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTPUsingHeaders())
+	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTPUsingHeadersWithRedirect())
+	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTPUsingOverwrittenHeaders())
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsTFTP())
 }
 
@@ -49,6 +52,119 @@ func CreateFileFromRemoteContentsHTTP() types.Test {
 		},
 	})
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateFileFromRemoteContentsHTTPUsingHeaders() types.Test {
+	name := "files.create.http.headers"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": {
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
+	        "source": "http://127.0.0.1:8080/contents_headers"
+	      }
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	configMinVersion := "3.1.0-experimental"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateFileFromRemoteContentsHTTPUsingHeadersWithRedirect() types.Test {
+	name := "files.create.http.headers.redirect"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": {
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
+	        "source": "http://127.0.0.1:8080/contents_headers_redirect"
+	      }
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	configMinVersion := "3.1.0-experimental"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateFileFromRemoteContentsHTTPUsingOverwrittenHeaders() types.Test {
+	name := "files.create.http.headers.overwrite"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": {
+			"httpHeaders": [
+				{"name": "Keep-Alive", "value": "1000"},
+				{"name": "Accept", "value": "application/json"},
+				{"name": "Accept-Encoding", "value": "identity, compress"},
+				{"name": "User-Agent", "value": "MyUA"}
+			],
+	        "source": "http://127.0.0.1:8080/contents_headers_overwrite"
+	      }
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	configMinVersion := "3.1.0-experimental"
 
 	return types.Test{
 		Name:             name,

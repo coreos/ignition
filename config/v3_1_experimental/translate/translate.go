@@ -21,7 +21,7 @@ import (
 )
 
 func translateFilesystem(old old_types.Filesystem) (ret types.Filesystem) {
-	// use a new translator so we don't recurse infintitely
+	// use a new translator so we don't recurse infinitely
 	tr := translate.NewTranslator()
 	tr.Translate(&old.Device, &ret.Device)
 	tr.Translate(&old.Format, &ret.Format)
@@ -33,9 +33,61 @@ func translateFilesystem(old old_types.Filesystem) (ret types.Filesystem) {
 	return
 }
 
-func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
-	// use a new translator so we don't recurse infintitely
+func translateConfigReference(old old_types.ConfigReference) (ret types.ConfigReference) {
+	// use a new translator so we don't recurse infinitely
 	tr := translate.NewTranslator()
+	tr.Translate(&old.Source, &ret.Source)
+	tr.Translate(&old.Verification, &ret.Verification)
+	return
+}
+
+func translateCAReference(old old_types.CaReference) (ret types.CaReference) {
+	// use a new translator so we don't recurse infinitely
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Source, &ret.Source)
+	tr.Translate(&old.Verification, &ret.Verification)
+	return
+}
+
+func translateFileContents(old old_types.FileContents) (ret types.FileContents) {
+	// use a new translator so we don't recurse infinitely
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Compression, &ret.Compression)
+	tr.Translate(&old.Source, &ret.Source)
+	tr.Translate(&old.Verification, &ret.Verification)
+	return
+}
+
+func translateIgnitionConfig(old old_types.IgnitionConfig) (ret types.IgnitionConfig) {
+	// use a new translator so we don't recurse infinitely
+	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateConfigReference)
+	tr.Translate(&old.Merge, &ret.Merge)
+	tr.Translate(&old.Replace, &ret.Replace)
+	return
+}
+
+func translateSecurity(old old_types.Security) (ret types.Security) {
+	// use a new translator so we don't recurse infinitely
+	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateTLS)
+	tr.Translate(&old.TLS, &ret.TLS)
+	return
+}
+
+func translateTLS(old old_types.TLS) (ret types.TLS) {
+	// use a new translator so we don't recurse infinitely
+	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateCAReference)
+	tr.Translate(&old.CertificateAuthorities, &ret.CertificateAuthorities)
+	return
+}
+
+func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
+	// use a new translator so we don't recurse infinitely
+	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateIgnitionConfig)
+	tr.AddCustomTranslator(translateSecurity)
 	tr.Translate(&old.Config, &ret.Config)
 	tr.Translate(&old.Security, &ret.Security)
 	tr.Translate(&old.Timeouts, &ret.Timeouts)
@@ -45,6 +97,7 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateFileContents)
 	tr.AddCustomTranslator(translateIgnition)
 	tr.AddCustomTranslator(translateFilesystem)
 	tr.Translate(&old, &ret)
