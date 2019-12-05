@@ -4,6 +4,7 @@
 [Unit]
 Description=Subsequent (Not Ignition) boot complete
 Before=initrd.target
+ConditionPathExists=/etc/initrd-release
 
 # See comments in ignition-complete.target
 OnFailure=emergency.target
