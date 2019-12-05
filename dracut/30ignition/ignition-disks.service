@@ -1,5 +1,7 @@
 [Unit]
 Description=Ignition (disks)
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
 DefaultDependencies=false
 Before=ignition-complete.target
 After=ignition-fetch.service

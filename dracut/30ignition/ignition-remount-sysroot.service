@@ -1,5 +1,7 @@
 [Unit]
 Description=Remount /sysroot read-write for Ignition
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
 # Some Linux Distributions don't pass a rw option on the kernel
 # commandline and thus mount the root filesystem ro by default. In
 # this case, remount /sysroot to rw (issue #37)

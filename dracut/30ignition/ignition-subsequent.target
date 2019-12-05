@@ -3,8 +3,9 @@
 # different order on the Ignition boot versus "subsequent" boots.
 [Unit]
 Description=Subsequent (Not Ignition) boot complete
-Before=initrd.target
+Documentation=https://github.com/coreos/ignition
 ConditionPathExists=/etc/initrd-release
+Before=initrd.target
 
 # See comments in ignition-complete.target
 OnFailure=emergency.target

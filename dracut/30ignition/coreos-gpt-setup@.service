@@ -1,5 +1,7 @@
 [Unit]
 Description=Generate new UUID for disk GPT %I
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
 DefaultDependencies=no
 Before=local-fs-pre.target systemd-fsck-root.service
 Before=ignition-diskful.target

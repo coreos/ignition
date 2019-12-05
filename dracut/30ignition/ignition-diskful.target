@@ -3,6 +3,8 @@
 # Like ignition-complete.target, it only runs on first boot.
 [Unit]
 Description=Ignition Boot Disk Setup
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
 Before=ignition-complete.target
 
 # Make sure we stop all the units before switching root
