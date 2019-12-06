@@ -242,6 +242,47 @@ func MkdirForFile(path string) error {
 	return os.MkdirAll(filepath.Dir(path), DefaultDirectoryPermissions)
 }
 
+// FindFirstMissingDirForFile returns the first component which was found to be
+// missing for the path.
+func FindFirstMissingDirForFile(path string) (string, error) {
+	entry := path
+	dir := filepath.Dir(path)
+	for {
+		exists := true
+		if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
+			exists = false
+		} else if err != nil {
+			return "", err
+		}
+
+		// also sanity check we didn't somehow get all the way up to /sysroot
+		if dir == "/" {
+			return "", fmt.Errorf("/ doesn't seem to exist")
+		}
+		if exists {
+			return entry, nil
+		}
+		entry = dir
+		dir = filepath.Dir(dir)
+	}
+}
+
+// DirIsEmpty checks whether a directory is empty.
+// Adapted from https://stackoverflow.com/a/30708914
+func DirIsEmpty(dirpath string) (bool, error) {
+	dfd, err := os.Open(dirpath)
+	if err != nil {
+		return false, err
+	}
+	defer dfd.Close()
+
+	_, err = dfd.Readdirnames(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err
+}
+
 // getFileOwner will return the uid and gid for the file at a given path. If the
 // file doesn't exist, or some other error is encountered when running stat on
 // the path, 0, 0, and 0 will be returned.

@@ -37,35 +37,10 @@ When resolving paths, Ignition follows symlinks on all but the last element of a
 
 ## SELinux
 
-When using Ignition with distributions which have [SELinux][selinux] enabled, extra care must be taken to prevent Ignition from creating files that lack SELinux labels. Unfortunately, distributions do not typically include SELinux policies in the initramfs where Ignition runs, so any files, directories, and links created by Ignition don't receive the proper default SELinux labels.
-
-A workaround for this issue is to use [`restorecon`][restorecon] in a oneshot systemd unit to relabel files that Ignition has touched. This unit can be set to run after the SELinux policies have loaded, but before services will try to use them.
-
-An example of this unit is as follows:
-
-```
-[Unit]
-Requires=systemd-udevd.target
-After=systemd-udevd.target
-
-Before=sssd.service
-DefaultDependencies=no
-ConditionFirstBoot=true
-
-[Service]
-Type=oneshot
-ExecStart=/usr/sbin/restorecon /foo/bar /etc/test /etc/systemd/system/example.service /etc/passwd /etc/group /etc/shadow
-
-[Install]
-WantedBy=multi-user.target
-```
-
-This unit will vary based on the Ignition config it is being added to and the distribution that Ignition is running on. Notably the paths listed in the unit are all paths that Ignition caused to be modified or created, not just paths listed in `storage.files`. For example, if a new user is created then `/etc/passwd`, `/etc/shadow`, and `/etc/group` will all need to be relabeled.
-
-If tooling is being used to generate Ignition configs, the tooling _should_ generate such a unit when creating a config for distributions which rely on SELinux.
+Ignition fully supports distributions which have [SELinux][selinux] enabled. It requires that the distribution ships the [`setfiles`][setfiles] utility. The kernel must be at least v5.5 or alternatively have [this patch](https://lore.kernel.org/selinux/20190912133007.27545-1-jlebon@redhat.com/T/#u) backported.
 
 [selinux]: https://selinuxproject.org/page/Main_Page
-[restorecon]: https://linux.die.net/man/8/restorecon
+[setfiles]: https://linux.die.net/man/8/setfiles
 
 ## Partition Reuse Semantics
 

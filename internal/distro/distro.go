@@ -41,10 +41,7 @@ var (
 	udevadmCmd  = "udevadm"
 	usermodCmd  = "usermod"
 	useraddCmd  = "useradd"
-
-	// The restorecon tool is embedded inside of a systemd unit
-	// and as such requires the absolute path
-	restoreconCmd = "/usr/sbin/restorecon"
+	setfilesCmd = "setfiles"
 
 	// Filesystem tools
 	btrfsMkfsCmd = "mkfs.btrfs"
@@ -75,15 +72,15 @@ func DiskByPartUUIDDir() string { return diskByPartUUIDDir }
 func KernelCmdlinePath() string { return kernelCmdlinePath }
 func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
 
-func GroupaddCmd() string   { return groupaddCmd }
-func MdadmCmd() string      { return mdadmCmd }
-func MountCmd() string      { return mountCmd }
-func SgdiskCmd() string     { return sgdiskCmd }
-func ModprobeCmd() string   { return modprobeCmd }
-func UdevadmCmd() string    { return udevadmCmd }
-func UsermodCmd() string    { return usermodCmd }
-func UseraddCmd() string    { return useraddCmd }
-func RestoreconCmd() string { return restoreconCmd }
+func GroupaddCmd() string { return groupaddCmd }
+func MdadmCmd() string    { return mdadmCmd }
+func MountCmd() string    { return mountCmd }
+func SgdiskCmd() string   { return sgdiskCmd }
+func ModprobeCmd() string { return modprobeCmd }
+func UdevadmCmd() string  { return udevadmCmd }
+func UsermodCmd() string  { return usermodCmd }
+func UseraddCmd() string  { return useraddCmd }
+func SetfilesCmd() string { return setfilesCmd }
 
 func BtrfsMkfsCmd() string { return btrfsMkfsCmd }
 func Ext4MkfsCmd() string  { return ext4MkfsCmd }

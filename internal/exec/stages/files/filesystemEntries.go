@@ -254,31 +254,14 @@ func (s *stage) relabelDirsForFile(path string) error {
 	if !s.relabeling() {
 		return nil
 	}
-	// relabel from the first parent dir that we'll have to create --
-	// alternatively, we could make `MkdirForFile` fancier instead of
-	// using `os.MkdirAll`, though that's quite a lot of levels to plumb
-	// through
-	relabelFrom := path
-	dir := filepath.Dir(path)
-	for {
-		exists := true
-		if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
-			exists = false
-		} else if err != nil {
-			return err
-		}
 
-		// we're done on the first hit -- also sanity check we didn't
-		// somehow get all the way up to /sysroot
-		if exists || dir == s.DestDir {
-			break
-		}
-		relabelFrom = dir
-		dir = filepath.Dir(dir)
+	missing_dir, err := util.FindFirstMissingDirForFile(path)
+	if err != nil {
+		return err
 	}
-	// trim off prefix since this needs to be relative to the sysroot
-	s.relabel(relabelFrom[len(s.DestDir):])
 
+	// trim off prefix since this needs to be relative to the sysroot
+	s.relabel(missing_dir[len(s.DestDir):])
 	return nil
 }
 
