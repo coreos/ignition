@@ -21,3 +21,13 @@ https://github.com/coreos/coreos-assembler/blob/master/src/cmd-run
 Note that a lot of things are in flux and subject to rapid
 change. E.g. some key names have changed wrt their
 equivalents in CoreOS Container Linux.
+
+### Branches
+
+There are two branches:
+- `master` works with the `master` branch of Ignition and is
+  currently used by Fedora CoreOS, which targets Ignition v2
+  (spec 3).
+- `spec2x` works with the `spec2x` branch of Ignition and is
+  currently used by RHEL CoreOS, which (for now) targets
+  Ignition v0.x (spec 2).
