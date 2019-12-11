@@ -1,3 +1,20 @@
+11-Dec-2019 IGNITION v0.34.0
+
+  Bug Fixes:
+
+    - Fix bug where AWS region is not set correctly for fetches from s3
+    - Fix bug where empty GPT labels were treated as errors
+
+  Changes:
+
+    - Ignition now logs the name of the stage it is running
+
+  Features:
+
+    - Add optional "fetch" stage to cache the rendered config, but not apply
+      any of it
+    - Add support for aliyun cloud
+
 28-Jun-2019 IGNITION v0.33.0
 
   Bug Fixes:
