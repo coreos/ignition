@@ -1,3 +1,34 @@
+12-Dec-2019 Ignition 2.1.0
+
+  Bug Fixes:
+
+    - Do not panic when filesystem paths are unspecified
+    - Specify the correct config version HTTP Accept headers when fetching
+      configs
+    - Write the config cache file atomically
+    - Relabel symlinks for masking systemd units
+    - Fix bug where empty GPT labels were treated as errors
+    - Do not generate warnings if mode is unset for files with only an append
+      section
+    - Validate HTTP(S) proxy urls in spec 3.1.0-experimental
+
+  Features:
+
+    - Ignition now logs the name of the stage it is running
+    - Ignition now relabels files directly instead of writing systemd units to
+      do so. Requires Linux 5.4.0+ or a patch. See operator notes for more
+      details
+    - Add optional "fetch" stage to cache the rendered config, but not apply
+      any of it
+    - Add support for aliyun cloud
+    - Add support for zVM hypervisor
+    - Add support for specifying mount options for filesystems in spec
+      3.1.0-experimental
+
+  Dependency Changes:
+
+    - Ignition no longer needs the chroot or id binaries in the initramfs
+
 24-Jul-2019 Ignition 2.0.1
 
   Bug Fixes:
