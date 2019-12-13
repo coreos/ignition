@@ -332,7 +332,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 			return nil
 		}
 		if err := umountPartition(rootPartition); err != nil {
-			return nil
+			return err
 		}
 		if filesErr != nil {
 			return nil // error is expected
