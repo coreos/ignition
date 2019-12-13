@@ -49,11 +49,14 @@ func runWithoutContext(command string, args ...string) ([]byte, error) {
 	return out, nil
 }
 
-func prepareRootPartitionForPasswd(ctx context.Context, root *types.Partition) error {
-	if err := mountPartition(ctx, root); err != nil {
+func prepareRootPartitionForPasswd(ctx context.Context, root *types.Partition) (err error) {
+	err = mountPartition(ctx, root)
+	if err != nil {
 		return err
 	}
-	defer umountPartition(root)
+	defer func() {
+		err = umountPartition(root)
+	}()
 
 	mountPath := root.MountPath
 	dirs := []string{
@@ -64,26 +67,25 @@ func prepareRootPartitionForPasswd(ctx context.Context, root *types.Partition) e
 		filepath.Join(mountPath, "etc"),
 	}
 	for _, dir := range dirs {
-		err := os.MkdirAll(dir, 0755)
+		err = os.MkdirAll(dir, 0755)
 		if err != nil {
-			return err
+			return
 		}
 	}
 
 	symlinks := []string{"lib64", "bin", "sbin"}
 	for _, symlink := range symlinks {
-		err := os.Symlink(
+		err = os.Symlink(
 			filepath.Join(mountPath, "usr", symlink),
 			filepath.Join(mountPath, symlink))
 		if err != nil {
-			return err
+			return
 		}
 	}
 
-	// TODO: use the architecture, not hardcode amd64
 	// TODO: needed for user_group_lookup.c
-	_, err := run(ctx, "cp", "/lib64/libnss_files.so.2", filepath.Join(mountPath, "usr", "lib64"))
-	return err
+	_, err = run(ctx, "cp", "/lib64/libnss_files.so.2", filepath.Join(mountPath, "usr", "lib64"))
+	return
 }
 
 func getRootPartition(partitions []*types.Partition) *types.Partition {
@@ -116,11 +118,8 @@ func runGetExit(cmd string, args ...string) (int, string, error) {
 	if !ok {
 		return -1, logs, err
 	}
-	status, ok2 := exitErr.Sys().(unix.WaitStatus)
-	if !ok2 {
-		return -1, logs, err
-	}
-	return status.ExitStatus(), logs, nil
+	status := exitErr.ExitCode()
+	return status, logs, nil
 }
 
 func umountPartition(p *types.Partition) error {
@@ -132,24 +131,17 @@ func umountPartition(p *types.Partition) error {
 	// specific case. See https://github.com/coreos/bootengine/commit/8bf46fe78ec59bcd5148ce9ab8ec5fb805600151
 	// for more context.
 	for i := 0; i < 3; i++ {
-		status, logs, err := runGetExit("umount", p.MountPath)
-		if status == 0 {
-			return nil
+		if err := unix.Unmount(p.MountPath, unix.MNT_FORCE); err != nil {
+			time.Sleep(time.Second)
+			continue
 		}
-		if err != nil {
-			return fmt.Errorf("exec'ing `umount %s` failed: %v", p.MountPath, err)
-		}
-		if status != 32 {
-			return fmt.Errorf("`umount %s` failed with exit status %d: %s", p.MountPath, status, logs)
-		}
-		// wait a sec to see if things clear up
-		time.Sleep(time.Second)
-
 		if unmounted, _, err := runGetExit("mountpoint", "-q", p.MountPath); err != nil {
 			return fmt.Errorf("exec'ing `mountpoint -q %s` failed: %v", p.MountPath, err)
 		} else if unmounted == 1 {
 			return nil
 		}
+		// wait a sec to see if things clear up
+		time.Sleep(time.Second)
 	}
 	return fmt.Errorf("umount failed after 3 tries (exit status 32) for %s", p.MountPath)
 }
@@ -399,26 +391,33 @@ func removeEmpty(strings []string) []string {
 	return r
 }
 
+func createFilesForPartition(ctx context.Context, partition *types.Partition) (err error) {
+	err = mountPartition(ctx, partition)
+	if err != nil {
+		return
+	}
+	defer func() {
+		err = umountPartition(partition)
+	}()
+
+	err = createDirectoriesFromSlice(partition.MountPath, partition.Directories)
+	if err != nil {
+		return
+	}
+	err = createFilesFromSlice(partition.MountPath, partition.Files)
+	if err != nil {
+		return
+	}
+	err = createLinksFromSlice(partition.MountPath, partition.Links)
+	return
+}
+
 func createFilesForPartitions(ctx context.Context, partitions []*types.Partition) error {
 	for _, partition := range partitions {
 		if partition.FilesystemType == "swap" || partition.FilesystemType == "" || partition.FilesystemType == "blank" {
 			continue
 		}
-		if err := mountPartition(ctx, partition); err != nil {
-			return err
-		}
-		defer umountPartition(partition)
-
-		err := createDirectoriesFromSlice(partition.MountPath, partition.Directories)
-		if err != nil {
-			return err
-		}
-		createFilesFromSlice(partition.MountPath, partition.Files)
-		if err != nil {
-			return err
-		}
-		createLinksFromSlice(partition.MountPath, partition.Links)
-		if err != nil {
+		if err := createFilesForPartition(ctx, partition); err != nil {
 			return err
 		}
 	}
