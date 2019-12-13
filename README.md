@@ -8,8 +8,8 @@ Odds are good that you don't want to invoke Ignition directly. In fact, it isn't
 
 ## Contact
 
-- Mailing list: [coreos-dev](https://groups.google.com/forum/#!forum/coreos-dev)
-- IRC: #[coreos](irc://irc.freenode.org:6697/#coreos) on freenode.org
+- Mailing list: [coreos@lists.fedoraproject.org](https://lists.fedoraproject.org/archives/list/coreos@lists.fedoraproject.org/)
+- IRC: #[fedora-coreos](irc://irc.freenode.org:6697/#fedora-coreos) on freenode.org
 - Bugs: [issues][issues]
 
 ## Contributing
@@ -24,7 +24,13 @@ To help triage or fix bugs, see the current [Ignition issues](https://github.com
 
 ## Config Validation
 
-To validate a config for Ignition there are binaries for a cli tool called ignition-validate available [on the releases page][releases], and an online validator available [on the CoreOS website][online-validator].
+To validate a config for Ignition there are binaries for a cli tool called `ignition-validate` available [on the releases page][releases]. There is also an ignition-validate container: `quay.io/coreos/ignition-validate`.
+
+Example:
+```
+# This example uses podman, but docker can be used too
+podman run --rm -i quay.io/coreos/ignition-validate - < myconfig.ign
+```
 
 ## Dracut
 
