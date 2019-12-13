@@ -1,3 +1,14 @@
+13-Dec-2019 Ignition 2.1.1
+
+  Bug Fixes:
+
+    - Fix panics when processes Ignition starts fail
+
+  Features:
+
+    - An ignition-validate container is now built and can be used instead of
+      the ignition-validate binaries
+
 12-Dec-2019 Ignition 2.1.0
 
   Bug Fixes:
