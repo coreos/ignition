@@ -3,7 +3,7 @@ language: go
 go_import_path: github.com/coreos/ignition/v2
 
 go:
-  - "1.11.x"
+  - "1.12.x"
   - "1.13.x"
 
 arch:
