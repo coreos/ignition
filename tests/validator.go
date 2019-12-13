@@ -183,7 +183,7 @@ func validatePartitionNodes(t *testing.T, ctx context.Context, partition *types.
 	defer func() {
 		if err := umountPartition(partition); err != nil {
 			// failing to unmount is not a validation failure
-			t.Logf("Failed to unmount %s: %v", partition.MountPath, err)
+			t.Fatalf("Failed to unmount %s: %v", partition.MountPath, err)
 		}
 	}()
 	for _, file := range partition.Files {
