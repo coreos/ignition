@@ -68,9 +68,7 @@ func (s *stage) createPasswd(config types.Config) error {
 		s.relabel(deglobbed...)
 		s.relabel(
 			"/etc/.pwd.lock",
-			"/home",
-			"/root",
-			// for OSTree-based systems (newer restorecon doesn't follow symlinks)
+			// for OSTree-based systems
 			"/var/home",
 			"/var/roothome",
 		)
