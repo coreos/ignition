@@ -31,7 +31,6 @@ install() {
         useradd \
         usermod \
         realpath \
-        setfiles \
         touch
 
     # This one is optional; https://src.fedoraproject.org/rpms/ignition/pull-request/9
@@ -40,6 +39,9 @@ install() {
     # Required by s390x's z/VM installation.
     # Supporting https://github.com/coreos/ignition/pull/865
     inst_multiple -o chccwdev vmur
+
+    # Required on system using SELinux
+    inst_multiple -o setfiles
 
     inst_script "$moddir/coreos-gpt-setup.sh" \
         "/usr/sbin/coreos-gpt-setup"
