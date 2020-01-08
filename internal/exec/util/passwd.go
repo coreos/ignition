@@ -173,11 +173,14 @@ func (u Util) AuthorizeSSHKeys(c types.PasswdUser) error {
 		}
 
 		if distro.WriteAuthorizedKeysFragment() {
-			writeAuthKeysFile(usr, filepath.Join(usr.HomeDir, ".ssh", "authorized_keys.d", "ignition"), []byte(ks))
+			err = writeAuthKeysFile(usr, filepath.Join(usr.HomeDir, ".ssh", "authorized_keys.d", "ignition"), []byte(ks))
 		} else {
-			writeAuthKeysFile(usr, filepath.Join(usr.HomeDir, ".ssh", "authorized_keys"), []byte(ks))
+			err = writeAuthKeysFile(usr, filepath.Join(usr.HomeDir, ".ssh", "authorized_keys"), []byte(ks))
 		}
 
+		if err != nil {
+			return fmt.Errorf("failed to set SSH key: %v", err)
+		}
 		return nil
 	}, "adding ssh keys to user %q", c.Name)
 }
