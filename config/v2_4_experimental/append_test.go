@@ -216,6 +216,234 @@ func TestAppend(t *testing.T) {
 				},
 			}},
 		},
+
+		// append config reference that contains HTTP headers
+		{
+			in: in{
+				oldConfig: types.Config{
+					Ignition: types.Ignition{
+						Config: types.IgnitionConfig{
+							Append: []types.ConfigReference{
+								{
+									Source: "http://example.com/myconf.ign",
+									HTTPHeaders: []types.HTTPHeader{
+										[]types.HTTPHeaderItem{"old-header1", "old-value1"},
+										[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+									},
+								},
+							},
+						},
+					},
+				},
+				newConfig: types.Config{
+					Ignition: types.Ignition{
+						Config: types.IgnitionConfig{
+							Append: []types.ConfigReference{
+								{
+									Source: "http://example.com/myconf.ign",
+									HTTPHeaders: []types.HTTPHeader{
+										[]types.HTTPHeaderItem{"new-header1", "new-value1"},
+										[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			out: out{types.Config{
+				Ignition: types.Ignition{
+					Config: types.IgnitionConfig{
+						Append: []types.ConfigReference{
+							{
+								Source: "http://example.com/myconf.ign",
+								HTTPHeaders: []types.HTTPHeader{
+									[]types.HTTPHeaderItem{"new-header1", "new-value1"},
+									[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+								},
+							},
+						},
+					},
+				},
+			}},
+		},
+
+		// replace config reference that contains HTTP headers
+		{
+			in: in{
+				oldConfig: types.Config{
+					Ignition: types.Ignition{
+						Config: types.IgnitionConfig{
+							Replace: &types.ConfigReference{
+								Source: "http://example.com/myconf.ign",
+								HTTPHeaders: []types.HTTPHeader{
+									[]types.HTTPHeaderItem{"old-header1", "old-value1"},
+									[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+								},
+							},
+						},
+					},
+				},
+				newConfig: types.Config{
+					Ignition: types.Ignition{
+						Config: types.IgnitionConfig{
+							Replace: &types.ConfigReference{
+								Source: "http://example.com/myconf.ign",
+								HTTPHeaders: []types.HTTPHeader{
+									[]types.HTTPHeaderItem{"new-header1", "new-value1"},
+									[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+								},
+							},
+						},
+					},
+				},
+			},
+			out: out{types.Config{
+				Ignition: types.Ignition{
+					Config: types.IgnitionConfig{
+						Replace: &types.ConfigReference{
+							Source: "http://example.com/myconf.ign",
+							HTTPHeaders: []types.HTTPHeader{
+								[]types.HTTPHeaderItem{"new-header1", "new-value1"},
+								[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+							},
+						},
+					},
+				},
+			}},
+		},
+
+		// CA reference that contains HTTP headers
+		{
+			in: in{
+				oldConfig: types.Config{
+					Ignition: types.Ignition{
+						Security: types.Security{
+							TLS: types.TLS{
+								CertificateAuthorities: []types.CaReference{
+									{
+										Source: "http://example.com/myca.cert",
+										HTTPHeaders: []types.HTTPHeader{
+											[]types.HTTPHeaderItem{"old-header1", "old-value1"},
+											[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				newConfig: types.Config{
+					Ignition: types.Ignition{
+						Security: types.Security{
+							TLS: types.TLS{
+								CertificateAuthorities: []types.CaReference{
+									{
+										Source: "http://example.com/myca.cert",
+										HTTPHeaders: []types.HTTPHeader{
+											[]types.HTTPHeaderItem{"new-header1", "new-value1"},
+											[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			out: out{types.Config{
+				Ignition: types.Ignition{
+					Security: types.Security{
+						TLS: types.TLS{
+							CertificateAuthorities: []types.CaReference{
+								{
+									Source: "http://example.com/myca.cert",
+									HTTPHeaders: []types.HTTPHeader{
+										[]types.HTTPHeaderItem{"old-header1", "old-value1"},
+										[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+									},
+								},
+								{
+									Source: "http://example.com/myca.cert",
+									HTTPHeaders: []types.HTTPHeader{
+										[]types.HTTPHeaderItem{"new-header1", "new-value1"},
+										[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+									},
+								},
+							},
+						},
+					},
+				},
+			}},
+		},
+
+		// file contents that contains HTTP headers
+		{
+			in: in{
+				oldConfig: types.Config{
+					Storage: types.Storage{
+						Files: []types.File{
+							{
+								FileEmbedded1: types.FileEmbedded1{
+									Contents: types.FileContents{
+										Source: "http://example.com/myfile.txt",
+										HTTPHeaders: []types.HTTPHeader{
+											[]types.HTTPHeaderItem{"old-header1", "old-value1"},
+											[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				newConfig: types.Config{
+					Storage: types.Storage{
+						Files: []types.File{
+							{
+								FileEmbedded1: types.FileEmbedded1{
+									Contents: types.FileContents{
+										Source: "http://example.com/myfile.txt",
+										HTTPHeaders: []types.HTTPHeader{
+											[]types.HTTPHeaderItem{"new-header1", "new-value1"},
+											[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			out: out{types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: "http://example.com/myfile.txt",
+									HTTPHeaders: []types.HTTPHeader{
+										[]types.HTTPHeaderItem{"old-header1", "old-value1"},
+										[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+									},
+								},
+							},
+						},
+						{
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: "http://example.com/myfile.txt",
+									HTTPHeaders: []types.HTTPHeader{
+										[]types.HTTPHeaderItem{"new-header1", "new-value1"},
+										[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+									},
+								},
+							},
+						},
+					},
+				},
+			}},
+		},
 	}
 
 	for i, test := range tests {

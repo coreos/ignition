@@ -21,6 +21,8 @@ import (
 
 func init() {
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTP())
+	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTPUsingHeaders())
+	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTPRedirectHeaders())
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsTFTP())
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsOEM())
 }
@@ -51,6 +53,80 @@ func CreateFileFromRemoteContentsHTTP() types.Test {
 		},
 	})
 	configMinVersion := "2.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateFileFromRemoteContentsHTTPUsingHeaders() types.Test {
+	name := "Create Files from Remote Contents Using Headers - HTTP"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": {
+			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+	        "source": "http://127.0.0.1:8080/contents_headers"
+	      }
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	configMinVersion := "2.4.0-experimental"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateFileFromRemoteContentsHTTPRedirectHeaders() types.Test {
+	name := "Create Files from Remote Contents Using Headers With Redirect - HTTP"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": {
+			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+	        "source": "http://127.0.0.1:8080/contents_headers_redirect"
+	      }
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	configMinVersion := "2.4.0-experimental"
 
 	return types.Test{
 		Name:             name,

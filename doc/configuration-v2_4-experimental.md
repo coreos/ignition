@@ -9,10 +9,12 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_config_** (objects): options related to the configuration.
     * **_append_** (list of objects): a list of the configs to be appended to the current config.
       * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **httpHeaders** (list of lists of strings): specifies a list of headers. Each header is represented by a list of two strings, where the first string is the header name, and the second is its value. Example: `["Keep-Alive", "300"]`. Note: applicable for `http` and `https` source schemes only.
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_replace_** (object): the config that will replace the current.
       * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **httpHeaders** (list of lists of strings): specifies a list of headers. Each header is represented by a list of two strings, where the first string is the header name, and the second is its value. Example: `["Keep-Alive", "300"]`. Note: applicable for `http` and `https` source schemes only.
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
   * **_timeouts_** (object): options relating to `http` timeouts when fetching files over `http` or `https`.
@@ -22,6 +24,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_tls_** (object): options relating to TLS when fetching resources over `https`.
       * **_certificateAuthorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`.
         * **source** (string): the URL of the certificate (in PEM format). Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+        * **httpHeaders** (list of lists of strings): specifies a list of headers. Each header is represented by a list of two strings, where the first string is the header name, and the second is its value. Example: `["Keep-Alive", "300"]`. Note: applicable for `http` and `https` source schemes only.
         * **_verification_** (object): options related to the verification of the certificate.
           * **_hash_** (string): the hash of the certificate, in the form `<type>-<value>` where type is sha512.
   * **_proxy_** (object): options relating to setting an `HTTP(S)` proxy when fetching resources.
@@ -70,6 +73,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_contents_** (object): options related to the contents of the file.
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
       * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_httpHeaders_** (list of lists of strings): specifies a list of headers. Each header is represented by a list of two strings, where the first string is the header name, and the second is its value. Example: `["Keep-Alive", "300"]`. Note: applicable for `http` and `https` source schemes only.
       * **_verification_** (object): options related to the verification of the file contents.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420).

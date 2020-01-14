@@ -88,12 +88,16 @@ var (
 	ErrInvalidNetworkdDropinExt = errors.New("invalid networkd drop-in extension")
 
 	// Misc errors
-	ErrInvalidScheme       = errors.New("invalid url scheme")
-	ErrInvalidUrl          = errors.New("unable to parse url")
-	ErrHashMalformed       = errors.New("malformed hash specifier")
-	ErrHashWrongSize       = errors.New("incorrect size for hash sum")
-	ErrHashUnrecognized    = errors.New("unrecognized hash function")
-	ErrEngineConfiguration = errors.New("engine incorrectly configured")
+	ErrInvalidScheme                   = errors.New("invalid url scheme")
+	ErrInvalidUrl                      = errors.New("unable to parse url")
+	ErrInvalidHTTPHeader               = errors.New("unable to parse HTTP header")
+	ErrEmptyHTTPHeaderName             = errors.New("HTTP header name can't be empty")
+	ErrDuplicateHTTPHeaders            = errors.New("all header names in the list must be unique")
+	ErrUnsupportedSchemeForHTTPHeaders = errors.New("cannot use HTTP headers with this source scheme")
+	ErrHashMalformed                   = errors.New("malformed hash specifier")
+	ErrHashWrongSize                   = errors.New("incorrect size for hash sum")
+	ErrHashUnrecognized                = errors.New("unrecognized hash function")
+	ErrEngineConfiguration             = errors.New("engine incorrectly configured")
 
 	// AWS S3 specific errors
 	ErrInvalidS3ObjectVersionId = errors.New("invalid S3 object VersionId")

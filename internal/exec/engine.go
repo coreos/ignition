@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"time"
@@ -274,8 +275,34 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 	if err != nil {
 		return types.Config{}, err
 	}
+
+	// Clone the existing headers
+	// TODO(mfedosin): replace this part with resource.ConfigHeaders.Clone()
+	// when Ignition starts using golang 1.13
+	headers := http.Header{}
+	for headerName, headerValue := range resource.ConfigHeaders {
+		headers[headerName] = headerValue
+	}
+
+	if cfgRef.HTTPHeaders != nil && len(cfgRef.HTTPHeaders) > 0 {
+		// Prepare net/http header from the struct
+		cfgRefHeaders, err := cfgRef.HTTPHeaders.Parse()
+		if err != nil {
+			return types.Config{}, err
+		}
+
+		// Append parsed headers to the cloned headers, replacing the
+		// cloned ones if the names match.
+		for headerName, headerValues := range cfgRefHeaders {
+			for _, headerValue := range headerValues {
+				headers.Set(headerName, headerValue)
+			}
+		}
+	}
 	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{
-		Headers: resource.ConfigHeaders,
+		Headers: headers,
+		// Default headers that will be used in case of redirection
+		HeadersRedirect: resource.ConfigHeaders,
 	})
 	if err != nil {
 		return types.Config{}, err

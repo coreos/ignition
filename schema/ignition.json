@@ -29,6 +29,17 @@
         "hash": { "type": ["string", "null"] }
       }
     },
+    "httpHeaders": {
+      "type" : "array",
+      "items" : {
+          "type" : "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "maxItems": 2
+      }
+    },
     "ignition": {
       "type": "object",
       "properties": {
@@ -102,6 +113,9 @@
             "source": {
               "type": "string"
             },
+            "httpHeaders": {
+              "$ref": "#/definitions/httpHeaders"
+            },
             "verification": {
               "$ref": "#/definitions/verification"
             }
@@ -115,6 +129,9 @@
           "properties": {
             "source": {
               "type": "string"
+            },
+            "httpHeaders": {
+              "$ref": "#/definitions/httpHeaders"
             },
             "verification": {
               "$ref": "#/definitions/verification"
@@ -387,6 +404,9 @@
             },
             "source": {
               "type": "string"
+            },
+            "httpHeaders": {
+              "$ref": "#/definitions/httpHeaders"
             },
             "verification": {
               "$ref": "#/definitions/verification"

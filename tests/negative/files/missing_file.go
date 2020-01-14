@@ -21,6 +21,7 @@ import (
 
 func init() {
 	register.Register(register.NegativeTest, MissingRemoteContentsHTTP())
+	register.Register(register.NegativeTest, InvalidHeaderRemoteContentsHTTP())
 	register.Register(register.NegativeTest, MissingRemoteContentsTFTP())
 	register.Register(register.NegativeTest, MissingRemoteContentsOEM())
 }
@@ -37,6 +38,34 @@ func MissingRemoteContentsHTTP() types.Test {
 	      "path": "/foo/bar",
 	      "contents": {
 	        "source": "http://127.0.0.1:8080/asdf"
+	      }
+	    }]
+	  }
+	}`
+	configMinVersion := "2.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func InvalidHeaderRemoteContentsHTTP() types.Test {
+	name := "Invalid Header for Remote Contents - HTTP"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "filesystem": "root",
+	      "path": "/foo/bar",
+	      "contents": {
+			"httpHeaders": [["X-Auth", "INVALID"], ["Keep-Alive", "300"]],
+	        "source": "http://127.0.0.1:8080/contents_headers"
 	      }
 	    }]
 	  }
