@@ -72,9 +72,10 @@ type Filesystem struct {
 
 type Group string
 
-type HTTPHeader []HTTPHeaderItem
-
-type HTTPHeaderItem string
+type HTTPHeader struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
 
 type HTTPHeaders []HTTPHeader
 

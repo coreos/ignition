@@ -35,17 +35,13 @@ func boolToPtr(b bool) *bool {
 }
 
 func Translate(old from.Config) types.Config {
-	translateHTTPHeader := func(old from.HTTPHeader) types.HTTPHeader {
-		var res types.HTTPHeader
-		for _, x := range old {
-			res = append(res, types.HTTPHeaderItem(x))
-		}
-		return res
-	}
 	translateHTTPHeaderSlice := func(old []from.HTTPHeader) []types.HTTPHeader {
 		var res []types.HTTPHeader
 		for _, x := range old {
-			res = append(res, translateHTTPHeader(x))
+			res = append(res, types.HTTPHeader{
+				Name:  x.Name,
+				Value: x.Value,
+			})
 		}
 		return res
 	}

@@ -142,7 +142,7 @@ func ReplaceConfigWithInvalidHeaderHTTP() types.Test {
 	    "version": "$version",
 	    "config": {
 	      "replace": {
-			"httpHeaders": [["X-Auth", "INVALID"], ["Keep-Alive", "300"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "INVALID"}, {"name": "Keep-Alive", "value": "300"}],
 	        "source": "http://127.0.0.1:8080/config_headers"
 	      }
 	    }
@@ -243,7 +243,7 @@ func AppendConfigWithInvalidHeaderHTTP() types.Test {
 	    "version": "$version",
 	    "config": {
 	      "append": [{
-			"httpHeaders": [["X-Auth", "INVALID"], ["Keep-Alive", "300"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "INVALID"}, {"name": "Keep-Alive", "value": "300"}],
 	        "source": "http://127.0.0.1:8080/config_headers"
 	      }]
 	    }

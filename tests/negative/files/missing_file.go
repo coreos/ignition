@@ -64,7 +64,7 @@ func InvalidHeaderRemoteContentsHTTP() types.Test {
 	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": {
-			"httpHeaders": [["X-Auth", "INVALID"], ["Keep-Alive", "300"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "INVALID"}, {"name": "Keep-Alive", "value": "300"}],
 	        "source": "http://127.0.0.1:8080/contents_headers"
 	      }
 	    }]

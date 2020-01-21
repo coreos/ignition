@@ -23,30 +23,18 @@ import (
 // Parse generates standard net/http headers from the data in HTTPHeaders
 func (h HTTPHeaders) Parse() (http.Header, error) {
 	headers := http.Header{}
-	for _, headerData := range h {
-		// Validate that the header has just two elements
-		if len(headerData) != 2 {
-			return nil, errors.ErrInvalidHTTPHeader
-		}
-
+	found := make(map[string]struct{})
+	for _, header := range h {
 		// Header name can't be empty
-		headerName := string(headerData[0])
-		if headerName == "" {
+		if header.Name == "" {
 			return nil, errors.ErrEmptyHTTPHeaderName
 		}
-
-		headerValue := string(headerData[1])
-		headers.Add(headerName, headerValue)
+		// Header names must be unique
+		if _, ok := found[header.Name]; ok {
+			return nil, errors.ErrDuplicateHTTPHeaders
+		}
+		found[header.Name] = struct{}{}
+		headers.Add(header.Name, header.Value)
 	}
-
-	// Validate that all header names in the list are unique
-	set := make(map[string]struct{}) // New empty set
-	for _, header := range h {
-		set[string(header[0])] = struct{}{}
-	}
-	if len(set) != len(h) {
-		return nil, errors.ErrDuplicateHTTPHeaders
-	}
-
 	return headers, nil
 }

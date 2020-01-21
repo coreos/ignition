@@ -111,7 +111,7 @@ func ValidateFileHashFromHTTPURLUsingHeaders() types.Test {
 	      "path": "/foo/bar",
 	      "contents": {
 			"source": "http://127.0.0.1:8080/contents_headers",
-			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
 			"verification": {"hash": "sha512-1a04c76c17079cd99e688ba4f1ba095b927d3fecf2b1e027af361dfeafb548f7f5f6fdd675aaa2563950db441d893ca77b0c3e965cdcb891784af96e330267d7"}
 	      }
 	    }]

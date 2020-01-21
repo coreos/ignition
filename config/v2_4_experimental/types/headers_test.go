@@ -15,6 +15,7 @@
 package types
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -38,8 +39,8 @@ func TestHeadersValidate(t *testing.T) {
 			// Valid headers
 			in: in{
 				headers: HTTPHeaders{
-					HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-					HTTPHeader{HTTPHeaderItem("header2"), HTTPHeaderItem("header2value")},
+					HTTPHeader{Name: "header1", Value: "header1value"},
+					HTTPHeader{Name: "header2", Value: ""},
 				},
 			},
 			out: out{},
@@ -48,51 +49,21 @@ func TestHeadersValidate(t *testing.T) {
 			// Duplicate headers
 			in: in{
 				headers: HTTPHeaders{
-					HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-					HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header2value")},
+					HTTPHeader{Name: "header1", Value: "header1value"},
+					HTTPHeader{Name: "header1", Value: "header2value"},
 				},
 			},
-			out: out{err: errors.ErrDuplicateHTTPHeaders},
+			out: out{err: fmt.Errorf("Found duplicate HTTP header: \"header1\"")},
 		},
 		{
 			// Empty headers
 			in: in{
 				headers: HTTPHeaders{
-					HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-					HTTPHeader{HTTPHeaderItem(""), HTTPHeaderItem("header2value")},
+					HTTPHeader{Name: "header1", Value: "header1value"},
+					HTTPHeader{Name: "", Value: "header2value"},
 				},
 			},
 			out: out{err: errors.ErrEmptyHTTPHeaderName},
-		},
-		{
-			// Invalid headers with 3 elements
-			in: in{
-				headers: HTTPHeaders{
-					HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-					HTTPHeader{HTTPHeaderItem("invalid"), HTTPHeaderItem("value1"), HTTPHeaderItem("value2")},
-				},
-			},
-			out: out{err: errors.ErrInvalidHTTPHeader},
-		},
-		{
-			// Invalid header with 1 element
-			in: in{
-				headers: HTTPHeaders{
-					HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-					HTTPHeader{HTTPHeaderItem("invalid")},
-				},
-			},
-			out: out{err: errors.ErrInvalidHTTPHeader},
-		},
-		{
-			// Invalid header without elements
-			in: in{
-				headers: HTTPHeaders{
-					HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-					HTTPHeader{},
-				},
-			},
-			out: out{err: errors.ErrInvalidHTTPHeader},
 		},
 	}
 

@@ -74,7 +74,7 @@ func CreateFileFromRemoteContentsHTTPUsingHeaders() types.Test {
 	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": {
-			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
 	        "source": "http://127.0.0.1:8080/contents_headers"
 	      }
 	    }]
@@ -111,7 +111,7 @@ func CreateFileFromRemoteContentsHTTPRedirectHeaders() types.Test {
 	      "filesystem": "root",
 	      "path": "/foo/bar",
 	      "contents": {
-			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
 	        "source": "http://127.0.0.1:8080/contents_headers_redirect"
 	      }
 	    }]

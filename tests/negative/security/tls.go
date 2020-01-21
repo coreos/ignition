@@ -198,7 +198,7 @@ func AppendConfigCustomCertInvalidHeaderHTTP() types.Test {
 			"security": {
 				"tls": {
 					"certificateAuthorities": [{
-						"httpHeaders": [["X-Auth", "INVALID"], ["Keep-Alive", "300"]],
+						"httpHeaders": [{"name": "X-Auth", "value": "INVALID"}, {"name": "Keep-Alive", "value": "300"}],
 						"source": "http://127.0.0.1:8080/certificates_headers"
 					}]
 				}
