@@ -41,50 +41,26 @@ func TestHeadersParse(t *testing.T) {
 		{
 			// Valid headers
 			HTTPHeaders{
-				HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-				HTTPHeader{HTTPHeaderItem("header2"), HTTPHeaderItem("header2value")},
+				HTTPHeader{Name: "header1", Value: "header1value"},
+				HTTPHeader{Name: "header2", Value: ""},
 			},
 			nil,
 		},
 		{
 			// Duplicate headers
 			HTTPHeaders{
-				HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("value1")},
-				HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("value2")},
+				HTTPHeader{Name: "header1", Value: "value1"},
+				HTTPHeader{Name: "header1", Value: "value2"},
 			},
 			errors.ErrDuplicateHTTPHeaders,
 		},
 		{
 			// Empty headers
 			HTTPHeaders{
-				HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-				HTTPHeader{HTTPHeaderItem(""), HTTPHeaderItem("emptyheadervalue")},
+				HTTPHeader{Name: "header1", Value: "header1value"},
+				HTTPHeader{Name: "", Value: "emptyheadervalue"},
 			},
 			errors.ErrEmptyHTTPHeaderName,
-		},
-		{
-			// Invalid headers with 3 elements
-			HTTPHeaders{
-				HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-				HTTPHeader{HTTPHeaderItem("invalid"), HTTPHeaderItem("value1"), HTTPHeaderItem("value2")},
-			},
-			errors.ErrInvalidHTTPHeader,
-		},
-		{
-			// Invalid header with 1 element
-			HTTPHeaders{
-				HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-				HTTPHeader{HTTPHeaderItem("invalid")},
-			},
-			errors.ErrInvalidHTTPHeader,
-		},
-		{
-			// Invalid header without elements
-			HTTPHeaders{
-				HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-				HTTPHeader{},
-			},
-			errors.ErrInvalidHTTPHeader,
 		},
 	}
 
@@ -99,8 +75,8 @@ func TestHeadersParse(t *testing.T) {
 func TestValidHeadersParse(t *testing.T) {
 	// Valid headers
 	headers := HTTPHeaders{
-		HTTPHeader{HTTPHeaderItem("header1"), HTTPHeaderItem("header1value")},
-		HTTPHeader{HTTPHeaderItem("header2"), HTTPHeaderItem("header2value")},
+		HTTPHeader{Name: "header1", Value: "header1value"},
+		HTTPHeader{Name: "header2", Value: "header2value"},
 	}
 	parseHeaders, err := headers.Parse()
 	if err != nil {

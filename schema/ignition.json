@@ -30,15 +30,19 @@
       }
     },
     "httpHeaders": {
-      "type" : "array",
-      "items" : {
-          "type" : "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 2,
-          "maxItems": 2
-      }
+      "type" : "object",
+      "properties" : {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "required": [
+          "name",
+          "value"
+      ]
     },
     "ignition": {
       "type": "object",

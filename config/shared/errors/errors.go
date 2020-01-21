@@ -90,7 +90,6 @@ var (
 	// Misc errors
 	ErrInvalidScheme                   = errors.New("invalid url scheme")
 	ErrInvalidUrl                      = errors.New("unable to parse url")
-	ErrInvalidHTTPHeader               = errors.New("unable to parse HTTP header")
 	ErrEmptyHTTPHeaderName             = errors.New("HTTP header name can't be empty")
 	ErrDuplicateHTTPHeaders            = errors.New("all header names in the list must be unique")
 	ErrUnsupportedSchemeForHTTPHeaders = errors.New("cannot use HTTP headers with this source scheme")

@@ -15,32 +15,33 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/coreos/ignition/config/shared/errors"
 	"github.com/coreos/ignition/config/validate/report"
 )
 
 func (h HTTPHeaders) Validate() report.Report {
-	for _, headerData := range h {
-		// Validate that the header has just two elements
-		if len(headerData) != 2 {
-			return report.ReportFromError(errors.ErrInvalidHTTPHeader, report.EntryError)
-		}
-
-		// Header name can't be empty
-		headerName := string(headerData[0])
-		if headerName == "" {
-			return report.ReportFromError(errors.ErrEmptyHTTPHeaderName, report.EntryError)
-		}
-	}
-
-	// Validate that all header names in the list are unique
-	set := make(map[string]struct{}) // New empty set
+	r := report.Report{}
+	found := make(map[string]struct{})
 	for _, header := range h {
-		set[string(header[0])] = struct{}{}
+		// Header name can't be empty
+		if header.Name == "" {
+			r.Add(report.Entry{
+				Message: errors.ErrEmptyHTTPHeaderName.Error(),
+				Kind:    report.EntryError,
+			})
+			continue
+		}
+		// Header names must be unique
+		if _, ok := found[header.Name]; ok {
+			r.Add(report.Entry{
+				Message: fmt.Sprintf("Found duplicate HTTP header: %q", header.Name),
+				Kind:    report.EntryError,
+			})
+			continue
+		}
+		found[header.Name] = struct{}{}
 	}
-	if len(set) != len(h) {
-		return report.ReportFromError(errors.ErrDuplicateHTTPHeaders, report.EntryError)
-	}
-
-	return report.Report{}
+	return r
 }

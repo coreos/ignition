@@ -227,8 +227,8 @@ func TestAppend(t *testing.T) {
 								{
 									Source: "http://example.com/myconf.ign",
 									HTTPHeaders: []types.HTTPHeader{
-										[]types.HTTPHeaderItem{"old-header1", "old-value1"},
-										[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+										{Name: "old-header1", Value: "old-value1"},
+										{Name: "old-header2", Value: "old-value2"},
 									},
 								},
 							},
@@ -242,8 +242,8 @@ func TestAppend(t *testing.T) {
 								{
 									Source: "http://example.com/myconf.ign",
 									HTTPHeaders: []types.HTTPHeader{
-										[]types.HTTPHeaderItem{"new-header1", "new-value1"},
-										[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+										{Name: "new-header1", Value: "new-value1"},
+										{Name: "new-header2", Value: "new-value2"},
 									},
 								},
 							},
@@ -258,8 +258,8 @@ func TestAppend(t *testing.T) {
 							{
 								Source: "http://example.com/myconf.ign",
 								HTTPHeaders: []types.HTTPHeader{
-									[]types.HTTPHeaderItem{"new-header1", "new-value1"},
-									[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+									{Name: "new-header1", Value: "new-value1"},
+									{Name: "new-header2", Value: "new-value2"},
 								},
 							},
 						},
@@ -277,8 +277,8 @@ func TestAppend(t *testing.T) {
 							Replace: &types.ConfigReference{
 								Source: "http://example.com/myconf.ign",
 								HTTPHeaders: []types.HTTPHeader{
-									[]types.HTTPHeaderItem{"old-header1", "old-value1"},
-									[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+									{Name: "old-header1", Value: "old-value1"},
+									{Name: "old-header2", Value: "old-value2"},
 								},
 							},
 						},
@@ -290,8 +290,8 @@ func TestAppend(t *testing.T) {
 							Replace: &types.ConfigReference{
 								Source: "http://example.com/myconf.ign",
 								HTTPHeaders: []types.HTTPHeader{
-									[]types.HTTPHeaderItem{"new-header1", "new-value1"},
-									[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+									{Name: "new-header1", Value: "new-value1"},
+									{Name: "new-header2", Value: "new-value2"},
 								},
 							},
 						},
@@ -304,8 +304,8 @@ func TestAppend(t *testing.T) {
 						Replace: &types.ConfigReference{
 							Source: "http://example.com/myconf.ign",
 							HTTPHeaders: []types.HTTPHeader{
-								[]types.HTTPHeaderItem{"new-header1", "new-value1"},
-								[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+								{Name: "new-header1", Value: "new-value1"},
+								{Name: "new-header2", Value: "new-value2"},
 							},
 						},
 					},
@@ -324,8 +324,8 @@ func TestAppend(t *testing.T) {
 									{
 										Source: "http://example.com/myca.cert",
 										HTTPHeaders: []types.HTTPHeader{
-											[]types.HTTPHeaderItem{"old-header1", "old-value1"},
-											[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+											{Name: "old-header1", Value: "old-value1"},
+											{Name: "old-header2", Value: "old-value2"},
 										},
 									},
 								},
@@ -341,8 +341,8 @@ func TestAppend(t *testing.T) {
 									{
 										Source: "http://example.com/myca.cert",
 										HTTPHeaders: []types.HTTPHeader{
-											[]types.HTTPHeaderItem{"new-header1", "new-value1"},
-											[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+											{Name: "new-header1", Value: "new-value1"},
+											{Name: "new-header2", Value: "new-value2"},
 										},
 									},
 								},
@@ -359,15 +359,15 @@ func TestAppend(t *testing.T) {
 								{
 									Source: "http://example.com/myca.cert",
 									HTTPHeaders: []types.HTTPHeader{
-										[]types.HTTPHeaderItem{"old-header1", "old-value1"},
-										[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+										{Name: "old-header1", Value: "old-value1"},
+										{Name: "old-header2", Value: "old-value2"},
 									},
 								},
 								{
 									Source: "http://example.com/myca.cert",
 									HTTPHeaders: []types.HTTPHeader{
-										[]types.HTTPHeaderItem{"new-header1", "new-value1"},
-										[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+										{Name: "new-header1", Value: "new-value1"},
+										{Name: "new-header2", Value: "new-value2"},
 									},
 								},
 							},
@@ -388,8 +388,8 @@ func TestAppend(t *testing.T) {
 									Contents: types.FileContents{
 										Source: "http://example.com/myfile.txt",
 										HTTPHeaders: []types.HTTPHeader{
-											[]types.HTTPHeaderItem{"old-header1", "old-value1"},
-											[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+											{Name: "old-header1", Value: "old-value1"},
+											{Name: "old-header2", Value: "old-value2"},
 										},
 									},
 								},
@@ -405,8 +405,8 @@ func TestAppend(t *testing.T) {
 									Contents: types.FileContents{
 										Source: "http://example.com/myfile.txt",
 										HTTPHeaders: []types.HTTPHeader{
-											[]types.HTTPHeaderItem{"new-header1", "new-value1"},
-											[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+											{Name: "new-header1", Value: "new-value1"},
+											{Name: "new-header2", Value: "new-value2"},
 										},
 									},
 								},
@@ -423,8 +423,8 @@ func TestAppend(t *testing.T) {
 								Contents: types.FileContents{
 									Source: "http://example.com/myfile.txt",
 									HTTPHeaders: []types.HTTPHeader{
-										[]types.HTTPHeaderItem{"old-header1", "old-value1"},
-										[]types.HTTPHeaderItem{"old-header2", "old-value2"},
+										{Name: "old-header1", Value: "old-value1"},
+										{Name: "old-header2", Value: "old-value2"},
 									},
 								},
 							},
@@ -434,8 +434,8 @@ func TestAppend(t *testing.T) {
 								Contents: types.FileContents{
 									Source: "http://example.com/myfile.txt",
 									HTTPHeaders: []types.HTTPHeader{
-										[]types.HTTPHeaderItem{"new-header1", "new-value1"},
-										[]types.HTTPHeaderItem{"new-header2", "new-value2"},
+										{Name: "new-header1", Value: "new-value1"},
+										{Name: "new-header2", Value: "new-value2"},
 									},
 								},
 							},

@@ -135,7 +135,7 @@ func ReplaceConfigWithRemoteConfigHTTPUsingHeaders() types.Test {
 	    "config": {
 	      "replace": {
 			"source": "http://127.0.0.1:8080/config_headers",
-			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
 			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
 	      }
 	    }
@@ -171,7 +171,7 @@ func ReplaceConfigWithRemoteConfigHTTPReplaceOriginalHeaders() types.Test {
 	    "config": {
 	      "replace": {
 			"source": "http://127.0.0.1:8080/config_headers_replace",
-			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"], ["Accept", "text/html, application/json"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}, {"name": "Accept", "value": "text/html, application/json"}],
 			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
 	      }
 	    }
@@ -207,7 +207,7 @@ func ReplaceConfigWithRemoteConfigHTTPRedirectHeaders() types.Test {
 	    "config": {
 	      "replace": {
 			"source": "http://127.0.0.1:8080/config_headers_redirect",
-			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
 			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
 	      }
 	    }
@@ -379,7 +379,7 @@ func AppendConfigWithRemoteConfigHTTPUsingHeaders() types.Test {
 	    "config": {
 	      "append": [{
 			"source": "http://127.0.0.1:8080/config_headers",
-			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
 			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
 	      }]
 	    }
@@ -429,7 +429,7 @@ func AppendConfigWithRemoteConfigHTTPReplaceOriginalHeaders() types.Test {
 	    "config": {
 	      "append": [{
 			"source": "http://127.0.0.1:8080/config_headers_replace",
-			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"], ["Accept", "text/html, application/json"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}, {"name": "Accept", "value": "text/html, application/json"}],
 			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
 	      }]
 	    }
@@ -479,7 +479,7 @@ func AppendConfigWithRemoteConfigHTTPRedirectHeaders() types.Test {
 	    "config": {
 	      "append": [{
 			"source": "http://127.0.0.1:8080/config_headers_redirect",
-			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
 			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
 	      }]
 	    }
