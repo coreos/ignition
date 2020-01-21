@@ -83,9 +83,15 @@ type Fetcher struct {
 }
 
 type FetchOptions struct {
-	// Headers are the http headers that will be used when fetching http(s)
+	// Headers are the HTTP headers that will be used when fetching http(s)
 	// resources. They have no effect on other fetching schemes.
 	Headers http.Header
+
+	// HeadersRedirect are the HTTP headers that will be used in case of redirection
+	// when fetching http(s) resources. All other headers except these will be
+	// removed from the redirected request. They have no effect on other fetching
+	// schemes.
+	HeadersRedirect http.Header
 
 	// Hash is the hash to use when calculating a fetched resource's hash. If
 	// left as nil, no hash will be calculated.
@@ -227,6 +233,12 @@ func (f *Fetcher) FetchFromHTTP(u url.URL, dest *os.File, opts FetchOptions) err
 		if err := f.newHttpClient(); err != nil {
 			return err
 		}
+	}
+
+	// Set headers that we want to use in case of HTTP redirection
+	f.client.client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		req.Header = opts.HeadersRedirect
+		return nil
 	}
 
 	dataReader, status, ctxCancel, err := f.client.getReaderWithHeader(u.String(), opts.Headers)

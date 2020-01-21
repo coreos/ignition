@@ -38,6 +38,8 @@ func init() {
 
 	register.Register(register.NegativeTest, AppendConfigCustomCert())
 	register.Register(register.NegativeTest, FetchFileCustomCert())
+	register.Register(register.NegativeTest, AppendConfigCustomCertHTTP())
+	register.Register(register.NegativeTest, AppendConfigCustomCertInvalidHeaderHTTP())
 }
 
 var (
@@ -140,6 +142,79 @@ func FetchFileCustomCert() types.Test {
 		}
 	}`, customCAServer.URL)
 	configMinVersion := "2.1.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigCustomCertHTTP() types.Test {
+	name := "Fetch Certificate from Invalid Address"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"source": "http://127.0.0.1:8080/asdf"
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"filesystem": "root",
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, customCAServer.URL)
+	configMinVersion := "2.2.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigCustomCertInvalidHeaderHTTP() types.Test {
+	name := "Fetch Certificate with Invalid Header - HTTP"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"httpHeaders": [["X-Auth", "INVALID"], ["Keep-Alive", "300"]],
+						"source": "http://127.0.0.1:8080/certificates_headers"
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"filesystem": "root",
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, customCAServer.URL)
+	configMinVersion := "2.4.0-experimental"
 
 	return types.Test{
 		Name:             name,

@@ -23,7 +23,13 @@ func init() {
 	// TODO: Add S3 tests
 	register.Register(register.PositiveTest, ReformatFilesystemAndWriteFile())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTP())
+	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTPUsingHeaders())
+	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTPReplaceOriginalHeaders())
+	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTPRedirectHeaders())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTP())
+	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTPUsingHeaders())
+	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTPReplaceOriginalHeaders())
+	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTPRedirectHeaders())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigTFTP())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigTFTP())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigOEM())
@@ -100,6 +106,114 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	  }
 	}`
 	configMinVersion := "2.0.0"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ReplaceConfigWithRemoteConfigHTTPUsingHeaders() types.Test {
+	name := "Replacing the Config with a Remote Config from HTTP Using Headers"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "replace": {
+			"source": "http://127.0.0.1:8080/config_headers",
+			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
+	      }
+	    }
+	  }
+	}`
+	configMinVersion := "2.4.0-experimental"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ReplaceConfigWithRemoteConfigHTTPReplaceOriginalHeaders() types.Test {
+	name := "Replacing the Config with a Remote Config from HTTP Replacing Original Headers"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "replace": {
+			"source": "http://127.0.0.1:8080/config_headers_replace",
+			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"], ["Accept", "text/html, application/json"]],
+			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
+	      }
+	    }
+	  }
+	}`
+	configMinVersion := "2.4.0-experimental"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ReplaceConfigWithRemoteConfigHTTPRedirectHeaders() types.Test {
+	name := "Replacing the Config with a Remote Config from HTTP With Redirect"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "replace": {
+			"source": "http://127.0.0.1:8080/config_headers_redirect",
+			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
+	      }
+	    }
+	  }
+	}`
+	configMinVersion := "2.4.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -229,6 +343,156 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
       }
 	}`
 	configMinVersion := "2.0.0"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "bar2",
+				Directory: "foo",
+			},
+			Contents: "another example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigWithRemoteConfigHTTPUsingHeaders() types.Test {
+	name := "Appending to the Config with a Remote Config from HTTP Using Headers"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "append": [{
+			"source": "http://127.0.0.1:8080/config_headers",
+			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
+	      }]
+	    }
+	  },
+      "storage": {
+        "files": [{
+          "filesystem": "root",
+          "path": "/foo/bar2",
+          "contents": { "source": "data:,another%20example%20file%0A" }
+        }]
+      }
+	}`
+	configMinVersion := "2.4.0-experimental"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "bar2",
+				Directory: "foo",
+			},
+			Contents: "another example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigWithRemoteConfigHTTPReplaceOriginalHeaders() types.Test {
+	name := "Appending to the Config with a Remote Config from HTTP Replacing Original Headers"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "append": [{
+			"source": "http://127.0.0.1:8080/config_headers_replace",
+			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"], ["Accept", "text/html, application/json"]],
+			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
+	      }]
+	    }
+	  },
+      "storage": {
+        "files": [{
+          "filesystem": "root",
+          "path": "/foo/bar2",
+          "contents": { "source": "data:,another%20example%20file%0A" }
+        }]
+      }
+	}`
+	configMinVersion := "2.4.0-experimental"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "bar2",
+				Directory: "foo",
+			},
+			Contents: "another example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigWithRemoteConfigHTTPRedirectHeaders() types.Test {
+	name := "Appending to the Config with a Remote Config from HTTP With Redirect"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "append": [{
+			"source": "http://127.0.0.1:8080/config_headers_redirect",
+			"httpHeaders": [["X-Auth", "r8ewap98gfh4d8"], ["Keep-Alive", "300"]],
+			"verification": { "hash": "sha512-41d9a1593dd4cbcacc966dce574523ffe3780ec2710716fab28b46f0f24d20b5ec49f307a9e9d331af958e508f472f32135c740d1214c5f02fc36016b538e7ff" }
+	      }]
+	    }
+	  },
+      "storage": {
+        "files": [{
+          "filesystem": "root",
+          "path": "/foo/bar2",
+          "contents": { "source": "data:,another%20example%20file%0A" }
+        }]
+      }
+	}`
+	configMinVersion := "2.4.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

@@ -60,7 +60,7 @@ type HttpClient struct {
 	timeout time.Duration
 
 	transport *http.Transport
-	cas       map[types.CaReference][]byte
+	cas       map[string][]byte
 }
 
 func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.CaReference, proxy types.Proxy) error {
@@ -130,7 +130,7 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 }
 
 func (f *Fetcher) getCABlob(ca types.CaReference) ([]byte, error) {
-	if blob, ok := f.client.cas[ca]; ok {
+	if blob, ok := f.client.cas[ca.Source]; ok {
 		return blob, nil
 	}
 	u, err := url.Parse(ca.Source)
@@ -156,15 +156,24 @@ func (f *Fetcher) getCABlob(ca types.CaReference) ([]byte, error) {
 		}
 	}
 
+	var headers http.Header
+	if ca.HTTPHeaders != nil && len(ca.HTTPHeaders) > 0 {
+		headers, err = ca.HTTPHeaders.Parse()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	cablob, err := f.FetchToBuffer(*u, FetchOptions{
 		Hash:        hasher,
+		Headers:     headers,
 		ExpectedSum: expectedSum,
 	})
 	if err != nil {
 		f.Logger.Err("Unable to fetch CA (%s): %s", u, err)
 		return nil, err
 	}
-	f.client.cas[ca] = cablob
+	f.client.cas[ca.Source] = cablob
 	return cablob, nil
 
 }
@@ -177,6 +186,9 @@ func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.CaReference) error {
 		if err != nil {
 			return err
 		}
+
+		// Clean HTTP headers
+		cas[i].HTTPHeaders = nil
 
 		cas[i].Source = dataurl.EncodeBytes(blob)
 	}
@@ -223,7 +235,7 @@ func (f *Fetcher) newHttpClient() error {
 		logger:    f.Logger,
 		timeout:   time.Duration(defaultHttpTotalTimeout) * time.Second,
 		transport: defaultClient.Transport.(*http.Transport),
-		cas:       make(map[types.CaReference][]byte),
+		cas:       make(map[string][]byte),
 	}
 	return nil
 }

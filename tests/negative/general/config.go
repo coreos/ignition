@@ -23,9 +23,11 @@ func init() {
 	register.Register(register.NegativeTest, ReplaceConfigWithInvalidHash())
 	register.Register(register.NegativeTest, AppendConfigWithInvalidHash())
 	register.Register(register.NegativeTest, ReplaceConfigWithMissingFileHTTP())
+	register.Register(register.NegativeTest, ReplaceConfigWithInvalidHeaderHTTP())
 	register.Register(register.NegativeTest, ReplaceConfigWithMissingFileTFTP())
 	register.Register(register.NegativeTest, ReplaceConfigWithMissingFileOEM())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileHTTP())
+	register.Register(register.NegativeTest, AppendConfigWithInvalidHeaderHTTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileTFTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileOEM())
 	register.Register(register.NegativeTest, VersionOnlyConfig23())
@@ -131,6 +133,32 @@ func ReplaceConfigWithMissingFileHTTP() types.Test {
 	}
 }
 
+func ReplaceConfigWithInvalidHeaderHTTP() types.Test {
+	name := "Replace Config with Invalid Header - HTTP"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "replace": {
+			"httpHeaders": [["X-Auth", "INVALID"], ["Keep-Alive", "300"]],
+	        "source": "http://127.0.0.1:8080/config_headers"
+	      }
+	    }
+	  }
+	}`
+	configMinVersion := "2.4.0-experimental"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
 func ReplaceConfigWithMissingFileTFTP() types.Test {
 	name := "Replace Config with Missing File - TFTP"
 	in := types.GetBaseDisk()
@@ -196,6 +224,32 @@ func AppendConfigWithMissingFileHTTP() types.Test {
 	  }
 	}`
 	configMinVersion := "2.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigWithInvalidHeaderHTTP() types.Test {
+	name := "Append Config with Invalid Header - HTTP"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "append": [{
+			"httpHeaders": [["X-Auth", "INVALID"], ["Keep-Alive", "300"]],
+	        "source": "http://127.0.0.1:8080/config_headers"
+	      }]
+	    }
+	  }
+	}`
+	configMinVersion := "2.4.0-experimental"
 
 	return types.Test{
 		Name:             name,

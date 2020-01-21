@@ -14,7 +14,6 @@ Ignition will initially wait 100 milliseconds between failed attempts, and the a
 
 Ignition has support for fetching files over the S3 protocol. When Ignition is running in EC2, it supports using the IAM role given to the EC2 instance to fetch protected assets from S3. If IAM credentials are not successfully fetched, Ignition will attempt to fetch the file with no credentials.
 
-
 ## Filesystem-Reuse Semantics
 
 When a Container Linux machine first boots, it's possible that an earlier installation or other process has already provisioned the disks. The Ignition config can specify the intended filesystem for a given device, and there are three possibilities when Ignition runs:
@@ -103,3 +102,15 @@ Specifying `size` as 0 means the partition should span to the end of the largest
 ### Unspecified partition size
 If `size` is not specified and a partition with the same number exists, it will use the value of the existing partition, unless wipePartitionEntry is set.
 If `size` is not specified and there is no existing partition, or wipePartitionEntry is set, `size` act as if it were set to 0 and use the size of the largest block.
+
+## HTTP headers
+
+When fetching data from an HTTP URL for config references, CA references and file contents, additional headers can be attached to the request using the `httpHeaders` attribute. This allows downloading data from servers that require authentication or some additional parameters from your request.
+
+Headers can be attached only when `source` has `http` or `https` scheme.
+
+If multiple values are to be set for the same header, they must be separated by a comma. Example: `["Accept", "text/html, application/json"]`.
+
+If a specified header is one that Ignition sets by default, such as `Accept` or `User-Agent`, the specified value overrides Ignition's default.
+
+If the remote HTTP server returns a redirect status code (3xx), then additional headers are not included in the redirected request.

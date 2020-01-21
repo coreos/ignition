@@ -20,6 +20,7 @@ import (
 	"hash"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -88,6 +89,15 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 		}
 	}
 
+	var headers http.Header
+	if f.Contents.HTTPHeaders != nil && len(f.Contents.HTTPHeaders) > 0 {
+		headers, err = f.Contents.HTTPHeaders.Parse()
+		if err != nil {
+			l.Crit("error parsing http headers: %v", err)
+			return nil
+		}
+	}
+
 	return &FetchOp{
 		Path:      f.Path,
 		Hash:      hasher,
@@ -100,6 +110,7 @@ func (u Util) PrepareFetch(l *log.Logger, f types.File) *FetchOp {
 			Hash:        hasher,
 			Compression: f.Contents.Compression,
 			ExpectedSum: expectedSum,
+			Headers:     headers,
 		},
 	}
 }
