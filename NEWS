@@ -1,3 +1,15 @@
+21-Jan-2020 IGNITION v0.35.0
+
+  Changes:
+
+    - Mark the 2.4.0 config spec as stable
+    - No longer accept configs with version 2.4.0-experimental
+    - Create new 2.5.0-experimental config spec from 2.4.0
+
+  Features:
+
+    - Allow specifying HTTP headers when fetching remote resources
+
 11-Dec-2019 IGNITION v0.34.0
 
   Bug Fixes:
