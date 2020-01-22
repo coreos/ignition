@@ -30,19 +30,22 @@
       }
     },
     "httpHeaders": {
-      "type" : "object",
-      "properties" : {
-        "name": {
-          "type": "string"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
         },
-        "value": {
-          "type": "string"
-        }
-      },
-      "required": [
-          "name",
-          "value"
-      ]
+        "required": [
+            "name",
+            "value"
+        ]
+      }
     },
     "ignition": {
       "type": "object",
