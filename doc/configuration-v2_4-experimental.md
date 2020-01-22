@@ -9,14 +9,14 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_config_** (objects): options related to the configuration.
     * **_append_** (list of objects): a list of the configs to be appended to the current config.
       * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
-      * **httpHeaders** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
+      * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
         * **name** (string): the header name.
         * **value** (string): the header contents.
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_replace_** (object): the config that will replace the current.
       * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
-      * **httpHeaders** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
+      * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
         * **name** (string): the header name.
         * **value** (string): the header contents.
       * **_verification_** (object): options related to the verification of the config.
@@ -28,7 +28,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_tls_** (object): options relating to TLS when fetching resources over `https`.
       * **_certificateAuthorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`.
         * **source** (string): the URL of the certificate (in PEM format). Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
-        * **httpHeaders** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
+        * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
           * **name** (string): the header name.
           * **value** (string): the header contents.
         * **_verification_** (object): options related to the verification of the certificate.
@@ -36,7 +36,7 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_proxy_** (object): options relating to setting an `HTTP(S)` proxy when fetching resources.
     * **_httpProxy_** (string): will be used as the proxy URL for HTTP requests and HTTPS requests unless overridden by `httpsProxy` or `noProxy`.
     * **_httpsProxy_** (string): will be used as the proxy URL for HTTPS requests unless overridden by `noProxy`.
-    * **noProxy** (list of strings): specifies a list of strings to hosts that should be excluded from proxying. Each value is represented by an `IP address prefix (1.2.3.4)`, `an IP address prefix in CIDR notation (1.2.3.4/8)`, `a domain name`, or `a special DNS label (*)`. An IP address prefix and domain name can also include a literal port number `(1.2.3.4:80)`. A domain name matches that name and all subdomains. A domain name with a leading `.` matches subdomains only. For example `foo.com` matches `foo.com` and `bar.foo.com`; `.y.com` matches `x.y.com` but not `y.com`. A single asterisk `(*)` indicates that no proxying should be done.
+    * **_noProxy_** (list of strings): specifies a list of strings to hosts that should be excluded from proxying. Each value is represented by an `IP address prefix (1.2.3.4)`, `an IP address prefix in CIDR notation (1.2.3.4/8)`, `a domain name`, or `a special DNS label (*)`. An IP address prefix and domain name can also include a literal port number `(1.2.3.4:80)`. A domain name matches that name and all subdomains. A domain name with a leading `.` matches subdomains only. For example `foo.com` matches `foo.com` and `bar.foo.com`; `.y.com` matches `x.y.com` but not `y.com`. A single asterisk `(*)` indicates that no proxying should be done.
 * **_storage_** (object): describes the desired state of the system's storage devices.
   * **_disks_** (list of objects): the list of disks to be configured and their options.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
@@ -79,7 +79,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_contents_** (object): options related to the contents of the file.
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
       * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
-      * **httpHeaders** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
+      * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
         * **name** (string): the header name.
         * **value** (string): the header contents.
       * **_verification_** (object): options related to the verification of the file contents.
