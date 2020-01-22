@@ -214,7 +214,7 @@ func AppendConfigCustomCertInvalidHeaderHTTP() types.Test {
 			}]
 		}
 	}`, customCAServer.URL)
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 
 	return types.Test{
 		Name:             name,

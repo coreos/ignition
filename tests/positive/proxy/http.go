@@ -31,7 +31,7 @@ var (
 	mockConfigURL = "http://www.fake.tld"
 
 	ignConfig = `{
-		"ignition": { "version": "2.4.0-experimental" },
+		"ignition": { "version": "2.4.0" },
 		"storage": {
 			"files": [{
 				"filesystem": "root",
@@ -75,7 +75,7 @@ func CanUseProxyForRetrievingConfig() types.Test {
 			Contents: "example file proxy\n",
 		},
 	})
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 
 	return types.Test{
 		Name:             name,
@@ -114,7 +114,7 @@ func CanUseNoProxyForRetrievingConfig() types.Test {
 			Contents: "example file\n",
 		},
 	})
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 
 	return types.Test{
 		Name:             name,

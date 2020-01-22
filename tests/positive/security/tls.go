@@ -252,7 +252,7 @@ func FetchFileCustomCertHTTPUsingHeaders() types.Test {
 			}]
 		}
 	}`, customCAServer.URL)
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
@@ -299,7 +299,7 @@ func FetchFileCustomCertHTTPRedirectHeaders() types.Test {
 			}]
 		}
 	}`, customCAServer.URL)
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
