@@ -1,4 +1,4 @@
-// Copyright 2018 CoreOS, Inc.
+// Copyright 2017 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,9 +15,23 @@
 package types
 
 import (
-	currentExperimental "github.com/coreos/ignition/config/v2_5_experimental/types"
+	"github.com/coreos/ignition/config/shared/errors"
+	"github.com/coreos/ignition/config/validate/report"
 )
 
-var (
-	MaxVersion = currentExperimental.MaxVersion
-)
+func (d Directory) ValidateMode() report.Report {
+	r := report.Report{}
+	if err := validateMode(d.Mode); err != nil {
+		r.Add(report.Entry{
+			Message: err.Error(),
+			Kind:    report.EntryError,
+		})
+	}
+	if d.Mode == nil {
+		r.Add(report.Entry{
+			Message: errors.ErrPermissionsUnset.Error(),
+			Kind:    report.EntryWarning,
+		})
+	}
+	return r
+}

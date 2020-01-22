@@ -30,9 +30,9 @@ func init() {
 	register.Register(register.NegativeTest, AppendConfigWithInvalidHeaderHTTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileTFTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileOEM())
-	register.Register(register.NegativeTest, VersionOnlyConfig23())
 	register.Register(register.NegativeTest, VersionOnlyConfig24())
 	register.Register(register.NegativeTest, VersionOnlyConfig25())
+	register.Register(register.NegativeTest, VersionOnlyConfig26())
 }
 
 func ReplaceConfigWithInvalidHash() types.Test {
@@ -148,7 +148,7 @@ func ReplaceConfigWithInvalidHeaderHTTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 
 	return types.Test{
 		Name:             name,
@@ -249,7 +249,7 @@ func AppendConfigWithInvalidHeaderHTTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 
 	return types.Test{
 		Name:             name,
@@ -310,32 +310,13 @@ func AppendConfigWithMissingFileOEM() types.Test {
 	}
 }
 
-func VersionOnlyConfig23() types.Test {
-	name := "Version Only Config 2.3.0-experimental"
-	in := types.GetBaseDisk()
-	out := in
-	config := `{
-	  "ignition": {
-	    "version": "2.3.0-experimental"
-	  }
-	}`
-
-	return types.Test{
-		Name:              name,
-		In:                in,
-		Out:               out,
-		Config:            config,
-		ConfigShouldBeBad: true,
-	}
-}
-
 func VersionOnlyConfig24() types.Test {
-	name := "Version Only Config 2.4.0"
+	name := "Version Only Config 2.4.0-experimental"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.4.0"
+	    "version": "2.4.0-experimental"
 	  }
 	}`
 
@@ -349,12 +330,31 @@ func VersionOnlyConfig24() types.Test {
 }
 
 func VersionOnlyConfig25() types.Test {
-	name := "Version Only Config 2.5.0-experimental"
+	name := "Version Only Config 2.5.0"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "2.5.0-experimental"
+	    "version": "2.5.0"
+	  }
+	}`
+
+	return types.Test{
+		Name:              name,
+		In:                in,
+		Out:               out,
+		Config:            config,
+		ConfigShouldBeBad: true,
+	}
+}
+
+func VersionOnlyConfig26() types.Test {
+	name := "Version Only Config 2.6.0-experimental"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "2.6.0-experimental"
 	  }
 	}`
 

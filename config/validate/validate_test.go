@@ -29,7 +29,7 @@ import (
 	"github.com/coreos/ignition/config/validate/astjson"
 	"github.com/coreos/ignition/config/validate/report"
 	// Import into the same namespace to keep config definitions clean
-	. "github.com/coreos/ignition/config/v2_4_experimental/types"
+	. "github.com/coreos/ignition/config/v2_5_experimental/types"
 )
 
 func TestValidate(t *testing.T) {
@@ -58,7 +58,7 @@ func TestValidate(t *testing.T) {
 			out: out{err: errors.ErrInvalidVersion},
 		},
 		{
-			in:  in{cfg: Config{Ignition: Ignition{Version: "2.4.0"}}},
+			in:  in{cfg: Config{Ignition: Ignition{Version: "2.5.0"}}},
 			out: out{err: errors.ErrNewVersion},
 		},
 		{

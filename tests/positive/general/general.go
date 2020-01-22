@@ -141,7 +141,7 @@ func ReplaceConfigWithRemoteConfigHTTPUsingHeaders() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -177,7 +177,7 @@ func ReplaceConfigWithRemoteConfigHTTPReplaceOriginalHeaders() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -213,7 +213,7 @@ func ReplaceConfigWithRemoteConfigHTTPRedirectHeaders() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -392,7 +392,7 @@ func AppendConfigWithRemoteConfigHTTPUsingHeaders() types.Test {
         }]
       }
 	}`
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -442,7 +442,7 @@ func AppendConfigWithRemoteConfigHTTPReplaceOriginalHeaders() types.Test {
         }]
       }
 	}`
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -492,7 +492,7 @@ func AppendConfigWithRemoteConfigHTTPRedirectHeaders() types.Test {
         }]
       }
 	}`
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

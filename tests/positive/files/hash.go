@@ -126,7 +126,7 @@ func ValidateFileHashFromHTTPURLUsingHeaders() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "2.4.0-experimental"
+	configMinVersion := "2.4.0"
 
 	return types.Test{
 		Name:             name,

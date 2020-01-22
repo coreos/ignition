@@ -2,6 +2,79 @@
 
 Occasionally, there are changes made to Ignition's configuration that break backward compatibility. While this is not a concern for running machines (since Ignition only runs one time during first boot), it is a concern for those who maintain configuration files. This document serves to detail each of the breaking changes and tries to provide some reasoning for the change. This does not cover all of the changes to the spec - just those that need to be considered when migrating from one version to the next.
 
+## From Version 2.3.0 to 2.4.0
+
+There are not any breaking changes between versions 2.3.0 and 2.4.0 of the configuration specification. Any valid 2.3.0 configuration can be updated to a 2.4.0 configuration by simply changing the version string in the config.
+
+The following is a list of notable new features, deprecations, and changes.
+
+### Custom HTTP headers
+
+The sections which allow fetching a remote URL &mdash; config `append` and `replace`, `certificateAuthorities`, and `files` &mdash; gained a new field called `httpHeaders`. This field can be set to an array of HTTP headers which will be added to an HTTP or HTTPS request. Custom headers can override Ignition's default headers, and will not be retained across HTTP redirects.
+
+```json ignition
+{
+  "ignition": { "version": "2.4.0" },
+  "storage": {
+    "files": [{
+      "filesystem": "root",
+      "path": "/etc/hosts",
+      "mode": 420,
+      "contents": {
+        "source": "https://example.com/etc/hosts",
+        "httpHeaders": [
+          {
+            "name": "Authorization",
+            "value": "Basic YWxhZGRpbjpvcGVuc2VzYW1l"
+          },
+          {
+            "name": "User-Agent",
+            "value": "Mozilla/5.0 (compatible; MSIE 6.0; Windows NT 5.1)"
+          }
+        ]
+      }
+    }]
+  }
+}
+```
+
+### HTTP proxies
+
+The `ignition` section gained a new field called `proxy`. It allows configuring proxies for HTTP and HTTPS requests, as well as exempting certain hosts from proxying.
+
+The `httpsProxy` field specifies the proxy URL for HTTPS requests. The `httpProxy` field specifies the proxy URL for HTTP requests, and also for HTTPS requests if `httpsProxy` is not specified. The `noProxy` field lists specifiers of hosts that should not be proxied, in any of several formats:
+
+- An IP address prefix (`1.2.3.4`)
+- An IP address prefix in CIDR notation (`1.2.3.4/8`)
+- A domain name, matching the domain and its subdomains (`example.com`)
+- A domain name, matching subdomains only (`.example.com`)
+- A wildcard matching all hosts (`*`)
+
+IP addresses and domain names can also include a port number (`1.2.3.4:80`).
+
+```json ignition
+{
+  "ignition": {
+    "version": "2.4.0",
+    "proxy": {
+      "httpProxy": "https://proxy.example.net/",
+      "httpsProxy": "https://secure.proxy.example.net/",
+      "noProxy": ["www.example.net"]
+    }
+  },
+  "storage": {
+    "files": [{
+      "filesystem": "root",
+      "path": "/etc/hosts",
+      "mode": 420,
+      "contents": {
+        "source": "https://example.com/etc/hosts"
+      }
+    }]
+  }
+}
+```
+
 ## From Version 2.2.0 to 2.3.0
 
 There are not any breaking changes between versions 2.2.0 and versions 2.3.0 of the configuration specification. Any valid 2.2.0 configuration can be updated to a 2.3.0 configuration by simply changing the version string in the config.

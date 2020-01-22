@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package v2_4
 
 import (
-	from "github.com/coreos/ignition/config/v2_5_experimental/types"
-	"github.com/coreos/ignition/internal/config/types"
+	from "github.com/coreos/ignition/config/v2_3/types"
+	"github.com/coreos/ignition/config/v2_4/types"
 )
 
 func intToPtr(x int) *int {
@@ -35,16 +35,6 @@ func boolToPtr(b bool) *bool {
 }
 
 func Translate(old from.Config) types.Config {
-	translateHTTPHeaderSlice := func(old []from.HTTPHeader) []types.HTTPHeader {
-		var res []types.HTTPHeader
-		for _, x := range old {
-			res = append(res, types.HTTPHeader{
-				Name:  x.Name,
-				Value: x.Value,
-			})
-		}
-		return res
-	}
 	translateConfigReference := func(old *from.ConfigReference) *types.ConfigReference {
 		if old == nil {
 			return nil
@@ -54,7 +44,6 @@ func Translate(old from.Config) types.Config {
 			Verification: types.Verification{
 				Hash: old.Verification.Hash,
 			},
-			HTTPHeaders: translateHTTPHeaderSlice(old.HTTPHeaders),
 		}
 	}
 	translateConfigReferenceSlice := func(old []from.ConfigReference) []types.ConfigReference {
@@ -72,15 +61,7 @@ func Translate(old from.Config) types.Config {
 				Verification: types.Verification{
 					Hash: x.Verification.Hash,
 				},
-				HTTPHeaders: translateHTTPHeaderSlice(x.HTTPHeaders),
 			})
-		}
-		return res
-	}
-	translateNoProxySlice := func(old []from.NoProxyItem) []types.NoProxyItem {
-		var res []types.NoProxyItem
-		for _, x := range old {
-			res = append(res, types.NoProxyItem(x))
 		}
 		return res
 	}
@@ -257,7 +238,6 @@ func Translate(old from.Config) types.Config {
 						Verification: types.Verification{
 							Hash: x.Contents.Verification.Hash,
 						},
-						HTTPHeaders: translateHTTPHeaderSlice(x.Contents.HTTPHeaders),
 					},
 					Mode:   x.Mode,
 					Append: x.Append,
@@ -380,7 +360,7 @@ func Translate(old from.Config) types.Config {
 	}
 	config := types.Config{
 		Ignition: types.Ignition{
-			Version: from.MaxVersion.String(),
+			Version: types.MaxVersion.String(),
 			Timeouts: types.Timeouts{
 				HTTPResponseHeaders: old.Ignition.Timeouts.HTTPResponseHeaders,
 				HTTPTotal:           old.Ignition.Timeouts.HTTPTotal,
@@ -393,11 +373,6 @@ func Translate(old from.Config) types.Config {
 				TLS: types.TLS{
 					CertificateAuthorities: translateCertificateAuthoritySlice(old.Ignition.Security.TLS.CertificateAuthorities),
 				},
-			},
-			Proxy: types.Proxy{
-				HTTPProxy:  old.Ignition.Proxy.HTTPProxy,
-				HTTPSProxy: old.Ignition.Proxy.HTTPSProxy,
-				NoProxy:    translateNoProxySlice(old.Ignition.Proxy.NoProxy),
 			},
 		},
 		Networkd: types.Networkd{
