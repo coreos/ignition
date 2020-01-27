@@ -9,4 +9,3 @@ install: all
 	  install -D -t $(DESTDIR)/usr/lib/dracut/modules.d/$${bn} $$x/*; \
 	done
 	install -D -t $(DESTDIR)/usr/lib/systemd/system systemd/*
-	install -D -t $(DESTDIR)/etc/grub.d grub/*
