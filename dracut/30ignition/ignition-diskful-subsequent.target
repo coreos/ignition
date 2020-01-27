@@ -1,0 +1,12 @@
+# This target is a combination of ignition-subsequent.target and
+# ignition-diskful.target - units here should only run when we have a
+# boot disk and *aren't* doing the first boot.
+[Unit]
+Description=Ignition Subsequent Boot Disk Setup
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+Before=ignition-subsequent.target
+
+# Make sure we stop all the units before switching root
+Conflicts=initrd-switch-root.target umount.target
+Conflicts=dracut-emergency.service emergency.service emergency.target

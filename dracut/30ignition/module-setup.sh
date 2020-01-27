@@ -59,13 +59,10 @@ install() {
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
 
-    inst_simple "$moddir/ignition-complete.target" \
-        "$systemdsystemunitdir/ignition-complete.target"
-    inst_simple "$moddir/ignition-subsequent.target" \
-        "$systemdsystemunitdir/ignition-subsequent.target"
-
-    inst_simple "$moddir/ignition-diskful.target" \
-        "$systemdsystemunitdir/ignition-diskful.target"
+    for x in "complete" "subsequent" "diskful" "diskful-subsequent"; do
+        inst_simple "$moddir/ignition-$x.target" \
+            "$systemdsystemunitdir/ignition-$x.target"
+    done
 
     install_ignition_unit ignition-setup-base.service
     install_ignition_unit ignition-setup-user.service
