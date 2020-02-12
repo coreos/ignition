@@ -24,6 +24,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/azure"
 	"github.com/coreos/ignition/v2/internal/providers/cloudstack"
 	"github.com/coreos/ignition/v2/internal/providers/digitalocean"
+	"github.com/coreos/ignition/v2/internal/providers/exoscale"
 	"github.com/coreos/ignition/v2/internal/providers/file"
 	"github.com/coreos/ignition/v2/internal/providers/gcp"
 	"github.com/coreos/ignition/v2/internal/providers/ibmcloud"
@@ -96,6 +97,10 @@ func init() {
 	configs.Register(Config{
 		name:  "brightbox",
 		fetch: openstack.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "exoscale",
+		fetch: exoscale.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "openstack",
