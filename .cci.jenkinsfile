@@ -1,0 +1,6 @@
+// Documentation: https://github.com/coreos/coreos-ci/blob/master/README-upstream-ci.md
+
+cosaPod {
+    checkout scm
+    fcosBuild(make: true)
+}
