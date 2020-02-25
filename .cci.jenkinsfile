@@ -1,30 +1,11 @@
-@Library('github.com/coreos/coreos-ci-lib@master') _
+// Documentation: https://github.com/coreos/coreos-ci/blob/master/README-upstream-ci.md
 
-coreos.pod([image: 'registry.svc.ci.openshift.org/coreos/cosa-buildroot:latest', kvm: true, memory: "9Gi"]) {
+cosaPod(buildroot: true) {
     checkout scm
 
-    stage("Build") {
-        coreos.shwrap("""
-        mkdir cache fcos
-        (cd fcos && coreos-assembler init https://github.com/coreos/fedora-coreos-config)
-        XDG_CACHE_HOME=$PWD/cache make install DESTDIR=fcos/overrides/rootfs
-        """)
-    }
-
-    stage("Build FCOS") {
-        coreos.shwrap("""
-        cd fcos && coreos-assembler build
-        """)
-    }
-
-    stage("Kola") {
-        try {
-            coreos.shwrap("cd fcos && cosa kola run --parallel 8")
-        } finally {
-            coreos.shwrap("tar -c -C fcos/tmp kola | xz -c9 > ${env.WORKSPACE}/kola.tar.xz")
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'kola.tar.xz'
-        }
-        // sanity check kola actually ran and dumped its output in tmp/
-        coreos.shwrap("test -d fcos/tmp/kola")
+    // hack to satisfy golang compiler wanting to cache things
+    shwrap("mkdir cache")
+    withEnv(["XDG_CACHE_HOME=${env.WORKSPACE}/cache"]) {
+        fcosBuild(make: true)
     }
 }
