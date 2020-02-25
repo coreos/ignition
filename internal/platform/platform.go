@@ -83,8 +83,17 @@ func init() {
 		fetch: aliyun.FetchConfig,
 	})
 	configs.Register(Config{
+		name:       "aws",
+		fetch:      aws.FetchConfig,
+		newFetcher: aws.NewFetcher,
+	})
+	configs.Register(Config{
 		name:  "azure",
 		fetch: azure.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "brightbox",
+		fetch: openstack.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "cloudstack",
@@ -95,30 +104,37 @@ func init() {
 		fetch: digitalocean.FetchConfig,
 	})
 	configs.Register(Config{
-		name:  "brightbox",
-		fetch: openstack.FetchConfig,
-	})
-	configs.Register(Config{
 		name:  "exoscale",
 		fetch: exoscale.FetchConfig,
 	})
 	configs.Register(Config{
-		name:  "openstack",
-		fetch: openstack.FetchConfig,
-	})
-	configs.Register(Config{
-		name:       "aws",
-		fetch:      aws.FetchConfig,
-		newFetcher: aws.NewFetcher,
+		name:  "file",
+		fetch: file.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "gcp",
 		fetch: gcp.FetchConfig,
 	})
 	configs.Register(Config{
+		name:  "ibmcloud",
+		fetch: ibmcloud.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "metal",
+		fetch: noop.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "openstack",
+		fetch: openstack.FetchConfig,
+	})
+	configs.Register(Config{
 		name:   "packet",
 		fetch:  packet.FetchConfig,
 		status: packet.PostStatus,
+	})
+	configs.Register(Config{
+		name:  "qemu",
+		fetch: qemu.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "virtualbox",
@@ -129,28 +145,12 @@ func init() {
 		fetch: vmware.FetchConfig,
 	})
 	configs.Register(Config{
-		name:  "qemu",
-		fetch: qemu.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "file",
-		fetch: file.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "metal",
-		fetch: noop.FetchConfig,
-	})
-	configs.Register(Config{
 		name:  "vultr",
 		fetch: vultr.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "zvm",
 		fetch: zvm.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "ibmcloud",
-		fetch: ibmcloud.FetchConfig,
 	})
 }
 
