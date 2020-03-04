@@ -136,13 +136,13 @@ func DumpDisk(device string) (DiskInfo, error) {
 		return DiskInfo{}, err
 	}
 
-	numParts := 0
+	numParts := C.int(0)
 	cNumPartsRef := (*C.int)(unsafe.Pointer(&numParts))
 	if err := cResultToErr(C.blkid_get_num_partitions(cDevice, cNumPartsRef), device); err != nil {
 		return DiskInfo{}, err
 	}
 
-	for i := 0; i < numParts; i++ {
+	for i := 0; i < int(numParts); i++ {
 		if err := cResultToErr(C.blkid_get_partition(cDevice, C.int(i), cInfoRef), device); err != nil {
 			return DiskInfo{}, err
 		}
