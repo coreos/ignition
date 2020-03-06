@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The QEMU provider fetches a local configuration from the firmware config
-// interface (opt/com.coreos/config).
+// +build amd64 arm64
+
+// The QEMU provider on amd64 and arm64 fetches a local configuration from the
+// firmware config interface (opt/com.coreos/config).
 
 package qemu
 
