@@ -4,6 +4,32 @@
 
 set -euo pipefail
 
+
+# Propagate initramfs networking if desired. The policy here is:
+#
+#    - If a networking configuration was provided before this point
+#      (most likely via Ignition) and exists in the real root then
+#      we do nothing and don't propagate any initramfs networking.
+#    - If a user did not provide any networking configuration
+#      then we'll propagate the initramfs networking configuration
+#      into the real root.
+#
+# See https://github.com/coreos/fedora-coreos-tracker/issues/394#issuecomment-599721173
+propagate_initramfs_networking() {
+    if [ -n "$(ls -A /sysroot/etc/NetworkManager/system-connections/)" ]; then
+        echo "info: networking config is defined in the real root"
+        echo "info: will not attempt to propagate initramfs networking"
+    else
+        echo "info: no networking config is defined in the real root"
+        if [ -n "$(ls -A /run/NetworkManager/system-connections/)" ]; then
+            echo "info: propagating initramfs networking config to the real root"
+            cp /run/NetworkManager/system-connections/* /sysroot/etc/NetworkManager/system-connections/
+        else
+            echo "info: no initramfs networking information to propagate"
+        fi
+    fi
+}
+
 down_interface() {
     echo "info: taking down network device: $1"
     ip link set $1 down
@@ -44,6 +70,8 @@ main() {
     down_bonds
     # Clean up the interfaces set up in the initramfs
     down_interfaces
+    # Propagate initramfs networking if needed
+    propagate_initramfs_networking
 }
 
 main
