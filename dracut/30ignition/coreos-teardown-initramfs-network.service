@@ -1,0 +1,21 @@
+# Clean up the initramfs networking on first boot
+# so the real network is being brought up
+# https://github.com/coreos/fedora-coreos-tracker/issues/394#issuecomment-599721763
+
+[Unit]
+Description=Tear down initramfs networking
+DefaultDependencies=false
+After=ignition-files.service
+
+# Make sure ExecStop= runs before we switch root
+Conflicts=initrd-switch-root.target umount.target
+Before=initrd-switch-root.target
+
+# Make sure if ExecStart= fails, the boot fails
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStop=/usr/sbin/coreos-teardown-initramfs-network

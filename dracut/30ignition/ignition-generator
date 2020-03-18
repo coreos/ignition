@@ -39,6 +39,10 @@ add_requires() {
 if $(cmdline_bool 'ignition.firstboot' 0); then
     add_requires ignition-complete.target initrd.target
 
+    # For consistency tear down the network between the initramfs and
+    # real root. See https://github.com/coreos/fedora-coreos-tracker/issues/394#issuecomment-599721763
+    add_requires coreos-teardown-initramfs-network.service ignition-complete.target
+
     # Invoke distro hook for detecting whether we're booted from a live image,
     # and therefore won't have a root disk.
     if ! command -v is-live-image >/dev/null || ! is-live-image; then
