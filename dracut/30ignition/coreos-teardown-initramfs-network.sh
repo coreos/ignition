@@ -36,6 +36,12 @@ down_interface() {
     ip addr flush dev $1
 }
 
+down_teams() {
+    # We think since teaming is mostly achieved in userspace (with a
+    # daemon) we don't think there is anything to do here because the
+    # daemon will get taken down before the switch to the real root.
+}
+
 down_bonds() {
     if [ -f "/sys/class/net/bonding_masters" ]; then
         bonds="$(cat /sys/class/net/bonding_masters)"
@@ -65,9 +71,10 @@ down_interfaces() {
 }
 
 main() {
-    # We want to take down the bonded interfaces first
+    # We want to take down the bonds/teams first and then clean
+    # up interfaces set up in the ininitramfs
     down_bonds
-    # Clean up the interfaces set up in the initramfs
+    down_teams
     down_interfaces
     # Propagate initramfs networking if needed
     propagate_initramfs_networking
