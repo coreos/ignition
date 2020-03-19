@@ -76,8 +76,15 @@ main() {
     down_bonds
     down_teams
     down_interfaces
+
+    # Clean up all routing
+    echo "info: flushing all routing"
+    ip route flush table main
+    ip route flush cache
+
     # Propagate initramfs networking if needed
     propagate_initramfs_networking
+
     # Now that the configuration has been propagated (or not)
     # clean it up so that no information from outside of the
     # real root is passed on to NetworkManager in the real root
