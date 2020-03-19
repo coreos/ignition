@@ -34,7 +34,6 @@ down_interface() {
     echo "info: taking down network device: $1"
     ip link set $1 down
     ip addr flush dev $1
-    rm -f -- /tmp/net.$1.did-setup
 }
 
 down_bonds() {
@@ -72,6 +71,10 @@ main() {
     down_interfaces
     # Propagate initramfs networking if needed
     propagate_initramfs_networking
+    # Now that the configuration has been propagated (or not)
+    # clean it up so that no information from outside of the
+    # real root is passed on to NetworkManager in the real root
+    rm -rf /run/NetworkManager/
 }
 
 main
