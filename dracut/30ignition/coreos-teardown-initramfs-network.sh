@@ -32,27 +32,19 @@ propagate_initramfs_networking() {
 
 down_interface() {
     echo "info: taking down network device: $1"
-    ip link set $1 down
-    ip addr flush dev $1
-}
-
-down_teams() {
-    # We think since teaming is mostly achieved in userspace (with a
-    # daemon) we don't think there is anything to do here because the
-    # daemon will get taken down before the switch to the real root.
-}
-
-down_bonds() {
-    if [ -f "/sys/class/net/bonding_masters" ]; then
-        bonds="$(cat /sys/class/net/bonding_masters)"
-        for b in ${bonds[@]}; do
-            down_interface ${b}
-            echo -"${b}" > /sys/class/net/bonding_masters
-         done
+    # On recommendation from the NM team let's try to delete the device
+    # first and if that doesn't work then set it to down and flush any
+    # associated addresses. Deleting virtual devices (bonds, teams, bridges,
+    # ip-tunnels, etc) will clean up any associated kernel resources. A real
+    # device can't be deleted so that will fail and we'll fallback to setting
+    # it down and flushing addresses.
+    if ! ip link delete $1; then
+        ip link set $1 down
+        ip addr flush dev $1
     fi
 }
 
-# This mimics the behaviour of dracut's ifdown() in net-lib.sh
+# Iterate through the interfaces in the machine and take them down.
 # Note that in the futre we would like to possibly use `nmcli` networking off`
 # for this. See the following two comments for details:
 # https://github.com/coreos/fedora-coreos-tracker/issues/394#issuecomment-599721763
@@ -62,8 +54,7 @@ down_interfaces() {
         for f in /sys/class/net/*; do
             interface=$(basename "$f")
             # The `bonding_masters` entry is not a true interface and thus
-            # cannot be taken down.  If they existed, the bonded interfaces
-            # were taken down earlier in this script.
+            # cannot be taken down.
             if [ "$interface" == "bonding_masters" ]; then continue; fi
             down_interface $interface
         done
@@ -71,10 +62,7 @@ down_interfaces() {
 }
 
 main() {
-    # We want to take down the bonds/teams first and then clean
-    # up interfaces set up in the ininitramfs
-    down_bonds
-    down_teams
+    # Take down all interfaces set up in the initramfs
     down_interfaces
 
     # Clean up all routing
