@@ -110,8 +110,8 @@ func (ut Util) MaskUnit(unit types.Unit) (string, error) {
 	return filepath.Join("/", SystemdUnitsPath(), unit.Name), nil
 }
 
-func (ut Util) EnableUnit(unit types.Unit) error {
-	return ut.appendLineToPreset(fmt.Sprintf("enable %s", unit.Name))
+func (ut Util) EnableUnit(enabledUnit string) error {
+	return ut.appendLineToPreset(fmt.Sprintf("enable %s", enabledUnit))
 }
 
 // presets link in /etc, which doesn't make sense for runtime units
@@ -145,8 +145,8 @@ func (ut Util) EnableRuntimeUnit(unit types.Unit, target string) error {
 	return ut.WriteLink(link)
 }
 
-func (ut Util) DisableUnit(unit types.Unit) error {
-	return ut.appendLineToPreset(fmt.Sprintf("disable %s", unit.Name))
+func (ut Util) DisableUnit(disabledUnit string) error {
+	return ut.appendLineToPreset(fmt.Sprintf("disable %s", disabledUnit))
 }
 
 func (ut Util) appendLineToPreset(data string) error {

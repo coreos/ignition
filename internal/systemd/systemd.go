@@ -16,6 +16,8 @@ package systemd
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 
 	"github.com/coreos/go-systemd/dbus"
 	"github.com/coreos/go-systemd/unit"
@@ -47,4 +49,28 @@ func WaitOnDevices(devs []string, stage string) error {
 	}
 
 	return nil
+}
+
+// GetSystemdVersion fetches the version of Systemd
+// in a given system.
+func GetSystemdVersion() (uint, error) {
+	conn, err := dbus.NewSystemdConnection()
+	if err != nil {
+		return 0, err
+	}
+	version, err := conn.GetManagerProperty("Version")
+	if err != nil {
+		return 0, err
+	}
+	// Handle different systemd versioning schemes that are being returned.
+	// for e.g:
+	// - Fedora 31: `"v243.5-1.fc31"`
+	// - RHEL 8: `"239"`
+	re := regexp.MustCompile(`\d+`)
+	systemdVersion := re.FindString(version)
+	value, err := strconv.Atoi(systemdVersion)
+	if err != nil {
+		return 0, err
+	}
+	return uint(value), nil
 }

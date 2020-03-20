@@ -74,6 +74,8 @@ var (
 	// Systemd section errors
 	ErrInvalidSystemdExt       = errors.New("invalid systemd unit extension")
 	ErrInvalidSystemdDropinExt = errors.New("invalid systemd drop-in extension")
+	ErrNoSystemdExt            = errors.New("no systemd unit extension")
+	ErrInvalidInstantiatedUnit = errors.New("invalid systemd instantiated unit")
 
 	// Misc errors
 	ErrInvalidScheme       = errors.New("invalid url scheme")

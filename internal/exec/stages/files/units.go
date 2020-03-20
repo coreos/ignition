@@ -19,35 +19,72 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
+	"github.com/coreos/ignition/v2/internal/systemd"
 )
+
+// Preset holds the information about
+// a given systemd unit.
+type Preset struct {
+	unit           string
+	enabled        bool
+	instantiatable bool
+	instances      []string
+}
+
+// warnOnOldSystemdVersion checks the version of Systemd
+// in a given system and prints a warning if older than 240.
+func (s *stage) warnOnOldSystemdVersion() error {
+	systemdVersion, err := systemd.GetSystemdVersion()
+	if err != nil {
+		return err
+	}
+	if systemdVersion < 240 {
+		if err := s.Logger.Warning("The version of systemd (%q) is less than 240. Enabling/disabling instantiated units may not work. See https://github.com/coreos/ignition/issues/586 for more information.", systemdVersion); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // createUnits creates the units listed under systemd.units.
 func (s *stage) createUnits(config types.Config) error {
-	enabledOneUnit := false
+	presets := make(map[string]*Preset)
 	for _, unit := range config.Systemd.Units {
 		if err := s.writeSystemdUnit(unit, false); err != nil {
 			return err
 		}
 		if unit.Enabled != nil {
+			// identifier keyword is used to distinguish systemd units
+			// which are either enabled or disabled. Appending
+			// it to a unitName will avoid overwriting the existing
+			// unitName's instance if the state of the unit is different.
+			identifier := "disabled"
 			if *unit.Enabled {
-				if err := s.Logger.LogOp(
-					func() error { return s.EnableUnit(unit) },
-					"enabling unit %q", unit.Name,
-				); err != nil {
+				identifier = "enabled"
+			}
+			if strings.Contains(unit.Name, "@") {
+				unitName, instance, err := parseInstanceUnit(unit)
+				if err != nil {
 					return err
+				}
+				key := fmt.Sprintf("%s-%s", unitName, identifier)
+				if _, ok := presets[key]; ok {
+					presets[key].instances = append(presets[key].instances, instance)
+				} else {
+					presets[key] = &Preset{unitName, *unit.Enabled, true, []string{instance}}
 				}
 			} else {
-				if err := s.Logger.LogOp(
-					func() error { return s.DisableUnit(unit) },
-					"disabling unit %q", unit.Name,
-				); err != nil {
-					return err
+				key := fmt.Sprintf("%s-%s", unit.Name, identifier)
+				if _, ok := presets[unit.Name]; !ok {
+					presets[key] = &Preset{unit.Name, *unit.Enabled, false, []string{}}
+				} else {
+					return fmt.Errorf("%q key is already present in the presets map", key)
 				}
 			}
-			enabledOneUnit = true
 		}
 		if unit.Mask != nil && *unit.Mask {
 			relabelpath := ""
@@ -64,10 +101,71 @@ func (s *stage) createUnits(config types.Config) error {
 			s.relabel(relabelpath)
 		}
 	}
-	// and relabel the preset file itself if we enabled/disabled something
-	if enabledOneUnit {
-		s.relabel(util.PresetPath)
+	// if we have presets then create the systemd preset file.
+	if len(presets) != 0 {
+		if err := s.createSystemdPresetFile(presets); err != nil {
+			return err
+		}
 	}
+
+	return nil
+}
+
+// parseInstanceUnit extracts the name and a corresponding instance
+// for a given instantiated unit.
+// e.g: echo@bar.service ==> unitName=echo@.service & instance=bar
+func parseInstanceUnit(unit types.Unit) (string, string, error) {
+	at := strings.Index(unit.Name, "@")
+	if at == -1 {
+		return "", "", errors.ErrInvalidInstantiatedUnit
+	}
+	dot := strings.LastIndex(unit.Name, ".")
+	if dot == -1 {
+		return "", "", errors.ErrNoSystemdExt
+	}
+	instance := unit.Name[at+1 : dot]
+	serviceInstance := unit.Name[0:at+1] + unit.Name[dot:len(unit.Name)]
+	return serviceInstance, instance, nil
+}
+
+// createSystemdPresetFile creates the presetfile for enabled/disabled
+// systemd units.
+func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
+	hasInstanceUnit := false
+	for _, value := range presets {
+		unitString := value.unit
+		if value.instantiatable {
+			hasInstanceUnit = true
+			// Let's say we have two instantiated enabled units listed under
+			// the systemd units i.e. echo@foo.service, echo@bar.service
+			// then the unitString will look like "echo@.service foo bar"
+			unitString = fmt.Sprintf("%s %s", unitString, strings.Join(value.instances, " "))
+		}
+		if value.enabled {
+			if err := s.Logger.LogOp(
+				func() error { return s.EnableUnit(unitString) },
+				"setting preset to enabled for %q", unitString,
+			); err != nil {
+				return err
+			}
+		} else {
+			if err := s.Logger.LogOp(
+				func() error { return s.DisableUnit(unitString) },
+				"setting preset to disabled for %q", unitString,
+			); err != nil {
+				return err
+			}
+		}
+	}
+	// Print the warning if there's an instantiated unit present under
+	// the systemd units and the version of systemd in a given system
+	// is older than 240.
+	if hasInstanceUnit {
+		if err := s.warnOnOldSystemdVersion(); err != nil {
+			return err
+		}
+	}
+	s.relabel(util.PresetPath)
 	return nil
 }
 
