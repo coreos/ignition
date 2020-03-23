@@ -17,8 +17,14 @@ install_ignition_unit() {
 
 install() {
     inst_multiple \
+        lsblk
+
+    # Not all features of the configuration may be available on all systems
+    # (e.g. on embedded systems), so only add applications which are actually
+    # present
+    inst_multiple -o \
         groupadd \
-        lsblk \
+        mkfs.btrfs \
         mkfs.ext4 \
         mkfs.vfat \
         mkfs.xfs \
@@ -26,9 +32,6 @@ install() {
         sgdisk \
         useradd \
         usermod
-
-    # This one is optional; https://src.fedoraproject.org/rpms/ignition/pull-request/9
-    inst_multiple -o mkfs.btrfs
 
     # Required by s390x's z/VM installation.
     # Supporting https://github.com/coreos/ignition/pull/865
