@@ -1,3 +1,21 @@
+23-Mar-2020 Ignition 2.2.0
+
+  Features:
+
+    - Add Exoscale and Vultr providers
+    - On QEMU/s390x and QEMU/ppc64le, fetch Ignition config from a virtio
+      block device (experimental)
+
+  Changes:
+
+    - Don't relabel /root and /home
+
+  Bug Fixes:
+
+    - Fix enabling systemd instantiated services
+    - Fail if SSH keys cannot be written
+    - Fix partition creation on s390x
+
 13-Dec-2019 Ignition 2.1.1
 
   Bug Fixes:
