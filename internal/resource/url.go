@@ -288,9 +288,6 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 // FetchFromDataURL writes the data stored in the dataurl u into dest, returning
 // an error if one is encountered.
 func (f *Fetcher) fetchFromDataURL(u url.URL, dest io.Writer, opts FetchOptions) error {
-	if opts.Compression != "" {
-		return ErrCompressionUnsupported
-	}
 	url, err := dataurl.DecodeString(u.String())
 	if err != nil {
 		return err
