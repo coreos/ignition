@@ -32,8 +32,8 @@ func CreateInstantiatedService() types.Test {
 		"systemd": {
 			"units": [
 			  {
-				"name": "echo@.service"
-				"contents": "[Unit]\nDescription=f\n[Service]\nType=oneshot\nExecStart=/bin/echo %i\nRemainAfterExit=yes\n[Install]\nWantedBy=multi-user.target\n",
+				"name": "echo@.service",
+				"contents": "[Unit]\nDescription=f\n[Service]\nType=oneshot\nExecStart=/bin/echo %i\nRemainAfterExit=yes\n[Install]\nWantedBy=multi-user.target\n"
 			  },
 			  {
 				"enabled": true,
@@ -42,7 +42,7 @@ func CreateInstantiatedService() types.Test {
 			  {
 				"enabled": true,
 				"name": "echo@foo.service"
-			  },
+			  }
 			]
 		  }
 		}`
