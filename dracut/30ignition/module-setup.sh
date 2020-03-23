@@ -17,21 +17,15 @@ install_ignition_unit() {
 
 install() {
     inst_multiple \
-        chroot \
         groupadd \
-        id \
         lsblk \
         mkfs.ext4 \
         mkfs.vfat \
         mkfs.xfs \
         mkswap \
-        mountpoint \
         sgdisk \
-        systemd-detect-virt \
         useradd \
-        usermod \
-        realpath \
-        touch
+        usermod
 
     # This one is optional; https://src.fedoraproject.org/rpms/ignition/pull-request/9
     inst_multiple -o mkfs.btrfs
