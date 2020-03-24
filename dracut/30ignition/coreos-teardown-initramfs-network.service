@@ -6,6 +6,7 @@
 Description=Tear down initramfs networking
 DefaultDependencies=false
 After=ignition-files.service
+Before=ignition-complete.target
 
 # Make sure ExecStop= runs before we switch root
 Conflicts=initrd-switch-root.target umount.target
