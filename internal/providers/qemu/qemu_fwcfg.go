@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build amd64 arm64
+// +build !s390x,!ppc64le
 
-// The QEMU provider on amd64 and arm64 fetches a local configuration from the
-// firmware config interface (opt/com.coreos/config).
+// The default QEMU provider fetches a local configuration from the firmware
+// config interface (opt/com.coreos/config). Platforms without support for
+// qemu_fw_cfg should use the blockdev implementation instead.
 
 package qemu
 
