@@ -107,7 +107,7 @@ func (server *HTTPServer) ConfigHeaders(w http.ResponseWriter, r *http.Request) 
 
 	// Additional check that the system header is present in the request
 	if val, ok := r.Header["Accept"]; ok {
-		if val[0] != "application/vnd.coreos.ignition+json; version=2.2.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1" {
+		if val[0] != "application/vnd.coreos.ignition+json; version=2.4.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1" {
 			errorHandler(w, "Accept header value is incorrect")
 			return
 		}
@@ -178,7 +178,7 @@ func (server *HTTPServer) ConfigRedirected(w http.ResponseWriter, r *http.Reques
 	}
 
 	if val, ok := r.Header["Accept"]; ok {
-		if val[0] != "application/vnd.coreos.ignition+json; version=2.2.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1" {
+		if val[0] != "application/vnd.coreos.ignition+json; version=2.4.0, application/vnd.coreos.ignition+json; version=1; q=0.5, */*; q=0.1" {
 			errorHandler(w, "Accept header value is incorrect")
 			return
 		}
