@@ -111,7 +111,7 @@ When an experimental version of the Ignition config spec (e.g.: `2.3.0-experimen
 - Any configs with a `version` field set to the previously experimental version will no longer pass validation. For example, if `2.3.0-experimental` is being marked as stable, any configs written for `2.3.0-experimental` should have their version fields changed to `2.3.0`, for Ignition will no longer accept them.
 - A new experimental spec version will be created. For example, if `2.3.0-experimental` is being marked as stable, a new version of `2.4.0-experimental` will now be accepted, and start to accumulate new changes to the spec.
 - The new stable spec and the new experimental spec will be identical. The new experimental spec is a direct copy of the old experimental spec, and no new changes to the spec have been made yet, so initially the two specs will have the same fields and semantics.
-- The HTTP `user-agent` header that Ignition uses whenever fetching an object and the HTTP `accept` header that Ignition uses whenever fetching a config will be updated to advertise the new stable spec.
+- The HTTP `Accept` header that Ignition uses whenever fetching a config will be updated to advertise the new stable spec.
 - New features will be documented in the [migrating configs](doc/migrating-configs.md) documentation.
 
 The code changes that are required to achieve these effects are typically the following:
@@ -121,6 +121,7 @@ The code changes that are required to achieve these effects are typically the fo
 - Rename `config/vX_Y_experimental` to `config/vX_Y`, and update the golang `package` statements
 - Update `MaxVersion` in `config/vX_Y/types/config.go` to have `PreRelease` set to `""`
 - Update `config/vX_Y/config_test.go` to test that the new stable version is valid and the old experimental version is invalid
+- Update the `Accept` header in `internal/resource/url.go` to specify the new spec version.
 
 ### Creating the new experimental package
 
@@ -154,3 +155,4 @@ Finally, update the blackbox tests.
 - Drop `-experimental` from the relevant `VersionOnlyConfig` test in `tests/positive/general/general.go`.
 - Add a new `VersionOnlyConfig` test for `X.(Y+1).0-experimental`.
 - Find all tests using `X.Y.0-experimental` and alter them to use `X.Y.0`.
+- Update the `Accept` header checks in `tests/servers.go` to specify the new spec version.
