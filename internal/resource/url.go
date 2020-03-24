@@ -68,6 +68,9 @@ type Fetcher struct {
 	// timeouts Ignition was configured to used will be ignored.
 	client *HttpClient
 
+	// headers is additional headers to include
+	headers []http.Header
+
 	// The AWS Session to use when fetching resources from S3. If left nil, the
 	// first S3 object that is fetched will initialize the field. This can be
 	// used to set credentials.

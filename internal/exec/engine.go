@@ -20,6 +20,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"strings"
+
 	"net/url"
 	"os"
 	"time"
@@ -50,6 +53,7 @@ const (
 type Engine struct {
 	ConfigCache    string
 	FetchTimeout   time.Duration
+	FetchHeaders   []string
 	Logger         *log.Logger
 	Root           string
 	PlatformConfig platform.Config
@@ -272,7 +276,17 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 	if err != nil {
 		return types.Config{}, err
 	}
-	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{})
+	headers := make(http.Header)
+	for _, h := range e.FetchHeaders {
+		parts := strings.SplitN(h, "=", 2)
+		k := parts[0]
+		v := ""
+		if len(parts) > 1 {
+			v = parts[1]
+		}
+		headers.Add(k, v)
+	}
+	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{Headers: headers})
 	if err != nil {
 		return types.Config{}, err
 	}
