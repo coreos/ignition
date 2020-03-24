@@ -1,3 +1,9 @@
+24-Mar-2020 Ignition 2.2.1
+
+  Bug Fixes:
+
+    - Fix build failure on arches other than amd64, arm64, ppc64le, or s390x
+
 23-Mar-2020 Ignition 2.2.0
 
   Features:
