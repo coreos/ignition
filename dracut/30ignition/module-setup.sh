@@ -61,6 +61,12 @@ install() {
             "$systemdsystemunitdir/ignition-$x.target"
     done
 
+    # For consistency tear down the network between the initramfs and
+    # real root. See https://github.com/coreos/fedora-coreos-tracker/issues/394#issuecomment-599721763
+    inst_script "$moddir/coreos-teardown-initramfs-network.sh" \
+        "/usr/sbin/coreos-teardown-initramfs-network"
+    install_ignition_unit coreos-teardown-initramfs-network.service
+
     install_ignition_unit ignition-setup-base.service
     install_ignition_unit ignition-setup-user.service
     install_ignition_unit ignition-fetch.service
