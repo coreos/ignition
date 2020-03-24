@@ -42,11 +42,14 @@ func main() {
 		stage        stages.Name
 		version      bool
 		logToStdout  bool
+
+		detectOfflineConfig string
 	}{}
 
 	flag.BoolVar(&flags.clearCache, "clear-cache", false, "clear any cached config")
 	flag.StringVar(&flags.configCache, "config-cache", "/run/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.fetchTimeout, "fetch-timeout", exec.DefaultFetchTimeout, "initial duration for which to wait for config")
+	flag.StringVar(&flags.detectOfflineConfig, "detect-config-provided", "", "If a config is provided, create a file at this path")
 	flag.Var(&flags.platform, "platform", fmt.Sprintf("current platform. %v", platform.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
@@ -95,6 +98,8 @@ func main() {
 		ConfigCache:    flags.configCache,
 		PlatformConfig: platformConfig,
 		Fetcher:        &fetcher,
+
+		DetectOfflineConfig: flags.detectOfflineConfig,
 	}
 
 	err = engine.Run(flags.stage.String())

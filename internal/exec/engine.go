@@ -24,6 +24,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/coreos/ignition/v2/internal/providers/file"
+
 	"github.com/coreos/ignition/v2/config"
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	latest "github.com/coreos/ignition/v2/config/v3_1_experimental"
@@ -54,6 +56,8 @@ type Engine struct {
 	Root           string
 	PlatformConfig platform.Config
 	Fetcher        *resource.Fetcher
+
+	DetectOfflineConfig string
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -65,6 +69,26 @@ func (e Engine) Run(stageName string) error {
 	}
 	baseConfig := types.Config{
 		Ignition: types.Ignition{Version: types.MaxVersion.String()},
+	}
+
+	if stageName == "fetch" && e.DetectOfflineConfig != "" {
+		var haveConfig bool
+		// If we already have a config cache, we're done
+		if _, err := os.Stat(e.ConfigCache); err != nil {
+			haveConfig = true
+		} else {
+			haveConfig, err = e.detectOfflineConfig()
+			if err != nil {
+				return err
+			}
+		}
+		if haveConfig {
+			if err := ioutil.WriteFile(e.DetectOfflineConfig, []byte{}, 0644); err != nil {
+				return err
+			}
+		}
+		// Note early return
+		return nil
 	}
 
 	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger)
@@ -173,6 +197,26 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 	}
 
 	return
+}
+
+// acquireConfigOffline only looks at config providers which do not
+// require networking.
+func (e *Engine) detectOfflineConfig() (bool, error) {
+	offlineFetchers := []providers.FuncDetectConfig{
+		cmdline.DetectConfig,
+		file.DetectConfig,
+	}
+
+	for _, fetcher := range offlineFetchers {
+		exists, err := fetcher(e.Fetcher)
+		if err != nil {
+			return false, err
+		}
+		if exists {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // fetchProviderConfig returns the externally-provided configuration. It first

@@ -36,6 +36,14 @@ const (
 	cmdlineUrlFlag = "ignition.config.url"
 )
 
+func DetectConfig(f *resource.Fetcher) (bool, error) {
+	url, err := readCmdline(f.Logger)
+	if err != nil {
+		return false, err
+	}
+	return url != nil, nil
+}
+
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	url, err := readCmdline(f.Logger)
 	if err != nil {

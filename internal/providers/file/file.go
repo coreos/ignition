@@ -30,12 +30,29 @@ const (
 	defaultFilename   = "config.ign"
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func getPath(f *resource.Fetcher) string {
 	filename := os.Getenv(cfgFilenameEnvVar)
 	if filename == "" {
 		filename = defaultFilename
 		f.Logger.Info("using default filename")
 	}
+	return filename
+}
+
+func DetectConfig(f *resource.Fetcher) (bool, error) {
+	filename := getPath(f)
+	_, err := os.Stat(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+	filename := getPath(f)
 	f.Logger.Info("using config file at %q", filename)
 
 	rawConfig, err := ioutil.ReadFile(filename)
