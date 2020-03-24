@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/internal/providers"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -40,6 +41,9 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 
 	rawConfig, err := ioutil.ReadFile(filename)
 	if err != nil {
+		if os.IsNotExist(err) {
+			err = providers.ErrNoProvider
+		}
 		f.Logger.Err("couldn't read config %q: %v", filename, err)
 		return types.Config{}, report.Report{}, err
 	}
