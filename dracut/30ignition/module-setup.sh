@@ -17,6 +17,7 @@ install_ignition_unit() {
 
 install() {
     inst_multiple \
+        basename \
         lsblk
 
     # Not all features of the configuration may be available on all systems
