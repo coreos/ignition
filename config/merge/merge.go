@@ -183,6 +183,11 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 					if childList == fieldName {
 						// case 1: in child config in same list
 						if childItem.Kind() == reflect.Struct {
+							// If HTTP header Value is nil, it means that we should remove the
+							// parent header from the result.
+							if fieldName == "HTTPHeaders" && childItem.FieldByName("Value").IsNil() {
+								continue
+							}
 							appendToSlice(resultField, MergeStruct(parentItem, childItem))
 						} else if util.IsPrimitive(childItem.Kind()) {
 							appendToSlice(resultField, childItem)

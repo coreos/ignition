@@ -15,8 +15,12 @@
 package types
 
 import (
+	"net/url"
+
 	"github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
+
+	"github.com/coreos/ignition/v2/config/shared/errors"
 )
 
 func (c CaReference) Key() string {
@@ -25,5 +29,28 @@ func (c CaReference) Key() string {
 
 func (ca CaReference) Validate(c path.ContextPath) (r report.Report) {
 	r.AddOnError(c.Append("source"), validateURL(ca.Source))
+	r.AddOnError(c.Append("httpHeaders"), ca.validateSchemeForHTTPHeaders())
 	return
+}
+
+func (ca CaReference) validateSchemeForHTTPHeaders() error {
+	if len(ca.HTTPHeaders) < 1 {
+		return nil
+	}
+
+	if ca.Source == "" {
+		return errors.ErrInvalidUrl
+	}
+
+	u, err := url.Parse(ca.Source)
+	if err != nil {
+		return errors.ErrInvalidUrl
+	}
+
+	switch u.Scheme {
+	case "http", "https":
+		return nil
+	default:
+		return errors.ErrUnsupportedSchemeForHTTPHeaders
+	}
 }

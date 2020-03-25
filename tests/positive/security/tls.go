@@ -37,6 +37,10 @@ func init() {
 
 	register.Register(register.PositiveTest, AppendConfigCustomCert())
 	register.Register(register.PositiveTest, FetchFileCustomCert())
+	register.Register(register.PositiveTest, FetchFileCustomCertHTTP())
+	register.Register(register.PositiveTest, FetchFileCustomCertHTTPUsingHeaders())
+	register.Register(register.PositiveTest, FetchFileCustomCertHTTPUsingHeadersWithRedirect())
+	register.Register(register.PositiveTest, FetchFileCustomCertHTTPUsingOverwrittenHeaders())
 }
 
 var (
@@ -155,6 +159,194 @@ func FetchFileCustomCert() types.Test {
 		}
 	}`, dataurl.EncodeBytes(publicKey), customCAServer.URL)
 	configMinVersion := "3.0.0"
+
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: string(customCAServerFile),
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FetchFileCustomCertHTTP() types.Test {
+	name := "tls.fetchfile.http"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"source": "http://127.0.0.1:8080/certificates"
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, customCAServer.URL)
+	configMinVersion := "3.0.0"
+
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: string(customCAServerFile),
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FetchFileCustomCertHTTPUsingHeaders() types.Test {
+	name := "tls.fetchfile.http.headers"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
+						"source": "http://127.0.0.1:8080/certificates_headers"
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, customCAServer.URL)
+	configMinVersion := "3.1.0-experimental"
+
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: string(customCAServerFile),
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FetchFileCustomCertHTTPUsingHeadersWithRedirect() types.Test {
+	name := "tls.fetchfile.http.headers.redirect"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
+						"source": "http://127.0.0.1:8080/certificates_headers_redirect"
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, customCAServer.URL)
+	configMinVersion := "3.1.0-experimental"
+
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: string(customCAServerFile),
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FetchFileCustomCertHTTPUsingOverwrittenHeaders() types.Test {
+	name := "tls.fetchfile.http.headers.overwrite"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"httpHeaders": [
+							{"name": "Keep-Alive", "value": "1000"},
+							{"name": "Accept", "value": "application/json"},
+							{"name": "Accept-Encoding", "value": "identity, compress"},
+							{"name": "User-Agent", "value": "MyUA"}
+						],
+						"source": "http://127.0.0.1:8080/certificates_headers_overwrite"
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, customCAServer.URL)
+	configMinVersion := "3.1.0-experimental"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{

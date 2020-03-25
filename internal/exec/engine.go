@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"time"
@@ -272,7 +273,16 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 	if err != nil {
 		return types.Config{}, err
 	}
-	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{})
+	var headers http.Header
+	if cfgRef.HTTPHeaders != nil && len(cfgRef.HTTPHeaders) > 0 {
+		headers, err = cfgRef.HTTPHeaders.Parse()
+		if err != nil {
+			return types.Config{}, err
+		}
+	}
+	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{
+		Headers: headers,
+	})
 	if err != nil {
 		return types.Config{}, err
 	}

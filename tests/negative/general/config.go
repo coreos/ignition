@@ -27,8 +27,10 @@ func init() {
 	register.Register(register.NegativeTest, ReplaceConfigWithInvalidHash())
 	register.Register(register.NegativeTest, AppendConfigWithInvalidHash())
 	register.Register(register.NegativeTest, ReplaceConfigWithMissingFileHTTP())
+	register.Register(register.NegativeTest, ReplaceConfigWithInvalidHeaderHTTP())
 	register.Register(register.NegativeTest, ReplaceConfigWithMissingFileTFTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileHTTP())
+	register.Register(register.NegativeTest, AppendConfigWithInvalidHeaderHTTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileTFTP())
 	register.Register(register.NegativeTest, VersionOnlyConfig24())
 	register.Register(register.NegativeTest, VersionOnlyConfig32())
@@ -132,6 +134,32 @@ func ReplaceConfigWithMissingFileHTTP() types.Test {
 	}
 }
 
+func ReplaceConfigWithInvalidHeaderHTTP() types.Test {
+	name := "config.replace.http.invalidheader"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "replace": {
+            "httpHeaders": [{"name": "X-Auth", "value": "INVALID"}, {"name": "Keep-Alive", "value": "300"}],
+	        "source": "http://127.0.0.1:8080/config_headers"
+	      }
+	    }
+	  }
+	}`
+	configMinVersion := "3.1.0-experimental"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
 func ReplaceConfigWithMissingFileTFTP() types.Test {
 	name := "config.replace.tftp.notfound"
 	in := types.GetBaseDisk()
@@ -172,6 +200,32 @@ func AppendConfigWithMissingFileHTTP() types.Test {
 	  }
 	}`
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigWithInvalidHeaderHTTP() types.Test {
+	name := "config.merge.http.invalidheader"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "merge": [{
+            "httpHeaders": [{"name": "X-Auth", "value": "INVALID"}, {"name": "Keep-Alive", "value": "300"}],
+	        "source": "http://127.0.0.1:8080/config_headers"
+	      }]
+	    }
+	  }
+	}`
+	configMinVersion := "3.1.0-experimental"
 
 	return types.Test{
 		Name:             name,

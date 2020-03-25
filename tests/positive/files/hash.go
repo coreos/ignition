@@ -22,6 +22,7 @@ import (
 func init() {
 	register.Register(register.PositiveTest, ValidateFileHashFromDataURL())
 	register.Register(register.PositiveTest, ValidateFileHashFromHTTPURL())
+	register.Register(register.PositiveTest, ValidateFileHashFromHTTPURLUsingHeaders())
 }
 
 func ValidateFileHashFromDataURL() types.Test {
@@ -86,6 +87,43 @@ func ValidateFileHashFromHTTPURL() types.Test {
 		},
 	})
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ValidateFileHashFromHTTPURLUsingHeaders() types.Test {
+	name := "files.create.withhash.http.headers"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": {
+			"source": "http://127.0.0.1:8080/contents_headers",
+			"httpHeaders": [{"name": "X-Auth", "value": "r8ewap98gfh4d8"}, {"name": "Keep-Alive", "value": "300"}],
+			"verification": {"hash": "sha512-1a04c76c17079cd99e688ba4f1ba095b927d3fecf2b1e027af361dfeafb548f7f5f6fdd675aaa2563950db441d893ca77b0c3e965cdcb891784af96e330267d7"}
+	      }
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	configMinVersion := "3.1.0-experimental"
 
 	return types.Test{
 		Name:             name,

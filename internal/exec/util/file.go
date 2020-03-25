@@ -20,6 +20,7 @@ import (
 	"hash"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -86,6 +87,14 @@ func newFetchOp(l *log.Logger, node types.Node, contents types.FileContents) (Fe
 		compression = *contents.Compression
 	}
 
+	var headers http.Header
+	if contents.HTTPHeaders != nil && len(contents.HTTPHeaders) > 0 {
+		headers, err = contents.HTTPHeaders.Parse()
+		if err != nil {
+			return FetchOp{}, err
+		}
+	}
+
 	return FetchOp{
 		Hash: hasher,
 		Node: node,
@@ -94,6 +103,7 @@ func newFetchOp(l *log.Logger, node types.Node, contents types.FileContents) (Fe
 			Hash:        hasher,
 			Compression: compression,
 			ExpectedSum: expectedSum,
+			Headers:     headers,
 		},
 	}, nil
 }

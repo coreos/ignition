@@ -37,6 +37,8 @@ func init() {
 	customCAServer.StartTLS()
 
 	register.Register(register.NegativeTest, AppendConfigCustomCert())
+	register.Register(register.NegativeTest, AppendConfigCustomCertHTTP())
+	register.Register(register.NegativeTest, AppendConfigCustomCertInvalidHeaderHTTP())
 	register.Register(register.NegativeTest, FetchFileCustomCert())
 }
 
@@ -138,6 +140,77 @@ func FetchFileCustomCert() types.Test {
 		}
 	}`, customCAServer.URL)
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigCustomCertHTTP() types.Test {
+	name := "tls.config.merge.http"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"source": "http://127.0.0.1:8080/asdf"
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, customCAServer.URL)
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigCustomCertInvalidHeaderHTTP() types.Test {
+	name := "tls.config.merge.http.invalidheader"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"httpHeaders": [{"name": "X-Auth", "value": "INVALID"}, {"name": "Keep-Alive", "value": "300"}],
+						"source": "http://127.0.0.1:8080/certificates_headers"
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, customCAServer.URL)
+	configMinVersion := "3.1.0-experimental"
 
 	return types.Test{
 		Name:             name,

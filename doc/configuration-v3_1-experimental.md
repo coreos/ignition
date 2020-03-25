@@ -9,10 +9,16 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_config_** (objects): options related to the configuration.
     * **_merge_** (list of objects): a list of the configs to be merged to the current config.
       * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
+        * **name** (string): the header name.
+        * **_value_** (string): the header contents.
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_replace_** (object): the config that will replace the current.
       * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
+        * **name** (string): the header name.
+        * **_value_** (string): the header contents.
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
   * **_timeouts_** (object): options relating to `http` timeouts when fetching files over `http` or `https`.
@@ -22,6 +28,9 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_tls_** (object): options relating to TLS when fetching resources over `https`.
       * **_certificateAuthorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`. All certificate authorities must have a unique `source`.
         * **source** (string): the URL of the certificate (in PEM format). Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+        * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
+          * **name** (string): the header name.
+          * **_value_** (string): the header contents.
         * **_verification_** (object): options related to the verification of the certificate.
           * **_hash_** (string): the hash of the certificate, in the form `<type>-<value>` where type is sha512.
   * **_proxy_** (object): options relating to setting an `HTTP(S)` proxy when fetching resources.
@@ -62,11 +71,17 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_contents_** (object): options related to the contents of the file.
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
       * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created.
+      * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
+        * **name** (string): the header name.
+        * **_value_** (string): the header contents.
       * **_verification_** (object): options related to the verification of the file contents.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_append_** (list of objects): list of contents to be appended to the file. Follows the same stucture as `contents`
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
       * **_source_** (string): the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
+        * **name** (string): the header name.
+        * **_value_** (string): the header contents.
       * **_verification_** (object): options related to the verification of the appended contents.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `source` is unspecified, and a file already exists at the path.

@@ -19,10 +19,20 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/v3_0/types"
+	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 
 	"github.com/stretchr/testify/assert"
 )
+
+var (
+	configURL = "http://example.com/myconf.ign"
+	caURL     = "http://example.com/myca.cert"
+	fileURL   = "http://example.com/myfile.txt"
+)
+
+func toPointer(val string) *string {
+	return &val
+}
 
 func TestMerge(t *testing.T) {
 	type test struct {
@@ -208,6 +218,416 @@ func TestMerge(t *testing.T) {
 						{
 							Node: types.Node{
 								Path: "/baz",
+							},
+						},
+					},
+				},
+			},
+		},
+
+		// merge config reference that contains HTTP headers
+		{
+			in1: types.Config{
+				Ignition: types.Ignition{
+					Config: types.IgnitionConfig{
+						Merge: []types.ConfigReference{
+							{
+								Source: &configURL,
+								HTTPHeaders: []types.HTTPHeader{
+									{
+										Name:  "old-header",
+										Value: toPointer("old-value"),
+									},
+									{
+										Name:  "same-header",
+										Value: toPointer("old-value"),
+									},
+									{
+										Name:  "to-remove-header",
+										Value: toPointer("some-value"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			in2: types.Config{
+				Ignition: types.Ignition{
+					Config: types.IgnitionConfig{
+						Merge: []types.ConfigReference{
+							{
+								Source: &configURL,
+								HTTPHeaders: []types.HTTPHeader{
+									{
+										Name: "to-remove-header",
+									},
+									{
+										Name:  "new-header",
+										Value: toPointer("new-value"),
+									},
+									{
+										Name:  "same-header",
+										Value: toPointer("new-value"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			out: types.Config{
+				Ignition: types.Ignition{
+					Config: types.IgnitionConfig{
+						Merge: []types.ConfigReference{
+							{
+								Source: &configURL,
+								HTTPHeaders: []types.HTTPHeader{
+									{
+										Name:  "old-header",
+										Value: toPointer("old-value"),
+									},
+									{
+										Name:  "same-header",
+										Value: toPointer("new-value"),
+									},
+									{
+										Name:  "new-header",
+										Value: toPointer("new-value"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		// replace config reference that contains HTTP headers
+		{
+			in1: types.Config{
+				Ignition: types.Ignition{
+					Config: types.IgnitionConfig{
+						Replace: types.ConfigReference{
+							Source: &configURL,
+							HTTPHeaders: []types.HTTPHeader{
+								{
+									Name:  "old-header",
+									Value: toPointer("old-value"),
+								},
+								{
+									Name:  "same-header",
+									Value: toPointer("old-value"),
+								},
+								{
+									Name:  "to-remove-header",
+									Value: toPointer("some-value"),
+								},
+							},
+						},
+					},
+				},
+			},
+			in2: types.Config{
+				Ignition: types.Ignition{
+					Config: types.IgnitionConfig{
+						Replace: types.ConfigReference{
+							Source: &configURL,
+							HTTPHeaders: []types.HTTPHeader{
+								{
+									Name: "to-remove-header",
+								},
+								{
+									Name:  "new-header",
+									Value: toPointer("new-value"),
+								},
+								{
+									Name:  "same-header",
+									Value: toPointer("new-value"),
+								},
+							},
+						},
+					},
+				},
+			},
+			out: types.Config{
+				Ignition: types.Ignition{
+					Config: types.IgnitionConfig{
+						Replace: types.ConfigReference{
+							Source: &configURL,
+							HTTPHeaders: []types.HTTPHeader{
+								{
+									Name:  "old-header",
+									Value: toPointer("old-value"),
+								},
+								{
+									Name:  "same-header",
+									Value: toPointer("new-value"),
+								},
+								{
+									Name:  "new-header",
+									Value: toPointer("new-value"),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		// CA reference that contains HTTP headers
+		{
+			in1: types.Config{
+				Ignition: types.Ignition{
+					Security: types.Security{
+						TLS: types.TLS{
+							CertificateAuthorities: []types.CaReference{
+								{
+									Source: caURL,
+									HTTPHeaders: []types.HTTPHeader{
+										{
+											Name:  "old-header",
+											Value: toPointer("old-value"),
+										},
+										{
+											Name:  "same-header",
+											Value: toPointer("old-value"),
+										},
+										{
+											Name:  "to-remove-header",
+											Value: toPointer("some-value"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			in2: types.Config{
+				Ignition: types.Ignition{
+					Security: types.Security{
+						TLS: types.TLS{
+							CertificateAuthorities: []types.CaReference{
+								{
+									Source: caURL,
+									HTTPHeaders: []types.HTTPHeader{
+										{
+											Name: "to-remove-header",
+										},
+										{
+											Name:  "new-header",
+											Value: toPointer("new-value"),
+										},
+										{
+											Name:  "same-header",
+											Value: toPointer("new-value"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			out: types.Config{
+				Ignition: types.Ignition{
+					Security: types.Security{
+						TLS: types.TLS{
+							CertificateAuthorities: []types.CaReference{
+								{
+									Source: caURL,
+									HTTPHeaders: []types.HTTPHeader{
+										{
+											Name:  "old-header",
+											Value: toPointer("old-value"),
+										},
+										{
+											Name:  "same-header",
+											Value: toPointer("new-value"),
+										},
+										{
+											Name:  "new-header",
+											Value: toPointer("new-value"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		// file contents that contain HTTP headers
+		{
+			in1: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: &fileURL,
+									HTTPHeaders: []types.HTTPHeader{
+										{
+											Name:  "old-header",
+											Value: toPointer("old-value"),
+										},
+										{
+											Name:  "same-header",
+											Value: toPointer("old-value"),
+										},
+										{
+											Name:  "to-remove-header",
+											Value: toPointer("some-value"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			in2: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: &fileURL,
+									HTTPHeaders: []types.HTTPHeader{
+										{
+											Name: "to-remove-header",
+										},
+										{
+											Name:  "new-header",
+											Value: toPointer("new-value"),
+										},
+										{
+											Name:  "same-header",
+											Value: toPointer("new-value"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			out: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.FileContents{
+									Source: &fileURL,
+									HTTPHeaders: []types.HTTPHeader{
+										{
+											Name:  "old-header",
+											Value: toPointer("old-value"),
+										},
+										{
+											Name:  "same-header",
+											Value: toPointer("new-value"),
+										},
+										{
+											Name:  "new-header",
+											Value: toPointer("new-value"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		// file contents that contain HTTP headers
+		{
+			in1: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							FileEmbedded1: types.FileEmbedded1{
+								Append: []types.FileContents{
+									{
+										Source: &fileURL,
+										HTTPHeaders: []types.HTTPHeader{
+											{
+												Name:  "old-header",
+												Value: toPointer("old-value"),
+											},
+											{
+												Name:  "same-header",
+												Value: toPointer("old-value"),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			in2: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							FileEmbedded1: types.FileEmbedded1{
+								Append: []types.FileContents{
+									{
+										Source: &fileURL,
+										HTTPHeaders: []types.HTTPHeader{
+											{
+												Name:  "new-header",
+												Value: toPointer("new-value"),
+											},
+											{
+												Name:  "same-header",
+												Value: toPointer("new-value"),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			out: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							FileEmbedded1: types.FileEmbedded1{
+								Append: []types.FileContents{
+									{
+										Source: &fileURL,
+										HTTPHeaders: []types.HTTPHeader{
+											{
+												Name:  "old-header",
+												Value: toPointer("old-value"),
+											},
+											{
+												Name:  "same-header",
+												Value: toPointer("old-value"),
+											},
+										},
+									},
+									{
+										Source: &fileURL,
+										HTTPHeaders: []types.HTTPHeader{
+											{
+												Name:  "new-header",
+												Value: toPointer("new-value"),
+											},
+											{
+												Name:  "same-header",
+												Value: toPointer("new-value"),
+											},
+										},
+									},
+								},
 							},
 						},
 					},
