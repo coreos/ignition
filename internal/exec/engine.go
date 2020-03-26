@@ -24,8 +24,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/coreos/ignition/v2/config"
-	"github.com/coreos/ignition/v2/config/shared/errors"
+	ignerrs "github.com/coreos/ignition/v2/config/shared/errors"
 	latest "github.com/coreos/ignition/v2/config/v3_1_experimental"
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
@@ -61,7 +63,7 @@ type Engine struct {
 func (e Engine) Run(stageName string) error {
 	if e.Fetcher == nil || e.Logger == nil {
 		fmt.Fprintf(os.Stderr, "engine incorrectly configured\n")
-		return errors.ErrEngineConfiguration
+		return ignerrs.ErrEngineConfiguration
 	}
 	baseConfig := types.Config{
 		Ignition: types.Ignition{Version: types.MaxVersion.String()},
@@ -70,12 +72,11 @@ func (e Engine) Run(stageName string) error {
 	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger)
 	e.logReport(r)
 	if err != nil && err != providers.ErrNoProvider {
-		e.Logger.Crit("failed to acquire system base config: %v", err)
-		return err
+		return errors.Wrapf(err, "failed to acquire system base config")
 	}
 
 	cfg, err := e.acquireConfig()
-	if err == errors.ErrEmpty {
+	if err == ignerrs.ErrEmpty {
 		e.Logger.Info("%v: ignoring user-provided config", err)
 	} else if err != nil {
 		e.Logger.Crit("failed to acquire config: %v", err)
@@ -156,7 +157,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 	rpt := validate.Validate(cfg, "json")
 	e.logReport(rpt)
 	if rpt.IsFatal() {
-		err = errors.ErrInvalid
+		err = ignerrs.ErrInvalid
 		e.Logger.Crit("merging configs resulted in an invalid config")
 		return
 	}
