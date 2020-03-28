@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	name = "files"
+	Name = "files"
 )
 
 var (
@@ -52,7 +52,7 @@ func (creator) Create(logger *log.Logger, root string, f resource.Fetcher) stage
 }
 
 func (creator) Name() string {
-	return name
+	return Name
 }
 
 type stage struct {
@@ -61,7 +61,7 @@ type stage struct {
 }
 
 func (stage) Name() string {
-	return name
+	return Name
 }
 
 func (s stage) Run(config types.Config) error {

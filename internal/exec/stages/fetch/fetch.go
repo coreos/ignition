@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	name = "fetch"
+	Name = "fetch"
 )
 
 func init() {
@@ -46,7 +46,7 @@ func (creator) Create(logger *log.Logger, root string, _ resource.Fetcher) stage
 }
 
 func (creator) Name() string {
-	return name
+	return Name
 }
 
 type stage struct {
@@ -54,7 +54,7 @@ type stage struct {
 }
 
 func (stage) Name() string {
-	return name
+	return Name
 }
 
 func (s stage) Run(_ types.Config) error {
