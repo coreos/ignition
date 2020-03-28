@@ -257,14 +257,14 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 	// TODO use .Clone() when we have a new enough golang
 	// (With Rust, we'd have immutability and wouldn't need to defensively clone)
 	headers := make(http.Header)
-	for k, va := range opts.Headers {
-		for _, v := range va {
-			headers.Add(k, v)
-		}
-	}
 	for k, va := range configHeaders {
 		for _, v := range va {
-			headers.Add(k, v)
+			headers.Set(k, v)
+		}
+	}
+	for k, va := range opts.Headers {
+		for _, v := range va {
+			headers.Set(k, v)
 		}
 	}
 
