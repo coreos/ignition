@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/internal/exec/stages/umount"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -69,6 +70,13 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 
 // PostStatus posts a message that will show on the Packet Instance Timeline
 func PostStatus(stageName string, f resource.Fetcher, errMsg error) error {
+	if stageName == umount.Name {
+		// Don't report umount status.  It's unlikely to fail as a
+		// result of anything in the config, and ignition-dracut
+		// may have already torn down networking.
+		return nil
+	}
+
 	f.Logger.Info("POST message to Packet Timeline")
 	// fetch JSON from https://metadata.packet.net/metadata
 	headers := make(http.Header)
