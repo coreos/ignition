@@ -71,8 +71,10 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 func PostStatus(stageName string, f resource.Fetcher, errMsg error) error {
 	f.Logger.Info("POST message to Packet Timeline")
 	// fetch JSON from https://metadata.packet.net/metadata
+	headers := make(http.Header)
+	headers.Set("Accept", "*/*")
 	data, err := f.FetchToBuffer(metadataUrl, resource.FetchOptions{
-		Headers: nil,
+		Headers: headers,
 	})
 	if err != nil {
 		return err
