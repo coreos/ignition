@@ -16,7 +16,7 @@
 // arrays, formatting partitions, writing files, writing systemd units, and
 // writing network units.
 
-package disks
+package fetch
 
 import (
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
