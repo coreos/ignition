@@ -5,7 +5,17 @@
 [Unit]
 Description=Tear down initramfs networking
 DefaultDependencies=false
-After=ignition-files.service
+
+# We want to run the teardown after all other Ignition stages
+# have run because some platforms (like Packet) do remote status
+# reporting for each Ignition stage. Since we are tearing down
+# the networking using an ExecStop we need to make sure we run
+# the ExecStop *after* any other ignition*.service unit's ExecStop.
+# The only other one right now is ignition-mount that has an ExecStop
+# for doing an unmount. Since the ordering for ExecStop is the
+# opposite of ExecStart we need to use `Before=ignition-mount.service`.
+# https://github.com/coreos/fedora-coreos-tracker/issues/440
+Before=ignition-mount.service
 Before=ignition-complete.target
 
 # Make sure ExecStop= runs before we switch root
