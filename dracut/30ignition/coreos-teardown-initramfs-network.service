@@ -5,7 +5,6 @@
 [Unit]
 Description=Tear down initramfs networking
 DefaultDependencies=false
-After=ignition-files.service
 Before=ignition-complete.target
 
 # Make sure ExecStop= runs before we switch root
