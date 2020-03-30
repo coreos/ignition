@@ -8,7 +8,7 @@ Before=ignition-complete.target
 OnFailure=emergency.target
 OnFailureJobMode=isolate
 
-# Stage order: setup -> fetch -> disks -> mount -> files.
+# Stage order: setup -> fetch-offline [-> fetch] -> disks -> mount -> files.
 After=ignition-mount.service
 
 # Run before initrd-parse-etc so that we can drop files it then picks up.

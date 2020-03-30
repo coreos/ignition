@@ -49,6 +49,8 @@ install() {
         "/usr/sbin/ignition-setup-base"
     inst_script "$moddir/ignition-setup-user.sh" \
         "/usr/sbin/ignition-setup-user"
+    inst_script "$moddir/ignition-check-neednet.sh" \
+        "/usr/sbin/ignition-check-neednet"
 
     # Distro packaging is expected to install the ignition binary into the
     # module directory.
@@ -72,6 +74,7 @@ install() {
     install_ignition_unit ignition-setup-base.service
     install_ignition_unit ignition-setup-user.service
     install_ignition_unit ignition-fetch.service
+    install_ignition_unit ignition-fetch-offline.service
     install_ignition_unit ignition-disks.service
     install_ignition_unit ignition-mount.service
     install_ignition_unit ignition-files.service

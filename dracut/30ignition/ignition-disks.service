@@ -5,7 +5,7 @@ ConditionPathExists=/etc/initrd-release
 DefaultDependencies=false
 Before=ignition-complete.target
 
-# Stage order: setup -> fetch -> disks -> mount -> files.
+# Stage order: setup -> fetch-offline [-> fetch] -> disks -> mount -> files.
 After=ignition-fetch.service
 Before=ignition-mount.service
 
