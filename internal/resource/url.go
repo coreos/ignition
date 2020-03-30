@@ -49,6 +49,7 @@ var (
 	ErrNotFound               = errors.New("resource not found")
 	ErrFailed                 = errors.New("failed to fetch resource")
 	ErrCompressionUnsupported = errors.New("compression is not supported with that scheme")
+	ErrNeedNet                = errors.New("resource requires networking")
 
 	// ConfigHeaders are the HTTP headers that should be used when the Ignition
 	// config is being fetched
@@ -76,6 +77,14 @@ type Fetcher struct {
 	// The region where the AWS machine trying to fetch is.
 	// This is used as a hint to fetch the S3 bucket from the right partition and region.
 	S3RegionHint string
+
+	// Whether to only attempt fetches which can be performed offline. This
+	// currently only includes the "data" scheme. Other schemes will result in
+	// ErrNeedNet. In the future, we can improve on this by dropping this
+	// and just making sure that we canonicalize all "insufficient
+	// network"-related errors to ErrNeedNet. That way, distro integrators
+	// could distinguish between "partial" and full network bring-up.
+	Offline bool
 }
 
 type FetchOptions struct {
@@ -96,10 +105,14 @@ type FetchOptions struct {
 	Compression string
 }
 
-// FetchToBuffer will fetch the given url into a temporrary file, and then read
+// FetchToBuffer will fetch the given url into a temporary file, and then read
 // in the contents of the file and delete it. It will return the downloaded
 // contents, or an error if one was encountered.
 func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
+	if f.Offline && util.UrlNeedsNet(u) {
+		return nil, ErrNeedNet
+	}
+
 	var err error
 	dest := new(bytes.Buffer)
 	switch u.Scheme {
@@ -157,6 +170,10 @@ func (s *s3buf) Seek(offset int64, whence int) (int64, error) {
 // fetch chunks out of order, Fetch's behavior when dest is not an empty file is
 // undefined.
 func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
+	if f.Offline && util.UrlNeedsNet(u) {
+		return ErrNeedNet
+	}
+
 	switch u.Scheme {
 	case "http", "https":
 		return f.fetchFromHTTP(u, dest, opts)
