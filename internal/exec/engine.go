@@ -23,13 +23,16 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
+	"github.com/coreos/go-systemd/v22/journal"
 	"github.com/coreos/ignition/v2/config"
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	latest "github.com/coreos/ignition/v2/config/v3_1_experimental"
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
+	executil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers"
@@ -45,6 +48,9 @@ import (
 
 const (
 	DefaultFetchTimeout = 2 * time.Minute
+	// This variable will help to identify ignition journal messages
+	// related to the user/base config.
+	ignitionFetchedConfigMsgId = "57124006b5c94805b77ce473e92a8aeb"
 )
 
 // Engine represents the entity that fetches and executes a configuration.
@@ -75,6 +81,25 @@ func (e Engine) Run(stageName string) error {
 		return err
 	}
 
+	baseConfigFound := true
+	if err == providers.ErrNoProvider {
+		baseConfigFound = false
+	}
+
+	configExists, err := executil.PathExists(e.ConfigCache)
+	if err != nil {
+		e.Logger.Info("failed to check for %s : %v", e.ConfigCache, err)
+	}
+	// This is a hack to emit the journald message
+	// only once for the base config. Change this when
+	// (https://github.com/coreos/ignition/issues/950)
+	// is implemented.
+	if !configExists && baseConfigFound {
+		if err := logStructuredJournalEntry("base", "system", false); err != nil {
+			e.Logger.Info("failed to log systemd journal entry: %v", err)
+		}
+	}
+
 	cfg, err := e.acquireConfig()
 	if err == errors.ErrEmpty {
 		e.Logger.Info("%v: ignoring user-provided config", err)
@@ -100,6 +125,26 @@ func (e Engine) Run(stageName string) error {
 		return err
 	}
 	e.Logger.Info("%s passed", stageName)
+	return nil
+}
+
+// logStructuredJournalEntry logs information related to
+// a user/base config into the systemd journal log.
+func logStructuredJournalEntry(config string, src string, isReferenced bool) error {
+	ignitionInfo := map[string]string{
+		"IGNITION_CONFIG_TYPE":       config,
+		"IGNITION_CONFIG_SRC":        src,
+		"IGNITION_CONFIG_REFERENCED": strconv.FormatBool(isReferenced),
+		"MESSAGE_ID":                 ignitionFetchedConfigMsgId,
+	}
+	referenced := ""
+	if isReferenced {
+		referenced = "referenced "
+	}
+	msg := fmt.Sprintf("fetched %s%s config from %q", referenced, config, src)
+	if err := journal.Send(msg, journal.PriInfo, ignitionInfo); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -184,19 +229,20 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 // is unavailable. This will also render the config (see renderConfig) before
 // returning.
 func (e *Engine) fetchProviderConfig() (types.Config, error) {
-	fetchers := []providers.FuncFetchConfig{
-		cmdline.FetchConfig,
-		system.FetchConfig,
-		e.PlatformConfig.FetchFunc(),
+	fetchers := map[string]providers.FuncFetchConfig{
+		"cmdline":               cmdline.FetchConfig,
+		"system":                system.FetchConfig,
+		e.PlatformConfig.Name(): e.PlatformConfig.FetchFunc(),
 	}
-
 	var cfg types.Config
 	var r report.Report
 	var err error
-	for _, fetcher := range fetchers {
+	var providerKey string
+	for key, fetcher := range fetchers {
 		cfg, r, err = fetcher(e.Fetcher)
 		if err != providers.ErrNoProvider {
 			// successful, or failed on another error
+			providerKey = key
 			break
 		}
 	}
@@ -206,6 +252,9 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 		return types.Config{}, err
 	}
 
+	if err := logStructuredJournalEntry("user", providerKey, false); err != nil {
+		e.Logger.Info("failed to log systemd journal entry: %v", err)
+	}
 	// Replace the HTTP client in the fetcher to be configured with the
 	// timeouts of the config
 	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities, cfg.Ignition.Proxy)
@@ -293,6 +342,10 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 	} else {
 		// data url's might contain secrets
 		e.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))
+	}
+
+	if err := logStructuredJournalEntry("user", u.Path, true); err != nil {
+		e.Logger.Info("failed to log systemd journal entry: %v", err)
 	}
 
 	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
