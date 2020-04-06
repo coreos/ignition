@@ -17,8 +17,9 @@
 package validations
 
 import (
-	"github.com/coreos/go-systemd/unit"
 	"github.com/coreos/ignition/v2/config/shared/errors"
+
+	"github.com/coreos/go-systemd/v22/unit"
 )
 
 // ValidateInstallSection is a helper to validate a given unit
