@@ -19,11 +19,10 @@ import (
 	"path"
 	"strings"
 
-	"github.com/coreos/go-systemd/unit"
-
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/shared/validations"
 
+	"github.com/coreos/go-systemd/v22/unit"
 	cpath "github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
 )

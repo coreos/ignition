@@ -19,8 +19,8 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/coreos/go-systemd/dbus"
-	"github.com/coreos/go-systemd/unit"
+	"github.com/coreos/go-systemd/v22/dbus"
+	"github.com/coreos/go-systemd/v22/unit"
 )
 
 // WaitOnDevices waits for the devices named in devs to be plugged before returning.
