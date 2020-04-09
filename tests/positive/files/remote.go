@@ -15,12 +15,16 @@
 package files
 
 import (
+	"strings"
+
 	"github.com/coreos/ignition/v2/tests/register"
+	"github.com/coreos/ignition/v2/tests/servers"
 	"github.com/coreos/ignition/v2/tests/types"
 )
 
 func init() {
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTP())
+	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTPCompressed())
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTPUsingHeaders())
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTPUsingHeadersWithRedirect())
 	register.Register(register.PositiveTest, CreateFileFromRemoteContentsHTTPUsingOverwrittenHeaders())
@@ -52,6 +56,45 @@ func CreateFileFromRemoteContentsHTTP() types.Test {
 		},
 	})
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateFileFromRemoteContentsHTTPCompressed() types.Test {
+	name := "files.create.http.compressed"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := strings.Replace(`{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": {
+	        "compression": "gzip",
+	        "source": "http://127.0.0.1:8080/contents_compressed",
+	        "verification": {
+	          "hash": "sha512-HASH"
+	        }
+	      }
+	    }]
+	  }
+	}`, "HASH", servers.ContentsHash, -1)
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	configMinVersion := "3.1.0-experimental"
 
 	return types.Test{
 		Name:             name,

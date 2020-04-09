@@ -16,6 +16,7 @@ package servers
 
 import (
 	"bytes"
+	"compress/gzip"
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
@@ -61,10 +62,12 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 -----END CERTIFICATE-----`)
 
 	// export these so tests don't have to hard-code them everywhere
-	configRawHash   = sha512.Sum512(servedConfig)
-	contentsRawHash = sha512.Sum512(servedContents)
-	ConfigHash      = hex.EncodeToString(configRawHash[:])
-	ContentsHash    = hex.EncodeToString(contentsRawHash[:])
+	configRawHash    = sha512.Sum512(servedConfig)
+	contentsRawHash  = sha512.Sum512(servedContents)
+	publicKeyRawHash = sha512.Sum512(servedPublicKey)
+	ConfigHash       = hex.EncodeToString(configRawHash[:])
+	ContentsHash     = hex.EncodeToString(contentsRawHash[:])
+	PublicKeyHash    = hex.EncodeToString(publicKeyRawHash[:])
 )
 
 // HTTP Server
@@ -78,6 +81,30 @@ func (server *HTTPServer) Contents(w http.ResponseWriter, r *http.Request) {
 
 func (server *HTTPServer) Certificates(w http.ResponseWriter, r *http.Request) {
 	w.Write(servedPublicKey)
+}
+
+func compress(contents []byte) []byte {
+	var buf bytes.Buffer
+	w := gzip.NewWriter(&buf)
+	if _, err := w.Write(contents); err != nil {
+		panic(err)
+	}
+	if err := w.Close(); err != nil {
+		panic(err)
+	}
+	return buf.Bytes()
+}
+
+func (server *HTTPServer) ConfigCompressed(w http.ResponseWriter, r *http.Request) {
+	w.Write(compress(servedConfig))
+}
+
+func (server *HTTPServer) ContentsCompressed(w http.ResponseWriter, r *http.Request) {
+	w.Write(compress(servedContents))
+}
+
+func (server *HTTPServer) CertificatesCompressed(w http.ResponseWriter, r *http.Request) {
+	w.Write(compress(servedPublicKey))
 }
 
 func errorHandler(w http.ResponseWriter, message string) {
@@ -227,16 +254,19 @@ type HTTPServer struct{}
 
 func (server *HTTPServer) Start() {
 	http.HandleFunc("/contents", server.Contents)
+	http.HandleFunc("/contents_compressed", server.ContentsCompressed)
 	http.HandleFunc("/contents_headers", server.ContentsHeaders)
 	http.HandleFunc("/contents_headers_redirect", server.ContentsRedirect)
 	http.HandleFunc("/contents_headers_redirected", server.ContentsRedirected)
 	http.HandleFunc("/contents_headers_overwrite", server.ContentsHeadersOverwrite)
 	http.HandleFunc("/certificates", server.Certificates)
+	http.HandleFunc("/certificates_compressed", server.CertificatesCompressed)
 	http.HandleFunc("/certificates_headers", server.CertificatesHeaders)
 	http.HandleFunc("/certificates_headers_redirect", server.CertificatesRedirect)
 	http.HandleFunc("/certificates_headers_redirected", server.CertificatesRedirected)
 	http.HandleFunc("/certificates_headers_overwrite", server.CertificatesHeadersOverwrite)
 	http.HandleFunc("/config", server.Config)
+	http.HandleFunc("/config_compressed", server.ConfigCompressed)
 	http.HandleFunc("/config_headers", server.ConfigHeaders)
 	http.HandleFunc("/config_headers_redirect", server.ConfigRedirect)
 	http.HandleFunc("/config_headers_redirected", server.ConfigRedirected)

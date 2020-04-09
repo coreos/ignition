@@ -21,6 +21,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/coreos/ignition/v2/tests/register"
+	"github.com/coreos/ignition/v2/tests/servers"
 	"github.com/coreos/ignition/v2/tests/types"
 
 	"github.com/vincent-petithory/dataurl"
@@ -38,6 +39,7 @@ func init() {
 	register.Register(register.PositiveTest, AppendConfigCustomCert())
 	register.Register(register.PositiveTest, FetchFileCustomCert())
 	register.Register(register.PositiveTest, FetchFileCustomCertHTTP())
+	register.Register(register.PositiveTest, FetchFileCustomCertHTTPCompressed())
 	register.Register(register.PositiveTest, FetchFileCustomCertHTTPUsingHeaders())
 	register.Register(register.PositiveTest, FetchFileCustomCertHTTPUsingHeadersWithRedirect())
 	register.Register(register.PositiveTest, FetchFileCustomCertHTTPUsingOverwrittenHeaders())
@@ -204,6 +206,55 @@ func FetchFileCustomCertHTTP() types.Test {
 		}
 	}`, customCAServer.URL)
 	configMinVersion := "3.0.0"
+
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: string(customCAServerFile),
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FetchFileCustomCertHTTPCompressed() types.Test {
+	name := "tls.fetchfile.http.compressed"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"compression": "gzip",
+						"source": "http://127.0.0.1:8080/certificates_compressed",
+						"verification": {
+							"hash": "sha512-%v"
+						}
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, servers.PublicKeyHash, customCAServer.URL)
+	configMinVersion := "3.1.0-experimental"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{

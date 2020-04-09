@@ -26,10 +26,12 @@ func init() {
 	// TODO: Add S3 tests
 	register.Register(register.PositiveTest, ReformatFilesystemAndWriteFile())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTP())
+	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTPCompressed())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTPUsingHeaders())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTPUsingHeadersWithRedirect())
 	register.Register(register.PositiveTest, ReplaceConfigWithRemoteConfigHTTPUsingOverwrittenHeaders())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTP())
+	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTPCompressed())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTPUsingHeaders())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTPUsingHeadersWithRedirect())
 	register.Register(register.PositiveTest, AppendConfigWithRemoteConfigHTTPUsingOverwrittenHeaders())
@@ -104,6 +106,42 @@ func ReplaceConfigWithRemoteConfigHTTP() types.Test {
 	  }
 	}`, "HASH", servers.ConfigHash, 1)
 	configMinVersion := "3.0.0"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ReplaceConfigWithRemoteConfigHTTPCompressed() types.Test {
+	name := "config.replace.http.compressed"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := strings.Replace(`{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "replace": {
+	        "compression": "gzip",
+	        "source": "http://127.0.0.1:8080/config_compressed",
+			"verification": { "hash": "sha512-HASH" }
+	      }
+	    }
+	  }
+	}`, "HASH", servers.ConfigHash, 1)
+	configMinVersion := "3.1.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -293,6 +331,55 @@ func AppendConfigWithRemoteConfigHTTP() types.Test {
       }
 	}`, "HASH", servers.ConfigHash, 1)
 	configMinVersion := "3.0.0"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "bar2",
+				Directory: "foo",
+			},
+			Contents: "another example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendConfigWithRemoteConfigHTTPCompressed() types.Test {
+	name := "config.merge.http.compressed"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := strings.Replace(`{
+	  "ignition": {
+	    "version": "$version",
+	    "config": {
+	      "merge": [{
+	        "compression": "gzip",
+	        "source": "http://127.0.0.1:8080/config_compressed",
+			"verification": { "hash": "sha512-HASH" }
+	      }]
+	    }
+	  },
+      "storage": {
+        "files": [{
+          "path": "/foo/bar2",
+          "contents": { "source": "data:,another%20example%20file%0A" }
+        }]
+      }
+	}`, "HASH", servers.ConfigHash, 1)
+	configMinVersion := "3.1.0-experimental"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
