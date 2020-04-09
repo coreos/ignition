@@ -267,8 +267,13 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 }
 
 // fetchReferencedConfig fetches and parses the requested config.
-// cfgRef.Source must not ve nil
-func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Config, error) {
+// cfgRef.Source must not be nil
+func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, error) {
+	// this is also already checked at validation time
+	if cfgRef.Source == nil {
+		e.Logger.Crit("invalid referenced config: %v", errors.ErrSourceRequired)
+		return types.Config{}, errors.ErrSourceRequired
+	}
 	u, err := url.Parse(*cfgRef.Source)
 	if err != nil {
 		return types.Config{}, err
@@ -280,8 +285,13 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.ConfigReference) (types.Conf
 			return types.Config{}, err
 		}
 	}
+	compression := ""
+	if cfgRef.Compression != nil {
+		compression = *cfgRef.Compression
+	}
 	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{
-		Headers: headers,
+		Headers:     headers,
+		Compression: compression,
 	})
 	if err != nil {
 		return types.Config{}, err

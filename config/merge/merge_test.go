@@ -82,7 +82,7 @@ func TestMerge(t *testing.T) {
 								Path: "/foo",
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Append: []types.FileContents{
+								Append: []types.Resource{
 									{
 										Source: util.StrToPtr("source1"),
 									},
@@ -94,7 +94,7 @@ func TestMerge(t *testing.T) {
 								Path: "/bar",
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Contents: types.FileContents{
+								Contents: types.Resource{
 									Compression: util.StrToPtr("gzip"),
 								},
 							},
@@ -133,7 +133,7 @@ func TestMerge(t *testing.T) {
 								Path: "/foo",
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Append: []types.FileContents{
+								Append: []types.Resource{
 									{
 										Source: util.StrToPtr("source1"),
 									},
@@ -193,7 +193,7 @@ func TestMerge(t *testing.T) {
 								Path: "/foo",
 							},
 							FileEmbedded1: types.FileEmbedded1{
-								Append: []types.FileContents{
+								Append: []types.Resource{
 									{
 										Source: util.StrToPtr("source1"),
 									},
@@ -230,7 +230,7 @@ func TestMerge(t *testing.T) {
 			in1: types.Config{
 				Ignition: types.Ignition{
 					Config: types.IgnitionConfig{
-						Merge: []types.ConfigReference{
+						Merge: []types.Resource{
 							{
 								Source: &configURL,
 								HTTPHeaders: []types.HTTPHeader{
@@ -255,7 +255,7 @@ func TestMerge(t *testing.T) {
 			in2: types.Config{
 				Ignition: types.Ignition{
 					Config: types.IgnitionConfig{
-						Merge: []types.ConfigReference{
+						Merge: []types.Resource{
 							{
 								Source: &configURL,
 								HTTPHeaders: []types.HTTPHeader{
@@ -279,7 +279,7 @@ func TestMerge(t *testing.T) {
 			out: types.Config{
 				Ignition: types.Ignition{
 					Config: types.IgnitionConfig{
-						Merge: []types.ConfigReference{
+						Merge: []types.Resource{
 							{
 								Source: &configURL,
 								HTTPHeaders: []types.HTTPHeader{
@@ -308,7 +308,7 @@ func TestMerge(t *testing.T) {
 			in1: types.Config{
 				Ignition: types.Ignition{
 					Config: types.IgnitionConfig{
-						Replace: types.ConfigReference{
+						Replace: types.Resource{
 							Source: &configURL,
 							HTTPHeaders: []types.HTTPHeader{
 								{
@@ -331,7 +331,7 @@ func TestMerge(t *testing.T) {
 			in2: types.Config{
 				Ignition: types.Ignition{
 					Config: types.IgnitionConfig{
-						Replace: types.ConfigReference{
+						Replace: types.Resource{
 							Source: &configURL,
 							HTTPHeaders: []types.HTTPHeader{
 								{
@@ -353,7 +353,7 @@ func TestMerge(t *testing.T) {
 			out: types.Config{
 				Ignition: types.Ignition{
 					Config: types.IgnitionConfig{
-						Replace: types.ConfigReference{
+						Replace: types.Resource{
 							Source: &configURL,
 							HTTPHeaders: []types.HTTPHeader{
 								{
@@ -381,9 +381,9 @@ func TestMerge(t *testing.T) {
 				Ignition: types.Ignition{
 					Security: types.Security{
 						TLS: types.TLS{
-							CertificateAuthorities: []types.CaReference{
+							CertificateAuthorities: []types.Resource{
 								{
-									Source: caURL,
+									Source: util.StrToPtr(caURL),
 									HTTPHeaders: []types.HTTPHeader{
 										{
 											Name:  "old-header",
@@ -408,9 +408,9 @@ func TestMerge(t *testing.T) {
 				Ignition: types.Ignition{
 					Security: types.Security{
 						TLS: types.TLS{
-							CertificateAuthorities: []types.CaReference{
+							CertificateAuthorities: []types.Resource{
 								{
-									Source: caURL,
+									Source: util.StrToPtr(caURL),
 									HTTPHeaders: []types.HTTPHeader{
 										{
 											Name: "to-remove-header",
@@ -434,9 +434,9 @@ func TestMerge(t *testing.T) {
 				Ignition: types.Ignition{
 					Security: types.Security{
 						TLS: types.TLS{
-							CertificateAuthorities: []types.CaReference{
+							CertificateAuthorities: []types.Resource{
 								{
-									Source: caURL,
+									Source: util.StrToPtr(caURL),
 									HTTPHeaders: []types.HTTPHeader{
 										{
 											Name:  "old-header",
@@ -466,7 +466,7 @@ func TestMerge(t *testing.T) {
 					Files: []types.File{
 						{
 							FileEmbedded1: types.FileEmbedded1{
-								Contents: types.FileContents{
+								Contents: types.Resource{
 									Source: &fileURL,
 									HTTPHeaders: []types.HTTPHeader{
 										{
@@ -493,7 +493,7 @@ func TestMerge(t *testing.T) {
 					Files: []types.File{
 						{
 							FileEmbedded1: types.FileEmbedded1{
-								Contents: types.FileContents{
+								Contents: types.Resource{
 									Source: &fileURL,
 									HTTPHeaders: []types.HTTPHeader{
 										{
@@ -519,7 +519,7 @@ func TestMerge(t *testing.T) {
 					Files: []types.File{
 						{
 							FileEmbedded1: types.FileEmbedded1{
-								Contents: types.FileContents{
+								Contents: types.Resource{
 									Source: &fileURL,
 									HTTPHeaders: []types.HTTPHeader{
 										{
@@ -550,7 +550,7 @@ func TestMerge(t *testing.T) {
 					Files: []types.File{
 						{
 							FileEmbedded1: types.FileEmbedded1{
-								Append: []types.FileContents{
+								Append: []types.Resource{
 									{
 										Source: &fileURL,
 										HTTPHeaders: []types.HTTPHeader{
@@ -575,7 +575,7 @@ func TestMerge(t *testing.T) {
 					Files: []types.File{
 						{
 							FileEmbedded1: types.FileEmbedded1{
-								Append: []types.FileContents{
+								Append: []types.Resource{
 									{
 										Source: &fileURL,
 										HTTPHeaders: []types.HTTPHeader{
@@ -600,7 +600,7 @@ func TestMerge(t *testing.T) {
 					Files: []types.File{
 						{
 							FileEmbedded1: types.FileEmbedded1{
-								Append: []types.FileContents{
+								Append: []types.Resource{
 									{
 										Source: &fileURL,
 										HTTPHeaders: []types.HTTPHeader{

@@ -78,6 +78,7 @@ var (
 	ErrInvalidInstantiatedUnit = errors.New("invalid systemd instantiated unit")
 
 	// Misc errors
+	ErrSourceRequired                  = errors.New("source is required")
 	ErrInvalidScheme                   = errors.New("invalid url scheme")
 	ErrInvalidUrl                      = errors.New("unable to parse url")
 	ErrInvalidHTTPHeader               = errors.New("unable to parse HTTP header")

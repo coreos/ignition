@@ -33,7 +33,7 @@ func translateFilesystem(old old_types.Filesystem) (ret types.Filesystem) {
 	return
 }
 
-func translateConfigReference(old old_types.ConfigReference) (ret types.ConfigReference) {
+func translateConfigReference(old old_types.ConfigReference) (ret types.Resource) {
 	// use a new translator so we don't recurse infinitely
 	tr := translate.NewTranslator()
 	tr.Translate(&old.Source, &ret.Source)
@@ -41,15 +41,15 @@ func translateConfigReference(old old_types.ConfigReference) (ret types.ConfigRe
 	return
 }
 
-func translateCAReference(old old_types.CaReference) (ret types.CaReference) {
+func translateCAReference(old old_types.CaReference) (ret types.Resource) {
 	// use a new translator so we don't recurse infinitely
 	tr := translate.NewTranslator()
-	tr.Translate(&old.Source, &ret.Source)
+	ret.Source = &old.Source
 	tr.Translate(&old.Verification, &ret.Verification)
 	return
 }
 
-func translateFileContents(old old_types.FileContents) (ret types.FileContents) {
+func translateFileContents(old old_types.FileContents) (ret types.Resource) {
 	// use a new translator so we don't recurse infinitely
 	tr := translate.NewTranslator()
 	tr.Translate(&old.Compression, &ret.Compression)
