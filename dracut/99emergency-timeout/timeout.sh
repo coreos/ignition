@@ -29,10 +29,10 @@ _prompt_for_timeout() {
     if [[ -e /.emergency-shell-confirmed ]]; then
         return
     fi
-    ignition_units="ignition-fetch.service ignition-disks.service ignition-files.service ignition-mount.service"
-    if systemctl show $ignition_units | grep -q "^ActiveState=failed$"; then
-        # Ignition has failed, suppress kernel logs so that Ignition logs stay
-        # on the screen
+    failed=$(systemctl --failed --no-legend | cut -f 1 -d ' ')
+    if [ -n "${failed}" ]; then
+        # Something failed, suppress kernel logs so that it's more likely
+        # the useful bits from the journal are available.
         dmesg --console-off
 
         # There's a couple straggler systemd messages. Wait until it's been 5
@@ -40,19 +40,24 @@ _prompt_for_timeout() {
         _wait_for_journalctl_to_stop
 
         # Print Ignition logs
+        if echo ${failed} | grep -qFe 'ignition-'; then
         cat <<EOF
--------------------------------------------------------------------------------
+------
 Ignition has failed. Please ensure your config is valid. Note that only
 Ignition spec v3.0.0+ configs are accepted.
 
 A CLI validation tool to check this called ignition-validate can be
 downloaded from GitHub:
     https://github.com/coreos/ignition/releases
+------
 
-Here are the Ignition logs:
 EOF
-        journalctl -t ignition --no-pager --no-hostname -o cat
-        echo
+        fi
+        echo "Displaying logs from failed units: ${failed}"
+        for unit in ${failed}; do
+            # 10 lines should be enough for everyone
+            journalctl -b --no-pager --no-hostname -u ${unit} -n 10
+        done
     fi
 
     # Regularly prompt with time remaining.  This ensures the prompt doesn't
