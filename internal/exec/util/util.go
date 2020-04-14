@@ -90,3 +90,14 @@ func (u Util) JoinPath(path ...string) (string, error) {
 
 	return filepath.Join(u.DestDir, realpath, last), nil
 }
+
+// PathExists checks if the path exists for a given config.
+func PathExists(path string) (bool, error) {
+	if _, err := os.Stat(path); err != nil {
+		if !os.IsNotExist(err) {
+			return false, err
+		}
+		return false, nil
+	}
+	return true, nil
+}
