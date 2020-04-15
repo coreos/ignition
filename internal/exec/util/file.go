@@ -58,7 +58,7 @@ func newHashedReader(reader io.ReadCloser, hasher hash.Hash) io.ReadCloser {
 	}
 }
 
-func newFetchOp(l *log.Logger, node types.Node, contents types.FileContents) (FetchOp, error) {
+func newFetchOp(l *log.Logger, node types.Node, contents types.Resource) (FetchOp, error) {
 	var expectedSum []byte
 
 	uri, err := url.Parse(*contents.Source)

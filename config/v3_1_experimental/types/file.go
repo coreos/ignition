@@ -15,10 +15,7 @@
 package types
 
 import (
-	"net/url"
-
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/util"
 
 	"github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
@@ -44,53 +41,5 @@ func (f File) validateOverwrite() error {
 func (f FileEmbedded1) IgnoreDuplicates() map[string]struct{} {
 	return map[string]struct{}{
 		"Append": {},
-	}
-}
-
-func (fc FileContents) Validate(c path.ContextPath) (r report.Report) {
-	r.AddOnError(c.Append("compression"), fc.validateCompression())
-	r.AddOnError(c.Append("verification", "hash"), fc.validateVerification())
-	r.AddOnError(c.Append("source"), validateURLNilOK(fc.Source))
-	r.AddOnError(c.Append("httpHeaders"), fc.validateSchemeForHTTPHeaders())
-	return
-}
-
-func (fc FileContents) validateCompression() error {
-	if fc.Compression != nil {
-		switch *fc.Compression {
-		case "", "gzip":
-		default:
-			return errors.ErrCompressionInvalid
-		}
-	}
-	return nil
-}
-
-func (fc FileContents) validateVerification() error {
-	if fc.Verification.Hash != nil && fc.Source == nil {
-		return errors.ErrVerificationAndNilSource
-	}
-	return nil
-}
-
-func (fc FileContents) validateSchemeForHTTPHeaders() error {
-	if len(fc.HTTPHeaders) < 1 {
-		return nil
-	}
-
-	if util.NilOrEmpty(fc.Source) {
-		return errors.ErrInvalidUrl
-	}
-
-	u, err := url.Parse(*fc.Source)
-	if err != nil {
-		return errors.ErrInvalidUrl
-	}
-
-	switch u.Scheme {
-	case "http", "https":
-		return nil
-	default:
-		return errors.ErrUnsupportedSchemeForHTTPHeaders
 	}
 }

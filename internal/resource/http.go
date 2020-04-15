@@ -28,6 +28,7 @@ import (
 	"strings"
 	"time"
 
+	ignerrors "github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/earlyrand"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -63,7 +64,7 @@ type HttpClient struct {
 	cas       map[string][]byte
 }
 
-func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.CaReference, proxy types.Proxy) error {
+func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.Resource, proxy types.Proxy) error {
 	if f.client == nil {
 		if err := f.newHttpClient(); err != nil {
 			return err
@@ -110,13 +111,13 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 		}
 		block, _ := pem.Decode(cablob)
 		if block == nil {
-			f.Logger.Err("Unable to decode CA (%s)", ca.Source)
+			f.Logger.Err("Unable to decode CA (%v)", ca.Source)
 			return ErrPEMDecodeFailed
 		}
 
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
-			f.Logger.Err("Unable to parse CA (%s): %s", ca.Source, err)
+			f.Logger.Err("Unable to parse CA (%v): %s", ca.Source, err)
 			return err
 		}
 
@@ -129,11 +130,16 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 	return nil
 }
 
-func (f *Fetcher) getCABlob(ca types.CaReference) ([]byte, error) {
-	if blob, ok := f.client.cas[ca.Source]; ok {
+func (f *Fetcher) getCABlob(ca types.Resource) ([]byte, error) {
+	// this is also already checked at validation time
+	if ca.Source == nil {
+		f.Logger.Crit("invalid CA: %v", ignerrors.ErrSourceRequired)
+		return nil, ignerrors.ErrSourceRequired
+	}
+	if blob, ok := f.client.cas[*ca.Source]; ok {
 		return blob, nil
 	}
-	u, err := url.Parse(ca.Source)
+	u, err := url.Parse(*ca.Source)
 	if err != nil {
 		f.Logger.Crit("Unable to parse CA URL: %s", err)
 		return nil, err
@@ -164,23 +170,29 @@ func (f *Fetcher) getCABlob(ca types.CaReference) ([]byte, error) {
 		}
 	}
 
+	var compression string
+	if ca.Compression != nil {
+		compression = *ca.Compression
+	}
+
 	cablob, err := f.FetchToBuffer(*u, FetchOptions{
 		Hash:        hasher,
 		Headers:     headers,
 		ExpectedSum: expectedSum,
+		Compression: compression,
 	})
 	if err != nil {
 		f.Logger.Err("Unable to fetch CA (%s): %s", u, err)
 		return nil, err
 	}
-	f.client.cas[ca.Source] = cablob
+	f.client.cas[*ca.Source] = cablob
 	return cablob, nil
 
 }
 
 // RewriteCAsWithDataUrls will modify the passed in slice of CA references to
 // contain the actual CA file via a dataurl in their source field.
-func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.CaReference) error {
+func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.Resource) error {
 	for i, ca := range cas {
 		blob, err := f.getCABlob(ca)
 		if err != nil {
@@ -190,7 +202,8 @@ func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.CaReference) error {
 		// Clean HTTP headers
 		cas[i].HTTPHeaders = nil
 
-		cas[i].Source = dataurl.EncodeBytes(blob)
+		encoded := dataurl.EncodeBytes(blob)
+		cas[i].Source = &encoded
 	}
 	return nil
 }

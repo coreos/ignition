@@ -20,6 +20,23 @@
     "ignition"
   ],
   "definitions": {
+    "resource": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": ["string", "null"]
+        },
+        "compression": {
+          "type": ["string", "null"]
+        },
+        "httpHeaders": {
+          "$ref": "#/definitions/httpHeaders"
+        },
+        "verification": {
+          "$ref": "#/definitions/verification"
+        }
+      }
+    },
     "verification": {
       "type": "object",
       "properties": {
@@ -69,11 +86,11 @@
             "merge": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ignition/definitions/config-reference"
+                "$ref": "#/definitions/resource"
               }
             },
             "replace": {
-              "$ref": "#/definitions/ignition/definitions/config-reference"
+              "$ref": "#/definitions/resource"
             }
           }
         },
@@ -86,7 +103,7 @@
                 "certificateAuthorities": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/ignition/definitions/ca-reference"
+                    "$ref": "#/definitions/resource"
                   }
                 }
               }
@@ -109,40 +126,6 @@
               }
             }
           }
-        },
-        "config-reference": {
-          "type": "object",
-          "properties": {
-            "source": {
-              "type": ["string", "null"]
-            },
-            "httpHeaders": {
-              "$ref": "#/definitions/httpHeaders"
-            },
-            "verification": {
-              "$ref": "#/definitions/verification"
-            }
-          },
-          "required": [
-              "source"
-          ]
-        },
-        "ca-reference": {
-          "type": ["object", "null"],
-          "properties": {
-            "source": {
-              "type": "string"
-            },
-            "httpHeaders": {
-              "$ref": "#/definitions/httpHeaders"
-            },
-            "verification": {
-              "$ref": "#/definitions/verification"
-            }
-          },
-          "required": [
-              "source"
-          ]
         },
         "timeouts": {
           "type": "object",
@@ -299,12 +282,12 @@
                   "type": ["integer", "null"]
                 },
                 "contents": {
-                  "$ref": "#/definitions/storage/definitions/file-contents"
+                  "$ref": "#/definitions/resource"
                 },
                 "append": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/storage/definitions/file-contents"
+                    "$ref": "#/definitions/resource"
                   }
                 }
               }
@@ -373,23 +356,6 @@
             },
             "shouldExist": {
               "type": ["boolean", "null"]
-            }
-          }
-        },
-        "file-contents": {
-          "type": "object",
-          "properties": {
-            "compression": {
-              "type": ["string", "null"]
-            },
-            "source": {
-              "type": ["string", "null"]
-            },
-            "httpHeaders": {
-              "$ref": "#/definitions/httpHeaders"
-            },
-            "verification": {
-              "$ref": "#/definitions/verification"
             }
           }
         },

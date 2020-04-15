@@ -44,7 +44,7 @@ func TestFileValidateOverwrite(t *testing.T) {
 					Overwrite: util.BoolToPtr(true),
 				},
 				FileEmbedded1: FileEmbedded1{
-					Contents: FileContents{
+					Contents: Resource{
 						Source: util.StrToPtr(""),
 					},
 				},
@@ -57,7 +57,7 @@ func TestFileValidateOverwrite(t *testing.T) {
 					Overwrite: util.BoolToPtr(true),
 				},
 				FileEmbedded1: FileEmbedded1{
-					Contents: FileContents{
+					Contents: Resource{
 						Source: util.StrToPtr("http://example.com"),
 					},
 				},
@@ -76,21 +76,21 @@ func TestFileValidateOverwrite(t *testing.T) {
 
 func TestFileContentsValidate(t *testing.T) {
 	tests := []struct {
-		in  FileContents
+		in  Resource
 		out error
 	}{
 		{
-			FileContents{},
+			Resource{},
 			nil,
 		},
 		{
-			FileContents{
+			Resource{
 				Source: util.StrToPtr(""),
 			},
 			nil,
 		},
 		{
-			FileContents{
+			Resource{
 				Source: util.StrToPtr(""),
 				Verification: Verification{
 					Hash: util.StrToPtr(""),
@@ -99,7 +99,7 @@ func TestFileContentsValidate(t *testing.T) {
 			nil,
 		},
 		{
-			FileContents{
+			Resource{
 				Verification: Verification{
 					Hash: util.StrToPtr(""),
 				},
