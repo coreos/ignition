@@ -22,10 +22,17 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/coreos/go-systemd/v22/journal"
 	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
 	"github.com/coreos/ignition/v2/internal/as_user"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"golang.org/x/sys/unix"
+)
+
+const (
+	// ignitionSSHAuthorizedkeysMessageID keeps track of the journald
+	// log related to ssh_authorized_keys information.
+	ignitionSSHAuthorizedkeysMessageID = "225067b87bbd4a0cb6ab151f82fa364b"
 )
 
 func appendIfTrue(args []string, test *bool, newargs string) []string {
@@ -171,16 +178,22 @@ func (u Util) AuthorizeSSHKeys(c types.PasswdUser) error {
 		if !strings.HasSuffix(ks, "\n") {
 			ks = ks + "\n"
 		}
-
+		var path string
 		if distro.WriteAuthorizedKeysFragment() {
-			err = writeAuthKeysFile(usr, filepath.Join(usr.HomeDir, ".ssh", "authorized_keys.d", "ignition"), []byte(ks))
+			path = filepath.Join(usr.HomeDir, ".ssh", "authorized_keys.d", "ignition")
+			err = writeAuthKeysFile(usr, path, []byte(ks))
 		} else {
-			err = writeAuthKeysFile(usr, filepath.Join(usr.HomeDir, ".ssh", "authorized_keys"), []byte(ks))
+			path = filepath.Join(usr.HomeDir, ".ssh", "authorized_keys")
+			err = writeAuthKeysFile(usr, path, []byte(ks))
 		}
-
 		if err != nil {
 			return fmt.Errorf("failed to set SSH key: %v", err)
 		}
+		journal.Send(fmt.Sprintf("wrote ssh authorized keys file for user: %s", c.Name), journal.PriInfo, map[string]string{
+			"IGNITION_USER_NAME": c.Name,
+			"IGNITION_PATH":      path,
+			"MESSAGE_ID":         ignitionSSHAuthorizedkeysMessageID,
+		})
 		return nil
 	}, "adding ssh keys to user %q", c.Name)
 }
