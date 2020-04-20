@@ -1,0 +1,61 @@
+#grab gofed from https://github.com/gofed/gofed
+#follow instructions for install
+
+#choose which version of the repo you want to build. For ignition it was 0.2.6 and the commit was 76107251acd117c6d3e5b4dae2b47f82f944984b
+
+[vagrant@vanilla-f28 ~]$ gofed repo2spec --detect github.com/coreos/ignition --commit 76107251acd117c6d3e5b4dae2b47f82f944984b  --with-extra --with-build -f                                                                                                                                                 
+Repo URL: github.com/coreos/ignition
+Commit: 76107251acd117c6d3e5b4dae2b47f82f944984b
+Name: golang-github-coreos-ignition
+
+(1/4) Checking if the package already exists in PkgDB
+(2/4) Collecting data
+(3/4) Generating spec file
+(4/4) Discovering golang dependencies
+Discovering package dependencies
+        Class: github.com/ajeddeloh/go-json (golang-github-ajeddeloh-go-json) PkgDB=False                                                             
+        Class: github.com/aws/aws-sdk-go (golang-github-aws-aws-sdk-go) PkgDB=True                                                                    
+        Class: github.com/coreos/go-semver (golang-github-coreos-go-semver) PkgDB=True                                                                
+        Class: github.com/coreos/go-systemd (golang-github-coreos-go-systemd) PkgDB=True                                                              
+        Class: github.com/pin/tftp (golang-github-pin-tftp) PkgDB=False
+        Class: github.com/sigma/vmw-guestinfo (golang-github-sigma-vmw-guestinfo) PkgDB=False                                                         
+        Class: github.com/vincent-petithory/dataurl (golang-github-vincent-petithory-dataurl) PkgDB=False                                             
+        Class: github.com/vmware/vmw-ovflib (golang-github-vmware-vmw-ovflib) PkgDB=False                                                             
+
+Discovering test dependencies
+        Class: github.com/stretchr/testify (golang-github-stretchr-testify) PkgDB=True                                                                
+
+Spec file golang-github-coreos-ignition.spec at /home/vagrant/golang-github-coreos-ignition         
+
+# spec file now at /home/vagrant/golang-github-coreos-ignition/golang-github-coreos-ignition.spec
+
+# go through and fix things up - see diff
+
+# generate bundled provides by copying/using parsedeps.go to the ignition
+# source folder and then running `go run parsedeps.go`. copy into spec file
+# should be done by gofed at some point - https://github.com/gofed/gofed/issues/42
+
+# grab source tarball
+# rpmspec -P ignition.spec | grep Source0
+# pushd $HOME/rpmbuild/SOURCES/
+# curl -L -O $URL
+# popd 
+
+
+# build RPM
+$ rpmbuild -ba ignition.spec
+
+# find a srpm in `$HOME/rpmbuild/SRPMS`
+# find a RPM in `$HOME/rpmbuild/RPM/arch/`
+# see if the dependencies are proper
+
+$ rpm -qpR $HOME/rpmbuild/RPMS/x86_64/ignition-0.26.0-0.1.git7610725.fc28.x86_64.rpm
+
+
+# setup to run koji, ref: https://fedoraproject.org/wiki/Using_the_Koji_build_system
+$ fedora-packager-setup
+$ kinit <username>@FEDORAPROJECT.ORG
+
+
+# to build it on koji run:
+$ koji build --scratch rawhide /path/to/srpm/ignition-0.26.0-0.1.git7610725.fc28.src.rpm

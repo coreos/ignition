@@ -1,0 +1,21 @@
+- hosts: localhost
+  roles:
+    - role: standard-test-basic
+      tags:
+        - classic
+      required-packages:
+        - ignition
+        - ignition-validate
+      tests:
+        - ignition-run-version:
+           dir: ./
+           run: /usr/lib/dracut/modules.d/30ignition/ignition --version
+        - ignition-validate-run-version:
+           dir: ./
+           run: /usr/bin/ignition-validate --version
+        - ignition-rpm-installed:
+           dir: ./
+           run: /usr/bin/rpm -q ignition
+        - ignition-validate-rpm-installed:
+           dir: ./
+           run: /usr/bin/rpm -q ignition-validate

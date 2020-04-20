@@ -1,0 +1,3 @@
+# ignition
+
+The ignition package
