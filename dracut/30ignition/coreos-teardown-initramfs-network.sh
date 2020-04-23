@@ -4,11 +4,13 @@
 
 set -euo pipefail
 
-# Load dracut library. Using getargbool() from dracut-lib.
+# Load dracut libraries. Using getargbool() and getargs() from
+# dracut-lib and ip_to_var() from net-lib
 load_dracut_libs() {
     # dracut is not friendly to set -eu
     set +euo pipefail
     type getargbool &>/dev/null || . /lib/dracut-lib.sh
+    type ip_to_var &>/dev/null  || . /lib/net-lib.sh
     set -euo pipefail
 }
 
@@ -57,6 +59,44 @@ propagate_initramfs_networking() {
         else
             echo "info: no initramfs networking information to propagate"
         fi
+    fi
+}
+
+# Propagate the ip= karg hostname if desired. The policy here is:
+#
+#     - IF a hostname is specified in static networking ip= kargs
+#     - AND no hostname was set via Ignition (realroot `/etc/hostname`)
+#     - THEN we make the last hostname specified in an ip= karg apply
+#       permanently by writing it into `/etc/hostname`
+#
+# This may no longer be needed when the following bug is fixed:
+# https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/issues/419
+propagate_initramfs_hostname() {
+    if [ -e '/sysroot/etc/hostname' ]; then
+        echo "info: hostname is defined in the real root"
+        echo "info: will not attempt to propagate initramfs hostname"
+        return 0
+    fi
+    # Detect if any hostname was provided via static ip= kargs
+    # run in a subshell so we don't pollute our environment
+    hostnamefile=$(mktemp)
+    (
+        last_nonempty_hostname=''
+        # Inspired from ifup.sh from the 40network dracut module. Note that
+        # $hostname from ip_to_var will only be nonempty for static networking.
+        for iparg in $(dracut_func getargs ip=); do
+            dracut_func ip_to_var $iparg
+            [ -n "${hostname:-}" ] && last_nonempty_hostname="$hostname"
+        done
+        echo -n "$last_nonempty_hostname" > $hostnamefile
+    )
+    hostname=$(<$hostnamefile); rm $hostnamefile
+    if [ -n "$hostname" ]; then
+        echo "info: propagating initramfs hostname (${hostname}) to the real root"
+        echo $hostname > /sysroot/etc/hostname
+        selinux_relabel /etc/hostname
+    else
+        echo "info: no initramfs hostname information to propagate"
     fi
 }
 
@@ -114,6 +154,7 @@ main() {
         echo "info: coreos.no_persist_ip karg detected"
         echo "info: skipping propagating initramfs settings"
     else
+        propagate_initramfs_hostname
         propagate_initramfs_networking
     fi
 
