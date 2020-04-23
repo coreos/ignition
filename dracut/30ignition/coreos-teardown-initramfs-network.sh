@@ -4,6 +4,16 @@
 
 set -euo pipefail
 
+selinux_relabel() {
+    # If we have access to coreos-relabel then let's use that because
+    # it allows us to set labels on things before switching root
+    # If not, fallback to tmpfiles.
+    if command -v coreos-relabel; then
+        coreos-relabel $1
+    else
+        echo "Z $1 - - -" >> "/run/tmpfiles.d/$(basename $0)-relabel.conf"
+    fi
+}
 
 # Propagate initramfs networking if desired. The policy here is:
 #
@@ -24,6 +34,7 @@ propagate_initramfs_networking() {
         if [ -n "$(ls -A /run/NetworkManager/system-connections/)" ]; then
             echo "info: propagating initramfs networking config to the real root"
             cp /run/NetworkManager/system-connections/* /sysroot/etc/NetworkManager/system-connections/
+            selinux_relabel /etc/NetworkManager/system-connections/
         else
             echo "info: no initramfs networking information to propagate"
         fi
