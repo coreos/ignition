@@ -65,8 +65,12 @@ down_interfaces() {
         for f in /sys/class/net/*; do
             interface=$(basename "$f")
             # The `bonding_masters` entry is not a true interface and thus
-            # cannot be taken down.
-            if [ "$interface" == "bonding_masters" ]; then continue; fi
+            # cannot be taken down. Also skip local loopback
+            case "$interface" in
+                "lo" | "bonding_masters")
+                    continue
+                    ;;
+            esac
             down_interface $interface
         done
     fi
