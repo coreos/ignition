@@ -4,6 +4,34 @@
 
 set -euo pipefail
 
+# Load dracut libraries. Using getargbool() and getargs() from
+# dracut-lib and ip_to_var() from net-lib
+load_dracut_libs() {
+    # dracut is not friendly to set -eu
+    set +euo pipefail
+    type getargbool &>/dev/null || . /lib/dracut-lib.sh
+    type ip_to_var &>/dev/null  || . /lib/net-lib.sh
+    set -euo pipefail
+}
+
+dracut_func() {
+    # dracut is not friendly to set -eu
+    set +euo pipefail
+    "$@"; rc=$?
+    set -euo pipefail
+    return $rc
+}
+
+selinux_relabel() {
+    # If we have access to coreos-relabel then let's use that because
+    # it allows us to set labels on things before switching root
+    # If not, fallback to tmpfiles.
+    if command -v coreos-relabel; then
+        coreos-relabel $1
+    else
+        echo "Z $1 - - -" >> "/run/tmpfiles.d/$(basename $0)-relabel.conf"
+    fi
+}
 
 # Propagate initramfs networking if desired. The policy here is:
 #
@@ -16,7 +44,10 @@ set -euo pipefail
 #
 # See https://github.com/coreos/fedora-coreos-tracker/issues/394#issuecomment-599721173
 propagate_initramfs_networking() {
-    if [ -n "$(ls -A /sysroot/etc/NetworkManager/system-connections/)" ]; then
+    # Check the two locations where a user could have provided network configuration
+    # On FCOS we only support keyfiles, but on RHCOS we support keyfiles and ifcfg
+    if [ -n "$(ls -A /sysroot/etc/NetworkManager/system-connections/)" -o \
+         -n "$(ls -A /sysroot/etc/sysconfig/network-scripts/)" ]; then
         echo "info: networking config is defined in the real root"
         echo "info: will not attempt to propagate initramfs networking"
     else
@@ -24,9 +55,48 @@ propagate_initramfs_networking() {
         if [ -n "$(ls -A /run/NetworkManager/system-connections/)" ]; then
             echo "info: propagating initramfs networking config to the real root"
             cp /run/NetworkManager/system-connections/* /sysroot/etc/NetworkManager/system-connections/
+            selinux_relabel /etc/NetworkManager/system-connections/
         else
             echo "info: no initramfs networking information to propagate"
         fi
+    fi
+}
+
+# Propagate the ip= karg hostname if desired. The policy here is:
+#
+#     - IF a hostname is specified in static networking ip= kargs
+#     - AND no hostname was set via Ignition (realroot `/etc/hostname`)
+#     - THEN we make the last hostname specified in an ip= karg apply
+#       permanently by writing it into `/etc/hostname`
+#
+# This may no longer be needed when the following bug is fixed:
+# https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/issues/419
+propagate_initramfs_hostname() {
+    if [ -e '/sysroot/etc/hostname' ]; then
+        echo "info: hostname is defined in the real root"
+        echo "info: will not attempt to propagate initramfs hostname"
+        return 0
+    fi
+    # Detect if any hostname was provided via static ip= kargs
+    # run in a subshell so we don't pollute our environment
+    hostnamefile=$(mktemp)
+    (
+        last_nonempty_hostname=''
+        # Inspired from ifup.sh from the 40network dracut module. Note that
+        # $hostname from ip_to_var will only be nonempty for static networking.
+        for iparg in $(dracut_func getargs ip=); do
+            dracut_func ip_to_var $iparg
+            [ -n "${hostname:-}" ] && last_nonempty_hostname="$hostname"
+        done
+        echo -n "$last_nonempty_hostname" > $hostnamefile
+    )
+    hostname=$(<$hostnamefile); rm $hostnamefile
+    if [ -n "$hostname" ]; then
+        echo "info: propagating initramfs hostname (${hostname}) to the real root"
+        echo $hostname > /sysroot/etc/hostname
+        selinux_relabel /etc/hostname
+    else
+        echo "info: no initramfs hostname information to propagate"
     fi
 }
 
@@ -54,14 +124,21 @@ down_interfaces() {
         for f in /sys/class/net/*; do
             interface=$(basename "$f")
             # The `bonding_masters` entry is not a true interface and thus
-            # cannot be taken down.
-            if [ "$interface" == "bonding_masters" ]; then continue; fi
+            # cannot be taken down. Also skip local loopback
+            case "$interface" in
+                "lo" | "bonding_masters")
+                    continue
+                    ;;
+            esac
             down_interface $interface
         done
     fi
 }
 
 main() {
+    # Load libraries from dracut
+    load_dracut_libs
+
     # Take down all interfaces set up in the initramfs
     down_interfaces
 
@@ -70,8 +147,16 @@ main() {
     ip route flush table main
     ip route flush cache
 
-    # Propagate initramfs networking if needed
-    propagate_initramfs_networking
+    # Hopefully our logic is sound enough that this is never needed, but
+    # user's can explicitly disable initramfs network/hostname propagation
+    # with the coreos.no_persist_ip karg.
+    if dracut_func getargbool 0 'coreos.no_persist_ip'; then
+        echo "info: coreos.no_persist_ip karg detected"
+        echo "info: skipping propagating initramfs settings"
+    else
+        propagate_initramfs_hostname
+        propagate_initramfs_networking
+    fi
 
     # Now that the configuration has been propagated (or not)
     # clean it up so that no information from outside of the
