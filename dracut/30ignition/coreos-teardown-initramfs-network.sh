@@ -4,6 +4,22 @@
 
 set -euo pipefail
 
+# Load dracut library. Using getargbool() from dracut-lib.
+load_dracut_libs() {
+    # dracut is not friendly to set -eu
+    set +euo pipefail
+    type getargbool &>/dev/null || . /lib/dracut-lib.sh
+    set -euo pipefail
+}
+
+dracut_func() {
+    # dracut is not friendly to set -eu
+    set +euo pipefail
+    "$@"; rc=$?
+    set -euo pipefail
+    return $rc
+}
+
 selinux_relabel() {
     # If we have access to coreos-relabel then let's use that because
     # it allows us to set labels on things before switching root
@@ -80,6 +96,9 @@ down_interfaces() {
 }
 
 main() {
+    # Load libraries from dracut
+    load_dracut_libs
+
     # Take down all interfaces set up in the initramfs
     down_interfaces
 
@@ -88,8 +107,15 @@ main() {
     ip route flush table main
     ip route flush cache
 
-    # Propagate initramfs networking if needed
-    propagate_initramfs_networking
+    # Hopefully our logic is sound enough that this is never needed, but
+    # user's can explicitly disable initramfs network/hostname propagation
+    # with the coreos.no_persist_ip karg.
+    if dracut_func getargbool 0 'coreos.no_persist_ip'; then
+        echo "info: coreos.no_persist_ip karg detected"
+        echo "info: skipping propagating initramfs settings"
+    else
+        propagate_initramfs_networking
+    fi
 
     # Now that the configuration has been propagated (or not)
     # clean it up so that no information from outside of the
