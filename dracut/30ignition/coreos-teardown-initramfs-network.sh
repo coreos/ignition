@@ -26,7 +26,10 @@ selinux_relabel() {
 #
 # See https://github.com/coreos/fedora-coreos-tracker/issues/394#issuecomment-599721173
 propagate_initramfs_networking() {
-    if [ -n "$(ls -A /sysroot/etc/NetworkManager/system-connections/)" ]; then
+    # Check the two locations where a user could have provided network configuration
+    # On FCOS we only support keyfiles, but on RHCOS we support keyfiles and ifcfg
+    if [ -n "$(ls -A /sysroot/etc/NetworkManager/system-connections/)" -o \
+         -n "$(ls -A /sysroot/etc/sysconfig/network-scripts/)" ]; then
         echo "info: networking config is defined in the real root"
         echo "info: will not attempt to propagate initramfs networking"
     else
