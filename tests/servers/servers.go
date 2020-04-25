@@ -17,6 +17,7 @@ package servers
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
@@ -62,12 +63,18 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 -----END CERTIFICATE-----`)
 
 	// export these so tests don't have to hard-code them everywhere
-	configRawHash    = sha512.Sum512(servedConfig)
-	contentsRawHash  = sha512.Sum512(servedContents)
-	publicKeyRawHash = sha512.Sum512(servedPublicKey)
-	ConfigHash       = hex.EncodeToString(configRawHash[:])
-	ContentsHash     = hex.EncodeToString(contentsRawHash[:])
-	PublicKeyHash    = hex.EncodeToString(publicKeyRawHash[:])
+	configRawHash             = sha512.Sum512(servedConfig)
+	contentsRawHash           = sha512.Sum512(servedContents)
+	publicKeyRawHash          = sha512.Sum512(servedPublicKey)
+	configRawHashForSHA256    = sha256.Sum256(servedConfig)
+	contentsRawHashForSHA256  = sha256.Sum256(servedContents)
+	publicKeyRawHashForSHA256 = sha256.Sum256(servedPublicKey)
+	ConfigHash                = hex.EncodeToString(configRawHash[:])
+	ContentsHash              = hex.EncodeToString(contentsRawHash[:])
+	PublicKeyHash             = hex.EncodeToString(publicKeyRawHash[:])
+	ConfigHashForSHA256       = hex.EncodeToString(configRawHashForSHA256[:])
+	ContentsHashForSHA256     = hex.EncodeToString(contentsRawHashForSHA256[:])
+	PublicKeyHashForSHA256    = hex.EncodeToString(publicKeyRawHashForSHA256[:])
 )
 
 // HTTP Server

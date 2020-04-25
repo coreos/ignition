@@ -34,7 +34,15 @@ func TestHashParts(t *testing.T) {
 			nil,
 		},
 		{
+			`"sha256-0519a9826023338828942b081814355d55301b9bc82042390f9afaf75cd3a707"`,
+			nil,
+		},
+		{
 			`"sha512:01234567"`,
+			errors.ErrHashMalformed,
+		},
+		{
+			`"sha256:12345678"`,
 			errors.ErrHashMalformed,
 		},
 	}
@@ -54,6 +62,8 @@ func TestHashValidate(t *testing.T) {
 	h1 := "xor-abcdef"
 	h2 := "sha512-123"
 	h3 := "sha512-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+	h4 := "sha256-0519a9826023338828942b081814355d55301b9bc82042390f9afaf75cd3a707"
+	h5 := "sha256-345"
 
 	tests := []struct {
 		in  Verification
@@ -70,6 +80,14 @@ func TestHashValidate(t *testing.T) {
 		{
 			Verification{Hash: &h3},
 			nil,
+		},
+		{
+			Verification{Hash: &h4},
+			nil,
+		},
+		{
+			Verification{Hash: &h5},
+			errors.ErrHashWrongSize,
 		},
 	}
 

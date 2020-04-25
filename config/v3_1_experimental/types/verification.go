@@ -56,6 +56,8 @@ func (v Verification) Validate(c path.ContextPath) (r report.Report) {
 	switch function {
 	case "sha512":
 		hash = crypto.SHA512
+	case "sha256":
+		hash = crypto.SHA256
 	default:
 		r.AddOnError(c, errors.ErrHashUnrecognized)
 		return
