@@ -106,7 +106,7 @@ This example Ignition configuration will locate the device with the "VAR" filesy
 }
 ```
 
-The SHA512 sum of the file can be determined using `sha512sum`.
+The SHA512 sum of the file can be determined using `sha512sum`. SHA256 sums are also supported, and can be calculated using `sha256sum`.
 
 ## Create a RAID-enabled Data Volume
 
@@ -193,7 +193,7 @@ In some cloud environments, there is a limit on the size of the config which may
 }
 ```
 
-The SHA512 sum of the config can be determined using `sha512sum`.
+The SHA512 sum of the config can be determined using `sha512sum`. SHA256 sums are also supported, and can be calculated using `sha256sum`.
 
 ## Set the Hostname
 
