@@ -67,13 +67,13 @@
 # https://github.com/coreos/ignition-dracut spec2x branch
 %global dracutprovider_prefix %{dracutprovider}.%{dracutprovider_tld}/%{dracutproject}/%{dracutrepo}
 %global dracutimport_path     %{dracutprovider_prefix}
-%global dracutcommit          bad799c410c6c5756ed21e2fa1614795cff7a120
+%global dracutcommit          21654b784d8992e4f10426a0a3d29ba8d689ece0
 %global dracutshortcommit     %(c=%{dracutcommit}; echo ${c:0:7})
 
 
 Name:           ignition
 Version:        0.35.1
-Release:        10.rhaos4.6.git%{shortcommit}%{?dist}
+Release:        11.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0 and BSD
 URL:            https://%{provider_prefix}
@@ -493,6 +493,10 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Mon Apr 27 2020 Dusty Mabe <dusty@dustymabe.com> - 0.35.1-11.rhaos4.6.git73ff2d7
+- Update to latest ignition-dracut for network fixes
+  https://github.com/coreos/ignition-dracut/pull/174
+
 * Sat Apr 18 2020 Colin Walters <walters@verbum.org> - 0.35.1-10.rhaos4.5.git73ff2d7
 - Update to latest ignition-dracut for live ISO work
 
