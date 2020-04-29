@@ -21,7 +21,9 @@ import (
 
 func init() {
 	register.Register(register.NegativeTest, InvalidHash())
+	register.Register(register.NegativeTest, InvalidHashForSHA256())
 	register.Register(register.NegativeTest, InvalidHashFromHTTPURL())
+	register.Register(register.NegativeTest, InvalidHashFromHTTPURLForSHA256())
 }
 
 func InvalidHash() types.Test {
@@ -62,6 +64,31 @@ func InvalidHash() types.Test {
 	}
 }
 
+func InvalidHashForSHA256() types.Test {
+	name := "files.verification.badhash.dataurl.sha256"
+	in := types.GetBaseDisk()
+	out := in
+
+	config := `{
+		"ignition": {"version": "$version" },
+		"storage": {
+			"files": [{
+				"path": "/tmp0/test",
+				"contents": {
+					"source": "data:,asdf", "verification": {"hash": "sha256-e57cc41647638ccb9fb6844f2810807bcaa2aa800438cfb065f17adf6afb48d0"}}
+			}]}
+	}`
+	configMinVersion := "3.1.0-experimental"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
 func InvalidHashFromHTTPURL() types.Test {
 	name := "files.verification.badhash.http"
 	in := types.GetBaseDisk()
@@ -79,15 +106,33 @@ func InvalidHashFromHTTPURL() types.Test {
 	  }
 	}`
 	configMinVersion := "3.0.0"
-	out[0].Partitions.AddFiles("ROOT", []types.File{
-		{
-			Node: types.Node{
-				Name:      "bar",
-				Directory: "foo",
-			},
-			Contents: "asdf\nfdsa",
-		},
-	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func InvalidHashFromHTTPURLForSHA256() types.Test {
+	name := "files.verification.badhash.http.sha256"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": {
+	        "source": "http://127.0.0.1:8080/contents",
+			"verification": {"hash": "sha256-352cb4e231c03f9941d54aeee7da755504a7f2096338c609ba5d1b82143419c6"}
+	      }
+	    }]
+	  }
+	}`
+	configMinVersion := "3.1.0-experimental"
 
 	return types.Test{
 		Name:             name,

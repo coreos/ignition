@@ -15,6 +15,7 @@
 package util
 
 import (
+	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
@@ -69,6 +70,9 @@ func AssertValid(verify types.Verification, data []byte) error {
 		case "sha512":
 			rawSum := sha512.Sum512(data)
 			sum = rawSum[:]
+		case "sha256":
+			rawSum := sha256.Sum256(data)
+			sum = rawSum[:]
 		default:
 			return ErrHashUnrecognized
 		}
@@ -99,6 +103,8 @@ func GetHasher(verify types.Verification) (hash.Hash, error) {
 	switch function {
 	case "sha512":
 		return sha512.New(), nil
+	case "sha256":
+		return sha256.New(), nil
 	default:
 		return nil, ErrHashUnrecognized
 	}

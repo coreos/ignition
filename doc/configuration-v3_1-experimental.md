@@ -14,7 +14,7 @@ The Ignition configuration is a JSON document conforming to the following specif
         * **name** (string): the header name.
         * **_value_** (string): the header contents.
       * **_verification_** (object): options related to the verification of the config.
-        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
+        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is either `sha512` or `sha256`.
     * **_replace_** (object): the config that will replace the current.
       * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_compression_** (string): the type of compression used on the config (null or gzip). Compression cannot be used with S3.
@@ -22,7 +22,7 @@ The Ignition configuration is a JSON document conforming to the following specif
         * **name** (string): the header name.
         * **_value_** (string): the header contents.
       * **_verification_** (object): options related to the verification of the config.
-        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
+        * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is either `sha512` or `sha256`.
   * **_timeouts_** (object): options relating to `http` timeouts when fetching files over `http` or `https`.
     * **_httpResponseHeaders_** (integer) the time to wait (in seconds) for the server's response headers (but not the body) after making a request. 0 indicates no timeout. Default is 10 seconds.
     * **_httpTotal_** (integer) the time limit (in seconds) for the operation (connection, request, and response), including retries. 0 indicates no timeout. Default is 0.
@@ -35,7 +35,7 @@ The Ignition configuration is a JSON document conforming to the following specif
           * **name** (string): the header name.
           * **_value_** (string): the header contents.
         * **_verification_** (object): options related to the verification of the certificate.
-          * **_hash_** (string): the hash of the certificate, in the form `<type>-<value>` where type is sha512.
+          * **_hash_** (string): the hash of the certificate, in the form `<type>-<value>` where type is either `sha512` or `sha256`.
   * **_proxy_** (object): options relating to setting an `HTTP(S)` proxy when fetching resources.
     * **_httpProxy_** (string): will be used as the proxy URL for HTTP requests and HTTPS requests unless overridden by `httpsProxy` or `noProxy`.
     * **_httpsProxy_** (string): will be used as the proxy URL for HTTPS requests unless overridden by `noProxy`.
@@ -78,7 +78,7 @@ The Ignition configuration is a JSON document conforming to the following specif
         * **name** (string): the header name.
         * **_value_** (string): the header contents.
       * **_verification_** (object): options related to the verification of the file contents.
-        * **_hash_** (string): the hash of the contents, in the form `<type>-<value>` where type is `sha512`.
+        * **_hash_** (string): the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`.
     * **_append_** (list of objects): list of contents to be appended to the file. Follows the same stucture as `contents`
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
       * **_source_** (string): the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
@@ -86,7 +86,7 @@ The Ignition configuration is a JSON document conforming to the following specif
         * **name** (string): the header name.
         * **_value_** (string): the header contents.
       * **_verification_** (object): options related to the verification of the appended contents.
-        * **_hash_** (string): the hash of the contents, in the form `<type>-<value>` where type is `sha512`.
+        * **_hash_** (string): the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`.
     * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `source` is unspecified, and a file already exists at the path.
     * **_user_** (object): specifies the file's owner.
       * **_id_** (integer): the user ID of the owner.

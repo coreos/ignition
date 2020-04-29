@@ -52,6 +52,15 @@ func TestAssertValid(t *testing.T) {
 		{
 			in: in{
 				verification: types.Verification{
+					Hash: stringDeref("sha256-2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"),
+				},
+				data: []byte("hello"),
+			},
+			out: out{},
+		},
+		{
+			in: in{
+				verification: types.Verification{
 					Hash: stringDeref("xor-"),
 				},
 			},
@@ -67,6 +76,18 @@ func TestAssertValid(t *testing.T) {
 			out: out{err: ErrHashMismatch{
 				Calculated: "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043",
 				Expected:   "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			}},
+		},
+		{
+			in: in{
+				verification: types.Verification{
+					Hash: stringDeref("sha256-0519a9826023338828942b081814355d55301b9bc82042390f9afaf75cd3a707"),
+				},
+				data: []byte("hello"),
+			},
+			out: out{err: ErrHashMismatch{
+				Calculated: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+				Expected:   "0519a9826023338828942b081814355d55301b9bc82042390f9afaf75cd3a707",
 			}},
 		},
 	}
