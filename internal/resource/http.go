@@ -109,24 +109,32 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 		if err != nil {
 			return err
 		}
-		block, _ := pem.Decode(cablob)
+		if err := f.parseCABundle(cablob, ca, pool); err != nil {
+			f.Logger.Err("Unable to parse CA bundle: %s", err)
+			return err
+		}
+	}
+	f.client.transport.TLSClientConfig = &tls.Config{RootCAs: pool}
+	return nil
+}
+
+// parseCABundle parses a CA bundle which includes multiple CAs.
+func (f *Fetcher) parseCABundle(cablob []byte, ca types.Resource, pool *x509.CertPool) error {
+	for len(cablob) > 0 {
+		block, rest := pem.Decode(cablob)
 		if block == nil {
 			f.Logger.Err("Unable to decode CA (%v)", ca.Source)
 			return ErrPEMDecodeFailed
 		}
-
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
 			f.Logger.Err("Unable to parse CA (%v): %s", ca.Source, err)
 			return err
 		}
-
 		f.Logger.Info("Adding %q to list of CAs", cert.Subject.CommonName)
 		pool.AddCert(cert)
+		cablob = rest
 	}
-
-	f.client.transport.TLSClientConfig = &tls.Config{RootCAs: pool}
-
 	return nil
 }
 
