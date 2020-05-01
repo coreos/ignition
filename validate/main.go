@@ -21,7 +21,7 @@ import (
 	"os"
 	"strings"
 
-	config "github.com/coreos/ignition/v2/config/v3_0"
+	"github.com/coreos/ignition/v2/config"
 	"github.com/coreos/ignition/v2/internal/version"
 )
 
