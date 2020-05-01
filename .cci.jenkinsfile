@@ -6,6 +6,22 @@ cosaPod(buildroot: true) {
     // hack to satisfy golang compiler wanting to cache things
     shwrap("mkdir cache")
     withEnv(["XDG_CACHE_HOME=${env.WORKSPACE}/cache"]) {
-        fcosBuild(make: true)
+        fcosBuild(make: true, skipKola: true)
+    }
+
+    // we run the blackbox tests separately instead of as part of the main kola
+    // run since it's a distinct kind of test and we want to draw more
+    // attention to it in the Jenkins UI
+    // XXX: need a e.g. `--tag !external`
+
+    fcosKola(extraArgs: "--blacklist-test ext.*")
+
+    stage("Blackbox Tests") {
+        shwrap("""
+            ./build_blackbox_tests
+            mkdir -p tests/kola/data
+            mv tests.test bin tests/kola/data
+        """)
+        fcosKola(extraArgs: "--tag external", skipUpgrade: true)
     }
 }
