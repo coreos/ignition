@@ -2,10 +2,6 @@
 
 Occasionally, there are changes made to Ignition's configuration that break backward compatibility. While this is not a concern for running machines (since Ignition only runs one time during first boot), it is a concern for those who maintain configuration files. This document serves to detail each of the breaking changes and tries to provide some reasoning for the change. This does not cover all of the changes to the spec - just those that need to be considered when migrating from one version to the next.
 
-## From 2.x.0 to 2.3.0
-
-Refer to [this doc in the `spec2x`](https://github.com/coreos/ignition/tree/spec2x/doc/migrating-configs.md) branch of this repository.
-
 ## From Version 2.3.0 to 3.0.0
 
 The 3.0.0 version of the configuration is fully incompatible with prior versions (i.e. v1, v2.x.0) of the config. The previous versions had bugs that are not representable as a 3.0.0 config, so Ignition does not support older versions.
@@ -126,6 +122,10 @@ Files now have a list of contents to append instead of multiple entries with `ap
 ### Networkd section is removed
 
 The networkd section has been removed. Use the files section instead. Refer to the [networkd documentation][networkd-docs] for more information.
+
+## From 2.x.0 to 2.3.0
+
+Refer to [this doc in the `spec2x`](https://github.com/coreos/ignition/tree/spec2x/doc/migrating-configs.md) branch of this repository.
 
 [networkd-docs]: https://www.freedesktop.org/software/systemd/man/systemd-networkd.html#
 [operator-notes]: operator-notes.md
