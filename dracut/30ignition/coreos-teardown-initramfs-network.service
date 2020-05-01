@@ -26,6 +26,13 @@ Before=initrd-switch-root.target
 OnFailure=emergency.target
 OnFailureJobMode=isolate
 
+# If we are already heading towards emergency.target
+# then don't try to stop this unit because it will fail
+# when trying to access files in /sysroot/etc/. The failure
+# is mostly harmless but having the extra error messages
+# leads us away from the original problem.
+IgnoreOnIsolate=true
+
 [Service]
 Type=oneshot
 RemainAfterExit=yes
