@@ -125,7 +125,7 @@ The networkd section has been removed. Use the files section instead. Refer to t
 
 ## From 2.x.0 to 2.3.0
 
-Refer to [this doc in the `spec2x`](https://github.com/coreos/ignition/tree/spec2x/doc/migrating-configs.md) branch of this repository.
+Refer to [this doc in the `spec2x`](https://github.com/coreos/ignition/tree/spec2x/doc/migrating-configs.md) branch of this repository. That doc also describes specification version 2.4.0, a parallel development which shares some enhancements with spec 3.1.0.
 
 [networkd-docs]: https://www.freedesktop.org/software/systemd/man/systemd-networkd.html#
 [operator-notes]: operator-notes.md
