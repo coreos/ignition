@@ -61,6 +61,14 @@ func TestParse(t *testing.T) {
 			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.4.0"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.0.0"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0-experimental"}}`)},
 			out: out{err: errors.ErrUnknownVersion},
 		},
@@ -78,6 +86,14 @@ func TestParse(t *testing.T) {
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.4.0-experimental"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.5.0-experimental"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.0.0-experimental"}}`)},
 			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
