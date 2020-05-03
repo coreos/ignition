@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	config "github.com/coreos/ignition/v2/config/v3_1_experimental"
+	config "github.com/coreos/ignition/v2/config/v3_2_experimental"
 )
 
 const (

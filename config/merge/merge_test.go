@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
 
 	"github.com/stretchr/testify/assert"
 )
