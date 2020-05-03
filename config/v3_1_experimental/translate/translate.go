@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v3_1
+package translate
 
 import (
 	"github.com/coreos/ignition/v2/config/translate"
