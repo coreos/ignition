@@ -33,7 +33,7 @@ func init() {
 	register.Register(register.NegativeTest, AppendConfigWithInvalidHeaderHTTP())
 	register.Register(register.NegativeTest, AppendConfigWithMissingFileTFTP())
 	register.Register(register.NegativeTest, VersionOnlyConfig25())
-	register.Register(register.NegativeTest, VersionOnlyConfig32())
+	register.Register(register.NegativeTest, VersionOnlyConfig33())
 	register.Register(register.NegativeTest, MergingCanFail())
 }
 
@@ -149,7 +149,7 @@ func ReplaceConfigWithInvalidHeaderHTTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,
@@ -225,7 +225,7 @@ func AppendConfigWithInvalidHeaderHTTP() types.Test {
 	    }
 	  }
 	}`
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,
@@ -280,13 +280,13 @@ func VersionOnlyConfig25() types.Test {
 	}
 }
 
-func VersionOnlyConfig32() types.Test {
-	name := "config.versions.3.2.0-exp"
+func VersionOnlyConfig33() types.Test {
+	name := "config.versions.3.3.0-exp"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "3.2.0-experimental"
+	    "version": "3.3.0-experimental"
 	  }
 	}`
 

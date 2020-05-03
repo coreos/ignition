@@ -254,7 +254,7 @@ func FetchFileCustomCertHTTPCompressed() types.Test {
 			}]
 		}
 	}`, servers.PublicKeyHash, customCAServer.URL)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
@@ -300,7 +300,7 @@ func FetchFileCustomCertHTTPUsingHeaders() types.Test {
 			}]
 		}
 	}`, customCAServer.URL)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
@@ -346,7 +346,7 @@ func FetchFileCustomCertHTTPUsingHeadersWithRedirect() types.Test {
 			}]
 		}
 	}`, customCAServer.URL)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
@@ -397,7 +397,7 @@ func FetchFileCustomCertHTTPUsingOverwrittenHeaders() types.Test {
 			}]
 		}
 	}`, customCAServer.URL)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
