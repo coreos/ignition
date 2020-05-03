@@ -55,13 +55,13 @@ func Parse(raw []byte) (types_exp.Config, report.Report, error) {
 	case types_exp.MaxVersion:
 		return v3_1_experimental.Parse(raw)
 	case types_3_0.MaxVersion:
-		return from3_0(v3_0.Parse(raw))
+		return exp_from_3_0(v3_0.Parse(raw))
 	default:
 		return types_exp.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
 }
 
-func from3_0(cfg types_3_0.Config, r report.Report, err error) (types_exp.Config, report.Report, error) {
+func exp_from_3_0(cfg types_3_0.Config, r report.Report, err error) (types_exp.Config, report.Report, error) {
 	if err != nil {
 		return types_exp.Config{}, r, err
 	}
