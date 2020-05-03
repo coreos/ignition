@@ -27,6 +27,7 @@ func init() {
 	register.Register(register.PositiveTest, AppendToExistingFile())
 	register.Register(register.PositiveTest, AppendToNonexistentFile())
 	register.Register(register.PositiveTest, ApplyDefaultFilePermissions())
+	register.Register(register.PositiveTest, CreateFileFromCompressedDataURL())
 	// TODO: Investigate why ignition's C code hates our environment
 	// register.Register(register.PositiveTest, UserGroupByName())
 }
@@ -324,6 +325,42 @@ func ApplyDefaultFilePermissions() types.Test {
 			},
 			Contents: "hello world\n",
 			Mode:     0644,
+		},
+	})
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateFileFromCompressedDataURL() types.Test {
+	name := "files.create.compressed"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": {
+	        "compression": "gzip",
+	        "source": "data:,%1F%8B%08%08%90e%AB%5E%02%03z%00K%ADH%CC-%C8IUH%CB%CCI%E5%02%00tp%A6%CB%0D%00%00%00"
+	      }
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
 		},
 	})
 	configMinVersion := "3.0.0"
