@@ -29,7 +29,7 @@ _prompt_for_timeout() {
     if [[ -e /.emergency-shell-confirmed ]]; then
         return
     fi
-    ignition_units="ignition-disks.service ignition-files.service ignition-mount.service"
+    ignition_units="ignition-fetch.service ignition-disks.service ignition-files.service ignition-mount.service"
     if systemctl show $ignition_units | grep -q "^ActiveState=failed$"; then
         # Ignition has failed, suppress kernel logs so that Ignition logs stay
         # on the screen
@@ -42,13 +42,17 @@ _prompt_for_timeout() {
         # Print Ignition logs
         cat <<EOF
 -------------------------------------------------------------------------------
-Ignition has failed. Please ensure your config is valid. Note that only Ignition spec
-v3.0.0+ configs are accepted.
-A CLI validation tool to check this called ignition-validate can be downloaded from GitHub:
+Ignition has failed. Please ensure your config is valid. Note that only
+Ignition spec v3.0.0+ configs are accepted.
+
+A CLI validation tool to check this called ignition-validate can be
+downloaded from GitHub:
     https://github.com/coreos/ignition/releases
+
 Here are the Ignition logs:
 EOF
         journalctl -t ignition --no-pager --no-hostname -o cat
+        echo
     fi
 
     # Regularly prompt with time remaining.  This ensures the prompt doesn't
