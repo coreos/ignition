@@ -29,7 +29,7 @@ _prompt_for_timeout() {
     if [[ -e /.emergency-shell-confirmed ]]; then
         return
     fi
-    ignition_units="ignition-disks.service ignition-files.service ignition-mount.service"
+    ignition_units="ignition-fetch.service ignition-disks.service ignition-files.service ignition-mount.service"
     if systemctl show $ignition_units | grep -q "^ActiveState=failed$"; then
         # Ignition has failed, suppress kernel logs so that Ignition logs stay
         # on the screen
