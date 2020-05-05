@@ -1,3 +1,27 @@
+05-May-2020 Ignition 2.3.0
+
+  Features:
+
+    - Allow specifying HTTP headers when fetching remote resources (3.1.0)
+    - Support compression for CA certs and merged/replaced configs (3.1.0)
+    - Support sha256 verification hashes (3.1.0)
+    - Support compression for file URIs
+    - Log structured journal entry when user config is found
+    - Log structured journal entry when SSH keys are written
+
+  Changes:
+
+    - Unify CaReference, ConfigReference, FileContents structs into
+      Resource (3.1.0)
+    - Mark the 3.1.0 config spec as stable
+    - No longer accept configs with version 3.1.0-experimental
+    - Create new 3.2.0-experimental config spec from 3.1.0
+
+  Bug Fixes:
+
+    - Fix ignition-validate for config versions other than 3.0.0
+    - Fix config fetch and status reporting on Packet
+
 24-Mar-2020 Ignition 2.2.1
 
   Bug Fixes:
