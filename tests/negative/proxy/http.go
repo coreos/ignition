@@ -59,7 +59,7 @@ func ErrorsWhenProxyIsUnavailable() types.Test {
 			}
 		}
 	}`, mockConfigURL, proxyServer.URL, proxyServer.URL)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,

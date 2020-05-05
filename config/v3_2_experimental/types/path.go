@@ -1,4 +1,4 @@
-// Copyright 2015 CoreOS, Inc.
+// Copyright 2020 Red Hat, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,13 +15,28 @@
 package types
 
 import (
-	"github.com/coreos/go-semver/semver"
+	"path"
+
+	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/util"
 )
 
-var (
-	MaxVersion = semver.Version{
-		Major:      3,
-		Minor:      1,
-		PreRelease: "experimental",
+func validatePath(p string) error {
+	if p == "" {
+		return errors.ErrNoPath
 	}
-)
+	if !path.IsAbs(p) {
+		return errors.ErrPathRelative
+	}
+	if path.Clean(p) != p {
+		return errors.ErrDirtyPath
+	}
+	return nil
+}
+
+func validatePathNilOK(p *string) error {
+	if util.NilOrEmpty(p) {
+		return nil
+	}
+	return validatePath(*p)
+}

@@ -124,7 +124,7 @@ func headerCheck(w http.ResponseWriter, r *http.Request) {
 	headers := map[string]string{
 		"X-Auth":          "r8ewap98gfh4d8",
 		"Keep-Alive":      "300",
-		"Accept":          "application/vnd.coreos.ignition+json;version=3.0.0, */*;q=0.1",
+		"Accept":          "application/vnd.coreos.ignition+json;version=3.1.0, */*;q=0.1",
 		"Accept-Encoding": "identity",
 	}
 

@@ -141,7 +141,7 @@ func ReplaceConfigWithRemoteConfigHTTPCompressed() types.Test {
 	    }
 	  }
 	}`, "HASH", servers.ConfigHash, 1)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -177,7 +177,7 @@ func ReplaceConfigWithRemoteConfigHTTPUsingHeaders() types.Test {
 	    }
 	  }
 	}`, "HASH", servers.ConfigHash, 1)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -213,7 +213,7 @@ func ReplaceConfigWithRemoteConfigHTTPUsingHeadersWithRedirect() types.Test {
 	    }
 	  }
 	}`, "HASH", servers.ConfigHash, 1)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -254,7 +254,7 @@ func ReplaceConfigWithRemoteConfigHTTPUsingOverwrittenHeaders() types.Test {
 	    }
 	  }
 	}`, "HASH", servers.ConfigHash, 1)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -379,7 +379,7 @@ func AppendConfigWithRemoteConfigHTTPCompressed() types.Test {
         }]
       }
 	}`, "HASH", servers.ConfigHash, 1)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -428,7 +428,7 @@ func AppendConfigWithRemoteConfigHTTPUsingHeaders() types.Test {
         }]
       }
 	}`, "HASH", servers.ConfigHash, 1)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -477,7 +477,7 @@ func AppendConfigWithRemoteConfigHTTPUsingHeadersWithRedirect() types.Test {
         }]
       }
 	}`, "HASH", servers.ConfigHash, 1)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -531,7 +531,7 @@ func AppendConfigWithRemoteConfigHTTPUsingOverwrittenHeaders() types.Test {
         }]
       }
 	}`, "HASH", servers.ConfigHash, 1)
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

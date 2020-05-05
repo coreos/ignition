@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v3_1
+package translate
 
 import (
 	"github.com/coreos/ignition/v2/config/translate"
 	old_types "github.com/coreos/ignition/v2/config/v3_0/types"
-	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_1/types"
 )
 
 func translateFilesystem(old old_types.Filesystem) (ret types.Filesystem) {

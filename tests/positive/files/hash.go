@@ -91,7 +91,7 @@ func ValidateFileHashFromDataURLForSHA256() types.Test {
 			Contents: "example file\n",
 		},
 	})
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,
@@ -163,7 +163,7 @@ func ValidateFileHashFromHTTPURLForSHA256() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,
@@ -200,7 +200,7 @@ func ValidateFileHashFromHTTPURLUsingHeaders() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,

@@ -118,23 +118,25 @@ When an experimental version of the Ignition config spec (e.g.: `3.1.0-experimen
 - The HTTP `Accept` header that Ignition uses whenever fetching a config will be updated to advertise the new stable spec.
 - New features will be documented in the [migrating configs](doc/migrating-configs.md) documentation.
 
-The code changes that are required to achieve these effects are typically the following:
+The changes that are required to achieve these effects are typically the following:
 
 ### Making the experimental package stable
 
 - Rename `config/vX_Y_experimental` to `config/vX_Y`, and update the golang `package` statements
-- Update `MaxVersion` in `config/vX_Y/types/config.go` to have `PreRelease` set to `""`
+- Drop `_experimental` from all imports in `config/vX_Y`
+- Update `MaxVersion` in `config/vX_Y/types/config.go` to delete the `PreRelease` field
 - Update `config/vX_Y/config_test.go` to test that the new stable version is valid and the old experimental version is invalid
 - Update the `Accept` header in `internal/resource/url.go` to specify the new spec version.
 
 ### Creating the new experimental package
 
 - Copy `config/vX_Y` into `config/vX_(Y+1)_experimental`, and update the golang `package` statements
+- Update all `config/vX_Y` imports in `config/vX_(Y+1)_experimental` to `config/vX_(Y+1)_experimental`
 - Update `MaxVersion` in `config/vX_(Y+1)_experimental/types/config.go` to have the correct major/minor versions and `PreRelease` set to `"experimental"`
-- Update `config/vX_(Y+1)_experimental/config.go` to use `config/vX_Y` for parsing
-- Update `config/vX_(Y+1)_experimental/config_test.go` to test that the new stable version is valid, the new experimental version is valid, and the old experimental version is invalid
-- Update `config/vX_(Y+1)_experimental/translate/translate.go` to only set the new version.
-- Update `config/config.go` to handle the new config.
+- Update `config/vX_(Y+1)_experimental/config_test.go` to test that the new stable version is invalid and the new experimental version is valid
+- Update `config/vX_(Y+1)_experimental/translate/translate.go` to translate from the previous stable version.  Update the `old_types` import, delete all functions except `translateIgnition` and `Translate`, and ensure `translateIgnition` translates the entire `Ignition` struct.
+- Update `config/config.go` to handle the new stable and experimental versions.
+- Update `generate` to generate the new stable and experimental versions, and rerun `generate`.
 
 ### Update all relevant places to use the new experimental package
 
@@ -142,15 +144,23 @@ Next, all places that imported `config/vX_Y_experimental` should be updated to `
 
 Update `tests/register/register.go` in the following ways:
 
-- Update import `config/vX_Y_experimental` to `config/vX_Y`
-- Add import `config/vX_(Y+1)_experimental`
-- Add `config/vX_(Y+1)_experimental`'s identifier to `configVersions` in Register()
+- Add import `config/vX_Y`
+- Update import `config/vX_Y_experimental` to `config/vX_(Y+1)_experimental`
+- Add `config/vX_Y`'s identifier to `configVersions` in `Register()`
 
 ### Update the blackbox tests
 
-Finally, update the blackbox tests.
+Update the blackbox tests.
 
-- Drop `-experimental` from the relevant `VersionOnlyConfig` test in `tests/positive/general/general.go`.
-- Add a new `VersionOnlyConfig` test for `X.(Y+1).0-experimental`.
+- Bump the invalid `-experimental` version in the relevant `VersionOnlyConfig` test in `tests/negative/general/config.go`.
 - Find all tests using `X.Y.0-experimental` and alter them to use `X.Y.0`.
 - Update the `Accept` header checks in `tests/servers.go` to specify the new spec version.
+
+### Update docs
+
+Finally, update docs.
+
+- Rename `doc/configuration-vX_Y-experimental.md` to `doc/configuration-vX_Y.md` and make a copy as `doc/configuration-vX_(Y+1)_experimental.md`.
+- In `doc/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning.
+- In `doc/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
+- Add a section to `doc/migrating-configs.md`.

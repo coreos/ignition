@@ -78,7 +78,7 @@ func InvalidHashForSHA256() types.Test {
 					"source": "data:,asdf", "verification": {"hash": "sha256-e57cc41647638ccb9fb6844f2810807bcaa2aa800438cfb065f17adf6afb48d0"}}
 			}]}
 	}`
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,
@@ -132,7 +132,7 @@ func InvalidHashFromHTTPURLForSHA256() types.Test {
 	    }]
 	  }
 	}`
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,

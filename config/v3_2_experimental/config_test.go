@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc.
+// Copyright 2020 Red Hat, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v3_1_experimental
+package v3_2_experimental
 
 import (
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/v3_1_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -61,6 +61,18 @@ func TestParse(t *testing.T) {
 			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.4.0"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.0.0"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.1.0"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0-experimental"}}`)},
 			out: out{err: errors.ErrUnknownVersion},
 		},
@@ -81,7 +93,19 @@ func TestParse(t *testing.T) {
 			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
+			in:  in{config: []byte(`{"ignition": {"version": "2.5.0-experimental"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.0.0-experimental"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
 			in:  in{config: []byte(`{"ignition": {"version": "3.1.0-experimental"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.2.0-experimental"}}`)},
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{

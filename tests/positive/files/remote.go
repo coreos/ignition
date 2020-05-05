@@ -94,7 +94,7 @@ func CreateFileFromRemoteContentsHTTPCompressed() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,
@@ -130,7 +130,7 @@ func CreateFileFromRemoteContentsHTTPUsingHeaders() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,
@@ -166,7 +166,7 @@ func CreateFileFromRemoteContentsHTTPUsingHeadersWithRedirect() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,
@@ -207,7 +207,7 @@ func CreateFileFromRemoteContentsHTTPUsingOverwrittenHeaders() types.Test {
 			Contents: "asdf\nfdsa",
 		},
 	})
-	configMinVersion := "3.1.0-experimental"
+	configMinVersion := "3.1.0"
 
 	return types.Test{
 		Name:             name,
