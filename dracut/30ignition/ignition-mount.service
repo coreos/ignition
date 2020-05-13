@@ -19,9 +19,12 @@ After=initrd-root-fs.target
 # Make sure root filesystem is remounted read-write if needed
 After=ignition-remount-sysroot.service
 
-# This is guaranteed through After=initrd-root-fs.target but just to
-# be explicit.
+# Stage order: setup -> fetch -> disks -> mount -> files.
+# We need to make sure the partitions and filesystems are set up before
+# mounting. This is also guaranteed through After=initrd-root-fs.target but
+# just to be explicit.
 After=ignition-disks.service
+Before=ignition-files.service
 
 [Service]
 Type=oneshot

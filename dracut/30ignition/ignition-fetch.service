@@ -6,10 +6,13 @@ DefaultDependencies=false
 Before=ignition-complete.target
 After=basic.target
 
-# Run after ignition-setup has run because ignition-setup
-# may copy in new/different ignition configs for us to consume.
+# Stage order: setup -> fetch -> disks -> mount -> files.
+# We run after the setup stage has run because it may copy in new/different
+# ignition configs for us to consume.
 After=ignition-setup-base.service
 After=ignition-setup-user.service
+Before=ignition-disks.service
+
 
 # Network may be used to fetch userdata content.
 After=network.target

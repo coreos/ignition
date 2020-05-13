@@ -5,8 +5,7 @@ ConditionPathExists=/etc/initrd-release
 DefaultDependencies=false
 Before=ignition-complete.target
 
-# We need all the filesystems already mounted.
-Requires=ignition-mount.service
+# Stage order: setup -> fetch -> disks -> mount -> files.
 After=ignition-mount.service
 
 # Run before initrd-parse-etc so that we can drop files it then picks up.

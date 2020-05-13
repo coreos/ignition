@@ -4,7 +4,10 @@ Documentation=https://github.com/coreos/ignition
 ConditionPathExists=/etc/initrd-release
 DefaultDependencies=false
 Before=ignition-complete.target
+
+# Stage order: setup -> fetch -> disks -> mount -> files.
 After=ignition-fetch.service
+Before=ignition-mount.service
 
 # This stage runs between `basic.target` and `initrd-root-device.target`,
 # see https://www.freedesktop.org/software/systemd/man/bootup.html
