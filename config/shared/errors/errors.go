@@ -34,8 +34,6 @@ var (
 	ErrCompressionInvalid = errors.New("invalid compression method")
 
 	// Storage section errors
-	ErrFilePermissionsUnset      = errors.New("permissions unset, defaulting to 0644")
-	ErrDirectoryPermissionsUnset = errors.New("permissions unset, defaulting to 0755")
 	ErrFileUsedSymlink           = errors.New("file path includes link in config")
 	ErrDirectoryUsedSymlink      = errors.New("directory path includes link in config")
 	ErrLinkUsedSymlink           = errors.New("link path includes link in config")
@@ -91,6 +89,10 @@ var (
 
 	// AWS S3 specific errors
 	ErrInvalidS3ObjectVersionId = errors.New("invalid S3 object VersionId")
+
+	// Obsolete errors, left here for ABI compatibility
+	ErrFilePermissionsUnset      = errors.New("permissions unset, defaulting to 0644")
+	ErrDirectoryPermissionsUnset = errors.New("permissions unset, defaulting to 0755")
 )
 
 // NewNoInstallSectionError produces an error indicating the given unit, named
