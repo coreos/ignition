@@ -8,6 +8,10 @@ Before=ignition-complete.target
 # Stage order: setup -> fetch -> disks -> mount -> files.
 Before=ignition-fetch.service
 
+# We want to make sure we're not racing with multipath taking ownership of the
+# boot device.
+Before=multipathd.service
+
 # On diskful boots, ignition-generator adds Requires/After on
 # dev-disk-by\x2dlabel-boot.device.
 
