@@ -15,8 +15,6 @@
 package types
 
 import (
-	"github.com/coreos/ignition/v2/config/shared/errors"
-
 	"github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
 )
@@ -24,8 +22,5 @@ import (
 func (d Directory) Validate(c path.ContextPath) (r report.Report) {
 	r.Merge(d.Node.Validate(c))
 	r.AddOnError(c.Append("mode"), validateMode(d.Mode))
-	if d.Mode == nil {
-		r.AddOnWarn(c.Append("mode"), errors.ErrDirectoryPermissionsUnset)
-	}
 	return
 }
