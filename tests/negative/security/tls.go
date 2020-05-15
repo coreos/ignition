@@ -36,10 +36,20 @@ func init() {
 	customCAServer.Config.ErrorLog = log.New(ioutil.Discard, "", 0)
 	customCAServer.StartTLS()
 
+	cer2, err := tls.X509KeyPair(publicKey2, privateKey2)
+	if err != nil {
+		panic(fmt.Sprintf("error loading x509 keypair2: %v", err))
+	}
+	config2 := &tls.Config{Certificates: []tls.Certificate{cer2}}
+	customCAServer2.TLS = config2
+	customCAServer2.Config.ErrorLog = log.New(ioutil.Discard, "", 0)
+	customCAServer2.StartTLS()
+
 	register.Register(register.NegativeTest, AppendConfigCustomCert())
 	register.Register(register.NegativeTest, FetchFileCustomCert())
-	register.Register(register.NegativeTest, AppendConfigCustomCertHTTP())
-	register.Register(register.NegativeTest, AppendConfigCustomCertInvalidHeaderHTTP())
+	register.Register(register.NegativeTest, FetchFileCABundleCertHTTP())
+	register.Register(register.NegativeTest, FetchFileCustomCertHTTP())
+	register.Register(register.NegativeTest, FetchFileCustomCertInvalidHeaderHTTP())
 }
 
 var (
@@ -76,6 +86,48 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 9g==
 -----END CERTIFICATE-----`)
 
+	// generated via
+	// openssl ecparam -genkey -name secp384r1 -out server.key
+	privateKey2 = []byte(`-----BEGIN EC PARAMETERS-----
+BgUrgQQAIg==
+-----END EC PARAMETERS-----
+-----BEGIN EC PRIVATE KEY-----
+MIGkAgEBBDCfXncsl/kqihUWRHThBdGEDpv/bavwHYEi2tjrHiRkm+b7zhFlup8o
+aP1l1zP1LhKgBwYFK4EEACKhZANiAAQ/J0D0C3h2a55JU3/EANe1d3e2/mfcoXGq
+P8soiFdYntRIC4+V4dnRJuHRR+FHR/3531EIf2WXsoIJr/IRhR/j0tAeXpZ++G+E
+vaooXf7gShnhRYKM4viPx4+DhSPjmqw=
+-----END EC PRIVATE KEY-----`)
+
+	// generate csr:
+	// openssl req -new -key server.key -out server.csr
+	// generate certificate:
+	// openssl x509 -req -days 3650 -in server.csr -signkey server.key -out
+	// server.crt -extensions v3_req -extfile extfile.conf
+	// where extfile.conf has the following details:
+	// $ cat extfile.conf
+	// [ v3_req ]
+	// subjectAltName = IP:127.0.0.1
+	// subjectKeyIdentifier=hash
+	// authorityKeyIdentifier=keyid
+	// basicConstraints = critical,CA:TRUE
+	publicKey2 = []byte(`-----BEGIN CERTIFICATE-----
+MIICrDCCAjOgAwIBAgIUbFS1ugcEYYGQoTiV6O//r3wdO58wCgYIKoZIzj0EAwIw
+gYQxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJOQzEQMA4GA1UEBwwHUmFsZWlnaDEQ
+MA4GA1UECgwHUmVkIEhhdDEUMBIGA1UECwwLRW5naW5lZXJpbmcxDzANBgNVBAMM
+BkNvcmVPUzEdMBsGCSqGSIb3DQEJARYOb2VtQGNvcmVvcy5jb20wHhcNMjAwNTA3
+MjIzMzA3WhcNMzAwNTA1MjIzMzA3WjCBhDELMAkGA1UEBhMCVVMxCzAJBgNVBAgM
+Ak5DMRAwDgYDVQQHDAdSYWxlaWdoMRAwDgYDVQQKDAdSZWQgSGF0MRQwEgYDVQQL
+DAtFbmdpbmVlcmluZzEPMA0GA1UEAwwGQ29yZU9TMR0wGwYJKoZIhvcNAQkBFg5v
+ZW1AY29yZW9zLmNvbTB2MBAGByqGSM49AgEGBSuBBAAiA2IABD8nQPQLeHZrnklT
+f8QA17V3d7b+Z9yhcao/yyiIV1ie1EgLj5Xh2dEm4dFH4UdH/fnfUQh/ZZeyggmv
+8hGFH+PS0B5eln74b4S9qihd/uBKGeFFgozi+I/Hj4OFI+OarKNkMGIwDwYDVR0R
+BAgwBocEfwAAATAdBgNVHQ4EFgQUovVgWNFFPhrF7XzaRteDnpfPXxowHwYDVR0j
+BBgwFoAUovVgWNFFPhrF7XzaRteDnpfPXxowDwYDVR0TAQH/BAUwAwEB/zAKBggq
+hkjOPQQDAgNnADBkAjBvCIr9k43oR18Z4HLTzaRfzacFzo75Lt5n0pk3PA5CrUg3
+sXU6o4IxyLNFHzIJn7cCMGTMVKEzoSZDclxkEgu53WM7PQljHgL9FJScEt4hzO2u
+FFNjhq0ODV1LNc1i8pQCAg==
+-----END CERTIFICATE-----`)
+
 	customCAServerFile = []byte(`{
 			"ignition": { "version": "2.0.0" },
 			"storage": {
@@ -87,13 +139,26 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 			}
 		}`)
 
+	customCAServerFile2 = []byte(`{
+			"ignition": { "version": "2.0.0" },
+			"storage": {
+				"files": [{
+					"filesystem": "root",
+					"path": "/foo/bar2",
+					"contents": { "source": "data:,example%20file2%0A" }
+				}]
+			}
+		}`)
 	customCAServer = httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(customCAServerFile)
+	}))
+	customCAServer2 = httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write(customCAServerFile2)
 	}))
 )
 
 func AppendConfigCustomCert() types.Test {
-	name := "Append config with custom tls cert"
+	name := "tls.config.merge.needsca"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
@@ -121,7 +186,7 @@ func AppendConfigCustomCert() types.Test {
 }
 
 func FetchFileCustomCert() types.Test {
-	name := "Fetch file with custom tls cert"
+	name := "tls.file.create.needsca"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
@@ -152,8 +217,53 @@ func FetchFileCustomCert() types.Test {
 	}
 }
 
-func AppendConfigCustomCertHTTP() types.Test {
-	name := "Fetch Certificate from Invalid Address"
+// FetchFileCABundleCertHTTP fetches the ignition configs hosted
+// on the TLS servers using a CA bundle that includes only the first
+// server's CA key.
+func FetchFileCABundleCertHTTP() types.Test {
+	name := "tls.fetchfile.http.cabundle"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"source": "http://127.0.0.1:8080/certificates"
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"filesystem": "root",
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			},{
+				"filesystem": "root",
+				"path": "/foo/bar2",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, customCAServer.URL, customCAServer2.URL)
+	configMinVersion := "2.2.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FetchFileCustomCertHTTP() types.Test {
+	name := "tls.fetchfile.http"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
@@ -188,8 +298,8 @@ func AppendConfigCustomCertHTTP() types.Test {
 	}
 }
 
-func AppendConfigCustomCertInvalidHeaderHTTP() types.Test {
-	name := "Fetch Certificate with Invalid Header - HTTP"
+func FetchFileCustomCertInvalidHeaderHTTP() types.Test {
+	name := "tls.fetchfile.http.invalidheader"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
 	config := fmt.Sprintf(`{
