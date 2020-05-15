@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/coreos/ignition/v2/tests/fixtures"
 	"github.com/coreos/ignition/v2/tests/register"
 	"github.com/coreos/ignition/v2/tests/servers"
 	"github.com/coreos/ignition/v2/tests/types"
@@ -28,7 +29,7 @@ import (
 )
 
 func init() {
-	cer, err := tls.X509KeyPair(publicKey, privateKey)
+	cer, err := tls.X509KeyPair(fixtures.PublicKey, fixtures.PrivateKey)
 	if err != nil {
 		panic(fmt.Sprintf("error loading x509 keypair: %v", err))
 	}
@@ -36,9 +37,19 @@ func init() {
 	customCAServer.TLS = config
 	customCAServer.StartTLS()
 
+	cer2, err := tls.X509KeyPair(fixtures.PublicKey2, fixtures.PrivateKey2)
+	if err != nil {
+		panic(fmt.Sprintf("error loading x509 keypair2: %v", err))
+	}
+	config2 := &tls.Config{Certificates: []tls.Certificate{cer2}}
+	customCAServer2.TLS = config2
+	customCAServer2.StartTLS()
+
 	register.Register(register.PositiveTest, AppendConfigCustomCert())
 	register.Register(register.PositiveTest, FetchFileCustomCert())
+	register.Register(register.PositiveTest, FetchFileCABundleCert())
 	register.Register(register.PositiveTest, FetchFileCustomCertHTTP())
+	register.Register(register.PositiveTest, FetchFileCABundleCertHTTP())
 	register.Register(register.PositiveTest, FetchFileCustomCertHTTPCompressed())
 	register.Register(register.PositiveTest, FetchFileCustomCertHTTPUsingHeaders())
 	register.Register(register.PositiveTest, FetchFileCustomCertHTTPUsingHeadersWithRedirect())
@@ -46,39 +57,6 @@ func init() {
 }
 
 var (
-	// generated via:
-	// openssl ecparam -genkey -name secp384r1 -out server.key
-	privateKey = []byte(`-----BEGIN EC PARAMETERS-----
-BgUrgQQAIg==
------END EC PARAMETERS-----
------BEGIN EC PRIVATE KEY-----
-MIGkAgEBBDB6yW6RIYfTXdYVuPY0V0L6EtZ6vZD86vgbsw52Y3/U5nZ2JE++JrKu
-tt2Xt/NMzG6gBwYFK4EEACKhZANiAAQDEhfHEulYKlANw9eR5l455gwzAIQuraa0
-49RhvM7PPywaiD8DobteQmE8wn7cJSzOYw6GLvrL4Q1BO5EFUXknkW50t8lfnUeH
-veCNsqvm82F1NVevVoExAUhDYmMREa4=
------END EC PRIVATE KEY-----`)
-
-	// generated via:
-	// openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
-	publicKey = []byte(`-----BEGIN CERTIFICATE-----
-MIICzTCCAlKgAwIBAgIJALTP0pfNBMzGMAoGCCqGSM49BAMCMIGZMQswCQYDVQQG
-EwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNj
-bzETMBEGA1UECgwKQ29yZU9TIEluYzEUMBIGA1UECwwLRW5naW5lZXJpbmcxEzAR
-BgNVBAMMCmNvcmVvcy5jb20xHTAbBgkqhkiG9w0BCQEWDm9lbUBjb3Jlb3MuY29t
-MB4XDTE4MDEyNTAwMDczOVoXDTI4MDEyMzAwMDczOVowgZkxCzAJBgNVBAYTAlVT
-MRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1TYW4gRnJhbmNpc2NvMRMw
-EQYDVQQKDApDb3JlT1MgSW5jMRQwEgYDVQQLDAtFbmdpbmVlcmluZzETMBEGA1UE
-AwwKY29yZW9zLmNvbTEdMBsGCSqGSIb3DQEJARYOb2VtQGNvcmVvcy5jb20wdjAQ
-BgcqhkjOPQIBBgUrgQQAIgNiAAQDEhfHEulYKlANw9eR5l455gwzAIQuraa049Rh
-vM7PPywaiD8DobteQmE8wn7cJSzOYw6GLvrL4Q1BO5EFUXknkW50t8lfnUeHveCN
-sqvm82F1NVevVoExAUhDYmMREa6jZDBiMA8GA1UdEQQIMAaHBH8AAAEwHQYDVR0O
-BBYEFEbFy0SPiF1YXt+9T3Jig2rNmBtpMB8GA1UdIwQYMBaAFEbFy0SPiF1YXt+9
-T3Jig2rNmBtpMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwIDaQAwZgIxAOul
-t3MhI02IONjTDusl2YuCxMgpy2uy0MPkEGUHnUOsxmPSG0gEBCNHyeKVeTaPUwIx
-AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
-9g==
------END CERTIFICATE-----`)
-
 	customCAServerFile = []byte(`{
 			"ignition": { "version": "3.0.0" },
 			"storage": {
@@ -89,8 +67,21 @@ AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
 			}
 		}`)
 
+	customCAServerFile2 = []byte(`{
+			"ignition": { "version": "3.0.0" },
+			"storage": {
+				"files": [{
+					"path": "/foo/bar2",
+					"contents": { "source": "data:,example%20file2%0A" }
+				}]
+			}
+		}`)
+
 	customCAServer = httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(customCAServerFile)
+	}))
+	customCAServer2 = httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write(customCAServerFile2)
 	}))
 )
 
@@ -114,7 +105,7 @@ func AppendConfigCustomCert() types.Test {
 				}
 			}
 		}
-	}`, customCAServer.URL, dataurl.EncodeBytes(publicKey))
+	}`, customCAServer.URL, dataurl.EncodeBytes(fixtures.PublicKey))
 	configMinVersion := "3.0.0"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
@@ -159,7 +150,7 @@ func FetchFileCustomCert() types.Test {
 				}
 			}]
 		}
-	}`, dataurl.EncodeBytes(publicKey), customCAServer.URL)
+	}`, dataurl.EncodeBytes(fixtures.PublicKey), customCAServer.URL)
 	configMinVersion := "3.0.0"
 
 	out[0].Partitions.AddFiles("ROOT", []types.File{
@@ -169,6 +160,64 @@ func FetchFileCustomCert() types.Test {
 				Name:      "bar",
 			},
 			Contents: string(customCAServerFile),
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FetchFileCABundleCert() types.Test {
+	name := "tls.fetchfile.cabundle"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"source": %q
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			},
+			{
+				"path": "/foo/bar2",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, dataurl.EncodeBytes(fixtures.CABundle), customCAServer.URL, customCAServer2.URL)
+	configMinVersion := "3.0.0"
+
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: string(customCAServerFile),
+		},
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar2",
+			},
+			Contents: string(customCAServerFile2),
 		},
 	})
 
@@ -214,6 +263,64 @@ func FetchFileCustomCertHTTP() types.Test {
 				Name:      "bar",
 			},
 			Contents: string(customCAServerFile),
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func FetchFileCABundleCertHTTP() types.Test {
+	name := "tls.fetchfile.http.cabundle"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := fmt.Sprintf(`{
+		"ignition": {
+			"version": "$version",
+			"security": {
+				"tls": {
+					"certificateAuthorities": [{
+						"source": "http://127.0.0.1:8080/caBundle"
+					}]
+				}
+			}
+		},
+		"storage": {
+			"files": [{
+				"path": "/foo/bar",
+				"contents": {
+					"source": %q
+				}
+			},
+			{
+				"path": "/foo/bar2",
+				"contents": {
+					"source": %q
+				}
+			}]
+		}
+	}`, customCAServer.URL, customCAServer2.URL)
+	configMinVersion := "3.0.0"
+
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar",
+			},
+			Contents: string(customCAServerFile),
+		},
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "bar2",
+			},
+			Contents: string(customCAServerFile2),
 		},
 	})
 
