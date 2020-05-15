@@ -15,15 +15,32 @@
 package config
 
 import (
-	currentExperimental "github.com/coreos/ignition/config/v2_5_experimental"
+	converter "github.com/coreos/ign-converter"
+	"github.com/coreos/ignition/config/shared/errors"
+	currentExperimentalv2 "github.com/coreos/ignition/config/v2_5_experimental"
 	"github.com/coreos/ignition/config/validate/report"
 	"github.com/coreos/ignition/internal/config/types"
+	v3 "github.com/coreos/ignition/v2/config/v3_2_experimental"
 )
 
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
-	cfg, rpt, err := currentExperimental.Parse(rawConfig)
-	if err != nil || rpt.IsFatal() {
-		return types.Config{}, rpt, err
+	cfg, rpt, err := currentExperimentalv2.Parse(rawConfig)
+	if err == nil && !rpt.IsFatal() {
+		return Translate(cfg), rpt, nil
 	}
-	return Translate(cfg), rpt, nil
+	if err.Error() == errors.ErrUnknownVersion.Error() {
+		// compat mode for converting spec v3 config
+		cfgv3, rptv3, err := v3.Parse(rawConfig)
+		if err != nil {
+			return types.Config{}, report.Merge(rpt, report.Add(report.Entry{rptv3.String()})), err
+		}
+		cfgv2, err := converter.Translate3to2(cfgv3)
+		if err != nil {
+			return types.Config{}, report.Merge(rpt, report.Add(report.Entry{rptv3.String()})), err
+		}
+
+		return Translate(cfgv2), report.Merge(rpt, report.Add(report.Entry{rptv3.String()})), nil
+	}
+
+	return types.Config{}, rpt, err
 }

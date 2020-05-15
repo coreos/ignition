@@ -1,8 +1,6 @@
-# github.com/ajeddeloh/go-json v0.0.0-20160803184958-73d058cf8437
-## explicit
+# github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083
 github.com/ajeddeloh/go-json
-# github.com/aws/aws-sdk-go v1.8.39
-## explicit
+# github.com/aws/aws-sdk-go v1.19.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -12,15 +10,24 @@ github.com/aws/aws-sdk-go/aws/corehandlers
 github.com/aws/aws-sdk-go/aws/credentials
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
 github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
+github.com/aws/aws-sdk-go/aws/credentials/processcreds
 github.com/aws/aws-sdk-go/aws/credentials/stscreds
+github.com/aws/aws-sdk-go/aws/csm
 github.com/aws/aws-sdk-go/aws/defaults
 github.com/aws/aws-sdk-go/aws/ec2metadata
 github.com/aws/aws-sdk-go/aws/endpoints
 github.com/aws/aws-sdk-go/aws/request
 github.com/aws/aws-sdk-go/aws/session
 github.com/aws/aws-sdk-go/aws/signer/v4
+github.com/aws/aws-sdk-go/internal/ini
+github.com/aws/aws-sdk-go/internal/s3err
+github.com/aws/aws-sdk-go/internal/sdkio
+github.com/aws/aws-sdk-go/internal/sdkrand
+github.com/aws/aws-sdk-go/internal/sdkuri
 github.com/aws/aws-sdk-go/internal/shareddefaults
 github.com/aws/aws-sdk-go/private/protocol
+github.com/aws/aws-sdk-go/private/protocol/eventstream
+github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi
 github.com/aws/aws-sdk-go/private/protocol/query
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/private/protocol/rest
@@ -30,68 +37,66 @@ github.com/aws/aws-sdk-go/service/s3
 github.com/aws/aws-sdk-go/service/s3/s3iface
 github.com/aws/aws-sdk-go/service/s3/s3manager
 github.com/aws/aws-sdk-go/service/sts
-# github.com/coreos/go-semver v0.1.0
-## explicit
+# github.com/coreos/go-semver v0.3.0
 github.com/coreos/go-semver/semver
 # github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
-## explicit
 github.com/coreos/go-systemd/dbus
 github.com/coreos/go-systemd/unit
+# github.com/coreos/go-systemd/v22 v22.0.0
+github.com/coreos/go-systemd/v22/unit
+# github.com/coreos/ign-converter v0.0.0-20200228175238-237c8512310a => github.com/LorbusChris/ign-converter v0.0.0-20200515140943-858ae6f84bec
+github.com/coreos/ign-converter
+# github.com/coreos/ignition/v2 v2.3.0
+github.com/coreos/ignition/v2/config/merge
+github.com/coreos/ignition/v2/config/shared/errors
+github.com/coreos/ignition/v2/config/shared/validations
+github.com/coreos/ignition/v2/config/util
+github.com/coreos/ignition/v2/config/v3_2_experimental
+github.com/coreos/ignition/v2/config/v3_2_experimental/types
+github.com/coreos/ignition/v2/config/validate
+# github.com/coreos/vcontext v0.0.0-20190529201340-22b159166068
+github.com/coreos/vcontext/json
+github.com/coreos/vcontext/path
+github.com/coreos/vcontext/report
+github.com/coreos/vcontext/tree
+github.com/coreos/vcontext/validate
 # github.com/davecgh/go-spew v1.1.0
 github.com/davecgh/go-spew/spew
-# github.com/go-ini/ini v1.25.4
-## explicit
-github.com/go-ini/ini
-# github.com/godbus/dbus v0.0.0-20181025153459-66d97aec3384
-## explicit
+# github.com/godbus/dbus v4.1.0+incompatible
 github.com/godbus/dbus
-# github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
-## explicit
+# github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
 # github.com/pborman/uuid v0.0.0-20170612153648-e790cca94e6c
-## explicit
 github.com/pborman/uuid
 # github.com/pin/tftp v2.1.0+incompatible
-## explicit
 github.com/pin/tftp
 github.com/pin/tftp/netascii
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/sigma/bdoor v0.0.0-20160202064022-babf2a4017b0
-## explicit
 github.com/sigma/bdoor
 # github.com/sigma/vmw-guestinfo v0.0.0-20160204083807-95dd4126d6e8
-## explicit
 github.com/sigma/vmw-guestinfo/rpcvmx
 github.com/sigma/vmw-guestinfo/vmcheck
-# github.com/smartystreets/goconvey v1.6.4
-## explicit
 # github.com/stretchr/testify v1.5.1
-## explicit
 github.com/stretchr/testify/assert
 # github.com/vincent-petithory/dataurl v0.0.0-20160330182126-9a301d65acbb
-## explicit
 github.com/vincent-petithory/dataurl
 # github.com/vmware/vmw-guestinfo v0.0.0-20170707015358-25eff159a728
-## explicit
 github.com/vmware/vmw-guestinfo/bdoor
 github.com/vmware/vmw-guestinfo/message
 github.com/vmware/vmw-guestinfo/rpcout
 # github.com/vmware/vmw-ovflib v0.0.0-20170608004843-1f217b9dc714
-## explicit
 github.com/vmware/vmw-ovflib
-# go4.org v0.0.0-20160314031811-03efcb870d84
-## explicit
+# go4.org v0.0.0-20200104003542-c7e774b10ea0
 go4.org/errorutil
 # golang.org/x/net v0.0.0-20190320064053-1272bf9dcd53
-## explicit
 golang.org/x/net/http/httpproxy
 golang.org/x/net/idna
 # golang.org/x/text v0.3.1-0.20190321115727-fe223c5a2583
-## explicit
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# gopkg.in/yaml.v2 v2.2.2
+# gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
