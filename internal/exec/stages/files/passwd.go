@@ -15,11 +15,11 @@
 package files
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
-	"errors"
+
 	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
-	
 )
 
 func (s *stage) expandGlobList(globs ...string) ([]string, error) {
@@ -83,17 +83,16 @@ func userUIDConflict(a types.PasswdUser, list []types.PasswdUser) error {
 		return nil
 	}
 
-	
 	for _, b := range list {
-		if b.UID == nil || a.Name == b.Name{
+		if b.UID == nil || a.Name == b.Name {
 			continue
 		}
 
-        if uint64(*b.UID) == uint64(*a.UID) && ((*b.NonUnique) == false || (*a.NonUnique) == false) {
-            return errors.New(fmt.Sprintf("conflicting uid from user: %s with uid: %d", b.Name, *b.UID))
-        }
-    } 
-    return nil
+		if uint64(*b.UID) == uint64(*a.UID) && ((*b.NonUnique) == false || (*a.NonUnique) == false) {
+			return errors.New(fmt.Sprintf("conflicting uid from user: %s with uid: %d", b.Name, *b.UID))
+		}
+	}
+	return nil
 }
 
 // createUsers creates the users as described in config.Passwd.Users.
