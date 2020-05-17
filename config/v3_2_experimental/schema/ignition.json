@@ -514,6 +514,9 @@
             },
             "shell": {
               "type": ["string", "null"]
+            },
+            "nonUnique": {
+              "type": ["boolean", "null"]
             }
           },
           "required": [

@@ -44,6 +44,16 @@ func AddPasswdUsers() types.Test {
 				{
 					"name": "jenkins",
 					"uid": 1020
+				},
+				{
+					"name": "test2",
+					"uid": 1030,
+					"nonUnique": true
+				},
+				{
+					"name": "test3",
+					"uid": 1030,
+					"nonUnique": true
 				}
 			]
 		}
@@ -116,28 +126,28 @@ ENCRYPT_METHOD SHA512
 				Name:      "passwd",
 				Directory: "etc",
 			},
-			Contents: "root:x:0:0:root:/root:/bin/bash\ncore:x:500:500:CoreOS Admin:/home/core:/bin/bash\nsystemd-coredump:x:998:998:systemd Core Dumper:/:/sbin/nologin\nfleet:x:253:253::/:/sbin/nologin\ntest:x:1000:1000::/home/test:/bin/bash\njenkins:x:1020:1001::/home/jenkins:/bin/bash\n",
+			Contents: "root:x:0:0:root:/root:/bin/bash\ncore:x:500:500:CoreOS Admin:/home/core:/bin/bash\nsystemd-coredump:x:998:998:systemd Core Dumper:/:/sbin/nologin\nfleet:x:253:253::/:/sbin/nologin\ntest:x:1000:1000::/home/test:/bin/bash\njenkins:x:1020:1001::/home/jenkins:/bin/bash\ntest2:x:1030:1002::/home/test2:/bin/bash\ntest3:x:1030:1003::/home/test3:/bin/bash\n",
 		},
 		{
 			Node: types.Node{
 				Name:      "group",
 				Directory: "etc",
 			},
-			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\ntest:x:1000:\njenkins:x:1001:\n",
+			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\ntest:x:1000:\njenkins:x:1001:\ntest2:x:1002:\ntest3:x:1003:\n",
 		},
 		{
 			Node: types.Node{
 				Name:      "shadow",
 				Directory: "etc",
 			},
-			Contents: "root:*:15887:0:::::\ncore:*:15887:0:::::\nsystemd-coredump:!!:17301::::::\nfleet:!!:17301::::::\ntest:zJW/EKqqIk44o:17331:0:99999:7:::\njenkins:*:17331:0:99999:7:::\n",
+			Contents: "root:*:15887:0:::::\ncore:*:15887:0:::::\nsystemd-coredump:!!:17301::::::\nfleet:!!:17301::::::\ntest:zJW/EKqqIk44o:17331:0:99999:7:::\njenkins:*:17331:0:99999:7:::\ntest2:*:17331:0:99999:7:::\ntest3:*:17331:0:99999:7:::\n",
 		},
 		{
 			Node: types.Node{
 				Name:      "gshadow",
 				Directory: "etc",
 			},
-			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\ntest:!::\njenkins:!::\n",
+			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\ntest:!::\njenkins:!::\ntest2:!::\ntest3:!::\n",
 		},
 		{
 			Node: types.Node{

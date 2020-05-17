@@ -99,6 +99,8 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 			strconv.FormatUint(uint64(*c.UID), 10))
 	}
 
+	args = appendIfTrue(args, c.NonUnique, "--non-unique")
+
 	args = appendIfStringSet(args, "--comment", c.Gecos)
 	args = appendIfStringSet(args, "--gid", c.PrimaryGroup)
 
