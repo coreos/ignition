@@ -3,7 +3,7 @@
 # https://github.com/coreos/fedora-coreos-tracker/issues/394#issuecomment-599721763
 
 [Unit]
-Description=Tear down initramfs networking
+Description=CoreOS Tear down initramfs
 DefaultDependencies=false
 
 # We want to run the teardown after all other Ignition stages
@@ -36,4 +36,4 @@ IgnoreOnIsolate=true
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStop=/usr/sbin/coreos-teardown-initramfs-network
+ExecStop=/usr/sbin/coreos-teardown-initramfs
