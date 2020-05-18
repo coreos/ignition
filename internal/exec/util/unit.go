@@ -15,6 +15,7 @@
 package util
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net/url"
 	"os"
@@ -22,8 +23,8 @@ import (
 
 	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
-
-	"github.com/vincent-petithory/dataurl"
+	"github.com/coreos/ignition/v2/internal/resource"
+	"github.com/coreos/ignition/v2/internal/util"
 )
 
 const (
@@ -31,17 +32,52 @@ const (
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, error) {
-	if unit.Contents == nil {
-		empty := ""
-		unit.Contents = &empty
-	}
-	u, err := url.Parse(dataurl.EncodeBytes([]byte(*unit.Contents)))
+func (ut Util) getUnitFetch(path string, contents types.Resource) (FetchOp, error) {
+	u, err := url.Parse(*contents.Source)
 	if err != nil {
+		ut.Logger.Crit("Unable to parse systemd contents URL: %s", err)
+		return FetchOp{}, err
+	}
+	hasher, err := util.GetHasher(contents.Verification)
+	if err != nil {
+		ut.Logger.Crit("Unable to get hasher: %s", err)
 		return FetchOp{}, err
 	}
 
+	var expectedSum []byte
+	if hasher != nil {
+		// explicitly ignoring the error here because the config should already
+		// be validated by this point
+		_, expectedSumString, _ := util.HashParts(contents.Verification)
+		expectedSum, err = hex.DecodeString(expectedSumString)
+		if err != nil {
+			ut.Logger.Crit("Error parsing verification string %q: %v", expectedSumString, err)
+			return FetchOp{}, err
+		}
+	}
+
+	var compression string
+	if contents.Compression != nil {
+		compression = *contents.Compression
+	}
+
+	return FetchOp{
+		Hash: hasher,
+		Node: types.Node{
+			Path: path,
+		},
+		Url: *u,
+		FetchOptions: resource.FetchOptions{
+			Hash:        hasher,
+			ExpectedSum: expectedSum,
+			Compression: compression,
+		},
+	}, nil
+}
+
+func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, error) {
 	var path string
+	var err error
 	if runtime {
 		path = SystemdRuntimeUnitsPath()
 	} else {
@@ -52,25 +88,12 @@ func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, erro
 		return FetchOp{}, err
 	}
 
-	return FetchOp{
-		Node: types.Node{
-			Path: path,
-		},
-		Url: *u,
-	}, nil
+	return ut.getUnitFetch(path, unit.Contents)
 }
 
 func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, runtime bool) (FetchOp, error) {
-	if dropin.Contents == nil {
-		empty := ""
-		dropin.Contents = &empty
-	}
-	u, err := url.Parse(dataurl.EncodeBytes([]byte(*dropin.Contents)))
-	if err != nil {
-		return FetchOp{}, err
-	}
-
 	var path string
+	var err error
 	if runtime {
 		path = SystemdRuntimeDropinsPath(string(unit.Name))
 	} else {
@@ -81,12 +104,7 @@ func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, r
 		return FetchOp{}, err
 	}
 
-	return FetchOp{
-		Node: types.Node{
-			Path: path,
-		},
-		Url: *u,
-	}, nil
+	return ut.getUnitFetch(path, unit.Contents)
 }
 
 // MaskUnit writes a symlink to /dev/null to mask the specified unit and returns the path of that unit

@@ -15,7 +15,6 @@
 package types
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -24,6 +23,7 @@ import (
 
 	"github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
+	"github.com/vincent-petithory/dataurl"
 )
 
 func TestSystemdUnitValidateContents(t *testing.T) {
@@ -32,15 +32,16 @@ func TestSystemdUnitValidateContents(t *testing.T) {
 		out error
 	}{
 		{
-			Unit{Name: "test.service", Contents: util.StrToPtr("[Foo]\nQux=Bar")},
+			Unit{
+				Name: "test.service",
+				Contents: Resource{
+					Source: util.StrToPtr(dataurl.EncodeBytes([]byte("[Foo]\nQux=Bar"))),
+				},
+			},
 			nil,
 		},
 		{
-			Unit{Name: "test.service", Contents: util.StrToPtr("[Foo")},
-			fmt.Errorf("invalid unit content: unable to find end of section"),
-		},
-		{
-			Unit{Name: "test.service", Contents: util.StrToPtr(""), Dropins: []Dropin{{}}},
+			Unit{Name: "test.service", Dropins: []Dropin{{}}},
 			nil,
 		},
 	}
@@ -88,12 +89,13 @@ func TestSystemdUnitDropInValidate(t *testing.T) {
 		out error
 	}{
 		{
-			Dropin{Name: "test.conf", Contents: util.StrToPtr("[Foo]\nQux=Bar")},
+			Dropin{
+				Name: "test.conf",
+				Contents: Resource{
+					Source: util.StrToPtr(dataurl.EncodeBytes([]byte("[Foo]\nQux=Bar"))),
+				},
+			},
 			nil,
-		},
-		{
-			Dropin{Name: "test.conf", Contents: util.StrToPtr("[Foo")},
-			fmt.Errorf("invalid unit content: unable to find end of section"),
 		},
 	}
 

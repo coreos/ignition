@@ -15,14 +15,10 @@
 package types
 
 import (
-	"fmt"
 	"path"
-	"strings"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/shared/validations"
 
-	"github.com/coreos/go-systemd/v22/unit"
 	cpath "github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
 )
@@ -36,13 +32,11 @@ func (d Dropin) Key() string {
 }
 
 func (u Unit) Validate(c cpath.ContextPath) (r report.Report) {
+	var err error
 	r.AddOnError(c.Append("name"), validateName(u.Name))
+	r.Merge(u.Contents.Validate(c))
 	c = c.Append("contents")
-	opts, err := validateUnitContent(u.Contents)
 	r.AddOnError(c, err)
-
-	isEnabled := u.Enabled != nil && *u.Enabled
-	r.AddOnWarn(c, validations.ValidateInstallSection(u.Name, isEnabled, (u.Contents == nil || *u.Contents == ""), opts))
 
 	return
 }
@@ -57,9 +51,6 @@ func validateName(name string) error {
 }
 
 func (d Dropin) Validate(c cpath.ContextPath) (r report.Report) {
-	_, err := validateUnitContent(d.Contents)
-	r.AddOnError(c.Append("contents"), err)
-
 	switch path.Ext(d.Name) {
 	case ".conf":
 	default:
@@ -67,16 +58,4 @@ func (d Dropin) Validate(c cpath.ContextPath) (r report.Report) {
 	}
 
 	return
-}
-
-func validateUnitContent(content *string) ([]*unit.UnitOption, error) {
-	if content == nil {
-		return []*unit.UnitOption{}, nil
-	}
-	c := strings.NewReader(*content)
-	opts, err := unit.Deserialize(c)
-	if err != nil {
-		return nil, fmt.Errorf("invalid unit content: %s", err)
-	}
-	return opts, nil
 }
