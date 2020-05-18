@@ -100,6 +100,22 @@ propagate_initramfs_hostname() {
     fi
 }
 
+# Persist automatic multipath configuration, if any.
+# When booting with `rd.multipath=default`, the default multipath
+# configuration is written. We need to ensure that the mutlipath configuration
+# is persisted to the final target.
+propagate_initramfs_multipath() {
+    if [ ! -f /sysroot/etc/multipath.conf ] && [ -f /etc/multipath.conf ]; then
+        echo "info: propagating automatic multipath configuration"
+        cp -v /etc/multipath.conf /sysroot/etc/
+        mkdir -p /sysroot/etc/multipath/multipath.conf.d
+        selinux_relabel /etc/multipath.conf
+        selinux_relabel /etc/multipath/multipath.conf.d
+    else
+        echo "info: no initramfs automatic multipath configuration to propagate"
+    fi
+}
+
 down_interface() {
     echo "info: taking down network device: $1"
     # On recommendation from the NM team let's try to delete the device
@@ -162,6 +178,10 @@ main() {
     # clean it up so that no information from outside of the
     # real root is passed on to NetworkManager in the real root
     rm -rf /run/NetworkManager/
+
+    # If automated multipath configuration has been enabled, ensure
+    # that its propagated to the real rootfs.
+    propagate_initramfs_multipath
 }
 
 main
