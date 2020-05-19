@@ -23,29 +23,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/coreos/ignition/tests/fixtures"
 	"github.com/pin/tftp"
 )
 
 var (
-	servedPublicKey = []byte(`-----BEGIN CERTIFICATE-----
-MIICzTCCAlKgAwIBAgIJALTP0pfNBMzGMAoGCCqGSM49BAMCMIGZMQswCQYDVQQG
-EwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNj
-bzETMBEGA1UECgwKQ29yZU9TIEluYzEUMBIGA1UECwwLRW5naW5lZXJpbmcxEzAR
-BgNVBAMMCmNvcmVvcy5jb20xHTAbBgkqhkiG9w0BCQEWDm9lbUBjb3Jlb3MuY29t
-MB4XDTE4MDEyNTAwMDczOVoXDTI4MDEyMzAwMDczOVowgZkxCzAJBgNVBAYTAlVT
-MRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1TYW4gRnJhbmNpc2NvMRMw
-EQYDVQQKDApDb3JlT1MgSW5jMRQwEgYDVQQLDAtFbmdpbmVlcmluZzETMBEGA1UE
-AwwKY29yZW9zLmNvbTEdMBsGCSqGSIb3DQEJARYOb2VtQGNvcmVvcy5jb20wdjAQ
-BgcqhkjOPQIBBgUrgQQAIgNiAAQDEhfHEulYKlANw9eR5l455gwzAIQuraa049Rh
-vM7PPywaiD8DobteQmE8wn7cJSzOYw6GLvrL4Q1BO5EFUXknkW50t8lfnUeHveCN
-sqvm82F1NVevVoExAUhDYmMREa6jZDBiMA8GA1UdEQQIMAaHBH8AAAEwHQYDVR0O
-BBYEFEbFy0SPiF1YXt+9T3Jig2rNmBtpMB8GA1UdIwQYMBaAFEbFy0SPiF1YXt+9
-T3Jig2rNmBtpMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwIDaQAwZgIxAOul
-t3MhI02IONjTDusl2YuCxMgpy2uy0MPkEGUHnUOsxmPSG0gEBCNHyeKVeTaPUwIx
-AKbyaAqbChEy9CvDgyv6qxTYU+eeBImLKS3PH2uW5etc/69V/sDojqpH3hEffsOt
-9g==
------END CERTIFICATE-----`)
-
 	servedConfig = []byte(`{
 	"ignition": { "version": "2.0.0" },
 	"storage": {
@@ -71,7 +53,11 @@ func (server *HTTPServer) Contents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (server *HTTPServer) Certificates(w http.ResponseWriter, r *http.Request) {
-	w.Write(servedPublicKey)
+	w.Write(fixtures.PublicKey)
+}
+
+func (server *HTTPServer) CABundle(w http.ResponseWriter, r *http.Request) {
+	w.Write(fixtures.CABundle)
 }
 
 func errorHandler(w http.ResponseWriter, message string) {
@@ -128,7 +114,7 @@ func (server *HTTPServer) ContentsHeaders(w http.ResponseWriter, r *http.Request
 func (server *HTTPServer) CertificatesHeaders(w http.ResponseWriter, r *http.Request) {
 	headerCheck(w, r)
 
-	w.Write(servedPublicKey)
+	w.Write(fixtures.PublicKey)
 }
 
 // ConfigReplaceOriginalHeaders validates that system headers were overwritten
@@ -214,7 +200,7 @@ func (server *HTTPServer) CertificatesRedirect(w http.ResponseWriter, r *http.Re
 func (server *HTTPServer) CertificatesRedirected(w http.ResponseWriter, r *http.Request) {
 	redirectedHeaderCheck(w, r)
 
-	w.Write(servedPublicKey)
+	w.Write(fixtures.PublicKey)
 }
 
 type HTTPServer struct{}
@@ -233,7 +219,7 @@ func (server *HTTPServer) Start() {
 	http.HandleFunc("/config_headers_replace", server.ConfigReplaceOriginalHeaders)
 	http.HandleFunc("/config_headers_redirect", server.ConfigRedirect)
 	http.HandleFunc("/config_headers_redirected", server.ConfigRedirected)
-
+	http.HandleFunc("/caBundle", server.CABundle)
 	s := &http.Server{Addr: ":8080"}
 	go s.ListenAndServe()
 }
