@@ -49,7 +49,7 @@
 # https://github.com/coreos/ignition
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          73ff2d799cb3a391cd5afbf2ea93a22a81763bc0
+%global commit          b4d18ad3fcb278a890327f858c1c10256ab6ee9d
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 # define ldflags, buildflags, testflags here. The ldflags were
 # taken from ./build. We will need to periodically check these
@@ -73,7 +73,7 @@
 
 Name:           ignition
 Version:        0.35.1
-Release:        12.rhaos4.6.git%{shortcommit}%{?dist}
+Release:        13.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0 and BSD
 URL:            https://%{provider_prefix}
@@ -493,6 +493,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Tue May 22 2020 Sohan Kunkerkar <skunkerk@redhat.com> - 0.35.1-13.rhaos4.6.gitb4d18ad
+- Update to latest spec2x to add a CA bundle support
+
 * Tue May 12 2020 Colin Walters <walters@verbum.org> - 0.35.1-12.rhaos4.6.git73ff2d7
 - Update to latest spec2x to fix live ISO
 
