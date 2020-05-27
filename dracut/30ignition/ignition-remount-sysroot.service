@@ -8,6 +8,9 @@ ConditionPathExists=/etc/initrd-release
 DefaultDependencies=no
 Before=ignition-diskful.target
 
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
 After=sysroot.mount
 ConditionPathIsReadWrite=!/sysroot
 

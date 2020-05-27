@@ -13,6 +13,8 @@ After=ignition-setup-base.service
 After=ignition-setup-user.service
 Before=ignition-disks.service
 
+OnFailure=emergency.target
+OnFailureJobMode=isolate
 
 # Network may be used to fetch userdata content.
 After=network.target

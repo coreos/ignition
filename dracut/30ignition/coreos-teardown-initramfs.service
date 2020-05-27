@@ -22,7 +22,6 @@ Before=ignition-complete.target
 Conflicts=initrd-switch-root.target umount.target
 Before=initrd-switch-root.target
 
-# Make sure if ExecStart= fails, the boot fails
 OnFailure=emergency.target
 OnFailureJobMode=isolate
 
