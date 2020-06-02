@@ -177,6 +177,12 @@ func validateFilesystems(t *testing.T, expected []*types.Partition) error {
 }
 
 func validatePartitionNodes(t *testing.T, ctx context.Context, partition *types.Partition) {
+	if len(partition.Files) == 0 &&
+		len(partition.Directories) == 0 &&
+		len(partition.Links) == 0 &&
+		len(partition.RemovedNodes) == 0 {
+		return
+	}
 	if err := mountPartition(ctx, partition); err != nil {
 		t.Errorf("failed to mount %s: %v", partition.Device, err)
 	}

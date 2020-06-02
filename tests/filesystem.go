@@ -394,6 +394,11 @@ func removeEmpty(strings []string) []string {
 }
 
 func createFilesForPartition(ctx context.Context, partition *types.Partition) (err error) {
+	if len(partition.Directories) == 0 &&
+		len(partition.Files) == 0 &&
+		len(partition.Links) == 0 {
+		return
+	}
 	err = mountPartition(ctx, partition)
 	if err != nil {
 		return
