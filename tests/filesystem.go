@@ -16,8 +16,12 @@ package blackbox
 
 import (
 	"bufio"
+	"bytes"
+	"compress/bzip2"
 	"context"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -285,6 +289,9 @@ func formatPartition(ctx context.Context, partition *types.Partition) error {
 		mkfs = "mkswap"
 		label = []string{"-L", partition.FilesystemLabel}
 		uuid = []string{"-U", partition.FilesystemUUID}
+	case "image":
+		// Manually copy in the specified bytes
+		return writePartitionData(partition.Device, partition.FilesystemImage)
 	default:
 		if partition.FilesystemType == "blank" ||
 			partition.FilesystemType == "" {
@@ -318,6 +325,21 @@ func formatPartition(ctx context.Context, partition *types.Partition) error {
 		}
 	}
 	return nil
+}
+
+func writePartitionData(device string, contents string) error {
+	bzipped, err := base64.StdEncoding.DecodeString(contents)
+	if err != nil {
+		return err
+	}
+	reader := bzip2.NewReader(bytes.NewBuffer(bzipped))
+	f, err := os.OpenFile(device, os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = io.Copy(f, reader)
+	return err
 }
 
 func createPartitionTable(ctx context.Context, imageFile string, partitions []*types.Partition) error {

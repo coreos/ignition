@@ -77,6 +77,7 @@ type Partition struct {
 	FilesystemType  string
 	FilesystemLabel string
 	FilesystemUUID  string
+	FilesystemImage string // base64-encoded bzip2
 	MountPath       string
 	Hybrid          bool
 	Files           []File
