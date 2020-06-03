@@ -496,7 +496,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 * Mon Jun 08 2020 Colin Walters <walters@verbum.org> - 0.35.1-14.rhaos4.6.gitb4d18ad
 - Bump to force a re-build for 4.6
 
-* Tue May 22 2020 Sohan Kunkerkar <skunkerk@redhat.com> - 0.35.1-13.rhaos4.6.gitb4d18ad
+* Fri May 22 2020 Sohan Kunkerkar <skunkerk@redhat.com> - 0.35.1-13.rhaos4.6.gitb4d18ad
 - Update to latest spec2x to add a CA bundle support
 
 * Tue May 12 2020 Colin Walters <walters@verbum.org> - 0.35.1-12.rhaos4.6.git73ff2d7
