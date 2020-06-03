@@ -16,8 +16,12 @@ package blackbox
 
 import (
 	"bufio"
+	"bytes"
+	"compress/bzip2"
 	"context"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -101,7 +105,7 @@ func mountPartition(ctx context.Context, p *types.Partition) error {
 	if p.MountPath == "" || p.Device == "" {
 		return fmt.Errorf("Invalid partition for mounting %+v", p)
 	}
-	_, err := run(ctx, "mount", p.Device, p.MountPath)
+	_, err := run(ctx, "mount", "-t", p.FilesystemType, p.Device, p.MountPath)
 	return err
 }
 
@@ -285,6 +289,9 @@ func formatPartition(ctx context.Context, partition *types.Partition) error {
 		mkfs = "mkswap"
 		label = []string{"-L", partition.FilesystemLabel}
 		uuid = []string{"-U", partition.FilesystemUUID}
+	case "image":
+		// Manually copy in the specified bytes
+		return writePartitionData(partition.Device, partition.FilesystemImage)
 	default:
 		if partition.FilesystemType == "blank" ||
 			partition.FilesystemType == "" {
@@ -318,6 +325,21 @@ func formatPartition(ctx context.Context, partition *types.Partition) error {
 		}
 	}
 	return nil
+}
+
+func writePartitionData(device string, contents string) error {
+	bzipped, err := base64.StdEncoding.DecodeString(contents)
+	if err != nil {
+		return err
+	}
+	reader := bzip2.NewReader(bytes.NewBuffer(bzipped))
+	f, err := os.OpenFile(device, os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = io.Copy(f, reader)
+	return err
 }
 
 func createPartitionTable(ctx context.Context, imageFile string, partitions []*types.Partition) error {
@@ -394,6 +416,11 @@ func removeEmpty(strings []string) []string {
 }
 
 func createFilesForPartition(ctx context.Context, partition *types.Partition) (err error) {
+	if len(partition.Directories) == 0 &&
+		len(partition.Files) == 0 &&
+		len(partition.Links) == 0 {
+		return
+	}
 	err = mountPartition(ctx, partition)
 	if err != nil {
 		return

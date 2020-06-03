@@ -15,12 +15,14 @@
 package filesystems
 
 import (
+	"github.com/coreos/ignition/v2/tests/fixtures"
 	"github.com/coreos/ignition/v2/tests/register"
 	"github.com/coreos/ignition/v2/tests/types"
 )
 
 func init() {
 	register.Register(register.PositiveTest, ReuseExistingFilesystem())
+	register.Register(register.PositiveTest, ReuseAmbivalentFilesystem())
 }
 
 func ReuseExistingFilesystem() types.Test {
@@ -92,6 +94,97 @@ func ReuseExistingFilesystem() types.Test {
 			},
 		},
 	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// Successfully reuse a filesystem which libblkid thinks has multiple
+// type signatures.
+func ReuseAmbivalentFilesystem() types.Test {
+	name := "filesystem.reuse.ambivalent"
+	in := []types.Disk{
+		{
+			Alignment: types.DefaultAlignment,
+			Partitions: types.Partitions{
+				{
+					Number:         1,
+					Label:          "ROOT",
+					TypeCode:       "data",
+					Length:         131072,
+					FilesystemType: "ext4",
+				},
+				{
+					Number:          2,
+					Label:           "ZFS",
+					TypeCode:        "data",
+					Length:          131072,
+					FilesystemType:  "image",
+					FilesystemImage: fixtures.Ext4ZFS,
+				},
+			},
+		},
+	}
+	out := []types.Disk{
+		{
+			Alignment: types.DefaultAlignment,
+			Partitions: types.Partitions{
+				{
+					Number:         1,
+					Label:          "ROOT",
+					TypeCode:       "data",
+					Length:         131072,
+					FilesystemType: "ext4",
+				},
+				{
+					Number:          2,
+					Label:           "ZFS",
+					TypeCode:        "data",
+					Length:          131072,
+					FilesystemType:  "ext4",
+					FilesystemUUID:  "f63bf118-f6d7-40a3-b64c-a92b05a7f9ee",
+					FilesystemLabel: "some-label",
+					Ambivalent:      true,
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Name:      "bar",
+								Directory: "foo",
+							},
+							Contents: "example file\n",
+						},
+					},
+				},
+			},
+		},
+	}
+	mntDevices := []types.MntDevice{
+		{
+			Label:        "ZFS",
+			Substitution: "$DEVICE",
+		},
+	}
+	config := `{
+		"ignition": {"version": "$version"},
+		"storage": {
+			"filesystems": [
+			{
+				"path": "/tmp0",
+				"device": "$DEVICE",
+				"wipeFilesystem": false,
+				"format": "ext4",
+				"label": "some-label",
+				"uuid": "f63bf118-f6d7-40a3-b64c-a92b05a7f9ee"
+			}]
+		}
+	}`
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,

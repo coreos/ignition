@@ -91,23 +91,53 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 	if fs.Format == nil {
 		return nil
 	}
-	info, err := s.readFilesystemInfo(fs)
+
+	var info util.FilesystemInfo
+	err := s.Logger.LogOp(
+		func() error {
+			var err error
+			info, err = util.GetFilesystemInfo(fs.Device, false)
+			if err != nil {
+				// Try again, allowing multiple filesystem
+				// fingerprints this time.  If successful,
+				// log a warning and continue.
+				var err2 error
+				info, err2 = util.GetFilesystemInfo(fs.Device, true)
+				if err2 == nil {
+					s.Logger.Warning("%v", err)
+				}
+				err = err2
+			}
+			return err
+		},
+		"determining filesystem type of %q", fs.Device,
+	)
 	if err != nil {
 		return err
 	}
+	s.Logger.Info("found %s filesystem at %q with uuid %q and label %q", info.Type, fs.Device, info.UUID, info.Label)
 
 	if fs.WipeFilesystem == nil || !*fs.WipeFilesystem {
 		// If the filesystem isn't forcefully being created, then we need
 		// to check if it is of the correct type or that no filesystem exists.
-		if info.format == *fs.Format &&
-			(fs.Label == nil || info.label == *fs.Label) &&
-			(fs.UUID == nil || canonicalizeFilesystemUUID(info.format, info.uuid) == canonicalizeFilesystemUUID(*fs.Format, *fs.UUID)) {
+		if info.Type == *fs.Format &&
+			(fs.Label == nil || info.Label == *fs.Label) &&
+			(fs.UUID == nil || canonicalizeFilesystemUUID(info.Type, info.UUID) == canonicalizeFilesystemUUID(*fs.Format, *fs.UUID)) {
 			s.Logger.Info("filesystem at %q is already correctly formatted. Skipping mkfs...", fs.Device)
 			return nil
-		} else if info.format != "" {
-			s.Logger.Err("filesystem at %q is not of the correct type, label, or UUID (found %s, %q, %s) and a filesystem wipe was not requested", fs.Device, info.format, info.label, info.uuid)
+		} else if info.Type != "" {
+			s.Logger.Err("filesystem at %q is not of the correct type, label, or UUID (found %s, %q, %s) and a filesystem wipe was not requested", fs.Device, info.Type, info.Label, info.UUID)
 			return ErrBadFilesystem
 		}
+	}
+
+	devAlias := util.DeviceAlias(string(fs.Device))
+	if _, err := s.Logger.LogCmd(
+		exec.Command(distro.WipefsCmd(), "-a", devAlias),
+		"wiping filesystem signatures from %q",
+		devAlias,
+	); err != nil {
+		return fmt.Errorf("wipefs failed: %v", err)
 	}
 
 	mkfs := ""
@@ -163,7 +193,6 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		return fmt.Errorf("unsupported filesystem format: %q", *fs.Format)
 	}
 
-	devAlias := util.DeviceAlias(string(fs.Device))
 	args = append(args, devAlias)
 	if _, err := s.Logger.LogCmd(
 		exec.Command(mkfs, args...),
@@ -183,38 +212,6 @@ func translateOptionSliceToStringSlice(opts []types.FilesystemOption) []string {
 		newOpts[i] = string(o)
 	}
 	return newOpts
-}
-
-type filesystemInfo struct {
-	format string
-	uuid   string
-	label  string
-}
-
-func (s stage) readFilesystemInfo(fs types.Filesystem) (filesystemInfo, error) {
-	res := filesystemInfo{}
-	err := s.Logger.LogOp(
-		func() error {
-			var err error
-			res.format, err = util.FilesystemType(fs.Device)
-			if err != nil {
-				return err
-			}
-			res.uuid, err = util.FilesystemUUID(fs.Device)
-			if err != nil {
-				return err
-			}
-			res.label, err = util.FilesystemLabel(fs.Device)
-			if err != nil {
-				return err
-			}
-			s.Logger.Info("found %s filesystem at %q with uuid %q and label %q", res.format, fs.Device, res.uuid, res.label)
-			return nil
-		},
-		"determining filesystem type of %q", fs.Device,
-	)
-
-	return res, err
 }
 
 // canonicalizeFilesystemUUID does the minimum amount of canonicalization
