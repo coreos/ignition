@@ -105,7 +105,7 @@ func mountPartition(ctx context.Context, p *types.Partition) error {
 	if p.MountPath == "" || p.Device == "" {
 		return fmt.Errorf("Invalid partition for mounting %+v", p)
 	}
-	_, err := run(ctx, "mount", p.Device, p.MountPath)
+	_, err := run(ctx, "mount", "-t", p.FilesystemType, p.Device, p.MountPath)
 	return err
 }
 
