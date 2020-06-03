@@ -36,7 +36,7 @@ var (
 	userdataUrl = url.URL{
 		Scheme: "http",
 		Host:   "169.254.169.254",
-		Path:   "2009-04-04/user-data",
+		Path:   "2019-10-01/user-data",
 	}
 )
 
