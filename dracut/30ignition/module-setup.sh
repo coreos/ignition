@@ -32,7 +32,8 @@ install() {
         mkswap \
         sgdisk \
         useradd \
-        usermod
+        usermod \
+        wipefs
 
     # Required by s390x's z/VM installation.
     # Supporting https://github.com/coreos/ignition/pull/865
