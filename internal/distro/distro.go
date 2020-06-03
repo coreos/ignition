@@ -42,6 +42,7 @@ var (
 	usermodCmd  = "usermod"
 	useraddCmd  = "useradd"
 	setfilesCmd = "setfiles"
+	wipefsCmd   = "wipefs"
 
 	// Filesystem tools
 	btrfsMkfsCmd = "mkfs.btrfs"
@@ -81,6 +82,7 @@ func UdevadmCmd() string  { return udevadmCmd }
 func UsermodCmd() string  { return usermodCmd }
 func UseraddCmd() string  { return useraddCmd }
 func SetfilesCmd() string { return setfilesCmd }
+func WipefsCmd() string   { return wipefsCmd }
 
 func BtrfsMkfsCmd() string { return btrfsMkfsCmd }
 func Ext4MkfsCmd() string  { return ext4MkfsCmd }

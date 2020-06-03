@@ -131,6 +131,15 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		}
 	}
 
+	devAlias := util.DeviceAlias(string(fs.Device))
+	if _, err := s.Logger.LogCmd(
+		exec.Command(distro.WipefsCmd(), "-a", devAlias),
+		"wiping filesystem signatures from %q",
+		devAlias,
+	); err != nil {
+		return fmt.Errorf("wipefs failed: %v", err)
+	}
+
 	mkfs := ""
 	args := translateOptionSliceToStringSlice(fs.Options)
 	switch *fs.Format {
@@ -184,7 +193,6 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		return fmt.Errorf("unsupported filesystem format: %q", *fs.Format)
 	}
 
-	devAlias := util.DeviceAlias(string(fs.Device))
 	args = append(args, devAlias)
 	if _, err := s.Logger.LogCmd(
 		exec.Command(mkfs, args...),

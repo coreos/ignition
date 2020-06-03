@@ -27,6 +27,9 @@ func init() {
 	register.Register(register.PositiveTest, ReformatToEXT4())
 	register.Register(register.PositiveTest, ReformatToSWAP())
 	register.Register(register.PositiveTest, TestCannedZFSImage())
+	register.Register(register.PositiveTest, TestEXT4ClobberZFS())
+	register.Register(register.PositiveTest, TestXFSClobberZFS())
+	register.Register(register.PositiveTest, TestVFATClobberZFS())
 }
 
 func ReformatToBTRFS() types.Test {
@@ -264,6 +267,110 @@ func TestCannedZFSImage() types.Test {
 		Name:             name,
 		In:               in,
 		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func TestEXT4ClobberZFS() types.Test {
+	name := "filesystem.create.zfs.ext4"
+	in := makeZFSDisk()
+	out := makeZFSDisk()
+	mntDevices := []types.MntDevice{
+		{
+			Label:        "ZFS",
+			Substitution: "$DEVICE",
+		},
+	}
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "filesystems": [{
+	      "path": "/tmp0",
+	      "device": "$DEVICE",
+	      "format": "ext4",
+	      "options": ["-E", "nodiscard"],
+	      "wipeFilesystem": true
+	    }]
+	  }
+	}`
+	configMinVersion := "3.0.0"
+	out[0].Partitions.GetPartition("ZFS").FilesystemType = "ext4"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func TestXFSClobberZFS() types.Test {
+	name := "filesystem.create.zfs.xfs"
+	in := makeZFSDisk()
+	out := makeZFSDisk()
+	mntDevices := []types.MntDevice{
+		{
+			Label:        "ZFS",
+			Substitution: "$DEVICE",
+		},
+	}
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "filesystems": [{
+	      "path": "/tmp0",
+	      "device": "$DEVICE",
+	      "format": "xfs",
+	      "options": ["-K"],
+	      "wipeFilesystem": true
+	    }]
+	  }
+	}`
+	configMinVersion := "3.0.0"
+	out[0].Partitions.GetPartition("ZFS").FilesystemType = "xfs"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func TestVFATClobberZFS() types.Test {
+	name := "filesystem.create.zfs.vfat"
+	in := makeZFSDisk()
+	out := makeZFSDisk()
+	mntDevices := []types.MntDevice{
+		{
+			Label:        "ZFS",
+			Substitution: "$DEVICE",
+		},
+	}
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "filesystems": [{
+	      "path": "/tmp0",
+	      "device": "$DEVICE",
+	      "format": "vfat",
+	      "wipeFilesystem": true
+	    }]
+	  }
+	}`
+	configMinVersion := "3.0.0"
+	out[0].Partitions.GetPartition("ZFS").FilesystemType = "vfat"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
 		Config:           config,
 		ConfigMinVersion: configMinVersion,
 	}
