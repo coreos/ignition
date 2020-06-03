@@ -16,10 +16,12 @@
 #define _BLKID_H_
 
 #include <string.h>
+#include <stdbool.h>
 
 typedef enum {
 	RESULT_OK,
 	RESULT_OPEN_FAILED,
+	RESULT_PROBE_AMBIVALENT,
 	RESULT_PROBE_FAILED,
 	RESULT_LOOKUP_FAILED,
 	RESULT_NO_PARTITION_TABLE,
@@ -46,7 +48,7 @@ struct partition_info {
 	int number;
 };
 
-result_t blkid_lookup(const char *device, const char *field_name, char buf[], size_t buf_len);
+result_t blkid_lookup(const char *device, bool allow_ambivalent, const char *field_name, char buf[], size_t buf_len);
 
 result_t blkid_get_num_partitions(const char *device, int *ret);
 

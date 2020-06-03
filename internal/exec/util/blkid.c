@@ -40,15 +40,23 @@ static result_t checked_copy(char *dest, const char *src, size_t len) {
 	return RESULT_OK;
 }
 
-result_t blkid_lookup(const char *device, const char *field_name, char *buf, size_t buf_len)
+result_t blkid_lookup(const char *device, bool allow_ambivalent, const char *field_name, char *buf, size_t buf_len)
 {
 	const char *field_val = "\0";
+	int ret;
 
 	blkid_probe pr _cleanup_probe_ = blkid_new_probe_from_filename(device);
 	if (!pr)
 		return RESULT_OPEN_FAILED;
 
-	if (blkid_do_probe(pr) < 0)
+	if (allow_ambivalent) {
+		ret = blkid_do_probe(pr);
+	} else {
+		ret = blkid_do_safeprobe(pr);
+		if (ret == -2)
+			return RESULT_PROBE_AMBIVALENT;
+	}
+	if (ret < 0)
 		return RESULT_PROBE_FAILED;
 
 	if (blkid_probe_has_value(pr, field_name))

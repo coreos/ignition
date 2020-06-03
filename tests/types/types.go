@@ -80,6 +80,7 @@ type Partition struct {
 	FilesystemImage string // base64-encoded bzip2
 	MountPath       string
 	Hybrid          bool
+	Ambivalent      bool // allow multiple FS types on validation
 	Files           []File
 	Directories     []Directory
 	Links           []Link

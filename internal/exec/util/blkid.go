@@ -69,18 +69,20 @@ type FilesystemInfo struct {
 	Label string
 }
 
-func GetFilesystemInfo(device string) (FilesystemInfo, error) {
+// If allowAmbivalent is false, fail if we find traces of more than one
+// filesystem on the device.
+func GetFilesystemInfo(device string, allowAmbivalent bool) (FilesystemInfo, error) {
 	var info FilesystemInfo
 	var err error
-	info.Type, err = filesystemLookup(device, field_name_type)
+	info.Type, err = filesystemLookup(device, allowAmbivalent, field_name_type)
 	if err != nil {
 		return FilesystemInfo{}, err
 	}
-	info.UUID, err = filesystemLookup(device, field_name_uuid)
+	info.UUID, err = filesystemLookup(device, allowAmbivalent, field_name_uuid)
 	if err != nil {
 		return FilesystemInfo{}, err
 	}
-	info.Label, err = filesystemLookup(device, field_name_label)
+	info.Label, err = filesystemLookup(device, allowAmbivalent, field_name_label)
 	if err != nil {
 		return FilesystemInfo{}, err
 	}
@@ -95,6 +97,8 @@ func cResultToErr(res C.result_t, device string) error {
 		return nil
 	case C.RESULT_OPEN_FAILED:
 		return fmt.Errorf("failed to open %q", device)
+	case C.RESULT_PROBE_AMBIVALENT:
+		return fmt.Errorf("found multiple filesystem types on %q", device)
 	case C.RESULT_PROBE_FAILED:
 		return fmt.Errorf("failed to probe %q", device)
 	case C.RESULT_LOOKUP_FAILED:
@@ -173,7 +177,7 @@ func DumpDisk(device string) (DiskInfo, error) {
 	return output, nil
 }
 
-func filesystemLookup(device string, fieldName string) (string, error) {
+func filesystemLookup(device string, allowAmbivalent bool, fieldName string) (string, error) {
 	var buf [256]byte
 
 	cDevice := C.CString(device)
@@ -181,7 +185,7 @@ func filesystemLookup(device string, fieldName string) (string, error) {
 	cFieldName := C.CString(fieldName)
 	defer C.free(unsafe.Pointer(cFieldName))
 
-	if err := cResultToErr(C.blkid_lookup(cDevice, cFieldName, (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf))), device); err != nil {
+	if err := cResultToErr(C.blkid_lookup(cDevice, C.bool(allowAmbivalent), cFieldName, (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf))), device); err != nil {
 		return "", err
 	}
 	return string(buf[:bytes.IndexByte(buf[:], 0)]), nil

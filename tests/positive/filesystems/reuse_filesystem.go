@@ -150,6 +150,7 @@ func ReuseAmbivalentFilesystem() types.Test {
 					FilesystemType:  "ext4",
 					FilesystemUUID:  "f63bf118-f6d7-40a3-b64c-a92b05a7f9ee",
 					FilesystemLabel: "some-label",
+					Ambivalent:      true,
 					Files: []types.File{
 						{
 							Node: types.Node{

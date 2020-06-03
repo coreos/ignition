@@ -147,7 +147,7 @@ func validateFilesystems(t *testing.T, expected []*types.Partition) error {
 			e.FilesystemLabel == "" {
 			continue
 		}
-		info, err := util.GetFilesystemInfo(e.Device)
+		info, err := util.GetFilesystemInfo(e.Device, e.Ambivalent)
 		if err != nil {
 			return fmt.Errorf("couldn't get filesystem info: %v", err)
 		}

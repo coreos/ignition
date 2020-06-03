@@ -96,7 +96,18 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 	err := s.Logger.LogOp(
 		func() error {
 			var err error
-			info, err = util.GetFilesystemInfo(fs.Device)
+			info, err = util.GetFilesystemInfo(fs.Device, false)
+			if err != nil {
+				// Try again, allowing multiple filesystem
+				// fingerprints this time.  If successful,
+				// log a warning and continue.
+				var err2 error
+				info, err2 = util.GetFilesystemInfo(fs.Device, true)
+				if err2 == nil {
+					s.Logger.Warning("%v", err)
+				}
+				err = err2
+			}
 			return err
 		},
 		"determining filesystem type of %q", fs.Device,
