@@ -63,16 +63,28 @@ type PartitionInfo struct {
 	Number        int
 }
 
-func FilesystemType(device string) (string, error) {
-	return filesystemLookup(device, field_name_type)
+type FilesystemInfo struct {
+	Type  string
+	UUID  string
+	Label string
 }
 
-func FilesystemUUID(device string) (string, error) {
-	return filesystemLookup(device, field_name_uuid)
-}
-
-func FilesystemLabel(device string) (string, error) {
-	return filesystemLookup(device, field_name_label)
+func GetFilesystemInfo(device string) (FilesystemInfo, error) {
+	var info FilesystemInfo
+	var err error
+	info.Type, err = filesystemLookup(device, field_name_type)
+	if err != nil {
+		return FilesystemInfo{}, err
+	}
+	info.UUID, err = filesystemLookup(device, field_name_uuid)
+	if err != nil {
+		return FilesystemInfo{}, err
+	}
+	info.Label, err = filesystemLookup(device, field_name_label)
+	if err != nil {
+		return FilesystemInfo{}, err
+	}
+	return info, nil
 }
 
 // cResultToErr takes a result_t from the blkid c code and a device it was operating on

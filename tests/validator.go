@@ -142,34 +142,31 @@ func formatUUID(s string) string {
 
 func validateFilesystems(t *testing.T, expected []*types.Partition) error {
 	for _, e := range expected {
+		if e.FilesystemType == "" &&
+			e.FilesystemUUID == "" &&
+			e.FilesystemLabel == "" {
+			continue
+		}
+		info, err := util.GetFilesystemInfo(e.Device)
+		if err != nil {
+			return fmt.Errorf("couldn't get filesystem info: %v", err)
+		}
 		if e.FilesystemType != "" {
-			filesystemType, err := util.FilesystemType(e.Device)
-			if err != nil {
-				return fmt.Errorf("couldn't determine filesystem type: %v", err)
-			}
-			if filesystemType != e.FilesystemType {
+			if info.Type != e.FilesystemType {
 				t.Errorf("FilesystemType does not match, expected:%q actual:%q",
-					e.FilesystemType, filesystemType)
+					e.FilesystemType, info.Type)
 			}
 		}
 		if e.FilesystemUUID != "" {
-			filesystemUUID, err := util.FilesystemUUID(e.Device)
-			if err != nil {
-				return fmt.Errorf("couldn't determine filesystem uuid: %v", err)
-			}
-			if formatUUID(filesystemUUID) != formatUUID(e.FilesystemUUID) {
+			if formatUUID(info.UUID) != formatUUID(e.FilesystemUUID) {
 				t.Errorf("FilesystemUUID does not match, expected:%q actual:%q",
-					e.FilesystemUUID, filesystemUUID)
+					e.FilesystemUUID, info.UUID)
 			}
 		}
 		if e.FilesystemLabel != "" {
-			filesystemLabel, err := util.FilesystemLabel(e.Device)
-			if err != nil {
-				return fmt.Errorf("couldn't determine filesystem label: %v", err)
-			}
-			if filesystemLabel != e.FilesystemLabel {
+			if info.Label != e.FilesystemLabel {
 				t.Errorf("FilesystemLabel does not match, expected:%q actual:%q",
-					e.FilesystemLabel, filesystemLabel)
+					e.FilesystemLabel, info.Label)
 			}
 		}
 	}
