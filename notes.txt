@@ -31,8 +31,8 @@ Spec file golang-github-coreos-ignition.spec at /home/vagrant/golang-github-core
 
 # go through and fix things up - see diff
 
-# generate bundled provides by copying/using parsedeps.go to the ignition
-# source folder and then running `go run parsedeps.go`. copy into spec file
+# generate bundled provides by copying/using go-mods-to-bundled-provides.py to
+# the ignition source folder and then running it. copy into spec file
 # should be done by gofed at some point - https://github.com/gofed/gofed/issues/42
 
 # grab source tarball
