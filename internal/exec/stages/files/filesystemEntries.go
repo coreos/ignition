@@ -225,6 +225,7 @@ func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, e
 		entries = append(entries, fileEntry(f))
 	}
 
+	hardlinks := []filesystemEntry{}
 	for _, l := range config.Storage.Links {
 		path, err := s.JoinPath(l.Path)
 		if err != nil {
@@ -236,9 +237,19 @@ func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, e
 		}
 		paths[path] = l.Path
 		l.Path = path
-		entries = append(entries, linkEntry(l))
+		if l.Hard != nil && *l.Hard {
+			hardlinks = append(hardlinks, linkEntry(l))
+		} else {
+			entries = append(entries, linkEntry(l))
+		}
+
 	}
 	sort.Slice(entries, func(i, j int) bool { return util.Depth(entries[i].node().Path) < util.Depth(entries[j].node().Path) })
+
+	// Append all the hard links to the list after sorting. This allows
+	// Ignition to create hard links to files that are deeper than the hard
+	// link. For reference: https://github.com/coreos/ignition/issues/800
+	entries = append(entries, hardlinks...)
 
 	return entries, nil
 }
