@@ -1,7 +1,8 @@
 # github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083
 github.com/ajeddeloh/go-json
-# github.com/aws/aws-sdk-go v1.19.11
+# github.com/aws/aws-sdk-go v1.30.28
 github.com/aws/aws-sdk-go/aws
+github.com/aws/aws-sdk-go/aws/arn
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
 github.com/aws/aws-sdk-go/aws/client
@@ -19,24 +20,31 @@ github.com/aws/aws-sdk-go/aws/endpoints
 github.com/aws/aws-sdk-go/aws/request
 github.com/aws/aws-sdk-go/aws/session
 github.com/aws/aws-sdk-go/aws/signer/v4
+github.com/aws/aws-sdk-go/internal/context
 github.com/aws/aws-sdk-go/internal/ini
 github.com/aws/aws-sdk-go/internal/s3err
 github.com/aws/aws-sdk-go/internal/sdkio
+github.com/aws/aws-sdk-go/internal/sdkmath
 github.com/aws/aws-sdk-go/internal/sdkrand
 github.com/aws/aws-sdk-go/internal/sdkuri
 github.com/aws/aws-sdk-go/internal/shareddefaults
+github.com/aws/aws-sdk-go/internal/strings
+github.com/aws/aws-sdk-go/internal/sync/singleflight
 github.com/aws/aws-sdk-go/private/protocol
 github.com/aws/aws-sdk-go/private/protocol/eventstream
 github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi
+github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
 github.com/aws/aws-sdk-go/private/protocol/query
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/private/protocol/rest
 github.com/aws/aws-sdk-go/private/protocol/restxml
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/s3
+github.com/aws/aws-sdk-go/service/s3/internal/arn
 github.com/aws/aws-sdk-go/service/s3/s3iface
 github.com/aws/aws-sdk-go/service/s3/s3manager
 github.com/aws/aws-sdk-go/service/sts
+github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/coreos/go-semver v0.3.0
 github.com/coreos/go-semver/semver
 # github.com/coreos/go-systemd/v22 v22.0.0
@@ -57,14 +65,14 @@ github.com/godbus/dbus/v5
 github.com/google/renameio
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
-# github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
+# github.com/jmespath/go-jmespath v0.3.0
 github.com/jmespath/go-jmespath
 # github.com/pin/tftp v2.1.0+incompatible
 github.com/pin/tftp
 github.com/pin/tftp/netascii
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/stretchr/testify v1.3.0
+# github.com/stretchr/testify v1.5.1
 github.com/stretchr/testify/assert
 # github.com/vincent-petithory/dataurl v0.0.0-20160330182126-9a301d65acbb
 github.com/vincent-petithory/dataurl
@@ -76,7 +84,7 @@ github.com/vmware/vmw-guestinfo/rpcvmx
 github.com/vmware/vmw-guestinfo/vmcheck
 # github.com/vmware/vmw-ovflib v0.0.0-20170608004843-1f217b9dc714
 github.com/vmware/vmw-ovflib
-# golang.org/x/net v0.0.0-20190228165749-92fc7df08ae7
+# golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 golang.org/x/net/http/httpproxy
 golang.org/x/net/idna
 # golang.org/x/sys v0.0.0-20191110163157-d32e6e3b99c4
@@ -86,3 +94,5 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
+# gopkg.in/yaml.v2 v2.2.2
+gopkg.in/yaml.v2
