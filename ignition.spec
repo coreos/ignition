@@ -73,7 +73,7 @@
 
 Name:           ignition
 Version:        0.35.1
-Release:        13.rhaos4.6.git%{shortcommit}%{?dist}
+Release:        14.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0 and BSD
 URL:            https://%{provider_prefix}
@@ -493,6 +493,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Mon Jun 08 2020 Colin Walters <walters@verbum.org> - 0.35.1-14.rhaos4.6.gitb4d18ad
+- Bump to force a re-build for 4.6
+
 * Tue May 22 2020 Sohan Kunkerkar <skunkerk@redhat.com> - 0.35.1-13.rhaos4.6.gitb4d18ad
 - Update to latest spec2x to add a CA bundle support
 
