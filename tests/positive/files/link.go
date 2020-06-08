@@ -26,6 +26,7 @@ func init() {
 	register.Register(register.PositiveTest, MatchSymlinkOnRoot())
 	register.Register(register.PositiveTest, ForceLinkCreation())
 	register.Register(register.PositiveTest, ForceHardLinkCreation())
+	register.Register(register.PositiveTest, CreateDeepHardLinkToFile())
 	register.Register(register.PositiveTest, WriteOverSymlink())
 	register.Register(register.PositiveTest, WriteOverBrokenSymlink())
 	register.Register(register.PositiveTest, CreateHardLinkToSymlink())
@@ -317,7 +318,7 @@ func ForceHardLinkCreation() types.Test {
 	    "links": [{
 	      "path": "/foo/bar",
 	      "target": "/foo/target",
-		  "hard": true,
+	      "hard": true,
 	      "overwrite": true
 	    }]
 	  }
@@ -347,6 +348,59 @@ func ForceHardLinkCreation() types.Test {
 				Name:      "bar",
 			},
 			Target: "/foo/target",
+			Hard:   true,
+		},
+	})
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// CreateDeepHardLinkToFile checks if Ignition can create a hard
+// link to a file that's deeper than the hard link. For more
+// information: https://github.com/coreos/ignition/issues/800
+func CreateDeepHardLinkToFile() types.Test {
+	name := "links.hard.deep.create.file"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar/baz",
+	      "contents": {
+	        "source": "http://127.0.0.1:8080/contents"
+	      }
+	    }],
+	    "links": [{
+	      "path": "/foo/quux",
+	      "target": "/foo/bar/baz",
+	      "hard": true
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo/bar",
+				Name:      "baz",
+			},
+			Contents: "asdf\nfdsa",
+		},
+	})
+	out[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "quux",
+			},
+			Target: "/foo/bar/baz",
 			Hard:   true,
 		},
 	})
