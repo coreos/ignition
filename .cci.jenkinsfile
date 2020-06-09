@@ -1,6 +1,15 @@
 // Documentation: https://github.com/coreos/coreos-ci/blob/master/README-upstream-ci.md
 
-cosaPod {
+cosaPod(buildroot: true) {
     checkout scm
-    fcosBuild(make: true)
+
+    // we want to test against the latest ignition until they're merged
+    // https://github.com/coreos/fedora-coreos-tracker/issues/511
+
+    // hack to satisfy golang compiler wanting to cache things
+    shwrap("mkdir cache")
+    withEnv(["XDG_CACHE_HOME=${env.WORKSPACE}/cache"]) {
+        shwrap("git clone https://github.com/coreos/ignition")
+        fcosBuild(make: true, makeDirs: ["ignition"])
+    }
 }
