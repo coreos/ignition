@@ -51,6 +51,8 @@ const (
 	// This variable will help to identify ignition journal messages
 	// related to the user/base config.
 	ignitionFetchedConfigMsgId = "57124006b5c94805b77ce473e92a8aeb"
+
+	needNetPath = "/run/ignition/neednet"
 )
 
 // Engine represents the entity that fetches and executes a configuration.
@@ -100,8 +102,20 @@ func (e Engine) Run(stageName string) error {
 		}
 	}
 
+	// We special-case the fetch-offline stage a bit here: we want to be able
+	// to handle the case where the provider itself requires networking.
+	if stageName == "fetch-offline" {
+		e.Fetcher.Offline = true
+	}
+
 	cfg, err := e.acquireConfig()
-	if err == errors.ErrEmpty {
+	if err == resource.ErrNeedNet && stageName == "fetch-offline" {
+		err = SignalNeedNet()
+		if err != nil {
+			e.Logger.Crit("failed to signal neednet: %v", err)
+		}
+		return err
+	} else if err == errors.ErrEmpty {
 		e.Logger.Info("%v: ignoring user-provided config", err)
 	} else if err != nil {
 		e.Logger.Crit("failed to acquire config: %v", err)
@@ -369,6 +383,18 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, err
 	}
 
 	return cfg, nil
+}
+
+func SignalNeedNet() error {
+	if err := executil.MkdirForFile(needNetPath); err != nil {
+		return err
+	}
+	if f, err := os.Create(needNetPath); err != nil {
+		return err
+	} else {
+		f.Close()
+	}
+	return nil
 }
 
 func (e Engine) logReport(r report.Report) {
