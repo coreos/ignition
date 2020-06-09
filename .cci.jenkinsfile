@@ -6,6 +6,10 @@ cosaPod(buildroot: true) {
     // hack to satisfy golang compiler wanting to cache things
     shwrap("mkdir cache")
     withEnv(["XDG_CACHE_HOME=${env.WORKSPACE}/cache"]) {
+        // first, run gofmt/govet/unit tests
+        stage("Unit Tests") {
+            shwrap("./test")
+        }
         shwrap("""
             mkdir -p /srv/fcos && cd /srv/fcos
             cosa init https://github.com/coreos/fedora-coreos-config
