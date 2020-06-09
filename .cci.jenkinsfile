@@ -6,13 +6,13 @@ cosaPod(buildroot: true) {
     // hack to satisfy golang compiler wanting to cache things
     shwrap("mkdir cache")
     withEnv(["XDG_CACHE_HOME=${env.WORKSPACE}/cache"]) {
-        // freeze kernel to 5.6.7 for now to avoid a regression in loopback
-        // code which interferes with blackbox testing
-        // https://bugs.archlinux.org/task/66526
         shwrap("""
             mkdir -p /srv/fcos && cd /srv/fcos
             cosa init https://github.com/coreos/fedora-coreos-config
             mkdir -p overrides/rpm && cd overrides/rpm
+            # freeze kernel to 5.6.7 for now to avoid a regression in loopback
+            # code which interferes with blackbox testing
+            # https://bugs.archlinux.org/task/66526
             curl -L --remote-name-all https://kojipkgs.fedoraproject.org//packages/kernel/5.6.7/200.fc31/x86_64/kernel{,-core,-modules}-5.6.7-200.fc31.x86_64.rpm
         """)
         shwrap("""
