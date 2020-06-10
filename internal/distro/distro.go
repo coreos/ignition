@@ -56,6 +56,10 @@ var (
 	chccwdevCmd  = "chccwdev"
 	cioIgnoreCmd = "cio_ignore"
 
+	// LUKS programs
+	clevisCmd     = "clevis"
+	cryptsetupCmd = "cryptsetup"
+
 	// Flags
 	selinuxRelabel  = "true"
 	blackboxTesting = "false"
@@ -64,6 +68,9 @@ var (
 	// ".ssh/authorized_keys.d/ignition" ("true"), or to
 	// ".ssh/authorized_keys" ("false").
 	writeAuthorizedKeysFragment = "true"
+
+	luksInitramfsKeyFilePath = "/run/ignition/luks-keyfiles/"
+	luksRealRootKeyFilePath  = "/etc/luks/"
 )
 
 func DiskByIDDir() string       { return diskByIDDir }
@@ -93,6 +100,12 @@ func XfsMkfsCmd() string   { return xfsMkfsCmd }
 func VmurCmd() string      { return vmurCmd }
 func ChccwdevCmd() string  { return chccwdevCmd }
 func CioIgnoreCmd() string { return cioIgnoreCmd }
+
+func ClevisCmd() string     { return clevisCmd }
+func CryptsetupCmd() string { return cryptsetupCmd }
+
+func LuksInitramfsKeyFilePath() string { return luksInitramfsKeyFilePath }
+func LuksRealRootKeyFilePath() string  { return luksRealRootKeyFilePath }
 
 func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !BlackboxTesting() }
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }

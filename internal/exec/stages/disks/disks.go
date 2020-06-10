@@ -71,7 +71,8 @@ func (s stage) Run(config types.Config) error {
 	// do the udevadm settle and can just return here.
 	if len(config.Storage.Disks) == 0 &&
 		len(config.Storage.Raid) == 0 &&
-		len(config.Storage.Filesystems) == 0 {
+		len(config.Storage.Filesystems) == 0 &&
+		len(config.Storage.Luks) == 0 {
 		return nil
 	}
 
@@ -81,6 +82,10 @@ func (s stage) Run(config types.Config) error {
 
 	if err := s.createRaids(config); err != nil {
 		return fmt.Errorf("failed to create raids: %v", err)
+	}
+
+	if err := s.createLuks(config); err != nil {
+		return fmt.Errorf("failed to create luks: %v", err)
 	}
 
 	if err := s.createFilesystems(config); err != nil {

@@ -16,15 +16,98 @@ package files
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
+	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
+
+	"github.com/vincent-petithory/dataurl"
 )
+
+// createCrypttabEntries creates entries inside of /etc/crypttab for LUKS volumes,
+// as well as copying keyfiles to the sysroot.
+func (s *stage) createCrypttabEntries(config types.Config) error {
+	if len(config.Storage.Luks) == 0 {
+		return nil
+	}
+
+	s.Logger.PushPrefix("createCrypttabEntries")
+	defer s.Logger.PopPrefix()
+
+	mode := 0600
+	path, err := s.JoinPath("/etc/crypttab")
+	if err != nil {
+		return fmt.Errorf("building crypttab filepath: %v", err)
+	}
+	crypttab := fileEntry{
+		types.Node{
+			Path: path,
+		},
+		types.FileEmbedded1{
+			Mode: &mode,
+		},
+	}
+	extrafiles := []filesystemEntry{}
+	for _, luks := range config.Storage.Luks {
+		out, err := exec.Command(distro.CryptsetupCmd(), "luksUUID", *luks.Device).CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("gathering luks uuid: %s: %v", out, err)
+		}
+		uuid := strings.TrimSpace(string(out))
+		netdev := ""
+		if luks.Clevis != nil && len(luks.Clevis.Tang) > 0 {
+			netdev = ",_netdev"
+		}
+		keyfile := "none"
+		if luks.Clevis == nil {
+			keyfile = filepath.Join(distro.LuksRealRootKeyFilePath(), luks.Name)
+
+			// Copy keyfile from /run to sysroot
+			contents, err := ioutil.ReadFile(filepath.Join(distro.LuksInitramfsKeyFilePath(), luks.Name))
+			if err != nil {
+				return fmt.Errorf("reading keyfile for %s: %v", luks.Name, err)
+			}
+			contentsUri := dataurl.EncodeBytes(contents)
+			keyfilePath, err := s.JoinPath(keyfile)
+			if err != nil {
+				return fmt.Errorf("building keyfile path: %v", err)
+			}
+			// TODO: add directory with mode 0700
+			extrafiles = append(extrafiles, fileEntry{
+				types.Node{
+					Path: keyfilePath,
+				},
+				types.FileEmbedded1{
+					Contents: types.Resource{
+						Source: &contentsUri,
+					},
+					Mode: &mode,
+				},
+			})
+		}
+		uri := dataurl.EncodeBytes([]byte(fmt.Sprintf("%s UUID=%s %s luks%s\n", luks.Name, uuid, keyfile, netdev)))
+		crypttab.Append = append(crypttab.Append, types.Resource{
+			Source: &uri,
+		})
+	}
+	extrafiles = append(extrafiles, crypttab)
+	if err := s.createEntries(extrafiles); err != nil {
+		return fmt.Errorf("adding luks related files: %v", err)
+	}
+	// delete the entire keyfiles folder in /run/ so that the keyfiles are stored on
+	// only the root device which can be encrypted
+	if err := os.RemoveAll(distro.LuksInitramfsKeyFilePath()); err != nil {
+		return fmt.Errorf("removing initramfs keyfiles: %v", err)
+	}
+	return nil
+}
 
 // createFilesystemsEntries creates the files described in config.Storage.{Files,Directories}.
 func (s *stage) createFilesystemsEntries(config types.Config) error {
