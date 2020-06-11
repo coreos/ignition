@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2020 Red Hat, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,30 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !s390x,!ppc64le
+// +build s390x ppc64le
 
 package qemu
 
 import (
-	"io/ioutil"
-	"os/exec"
-
 	"github.com/coreos/ignition/v2/internal/resource"
 )
 
-const (
-	firmwareConfigPath = "/sys/firmware/qemu_fw_cfg/by_name/opt/com.coreos/config/raw"
-)
-
 func fwCfgSupported() bool {
-	return true
+	return false
 }
 
-func fetchFromFwCfg(f *resource.Fetcher) ([]byte, error) {
-	_, err := f.Logger.LogCmd(exec.Command("modprobe", "qemu_fw_cfg"), "loading QEMU firmware config module")
-	if err != nil {
-		return nil, err
-	}
-
-	return ioutil.ReadFile(firmwareConfigPath)
+func fetchFromFwCfg(_ *resource.Fetcher) ([]byte, error) {
+	panic("unreachable")
 }
