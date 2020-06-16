@@ -32,7 +32,7 @@ cosaPod(buildroot: true) {
     // attention to it in the Jenkins UI
     // XXX: need a e.g. `--tag !external`
 
-    fcosKola(extraArgs: "--blacklist-test ext.*")
+    fcosKola(extraArgs: "--denylist-test ext.*")
 
     stage("Blackbox Tests") {
         shwrap("""
