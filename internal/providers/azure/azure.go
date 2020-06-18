@@ -67,7 +67,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 
 	logger.Debug("mounting config device")
 	if err := logger.LogOp(
-		func() error { return unix.Mount(devicePath, mnt, "udf", unix.MS_RDONLY, "") },
+		func() error { return unix.Mount(devicePath, mnt, "udf,iso9660", unix.MS_RDONLY, "") },
 		"mounting %q at %q", devicePath, mnt,
 	); err != nil {
 		return types.Config{}, report.Report{}, fmt.Errorf("failed to mount device %q at %q: %v", devicePath, mnt, err)
