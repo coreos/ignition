@@ -17,7 +17,7 @@ load_dracut_libs() {
 dracut_func() {
     # dracut is not friendly to set -eu
     set +euo pipefail
-    "$@"; rc=$?
+    "$@"; local rc=$?
     set -euo pipefail
     return $rc
 }
