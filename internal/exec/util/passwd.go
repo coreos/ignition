@@ -115,6 +115,16 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 	return err
 }
 
+// GetUserHomeDir returns the user home directory. Note that DestDir is not
+// prefixed.
+func (u Util) GetUserHomeDir(c types.PasswdUser) (string, error) {
+	usr, err := u.userLookup(c.Name)
+	if err != nil {
+		return "", err
+	}
+	return usr.HomeDir, nil
+}
+
 // CheckIfUserExists will return Info log when user is empty
 func (u Util) CheckIfUserExists(c types.PasswdUser) (bool, error) {
 	_, err := u.userLookup(c.Name)
