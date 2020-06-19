@@ -64,6 +64,10 @@ func TestConfigNeedsNet(t *testing.T) {
 		},
 	}
 	assertNotNeedsNet(t, &cfg)
+	cfg.Storage.Files[0].Contents.Source = util.StrToPtr("")
+	assertNotNeedsNet(t, &cfg)
+	cfg.Storage.Files[0].Contents.Source = nil
+	assertNotNeedsNet(t, &cfg)
 	cfg.Storage.Files[0].Contents.Source = util.StrToPtr("http://example.com/payload")
 	assertNeedsNet(t, &cfg)
 }
