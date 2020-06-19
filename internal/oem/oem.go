@@ -24,6 +24,7 @@ import (
 	"github.com/coreos/ignition/internal/providers/cloudstack"
 	"github.com/coreos/ignition/internal/providers/digitalocean"
 	"github.com/coreos/ignition/internal/providers/ec2"
+	"github.com/coreos/ignition/internal/providers/exoscale"
 	"github.com/coreos/ignition/internal/providers/file"
 	"github.com/coreos/ignition/internal/providers/gce"
 	"github.com/coreos/ignition/internal/providers/noop"
@@ -109,7 +110,7 @@ func init() {
 	})
 	configs.Register(Config{
 		name:  "exoscale",
-		fetch: noop.FetchConfig,
+		fetch: exoscale.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "gce",
