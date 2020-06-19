@@ -28,10 +28,15 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
+	"cloud.google.com/go/compute/metadata"
+	"cloud.google.com/go/storage"
 	configErrors "github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/util"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -77,6 +82,10 @@ type Fetcher struct {
 	// The region where the AWS machine trying to fetch is.
 	// This is used as a hint to fetch the S3 bucket from the right partition and region.
 	S3RegionHint string
+
+	// GCSSession is a client for interacting with Google Cloud Storage.
+	// It is used when fetching resources from GCS.
+	GCSSession *storage.Client
 
 	// Whether to only attempt fetches which can be performed offline. This
 	// currently only includes the "data" scheme. Other schemes will result in
@@ -128,6 +137,8 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 		}
 		err = f.fetchFromS3(u, buf, opts)
 		return buf.Bytes(), err
+	case "gs":
+		err = f.fetchFromGCS(u, dest, opts)
 	case "":
 		return nil, nil
 	default:
@@ -183,6 +194,8 @@ func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
 		return f.fetchFromDataURL(u, dest, opts)
 	case "s3":
 		return f.fetchFromS3(u, dest, opts)
+	case "gs":
+		return f.fetchFromGCS(u, dest, opts)
 	case "":
 		return nil
 	default:
@@ -317,6 +330,44 @@ func (f *Fetcher) fetchFromDataURL(u url.URL, dest io.Writer, opts FetchOptions)
 	}
 
 	return f.decompressCopyHashAndVerify(dest, bytes.NewBuffer(url.Data), opts)
+}
+
+// FetchFromGCS writes the data stored in a GCS bucket as described by u into dest, returning
+// an error if one is encountered. It looks for the default credentials by querying metadata
+// server on GCE. If it fails to get the credentials, then it will fall back to anonymous
+// credentials to fetch the object content.
+func (f *Fetcher) fetchFromGCS(u url.URL, dest io.Writer, opts FetchOptions) error {
+	ctx := context.Background()
+	var clientOption option.ClientOption
+	if f.GCSSession == nil {
+		if metadata.OnGCE() {
+			id, _ := metadata.ProjectID()
+			creds := &google.Credentials{
+				ProjectID:   id,
+				TokenSource: google.ComputeTokenSource("", storage.ScopeReadOnly),
+			}
+			clientOption = option.WithCredentials(creds)
+		} else {
+			f.Logger.Debug("falling back to unauthenticated GCS access")
+			clientOption = option.WithoutAuthentication()
+		}
+
+		var err error
+		f.GCSSession, err = storage.NewClient(ctx, clientOption)
+		if err != nil {
+			return err
+		}
+	}
+
+	path := strings.TrimLeft(u.Path, "/")
+	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	defer cancel()
+	rc, err := f.GCSSession.Bucket(u.Host).Object(path).NewReader(ctx)
+	if err != nil {
+		return fmt.Errorf("error while reading content from (%q): %v", u.String(), err)
+	}
+
+	return f.decompressCopyHashAndVerify(dest, rc, opts)
 }
 
 type s3target interface {

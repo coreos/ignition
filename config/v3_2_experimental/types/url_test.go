@@ -66,6 +66,10 @@ func TestURLValidate(t *testing.T) {
 			util.StrToPtr("s3://bucket/key?versionId=aVersionHash"),
 			nil,
 		},
+		{
+			util.StrToPtr("gs://bucket/object"),
+			nil,
+		},
 	}
 
 	for i, test := range tests {
