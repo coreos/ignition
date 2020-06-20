@@ -134,3 +134,96 @@ func TestDataUrl(t *testing.T) {
 		}
 	}
 }
+
+func TestFetchOffline(t *testing.T) {
+	type in struct {
+		url  string
+		opts FetchOptions
+	}
+	type out struct {
+		data []byte
+		err  error
+	}
+
+	tests := []struct {
+		in  in
+		out out
+	}{
+		// data url, no compression
+		{
+			in: in{
+				url: "data:,hello%20world%0a",
+				opts: FetchOptions{
+					ExpectedSum: []byte("\xdb\x39\x74\xa9\x7f\x24\x07\xb7\xca\xe1\xae\x63\x7c\x00\x30\x68\x7a\x11\x91\x32\x74\xd5\x78\x49\x25\x58\xe3\x9c\x16\xc0\x17\xde\x84\xea\xcd\xc8\xc6\x2f\xe3\x4e\xe4\xe1\x2b\x4b\x14\x28\x81\x7f\x09\xb6\xa2\x76\x0c\x3f\x8a\x66\x4c\xea\xe9\x4d\x24\x34\xa5\x93"),
+				},
+			},
+			out: out{data: []byte("hello world\n")},
+		},
+		// empty
+		{
+			in: in{
+				url: "",
+			},
+			out: out{data: nil},
+		},
+		// http url
+		{
+			in: in{
+				url: "http://google.com",
+			},
+			out: out{err: ErrNeedNet},
+		},
+		// https url
+		{
+			in: in{
+				url: "https://google.com",
+			},
+			out: out{err: ErrNeedNet},
+		},
+		// tftp url
+		{
+			in: in{
+				url: "tftp://127.0.0.1/tftp",
+			},
+			out: out{err: ErrNeedNet},
+		},
+		// s3 url
+		{
+			in: in{
+				url: "s3://kola-fixtures/resources/anonymous",
+			},
+			out: out{err: ErrNeedNet},
+		},
+		// gs url
+		{
+			in: in{
+				url: "gs://foo/bar",
+			},
+			out: out{err: ErrNeedNet},
+		},
+	}
+
+	logger := log.New(true)
+	f := Fetcher{
+		Logger:  &logger,
+		Offline: true,
+	}
+
+	for i, test := range tests {
+		u, err := url.Parse(test.in.url)
+		if err != nil {
+			t.Errorf("#%d: parsing URL: %v", i, err)
+			continue
+		}
+		test.in.opts.Hash = sha512.New()
+		result, err := f.FetchToBuffer(*u, test.in.opts)
+		if !reflect.DeepEqual(test.out.err, err) {
+			t.Errorf("#%d: fetching URL: expected error %+v, got %+v", i, test.out.err, err)
+			continue
+		}
+		if test.out.err == nil && !reflect.DeepEqual(test.out.data, result) {
+			t.Errorf("#%d: expected output %+v, got %+v", i, test.out.data, result)
+			continue
+		}
+	}
+}
