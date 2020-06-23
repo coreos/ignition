@@ -77,7 +77,7 @@ func (ut Util) RelabelFiles(patterns []string) error {
 		return err
 	}
 
-	cmd := exec.Command(distro.SetfilesCmd(), "-vFi0", "-r", ut.DestDir, file_contexts, "-f", "-")
+	cmd := exec.Command(distro.SetfilesCmd(), "-vF0", "-r", ut.DestDir, file_contexts, "-f", "-")
 	cmd.Stdin = strings.NewReader(strings.Join(patterns, "\000") + "\000")
 	if _, err := ut.Logger.LogCmd(cmd, "relabeling %d patterns", len(patterns)); err != nil {
 		return err

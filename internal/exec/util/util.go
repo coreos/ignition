@@ -50,6 +50,26 @@ func wantsToEscape(p string) bool {
 	return filepath.Join("/", p) == filepath.Join("/a", p)
 }
 
+// ResolveSymlink resolves the symlink path, respecting the u.DestDir root. If
+// the path is not a symlink, returns "". Otherwise, returns an unprefixed path
+// to the target.
+func (u Util) ResolveSymlink(path string) (string, error) {
+	prefixedPath := filepath.Join(u.DestDir, path)
+	s, err := os.Lstat(prefixedPath)
+	if err != nil || s.Mode()&os.ModeSymlink == 0 {
+		return "", err
+	}
+
+	symlinkPath, err := os.Readlink(prefixedPath)
+	if err != nil {
+		return "", err
+	}
+	if !filepath.IsAbs(symlinkPath) {
+		symlinkPath = filepath.Join(filepath.Dir(path), symlinkPath)
+	}
+	return filepath.Clean(symlinkPath), nil
+}
+
 // JoinPath returns a path into the context ala filepath.Join(d, args)
 // It resolves symlinks as if they were rooted at u.DestDir. This means
 // that the resulting path will always be under u.DestDir.
@@ -65,27 +85,15 @@ func (u Util) JoinPath(path ...string) (string, error) {
 	realpath := "/"
 	for _, component := range components {
 		tmp := filepath.Join(realpath, component)
-		s, err := os.Lstat(filepath.Join(u.DestDir, tmp))
-		if os.IsNotExist(err) {
-			realpath = tmp
-			continue
-		} else if err != nil {
-			return "", err
-		}
 
-		if s.Mode()&os.ModeSymlink == 0 {
-			realpath = tmp
-			continue
-		}
-
-		symlinkPath, err := os.Readlink(filepath.Join(u.DestDir, tmp))
-		if err != nil {
+		symlinkPath, err := u.ResolveSymlink(tmp)
+		if err != nil && !os.IsNotExist(err) {
 			return "", err
+		} else if os.IsNotExist(err) || symlinkPath == "" {
+			realpath = tmp
+		} else {
+			realpath = symlinkPath
 		}
-		if filepath.IsAbs(symlinkPath) {
-			realpath = "/"
-		}
-		realpath = filepath.Join(realpath, symlinkPath)
 	}
 
 	return filepath.Join(u.DestDir, realpath, last), nil

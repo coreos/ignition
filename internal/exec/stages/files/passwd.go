@@ -66,12 +66,26 @@ func (s *stage) createPasswd(config types.Config) error {
 		}
 
 		s.relabel(deglobbed...)
-		s.relabel(
-			"/etc/.pwd.lock",
-			// for OSTree-based systems
-			"/var/home",
-			"/var/roothome",
-		)
+		s.relabel("/etc/.pwd.lock")
+		for _, user := range config.Passwd.Users {
+			if user.NoCreateHome != nil && *user.NoCreateHome == true {
+				continue
+			}
+			homedir, err := s.GetUserHomeDir(user)
+			if err != nil {
+				return err
+			}
+			s.relabel(homedir)
+
+			// Check if the homedir is actually a symlink, and make sure we
+			// relabel the target too. This is relevant on OSTree-based
+			// platforms, where /root is a link to /var/roothome.
+			if resolved, err := s.ResolveSymlink(homedir); err != nil {
+				return err
+			} else if resolved != "" {
+				s.relabel(resolved)
+			}
+		}
 	}
 
 	return nil

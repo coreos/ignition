@@ -40,16 +40,11 @@ func (u Util) userLookup(name string) (*user.User, error) {
 		return nil, user.UnknownUserError(fmt.Sprintf("user %q not found", name))
 	}
 
-	homedir, err := u.JoinPath(C.GoString(res.home))
-	if err != nil {
-		return nil, err
-	}
-
 	usr := &user.User{
 		Name:    C.GoString(res.name),
 		Uid:     fmt.Sprintf("%d", int(res.uid)),
 		Gid:     fmt.Sprintf("%d", int(res.gid)),
-		HomeDir: homedir,
+		HomeDir: C.GoString(res.home),
 	}
 
 	C.user_lookup_res_free(res)
