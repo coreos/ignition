@@ -25,6 +25,7 @@ import (
 
 	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
+	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
@@ -52,6 +53,14 @@ const (
 	CDS_DISC_OK
 )
 
+// These constants are the types of CDROM filesystems that might
+// be used to present a custom-data volume. Azure proper uses a
+// udf volume, while Azure Stack might use udf or iso9660.
+const (
+	CDS_FSTYPE_UDF     = "udf"
+	CDS_FSTYPE_ISO9660 = "iso9660"
+)
+
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	devicePath := filepath.Join(distro.DiskByIDDir(), configDeviceID)
 
@@ -65,9 +74,17 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	}
 	defer os.Remove(mnt)
 
+	fs, err := execUtil.GetFilesystemInfo(devicePath, false)
+	if err != nil {
+		return types.Config{}, report.Report{}, fmt.Errorf("failed to get config fs type %s: %v", devicePath, err)
+	}
+	if !(fs.Type == CDS_FSTYPE_UDF || fs.Type == CDS_FSTYPE_ISO9660) {
+		return types.Config{}, report.Report{}, fmt.Errorf("found unsupported filesystem %s on %s", fs.Type, devicePath)
+	}
+
 	logger.Debug("mounting config device")
 	if err := logger.LogOp(
-		func() error { return unix.Mount(devicePath, mnt, "udf", unix.MS_RDONLY, "") },
+		func() error { return unix.Mount(devicePath, mnt, fs.Type, unix.MS_RDONLY, "") },
 		"mounting %q at %q", devicePath, mnt,
 	); err != nil {
 		return types.Config{}, report.Report{}, fmt.Errorf("failed to mount device %q at %q: %v", devicePath, mnt, err)
