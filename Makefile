@@ -8,4 +8,4 @@ install: all
 	  bn=$$(basename $$x); \
 	  install -D -t $(DESTDIR)/usr/lib/dracut/modules.d/$${bn} $$x/*; \
 	done
-	install -D -t $(DESTDIR)/usr/lib/systemd/system systemd/*
+	install -D -m 644 -t $(DESTDIR)/usr/lib/systemd/system systemd/*
