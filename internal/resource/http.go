@@ -209,6 +209,8 @@ func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.Resource) error {
 
 		// Clean HTTP headers
 		cas[i].HTTPHeaders = nil
+		// the rewrite wipes the compression
+		cas[i].Compression = nil
 
 		encoded := dataurl.EncodeBytes(blob)
 		cas[i].Source = &encoded
