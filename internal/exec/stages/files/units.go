@@ -186,9 +186,6 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 	return s.Logger.LogOp(func() error {
 		relabeledDropinDir := false
 		for _, dropin := range unit.Dropins {
-			if dropin.Contents == nil || *dropin.Contents == "" {
-				continue
-			}
 			f, err := u.FileFromSystemdUnitDropin(unit, dropin, runtime)
 			if err != nil {
 				s.Logger.Crit("error converting systemd dropin: %v", err)

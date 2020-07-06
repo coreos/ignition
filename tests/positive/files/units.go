@@ -21,6 +21,7 @@ import (
 
 func init() {
 	register.Register(register.PositiveTest, CreateInstantiatedService())
+	register.Register(register.PositiveTest, CreateEmptyDropinsUnit())
 }
 
 func CreateInstantiatedService() types.Test {
@@ -61,6 +62,47 @@ func CreateInstantiatedService() types.Test {
 				Directory: "etc/systemd/system-preset",
 			},
 			Contents: "enable echo@.service bar foo\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// CreateEmptyDropinsUnit writes an empty dropin to the disk.
+func CreateEmptyDropinsUnit() types.Test {
+	name := "unit.create.emptydropins"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+		"ignition": { "version": "$version" },
+		"systemd": {
+			"units": [
+			  {
+				"name": "zincati.service",
+				"dropins": [
+					{
+						"name": "empty.conf",
+						"content": ""
+					}
+				]
+			  }
+			]
+		  }
+		}`
+	configMinVersion := "3.0.0"
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "empty.conf",
+				Directory: "etc/systemd/system/zincati.service.d",
+			},
+			Contents: "",
 		},
 	})
 
