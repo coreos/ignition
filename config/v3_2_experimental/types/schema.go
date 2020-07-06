@@ -146,6 +146,7 @@ type PasswdGroup struct {
 	Gid          *int    `json:"gid,omitempty"`
 	Name         string  `json:"name"`
 	PasswordHash *string `json:"passwordHash,omitempty"`
+	ShouldExist  *bool   `json:"shouldExist,omitempty"`
 	System       *bool   `json:"system,omitempty"`
 }
 
@@ -160,6 +161,7 @@ type PasswdUser struct {
 	PasswordHash      *string            `json:"passwordHash,omitempty"`
 	PrimaryGroup      *string            `json:"primaryGroup,omitempty"`
 	SSHAuthorizedKeys []SSHAuthorizedKey `json:"sshAuthorizedKeys,omitempty"`
+	ShouldExist       *bool              `json:"shouldExist,omitempty"`
 	Shell             *string            `json:"shell,omitempty"`
 	System            *bool              `json:"system,omitempty"`
 	UID               *int               `json:"uid,omitempty"`

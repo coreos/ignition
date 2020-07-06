@@ -38,10 +38,39 @@ func translateStorage(old old_types.Storage) (ret types.Storage) {
 	return
 }
 
+func translatePasswdUser(old old_types.PasswdUser) (ret types.PasswdUser) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Gecos, &ret.Gecos)
+	tr.Translate(&old.Groups, &ret.Groups)
+	tr.Translate(&old.HomeDir, &ret.HomeDir)
+	tr.Translate(&old.Name, &ret.Name)
+	tr.Translate(&old.NoCreateHome, &ret.NoCreateHome)
+	tr.Translate(&old.NoLogInit, &ret.NoLogInit)
+	tr.Translate(&old.NoUserGroup, &ret.NoUserGroup)
+	tr.Translate(&old.PasswordHash, &ret.PasswordHash)
+	tr.Translate(&old.PrimaryGroup, &ret.PrimaryGroup)
+	tr.Translate(&old.SSHAuthorizedKeys, &ret.SSHAuthorizedKeys)
+	tr.Translate(&old.Shell, &ret.Shell)
+	tr.Translate(&old.System, &ret.System)
+	tr.Translate(&old.UID, &ret.UID)
+	return
+}
+
+func translatePasswdGroup(old old_types.PasswdGroup) (ret types.PasswdGroup) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Gid, &ret.Gid)
+	tr.Translate(&old.Name, &ret.Name)
+	tr.Translate(&old.PasswordHash, &ret.PasswordHash)
+	tr.Translate(&old.System, &ret.System)
+	return
+}
+
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
 	tr.AddCustomTranslator(translateStorage)
+	tr.AddCustomTranslator(translatePasswdUser)
+	tr.AddCustomTranslator(translatePasswdGroup)
 	tr.Translate(&old, &ret)
 	return
 }
