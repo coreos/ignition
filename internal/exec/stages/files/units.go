@@ -186,7 +186,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 	return s.Logger.LogOp(func() error {
 		relabeledDropinDir := false
 		for _, dropin := range unit.Dropins {
-			if dropin.Contents == nil || *dropin.Contents == "" {
+			if dropin.Contents == nil {
 				continue
 			}
 			f, err := u.FileFromSystemdUnitDropin(unit, dropin, runtime)
