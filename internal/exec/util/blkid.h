@@ -17,6 +17,7 @@
 
 #include <string.h>
 #include <stdbool.h>
+#include <blkid/blkid.h>
 
 typedef enum {
 	RESULT_OK,
@@ -43,8 +44,8 @@ struct partition_info {
 	char label[PART_INFO_BUF_SIZE];
 	char uuid[PART_INFO_BUF_SIZE];
 	char type_guid[PART_INFO_BUF_SIZE];
-	long long start; // needs to be 64 bit
-	long long size;  // to handle large partitions
+	blkid_loff_t start; // needs to be 64 bit
+	blkid_loff_t size;  // to handle large partitions
 	int number;
 };
 
@@ -52,7 +53,7 @@ result_t blkid_lookup(const char *device, bool allow_ambivalent, const char *fie
 
 result_t blkid_get_num_partitions(const char *device, int *ret);
 
-result_t blkid_get_logical_sector_size(const char *device, int *ret_sector_size);
+result_t blkid_get_logical_sector_size(const char *device, unsigned long *ret_sector_size);
 
 // WARNING part_num may not be what you expect. see the .c file's comment for why
 result_t blkid_get_partition(const char *device, int part_num, struct partition_info *info);

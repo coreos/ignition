@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <blkid/blkid.h>
 #include "blkid.h"
 
 // blkid_free_probe is safe to call with NULL pointers
 static inline void _free_probe(blkid_probe *pr) { if (pr) blkid_free_probe(*pr); }
 #define _cleanup_probe_ __attribute__((cleanup(_free_probe)))
 
-static result_t extract_part_info(blkid_partition part, struct partition_info *info, long sector_divisor);
+static result_t extract_part_info(blkid_partition part, struct partition_info *info, unsigned long sector_divisor);
 
 static result_t checked_copy(char *dest, const char *src, size_t len);
 
@@ -127,7 +126,7 @@ result_t blkid_get_num_partitions(const char *device, int *n_parts_ret)
 	return RESULT_OK;
 }
 
-result_t blkid_get_logical_sector_size(const char *device, int *ret_sector_size) {
+result_t blkid_get_logical_sector_size(const char *device, unsigned long *ret_sector_size) {
 	if (!device || !ret_sector_size)
 		return RESULT_BAD_PARAMS;
 
@@ -141,7 +140,7 @@ result_t blkid_get_logical_sector_size(const char *device, int *ret_sector_size)
 		return RESULT_NO_TOPO;
 	}
 
-	long sector_size = blkid_topology_get_logical_sector_size(topo);
+	unsigned long sector_size = blkid_topology_get_logical_sector_size(topo);
 	if (sector_size == 0) {
 		return RESULT_NO_SECTOR_SIZE;
 	}
@@ -181,7 +180,7 @@ result_t blkid_get_partition(const char *device, int part_num, struct partition_
 		return RESULT_NO_TOPO;
 	}
 
-	long sector_size = blkid_topology_get_logical_sector_size(topo);
+	blkid_loff_t sector_size = blkid_topology_get_logical_sector_size(topo);
 	if (sector_size == 0) {
 		return RESULT_NO_SECTOR_SIZE;
 	}
@@ -195,13 +194,13 @@ result_t blkid_get_partition(const char *device, int part_num, struct partition_
 // extract_part_info reads the information for a partition into *info. sector_divisor is how many 512
 // byte sectors are in a logical sector (1 for "normal" sectors, 8 for 4k sectors). This is needed because
 // libblkid always assumes 512 byte sectors regardless of what the actual logical sector size of the device is.
-static result_t extract_part_info(blkid_partition part, struct partition_info *info, long sector_divisor)
+static result_t extract_part_info(blkid_partition part, struct partition_info *info, unsigned long sector_divisor)
 {
 	if (!part || !info)
 		return RESULT_BAD_PARAMS;
 
 	const char *ctmp = NULL;
-	long long itmp = 0;
+	blkid_loff_t itmp = 0;
 	int err;
 
 	// the blkid probe owns the memory returned by blkid_get_* and will free it with the probe.

@@ -74,10 +74,10 @@ func partitionMatches(existing util.PartitionInfo, spec types.Partition) error {
 	if spec.Number != existing.Number {
 		return fmt.Errorf("partition numbers did not match (specified %d, got %d). This should not happen, please file a bug.", spec.Number, existing.Number)
 	}
-	if spec.StartMiB != nil && *spec.StartMiB != existing.StartSector {
+	if spec.StartMiB != nil && int64(*spec.StartMiB) != existing.StartSector {
 		return fmt.Errorf("starting sector did not match (specified %d, got %d)", *spec.StartMiB, existing.StartSector)
 	}
-	if spec.SizeMiB != nil && *spec.SizeMiB != existing.SizeInSectors {
+	if spec.SizeMiB != nil && int64(*spec.SizeMiB) != existing.SizeInSectors {
 		return fmt.Errorf("size did not match (specified %d, got %d)", *spec.SizeMiB, existing.SizeInSectors)
 	}
 	if spec.GUID != nil && *spec.GUID != "" && strings.ToLower(*spec.GUID) != strings.ToLower(existing.GUID) {
@@ -101,9 +101,9 @@ func partitionShouldBeInspected(part types.Partition) bool {
 		(part.SizeMiB != nil && *part.SizeMiB == 0)
 }
 
-func convertMiBToSectors(mib *int, sectorSize int) {
+func convertMiBToSectors(mib *int, sectorSize uint64) {
 	if mib != nil {
-		*mib = (*mib) * (1024 * 1024 / sectorSize)
+		*mib = int(uint64(*mib) * (1024 * 1024 / sectorSize))
 	}
 }
 
@@ -122,10 +122,14 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 			op.DeletePartition(part.Number)
 			if part.StartMiB == nil && (part.WipePartitionEntry == nil || !*part.WipePartitionEntry) {
 				// don't care means keep the same if we can't wipe, otherwise stick it at start 0
-				part.StartMiB = &info.StartSector
+				// This is not type safe, but should be mostly ok. JSON needs to learn about int size...
+				i := int(info.StartSector)
+				part.StartMiB = &i
 			}
 			if part.SizeMiB == nil && (part.WipePartitionEntry == nil || !*part.WipePartitionEntry) {
-				part.SizeMiB = &info.SizeInSectors
+				// This is not type safe, but should be mostly ok. JSON needs to learn about int size...
+				i := int(info.SizeInSectors)
+				part.SizeMiB = &i
 			}
 		}
 		if partitionShouldExist(part) {
