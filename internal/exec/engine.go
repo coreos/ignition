@@ -24,6 +24,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/coreos/go-systemd/v22/journal"
@@ -55,6 +56,12 @@ const (
 	needNetPath = "/run/ignition/neednet"
 )
 
+var (
+	emptyConfig = types.Config{
+		Ignition: types.Ignition{Version: types.MaxVersion.String()},
+	}
+)
+
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
 	ConfigCache    string
@@ -72,9 +79,7 @@ func (e Engine) Run(stageName string) error {
 		fmt.Fprintf(os.Stderr, "engine incorrectly configured\n")
 		return errors.ErrEngineConfiguration
 	}
-	baseConfig := types.Config{
-		Ignition: types.Ignition{Version: types.MaxVersion.String()},
-	}
+	baseConfig := emptyConfig
 
 	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger)
 	e.logReport(r)
@@ -108,7 +113,7 @@ func (e Engine) Run(stageName string) error {
 		e.Fetcher.Offline = true
 	}
 
-	cfg, err := e.acquireConfig()
+	cfg, err := e.acquireConfig(stageName)
 	if err == resource.ErrNeedNet && stageName == "fetch-offline" {
 		err = SignalNeedNet()
 		if err != nil {
@@ -162,26 +167,45 @@ func logStructuredJournalEntry(config string, src string, isReferenced bool) err
 	return nil
 }
 
-// acquireConfig returns the configuration, first checking a local cache
-// before attempting to fetch it from the provider.
-func (e *Engine) acquireConfig() (cfg types.Config, err error) {
+// acquireConfig will perform differently based on the stage it is being
+// called from. In fetch stages it will attempt to fetch the provider
+// config (writing an empty provider config if it is empty). In all other
+// stages it will attempt to fetch from the local cache only.
+func (e *Engine) acquireConfig(stageName string) (cfg types.Config, err error) {
+	switch {
+	case strings.HasPrefix(stageName, "fetch"):
+		cfg, err = e.acquireProviderConfig()
+	default:
+		cfg, err = e.acquireCachedConfig()
+	}
+	return
+}
 
-	// First try read the config @ e.ConfigCache.
-	b, err := ioutil.ReadFile(e.ConfigCache)
-	if err == nil {
-		if err = json.Unmarshal(b, &cfg); err != nil {
-			e.Logger.Crit("failed to parse cached config: %v", err)
-		}
-		// Create an http client and fetcher with the timeouts from the cached
-		// config
-		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities, cfg.Ignition.Proxy)
-		if err != nil {
-			e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
-			return
-		}
+// acquireCachedConfig returns the configuration from a local cache if
+// available
+func (e *Engine) acquireCachedConfig() (cfg types.Config, err error) {
+	var b []byte
+	b, err = ioutil.ReadFile(e.ConfigCache)
+	if err != nil {
 		return
 	}
+	if err = json.Unmarshal(b, &cfg); err != nil {
+		e.Logger.Crit("failed to parse cached config: %v", err)
+		return
+	}
+	// Create an http client and fetcher with the timeouts from the cached
+	// config
+	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities, cfg.Ignition.Proxy)
+	if err != nil {
+		e.Logger.Crit("failed to update timeouts and CAs for fetcher: %v", err)
+		return
+	}
+	return
+}
 
+// acquireProviderConfig attempts to fetch the configuration from the
+// provider.
+func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 	// Create a new http client and fetcher with the timeouts set via the flags,
 	// since we don't have a config with timeout values we can use
 	timeout := int(e.FetchTimeout.Seconds())
@@ -194,7 +218,12 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 
 	// (Re)Fetch the config if the cache is unreadable.
 	cfg, err = e.fetchProviderConfig()
-	if err != nil {
+	if err == errors.ErrEmpty {
+		// Continue if the provider config was empty as we want to write an empty
+		// cache config for use by other stages.
+		cfg = emptyConfig
+		e.Logger.Info("%v: provider config was empty, continuing with empty cache config", err)
+	} else if err != nil {
 		e.Logger.Warning("failed to fetch config: %s", err)
 		return
 	}
@@ -222,7 +251,7 @@ func (e *Engine) acquireConfig() (cfg types.Config, err error) {
 	}
 
 	// Populate the config cache.
-	b, err = json.Marshal(cfg)
+	b, err := json.Marshal(cfg)
 	if err != nil {
 		e.Logger.Crit("failed to marshal cached config: %v", err)
 		return

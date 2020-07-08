@@ -279,6 +279,10 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	appendEnv = append(appendEnv, "IGNITION_SYSTEM_CONFIG_DIR="+systemConfigDir)
 
 	if !negativeTests {
+		if err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv); err != nil {
+			return err
+		}
+
 		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv); err != nil {
 			return err
 		}
@@ -315,6 +319,10 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		}
 		return nil
 	} else {
+		if err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv); err != nil {
+			return nil // error is expected
+		}
+
 		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv); err != nil {
 			return nil // error is expected
 		}
