@@ -20,8 +20,10 @@
 package disks
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
@@ -29,28 +31,21 @@ import (
 )
 
 func (s stage) createRaids(config types.Config) error {
-	if len(config.Storage.Raid) == 0 {
+	raids := config.Storage.Raid
+
+	if len(raids) == 0 {
 		return nil
 	}
 	s.Logger.PushPrefix("createRaids")
 	defer s.Logger.PopPrefix()
 
-	devs := []string{}
-	for _, array := range config.Storage.Raid {
-		for _, dev := range array.Devices {
-			devs = append(devs, string(dev))
-		}
-	}
-
-	if err := s.waitOnDevicesAndCreateAliases(devs, "raids"); err != nil {
-		return err
-	}
-
-	for _, md := range config.Storage.Raid {
+	results := make(chan error)
+	for _, md := range raids {
 		if md.Spares == nil {
 			zero := 0
 			md.Spares = &zero
 		}
+
 		args := []string{
 			"--create", md.Name,
 			"--force",
@@ -68,16 +63,38 @@ func (s stage) createRaids(config types.Config) error {
 			args = append(args, string(o))
 		}
 
+		devs := []string{}
 		for _, dev := range md.Devices {
 			args = append(args, util.DeviceAlias(string(dev)))
+			devs = append(devs, string(dev))
 		}
 
-		if _, err := s.Logger.LogCmd(
-			exec.Command(distro.MdadmCmd(), args...),
-			"creating %q", md.Name,
-		); err != nil {
-			return fmt.Errorf("mdadm failed: %v", err)
+		go func(md types.Raid) {
+			if err := s.waitOnDevicesAndCreateAliases(devs, "raids"); err != nil {
+				results <- err
+			} else {
+				if _, err := s.Logger.LogCmd(
+					exec.Command(distro.MdadmCmd(), args...),
+					"creating %q", md.Name,
+				); err != nil {
+					results <- fmt.Errorf("mdadm failed: %v", err)
+				} else {
+					results <- nil
+				}
+			}
+		}(md)
+	}
+
+	// Return combined errors
+	var errs []string
+	for range raids {
+		if err := <-results; err != nil {
+			errs = append(errs, err.Error())
 		}
+	}
+
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n"))
 	}
 
 	return nil
