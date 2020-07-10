@@ -27,9 +27,21 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	return
 }
 
+func translateStorage(old old_types.Storage) (ret types.Storage) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Directories, &ret.Directories)
+	tr.Translate(&old.Disks, &ret.Disks)
+	tr.Translate(&old.Files, &ret.Files)
+	tr.Translate(&old.Filesystems, &ret.Filesystems)
+	tr.Translate(&old.Links, &ret.Links)
+	tr.Translate(&old.Raid, &ret.Raid)
+	return
+}
+
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
+	tr.AddCustomTranslator(translateStorage)
 	tr.Translate(&old, &ret)
 	return
 }

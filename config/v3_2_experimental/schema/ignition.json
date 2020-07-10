@@ -155,6 +155,12 @@
             "$ref": "#/definitions/storage/definitions/raid"
           }
         },
+        "luks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/luks"
+          }
+        },
         "filesystems": {
           "type": "array",
           "items": {
@@ -231,6 +237,63 @@
               "level",
               "devices"
           ]
+        },
+        "luks": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "label": {
+              "type": ["string", "null"]
+            },
+            "uuid": {
+              "type": ["string", "null"]
+            },
+            "device": {
+              "type": ["string", "null"]
+            },
+            "keyFile": {
+              "$ref": "#/definitions/resource"
+            },
+            "clevis": {
+              "type": ["object", "null"],
+              "properties": {
+                "tpm2": {
+                  "type": ["boolean", "null"]
+                },
+                "tang": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/storage/definitions/tang"
+                  }
+                },
+                "threshold": {
+                  "type": ["integer", "null"]
+                }
+              }
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+              "name"
+          ]
+        },
+        "tang": {
+          "type": "object",
+          "properties": {
+            "url": {
+                "type": "string"
+            },
+            "thumbprint": {
+              "type": ["string", "null"]
+            }
+          }
         },
         "filesystem": {
           "type": "object",

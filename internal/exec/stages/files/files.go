@@ -81,6 +81,10 @@ func (s stage) Run(config types.Config) error {
 		return fmt.Errorf("failed to create units: %v", err)
 	}
 
+	if err := s.createCrypttabEntries(config); err != nil {
+		return fmt.Errorf("creating crypttab entries: %v", err)
+	}
+
 	if err := s.relabelFiles(); err != nil {
 		return fmt.Errorf("failed to handle relabeling: %v", err)
 	}
