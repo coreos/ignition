@@ -35,6 +35,18 @@ install() {
         usermod \
         wipefs
 
+    # Needed for clevis binding; note all binaries related to unlocking are
+    # included by the Clevis dracut modules.
+    inst_multiple -o \
+        clevis-encrypt-sss \
+        clevis-encrypt-tang \
+        clevis-encrypt-tpm2 \
+        clevis-luks-bind \
+        clevis-luks-common-functions \
+        clevis-luks-unlock \
+        pwmake \
+        tpm2_create
+
     # Required by s390x's z/VM installation.
     # Supporting https://github.com/coreos/ignition/pull/865
     inst_multiple -o chccwdev vmur
@@ -56,6 +68,14 @@ install() {
     # module directory.
     inst_simple "$moddir/ignition" \
         "/usr/bin/ignition"
+
+    # Rule to allow udev to discover unformatted encrypted devices
+    inst_simple "$moddir/99-xx-ignition-systemd-cryptsetup.rules" \
+        "/usr/lib/udev/rules.d/99-xx-ignition-systemd-cryptsetup.rules"
+
+    # disable dictcheck
+    inst_simple "$moddir/ignition-luks.conf" \
+        "/etc/security/pwquality.conf.d/ignition-luks.conf"
 
     inst_simple "$moddir/ignition-generator" \
         "$systemdutildir/system-generators/ignition-generator"
