@@ -15,7 +15,9 @@ This config will write a single service unit (shown below) with the contents of 
     "units": [{
       "name": "example.service",
       "enabled": true,
-      "contents": "[Service]\nType=oneshot\nExecStart=/usr/bin/echo Hello World\n\n[Install]\nWantedBy=multi-user.target"
+      "contents": {
+        "source": "data:text/plain;charset=utf-8;base64,W1NlcnZpY2VdClR5cGU9b25lc2hvdApFeGVjU3RhcnQ9L3Vzci9iaW4vZWNobyBIZWxsbyBXb3JsZAoKW0luc3RhbGxdCldhbnRlZEJ5PW11bHRpLXVzZXIudGFyZ2V0"
+      }
     }]
   }
 }
@@ -44,7 +46,9 @@ This config will add a [systemd unit drop-in](https://coreos.com/os/docs/latest/
       "name": "systemd-journald.service",
       "dropins": [{
         "name": "debug.conf",
-        "contents": "[Service]\nEnvironment=SYSTEMD_LOG_LEVEL=debug"
+        "contents": {
+          "source": "data:text/plain;charset=utf-8;base64,W1NlcnZpY2VdCkVudmlyb25tZW50PVNZU1RFTURfTE9HX0xFVkVMPWRlYnVn"
+        }
       }]
     }]
   }
@@ -157,7 +161,7 @@ In many scenarios, it may be useful to have an external data volume. This config
     "units": [{
       "name": "var-lib-data.mount",
       "enabled": true,
-      "contents": "[Mount]\nWhat=/dev/md/data\nWhere=/var/lib/data\nType=ext4\n\n[Install]\nWantedBy=local-fs.target"
+      "contents": { "source": "data:text/plain;charset=utf-8;base64,W01vdW50XQpXaGF0PS9kZXYvbWQvZGF0YQpXaGVyZT0vdmFyL2xpYi9kYXRhClR5cGU9ZXh0NAoKW0luc3RhbGxdCldhbnRlZEJ5PWxvY2FsLWZzLnRhcmdldA==" } 
     }]
   }
 }

@@ -484,7 +484,7 @@
               "type": ["boolean", "null"]
             },
             "contents": {
-              "type": ["string", "null"]
+              "$ref": "#/definitions/resource"
             },
             "dropins": {
               "type": "array",
@@ -504,7 +504,7 @@
               "type": "string"
             },
             "contents": {
-              "type": ["string", "null"]
+              "$ref": "#/definitions/resource"
             }
           },
           "required": [

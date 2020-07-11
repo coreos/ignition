@@ -33,8 +33,8 @@ type Disk struct {
 }
 
 type Dropin struct {
-	Contents *string `json:"contents,omitempty"`
-	Name     string  `json:"name"`
+	Contents Resource `json:"contents,omitempty"`
+	Name     string   `json:"name"`
 }
 
 type File struct {
@@ -223,7 +223,7 @@ type Timeouts struct {
 }
 
 type Unit struct {
-	Contents *string  `json:"contents,omitempty"`
+	Contents Resource `json:"contents,omitempty"`
 	Dropins  []Dropin `json:"dropins,omitempty"`
 	Enabled  *bool    `json:"enabled,omitempty"`
 	Mask     *bool    `json:"mask,omitempty"`
