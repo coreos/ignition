@@ -1,3 +1,31 @@
+13-Jul-2020 Ignition 2.4.0
+
+  Features:
+
+    - Support creating LUKS volumes with Clevis or static key file (3.2.0-exp)
+    - Support Google Cloud Storage (gs://) resource URLs
+    - Support AWS IMDSv2
+    - Allow specifying multiple CA certificates in one resource
+    - Add AzureStack platform
+    - Allow OS to avoid starting network if the config doesn't need it
+
+  Changes:
+
+    - When creating a filesystem, run wipefs on target device first
+    - Warn if filesystem probe finds multiple filesystem signatures
+    - Don't warn about unset file/directory mode in config
+    - Fetch AWS metadata version 2019-10-01 instead of 2009-04-04
+    - Refactor SELinux relabeling
+
+  Bug Fixes:
+
+    - Fix compressed CA certificates
+    - Fix hard links to files deeper than the hard link
+    - Write empty systemd dropin if requested
+    - Remember to relabel /etc/systemd/system-preset
+    - Ensure configs are only fetched during fetch stage
+    - Clarify docs about interaction between file contents and overwrite
+
 05-May-2020 Ignition 2.3.0
 
   Features:
