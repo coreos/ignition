@@ -70,4 +70,21 @@ func TestConfigNeedsNet(t *testing.T) {
 	assertNotNeedsNet(t, &cfg)
 	cfg.Storage.Files[0].Contents.Source = util.StrToPtr("http://example.com/payload")
 	assertNeedsNet(t, &cfg)
+	cfg.Storage.Files[0].Contents.Source = nil
+	assertNotNeedsNet(t, &cfg)
+	cfg.Storage.Luks = []types.Luks{
+		{
+			Name:   "foobar",
+			Device: util.StrToPtr("bazboo"),
+			Clevis: &types.Clevis{
+				Tang: []types.Tang{
+					{
+						Thumbprint: util.StrToPtr("mythumbprint"),
+						URL:        "http://tang.example.com",
+					},
+				},
+			},
+		},
+	}
+	assertNeedsNet(t, &cfg)
 }

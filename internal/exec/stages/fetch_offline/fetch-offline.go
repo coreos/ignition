@@ -84,6 +84,8 @@ func configNeedsNetRecurse(v reflect.Value) (bool, error) {
 		return false, nil
 	case t == reflect.TypeOf(types.Resource{}):
 		return sourceNeedsNet(v.Interface().(types.Resource))
+	case t == reflect.TypeOf(types.Tang{}):
+		return true, nil
 	case k == reflect.Struct:
 		for i := 0; i < v.NumField(); i += 1 {
 			if needsNet, err := configNeedsNetRecurse(v.Field(i)); err != nil {
