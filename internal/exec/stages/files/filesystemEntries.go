@@ -79,7 +79,6 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 			if err != nil {
 				return fmt.Errorf("building keyfile path: %v", err)
 			}
-			// TODO: add directory with mode 0700
 			extrafiles = append(extrafiles, fileEntry{
 				types.Node{
 					Path: keyfilePath,
@@ -96,6 +95,32 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 		crypttab.Append = append(crypttab.Append, types.Resource{
 			Source: &uri,
 		})
+	}
+	// if we're creating keyfiles we want to write the containing directory (if it doesn't
+	// already exist) to be mode 0700 rather than auto-creating it at the default directory
+	// permission
+	if len(extrafiles) > 0 {
+		dirMode := 0700
+		realpath, err := s.JoinPath(distro.LuksRealRootKeyFilePath())
+		if err != nil {
+			return fmt.Errorf("building keyfile dir path: %v", err)
+		}
+		if _, err := os.Stat(realpath); err != nil {
+			if !os.IsNotExist(err) {
+				return fmt.Errorf("checking if keyfile dir exists: %v", err)
+			} else {
+				extrafiles = append([]filesystemEntry{
+					dirEntry{
+						types.Node{
+							Path: realpath,
+						},
+						types.DirectoryEmbedded1{
+							Mode: &dirMode,
+						},
+					},
+				}, extrafiles...)
+			}
+		}
 	}
 	extrafiles = append(extrafiles, crypttab)
 	if err := s.createEntries(extrafiles); err != nil {
