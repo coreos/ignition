@@ -75,15 +75,18 @@ func (s *stage) createPasswd(config types.Config) error {
 			if err != nil {
 				return err
 			}
-			s.relabel(homedir)
 
 			// Check if the homedir is actually a symlink, and make sure we
-			// relabel the target too. This is relevant on OSTree-based
-			// platforms, where /root is a link to /var/roothome.
+			// relabel the target instead in that case. This is relevant on
+			// OSTree-based platforms, where /root is a link to /var/roothome.
 			if resolved, err := s.ResolveSymlink(homedir); err != nil {
 				return err
 			} else if resolved != "" {
+				// note we don't relabel the symlink itself; we assume it's
+				// already properly labeled
 				s.relabel(resolved)
+			} else {
+				s.relabel(homedir)
 			}
 		}
 	}
