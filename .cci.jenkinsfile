@@ -34,12 +34,25 @@ cosaPod(buildroot: true) {
 
     fcosKola(extraArgs: "--denylist-test ext.*")
 
-    stage("Blackbox Tests") {
+    parallel blackbox: {
         shwrap("""
             ./build_blackbox_tests
             mkdir -p tests/kola/data
             mv tests.test bin tests/kola/data
         """)
         fcosKola(extraArgs: "--tag external", skipUpgrade: true)
+    }, testiso: {
+        try {
+            shwrap("""
+                cd /srv/fcos
+                cosa buildextend-metal
+                cosa buildextend-live
+                cosa compress --artifact metal
+                kola testiso -S --output-dir tmp/kola-testiso-metal
+            """)
+        } finally {
+            shwrap("cd /srv/fcos && tar -cf - tmp/kola-testiso-metal/ | xz -c9 > ${env.WORKSPACE}/kola-testiso-metal.tar.xz")
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'kola-testiso*.tar.xz'
+        }
     }
 }
