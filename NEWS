@@ -6,7 +6,7 @@
     - Support Google Cloud Storage (gs://) resource URLs
     - Support AWS IMDSv2
     - Allow specifying multiple CA certificates in one resource
-    - Add AzureStack platform
+    - Add Azure Stack platform
     - Allow OS to avoid starting network if the config doesn't need it
 
   Changes:
