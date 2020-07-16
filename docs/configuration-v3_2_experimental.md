@@ -144,6 +144,10 @@ The Ignition configuration is a JSON document conforming to the following specif
         * **thumbprint** (string): thumbprint of a trusted signing key.
       * **_tpm2_** (bool): whether or not to use a tpm2 device.
       * **_threshold_** (int): sets the minimum number of pieces required to decrypt the device.
+      * **_custom_** (object): overrides the clevis configuration. The `pin` & `config` will be passed directly to `clevis luks bind`. If specified, all other clevis options must be omitted.
+        * **pin** (string): the clevis pin.
+        * **config** (string): the clevis configuration JSON.
+        * **_needsNetwork_** (bool): whether or not the device requires networking.
 * **_systemd_** (object): describes the desired state of the systemd units.
   * **_units_** (list of objects): the list of systemd units.
     * **name** (string): the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service"). Every unit must have a unique `name`.
