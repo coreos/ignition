@@ -27,13 +27,22 @@ cosaPod(buildroot: true) {
         fcosBuild(skipInit: true, make: true, makeDirs: ["ignition-dracut"], skipKola: true)
     }
 
-    // we run the blackbox tests separately instead of as part of the main kola
-    // run since it's a distinct kind of test and we want to draw more
-    // attention to it in the Jenkins UI
-    // XXX: need a e.g. `--tag !external`
+    parallel kola: {
+        // XXX: need a e.g. `--tag !external`
+        fcosKola(extraArgs: "--denylist-test ext.*")
+    }, isoprep: {
+        // testiso takes too much RAM to run in parallel with kola -j 8,
+        // but we can at least prep the artifacts
+        shwrap("""
+            cd /srv/fcos
+            cosa buildextend-metal
+            cosa buildextend-live
+            cosa compress --artifact metal
+        """)
+    }
 
-    fcosKola(extraArgs: "--denylist-test ext.*")
-
+    // run blackbox and testiso separately from `kola run` to reduce RAM
+    // requirements
     parallel blackbox: {
         shwrap("""
             ./build_blackbox_tests
@@ -45,9 +54,6 @@ cosaPod(buildroot: true) {
         try {
             shwrap("""
                 cd /srv/fcos
-                cosa buildextend-metal
-                cosa buildextend-live
-                cosa compress --artifact metal
                 kola testiso -S --output-dir tmp/kola-testiso-metal
             """)
         } finally {
