@@ -1,3 +1,15 @@
+16-Jul-2020 Ignition 2.4.1
+
+  Changes:
+
+    - Set LUKS key file directory to mode 700
+
+  Bug Fixes:
+
+    - Fix nondeterministic config provider precedence causing fetch failures
+    - Don't relabel symlink to home directory, since it might not be writable
+    - Fix failure looking up users/groups
+
 13-Jul-2020 Ignition 2.4.0
 
   Features:
