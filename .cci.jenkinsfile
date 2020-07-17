@@ -37,8 +37,8 @@ cosaPod(buildroot: true) {
     parallel blackbox: {
         shwrap("""
             ./build_blackbox_tests
-            mkdir -p tests/kola/data
-            mv tests.test bin tests/kola/data
+            mkdir -p tests/kola/blackbox/data
+            mv tests.test bin tests/kola/blackbox/data
         """)
         fcosKola(extraArgs: "--tag external", skipUpgrade: true)
     }, testiso: {
