@@ -18,11 +18,16 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strings"
+	"syscall"
 
 	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
@@ -85,140 +90,182 @@ func (s *stage) createLuks(config types.Config) error {
 	s.Logger.PushPrefix("createLuks")
 	defer s.Logger.PopPrefix()
 
+	// Create LUKS devices concurrently up to the lowest of
+	// GOMAXPROCS or the amount of available RAM in GB - 1
+	// (from testing LUKS devices needed up to ~1GB of memory
+	// per thread to avoid oomkill)
+	maxprocs := runtime.GOMAXPROCS(-1)
+	var sysinfo syscall.Sysinfo_t
+	err := syscall.Sysinfo(&sysinfo)
+	if err != nil {
+		return fmt.Errorf("determining system memory: %v", err)
+	}
+	memory := sysinfo.Totalram / 1024 / 1024 / 1024
+	concurrency := int(math.Max(math.Min(float64(memory), float64(maxprocs)), float64(1)))
+	work := make(chan types.Luks, len(config.Storage.Luks))
+	results := make(chan error)
+
+	for i := 0; i < concurrency; i++ {
+		go func() {
+			for luks := range work {
+				results <- s.createLuksDevice(luks)
+			}
+		}()
+	}
+
 	for _, luks := range config.Storage.Luks {
-		// TODO: allow Ignition generated KeyFiles for
-		// non-clevis devices that can be persisted.
-		// TODO: create devices in parallel.
-		// track whether Ignition creates the KeyFile
-		// so that it can be removed
-		var ignitionCreatedKeyFile bool
-		// create keyfile inside of tmpfs, it will be copied to the
-		// sysroot by the files stage
-		os.MkdirAll(distro.LuksInitramfsKeyFilePath(), 0700)
-		keyFilePath := filepath.Join(distro.LuksInitramfsKeyFilePath(), luks.Name)
-		if util.NilOrEmpty(luks.KeyFile.Source) {
-			// create a keyfile
-			key, err := randHex(4096)
-			if err != nil {
-				return fmt.Errorf("generating keyfile: %v", err)
-			}
-			if err := ioutil.WriteFile(keyFilePath, []byte(key), 0400); err != nil {
-				return fmt.Errorf("creating keyfile: %v", err)
-			}
-			ignitionCreatedKeyFile = true
-		} else {
-			f := types.File{
-				Node: types.Node{
-					Path: keyFilePath,
-				},
-				FileEmbedded1: types.FileEmbedded1{
-					Contents: luks.KeyFile,
-				},
-			}
-			fetchOps, err := s.Util.PrepareFetches(s.Util.Logger, f)
-			if err != nil {
-				return fmt.Errorf("failed to resolve keyfile %q: %v", f.Path, err)
-			}
-			for _, op := range fetchOps {
-				if err := s.Util.Logger.LogOp(
-					func() error {
-						return s.Util.PerformFetch(op)
-					}, "writing file %q", f.Path,
-				); err != nil {
-					return fmt.Errorf("failed to create keyfile %q: %v", op.Node.Path, err)
-				}
+		work <- luks
+	}
+	close(work)
+
+	// Return combined errors
+	var errs []string
+	for range config.Storage.Luks {
+		if err := <-results; err != nil {
+			errs = append(errs, err.Error())
+		}
+	}
+
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n"))
+	}
+
+	return nil
+}
+
+func (s *stage) createLuksDevice(luks types.Luks) error {
+	// TODO: allow Ignition generated KeyFiles for
+	// non-clevis devices that can be persisted.
+	//
+	// track whether Ignition creates the KeyFile
+	// so that it can be removed
+	var ignitionCreatedKeyFile bool
+	// create keyfile inside of tmpfs, it will be copied to the
+	// sysroot by the files stage
+	os.MkdirAll(distro.LuksInitramfsKeyFilePath(), 0700)
+	keyFilePath := filepath.Join(distro.LuksInitramfsKeyFilePath(), luks.Name)
+	if util.NilOrEmpty(luks.KeyFile.Source) {
+		// create a keyfile
+		key, err := randHex(4096)
+		if err != nil {
+			return fmt.Errorf("generating keyfile: %v", err)
+		}
+		if err := ioutil.WriteFile(keyFilePath, []byte(key), 0400); err != nil {
+			return fmt.Errorf("creating keyfile: %v", err)
+		}
+		ignitionCreatedKeyFile = true
+	} else {
+		f := types.File{
+			Node: types.Node{
+				Path: keyFilePath,
+			},
+			FileEmbedded1: types.FileEmbedded1{
+				Contents: luks.KeyFile,
+			},
+		}
+		fetchOps, err := s.Util.PrepareFetches(s.Util.Logger, f)
+		if err != nil {
+			return fmt.Errorf("failed to resolve keyfile %q: %v", f.Path, err)
+		}
+		for _, op := range fetchOps {
+			if err := s.Util.Logger.LogOp(
+				func() error {
+					return s.Util.PerformFetch(op)
+				}, "writing file %q", f.Path,
+			); err != nil {
+				return fmt.Errorf("failed to create keyfile %q: %v", op.Node.Path, err)
 			}
 		}
-		args := []string{
-			"luksFormat",
-			"--type", "luks2",
-			"--key-file", keyFilePath,
+	}
+	args := []string{
+		"luksFormat",
+		"--type", "luks2",
+		"--key-file", keyFilePath,
+	}
+
+	if !util.NilOrEmpty(luks.Label) {
+		args = append(args, "--label", *luks.Label)
+	}
+
+	if !util.NilOrEmpty(luks.UUID) {
+		args = append(args, "--uuid", *luks.UUID)
+	}
+
+	if len(luks.Options) > 0 {
+		// golang's a really great language...
+		for _, option := range luks.Options {
+			args = append(args, string(option))
 		}
+	}
 
-		if !util.NilOrEmpty(luks.Label) {
-			args = append(args, "--label", *luks.Label)
+	args = append(args, *luks.Device)
+
+	if _, err := s.Logger.LogCmd(
+		exec.Command(distro.CryptsetupCmd(), args...),
+		"creating %q", luks.Name,
+	); err != nil {
+		return fmt.Errorf("cryptsetup failed: %v", err)
+	}
+
+	// open the device
+	if _, err := s.Logger.LogCmd(
+		exec.Command(distro.CryptsetupCmd(), "luksOpen", *luks.Device, luks.Name, "--key-file", keyFilePath),
+		"opening luks device %v", luks.Name,
+	); err != nil {
+		return fmt.Errorf("opening luks device: %v", err)
+	}
+
+	if luks.Clevis != nil {
+		c := Clevis{
+			Threshold: 1,
 		}
-
-		if !util.NilOrEmpty(luks.UUID) {
-			args = append(args, "--uuid", *luks.UUID)
+		if luks.Clevis.Threshold != nil {
+			c.Threshold = *luks.Clevis.Threshold
 		}
-
-		if len(luks.Options) > 0 {
-			// golang's a really great language...
-			for _, option := range luks.Options {
-				args = append(args, string(option))
-			}
+		for _, tang := range luks.Clevis.Tang {
+			c.Pins.Tang = append(c.Pins.Tang, Tang{
+				URL:        tang.URL,
+				Thumbprint: *tang.Thumbprint,
+			})
 		}
-
-		args = append(args, *luks.Device)
-
+		if luks.Clevis.Tpm2 != nil {
+			c.Pins.Tpm = *luks.Clevis.Tpm2
+		}
+		clevisJson, err := json.Marshal(c)
+		if err != nil {
+			return fmt.Errorf("creating clevis json: %v", err)
+		}
 		if _, err := s.Logger.LogCmd(
-			exec.Command(distro.CryptsetupCmd(), args...),
-			"creating %q", luks.Name,
+			exec.Command(distro.ClevisCmd(), "luks", "bind", "-f", "-k", keyFilePath, "-d", *luks.Device, "sss", string(clevisJson)), "Clevis bind",
 		); err != nil {
-			return fmt.Errorf("cryptsetup failed: %v", err)
+			return fmt.Errorf("binding clevis device: %v", err)
 		}
 
-		// open the device
+		// close & re-open Clevis devices to make sure that we can unlock them
 		if _, err := s.Logger.LogCmd(
-			exec.Command(distro.CryptsetupCmd(), "luksOpen", *luks.Device, luks.Name, "--key-file", keyFilePath),
-			"opening luks device %v", luks.Name,
+			exec.Command(distro.CryptsetupCmd(), "luksClose", luks.Name),
+			"closing clevis luks device %v", luks.Name,
 		); err != nil {
-			return fmt.Errorf("opening luks device: %v", err)
+			return fmt.Errorf("closing luks device: %v", err)
 		}
-
-		if luks.Clevis != nil {
-			c := Clevis{
-				Threshold: 1,
-			}
-			if luks.Clevis.Threshold != nil {
-				c.Threshold = *luks.Clevis.Threshold
-			}
-			for _, tang := range luks.Clevis.Tang {
-				c.Pins.Tang = append(c.Pins.Tang, Tang{
-					URL:        tang.URL,
-					Thumbprint: *tang.Thumbprint,
-				})
-			}
-			if luks.Clevis.Tpm2 != nil {
-				c.Pins.Tpm = *luks.Clevis.Tpm2
-			}
-			clevisJson, err := json.Marshal(c)
-			if err != nil {
-				return fmt.Errorf("creating clevis json: %v", err)
-			}
-			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.ClevisCmd(), "luks", "bind", "-f", "-k", keyFilePath, "-d", *luks.Device, "sss", string(clevisJson)), "Clevis bind",
-			); err != nil {
-				return fmt.Errorf("binding clevis device: %v", err)
-			}
-
-			// close & re-open Clevis devices to make sure that we can unlock them
-			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.CryptsetupCmd(), "luksClose", luks.Name),
-				"closing clevis luks device %v", luks.Name,
-			); err != nil {
-				return fmt.Errorf("closing luks device: %v", err)
-			}
-			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.ClevisCmd(), "luks", "unlock", "-d", *luks.Device, "-n", luks.Name),
-				"reopening clevis luks device %s", luks.Name,
-			); err != nil {
-				return fmt.Errorf("reopening luks device %s: %v", luks.Name, err)
-			}
+		if _, err := s.Logger.LogCmd(
+			exec.Command(distro.ClevisCmd(), "luks", "unlock", "-d", *luks.Device, "-n", luks.Name),
+			"reopening clevis luks device %s", luks.Name,
+		); err != nil {
+			return fmt.Errorf("reopening luks device %s: %v", luks.Name, err)
 		}
+	}
 
-		// assume the user does not want a key file, remove it
-		if ignitionCreatedKeyFile {
-			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.CryptsetupCmd(), "luksRemoveKey", *luks.Device, keyFilePath),
-				"removing key file for %v", luks.Name,
-			); err != nil {
-				return fmt.Errorf("removing key file from luks device: %v", err)
-			}
-			if err := os.Remove(keyFilePath); err != nil {
-				return fmt.Errorf("removing key file: %v", err)
-			}
+	// assume the user does not want a key file, remove it
+	if ignitionCreatedKeyFile {
+		if _, err := s.Logger.LogCmd(
+			exec.Command(distro.CryptsetupCmd(), "luksRemoveKey", *luks.Device, keyFilePath),
+			"removing key file for %v", luks.Name,
+		); err != nil {
+			return fmt.Errorf("removing key file from luks device: %v", err)
+		}
+		if err := os.Remove(keyFilePath); err != nil {
+			return fmt.Errorf("removing key file: %v", err)
 		}
 	}
 
