@@ -1,3 +1,8 @@
+# This unit creates /run/ignition/neednet if networking needs to be enabled.
+# The distro is responsible for sequencing a unit between
+# ignition-fetch-offline.service and ignition-fetch.service, detecting the
+# flag file with ConditionPathExists=, and enabling networking.
+
 [Unit]
 Description=Ignition (fetch-offline)
 Documentation=https://github.com/coreos/ignition
@@ -16,13 +21,8 @@ Before=ignition-fetch.service
 OnFailure=emergency.target
 OnFailureJobMode=isolate
 
-# See hack in ignition-check-neednet, as well as coreos-copy-firstboot-network.service.
-After=dracut-cmdline.service
-Before=dracut-initqueue.service
-
 [Service]
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=/run/ignition.env
 ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=fetch-offline
-ExecStart=/usr/sbin/ignition-check-neednet
