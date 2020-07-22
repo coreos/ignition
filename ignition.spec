@@ -2,7 +2,7 @@
 #     gofed repo2spec --detect github.com/coreos/ignition --commit f7079129b8651ac51dba14c3af65692bb413c1dd  --with-extra --with-build -f
 # With:
 #     gofed/gofed:v1.0.1 docker image
-# Modified by hand for v2.3.0
+# Modified by hand for v2.0.0-alpha and later
 
 # If any of the following macros should be set otherwise,
 # you can wrap any of them with the following conditions:
@@ -18,7 +18,7 @@
 # rhel specific macros, you can use %%if 0%%{?rhel} && 0%%{?centos} == 0 condition.
 # (Don't forget to replace double percentage symbol with single one in order to apply a condition)
 
-# Not all devel deps exist in RHEL so you can't install the devel rpm
+# Not all devel deps exist in Fedora/RHEL so you can't install the devel rpm
 # so we need to build without devel for now
 # Generate devel rpm
 %global with_devel 0
