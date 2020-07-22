@@ -46,6 +46,7 @@ cosaPod(buildroot: true) {
             shwrap("""
                 cd /srv/fcos
                 cosa buildextend-metal
+                cosa buildextend-metal4k
                 cosa buildextend-live
                 cosa compress --artifact metal
                 kola testiso -S --output-dir tmp/kola-testiso-metal
