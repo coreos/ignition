@@ -52,7 +52,7 @@
 # https://github.com/coreos/ignition
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}/v2
-%global commit          ee616d5fb3d21babe288877e842ea137f3e68d0d
+%global commit          5260a5b355e287bbd4f4830d7c13ccbb87bd48b3
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 # define ldflags, buildflags, testflags here. The ldflags were
 # taken from ./build. We will need to periodically check these
@@ -70,12 +70,12 @@
 # https://github.com/coreos/ignition-dracut
 %global dracutprovider_prefix %{dracutprovider}.%{dracutprovider_tld}/%{dracutproject}/%{dracutrepo}
 %global dracutimport_path     %{dracutprovider_prefix}
-%global dracutcommit          bdf0a653584eb07b3ea87078ff427473821bdc2c
+%global dracutcommit          6b1d128c6ba2d77825d214ada238a4826e420d40
 %global dracutshortcommit     %(c=%{dracutcommit}; echo ${c:0:7})
 
 
 Name:           ignition
-Version:        2.3.0
+Version:        2.4.1
 Release:        1.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0 and BSD
@@ -130,42 +130,58 @@ BuildRequires: golang(golang.org/x/net/http/httpproxy)
 
 # Main package Provides (generated with go-mods-to-bundled-provides.py | sort)
 %if 0%{?with_bundled}
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/awserr)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/awsutil)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/client)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/client/metadata)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/corehandlers)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/credentials)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/endpointcreds)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/processcreds)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/stscreds)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/csm)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/defaults)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/ec2metadata)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/endpoints)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/request)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/session)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/signer/v4)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/ini)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/s3err)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/sdkio)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/sdkrand)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/sdkuri)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/shareddefaults)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/eventstream)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/query)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/query/queryutil)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/rest)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/restxml)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/service/s3)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/service/s3/s3iface)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/service/s3/s3manager)) = 1.19.11
-Provides: bundled(golang(github.com/aws/aws-sdk-go/service/sts)) = 1.19.11
+Provides: bundled(golang(cloud.google.com/go)) = 0.58.0
+Provides: bundled(golang(cloud.google.com/go/compute/metadata)) = 0.58.0
+Provides: bundled(golang(cloud.google.com/go/iam)) = 0.58.0
+Provides: bundled(golang(cloud.google.com/go/internal)) = 0.58.0
+Provides: bundled(golang(cloud.google.com/go/internal/optional)) = 0.58.0
+Provides: bundled(golang(cloud.google.com/go/internal/trace)) = 0.58.0
+Provides: bundled(golang(cloud.google.com/go/internal/version)) = 0.58.0
+Provides: bundled(golang(cloud.google.com/go/storage)) = 0.58.0
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/arn)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/awserr)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/awsutil)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/client)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/client/metadata)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/corehandlers)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/credentials)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/endpointcreds)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/processcreds)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/credentials/stscreds)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/csm)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/defaults)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/ec2metadata)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/endpoints)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/request)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/session)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/aws/signer/v4)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/context)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/ini)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/s3err)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/sdkio)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/sdkmath)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/sdkrand)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/sdkuri)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/shareddefaults)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/strings)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/internal/sync/singleflight)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/eventstream)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/json/jsonutil)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/query)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/query/queryutil)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/rest)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/restxml)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/service/s3)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/service/s3/internal/arn)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/service/s3/s3iface)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/service/s3/s3manager)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/service/sts)) = 1.30.28
+Provides: bundled(golang(github.com/aws/aws-sdk-go/service/sts/stsiface)) = 1.30.28
 Provides: bundled(golang(github.com/coreos/go-semver/semver)) = 0.3.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/dbus)) = 22.0.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/journal)) = 22.0.0
@@ -179,7 +195,7 @@ Provides: bundled(golang(github.com/google/renameio)) = 0.1.0
 Provides: bundled(golang(github.com/google/uuid)) = 1.1.1
 Provides: bundled(golang(github.com/pin/tftp)) = 2.1.0
 Provides: bundled(golang(github.com/pin/tftp/netascii)) = 2.1.0
-Provides: bundled(golang(github.com/stretchr/testify/assert)) = 1.3.0
+Provides: bundled(golang(github.com/stretchr/testify/assert)) = 1.5.1
 Provides: bundled(golang(github.com/vincent-petithory/dataurl)) = 0.0.0-20160330182126.git9a301d65acbb
 Provides: bundled(golang(github.com/vmware/vmw-guestinfo/bdoor)) = 0.0.0-20170707015358.git25eff159a728
 Provides: bundled(golang(github.com/vmware/vmw-guestinfo/message)) = 0.0.0-20170707015358.git25eff159a728
@@ -187,13 +203,63 @@ Provides: bundled(golang(github.com/vmware/vmw-guestinfo/rpcout)) = 0.0.0-201707
 Provides: bundled(golang(github.com/vmware/vmw-guestinfo/rpcvmx)) = 0.0.0-20170707015358.git25eff159a728
 Provides: bundled(golang(github.com/vmware/vmw-guestinfo/vmcheck)) = 0.0.0-20170707015358.git25eff159a728
 Provides: bundled(golang(github.com/vmware/vmw-ovflib)) = 0.0.0-20170608004843.git1f217b9dc714
-Provides: bundled(golang(golang.org/x/net/http/httpproxy)) = 0.0.0-20190228165749.git92fc7df08ae7
-Provides: bundled(golang(golang.org/x/net/idna)) = 0.0.0-20190228165749.git92fc7df08ae7
-Provides: bundled(golang(golang.org/x/sys/unix)) = 0.0.0-20191110163157.gitd32e6e3b99c4
-Provides: bundled(golang(golang.org/x/text/secure/bidirule)) = 0.3.0
-Provides: bundled(golang(golang.org/x/text/transform)) = 0.3.0
-Provides: bundled(golang(golang.org/x/text/unicode/bidi)) = 0.3.0
-Provides: bundled(golang(golang.org/x/text/unicode/norm)) = 0.3.0
+Provides: bundled(golang(golang.org/x/net/context)) = 0.0.0-20200602114024.git627f9648deb9
+Provides: bundled(golang(golang.org/x/net/context/ctxhttp)) = 0.0.0-20200602114024.git627f9648deb9
+Provides: bundled(golang(golang.org/x/net/http2)) = 0.0.0-20200602114024.git627f9648deb9
+Provides: bundled(golang(golang.org/x/net/http2/hpack)) = 0.0.0-20200602114024.git627f9648deb9
+Provides: bundled(golang(golang.org/x/net/http/httpguts)) = 0.0.0-20200602114024.git627f9648deb9
+Provides: bundled(golang(golang.org/x/net/http/httpproxy)) = 0.0.0-20200602114024.git627f9648deb9
+Provides: bundled(golang(golang.org/x/net/idna)) = 0.0.0-20200602114024.git627f9648deb9
+Provides: bundled(golang(golang.org/x/net/internal/timeseries)) = 0.0.0-20200602114024.git627f9648deb9
+Provides: bundled(golang(golang.org/x/net/trace)) = 0.0.0-20200602114024.git627f9648deb9
+Provides: bundled(golang(golang.org/x/oauth2)) = 0.0.0-20200107190931.gitbf48bf16ab8d
+Provides: bundled(golang(golang.org/x/oauth2/google)) = 0.0.0-20200107190931.gitbf48bf16ab8d
+Provides: bundled(golang(golang.org/x/oauth2/internal)) = 0.0.0-20200107190931.gitbf48bf16ab8d
+Provides: bundled(golang(golang.org/x/oauth2/jws)) = 0.0.0-20200107190931.gitbf48bf16ab8d
+Provides: bundled(golang(golang.org/x/oauth2/jwt)) = 0.0.0-20200107190931.gitbf48bf16ab8d
+Provides: bundled(golang(golang.org/x/sys/internal/unsafeheader)) = 0.0.0-20200610111108.git226ff32320da
+Provides: bundled(golang(golang.org/x/sys/unix)) = 0.0.0-20200610111108.git226ff32320da
+Provides: bundled(golang(golang.org/x/tools/cmd/goimports)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/analysis)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/analysis/passes/inspect)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/ast/astutil)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/ast/inspector)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/buildutil)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/gcexportdata)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/internal/cgo)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/internal/gcimporter)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/internal/packagesdriver)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/loader)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/packages)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/types/objectpath)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/go/types/typeutil)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/internal/analysisinternal)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/internal/event)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/internal/event/core)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/internal/event/keys)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/internal/event/label)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/internal/fastwalk)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/internal/gocommand)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/internal/gopathwalk)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/internal/imports)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(golang.org/x/tools/internal/packagesinternal)) = 0.0.0-20200610160956.git3e83d1e96d0e
+Provides: bundled(golang(google.golang.org/api/googleapi)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/googleapi/transport)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/internal)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/internal/gensupport)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/internal/third_party/uritemplates)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/iterator)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/option)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/option/internaloption)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/storage/v1)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/transport/cert)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/transport/http)) = 0.26.0
+Provides: bundled(golang(google.golang.org/api/transport/http/internal/propagation)) = 0.26.0
+Provides: bundled(golang(google.golang.org/genproto/googleapis/api/annotations)) = 0.0.0-20200610104632.gita5b850bcf112
+Provides: bundled(golang(google.golang.org/genproto/googleapis/iam/v1)) = 0.0.0-20200610104632.gita5b850bcf112
+Provides: bundled(golang(google.golang.org/genproto/googleapis/rpc/code)) = 0.0.0-20200610104632.gita5b850bcf112
+Provides: bundled(golang(google.golang.org/genproto/googleapis/rpc/status)) = 0.0.0-20200610104632.gita5b850bcf112
+Provides: bundled(golang(google.golang.org/genproto/googleapis/type/expr)) = 0.0.0-20200610104632.gita5b850bcf112
 %endif
 
 
@@ -504,6 +570,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Wed Jul 22 2020 Timothée Ravier <travier@redhat.com> - 2.4.1-1.git5260a5b
+- New release with ignition-dracut bump (imported from Fedora)
+
 * Tue Jul 21 2020 Timothée Ravier <travier@redhat.com> - 2.3.0-1.rhaos4.6.gitee616d5
 - Update to latest spec3x release (imported from Fedora)
 
