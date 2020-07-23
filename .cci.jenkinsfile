@@ -27,7 +27,8 @@ cosaPod(buildroot: true) {
     // attention to it in the Jenkins UI
     // XXX: need a e.g. `--tag !external`
 
-    fcosKola(extraArgs: "--denylist-test ext.*")
+    // XXX: skip rootfs.uuid to ratchet ignition-dracut merge
+    fcosKola(extraArgs: "--denylist-test ext.* --denylist-test rootfs.uuid")
 
     parallel blackbox: {
         shwrap("""
