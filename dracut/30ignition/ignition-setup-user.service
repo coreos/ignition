@@ -16,7 +16,7 @@ Before=ignition-fetch-offline.service
 Before=multipathd.service
 
 # On diskful boots, ignition-generator adds Requires/After on
-# dev-disk-by\x2dlabel-boot.device & coreos-gpt-setup.service
+# dev-disk-by\x2dlabel-boot.device
 
 [Service]
 Type=oneshot

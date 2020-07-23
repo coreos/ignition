@@ -55,8 +55,6 @@ if $(cmdline_bool 'ignition.firstboot' 0); then
 [Unit]
 Requires=dev-disk-by\x2dlabel-boot.device
 After=dev-disk-by\x2dlabel-boot.device
-Requires=coreos-gpt-setup.service
-After=coreos-gpt-setup.service
 EOF
     fi
 else
