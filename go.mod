@@ -8,7 +8,6 @@ require (
 	github.com/aws/aws-sdk-go v1.30.28
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/go-systemd/v22 v22.0.0
-	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f
 	github.com/coreos/vcontext v0.0.0-20190529201340-22b159166068
 	github.com/google/renameio v0.1.0
 	github.com/google/uuid v1.1.1

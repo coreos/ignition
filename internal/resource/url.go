@@ -21,6 +21,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -40,7 +42,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
@@ -413,7 +415,9 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 		}
 		return err
 	}
-
+	if regionHint != region {
+		sess.Config.Credentials = credentials.AnonymousCredentials
+	}
 	sess.Config.Region = aws.String(region)
 
 	var versionId *string
@@ -459,6 +463,7 @@ func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest s3target, input
 	}
 
 	awsConfig := aws.NewConfig().WithHTTPClient(httpClient)
+	awsConfig.Retryer = &S3Retryer{}
 	s3Client := s3.New(sess, awsConfig)
 	downloader := s3manager.NewDownloaderWithClient(s3Client)
 	if _, err := downloader.DownloadWithContext(ctx, dest, input); err != nil {
@@ -471,6 +476,29 @@ func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest s3target, input
 		return err
 	}
 	return nil
+}
+
+type S3Retryer struct {
+	client.DefaultRetryer
+}
+
+// MaxRetries returns the configured number of NumMaxRetries, defaults to 3
+func (r S3Retryer) MaxRetries() int {
+	if r.NumMaxRetries <= 0 {
+		return 3
+	}
+	return r.NumMaxRetries
+}
+
+func (r S3Retryer) ShouldRetry(req *request.Request) bool {
+	if req.Error != nil {
+		if err, ok := req.Error.(awserr.Error); ok {
+			if err.Code() == "SerializationError" || err.Code() == "EC2RoleRequestError" {
+				return true
+			}
+		}
+	}
+	return r.DefaultRetryer.ShouldRetry(req)
 }
 
 // uncompress will wrap the given io.Reader in a decompresser specified in the
