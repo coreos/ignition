@@ -1,0 +1,26 @@
+[Unit]
+Description=Ignition (fetch)
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+DefaultDependencies=false
+Before=ignition-complete.target
+After=basic.target
+ConditionPathExists=/run/ignition/neednet
+
+# Stage order: setup -> fetch-offline [-> fetch] -> disks -> mount -> files.
+# We run after the setup stage has run because it may copy in new/different
+# ignition configs for us to consume.
+After=ignition-fetch-offline.service
+Before=ignition-disks.service
+
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+# If we run, we definitely need network, so make sure we run after.
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=fetch

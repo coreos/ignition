@@ -1,0 +1,18 @@
+[Unit]
+Description=Ignition (setup base config)
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+DefaultDependencies=false
+Before=ignition-complete.target
+
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+# Stage order: setup -> fetch-offline [-> fetch] -> disks -> mount -> files.
+Before=ignition-fetch-offline.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/sbin/ignition-setup-base

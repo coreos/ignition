@@ -1,0 +1,15 @@
+[Unit]
+Description=Ignition (virtio dump)
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+DefaultDependencies=false
+ConditionVirtualization=|kvm
+ConditionVirtualization=|qemu
+After=basic.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/bin/ignition-virtio-dump-journal
+

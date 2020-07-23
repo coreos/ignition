@@ -1,0 +1,35 @@
+[Unit]
+Description=Ignition (disks)
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+DefaultDependencies=false
+Before=ignition-complete.target
+
+# Stage order: setup -> fetch-offline [-> fetch] -> disks -> mount -> files.
+After=ignition-fetch.service
+Before=ignition-mount.service
+
+# This stage runs between `basic.target` and `initrd-root-device.target`,
+# see https://www.freedesktop.org/software/systemd/man/bootup.html
+# Make sure to run before the file system checks, as sgdisk will trigger
+# udev events, potentially resulting in race conditions due to disappearing
+# devices.
+
+# Note that CL runs this before `local-fs-pre.target` to allow for configs that
+# completely wipe the rootfs. Though we're not there yet. But we still run
+# before `sysroot.mount` on principle.
+Before=initrd-root-device.target
+Before=sysroot.mount
+
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+# This stage requires udevd to detect disk partitioning changes.
+Requires=systemd-udevd.service
+After=systemd-udevd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=disks

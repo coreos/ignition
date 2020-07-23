@@ -1,0 +1,14 @@
+# This target is reached when Ignition finishes running. Note that it gets
+# activated *only* on first boot (or if ignition.firstboot=1 is provided).
+# Thus, it is also an API for units to use so that they are activated only on
+# first boot. Simply add a link under ignition-complete.target.requires in the
+# initrd.
+[Unit]
+Description=Ignition Complete
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+Before=initrd.target
+
+# Make sure we stop all the units before switching root
+Conflicts=initrd-switch-root.target umount.target
+Conflicts=dracut-emergency.service emergency.service emergency.target

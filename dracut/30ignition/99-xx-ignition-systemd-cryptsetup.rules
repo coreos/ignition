@@ -1,0 +1,8 @@
+SUBSYSTEM!="block", GOTO="systemd_cryptsetup_end"
+
+# This overrides systemd default behavior from 99-systemd.rules, which ignores unformatted crypto devices.
+# https://github.com/systemd/systemd/commit/90e6abaea0cfd25093aae1ad862c5c909ae55829
+# Ignition relies on unformatted crypto devices being discovered to trigger formatting
+SUBSYSTEM=="block", ENV{DM_UUID}=="CRYPT-*", ENV{ID_PART_TABLE_TYPE}=="", ENV{ID_FS_USAGE}=="", ENV{SYSTEMD_READY}="1"
+
+LABEL="systemd_cryptsetup_end"

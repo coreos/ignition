@@ -1,0 +1,28 @@
+# This unit creates /run/ignition/neednet if networking needs to be enabled.
+# The distro is responsible for sequencing a unit between
+# ignition-fetch-offline.service and ignition-fetch.service, detecting the
+# flag file with ConditionPathExists=, and enabling networking.
+
+[Unit]
+Description=Ignition (fetch-offline)
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+DefaultDependencies=false
+Before=ignition-complete.target
+After=basic.target
+
+# Stage order: setup -> fetch-offline [-> fetch] -> disks -> mount -> files.
+# We run after the setup stage has run because it may copy in new/different
+# ignition configs for us to consume.
+After=ignition-setup-base.service
+After=ignition-setup-user.service
+Before=ignition-fetch.service
+
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=fetch-offline

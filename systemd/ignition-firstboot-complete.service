@@ -1,0 +1,31 @@
+[Unit]
+Description=Mark boot complete
+Documentation=https://github.com/coreos/ignition
+ConditionKernelCommandLine=ignition.firstboot
+ConditionPathExists=!/run/ostree-live
+RequiresMountsFor=/boot
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# The MountFlags=slave is so we remount /boot temporarily writable;
+# see https://github.com/ostreedev/ostree/issues/1265 for the bigger picture.
+# This option creates a new mount namespace; from the point of view of
+# everything else, /boot stays readonly. We only have a transient writable mount
+# for the lifetime of the unit.
+#
+# Also regarding the lack of `-f` for rm ; we should have only run if GRUB
+# detected this file. Fail if we are unable to remove it, rather than risking
+# rerunning Ignition at next boot.
+MountFlags=slave
+# It is better to have a separate script to do this but it might be polluting
+# the target system with some script in i.e. /usr/sbin/firstboot-complete
+# The retval code is still respected with having this if-else block.
+ExecStart=/bin/sh -c \
+	'mount -o remount,rw /boot && \
+	if [[ $(uname -m) = s390x ]]; then zipl; fi && \
+	rm /boot/ignition.firstboot'
+
+[Install]
+# Part of basic.target so this happens early on in firstboot
+WantedBy=basic.target

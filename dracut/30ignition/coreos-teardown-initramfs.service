@@ -1,0 +1,38 @@
+# Clean up the initramfs networking on first boot
+# so the real network is being brought up
+# https://github.com/coreos/fedora-coreos-tracker/issues/394#issuecomment-599721763
+
+[Unit]
+Description=CoreOS Tear down initramfs
+DefaultDependencies=false
+
+# We want to run the teardown after all other Ignition stages
+# have run because some platforms (like Packet) do remote status
+# reporting for each Ignition stage. Since we are tearing down
+# the networking using an ExecStop we need to make sure we run
+# the ExecStop *after* any other ignition*.service unit's ExecStop.
+# The only other one right now is ignition-mount that has an ExecStop
+# for doing an unmount. Since the ordering for ExecStop is the
+# opposite of ExecStart we need to use `Before=ignition-mount.service`.
+# https://github.com/coreos/fedora-coreos-tracker/issues/440
+Before=ignition-mount.service
+Before=ignition-complete.target
+
+# Make sure ExecStop= runs before we switch root
+Conflicts=initrd-switch-root.target umount.target
+Before=initrd-switch-root.target
+
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+# If we are already heading towards emergency.target
+# then don't try to stop this unit because it will fail
+# when trying to access files in /sysroot/etc/. The failure
+# is mostly harmless but having the extra error messages
+# leads us away from the original problem.
+IgnoreOnIsolate=true
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStop=/usr/sbin/coreos-teardown-initramfs

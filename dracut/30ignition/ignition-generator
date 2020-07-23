@@ -1,0 +1,73 @@
+#!/bin/bash
+# -*- mode: shell-script; indent-tabs-mode: nil; sh-basic-offset: 4; -*-
+# ex: ts=8 sw=4 sts=4 et filetype=sh
+
+set -e
+
+# Generators don't have logging right now
+# https://github.com/systemd/systemd/issues/15638
+exec 1>/dev/kmsg; exec 2>&1
+
+UNIT_DIR="${1:-/tmp}"
+
+cmdline=( $(</proc/cmdline) )
+cmdline_arg() {
+    local name="$1" value="$2"
+    for arg in "${cmdline[@]}"; do
+        if [[ "${arg%%=*}" == "${name}" ]]; then
+            value="${arg#*=}"
+        fi
+    done
+    echo "${value}"
+}
+
+cmdline_bool() {
+    local value=$(cmdline_arg "$@")
+    case "$value" in
+        ""|0|no|off) return 1;;
+        *) return 0;;
+    esac
+}
+
+add_requires() {
+    local name="$1"; shift
+    local target="$1"; shift
+    local requires_dir="${UNIT_DIR}/${target}.requires"
+    mkdir -p "${requires_dir}"
+    ln -sf "../${name}" "${requires_dir}/${name}"
+}
+
+# This can't be done with ConditionKernelCommandLine because that always
+# starts the unit's dependencies. We want to start networking only on first
+# boot.
+if $(cmdline_bool 'ignition.firstboot' 0); then
+    add_requires ignition-complete.target initrd.target
+
+    # Invoke distro hook for detecting whether we're booted from a live image,
+    # and therefore won't have a root disk.
+    if ! command -v is-live-image >/dev/null || ! is-live-image; then
+        add_requires ignition-diskful.target ignition-complete.target
+
+        # ignition-setup-user.service should depend on the boot device node
+        # only on diskful boots
+        mkdir -p "${UNIT_DIR}/ignition-setup-user.service.d"
+        cat > "${UNIT_DIR}/ignition-setup-user.service.d/diskful.conf" <<EOF
+[Unit]
+Requires=dev-disk-by\x2dlabel-boot.device
+After=dev-disk-by\x2dlabel-boot.device
+Requires=coreos-gpt-setup.service
+After=coreos-gpt-setup.service
+EOF
+    fi
+else
+    # If we're doing a non-Ignition (subsequent) boot, then
+    # queue a different target.  This is necessary so that units
+    # like `ignition-ostree-mount-sysroot.service`
+    # can cleanly distinguish between the two.
+    add_requires ignition-subsequent.target initrd.target
+    if ! command -v is-live-image >/dev/null || ! is-live-image; then
+        add_requires ignition-diskful-subsequent.target ignition-subsequent.target
+    fi
+fi
+
+echo "PLATFORM_ID=$(cmdline_arg ignition.platform.id)" > /run/ignition.env
