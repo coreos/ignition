@@ -1,0 +1,12 @@
+# This target contains Ignition units that should only run when we have a
+# boot disk, i.e. when we're not running diskless from a live image in RAM.
+# Like ignition-complete.target, it only runs on first boot.
+[Unit]
+Description=Ignition Boot Disk Setup
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+Before=ignition-complete.target
+
+# Make sure we stop all the units before switching root
+Conflicts=initrd-switch-root.target umount.target
+Conflicts=dracut-emergency.service emergency.service emergency.target

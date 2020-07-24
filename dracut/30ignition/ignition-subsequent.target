@@ -1,0 +1,12 @@
+# This target is queued to run when Ignition will *not* run.
+# It's intended right now for mounting sysroot, which happens in a quite
+# different order on the Ignition boot versus "subsequent" boots.
+[Unit]
+Description=Subsequent (Not Ignition) boot complete
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+Before=initrd.target
+
+# Make sure we stop all the units before switching root
+Conflicts=initrd-switch-root.target umount.target
+Conflicts=dracut-emergency.service emergency.service emergency.target

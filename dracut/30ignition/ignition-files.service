@@ -1,0 +1,21 @@
+[Unit]
+Description=Ignition (files)
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+DefaultDependencies=false
+Before=ignition-complete.target
+
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+# Stage order: setup -> fetch-offline [-> fetch] -> disks -> mount -> files.
+After=ignition-mount.service
+
+# Run before initrd-parse-etc so that we can drop files it then picks up.
+Before=initrd-parse-etc.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=files --log-to-stdout

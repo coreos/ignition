@@ -12,11 +12,13 @@ endif
 all:
 	./build
 
-# This currently assumes you're using https://github.com/coreos/ignition-dracut/
-# If in the future any other initramfs integration appears, feel free to add a PR
-# to make this configurable.
 .PHONY: install
 install: all
+	for x in dracut/*; do \
+	  bn=$$(basename $$x); \
+	  install -D -t $(DESTDIR)/usr/lib/dracut/modules.d/$${bn} $$x/*; \
+	done
+	install -D -t $(DESTDIR)/usr/lib/systemd/system systemd/*
 	install -m 0755 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/30ignition bin/$(GOARCH)/ignition
 	install -m 0755 -D -t $(DESTDIR)/usr/bin bin/$(GOARCH)/ignition-validate
 
