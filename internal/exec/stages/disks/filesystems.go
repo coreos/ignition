@@ -91,18 +91,19 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 	if fs.Format == nil {
 		return nil
 	}
+	devAlias := util.DeviceAlias(string(fs.Device))
 
 	var info util.FilesystemInfo
 	err := s.Logger.LogOp(
 		func() error {
 			var err error
-			info, err = util.GetFilesystemInfo(fs.Device, false)
+			info, err = util.GetFilesystemInfo(devAlias, false)
 			if err != nil {
 				// Try again, allowing multiple filesystem
 				// fingerprints this time.  If successful,
 				// log a warning and continue.
 				var err2 error
-				info, err2 = util.GetFilesystemInfo(fs.Device, true)
+				info, err2 = util.GetFilesystemInfo(devAlias, true)
 				if err2 == nil {
 					s.Logger.Warning("%v", err)
 				}
@@ -131,7 +132,6 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		}
 	}
 
-	devAlias := util.DeviceAlias(string(fs.Device))
 	if _, err := s.Logger.LogCmd(
 		exec.Command(distro.WipefsCmd(), "-a", devAlias),
 		"wiping filesystem signatures from %q",
