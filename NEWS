@@ -1,3 +1,13 @@
+23-Jul-2020 Ignition 2.5.0
+
+  Changes:
+
+    - Merge ignition-dracut into the Ignition repository
+
+  Bug Fixes:
+
+    - Fix udev race determining filesystem type when creating filesystem
+
 16-Jul-2020 Ignition 2.4.1
 
   Changes:
