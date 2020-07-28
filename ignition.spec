@@ -550,7 +550,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 
 %changelog
 * Mon Jul 27 2020 Ben Howard <ben.howard@redhat.com> - 2.5.0.-1.git0d6f3e5
-- New release with ignition-dracut bump (imported from Fedora)
+- Dracut modules are now built from in-tree modules.
 
 * Wed Jul 22 2020 Timothée Ravier <travier@redhat.com> - 2.4.1-1.git5260a5b
 - New release with ignition-dracut bump (imported from Fedora)
