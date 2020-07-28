@@ -52,7 +52,7 @@
 # https://github.com/coreos/ignition
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}/v2
-%global commit          5260a5b355e287bbd4f4830d7c13ccbb87bd48b3
+%global commit          0d6f3e5e859821134cd04fcaf47c2488c25aff0d
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 # define ldflags, buildflags, testflags here. The ldflags were
 # taken from ./build. We will need to periodically check these
@@ -60,28 +60,15 @@
 %global ldflags ' -X github.com/coreos/ignition/v2/internal/version.Raw=%{version} '
 %global buildflags %nil
 %global testflags %nil
-
-# macros for ignition-dracut
-%global dracutlibdir          %{_prefix}/lib/dracut
-%global dracutprovider        github
-%global dracutprovider_tld    com
-%global dracutproject         coreos
-%global dracutrepo            ignition-dracut
-# https://github.com/coreos/ignition-dracut
-%global dracutprovider_prefix %{dracutprovider}.%{dracutprovider_tld}/%{dracutproject}/%{dracutrepo}
-%global dracutimport_path     %{dracutprovider_prefix}
-%global dracutcommit          6b1d128c6ba2d77825d214ada238a4826e420d40
-%global dracutshortcommit     %(c=%{dracutcommit}; echo ${c:0:7})
-
+%global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Version:        2.4.1
+Version:        2.5.0
 Release:        1.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0 and BSD
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
-Source1:        https://%{dracutprovider_prefix}/archive/%{dracutcommit}/%{dracutrepo}-%{dracutshortcommit}.tar.gz
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: x86_64 ppc64le aarch64 s390x
@@ -432,11 +419,6 @@ This package contains a tool for validating Ignition configurations.
 # unpack source0 and apply patches
 %setup -T -b 0 -q -n %{repo}-%{commit}
 
-# unpack source1 (dracut modules)
-%setup -T -D -a 1 -q -n %{repo}-%{commit}
-cd %{dracutrepo}-%{dracutcommit}
-mv LICENSE ../LICENSE.dracut
-
 %build
 # Set up PWD as a proper import path for go
 mkdir -p src/%{provider}.%{provider_tld}/%{project}
@@ -457,13 +439,11 @@ echo "Building ignition-validate..."
 %gobuild -o ./ignition-validate %{import_path}/validate
 
 %install
-# ignition-dracut
+# dracut
 install -d -p %{buildroot}/%{dracutlibdir}/modules.d
 install -d -p %{buildroot}/%{_prefix}/lib/systemd/system
-pushd %{dracutrepo}-%{dracutcommit} >/dev/null
 cp -r dracut/* %{buildroot}/%{dracutlibdir}/modules.d/
 install -m 0644 -t %{buildroot}/%{_prefix}/lib/systemd/system/ systemd/*
-popd >/dev/null
 
 # ignition
 install -d -p %{buildroot}%{_bindir}
@@ -546,7 +526,6 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %{!?_licensedir:%global license %doc}
 
 %files
-%license LICENSE LICENSE.dracut
 %doc README.md doc/
 %{dracutlibdir}/modules.d/*
 %{_prefix}/lib/systemd/system/*.service
@@ -570,6 +549,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Mon Jul 27 2020 Ben Howard <ben.howard@redhat.com> - 2.5.0.-1.git0d6f3e5
+- New release with ignition-dracut bump (imported from Fedora)
+
 * Wed Jul 22 2020 Timothée Ravier <travier@redhat.com> - 2.4.1-1.git5260a5b
 - New release with ignition-dracut bump (imported from Fedora)
 
