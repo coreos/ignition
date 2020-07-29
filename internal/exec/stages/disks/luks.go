@@ -23,6 +23,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
@@ -140,42 +141,58 @@ func (s *stage) createLuks(config types.Config) error {
 				}
 			}
 		}
-		args := []string{
-			"luksFormat",
-			"--type", "luks2",
-			"--key-file", keyFilePath,
-		}
 
-		if !util.NilOrEmpty(luks.Label) {
-			args = append(args, "--label", *luks.Label)
-		}
-
-		if !util.NilOrEmpty(luks.UUID) {
-			args = append(args, "--uuid", *luks.UUID)
-		}
-
-		if len(luks.Options) > 0 {
-			// golang's a really great language...
-			for _, option := range luks.Options {
-				args = append(args, string(option))
+		// check if the LUKS device already exists, device will be
+		// opened if it exists; don't allow clevis device re-use as
+		// we can't guarantee that what is stored in the header is
+		// exactly what would be generated from the given config
+		var exists bool
+		if !ignitionCreatedKeyFile && luks.Clevis == nil {
+			var err error
+			exists, err = s.checkLuksDeviceExists(luks, keyFilePath)
+			if err != nil {
+				return fmt.Errorf("checking if luks device exists: %v", err)
 			}
 		}
 
-		args = append(args, devAlias)
+		if !exists {
+			args := []string{
+				"luksFormat",
+				"--type", "luks2",
+				"--key-file", keyFilePath,
+			}
 
-		if _, err := s.Logger.LogCmd(
-			exec.Command(distro.CryptsetupCmd(), args...),
-			"creating %q", luks.Name,
-		); err != nil {
-			return fmt.Errorf("cryptsetup failed: %v", err)
-		}
+			if !util.NilOrEmpty(luks.Label) {
+				args = append(args, "--label", *luks.Label)
+			}
 
-		// open the device
-		if _, err := s.Logger.LogCmd(
-			exec.Command(distro.CryptsetupCmd(), "luksOpen", devAlias, luks.Name, "--key-file", keyFilePath),
-			"opening luks device %v", luks.Name,
-		); err != nil {
-			return fmt.Errorf("opening luks device: %v", err)
+			if !util.NilOrEmpty(luks.UUID) {
+				args = append(args, "--uuid", *luks.UUID)
+			}
+
+			if len(luks.Options) > 0 {
+				// golang's a really great language...
+				for _, option := range luks.Options {
+					args = append(args, string(option))
+				}
+			}
+
+			args = append(args, devAlias)
+
+			if _, err := s.Logger.LogCmd(
+				exec.Command(distro.CryptsetupCmd(), args...),
+				"creating %q", luks.Name,
+			); err != nil {
+				return fmt.Errorf("cryptsetup failed: %v", err)
+			}
+
+			// open the device
+			if _, err := s.Logger.LogCmd(
+				exec.Command(distro.CryptsetupCmd(), "luksOpen", devAlias, luks.Name, "--key-file", keyFilePath),
+				"opening luks device %v", luks.Name,
+			); err != nil {
+				return fmt.Errorf("opening luks device: %v", err)
+			}
 		}
 
 		if luks.Clevis != nil {
@@ -234,4 +251,45 @@ func (s *stage) createLuks(config types.Config) error {
 	}
 
 	return nil
+}
+
+func (s *stage) checkLuksDeviceExists(luks types.Luks, keyFilePath string) (bool, error) {
+	devAlias := execUtil.DeviceAlias(*luks.Device)
+	if _, err := s.Logger.LogCmd(
+		exec.Command(distro.CryptsetupCmd(), "isLuks", "--type", "luks2", devAlias),
+		"checking if %v is a luks device", *luks.Device,
+	); err != nil {
+		// isLuks returns exit status 1 if the device is not LUKS
+		return false, nil
+	}
+
+	if luks.Label != nil {
+		fsInfo, err := execUtil.GetFilesystemInfo(devAlias, true)
+		if err != nil {
+			return false, fmt.Errorf("retrieving filesystem info: %v", err)
+		}
+		if fsInfo.Label != *luks.Label {
+			return false, nil
+		}
+	}
+
+	if luks.UUID != nil {
+		uuid, err := exec.Command(distro.CryptsetupCmd(), "luksUUID", devAlias).CombinedOutput()
+		if err != nil {
+			return false, err
+		}
+		if strings.TrimSpace(string(uuid)) != *luks.UUID {
+			return false, nil
+		}
+	}
+
+	// open the device to make sure the keyfile is valid
+	if _, err := s.Logger.LogCmd(
+		exec.Command(distro.CryptsetupCmd(), "luksOpen", devAlias, luks.Name, "--key-file", keyFilePath),
+		"opening luks device %v", luks.Name,
+	); err != nil {
+		return false, nil
+	}
+	s.Logger.Debug("device %v already exists, reusing", luks.Name)
+	return true, nil
 }
