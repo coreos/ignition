@@ -45,19 +45,11 @@ func (l Luks) Validate(c path.ContextPath) (r report.Report) {
 		r.AddOnError(c.Append("device"), validatePath(*l.Device))
 	}
 
-	// fail if there is no valid keyfile & no clevis entries
-	if err := l.KeyFile.validateRequiredSource(); err != nil && l.emptyClevis() {
-		r.AddOnError(c.Append("keys"), errors.ErrInvalidLuksVolume)
+	// fail if a key file is provided and is not valid
+	if err := validateURLNilOK(l.KeyFile.Source); err != nil {
+		r.AddOnError(c.Append("keys"), errors.ErrInvalidLuksKeyFile)
 	}
 	return
-}
-
-func (l Luks) emptyClevis() bool {
-	if l.Clevis == nil {
-		return true
-	}
-
-	return len(l.Clevis.Tang) == 0 && (l.Clevis.Tpm2 == nil || !*l.Clevis.Tpm2)
 }
 
 func (l Luks) validateLabel() error {

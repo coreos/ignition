@@ -208,8 +208,8 @@ func (s *stage) createLuks(config types.Config) error {
 			}
 		}
 
-		// assume the user does not want a key file, remove it
-		if ignitionCreatedKeyFile {
+		// assume the user does not want a key file & remove it for clevis based devices
+		if ignitionCreatedKeyFile && luks.Clevis != nil {
 			if _, err := s.Logger.LogCmd(
 				exec.Command(distro.CryptsetupCmd(), "luksRemoveKey", *luks.Device, keyFilePath),
 				"removing key file for %v", luks.Name,
