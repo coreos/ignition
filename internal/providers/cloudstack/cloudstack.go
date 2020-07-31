@@ -50,6 +50,8 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	var data []byte
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
+	sawErrNeedNet := false
+
 	dispatch := func(name string, fn func() ([]byte, error)) {
 		raw, err := fn()
 		if err != nil {
@@ -57,6 +59,9 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 			case context.Canceled:
 			case context.DeadlineExceeded:
 				f.Logger.Err("timed out while fetching config from %s", name)
+			case resource.ErrNeedNet:
+				sawErrNeedNet = true
+				fallthrough
 			default:
 				f.Logger.Err("failed to fetch config from %s: %v", name, err)
 			}
@@ -81,6 +86,11 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 
 	<-ctx.Done()
 	if ctx.Err() == context.DeadlineExceeded {
+		// Did we hit neednet? If so, propagate that up instead. The OS should
+		// retry fetching again once networking is up.
+		if sawErrNeedNet {
+			return types.Config{}, report.Report{}, resource.ErrNeedNet
+		}
 		f.Logger.Info("neither config drive nor metadata service were available in time. Continuing without a config...")
 	}
 
