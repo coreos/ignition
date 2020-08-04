@@ -240,5 +240,47 @@ Users can be added to an OS with the `passwd.users` key which takes a list of ob
 
 To add more users, configure them within the `users` list structure (`[...]`).
 
+## Create a LUKS Volume
+
+This config will set up a key-file based LUKS2 volume, `data`, put a filesystem on the volume, and write a mount unit (shown below) to automatically mount the volume to `/var/lib/data`.
+
+```json ignition
+{
+  "ignition": {"version": "3.2.0-experimental"},
+  "storage": {
+    "luks": [{
+      "name": "data",
+      "device": "/dev/sdb"
+    }],
+    "filesystems": [{
+      "path": "/var/lib/data",
+      "device": "/dev/disk/by-id/dm-name-data",
+      "format": "ext4",
+      "label": "DATA"
+    }]
+  },
+  "systemd": {
+    "units": [{
+      "name": "var-lib-data.mount",
+      "enabled": true,
+      "contents": "[Mount]\nWhat=/dev/disk/by-label/DATA\nWhere=/var/lib/data\nType=ext4\n\n[Install]\nWantedBy=local-fs.target"
+    }]
+  }
+}
+
+```
+
+### var-lib-data.mount
+
+```INI
+[Mount]
+What=/dev/disk/by-label/DATA
+Where=/var/lib/data
+Type=ext4
+
+[Install]
+WantedBy=local-fs.target
+```
+
 [rfc2397]: http://tools.ietf.org/html/rfc2397
 [operator-notes]: operator-notes.md

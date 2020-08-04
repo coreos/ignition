@@ -117,3 +117,15 @@ A child config can specify children of its own. Those children are merged into t
 If names of the parent and child headers match, the result will be to replace the value of the parent header with that of the child.
 
 If a child header has no value, the parent header with the same name will be removed.
+
+## LUKS
+
+Ignition has support for creating both purely key-file based LUKS2 devices as well as Tang/TPM2 backed (via clevis) devices.
+
+If a key-file is not specified one will be generated for the device. Key-files will be stored at `/etc/luks/<deviceName>` (this path can be overriden via build flags).
+
+Ignition generates entries in `/etc/crypttab` for each device and expects that the operating system has hooks to be able to unlock the device (e.x.: `systemd-cryptsetup-generator`).
+
+### Clevis Based Devices
+
+When creating clevis based devices to utilize Tang or TPM2 Ignition will use an [SSS Pin](https://github.com/latchset/clevis#pin-shamir-secret-sharing) and will create the relevant configuration JSON from the provided attributes.
