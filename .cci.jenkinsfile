@@ -42,7 +42,7 @@ cosaPod(buildroot: true) {
                 cd /srv/fcos
                 cosa buildextend-metal
                 cosa buildextend-metal4k
-                cosa buildextend-live
+                cosa buildextend-live --fast
                 kola testiso -S --output-dir tmp/kola-testiso-metal
             """)
         } finally {
