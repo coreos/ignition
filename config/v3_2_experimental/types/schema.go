@@ -157,6 +157,7 @@ type PasswdUser struct {
 	NoCreateHome      *bool              `json:"noCreateHome,omitempty"`
 	NoLogInit         *bool              `json:"noLogInit,omitempty"`
 	NoUserGroup       *bool              `json:"noUserGroup,omitempty"`
+	NonUnique         *bool              `json:"nonUnique,omitempty"`
 	PasswordHash      *string            `json:"passwordHash,omitempty"`
 	PrimaryGroup      *string            `json:"primaryGroup,omitempty"`
 	SSHAuthorizedKeys []SSHAuthorizedKey `json:"sshAuthorizedKeys,omitempty"`

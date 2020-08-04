@@ -38,6 +38,7 @@ var (
 	flagGid          int
 	flagGroups       string
 	flagShell        string
+	flagNonUnique    bool
 )
 
 func main() {
@@ -54,6 +55,7 @@ func main() {
 	flag.IntVar(&flagGid, "gid", -1, "The group name or number of the user's initial login group")
 	flag.StringVar(&flagGroups, "groups", "", "A list of supplementary groups which the user is also a member of")
 	flag.StringVar(&flagShell, "shell", "", "The name of the user's login shell")
+	flag.BoolVar(&flagNonUnique, "non-unique", false, "Allow the creation of a user account with a duplicate (non-unique) UID. ")
 
 	flag.Parse()
 

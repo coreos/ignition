@@ -15,6 +15,7 @@
 package files
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -94,6 +95,23 @@ func (s *stage) createPasswd(config types.Config) error {
 	return nil
 }
 
+func userUIDConflict(a types.PasswdUser, list []types.PasswdUser) error {
+	if a.UID == nil {
+		return nil
+	}
+
+	for _, b := range list {
+		if b.UID == nil || a.Name == b.Name {
+			continue
+		}
+
+		if uint64(*b.UID) == uint64(*a.UID) && ((*b.NonUnique) == false || (*a.NonUnique) == false) {
+			return errors.New(fmt.Sprintf("conflicting uid from user: %s with uid: %d", b.Name, *b.UID))
+		}
+	}
+	return nil
+}
+
 // createUsers creates the users as described in config.Passwd.Users.
 func (s stage) createUsers(config types.Config) error {
 	if len(config.Passwd.Users) == 0 {
@@ -103,6 +121,11 @@ func (s stage) createUsers(config types.Config) error {
 	defer s.Logger.PopPrefix()
 
 	for _, u := range config.Passwd.Users {
+		if err := userUIDConflict(u, config.Passwd.Users); err != nil {
+			return fmt.Errorf("failed to create user %q: %v",
+				u.Name, err)
+		}
+
 		if err := s.EnsureUser(u); err != nil {
 			return fmt.Errorf("failed to create user %q: %v",
 				u.Name, err)
