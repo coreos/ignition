@@ -25,6 +25,7 @@ install() {
     # present
     inst_multiple -o \
         groupadd \
+        groupdel \
         mkfs.btrfs \
         mkfs.ext4 \
         mkfs.vfat \
@@ -32,6 +33,7 @@ install() {
         mkswap \
         sgdisk \
         useradd \
+        userdel \
         usermod \
         wipefs
 

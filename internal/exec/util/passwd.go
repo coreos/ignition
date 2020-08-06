@@ -50,13 +50,28 @@ func appendIfStringSet(args []string, arg string, str *string) []string {
 }
 
 // EnsureUser ensures that the user exists as described. If the user does not
-// yet exist, they will be created, otherwise the existing user will be
-// modified.
+// yet exist, they will be created, otherwise the existing user will be modified.
+// If the `shouldExist` field is set to false and the user already exists, then
+// they will be deleted.
 func (u Util) EnsureUser(c types.PasswdUser) error {
+	shouldExist := c.ShouldExist == nil || *c.ShouldExist
 	exists, err := u.CheckIfUserExists(c)
 	if err != nil {
 		return err
 	}
+	if !shouldExist {
+		if exists {
+			args := []string{"--remove", "--root", u.DestDir, c.Name}
+			_, err := u.LogCmd(exec.Command(distro.UserdelCmd(), args...),
+				"deleting user %q", c.Name)
+			if err != nil {
+				return fmt.Errorf("failed to delete user %q: %v",
+					c.Name, err)
+			}
+		}
+		return nil
+	}
+
 	args := []string{"--root", u.DestDir}
 
 	var cmd string
@@ -244,8 +259,28 @@ func (u Util) SetPasswordHash(c types.PasswdUser) error {
 	return err
 }
 
-// CreateGroup creates the group as described.
-func (u Util) CreateGroup(g types.PasswdGroup) error {
+// EnsureGroup ensures that the group exists as described. If the
+// `shouldExist` field is set to false and the group already exists,
+// then it will be deleted.
+func (u Util) EnsureGroup(g types.PasswdGroup) error {
+	shouldExist := g.ShouldExist == nil || *g.ShouldExist
+	exists, err := u.CheckIfGroupExists(g)
+	if err != nil {
+		return err
+	}
+	if !shouldExist {
+		if exists {
+			args := []string{"--root", u.DestDir, g.Name}
+			_, err := u.LogCmd(exec.Command(distro.GroupdelCmd(), args...),
+				"deleting group %q", g.Name)
+			if err != nil {
+				return fmt.Errorf("failed to delete group %q: %v",
+					g.Name, err)
+			}
+		}
+		return nil
+	}
+
 	args := []string{"--root", u.DestDir}
 
 	if g.Gid != nil {
@@ -263,7 +298,19 @@ func (u Util) CreateGroup(g types.PasswdGroup) error {
 
 	args = append(args, g.Name)
 
-	_, err := u.LogCmd(exec.Command(distro.GroupaddCmd(), args...),
+	_, err = u.LogCmd(exec.Command(distro.GroupaddCmd(), args...),
 		"adding group %q", g.Name)
 	return err
+}
+
+// CheckIfGroupExists will return Info log when group is empty
+func (u Util) CheckIfGroupExists(g types.PasswdGroup) (bool, error) {
+	_, err := u.groupLookup(g.Name)
+	if _, ok := err.(user.UnknownGroupError); ok {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

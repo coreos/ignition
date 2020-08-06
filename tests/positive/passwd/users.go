@@ -21,6 +21,8 @@ import (
 
 func init() {
 	register.Register(register.PositiveTest, AddPasswdUsers())
+	register.Register(register.PositiveTest, DeletePasswdUsers())
+	register.Register(register.PositiveTest, DeleteGroups())
 	register.Register(register.PositiveTest, UseAuthorizedKeysFile())
 }
 
@@ -43,7 +45,8 @@ func AddPasswdUsers() types.Test {
 				},
 				{
 					"name": "jenkins",
-					"uid": 1020
+					"uid": 1020,
+					"shouldExist": true
 				}
 			]
 		}
@@ -155,6 +158,180 @@ ENCRYPT_METHOD SHA512
 		In:               in,
 		Out:              out,
 		Env:              env,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// DeletePasswdUsers verifies that the user(s) can be removed
+// from a given OS distro.
+func DeletePasswdUsers() types.Test {
+	name := "users.delete"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+		"ignition": {
+			"version": "$version"
+		},
+		"passwd": {
+			"users": [
+				{
+					"name": "jenkins",
+					"shouldExist": false
+				},
+				{
+					"name": "test",
+					"shouldExist": false
+				}
+			]
+		}
+	}`
+	configMinVersion := "3.2.0-experimental"
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "passwd",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:0:root:/root:/bin/bash\ncore:x:500:500:CoreOS Admin:/home/core:/bin/bash\nsystemd-coredump:x:998:998:systemd Core Dumper:/:/sbin/nologin\nfleet:x:253:253::/:/sbin/nologin\njenkins:x:1020:1001::/:/bin/bash\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "shadow",
+				Directory: "etc",
+			},
+			Contents: "root:*:15887:0:::::\ncore:*:15887:0:::::\nsystemd-coredump:!!:17301::::::\nfleet:!!:17301::::::\njenkins:*:17331:0:99999:7:::\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "group",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\njenkins:x:1001:\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "gshadow",
+				Directory: "etc",
+			},
+			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\njenkins:!::\n",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "passwd",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:0:root:/root:/bin/bash\ncore:x:500:500:CoreOS Admin:/home/core:/bin/bash\nsystemd-coredump:x:998:998:systemd Core Dumper:/:/sbin/nologin\nfleet:x:253:253::/:/sbin/nologin\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "group",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "shadow",
+				Directory: "etc",
+			},
+			Contents: "root:*:15887:0:::::\ncore:*:15887:0:::::\nsystemd-coredump:!!:17301::::::\nfleet:!!:17301::::::\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "gshadow",
+				Directory: "etc",
+			},
+			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// DeleteGroups verifies that the group(s) can be removed
+// from a given OS distro.
+func DeleteGroups() types.Test {
+	name := "groups.delete"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+		"ignition": {
+			"version": "$version"
+		},
+		"passwd": {
+			"groups": [
+				{
+					"name": "jenkins",
+					"shouldExist": false
+				},
+				{
+					"name": "test",
+					"shouldExist": false
+				}
+			]
+		}
+	}`
+	configMinVersion := "3.2.0-experimental"
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "passwd",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:0:root:/root:/bin/bash\ncore:x:500:500:CoreOS Admin:/home/core:/bin/bash\nsystemd-coredump:x:998:998:systemd Core Dumper:/:/sbin/nologin\nfleet:x:253:253::/:/sbin/nologin\njenkins:x:1020:1001::/:/bin/bash\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "shadow",
+				Directory: "etc",
+			},
+			Contents: "root:*:15887:0:::::\ncore:*:15887:0:::::\nsystemd-coredump:!!:17301::::::\nfleet:!!:17301::::::\njenkins:*:17331:0:99999:7:::\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "group",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\njenkins:x:1001:\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "gshadow",
+				Directory: "etc",
+			},
+			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\njenkins:!::\n",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "group",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "gshadow",
+				Directory: "etc",
+			},
+			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
 		Config:           config,
 		ConfigMinVersion: configMinVersion,
 	}

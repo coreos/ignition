@@ -41,12 +41,12 @@ func (s *stage) expandGlobList(globs ...string) ([]string, error) {
 
 // createPasswd creates the users and groups as described in config.Passwd.
 func (s *stage) createPasswd(config types.Config) error {
-	if err := s.createGroups(config); err != nil {
-		return fmt.Errorf("failed to create groups: %v", err)
+	if err := s.ensureGroups(config); err != nil {
+		return fmt.Errorf("failed to configure groups: %v", err)
 	}
 
-	if err := s.createUsers(config); err != nil {
-		return fmt.Errorf("failed to create users: %v", err)
+	if err := s.ensureUsers(config); err != nil {
+		return fmt.Errorf("failed to configure users: %v", err)
 	}
 
 	// to be safe, just blanket mark all passwd-related files rather than
@@ -68,7 +68,10 @@ func (s *stage) createPasswd(config types.Config) error {
 		s.relabel(deglobbed...)
 		s.relabel("/etc/.pwd.lock")
 		for _, user := range config.Passwd.Users {
-			if user.NoCreateHome != nil && *user.NoCreateHome == true {
+			if user.NoCreateHome != nil && *user.NoCreateHome {
+				continue
+			}
+			if user.ShouldExist != nil && !*user.ShouldExist {
 				continue
 			}
 			homedir, err := s.GetUserHomeDir(user)
@@ -94,18 +97,23 @@ func (s *stage) createPasswd(config types.Config) error {
 	return nil
 }
 
-// createUsers creates the users as described in config.Passwd.Users.
-func (s stage) createUsers(config types.Config) error {
+// ensureUsers ensures that users match the state described
+// in config.Passwd.Users.
+func (s stage) ensureUsers(config types.Config) error {
 	if len(config.Passwd.Users) == 0 {
 		return nil
 	}
-	s.Logger.PushPrefix("createUsers")
+	s.Logger.PushPrefix("ensureUsers")
 	defer s.Logger.PopPrefix()
 
 	for _, u := range config.Passwd.Users {
 		if err := s.EnsureUser(u); err != nil {
 			return fmt.Errorf("failed to create user %q: %v",
 				u.Name, err)
+		}
+
+		if u.ShouldExist != nil && !*u.ShouldExist {
+			continue
 		}
 
 		if err := s.SetPasswordHash(u); err != nil {
@@ -122,16 +130,17 @@ func (s stage) createUsers(config types.Config) error {
 	return nil
 }
 
-// createGroups creates the users as described in config.Passwd.Groups.
-func (s stage) createGroups(config types.Config) error {
+// ensureGroups ensures that groups match the state described
+// in config.Passwd.Groups.
+func (s stage) ensureGroups(config types.Config) error {
 	if len(config.Passwd.Groups) == 0 {
 		return nil
 	}
-	s.Logger.PushPrefix("createGroups")
+	s.Logger.PushPrefix("ensureGroups")
 	defer s.Logger.PopPrefix()
 
 	for _, g := range config.Passwd.Groups {
-		if err := s.CreateGroup(g); err != nil {
+		if err := s.EnsureGroup(g); err != nil {
 			return fmt.Errorf("failed to create group %q: %v",
 				g.Name, err)
 		}
