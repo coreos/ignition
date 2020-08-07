@@ -30,5 +30,9 @@ GitHub release:
  - [ ] Create a draft release on GitHub and upload all the release artifacts and their signatures. Copy and paste the release notes from NEWS here as well.
  - [ ] Publish the release
 
+Quay release:
+  - [ ] Visit the [Quay tags page](https://quay.io/repository/coreos/ignition-validate?tab=tags) and wait for a versioned tag to appear
+  - [ ] Click the gear next to the tag, select "Add New Tag", enter `release`, and confirm
+
 Housekeeping:
  - [ ] Vendor the new Ignition version in [mantle](https://github.com/coreos/coreos-assembler/tree/master/mantle)
