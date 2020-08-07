@@ -20,31 +20,13 @@ if [[ -n "$(git status -s)" ]]; then
 fi
 
 if [ -z ${BIN_PATH+a} ]; then
-	export BIN_PATH=${PWD}/bin/releases/
+	export BIN_PATH=${PWD}/bin/container/
 fi
 
 export GO11MODULE=on
 export CGO_ENABLED=0
 export GOFLAGS='-mod=vendor'
-
-build_release() {
-    export NAME="ignition-validate-${1}"
-    echo "building ${NAME}"
-    go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/validate
-}
-
 export GOOS=linux
 export GOARCH=amd64
-build_release x86_64-unknown-linux-gnu
 
-export GOOS=darwin
-export GOARCH=amd64
-build_release x86_64-apple-darwin
-
-export GOOS=windows
-export GOARCH=amd64
-build_release x86_64-pc-windows-gnu.exe
-
-export GOOS=linux
-export GOARCH=arm64
-build_release aarch64-unknown-linux-gnu
+go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/ignition-validate ${REPO_PATH}/validate
