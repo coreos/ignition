@@ -54,7 +54,7 @@ var (
 	ErrVfatLabelTooLong          = errors.New("filesystem labels cannot be longer than 11 characters when using vfat")
 	ErrLuksLabelTooLong          = errors.New("luks device labels cannot be longer than 47 characters")
 	ErrLuksNameContainsSlash     = errors.New("device names cannot contain slashes")
-	ErrInvalidLuksVolume         = errors.New("a key-file or clevis configuration must be specified")
+	ErrInvalidLuksKeyFile        = errors.New("invalid key-file source")
 	ErrTangThumbprintRequired    = errors.New("thumbprint is required")
 	ErrFileIllegalMode           = errors.New("illegal file mode")
 	ErrBothIDAndNameSet          = errors.New("cannot set both id and name")
