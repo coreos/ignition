@@ -1,3 +1,15 @@
+07-Aug-2020 Ignition 2.6.0
+
+  Features:
+
+    - Add "release" tag to ignition-validate container for latest release
+    - Support creating ephemeral LUKS volumes (3.2.0-exp)
+    - Support deleting users/groups (3.2.0-exp)
+
+  Bug Fixes:
+
+    - Request network when needed on CloudStack/OpenStack
+
 23-Jul-2020 Ignition 2.5.0
 
   Changes:
