@@ -29,7 +29,7 @@ To validate a config for Ignition there are binaries for a cli tool called `igni
 Example:
 ```
 # This example uses podman, but docker can be used too
-podman run --rm -i quay.io/coreos/ignition-validate - < myconfig.ign
+podman run --pull=always --rm -i quay.io/coreos/ignition-validate:release - < myconfig.ign
 ```
 
 ## Branches
