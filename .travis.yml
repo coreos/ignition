@@ -6,6 +6,9 @@ go:
   - "1.12.x"
   - "1.13.x"
 
+services:
+  - docker
+
 arch:
   - arm64
   - amd64
@@ -18,4 +21,5 @@ addons:
     - libblkid-dev
 
 script:
-  - ./test;
+  - ./test
+  - docker build -f Dockerfile.validate .

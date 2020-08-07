@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -eu
+
+NAME="ignition"
+ORG_PATH="github.com/coreos"
+REPO_PATH="${ORG_PATH}/${NAME}/v2"
+GLDFLAGS=${GLDFLAGS:-}
+
+if [ -z ${VERSION+a} ]; then
+	echo "Using version from git..."
+	VERSION=$(git describe --dirty --always)
+fi
+
+GLDFLAGS+="-X github.com/coreos/ignition/v2/internal/version.Raw=${VERSION}"
+
+if [[ -n "$(git status -s)" ]]; then
+    echo "git repo not clean"
+    exit 1
+fi
+
+if [ -z ${BIN_PATH+a} ]; then
+	export BIN_PATH=${PWD}/bin/container/
+fi
+
+export GO11MODULE=on
+export CGO_ENABLED=0
+export GOFLAGS='-mod=vendor'
+export GOOS=linux
+export GOARCH=amd64
+
+go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/ignition-validate ${REPO_PATH}/validate
