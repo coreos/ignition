@@ -52,7 +52,7 @@
 # https://github.com/coreos/ignition
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}/v2
-%global commit          0d6f3e5e859821134cd04fcaf47c2488c25aff0d
+%global commit          947598ed908b374c50028f260eb52da9795a4ba4
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 # define ldflags, buildflags, testflags here. The ldflags were
 # taken from ./build. We will need to periodically check these
@@ -63,7 +63,7 @@
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Version:        2.5.0
+Version:        2.6.0
 Release:        1.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
@@ -514,6 +514,8 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %gotest %{import_path}/config/translate
 %gotest %{import_path}/config/v3_0
 %gotest %{import_path}/config/v3_0/types
+%gotest %{import_path}/config/v3_1
+%gotest %{import_path}/config/v3_1/types
 %gotest %{import_path}/config/validate
 %gotest %{import_path}/internal/exec/stages/files
 %gotest %{import_path}/internal/exec/util
@@ -549,6 +551,10 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Fri Aug 07 2020 Benjamin Gilbert <bgilbert@redhat.com - 2.6.0-1.git947598e
+- New release
+- Update license for ignition-dracut merge
+
 * Mon Jul 27 2020 Ben Howard <ben.howard@redhat.com> - 2.5.0-1.git0d6f3e5
 - Dracut modules are now built from in-tree modules.
 
