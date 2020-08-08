@@ -551,14 +551,14 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
-* Fri Aug 07 2020 Benjamin Gilbert <bgilbert@redhat.com - 2.6.0-1.git947598e
+* Fri Aug 07 2020 Benjamin Gilbert <bgilbert@redhat.com - 2.6.0-1.rhaos4.6.git947598e
 - New release
 - Update license for ignition-dracut merge
 
-* Mon Jul 27 2020 Ben Howard <ben.howard@redhat.com> - 2.5.0-1.git0d6f3e5
+* Mon Jul 27 2020 Ben Howard <ben.howard@redhat.com> - 2.5.0-1.rhaos4.6.git0d6f3e5
 - Dracut modules are now built from in-tree modules.
 
-* Wed Jul 22 2020 Timothée Ravier <travier@redhat.com> - 2.4.1-1.git5260a5b
+* Wed Jul 22 2020 Timothée Ravier <travier@redhat.com> - 2.4.1-1.rhaos4.6.git5260a5b
 - New release with ignition-dracut bump (imported from Fedora)
 
 * Tue Jul 21 2020 Timothée Ravier <travier@redhat.com> - 2.3.0-1.rhaos4.6.gitee616d5
