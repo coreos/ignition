@@ -66,7 +66,7 @@ Name:           ignition
 Version:        2.5.0
 Release:        1.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
-License:        ASL 2.0 and BSD
+License:        ASL 2.0
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
 
@@ -549,7 +549,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
-* Mon Jul 27 2020 Ben Howard <ben.howard@redhat.com> - 2.5.0.-1.git0d6f3e5
+* Mon Jul 27 2020 Ben Howard <ben.howard@redhat.com> - 2.5.0-1.git0d6f3e5
 - Dracut modules are now built from in-tree modules.
 
 * Wed Jul 22 2020 Timothée Ravier <travier@redhat.com> - 2.4.1-1.git5260a5b
