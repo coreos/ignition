@@ -39,8 +39,9 @@ There are two branches:
   spec 3.x.  Used by Fedora CoreOS, and by Red Hat CoreOS starting with
   version 46.82.
 - `spec2x`: the legacy branch of Ignition, supporting config spec 1 and 2.x.
-  Used by RHEL CoreOS, alongside the `spec2x` branch of ignition-dracut,
-  and by Flatcar Container Linux.
+  Used by older versions of RHEL CoreOS, alongside the `spec2x` branch of
+  ignition-dracut, and by Flatcar Container Linux.  This branch is no
+  longer maintained.
 
 ### Legacy ignition-dracut
 

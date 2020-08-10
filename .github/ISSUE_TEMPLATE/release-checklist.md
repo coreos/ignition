@@ -9,8 +9,8 @@ Tagging:
  - [ ] Push that tag to GitHub
 
 Packaging:
- - [ ] Create a PR to bump the Ignition spec file in [Fedora](https://src.fedoraproject.org/rpms/ignition).  Bump the `master` branch for 2.x and the `epel7` branch for 0.x.
- - [ ] For 2.x: once the PR merges to master, merge master into the other relevant branches (e.g. f30) then push those.
+ - [ ] Create a PR to bump the Ignition spec file in [Fedora](https://src.fedoraproject.org/rpms/ignition).
+ - [ ] Once the PR merges to master, merge master into the other relevant branches (e.g. f30) then push those
  - [ ] On each of those branches run `fedpkg build`
  - [ ] Once the builds have finished, submit them to [bodhi](https://bodhi.fedoraproject.org/updates/new), filling in:
    - `ignition` for `Packages`
@@ -22,7 +22,7 @@ Packaging:
 
 GitHub release:
  - [ ] Wait until the Bodhi update shows "Signed :heavy_check_mark:" in the Metadata box.
- - [ ] [File a releng ticket](https://pagure.io/releng/new_issue) based on prior signing tickets for [0.x](https://pagure.io/releng/issue/9185) or [2.x](https://pagure.io/releng/issue/9602).
+ - [ ] [File a releng ticket](https://pagure.io/releng/new_issue) based on [prior signing tickets](https://pagure.io/releng/issue/9602).
    - [ ] Update the script and test it locally by dropping the `sigul` lines.
  - [ ] Ping `mboddu` in Freenode `#fedora-coreos`, linking to the ticket
  - [ ] Wait for the ticket to be closed
