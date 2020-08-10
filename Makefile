@@ -6,6 +6,8 @@ ifeq ($(GOARCH),x86_64)
 	GOARCH=amd64
 else ifeq ($(GOARCH),aarch64)
 	GOARCH=arm64
+else ifeq ($(patsubst i%86,386,$(GOARCH)),386)
+	GOARCH=386
 endif
 
 .PHONY: all
