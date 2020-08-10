@@ -1,3 +1,10 @@
+# The `spec2x` branch is no longer maintained
+
+Ignition 0.x is no longer maintained.  Please migrate to current releases
+of Ignition, located in the `master` branch.
+
+---
+
 # Ignition
 
 Ignition is the utility used by CoreOS Container Linux to manipulate disks during the initramfs. This includes partitioning disks, formatting partitions, writing files (regular files, systemd units, networkd units, etc.), and configuring users. On first boot, Ignition reads its configuration from a source of truth (remote URL, network metadata service, hypervisor bridge, etc.) and applies the configuration.
