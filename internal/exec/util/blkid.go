@@ -142,7 +142,6 @@ func DumpDisk(device string) (DiskInfo, error) {
 	output := DiskInfo{}
 
 	var cInfo C.struct_partition_info
-	cInfoRef := (*C.struct_partition_info)(unsafe.Pointer(&cInfo))
 
 	cDevice := C.CString(device)
 	defer C.free(unsafe.Pointer(cDevice))
@@ -154,13 +153,12 @@ func DumpDisk(device string) (DiskInfo, error) {
 	output.LogicalSectorSize = int(sectorSize)
 
 	numParts := C.int(0)
-	cNumPartsRef := (*C.int)(unsafe.Pointer(&numParts))
-	if err := cResultToErr(C.blkid_get_num_partitions(cDevice, cNumPartsRef), device); err != nil {
+	if err := cResultToErr(C.blkid_get_num_partitions(cDevice, &numParts), device); err != nil {
 		return DiskInfo{}, err
 	}
 
 	for i := 0; i < int(numParts); i++ {
-		if err := cResultToErr(C.blkid_get_partition(cDevice, C.int(i), cInfoRef), device); err != nil {
+		if err := cResultToErr(C.blkid_get_partition(cDevice, C.int(i), &cInfo), device); err != nil {
 			return DiskInfo{}, err
 		}
 
