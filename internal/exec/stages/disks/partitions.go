@@ -101,9 +101,9 @@ func partitionShouldBeInspected(part sgdisk.Partition) bool {
 		(part.SizeInSectors != nil && *part.SizeInSectors == 0)
 }
 
-func convertMiBToSectors(mib *int, sectorSize int) *int {
+func convertMiBToSectors(mib *int, sectorSize int) *int64 {
 	if mib != nil {
-		v := (*mib) * (1024 * 1024 / sectorSize)
+		v := int64(*mib) * (1024 * 1024 / int64(sectorSize))
 		return &v
 	} else {
 		return nil
@@ -178,20 +178,20 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 }
 
 type sgdiskOutput struct {
-	start int
-	size  int
+	start int64
+	size  int64
 }
 
-// parseLine takes a regexp that captures an int and a string to match on. On success it returns
-// the captured int and nil. If the regexp does not match it returns -1 and nil. If it encountered
+// parseLine takes a regexp that captures an int64 and a string to match on. On success it returns
+// the captured int64 and nil. If the regexp does not match it returns -1 and nil. If it encountered
 // an error it returns 0 and the error.
-func parseLine(r *regexp.Regexp, line string) (int, error) {
+func parseLine(r *regexp.Regexp, line string) (int64, error) {
 	matches := r.FindStringSubmatch(line)
 	switch len(matches) {
 	case 0:
 		return -1, nil
 	case 2:
-		return strconv.Atoi(matches[1])
+		return strconv.ParseInt(matches[1], 10, 64)
 	default:
 		return 0, ErrBadSgdiskOutput
 	}

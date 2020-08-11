@@ -58,8 +58,8 @@ type PartitionInfo struct {
 	Label         string
 	GUID          string
 	TypeGUID      string
-	StartSector   int
-	SizeInSectors int
+	StartSector   int64
+	SizeInSectors int64
 	Number        int
 }
 
@@ -168,8 +168,8 @@ func DumpDisk(device string) (DiskInfo, error) {
 			GUID:          strings.ToUpper(CBufToGoStr(cInfo.uuid)),
 			TypeGUID:      strings.ToUpper(CBufToGoStr(cInfo.type_guid)),
 			Number:        int(cInfo.number),
-			StartSector:   int(cInfo.start),
-			SizeInSectors: int(cInfo.size),
+			StartSector:   int64(cInfo.start),
+			SizeInSectors: int64(cInfo.size),
 		}
 
 		output.Partitions = append(output.Partitions, current)

@@ -37,8 +37,8 @@ type Operation struct {
 // StartSector/SizeInSectors.  The caller is expected to do the conversion.
 type Partition struct {
 	types.Partition
-	StartSector   *int
-	SizeInSectors *int
+	StartSector   *int64
+	SizeInSectors *int64
 
 	// shadow StartMiB/SizeMiB so they're not accidentally used
 	StartMiB string
