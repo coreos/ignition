@@ -64,11 +64,14 @@
 
 Name:           ignition
 Version:        2.6.0
-Release:        1.rhaos4.6.git%{shortcommit}%{?dist}
+Release:        2.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
+# Fix sector size detection on s390x
+# https://github.com/coreos/ignition/pull/1070
+Patch0:         blkid-fix-invalid-pointer-cast-in-DumpDisk.patch
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: x86_64 ppc64le aarch64 s390x
@@ -418,6 +421,7 @@ This package contains a tool for validating Ignition configurations.
 # setup command reference: http://ftp.rpm.org/max-rpm/s1-rpm-inside-macros.html
 # unpack source0 and apply patches
 %setup -T -b 0 -q -n %{repo}-%{commit}
+%patch0 -p1
 
 %build
 # Set up PWD as a proper import path for go
@@ -551,7 +555,10 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
-* Fri Aug 07 2020 Benjamin Gilbert <bgilbert@redhat.com - 2.6.0-1.rhaos4.6.git947598e
+* Wed Aug 12 2020 Benjamin Gilbert <bgilbert@redhat.com> - 2.6.0-2.rhaos4.6.git947598e
+- Fix sector size detection on s390x
+
+* Fri Aug 07 2020 Benjamin Gilbert <bgilbert@redhat.com> - 2.6.0-1.rhaos4.6.git947598e
 - New release
 - Update license for ignition-dracut merge
 
