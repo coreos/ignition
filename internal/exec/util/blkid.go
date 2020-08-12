@@ -58,8 +58,8 @@ type PartitionInfo struct {
 	Label         string
 	GUID          string
 	TypeGUID      string
-	StartSector   int
-	SizeInSectors int
+	StartSector   int64
+	SizeInSectors int64
 	Number        int
 }
 
@@ -142,24 +142,23 @@ func DumpDisk(device string) (DiskInfo, error) {
 	output := DiskInfo{}
 
 	var cInfo C.struct_partition_info
-	cInfoRef := (*C.struct_partition_info)(unsafe.Pointer(&cInfo))
 
 	cDevice := C.CString(device)
 	defer C.free(unsafe.Pointer(cDevice))
 
-	cSectorSizeRef := (*C.int)(unsafe.Pointer(&output.LogicalSectorSize))
-	if err := cResultToErr(C.blkid_get_logical_sector_size(cDevice, cSectorSizeRef), device); err != nil {
+	var sectorSize C.int
+	if err := cResultToErr(C.blkid_get_logical_sector_size(cDevice, &sectorSize), device); err != nil {
 		return DiskInfo{}, err
 	}
+	output.LogicalSectorSize = int(sectorSize)
 
 	numParts := C.int(0)
-	cNumPartsRef := (*C.int)(unsafe.Pointer(&numParts))
-	if err := cResultToErr(C.blkid_get_num_partitions(cDevice, cNumPartsRef), device); err != nil {
+	if err := cResultToErr(C.blkid_get_num_partitions(cDevice, &numParts), device); err != nil {
 		return DiskInfo{}, err
 	}
 
 	for i := 0; i < int(numParts); i++ {
-		if err := cResultToErr(C.blkid_get_partition(cDevice, C.int(i), cInfoRef), device); err != nil {
+		if err := cResultToErr(C.blkid_get_partition(cDevice, C.int(i), &cInfo), device); err != nil {
 			return DiskInfo{}, err
 		}
 
@@ -168,8 +167,8 @@ func DumpDisk(device string) (DiskInfo, error) {
 			GUID:          strings.ToUpper(CBufToGoStr(cInfo.uuid)),
 			TypeGUID:      strings.ToUpper(CBufToGoStr(cInfo.type_guid)),
 			Number:        int(cInfo.number),
-			StartSector:   int(cInfo.start),
-			SizeInSectors: int(cInfo.size),
+			StartSector:   int64(cInfo.start),
+			SizeInSectors: int64(cInfo.size),
 		}
 
 		output.Partitions = append(output.Partitions, current)

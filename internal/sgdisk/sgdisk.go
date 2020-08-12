@@ -28,9 +28,21 @@ type Operation struct {
 	logger    *log.Logger
 	dev       string
 	wipe      bool
-	parts     []types.Partition
+	parts     []Partition
 	deletions []int
 	infos     []int
+}
+
+// We ignore types.Partition.StartMiB/SizeMiB in favor of
+// StartSector/SizeInSectors.  The caller is expected to do the conversion.
+type Partition struct {
+	types.Partition
+	StartSector   *int64
+	SizeInSectors *int64
+
+	// shadow StartMiB/SizeMiB so they're not accidentally used
+	StartMiB string
+	SizeMiB  string
 }
 
 // Begin begins an sgdisk operation
@@ -39,7 +51,7 @@ func Begin(logger *log.Logger, dev string) *Operation {
 }
 
 // CreatePartition adds the supplied partition to the list of partitions to be created as part of an operation.
-func (op *Operation) CreatePartition(p types.Partition) {
+func (op *Operation) CreatePartition(p Partition) {
 	op.parts = append(op.parts, p)
 }
 
@@ -149,16 +161,16 @@ func (op Operation) buildOptions() []string {
 	return opts
 }
 
-func partitionGetStart(p types.Partition) string {
-	if p.StartMiB != nil {
-		return fmt.Sprintf("%d", *p.StartMiB)
+func partitionGetStart(p Partition) string {
+	if p.StartSector != nil {
+		return fmt.Sprintf("%d", *p.StartSector)
 	}
 	return "0"
 }
 
-func partitionGetSize(p types.Partition) string {
-	if p.SizeMiB != nil {
-		return fmt.Sprintf("%d", *p.SizeMiB)
+func partitionGetSize(p Partition) string {
+	if p.SizeInSectors != nil {
+		return fmt.Sprintf("%d", *p.SizeInSectors)
 	}
 	return "0"
 }

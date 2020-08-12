@@ -297,7 +297,7 @@ func NumberZeroHappensLast() types.Test {
 				"partitions": [
 				{
 					"label": "newpart",
-					"size": 65536
+					"sizeMiB": 32
 				},
 				{
 					"number": 1,
