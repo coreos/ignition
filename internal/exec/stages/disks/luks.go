@@ -18,6 +18,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -29,6 +30,10 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
+)
+
+var (
+	ErrBadVolume = errors.New("volume is not of the correct type")
 )
 
 // https://github.com/latchset/clevis/blob/master/src/pins/tang/clevis-encrypt-tang.1.adoc#config
@@ -142,57 +147,103 @@ func (s *stage) createLuks(config types.Config) error {
 			}
 		}
 
-		// check if the LUKS device already exists, device will be
-		// opened if it exists; don't allow clevis device re-use as
-		// we can't guarantee that what is stored in the header is
-		// exactly what would be generated from the given config
-		var exists bool
-		if !ignitionCreatedKeyFile && luks.Clevis == nil {
-			var err error
-			exists, err = s.checkLuksDeviceExists(luks, keyFilePath)
-			if err != nil {
-				return fmt.Errorf("checking if luks device exists: %v", err)
-			}
-		}
+		if luks.WipeVolume == nil || !*luks.WipeVolume {
+			// If the volume isn't forcefully being created, then we need
+			// to check if it is of the correct type or that no volume exists.
 
-		if !exists {
-			args := []string{
-				"luksFormat",
-				"--type", "luks2",
-				"--key-file", keyFilePath,
-			}
-
-			if !util.NilOrEmpty(luks.Label) {
-				args = append(args, "--label", *luks.Label)
-			}
-
-			if !util.NilOrEmpty(luks.UUID) {
-				args = append(args, "--uuid", *luks.UUID)
-			}
-
-			if len(luks.Options) > 0 {
-				// golang's a really great language...
-				for _, option := range luks.Options {
-					args = append(args, string(option))
+			// check if the LUKS device already exists, device will be
+			// opened if it exists; don't allow clevis device re-use as
+			// we can't guarantee that what is stored in the header is
+			// exactly what would be generated from the given config
+			var exists bool
+			if !ignitionCreatedKeyFile && luks.Clevis == nil {
+				var err error
+				exists, err = s.checkLuksDeviceExists(luks, keyFilePath)
+				if err != nil {
+					return fmt.Errorf("checking if luks device exists: %v", err)
 				}
 			}
 
-			args = append(args, devAlias)
-
-			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.CryptsetupCmd(), args...),
-				"creating %q", luks.Name,
-			); err != nil {
-				return fmt.Errorf("cryptsetup failed: %v", err)
+			var info execUtil.FilesystemInfo
+			err := s.Logger.LogOp(
+				func() error {
+					var err error
+					info, err = execUtil.GetFilesystemInfo(devAlias, false)
+					if err != nil {
+						// Try again, allowing multiple filesystem
+						// fingerprints this time.  If successful,
+						// log a warning and continue.
+						var err2 error
+						info, err2 = execUtil.GetFilesystemInfo(devAlias, true)
+						if err2 == nil {
+							s.Logger.Warning("%v", err)
+						}
+						err = err2
+					}
+					return err
+				},
+				"determining volume type of %q", *luks.Device,
+			)
+			if err != nil {
+				return err
 			}
+			s.Logger.Info("found %s at %q with uuid %q and label %q", info.Type, *luks.Device, info.UUID, info.Label)
 
-			// open the device
-			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.CryptsetupCmd(), "luksOpen", devAlias, luks.Name, "--key-file", keyFilePath),
-				"opening luks device %v", luks.Name,
-			); err != nil {
-				return fmt.Errorf("opening luks device: %v", err)
+			if exists {
+				// Re-used devices cannot have Ignition generated key-files or be clevis devices so we cannot
+				// leak any key files when exiting the loop early
+				s.Logger.Info("volume at %q is already correctly formatted. Skipping...", *luks.Device)
+				continue
+			} else if info.Type != "" {
+				s.Logger.Err("volume at %q is not of the correct type, label, or UUID (found %s, %q, %s) and a volume wipe was not requested", *luks.Device, info.Type, info.Label, info.UUID)
+				return ErrBadVolume
 			}
+		} else {
+			if _, err := s.Logger.LogCmd(
+				exec.Command(distro.WipefsCmd(), "-a", devAlias),
+				"wiping filesystem signatures from %q",
+				devAlias,
+			); err != nil {
+				return fmt.Errorf("wipefs failed: %v", err)
+			}
+		}
+
+		args := []string{
+			"luksFormat",
+			"--type", "luks2",
+			"--key-file", keyFilePath,
+		}
+
+		if !util.NilOrEmpty(luks.Label) {
+			args = append(args, "--label", *luks.Label)
+		}
+
+		if !util.NilOrEmpty(luks.UUID) {
+			args = append(args, "--uuid", *luks.UUID)
+		}
+
+		if len(luks.Options) > 0 {
+			// golang's a really great language...
+			for _, option := range luks.Options {
+				args = append(args, string(option))
+			}
+		}
+
+		args = append(args, devAlias)
+
+		if _, err := s.Logger.LogCmd(
+			exec.Command(distro.CryptsetupCmd(), args...),
+			"creating %q", luks.Name,
+		); err != nil {
+			return fmt.Errorf("cryptsetup failed: %v", err)
+		}
+
+		// open the device
+		if _, err := s.Logger.LogCmd(
+			exec.Command(distro.CryptsetupCmd(), "luksOpen", devAlias, luks.Name, "--key-file", keyFilePath),
+			"opening luks device %v", luks.Name,
+		); err != nil {
+			return fmt.Errorf("opening luks device: %v", err)
 		}
 
 		if luks.Clevis != nil {
@@ -290,6 +341,5 @@ func (s *stage) checkLuksDeviceExists(luks types.Luks, keyFilePath string) (bool
 	); err != nil {
 		return false, nil
 	}
-	s.Logger.Debug("device %v already exists, reusing", luks.Name)
 	return true, nil
 }

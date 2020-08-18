@@ -256,6 +256,9 @@
             "keyFile": {
               "$ref": "#/definitions/resource"
             },
+            "wipeVolume": {
+              "type": ["boolean", "null"]
+            },
             "clevis": {
               "type": ["object", "null"],
               "properties": {
