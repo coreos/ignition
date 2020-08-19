@@ -27,6 +27,7 @@ import (
 	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
+	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
 )
 
 // https://github.com/latchset/clevis/blob/master/src/pins/tang/clevis-encrypt-tang.1.adoc#config
@@ -85,6 +86,15 @@ func (s *stage) createLuks(config types.Config) error {
 	s.Logger.PushPrefix("createLuks")
 	defer s.Logger.PopPrefix()
 
+	devs := []string{}
+	for _, luks := range config.Storage.Luks {
+		devs = append(devs, *luks.Device)
+	}
+
+	if err := s.waitOnDevicesAndCreateAliases(devs, "luks"); err != nil {
+		return err
+	}
+
 	for _, luks := range config.Storage.Luks {
 		// TODO: allow Ignition generated KeyFiles for
 		// non-clevis devices that can be persisted.
@@ -96,6 +106,7 @@ func (s *stage) createLuks(config types.Config) error {
 		// sysroot by the files stage
 		os.MkdirAll(distro.LuksInitramfsKeyFilePath(), 0700)
 		keyFilePath := filepath.Join(distro.LuksInitramfsKeyFilePath(), luks.Name)
+		devAlias := execUtil.DeviceAlias(*luks.Device)
 		if util.NilOrEmpty(luks.KeyFile.Source) {
 			// create a keyfile
 			key, err := randHex(4096)
@@ -150,7 +161,7 @@ func (s *stage) createLuks(config types.Config) error {
 			}
 		}
 
-		args = append(args, *luks.Device)
+		args = append(args, devAlias)
 
 		if _, err := s.Logger.LogCmd(
 			exec.Command(distro.CryptsetupCmd(), args...),
@@ -161,7 +172,7 @@ func (s *stage) createLuks(config types.Config) error {
 
 		// open the device
 		if _, err := s.Logger.LogCmd(
-			exec.Command(distro.CryptsetupCmd(), "luksOpen", *luks.Device, luks.Name, "--key-file", keyFilePath),
+			exec.Command(distro.CryptsetupCmd(), "luksOpen", devAlias, luks.Name, "--key-file", keyFilePath),
 			"opening luks device %v", luks.Name,
 		); err != nil {
 			return fmt.Errorf("opening luks device: %v", err)
@@ -188,7 +199,7 @@ func (s *stage) createLuks(config types.Config) error {
 				return fmt.Errorf("creating clevis json: %v", err)
 			}
 			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.ClevisCmd(), "luks", "bind", "-f", "-k", keyFilePath, "-d", *luks.Device, "sss", string(clevisJson)), "Clevis bind",
+				exec.Command(distro.ClevisCmd(), "luks", "bind", "-f", "-k", keyFilePath, "-d", devAlias, "sss", string(clevisJson)), "Clevis bind",
 			); err != nil {
 				return fmt.Errorf("binding clevis device: %v", err)
 			}
@@ -201,7 +212,7 @@ func (s *stage) createLuks(config types.Config) error {
 				return fmt.Errorf("closing luks device: %v", err)
 			}
 			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.ClevisCmd(), "luks", "unlock", "-d", *luks.Device, "-n", luks.Name),
+				exec.Command(distro.ClevisCmd(), "luks", "unlock", "-d", devAlias, "-n", luks.Name),
 				"reopening clevis luks device %s", luks.Name,
 			); err != nil {
 				return fmt.Errorf("reopening luks device %s: %v", luks.Name, err)
@@ -211,7 +222,7 @@ func (s *stage) createLuks(config types.Config) error {
 		// assume the user does not want a key file & remove it for clevis based devices
 		if ignitionCreatedKeyFile && luks.Clevis != nil {
 			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.CryptsetupCmd(), "luksRemoveKey", *luks.Device, keyFilePath),
+				exec.Command(distro.CryptsetupCmd(), "luksRemoveKey", devAlias, keyFilePath),
 				"removing key file for %v", luks.Name,
 			); err != nil {
 				return fmt.Errorf("removing key file from luks device: %v", err)

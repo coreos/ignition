@@ -56,7 +56,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 	}
 	extrafiles := []filesystemEntry{}
 	for _, luks := range config.Storage.Luks {
-		out, err := exec.Command(distro.CryptsetupCmd(), "luksUUID", *luks.Device).CombinedOutput()
+		out, err := exec.Command(distro.CryptsetupCmd(), "luksUUID", util.DeviceAlias(*luks.Device)).CombinedOutput()
 		if err != nil {
 			return fmt.Errorf("gathering luks uuid: %s: %v", out, err)
 		}
