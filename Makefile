@@ -6,6 +6,10 @@ ifeq ($(GOARCH),x86_64)
 	GOARCH=amd64
 else ifeq ($(GOARCH),aarch64)
 	GOARCH=arm64
+else ifeq ($(patsubst armv%,arm,$(GOARCH)),arm)
+	GOARCH=arm
+else ifeq ($(patsubst i%86,386,$(GOARCH)),386)
+	GOARCH=386
 endif
 
 .PHONY: all
@@ -16,9 +20,10 @@ all:
 install: all
 	for x in dracut/*; do \
 	  bn=$$(basename $$x); \
-	  install -D -t $(DESTDIR)/usr/lib/dracut/modules.d/$${bn} $$x/*; \
+	  install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/$${bn} $$x/*; \
 	done
-	install -D -t $(DESTDIR)/usr/lib/systemd/system systemd/*
+	chmod a+x $(DESTDIR)/usr/lib/dracut/modules.d/*/*.sh $(DESTDIR)/usr/lib/dracut/modules.d/*/*-generator
+	install -m 0644 -D -t $(DESTDIR)/usr/lib/systemd/system systemd/*
 	install -m 0755 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/30ignition bin/$(GOARCH)/ignition
 	install -m 0755 -D -t $(DESTDIR)/usr/bin bin/$(GOARCH)/ignition-validate
 
