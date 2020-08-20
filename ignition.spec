@@ -64,7 +64,7 @@
 
 Name:           ignition
 Version:        2.6.0
-Release:        2.rhaos4.6.git%{shortcommit}%{?dist}
+Release:        3.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
@@ -430,7 +430,7 @@ ln -s ../../../ src/%{provider_prefix}
 
 export LDFLAGS=%{ldflags}
 # Enable SELinux relabeling
-export LDFLAGS+=' -X github.com/coreos/ignition/v2/internal/distro.selinuxRelabel=true '
+export LDFLAGS+=' -X github.com/coreos/ignition/v2/internal/distro.selinuxRelabel=true -X github.com/coreos/ignition/v2/internal/distro.writeAuthorizedKeysFragment=false '
 
 # Modules, baby!
 export GO111MODULE=on
@@ -555,6 +555,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Thu Aug 20 2020 Benjamin Gilbert <bgilbert@redhat.com> - 2.6.0-3.rhaos4.6.git947598e
+- Write SSH keys directly to authorized_keys, not to fragment file
+
 * Wed Aug 12 2020 Benjamin Gilbert <bgilbert@redhat.com> - 2.6.0-2.rhaos4.6.git947598e
 - Fix sector size detection on s390x
 
