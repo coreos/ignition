@@ -29,7 +29,7 @@ import (
 // udf volume, while Azure Stack might use udf or iso9660.
 const (
 	CDS_FSTYPE_UDF     = "udf"
-	CDS_FSTYPE_ISO9660 = "iso9960"
+	CDS_FSTYPE_ISO9660 = "iso9660"
 )
 
 // FetchConfig implements the platform.NewFetcher interface.
