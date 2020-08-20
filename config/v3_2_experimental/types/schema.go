@@ -94,13 +94,14 @@ type LinkEmbedded1 struct {
 }
 
 type Luks struct {
-	Clevis  *Clevis      `json:"clevis,omitempty"`
-	Device  *string      `json:"device,omitempty"`
-	KeyFile Resource     `json:"keyFile,omitempty"`
-	Label   *string      `json:"label,omitempty"`
-	Name    string       `json:"name"`
-	Options []LuksOption `json:"options,omitempty"`
-	UUID    *string      `json:"uuid,omitempty"`
+	Clevis     *Clevis      `json:"clevis,omitempty"`
+	Device     *string      `json:"device,omitempty"`
+	KeyFile    Resource     `json:"keyFile,omitempty"`
+	Label      *string      `json:"label,omitempty"`
+	Name       string       `json:"name"`
+	Options    []LuksOption `json:"options,omitempty"`
+	UUID       *string      `json:"uuid,omitempty"`
+	WipeVolume *bool        `json:"wipeVolume,omitempty"`
 }
 
 type LuksOption string
@@ -161,8 +162,8 @@ type PasswdUser struct {
 	PasswordHash      *string            `json:"passwordHash,omitempty"`
 	PrimaryGroup      *string            `json:"primaryGroup,omitempty"`
 	SSHAuthorizedKeys []SSHAuthorizedKey `json:"sshAuthorizedKeys,omitempty"`
-	ShouldExist       *bool              `json:"shouldExist,omitempty"`
 	Shell             *string            `json:"shell,omitempty"`
+	ShouldExist       *bool              `json:"shouldExist,omitempty"`
 	System            *bool              `json:"system,omitempty"`
 	UID               *int               `json:"uid,omitempty"`
 }
