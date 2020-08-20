@@ -15,11 +15,11 @@
 package types
 
 import (
-	"path/filepath"
+	"path"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 
-	"github.com/coreos/vcontext/path"
+	vpath "github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
 )
 
@@ -27,15 +27,15 @@ func (n Node) Key() string {
 	return n.Path
 }
 
-func (n Node) Validate(c path.ContextPath) (r report.Report) {
+func (n Node) Validate(c vpath.ContextPath) (r report.Report) {
 	r.AddOnError(c.Append("path"), validatePath(n.Path))
 	return
 }
 
 func (n Node) Depth() int {
 	count := 0
-	for p := filepath.Clean(string(n.Path)); p != "/"; count++ {
-		p = filepath.Dir(p)
+	for p := path.Clean(string(n.Path)); p != "/"; count++ {
+		p = path.Dir(p)
 	}
 	return count
 }
@@ -47,12 +47,12 @@ func validateIDorName(id *int, name *string) error {
 	return nil
 }
 
-func (nu NodeUser) Validate(c path.ContextPath) (r report.Report) {
+func (nu NodeUser) Validate(c vpath.ContextPath) (r report.Report) {
 	r.AddOnError(c, validateIDorName(nu.ID, nu.Name))
 	return
 }
 
-func (ng NodeGroup) Validate(c path.ContextPath) (r report.Report) {
+func (ng NodeGroup) Validate(c vpath.ContextPath) (r report.Report) {
 	r.AddOnError(c, validateIDorName(ng.ID, ng.Name))
 	return
 }
