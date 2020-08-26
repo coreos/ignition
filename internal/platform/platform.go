@@ -45,6 +45,7 @@ import (
 type Config struct {
 	name       string
 	fetch      providers.FuncFetchConfig
+	init       providers.FuncInit
 	newFetcher providers.FuncNewFetcher
 	status     providers.FuncPostStatus
 }
@@ -68,6 +69,19 @@ func (c Config) NewFetcherFunc() providers.FuncNewFetcher {
 	}
 }
 
+// InitFunc returns a function that performs additional fetcher
+// configuration post-config fetch. This ensures that networking
+// is already available if a platform needs to reach out to the
+// metadata service to fetch additional options / data.
+func (c Config) InitFunc() providers.FuncInit {
+	if c.init != nil {
+		return c.init
+	}
+	return func(f *resource.Fetcher) error {
+		return nil
+	}
+}
+
 // Status takes a Fetcher and the error from Run (from engine)
 func (c Config) Status(stageName string, f resource.Fetcher, statusErr error) error {
 	if c.status != nil {
@@ -86,6 +100,7 @@ func init() {
 	configs.Register(Config{
 		name:       "aws",
 		fetch:      aws.FetchConfig,
+		init:       aws.Init,
 		newFetcher: aws.NewFetcher,
 	})
 	configs.Register(Config{
