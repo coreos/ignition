@@ -196,6 +196,10 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 		return fmt.Errorf("failed to resolve file %q: %v", f.Path, err)
 	}
 
+	if _, err := os.Stat(f.Path); !os.IsNotExist(err) {
+		panic(fmt.Sprintf("filesystem path %s already exists; can't overwrite", f.Path))
+	}
+
 	for _, op := range fetchOps {
 		msg := "writing file %q"
 		if op.Append {

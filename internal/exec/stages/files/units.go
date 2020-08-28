@@ -16,6 +16,7 @@ package files
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -202,6 +203,11 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 				}
 				relabelPath = f.Node.Path[len(s.DestDir):]
 			}
+
+			if _, err := os.Stat(f.Node.Path); !os.IsNotExist(err) {
+				panic(fmt.Sprintf("dropin path %s already exists; can't overwrite", f.Node.Path))
+			}
+
 			if err := s.Logger.LogOp(
 				func() error { return u.PerformFetch(f) },
 				"writing systemd drop-in %q at %q", dropin.Name, f.Node.Path,
@@ -231,6 +237,11 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 			}
 			relabelPath = f.Node.Path[len(s.DestDir):]
 		}
+
+		if _, err := os.Stat(f.Node.Path); !os.IsNotExist(err) {
+			panic(fmt.Sprintf("unit path %s already exists; can't overwrite", f.Node.Path))
+		}
+
 		if err := s.Logger.LogOp(
 			func() error { return u.PerformFetch(f) },
 			"writing unit %q at %q", unit.Name, f.Node.Path,
