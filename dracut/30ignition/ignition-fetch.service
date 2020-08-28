@@ -6,6 +6,8 @@ DefaultDependencies=false
 Before=ignition-complete.target
 After=basic.target
 ConditionPathExists=/run/ignition/neednet
+# Don't run if the `fetch-offline` stage successfully fetched a config
+ConditionPathExists=!/run/ignition.json
 
 # Stage order: setup -> fetch-offline [-> fetch] -> disks -> mount -> files.
 # We run after the setup stage has run because it may copy in new/different
