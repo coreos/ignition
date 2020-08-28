@@ -35,6 +35,7 @@ func init() {
 	register.Register(register.NegativeTest, VersionOnlyConfig25())
 	register.Register(register.NegativeTest, VersionOnlyConfig33())
 	register.Register(register.NegativeTest, MergingCanFail())
+	register.Register(register.NegativeTest, OverWritingExistingFilesFailed())
 }
 
 func ReplaceConfigWithInvalidHash() types.Test {
@@ -348,6 +349,50 @@ func MergingCanFail() types.Test {
 		Out:              out,
 		Config:           config,
 		MntDevices:       mntDevices,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// OverWritingExistingFilesFailed ensures that users can't
+// overwrite existing files in a system via Ignition.
+func OverWritingExistingFilesFailed() types.Test {
+	name := "config.overwrite.file.failed"
+	configMinVersion := "3.2.0-experimental"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": {
+	    "version": "3.0.0"
+	  },
+	  "storage": {
+		"files": [
+		  {
+			"group": {},
+			"path": "/etc/systemd/system/echo.service",
+			"user": {},
+			"contents": {
+			  "source": "data:,foo",
+			  "verification": {}
+			}
+		  }
+		]
+	  },
+	  "systemd": {
+		"units": [
+		  {
+			"contents": "foo",
+			"enabled": true,
+			"name": "echo.service"
+		  }
+		]
+	  }
+	}`
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
 		ConfigMinVersion: configMinVersion,
 	}
 }
