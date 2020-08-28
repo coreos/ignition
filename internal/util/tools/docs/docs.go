@@ -39,7 +39,7 @@ func main() {
 	}{}
 
 	flag.BoolVar(&flags.help, "help", false, "Print help and exit.")
-	flag.StringVar(&flags.root, "root", "doc", "Path to the documentation.")
+	flag.StringVar(&flags.root, "root", "docs", "Path to the documentation.")
 
 	flag.Parse()
 
