@@ -1,4 +1,9 @@
-# Ignition rationale
+---
+layout: default
+nav_order: 2
+---
+
+# Rationale
 
 Ignition is a distribution-agnostic provisioning utility. When a machine boots for the first time, Ignition will manipulate it in various ways to set up the machine for operations.
 

@@ -1,4 +1,11 @@
-# Configuration Specification v3.2.0-experimental #
+---
+layout: default
+title: Config Spec v3.2.0-experimental
+parent: Configuration specifications
+nav_order: 3
+---
+
+# Configuration Specification v3.2.0-experimental
 
 _NOTE_: This pre-release version of the specification is experimental and is subject to change without notice or regard to backward compatibility.
 

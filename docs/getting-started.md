@@ -1,4 +1,9 @@
-# Getting Started with Ignition
+---
+layout: default
+nav_order: 3
+---
+
+# Getting Started
 
 Ignition is a low-level system configuration utility. The Ignition executable is part of the temporary initial root filesystem, the *initramfs*. When Ignition runs, it finds configuration data in a named location for a given environment, such as a file or URL, and applies it to the machine before `switch_root` is called to pivot to the machine's root filesystem.
 

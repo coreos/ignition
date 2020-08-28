@@ -1,4 +1,11 @@
-# Configuration Specification v3.0.0 #
+---
+layout: default
+title: Config Spec v3.0.0
+parent: Configuration specifications
+nav_order: 2
+---
+
+# Configuration Specification v3.0.0
 
 The Ignition configuration is a JSON document conforming to the following specification, with **_italicized_** entries being optional:
 
