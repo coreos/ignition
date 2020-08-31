@@ -30,9 +30,9 @@ This config will write a single service unit (shown below) with the contents of 
 }
 ```
 
-#### example.service
+`example.service`:
 
-```INI
+```ini
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/echo Hello World
@@ -60,9 +60,9 @@ This config will add a [systemd unit drop-in](https://www.freedesktop.org/softwa
 }
 ```
 
-#### systemd-journald.service.d/debug.conf
+`systemd-journald.service.d/debug.conf`:
 
-```INI
+```ini
 [Service]
 Environment=SYSTEMD_LOG_LEVEL=debug
 ```
@@ -172,9 +172,9 @@ In many scenarios, it may be useful to have an external data volume. This config
 }
 ```
 
-### var-lib-data.mount
+`var-lib-data.mount`:
 
-```INI
+```ini
 [Mount]
 What=/dev/md/data
 Where=/var/lib/data
@@ -279,9 +279,9 @@ This config will set up a key-file based LUKS2 volume, `data`, put a filesystem 
 
 ```
 
-### var-lib-data.mount
+`var-lib-data.mount`:
 
-```INI
+```ini
 [Mount]
 What=/dev/disk/by-label/DATA
 Where=/var/lib/data
