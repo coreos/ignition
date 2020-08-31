@@ -21,7 +21,8 @@ The following is a list of notable new features, deprecations, and changes.
 
 All `verification.hash` fields now support the `sha256` hash type.
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.1.0" },
   "storage": {
@@ -43,7 +44,8 @@ All `verification.hash` fields now support the `sha256` hash type.
 
 The config `merge` and `replace` sections and the `certificateAuthorities` section now support gzip-compressed resources via the `compression` field. `gzip` compression is supported for all URL schemes except `s3`.
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": {
     "version": "3.1.0",
@@ -69,7 +71,8 @@ The config `merge` and `replace` sections and the `certificateAuthorities` secti
 
 The `filesystems` section gained a new `mountOptions` field. It is a list of options Ignition should pass to `mount -o` when mounting the specified filesystem. This is useful for mounting btrfs subvolumes. This field only affects mounting performed by Ignition while it is running; it does not affect mounting of the filesystem by the provisioned system.
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.1.0" },
   "storage": {
@@ -92,7 +95,8 @@ The sections which allow fetching a remote URL &mdash; config `merge` and `repla
 
 During config merging, if a child config specifies a header `name` but not a corresponding `value`, any header with that `name` in the parent config will be removed.
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.1.0" },
   "storage": {
@@ -131,7 +135,8 @@ The `httpsProxy` field specifies the proxy URL for HTTPS requests. The `httpProx
 
 IP addresses and domain names can also include a port number (`1.2.3.4:80`).
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": {
     "version": "3.1.0",
@@ -188,7 +193,8 @@ Ignition now will mount filesystems at the mountpoint specified by `path` when r
 }
 ```
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.0.0" },
   "storage": {
@@ -254,7 +260,8 @@ Files now have a list of contents to append instead of multiple entries with `ap
 }
 ```
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.0.0" },
   "storage": {

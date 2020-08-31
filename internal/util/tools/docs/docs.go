@@ -28,8 +28,21 @@ import (
 	config "github.com/coreos/ignition/v2/config/v3_2_experimental"
 )
 
+// Specific section marker used in the docs to indicate that the Markdown code
+// section right after it should be treated as being a valid Ignition config
+// and thus used for testing.
 const (
-	infoString = "json ignition"
+	sectionMarker = "<!-- ignition -->"
+)
+
+// Represent the state we are in while trying to extract Ignition config
+// sections from the examples in the docs.
+type sectionState int
+
+const (
+	notInSection     sectionState = 0
+	expectingSection              = 1
+	inSection                     = 2
 )
 
 func main() {
@@ -59,13 +72,22 @@ func main() {
 		}
 
 		fileLines := strings.Split(string(fileContents), "\n")
-		jsonSections := findJsonSections(fileLines)
+		jsonSections, ignored, err := findJsonSections(fileLines)
+		if err != nil {
+			return fmt.Errorf("invalid section formatting in %s: %s", path, err)
+		}
+		if len(jsonSections) != 0 {
+			fmt.Printf("Found %d sections in: %s\n", len(jsonSections), path)
+		}
+		if ignored != 0 {
+			fmt.Printf("Ignored %d partial or empty sections in: %s\n", ignored, path)
+		}
 
 		for _, json := range jsonSections {
 			_, r, _ := config.Parse([]byte(strings.Join(json, "\n")))
 			reportStr := r.String()
 			if reportStr != "" {
-				return fmt.Errorf("non-empty parsing report in %s: %s", info.Name(), reportStr)
+				return fmt.Errorf("non-empty parsing report in %s: %s\nConfig:\n%s", info.Name(), reportStr, json)
 			}
 		}
 
@@ -76,25 +98,41 @@ func main() {
 	}
 }
 
-func findJsonSections(fileLines []string) [][]string {
+func findJsonSections(fileLines []string) ([][]string, uint, error) {
 	var jsonSections [][]string
 	var currentSection []string
-	inASection := false
+
+	var ignoredSections uint = 0
+	var state sectionState = notInSection
+
 	for _, line := range fileLines {
-		if line == "```" {
-			inASection = false
-			if len(currentSection) > 0 && currentSection[0] != "..." {
-				// Ignore empty sections and sections that are not full configs
-				jsonSections = append(jsonSections, currentSection)
+		switch state {
+		case notInSection:
+			if line == sectionMarker {
+				state = expectingSection
 			}
-			currentSection = nil
-		}
-		if inASection {
-			currentSection = append(currentSection, line)
-		}
-		if line == "```"+infoString {
-			inASection = true
+
+		case expectingSection:
+			if line == "```json" {
+				state = inSection
+			} else {
+				return jsonSections, ignoredSections, fmt.Errorf("expecting '```json', found: %s", line)
+			}
+
+		case inSection:
+			if line == "```" {
+				if len(currentSection) == 0 || currentSection[0] == "..." {
+					// Ignore empty sections and sections that are not full configs
+					ignoredSections++
+				} else {
+					jsonSections = append(jsonSections, currentSection)
+				}
+				currentSection = nil
+				state = notInSection
+			} else {
+				currentSection = append(currentSection, line)
+			}
 		}
 	}
-	return jsonSections
+	return jsonSections, ignoredSections, nil
 }
