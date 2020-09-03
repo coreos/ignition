@@ -115,7 +115,7 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_name_** (string): the group name of the owner.
     * **target** (string): the target path of the link
     * **_hard_** (boolean): a symbolic link is created if this is false, a hard one if this is true.
- * **_luks_** (list of objects): the list of luks devices to be created. Every device must have a unique `name`.
+  * **_luks_** (list of objects): the list of luks devices to be created. Every device must have a unique `name`.
     * **name** (string): the name of the luks device.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
     * **_keyFile_** (string): options related to the contents of the key file.
