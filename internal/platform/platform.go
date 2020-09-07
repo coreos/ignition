@@ -84,9 +84,8 @@ func init() {
 		fetch: aliyun.FetchConfig,
 	})
 	configs.Register(Config{
-		name:       "aws",
-		fetch:      aws.FetchConfig,
-		newFetcher: aws.NewFetcher,
+		name:  "aws",
+		fetch: aws.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "azure",

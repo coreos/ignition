@@ -41,6 +41,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
@@ -392,9 +393,7 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 
 	if f.AWSSession == nil {
 		var err error
-		f.AWSSession, err = session.NewSession(&aws.Config{
-			Credentials: credentials.AnonymousCredentials,
-		})
+		f.AWSSession, err = session.NewSession()
 		if err != nil {
 			return err
 		}
@@ -402,10 +401,14 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 	sess := f.AWSSession.Copy()
 
 	// Determine the partition and region this bucket is in
-	regionHint := "us-east-1"
-	if f.S3RegionHint != "" {
-		regionHint = f.S3RegionHint
+	regionHint := f.S3RegionHint
+	if regionHint == "" {
+		var err error
+		if regionHint, err = ec2metadata.New(sess).Region(); err != nil {
+			regionHint = "us-east-1"
+		}
 	}
+
 	region, err := s3manager.GetBucketRegion(ctx, sess, u.Host, regionHint)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
