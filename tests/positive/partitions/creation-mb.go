@@ -26,6 +26,7 @@ func init() {
 	register.Register(register.PositiveTest, WipeAndCreateNewPartitionsMiB())
 	register.Register(register.PositiveTest, AppendPartitionsMiB())
 	register.Register(register.PositiveTest, ResizeRootMiB())
+	register.Register(register.PositiveTest, ResizeExistingPartitionsMiB())
 }
 
 func CreatePartitionMiB() types.Test {
@@ -326,5 +327,41 @@ func ResizeRootMiB() types.Test {
 		Out:              out,
 		Config:           config,
 		ConfigMinVersion: "3.0.0",
+	}
+}
+
+// ResizeExistingPartitionsMiB verifies that the existing partition can
+// be resized if `resize` field is set to true and partition matches in
+// all respects except size.
+func ResizeExistingPartitionsMiB() types.Test {
+	name := "partition.resizeExistingPartition"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	out[0].Partitions[9-6-1].Length = 12943360 + 65536
+	config := `{
+			"ignition": {
+				"version": "$version"
+			},
+			"storage": {
+				"disks": [{
+					"device": "$disk0",
+					"wipeTable": false,
+					"partitions": [{
+						"label": "ROOT",
+						"number": 9,
+						"sizeMiB": 6352,
+						"resize": true
+					}
+					]
+				}]
+			}
+		}`
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: "3.2.0-experimental",
 	}
 }
