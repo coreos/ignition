@@ -70,6 +70,13 @@ type Engine struct {
 	Root           string
 	PlatformConfig platform.Config
 	Fetcher        *resource.Fetcher
+	fetchedConfigs []fetchedConfig
+}
+
+type fetchedConfig struct {
+	kind       string
+	source     string
+	referenced bool
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -86,25 +93,12 @@ func (e Engine) Run(stageName string) error {
 	if err != nil && err != providers.ErrNoProvider {
 		e.Logger.Crit("failed to acquire system base config: %v", err)
 		return err
-	}
-
-	baseConfigFound := true
-	if err == providers.ErrNoProvider {
-		baseConfigFound = false
-	}
-
-	configExists, err := executil.PathExists(e.ConfigCache)
-	if err != nil {
-		e.Logger.Info("failed to check for %s : %v", e.ConfigCache, err)
-	}
-	// This is a hack to emit the journald message
-	// only once for the base config. Change this when
-	// (https://github.com/coreos/ignition/issues/950)
-	// is implemented.
-	if !configExists && baseConfigFound {
-		if err := logStructuredJournalEntry("base", "system", false); err != nil {
-			e.Logger.Info("failed to log systemd journal entry: %v", err)
-		}
+	} else if err == nil {
+		e.fetchedConfigs = append(e.fetchedConfigs, fetchedConfig{
+			kind:       "base",
+			source:     "system",
+			referenced: false,
+		})
 	}
 
 	// We special-case the fetch-offline stage a bit here: we want to be able
@@ -149,18 +143,18 @@ func (e Engine) Run(stageName string) error {
 
 // logStructuredJournalEntry logs information related to
 // a user/base config into the systemd journal log.
-func logStructuredJournalEntry(config string, src string, isReferenced bool) error {
+func logStructuredJournalEntry(cfgInfo fetchedConfig) error {
 	ignitionInfo := map[string]string{
-		"IGNITION_CONFIG_TYPE":       config,
-		"IGNITION_CONFIG_SRC":        src,
-		"IGNITION_CONFIG_REFERENCED": strconv.FormatBool(isReferenced),
+		"IGNITION_CONFIG_TYPE":       cfgInfo.kind,
+		"IGNITION_CONFIG_SRC":        cfgInfo.source,
+		"IGNITION_CONFIG_REFERENCED": strconv.FormatBool(cfgInfo.referenced),
 		"MESSAGE_ID":                 ignitionFetchedConfigMsgId,
 	}
 	referenced := ""
-	if isReferenced {
+	if cfgInfo.referenced {
 		referenced = "referenced "
 	}
-	msg := fmt.Sprintf("fetched %s%s config from %q", referenced, config, src)
+	msg := fmt.Sprintf("fetched %s%s config from %q", referenced, cfgInfo.kind, cfgInfo.source)
 	if err := journal.Send(msg, journal.PriInfo, ignitionInfo); err != nil {
 		return err
 	}
@@ -175,6 +169,15 @@ func (e *Engine) acquireConfig(stageName string) (cfg types.Config, err error) {
 	switch {
 	case strings.HasPrefix(stageName, "fetch"):
 		cfg, err = e.acquireProviderConfig()
+
+		// if we've successfully fetched and cached the configs, log about them
+		if err == nil {
+			for _, cfgInfo := range e.fetchedConfigs {
+				if logerr := logStructuredJournalEntry(cfgInfo); logerr != nil {
+					e.Logger.Info("failed to log systemd journal entry: %v", logerr)
+				}
+			}
+		}
 	default:
 		cfg, err = e.acquireCachedConfig()
 	}
@@ -300,9 +303,12 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 		return types.Config{}, err
 	}
 
-	if err := logStructuredJournalEntry("user", providerKey, false); err != nil {
-		e.Logger.Info("failed to log systemd journal entry: %v", err)
-	}
+	e.fetchedConfigs = append(e.fetchedConfigs, fetchedConfig{
+		kind:       "user",
+		source:     providerKey,
+		referenced: false,
+	})
+
 	// Replace the HTTP client in the fetcher to be configured with the
 	// timeouts of the config
 	err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfg.Ignition.Timeouts, cfg.Ignition.Security.TLS.CertificateAuthorities, cfg.Ignition.Proxy)
@@ -402,9 +408,11 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, err
 		e.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))
 	}
 
-	if err := logStructuredJournalEntry("user", u.Path, true); err != nil {
-		e.Logger.Info("failed to log systemd journal entry: %v", err)
-	}
+	e.fetchedConfigs = append(e.fetchedConfigs, fetchedConfig{
+		kind:       "user",
+		source:     u.Path,
+		referenced: true,
+	})
 
 	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
 		return types.Config{}, err
