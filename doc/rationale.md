@@ -28,4 +28,4 @@ Ignition configs do not allow users to provide arbitrary logic (including script
 
 Ignition configs were designed to be human readable, but difficult to write, to discourage users from attempting to write configs by hand.
 
-Use a separate tool to generate Ignition configs. For Container Linux, files called Container Linux Configs can be written in YAML and then converted into Ignition configs. This conversion process allows for distribution specific configs to be converted into a distribution-agnostic Ignition config, and ensures that the Ignition config gets validated before a user attempts to use it.
+Use a separate tool to generate Ignition configs. For Fedora CoreOS, files called Fedora CoreOS Configs can be written in YAML and then converted into Ignition configs. This conversion process allows for distribution specific configs to be converted into a distribution-agnostic Ignition config, and ensures that the Ignition config gets validated before a user attempts to use it.
