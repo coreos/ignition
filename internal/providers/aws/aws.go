@@ -18,30 +18,19 @@
 package aws
 
 import (
-	"net/url"
-
-	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
-	"github.com/coreos/ignition/v2/internal/log"
-	"github.com/coreos/ignition/v2/internal/providers/util"
-	"github.com/coreos/ignition/v2/internal/resource"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
+	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/providers/util"
+	"github.com/coreos/ignition/v2/internal/resource"
 	"github.com/coreos/vcontext/report"
 )
 
-var (
-	userdataUrl = url.URL{
-		Scheme: "http",
-		Host:   "169.254.169.254",
-		Path:   "2019-10-01/user-data",
-	}
-)
-
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{})
+	data, err := ec2metadata.New(session.Must(session.NewSession())).GetUserData()
 	if err != nil && err != resource.ErrNotFound {
 		return types.Config{}, report.Report{}, err
 	}
@@ -53,7 +42,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	}
 	f.S3RegionHint = regionHint
 
-	return util.ParseConfig(f.Logger, data)
+	return util.ParseConfig(f.Logger, []byte(data))
 }
 
 func NewFetcher(l *log.Logger) (resource.Fetcher, error) {
