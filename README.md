@@ -50,4 +50,3 @@ In Ignition 2.5.0, the old [ignition-dracut](https://github.com/coreos/ignition-
 [getting started]: doc/getting-started.md
 [issues]:  https://github.com/coreos/ignition/issues/new/choose
 [releases]: https://github.com/coreos/ignition/releases
-[online-validator]: https://coreos.com/validate/
