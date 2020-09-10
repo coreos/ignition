@@ -1,6 +1,6 @@
 # Getting Started with Ignition
 
-*Ignition* is a low-level system configuration utility. The Ignition executable is part of the temporary initial root filesystem, the *initramfs*. When Ignition runs, it finds configuration data in a named location for a given environment, such as a file or URL, and applies it to the machine before `switch_root` is called to pivot to the machine's root filesystem.
+Ignition is a low-level system configuration utility. The Ignition executable is part of the temporary initial root filesystem, the *initramfs*. When Ignition runs, it finds configuration data in a named location for a given environment, such as a file or URL, and applies it to the machine before `switch_root` is called to pivot to the machine's root filesystem.
 
 Ignition uses a JSON configuration file to represent the set of changes to be made. The format of this config is detailed [in the specification][configspec] and the [MIME type][mime] is registered with IANA. One of the most important parts of this config is the version number. This **must** match the version number accepted by Ignition. If the config version isn't accepted by Ignition, Ignition will fail to run and the machine will not boot. This can be seen by inspecting the console output of the failed machine. For more information, check out the [troubleshooting section][troubleshooting].
 
@@ -30,7 +30,9 @@ In the event that this doesn't yield any results, running as root may help. Ther
 
 In cases where the machine fails to boot, it's sometimes helpful to ask journald to log more information to the console. This makes it easy to access the Ignition logs in environments where no interactive console is available. The following kernel parameter will increase the console's log output, making all of Ignition's logs visible:
 
-`systemd.journald.max_level_console=debug`
+```
+systemd.journald.max_level_console=debug
+```
 
 ### Validating the Configuration
 
@@ -38,7 +40,7 @@ One common cause for Ignition failures is a malformed configuration (e.g. a miss
 
 ### Enabling systemd Services
 
-When Ignition enables systemd services, it doesn't directly create the symlinks necessary for systemd; it leverages [systemd presets][preset]. Presets are only evaluated on [first-boot][conditions], which can result in confusion if Ignition is forced to run more than once. Any systemd services which have been enabled in the configuration after the first boot won't actually be enabled after the next invocation of Ignition. `systemctl preset-all` will need to be manually invoked to create the necessary symlinks, enabling the services.
+When Ignition enables systemd services, it doesn't directly create the symlinks necessary for systemd; it leverages [systemd presets][preset]. Presets are only evaluated on [first boot][conditions], which can result in confusion if Ignition is forced to run more than once. Any systemd services which have been enabled in the configuration after the first boot won't actually be enabled after the next invocation of Ignition. `systemctl preset-all` will need to be manually invoked to create the necessary symlinks, enabling the services.
 
 Ignition is not typically run more than once during a machine's lifetime in a given role, so this situation requiring manual systemd intervention does not commonly arise.
 
