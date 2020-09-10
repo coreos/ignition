@@ -151,7 +151,7 @@ Update the blackbox tests.
 
 Finally, update docs.
 
-- Rename `doc/configuration-vX_Y-experimental.md` to `doc/configuration-vX_Y.md` and make a copy as `doc/configuration-vX_(Y+1)_experimental.md`.
-- In `doc/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning.
-- In `doc/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
-- Add a section to `doc/migrating-configs.md`.
+- Rename `docs/configuration-vX_Y-experimental.md` to `docs/configuration-vX_Y.md` and make a copy as `docs/configuration-vX_(Y+1)_experimental.md`.
+- In `docs/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning.
+- In `docs/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
+- Add a section to `docs/migrating-configs.md`.

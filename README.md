@@ -47,6 +47,6 @@ There are two branches:
 
 In Ignition 2.5.0, the old [ignition-dracut](https://github.com/coreos/ignition-dracut) repository, containing scripts and systemd units for boot-time execution, was merged into Ignition itself.  CoreOS-specific Dracut modules have moved to the [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config) repository.
 
-[getting started]: doc/getting-started.md
+[getting started]: docs/getting-started.md
 [issues]:  https://github.com/coreos/ignition/issues/new/choose
 [releases]: https://github.com/coreos/ignition/releases
