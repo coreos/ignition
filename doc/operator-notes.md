@@ -28,7 +28,7 @@ If a specified header is one that Ignition sets by default, such as `Accept` or 
 
 ## Filesystem-Reuse Semantics
 
-When a Container Linux machine first boots, it's possible that an earlier installation or other process has already provisioned the disks. The Ignition config can specify the intended filesystem for a given device, and there are three possibilities when Ignition runs:
+When a machine first boots, it's possible that an earlier installation or other process has already provisioned the disks. The Ignition config can specify the intended filesystem for a given device, and there are three possibilities when Ignition runs:
 
 - There is no preexisting filesystem.
 - There is a preexisting filesystem of the correct type, label, or UUID (e.g. the Ignition config says `/dev/sda` should be `ext4`, and it is `ext4`).

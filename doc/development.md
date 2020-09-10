@@ -41,16 +41,7 @@ After modifying `go.mod` run `make vendor` to update the vendor directory.
 
 Group changes to `go.mod`, `go.sum` and `vendor/` in their own commit; do not make code changes and vendoring changes in the same commit.
 
-## Running Blackbox Tests on Container Linux
-
-Build both the Ignition & test binaries inside of a docker container, for this example it will be building from the ignition-builder-1.8 image and targeting the amd64 architecture.
-
-```sh
-docker run --rm -e TARGET=amd64 -v "$PWD":/usr/src/myapp -w /usr/src/myapp quay.io/coreos/ignition-builder-1.8 ./build_blackbox_tests
-sudo -E PATH=$PWD/bin/amd64:$PATH ./tests.test
-```
-
-## Runnning Blackbox Tests on platforms other than Container Linux
+## Running Blackbox Tests
 
 ```sh
 ./build_blackbox_tests
