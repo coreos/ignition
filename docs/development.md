@@ -112,7 +112,7 @@ When an experimental version of the Ignition config spec (e.g.: `3.1.0-experimen
 - A new experimental spec version will be created. For example, if `3.1.0-experimental` is being marked as stable, a new version of `3.2.0-experimental` (or `4.0.0-experimental` if backwards incompatible changes are being made) will now be accepted, and start to accumulate new changes to the spec.
 - The new stable spec and the new experimental spec will be identical except for the accepted versions. The new experimental spec is a direct copy of the old experimental spec, and no new changes to the spec have been made yet, so initially the two specs will have the same fields and semantics.
 - The HTTP `Accept` header that Ignition uses whenever fetching a config will be updated to advertise the new stable spec.
-- New features will be documented in the [migrating configs](doc/migrating-configs.md) documentation.
+- New features will be documented in the [migrating configs](migrating-configs.md) documentation.
 
 The changes that are required to achieve these effects are typically the following:
 
