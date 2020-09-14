@@ -19,6 +19,16 @@ This data source can be overridden by specifying a configuration URL via the ker
 
 The Linux distro may provide a base config which specifies default configuration, such as a default user. This data source is merged with this base config before it is applied. See the [operator notes][operator-notes] for more information on config merging.
 
+## Config Validation
+
+To validate a config for Ignition there are binaries for a cli tool called `ignition-validate` available [on the releases page][releases]. There is also an ignition-validate container: `quay.io/coreos/ignition-validate`.
+
+Example:
+```
+# This example uses podman, but docker can be used too
+podman run --pull=always --rm -i quay.io/coreos/ignition-validate:release - < myconfig.ign
+```
+
 ## Troubleshooting
 
 ### Gathering Logs
@@ -41,7 +51,7 @@ systemd.journald.max_level_console=debug
 
 ### Validating the Configuration
 
-One common cause for Ignition failures is a malformed configuration (e.g. a misspelled section or incorrect hierarchy). Ignition will log errors, warnings, and other notes about the configuration that it parsed, so this can be used to debug issues with the configuration provided.
+One common cause for Ignition failures is a malformed configuration (e.g. a misspelled section or incorrect hierarchy). Ignition will log errors, warnings, and other notes about the configuration that it parsed, so this can be used to debug issues with the configuration provided. See also the [Config Validation](#config-validation) section.
 
 ### Enabling systemd Services
 
@@ -54,6 +64,7 @@ Ignition is not typically run more than once during a machine's lifetime in a gi
 [examples]: examples.md
 [mime]: http://www.iana.org/assignments/media-types/application/vnd.coreos.ignition+json
 [operator-notes]: operator-notes.md
+[releases]: https://github.com/coreos/ignition/releases
 [platforms]: supported-platforms.md
 [preset]: https://www.freedesktop.org/software/systemd/man/systemd.preset.html
 [troubleshooting]: #troubleshooting
