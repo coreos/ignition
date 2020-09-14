@@ -4,6 +4,10 @@ nav_order: 7
 ---
 
 # Operator Notes
+{: .no_toc }
+
+1. TOC
+{:toc}
 
 ## HTTP Backoff and Retry
 

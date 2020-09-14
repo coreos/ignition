@@ -4,8 +4,12 @@ nav_order: 4
 ---
 
 # Example Configs
+{: .no_toc }
 
 These examples are written in version 3.0.0 of the config. Ignition v2.0.0+ understands all configs with version 3.0.0+.
+
+1. TOC
+{:toc}
 
 ## Services
 

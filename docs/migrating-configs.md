@@ -4,8 +4,12 @@ nav_order: 6
 ---
 
 # Upgrading Configs
+{: .no_toc }
 
 Occasionally, there are changes made to Ignition's configuration that break backward compatibility. While this is not a concern for running machines (since Ignition only runs one time during first boot), it is a concern for those who maintain configuration files. This document serves to detail each of the breaking changes and tries to provide some reasoning for the change. This does not cover all of the changes to the spec - just those that need to be considered when migrating from one version to the next.
+
+1. TOC
+{:toc}
 
 ## From Version 3.0.0 to 3.1.0
 

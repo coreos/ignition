@@ -4,6 +4,10 @@ nav_order: 9
 ---
 
 # Development
+{: .no_toc }
+
+1. TOC
+{:toc}
 
 A Go 1.11+ [environment](https://golang.org/doc/install) and the `blkid.h` headers are required. Using go 1.10 may work, but isn't directly supported since it does not support go modules.
 
