@@ -164,3 +164,5 @@ Finally, update docs.
 - In `docs/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning.
 - In `docs/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
 - Add a section to `docs/migrating-configs.md`.
+- In `docs/specs.md`, update the list of stable and experimental spec versions, listing the latest stable release first.
+- Update the `nav_order: X` field in the Jekyll front matter in every `docs/configuration-v*.md` to keep the configuration specs in a decreasing order with the latest stable configuration first. Always keep the experimental config spec last.
