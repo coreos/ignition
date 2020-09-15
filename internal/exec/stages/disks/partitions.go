@@ -66,7 +66,7 @@ func (s stage) createPartitions(config types.Config) error {
 	return nil
 }
 
-// partitionMatches determines if the existing partition matches the spec given. See doc/operator notes for what
+// partitionMatches determines if the existing partition matches the spec given. See docs/operator notes for what
 // what it means for an existing partition to match the spec. spec must have non-zero Start and Size. existing must
 // also have non-zero start and size and non-nil start and size and label.
 // n.b. existing.{Size,Start}MiB must be converted to sectors first (yes the variable name becomes misleading)

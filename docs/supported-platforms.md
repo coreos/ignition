@@ -1,4 +1,9 @@
-# Supported Platforms #
+---
+layout: default
+nav_order: 8
+---
+
+# Supported Platforms
 
 Ignition is currently only supported for the following platforms:
 

@@ -1,4 +1,13 @@
+---
+layout: default
+nav_order: 9
+---
+
 # Development
+{: .no_toc }
+
+1. TOC
+{:toc}
 
 A Go 1.11+ [environment](https://golang.org/doc/install) and the `blkid.h` headers are required. Using go 1.10 may work, but isn't directly supported since it does not support go modules.
 
@@ -107,7 +116,7 @@ When an experimental version of the Ignition config spec (e.g.: `3.1.0-experimen
 - A new experimental spec version will be created. For example, if `3.1.0-experimental` is being marked as stable, a new version of `3.2.0-experimental` (or `4.0.0-experimental` if backwards incompatible changes are being made) will now be accepted, and start to accumulate new changes to the spec.
 - The new stable spec and the new experimental spec will be identical except for the accepted versions. The new experimental spec is a direct copy of the old experimental spec, and no new changes to the spec have been made yet, so initially the two specs will have the same fields and semantics.
 - The HTTP `Accept` header that Ignition uses whenever fetching a config will be updated to advertise the new stable spec.
-- New features will be documented in the [migrating configs](doc/migrating-configs.md) documentation.
+- New features will be documented in the [Upgrading Configs](migrating-configs.md) documentation.
 
 The changes that are required to achieve these effects are typically the following:
 
@@ -151,7 +160,9 @@ Update the blackbox tests.
 
 Finally, update docs.
 
-- Rename `doc/configuration-vX_Y-experimental.md` to `doc/configuration-vX_Y.md` and make a copy as `doc/configuration-vX_(Y+1)_experimental.md`.
-- In `doc/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning.
-- In `doc/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
-- Add a section to `doc/migrating-configs.md`.
+- Rename `docs/configuration-vX_Y-experimental.md` to `docs/configuration-vX_Y.md` and make a copy as `docs/configuration-vX_(Y+1)_experimental.md`.
+- In `docs/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning.
+- In `docs/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
+- Add a section to `docs/migrating-configs.md`.
+- In `docs/specs.md`, update the list of stable and experimental spec versions, listing the latest stable release first.
+- Update the `nav_order: X` field in the Jekyll front matter in every `docs/configuration-v*.md` to keep the configuration specs in a decreasing order with the latest stable configuration first. Always keep the experimental config spec last.

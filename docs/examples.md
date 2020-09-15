@@ -1,6 +1,15 @@
+---
+layout: default
+nav_order: 4
+---
+
 # Example Configs
+{: .no_toc }
 
 These examples are written in version 3.0.0 of the config. Ignition v2.0.0+ understands all configs with version 3.0.0+.
+
+1. TOC
+{:toc}
 
 ## Services
 
@@ -8,7 +17,8 @@ These examples are written in version 3.0.0 of the config. Ignition v2.0.0+ unde
 
 This config will write a single service unit (shown below) with the contents of an example service. This unit will be enabled as a dependency of multi-user.target and therefore start on boot.
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.0.0" },
   "systemd": {
@@ -21,9 +31,9 @@ This config will write a single service unit (shown below) with the contents of 
 }
 ```
 
-#### example.service
+`example.service`:
 
-```INI
+```ini
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/echo Hello World
@@ -36,7 +46,8 @@ WantedBy=multi-user.target
 
 This config will add a [systemd unit drop-in](https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Description) to modify the existing service `systemd-journald` and sets its environment variable `SYSTEMD_LOG_LEVEL` to `debug`.
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.0.0" },
   "systemd": {
@@ -51,9 +62,9 @@ This config will add a [systemd unit drop-in](https://www.freedesktop.org/softwa
 }
 ```
 
-#### systemd-journald.service.d/debug.conf
+`systemd-journald.service.d/debug.conf`:
 
-```INI
+```ini
 [Service]
 Environment=SYSTEMD_LOG_LEVEL=debug
 ```
@@ -61,7 +72,8 @@ Environment=SYSTEMD_LOG_LEVEL=debug
 
 In many cases it is useful to write files to the root filesystem. This example writes a single file to `/etc/someconfig` on the root filesystem. The contents of the file ("example file") are specified inline in the config using the [data URL scheme][rfc2397].
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.0.0" },
   "storage": {
@@ -83,7 +95,8 @@ Paths are specified relative to the root filesystem of the system Ignition is co
 
 This example Ignition configuration will locate the device with the "VAR" filesystem label and reformat it to btrfs, recreating the filesystem label. The `wipeFilesystem` option is set to ensure that Ignition ignores any existing filesystem. This configuration also writes a file to `/var/example-asset`, fetching its contents from `https://example.com/asset`. Ignition mounts filesystems it creates at the specified `path` before creating anything on the filesystems, ensuring `/var/example-asset` is created on the newly created filesystem. Note that Ignition will not automatically create mount units or `/etc/fstab` entries for the filesystems it creates. In this case we assume the OS already has a mount unit or `/etc/fstab` entry for the `/var` filesystem by label.
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.0.0" },
   "storage": {
@@ -112,7 +125,8 @@ The SHA512 sum of the file can be determined using `sha512sum`. SHA256 sums are 
 
 In many scenarios, it may be useful to have an external data volume. This config will set up a RAID0 ext4 volume, `data`, between two separate disks. It also writes a mount unit (shown below) which will automatically mount the volume to `/var/lib/data`.
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.0.0" },
   "storage": {
@@ -163,9 +177,9 @@ In many scenarios, it may be useful to have an external data volume. This config
 }
 ```
 
-### var-lib-data.mount
+`var-lib-data.mount`:
 
-```INI
+```ini
 [Mount]
 What=/dev/md/data
 Where=/var/lib/data
@@ -179,7 +193,8 @@ WantedBy=local-fs.target
 
 In some cloud environments, there is a limit on the size of the config which may be provided to a machine. To work around this, Ignition allows configs to be replaced with the contents of an alternate, remote config. The following demonstrates this, using a SHA512 sum to verify the contents of the config.
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": {
     "version": "3.0.0",
@@ -199,7 +214,8 @@ The SHA512 sum of the config can be determined using `sha512sum`. SHA256 sums ar
 
 Setting the hostname of a system is as simple as writing `/etc/hostname`:
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.0.0" },
   "storage": {
@@ -217,7 +233,8 @@ Setting the hostname of a system is as simple as writing `/etc/hostname`:
 
 Users can be added to an OS with the `passwd.users` key which takes a list of objects that specify a given user. If you wanted to configure a user "systemUser" and a user "jenkins" you would do that as follows:
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": { "version": "3.0.0" },
   "passwd": {
@@ -244,7 +261,8 @@ To add more users, configure them within the `users` list structure (`[...]`).
 
 This config will set up a key-file based LUKS2 volume, `data`, put a filesystem on the volume, and write a mount unit (shown below) to automatically mount the volume to `/var/lib/data`.
 
-```json ignition
+<!-- ignition -->
+```json
 {
   "ignition": {"version": "3.2.0-experimental"},
   "storage": {
@@ -270,9 +288,9 @@ This config will set up a key-file based LUKS2 volume, `data`, put a filesystem 
 
 ```
 
-### var-lib-data.mount
+`var-lib-data.mount`:
 
-```INI
+```ini
 [Mount]
 What=/dev/disk/by-label/DATA
 Where=/var/lib/data
