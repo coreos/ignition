@@ -10,16 +10,7 @@ cosaPod(buildroot: true) {
         stage("Unit Tests") {
             shwrap("./test")
         }
-        shwrap("""
-            mkdir -p /srv/fcos && cd /srv/fcos
-            cosa init https://github.com/coreos/fedora-coreos-config
-            mkdir -p overrides/rpm && cd overrides/rpm
-            # freeze kernel to 5.6.7 for now to avoid a regression in loopback
-            # code which interferes with blackbox testing
-            # https://bugs.archlinux.org/task/66526
-            curl -L --remote-name-all https://kojipkgs.fedoraproject.org//packages/kernel/5.6.7/200.fc31/x86_64/kernel{,-core,-modules}-5.6.7-200.fc31.x86_64.rpm
-        """)
-        fcosBuild(skipInit: true, make: true, skipKola: true)
+        fcosBuild(make: true, skipKola: true)
     }
 
     // we run the blackbox tests separately instead of as part of the main kola
