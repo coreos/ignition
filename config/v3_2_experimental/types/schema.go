@@ -131,6 +131,7 @@ type Partition struct {
 	GUID               *string `json:"guid,omitempty"`
 	Label              *string `json:"label,omitempty"`
 	Number             int     `json:"number,omitempty"`
+	Resize             *bool   `json:"resize,omitempty"`
 	ShouldExist        *bool   `json:"shouldExist,omitempty"`
 	SizeMiB            *int    `json:"sizeMiB,omitempty"`
 	StartMiB           *int    `json:"startMiB,omitempty"`

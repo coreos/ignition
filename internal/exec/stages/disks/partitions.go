@@ -66,19 +66,32 @@ func (s stage) createPartitions(config types.Config) error {
 	return nil
 }
 
-// partitionMatches determines if the existing partition matches the spec given. See docs/operator notes for what
-// what it means for an existing partition to match the spec. spec must have non-zero Start and Size. existing must
-// also have non-zero start and size and non-nil start and size and label.
-// n.b. existing.{Size,Start}MiB must be converted to sectors first (yes the variable name becomes misleading)
+// partitionMatches determines if the existing partition matches the spec given. See doc/operator notes for what
+// what it means for an existing partition to match the spec. spec must have non-zero Start and Size.
 func partitionMatches(existing util.PartitionInfo, spec sgdisk.Partition) error {
+	if err := partitionMatchesCommon(existing, spec); err != nil {
+		return err
+	}
+	if spec.SizeInSectors != nil && *spec.SizeInSectors != existing.SizeInSectors {
+		return fmt.Errorf("size did not match (specified %d, got %d)", *spec.SizeInSectors, existing.SizeInSectors)
+	}
+	return nil
+}
+
+// partitionMatchesResize returns if the existing partition should be resized by evaluating if
+// `resize`field is true and partition matches in all respects except size.
+func partitionMatchesResize(existing util.PartitionInfo, spec sgdisk.Partition) bool {
+	return spec.Resize != nil && *spec.Resize && partitionMatchesCommon(existing, spec) == nil
+}
+
+// partitionMatchesCommon handles the common tests (excluding the partition size) to determine
+// if the existing partition matches the spec given.
+func partitionMatchesCommon(existing util.PartitionInfo, spec sgdisk.Partition) error {
 	if spec.Number != existing.Number {
 		return fmt.Errorf("partition numbers did not match (specified %d, got %d). This should not happen, please file a bug.", spec.Number, existing.Number)
 	}
 	if spec.StartSector != nil && *spec.StartSector != existing.StartSector {
 		return fmt.Errorf("starting sector did not match (specified %d, got %d)", *spec.StartSector, existing.StartSector)
-	}
-	if spec.SizeInSectors != nil && *spec.SizeInSectors != existing.SizeInSectors {
-		return fmt.Errorf("size did not match (specified %d, got %d)", *spec.SizeInSectors, existing.SizeInSectors)
 	}
 	if spec.GUID != nil && *spec.GUID != "" && strings.ToLower(*spec.GUID) != strings.ToLower(existing.GUID) {
 		return fmt.Errorf("GUID did not match (specified %q, got %q)", *spec.GUID, existing.GUID)
@@ -353,7 +366,18 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		case exists && shouldExist && matches:
 			s.Logger.Info("partition %d found with correct specifications", part.Number)
 		case exists && shouldExist && !wipeEntry && !matches:
-			return fmt.Errorf("Partition %d didn't match: %v", part.Number, matchErr)
+			if partitionMatchesResize(info, part) {
+				s.Logger.Info("resizing partition %d", part.Number)
+				op.DeletePartition(part.Number)
+				part.Number = info.Number
+				part.GUID = &info.GUID
+				part.TypeGUID = &info.TypeGUID
+				part.Label = &info.Label
+				part.StartSector = &info.StartSector
+				op.CreatePartition(part)
+			} else {
+				return fmt.Errorf("Partition %d didn't match: %v", part.Number, matchErr)
+			}
 		case exists && shouldExist && wipeEntry && !matches:
 			s.Logger.Info("partition %d did not meet specifications, wiping partition entry and recreating", part.Number)
 			op.DeletePartition(part.Number)

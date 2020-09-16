@@ -29,6 +29,7 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 
 func translateStorage(old old_types.Storage) (ret types.Storage) {
 	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translatePartition)
 	tr.Translate(&old.Directories, &ret.Directories)
 	tr.Translate(&old.Disks, &ret.Disks)
 	tr.Translate(&old.Files, &ret.Files)
@@ -62,6 +63,19 @@ func translatePasswdGroup(old old_types.PasswdGroup) (ret types.PasswdGroup) {
 	tr.Translate(&old.Name, &ret.Name)
 	tr.Translate(&old.PasswordHash, &ret.PasswordHash)
 	tr.Translate(&old.System, &ret.System)
+	return
+}
+
+func translatePartition(old old_types.Partition) (ret types.Partition) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.GUID, &ret.GUID)
+	tr.Translate(&old.Label, &ret.Label)
+	tr.Translate(&old.Number, &ret.Number)
+	tr.Translate(&old.ShouldExist, &ret.ShouldExist)
+	tr.Translate(&old.SizeMiB, &ret.SizeMiB)
+	tr.Translate(&old.StartMiB, &ret.StartMiB)
+	tr.Translate(&old.TypeGUID, &ret.TypeGUID)
+	tr.Translate(&old.WipePartitionEntry, &ret.WipePartitionEntry)
 	return
 }
 

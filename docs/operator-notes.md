@@ -76,7 +76,7 @@ The following table shows the possible combinations of whether or not a partitio
 | false             | true        | true               | Create specified partition
 | true              | false       | false              | Fail
 | true              | false       | true               | Delete existing partition
-| true              | true        | false              | Check if existing partition matches the specified one, fail if it does not
+| true              | true        | false              | Verify existing partition matches the specified one, otherwise resize it if `resize` field is true and partition matches in all respects except size, otherwise fail
 | true              | true        | true               | Check if existing partition matches the specified one, delete existing partition and create specified partition if it does not match
 
 ### Partition Matching

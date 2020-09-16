@@ -25,6 +25,7 @@ func init() {
 	register.Register(register.NegativeTest, DoesNotMatchNoWipeEntry())
 	register.Register(register.NegativeTest, ValidAndDoesNotMatchNoWipeEntry())
 	register.Register(register.NegativeTest, NotThereAndDoesNotMatchNoWipeEntry())
+	register.Register(register.NegativeTest, NoResizePartitionWithMisMatchConfig())
 }
 
 func ShouldNotExistNoWipeEntry() types.Test {
@@ -155,5 +156,41 @@ func NotThereAndDoesNotMatchNoWipeEntry() types.Test {
 		Out:              out,
 		Config:           config,
 		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// NoResizePartitionWithMisMatchConfig verifies that the existing partition can't
+// be resized if one of the fields of the config doesn't match.
+func NoResizePartitionWithMisMatchConfig() types.Test {
+	name := "partition.resizePartition.mismatch.config"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	out[0].Partitions[9-6-1].Length = 12943360 + 65536
+	config := `{
+			"ignition": {
+				"version": "$version"
+			},
+			"storage": {
+				"disks": [{
+					"device": "$disk0",
+					"wipeTable": false,
+					"partitions": [{
+						"label": "ROOT",
+						"number": 9,
+						"sizeMiB": 6352,
+						"startMiB": 100,
+						"resize": true
+					}
+					]
+				}]
+			}
+		}`
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: "3.2.0-experimental",
 	}
 }
