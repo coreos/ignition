@@ -60,40 +60,58 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	}
 
 	var data []byte
+	errChan := make(chan error)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	dispatchCount := 0
 
 	dispatch := func(name string, fn func() ([]byte, error)) {
-		raw, err := fn()
-		if err != nil {
-			switch err {
-			case context.Canceled:
-			case context.DeadlineExceeded:
-				f.Logger.Err("timed out while fetching config from %s", name)
-			default:
-				f.Logger.Err("failed to fetch config from %s: %v", name, err)
+		dispatchCount++
+		go func() {
+			raw, err := fn()
+			if err != nil {
+				switch err {
+				case context.Canceled:
+				case context.DeadlineExceeded:
+					f.Logger.Err("timed out while fetching config from %s", name)
+				default:
+					f.Logger.Err("failed to fetch config from %s: %v", name, err)
+				}
+				errChan <- err
+				return
 			}
-			return
-		}
 
-		data = raw
-		cancel()
+			data = raw
+			cancel()
+		}()
 	}
 
-	go dispatch("config drive (config-2)", func() ([]byte, error) {
+	dispatch("config drive (config-2)", func() ([]byte, error) {
 		return fetchConfigFromDevice(f.Logger, ctx, filepath.Join(distro.DiskByLabelDir(), "config-2"))
 	})
 
-	go dispatch("config drive (CONFIG-2)", func() ([]byte, error) {
+	dispatch("config drive (CONFIG-2)", func() ([]byte, error) {
 		return fetchConfigFromDevice(f.Logger, ctx, filepath.Join(distro.DiskByLabelDir(), "CONFIG-2"))
 	})
 
-	go dispatch("metadata service", func() ([]byte, error) {
+	dispatch("metadata service", func() ([]byte, error) {
 		return fetchConfigFromMetadataService(f)
 	})
 
-	<-ctx.Done()
-	if ctx.Err() == context.DeadlineExceeded {
-		f.Logger.Info("neither config drive nor metadata service were available in time. Continuing without a config...")
+Loop:
+	for {
+		select {
+		case <-ctx.Done():
+			if ctx.Err() == context.DeadlineExceeded {
+				f.Logger.Info("neither config drive nor metadata service were available in time. Continuing without a config...")
+			}
+			break Loop
+		case <-errChan:
+			dispatchCount--
+			if dispatchCount == 0 {
+				f.Logger.Info("couldn't fetch config")
+				break Loop
+			}
+		}
 	}
 
 	return util.ParseConfig(f.Logger, data)
