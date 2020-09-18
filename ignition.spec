@@ -64,7 +64,7 @@
 
 Name:           ignition
 Version:        2.6.0
-Release:        3.rhaos4.6.git%{shortcommit}%{?dist}
+Release:        4.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
@@ -72,6 +72,13 @@ Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcomm
 # Fix sector size detection on s390x
 # https://github.com/coreos/ignition/pull/1070
 Patch0:         blkid-fix-invalid-pointer-cast-in-DumpDisk.patch
+# engine: fix logging interactions with fetch-offline
+# https://github.com/coreos/ignition/pull/1075
+Patch1:         fetch-don-t-run-if-fetch-offline-fetched-a-config.patch
+Patch2:         engine-fix-logging-interactions-with-fetch-offline.patch
+# vmware: kernel_lockdown breaks guestinfo fetching
+# https://github.com/coreos/ignition/issues/1092
+Patch3:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: x86_64 ppc64le aarch64 s390x
@@ -422,6 +429,9 @@ This package contains a tool for validating Ignition configurations.
 # unpack source0 and apply patches
 %setup -T -b 0 -q -n %{repo}-%{commit}
 %patch0 -p1
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
 
 %build
 # Set up PWD as a proper import path for go
@@ -555,6 +565,10 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Fri Sep 18 2020 Stephen Lowrie <slowrie@redhat.com> - 2.6.0-4.rhaos.46.git947598e
+- Fix logging interactions with fetch-offline
+- Avoid kernel lockdown on VMware when running with secure boot
+
 * Thu Aug 20 2020 Benjamin Gilbert <bgilbert@redhat.com> - 2.6.0-3.rhaos4.6.git947598e
 - Write SSH keys directly to authorized_keys, not to fragment file
 
