@@ -247,27 +247,41 @@ func (s *stage) createLuks(config types.Config) error {
 		}
 
 		if luks.Clevis != nil {
-			c := Clevis{
-				Threshold: 1,
+			var pin string
+			var config string
+
+			if luks.Clevis.Custom != nil {
+				pin = luks.Clevis.Custom.Pin
+				config = luks.Clevis.Custom.Config
 			}
-			if luks.Clevis.Threshold != nil {
-				c.Threshold = *luks.Clevis.Threshold
+
+			// if the override pin is empty the config must also be empty
+			if pin == "" {
+				pin = "sss"
+				c := Clevis{
+					Threshold: 1,
+				}
+				if luks.Clevis.Threshold != nil {
+					c.Threshold = *luks.Clevis.Threshold
+				}
+				for _, tang := range luks.Clevis.Tang {
+					c.Pins.Tang = append(c.Pins.Tang, Tang{
+						URL:        tang.URL,
+						Thumbprint: *tang.Thumbprint,
+					})
+				}
+				if luks.Clevis.Tpm2 != nil {
+					c.Pins.Tpm = *luks.Clevis.Tpm2
+				}
+				clevisJson, err := json.Marshal(c)
+				if err != nil {
+					return fmt.Errorf("creating clevis json: %v", err)
+				}
+				config = string(clevisJson)
 			}
-			for _, tang := range luks.Clevis.Tang {
-				c.Pins.Tang = append(c.Pins.Tang, Tang{
-					URL:        tang.URL,
-					Thumbprint: *tang.Thumbprint,
-				})
-			}
-			if luks.Clevis.Tpm2 != nil {
-				c.Pins.Tpm = *luks.Clevis.Tpm2
-			}
-			clevisJson, err := json.Marshal(c)
-			if err != nil {
-				return fmt.Errorf("creating clevis json: %v", err)
-			}
+
 			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.ClevisCmd(), "luks", "bind", "-f", "-k", keyFilePath, "-d", devAlias, "sss", string(clevisJson)), "Clevis bind",
+				exec.Command(distro.ClevisCmd(), "luks", "bind", "-f", "-k", keyFilePath, "-d", devAlias, pin, config), "Clevis bind",
 			); err != nil {
 				return fmt.Errorf("binding clevis device: %v", err)
 			}
