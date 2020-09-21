@@ -61,7 +61,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 
 	var data []byte
 	errChan := make(chan error)
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	dispatchCount := 0
 
 	dispatch := func(name string, fn func() ([]byte, error)) {
