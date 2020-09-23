@@ -8,7 +8,7 @@ nav_order: 8
 Ignition is currently only supported for the following platforms:
 
 * Bare Metal - Use the `ignition.config.url` kernel parameter to provide a URL to the configuration. The URL can use the `http://`, `https://`, `tftp://`, `s3://`, or `gs://` schemes to specify a remote config.
-* [Amazon Web Services] - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
+* [Amazon Web Services] - Ignition will read its configuration from the instance userdata, supporting both plain text and gzip-encoded userdata. Cloud SSH keys are handled separately.
 * [Microsoft Azure] - Ignition will read its configuration from the custom data provided to the instance. Cloud SSH keys are handled separately.
 * [Microsoft Azure Stack] - Ignition will read its configuration from the custom data provided to the instance. Cloud SSH keys are handled separately.
 * [VMware] - Use the VMware Guestinfo variables `ignition.config.data` and `ignition.config.data.encoding` to provide the config and its encoding to the virtual machine. Valid encodings are "", "base64", and "gzip+base64". Guestinfo variables can be provided directly or via an OVF environment, with priority given to variables specified directly.

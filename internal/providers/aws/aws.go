@@ -18,6 +18,9 @@
 package aws
 
 import (
+	"bytes"
+	"compress/gzip"
+	"io/ioutil"
 	"net/url"
 
 	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
@@ -46,6 +49,14 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		return types.Config{}, report.Report{}, err
 	}
 
+	// Handle gzip-encoded user-data
+	if bytes.HasPrefix(data, []byte{0x1f, 0x8b, 0x08}) {
+		data, err = gunzipUserData(data)
+		if err != nil {
+			return types.Config{}, report.Report{}, err
+		}
+	}
+
 	return util.ParseConfig(f.Logger, data)
 }
 
@@ -70,4 +81,14 @@ func Init(f *resource.Fetcher) error {
 	}
 	f.S3RegionHint = regionHint
 	return nil
+}
+
+func gunzipUserData(raw []byte) ([]byte, error) {
+	reader, err := gzip.NewReader(bytes.NewReader(raw))
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+
+	return ioutil.ReadAll(reader)
 }
