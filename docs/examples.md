@@ -264,7 +264,7 @@ This config will set up a key-file based LUKS2 volume, `data`, put a filesystem 
 <!-- ignition -->
 ```json
 {
-  "ignition": {"version": "3.2.0-experimental"},
+  "ignition": {"version": "3.2.0"},
   "storage": {
     "luks": [{
       "name": "data",

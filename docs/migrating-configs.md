@@ -11,6 +11,140 @@ Occasionally, there are changes made to Ignition's configuration that break back
 1. TOC
 {:toc}
 
+## From Version 3.1.0 to 3.2.0
+
+There are not any breaking changes between versions 3.1.0 and 3.2.0 of the configuration specification. Any valid 3.1.0 configuration can be updated to a 3.2.0 configuration by simply changing the version string in the config.
+
+The following is a list of notable new features, deprecations, and changes.
+
+### Partition resizing
+
+The `partition` section gained a new `resize` field. When true, Ignition will resize an existing partition if it matches the config in all respects except the partition size.
+
+<!-- ignition -->
+```json
+{
+  "ignition": { "version": "3.2.0" },
+  "storage": {
+    "disks": [{
+      "device": "/dev/sda",
+      "partitions": [{
+        "label": "root",
+        "sizeMiB": 16384,
+        "resize": true
+      }]
+    }]
+  }
+}
+```
+
+### LUKS encrypted storage
+
+Ignition now supports creating LUKS2 encrypted storage volumes. Volumes can be configured to allow unlocking with any combination of a TPM2 device via Clevis, network Tang servers via Clevis, and static key files. Alternatively, the Clevis configuration can be manually specified with a custom PIN and CFG. If a key file is not specified for a device, an ephemeral one will be created.
+
+<!-- ignition -->
+```json
+{
+  "ignition": {"version": "3.2.0"},
+  "storage": {
+    "luks": [{
+      "name": "static-key-example",
+      "device": "/dev/sdb",
+      "keyFile": {
+        "source": "data:,REPLACE-THIS-WITH-YOUR-KEY-MATERIAL"
+      }
+    },{
+      "name": "tpm-example",
+      "device": "/dev/sdc",
+      "clevis": {
+        "tpm2": true
+      }
+    },{
+      "name": "tang-example",
+      "device": "/dev/sdd",
+      "clevis": {
+        "tang": [{
+          "url": "https://tang.example.com",
+          "thumbprint": "REPLACE-THIS-WITH-YOUR-TANG-THUMBPRINT"
+        }]
+      }
+    }],
+    "filesystems": [{
+      "path": "/var/lib/static_key_example",
+      "device": "/dev/disk/by-id/dm-name-static-key-example",
+      "format": "ext4",
+      "label": "STATIC-KEY-EXAMPLE"
+    },{
+      "path": "/var/lib/tpm_example",
+      "device": "/dev/disk/by-id/dm-name-tpm-example",
+      "format": "ext4",
+      "label": "TPM-EXAMPLE"
+    },{
+      "path": "/var/lib/tang_example",
+      "device": "/dev/disk/by-id/dm-name-tang-example",
+      "format": "ext4",
+      "label": "TANG-EXAMPLE"
+    }]
+  },
+  "systemd": {
+    "units": [{
+      "name": "var-lib-static_key_example.mount",
+      "enabled": true,
+      "contents": "[Mount]\nWhat=/dev/disk/by-label/STATIC-KEY-EXAMPLE\nWhere=/var/lib/static_key_example\nType=ext4\n\n[Install]\nWantedBy=local-fs.target"
+    },{
+      "name": "var-lib-tpm_example.mount",
+      "enabled": true,
+      "contents": "[Mount]\nWhat=/dev/disk/by-label/TPM-EXAMPLE\nWhere=/var/lib/tpm_example\nType=ext4\n\n[Install]\nWantedBy=local-fs.target"
+    },{
+      "name": "var-lib-tang_example.mount",
+      "enabled": true,
+      "contents": "[Mount]\nWhat=/dev/disk/by-label/TANG-EXAMPLE\nWhere=/var/lib/tang_example\nType=ext4\n\n[Install]\nWantedBy=remote-fs.target"
+    }]
+  }
+}
+```
+
+### User/group deletion
+
+The `passwd` `users` and `groups` sections have a new field `shouldExist`. If specified and false, Ignition will delete the specified user or group if it exists.
+
+<!-- ignition -->
+```json
+{
+  "ignition": { "version": "3.2.0" },
+  "passwd": {
+    "users": [{
+      "name": "core",
+      "shouldExist": false
+    }],
+    "groups": [{
+      "name": "core",
+      "shouldExist": false
+    }]
+  }
+}
+```
+
+### GCS URL support
+
+The sections which allow fetching a remote URL now accept GCS (`gs://`) URLs in the `source` field.
+
+<!-- ignition -->
+```json
+{
+  "ignition": { "version": "3.2.0" },
+  "storage": {
+    "files": [{
+      "path": "/etc/example",
+      "mode": 420,
+      "contents": {
+        "source": "gs://bucket/object"
+      }
+    }]
+  }
+}
+```
+
 ## From Version 3.0.0 to 3.1.0
 
 There are not any breaking changes between versions 3.0.0 and 3.1.0 of the configuration specification. Any valid 3.0.0 configuration can be updated to a 3.1.0 configuration by simply changing the version string in the config.
