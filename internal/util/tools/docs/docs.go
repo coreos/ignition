@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	config "github.com/coreos/ignition/v2/config/v3_2_experimental"
+	config "github.com/coreos/ignition/v2/config/v3_3_experimental"
 )
 
 // Specific section marker used in the docs to indicate that the Markdown code
