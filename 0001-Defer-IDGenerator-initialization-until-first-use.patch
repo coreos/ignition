@@ -1,0 +1,96 @@
+From ed8bded13fa7eedf20edb5fcb85846a58edf26d5 Mon Sep 17 00:00:00 2001
+From: Jonathan Lebon <jonathan@jlebon.com>
+Date: Thu, 1 Oct 2020 09:30:45 -0400
+Subject: [PATCH] Defer IDGenerator initialization until first use
+
+Initializing the `IDGenerator` from `init()` means that any downstream
+project which transitively imports this package somewhere in its
+dependency tree will incur `getrandom()` syscalls it has no control over
+at startup.
+
+This causes problems for us in
+[Ignition](coreos/ignition), where we're transitively
+pulling in this package via cloud.google.com/go/storage. Ignition runs
+very early during the boot process, which means that even though this
+isn't using `GRND_RANDOM`, the `getrandom` syscall can block until the
+entropy pool is ready. This is a real problem when running in VMs on
+systems which don't provide a virtualized RNG device (such as VMware) or
+which lack RDRAND.
+
+I can't find a good reference for this, but I think in general it should
+be considered good practice to avoid I/O like this in `init()` in favour
+of a more lazy approach (or an explicit `Initialize()` function for
+clients to call).
+
+Otherwise, *every* program which pulls in the package will pay for it,
+whether or not they intend to actually make use of the functionality
+those syscalls are priming. (While it's not relevant here, another
+advantage of not using `init()` for this is that I/O is fallible, and
+`init()` semantics means errors can't be handled sanely.)
+
+Let's rework things here so that we don't actually initialize the
+`IDGenerator` fields until the first time it's used.
+---
+ vendor/go.opencensus.io/trace/trace.go | 30 +++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
+
+diff --git a/vendor/go.opencensus.io/trace/trace.go b/vendor/go.opencensus.io/trace/trace.go
+index 3f8977b..00c6b9b 100644
+--- a/vendor/go.opencensus.io/trace/trace.go
++++ b/vendor/go.opencensus.io/trace/trace.go
+@@ -206,6 +206,21 @@ func startSpanInternal(name string, hasParent bool, parent SpanContext, remotePa
+ 	span.spanContext = parent
+ 
+ 	cfg := config.Load().(*Config)
++	gen := cfg.IDGenerator.(*defaultIDGenerator)
++
++	if !gen.randomIDsGenerated {
++		// initialize traceID and spanID generators.
++		var rngSeed int64
++		for _, p := range []interface{}{
++			&rngSeed, &gen.traceIDAdd, &gen.nextSpanID, &gen.spanIDInc,
++		} {
++			binary.Read(crand.Reader, binary.LittleEndian, p)
++		}
++		gen.traceIDRand = rand.New(rand.NewSource(rngSeed))
++		gen.spanIDInc |= 1
++		gen.randomIDsGenerated = true
++	}
++
+ 
+ 	if !hasParent {
+ 		span.spanContext.TraceID = cfg.IDGenerator.NewTraceID()
+@@ -534,20 +549,9 @@ func (s *Span) String() string {
+ var config atomic.Value // access atomically
+ 
+ func init() {
+-	gen := &defaultIDGenerator{}
+-	// initialize traceID and spanID generators.
+-	var rngSeed int64
+-	for _, p := range []interface{}{
+-		&rngSeed, &gen.traceIDAdd, &gen.nextSpanID, &gen.spanIDInc,
+-	} {
+-		binary.Read(crand.Reader, binary.LittleEndian, p)
+-	}
+-	gen.traceIDRand = rand.New(rand.NewSource(rngSeed))
+-	gen.spanIDInc |= 1
+-
+ 	config.Store(&Config{
+ 		DefaultSampler:             ProbabilitySampler(defaultSamplingProbability),
+-		IDGenerator:                gen,
++		IDGenerator:                &defaultIDGenerator{},
+ 		MaxAttributesPerSpan:       DefaultMaxAttributesPerSpan,
+ 		MaxAnnotationEventsPerSpan: DefaultMaxAnnotationEventsPerSpan,
+ 		MaxMessageEventsPerSpan:    DefaultMaxMessageEventsPerSpan,
+@@ -571,6 +575,8 @@ type defaultIDGenerator struct {
+ 
+ 	traceIDAdd  [2]uint64
+ 	traceIDRand *rand.Rand
++
++	randomIDsGenerated bool
+ }
+ 
+ // NewSpanID returns a non-zero span ID from a randomly-chosen sequence.
+-- 
+2.26.2
+

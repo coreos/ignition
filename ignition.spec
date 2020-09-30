@@ -64,7 +64,7 @@
 
 Name:           ignition
 Version:        2.6.0
-Release:        4.rhaos4.6.git%{shortcommit}%{?dist}
+Release:        5.rhaos4.6.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
@@ -79,6 +79,7 @@ Patch2:         engine-fix-logging-interactions-with-fetch-offline.patch
 # vmware: kernel_lockdown breaks guestinfo fetching
 # https://github.com/coreos/ignition/issues/1092
 Patch3:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
+Patch4:         0001-Defer-IDGenerator-initialization-until-first-use.patch
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: x86_64 ppc64le aarch64 s390x
@@ -432,6 +433,7 @@ This package contains a tool for validating Ignition configurations.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 %build
 # Set up PWD as a proper import path for go
@@ -565,6 +567,11 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Thu Oct 01 2020 Jonathan Lebon <jlebon@redhat.com> - 2.6.0-5.rhaos.46.git947598e
+- Backport patch to defer OpenCensus random ID generation to first use
+  https://github.com/census-instrumentation/opencensus-go/pull/1228
+  https://bugzilla.redhat.com/show_bug.cgi?id=1882515
+
 * Fri Sep 18 2020 Stephen Lowrie <slowrie@redhat.com> - 2.6.0-4.rhaos.46.git947598e
 - Fix logging interactions with fetch-offline
 - Avoid kernel lockdown on VMware when running with secure boot
