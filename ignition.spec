@@ -64,7 +64,7 @@
 
 Name:           ignition
 Version:        2.6.0
-Release:        5.rhaos4.6.git%{shortcommit}%{?dist}
+Release:        5.rhaos4.7.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
@@ -567,6 +567,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Mon Oct 05 2020 Benjamin Gilbert <bgilbert@redhat.com> - 2.6.0-5.rhaos4.7.git947598e
+- Rebuild for 4.7
+
 * Thu Oct 01 2020 Jonathan Lebon <jlebon@redhat.com> - 2.6.0-5.rhaos4.6.git947598e
 - Backport patch to defer OpenCensus random ID generation to first use
   https://github.com/census-instrumentation/opencensus-go/pull/1228
