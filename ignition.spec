@@ -567,12 +567,12 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
-* Thu Oct 01 2020 Jonathan Lebon <jlebon@redhat.com> - 2.6.0-5.rhaos.46.git947598e
+* Thu Oct 01 2020 Jonathan Lebon <jlebon@redhat.com> - 2.6.0-5.rhaos4.6.git947598e
 - Backport patch to defer OpenCensus random ID generation to first use
   https://github.com/census-instrumentation/opencensus-go/pull/1228
   https://bugzilla.redhat.com/show_bug.cgi?id=1882515
 
-* Fri Sep 18 2020 Stephen Lowrie <slowrie@redhat.com> - 2.6.0-4.rhaos.46.git947598e
+* Fri Sep 18 2020 Stephen Lowrie <slowrie@redhat.com> - 2.6.0-4.rhaos4.6.git947598e
 - Fix logging interactions with fetch-offline
 - Avoid kernel lockdown on VMware when running with secure boot
 
