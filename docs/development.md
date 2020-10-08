@@ -166,3 +166,14 @@ Finally, update docs.
 - Add a section to `docs/migrating-configs.md`.
 - In `docs/specs.md`, update the list of stable and experimental spec versions, listing the latest stable release first.
 - Update the `nav_order: X` field in the Jekyll front matter in every `docs/configuration-v*.md` to keep the configuration specs in a decreasing order with the latest stable configuration first. Always keep the experimental config spec last.
+
+### External Tests
+
+If there are any external kola tests that were using the now stabilized experimental spec that are not part of the Ignition repo (e.x. tests in the [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config/tree/testing-devel/tests/kola) repo) then CI will fail for the spec stabilization PR.
+
+- Merge the spec stabilization PR on red (assuming only those tests are failing)
+- Perform a new Ignition release
+- Bump the Ignition packaging
+- Update other repositories:
+  * Vendor the new Ignition release into [coreos-assembler](https://github.com/coreos/coreos-assembler)
+  * Update the lockfile on the testing-devel branch in [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config) to use the new Ignition release & the external test to use the new stabilized spec version
