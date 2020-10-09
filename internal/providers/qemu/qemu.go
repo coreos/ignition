@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build s390x ppc64le
-
-// The QEMU provider on s390x and ppc64le fetches a configuration file from an
-// attached block device with id 'virtio-ignition'.
-
 package qemu
 
 import (
@@ -42,7 +37,19 @@ const (
 )
 
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	f.Logger.Warning("Fetching the Ignition config via the Virtio block driver is currently experimental and subject to change.")
+	if fwCfgSupported() {
+		data, err := fetchFromFwCfg(f)
+		if err == nil {
+			return util.ParseConfig(f.Logger, data)
+		} else {
+			if !os.IsNotExist(err) {
+				f.Logger.Err("couldn't read QEMU firmware config: %v", err)
+				return types.Config{}, report.Report{}, err
+			}
+			/* in the ENOENT case, we fall through */
+			f.Logger.Info("QEMU firmware config was not found; falling back to block device")
+		}
+	}
 
 	_, err := f.Logger.LogCmd(exec.Command("modprobe", "virtio_blk"), "loading Virtio block driver module")
 	if err != nil {
