@@ -1,3 +1,28 @@
+13-Oct-2020 Ignition 2.7.0
+
+  Features:
+
+    - Support resizing existing partitions (3.2.0)
+    - Support reusing LUKS devices not bound to Clevis (3.2.0)
+
+  Changes:
+
+    - Mark the 3.2.0 config spec as stable
+    - No longer accept configs with version 3.2.0-experimental
+    - Create new 3.3.0-experimental config spec from 3.2.0
+    - Require presence of a config source on CloudStack/OpenStack, and
+      wait indefinitely for it to appear
+    - When executing in non-default AWS partitions (GovCloud or AWS
+      China), fetch s3:// resources from the same partition
+
+  Bug Fixes:
+
+    - Fix bundled library unconditionally blocking for entropy at
+      startup
+    - Fix config fetching on AzureStack
+    - Fix partition offset/length calculation on big-endian systems
+    - Fix premature logging of successful config fetch
+
 07-Aug-2020 Ignition 2.6.0
 
   Features:
