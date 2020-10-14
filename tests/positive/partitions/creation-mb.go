@@ -362,6 +362,6 @@ func ResizeExistingPartitionsMiB() types.Test {
 		In:               in,
 		Out:              out,
 		Config:           config,
-		ConfigMinVersion: "3.2.0-experimental",
+		ConfigMinVersion: "3.2.0",
 	}
 }

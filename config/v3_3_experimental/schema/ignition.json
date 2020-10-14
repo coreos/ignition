@@ -1,0 +1,639 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ignition",
+  "type": "object",
+  "properties": {
+    "ignition": {
+      "$ref": "#/definitions/ignition"
+    },
+    "storage": {
+      "$ref": "#/definitions/storage"
+    },
+    "systemd": {
+      "$ref": "#/definitions/systemd"
+    },
+    "passwd": {
+      "$ref": "#/definitions/passwd"
+    }
+  },
+  "required": [
+    "ignition"
+  ],
+  "definitions": {
+    "resource": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": ["string", "null"]
+        },
+        "compression": {
+          "type": ["string", "null"]
+        },
+        "httpHeaders": {
+          "$ref": "#/definitions/httpHeaders"
+        },
+        "verification": {
+          "$ref": "#/definitions/verification"
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "hash": { "type": ["string", "null"] }
+      }
+    },
+    "httpHeaders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": ["string", "null"]
+          }
+        },
+        "required": [
+            "name"
+        ]
+      }
+    },
+    "ignition": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "config": {
+          "$ref": "#/definitions/ignition/definitions/ignition-config"
+        },
+        "timeouts": {
+          "$ref": "#/definitions/ignition/definitions/timeouts"
+        },
+        "security": {
+          "$ref": "#/definitions/ignition/definitions/security"
+        },
+        "proxy": {
+          "$ref": "#/definitions/ignition/definitions/proxy"
+        }
+      },
+      "definitions": {
+        "ignition-config": {
+          "type": "object",
+          "properties": {
+            "merge": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/resource"
+              }
+            },
+            "replace": {
+              "$ref": "#/definitions/resource"
+            }
+          }
+        },
+        "security": {
+          "type": "object",
+          "properties": {
+            "tls": {
+              "type": "object",
+              "properties": {
+                "certificateAuthorities": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/resource"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "proxy": {
+          "type": "object",
+          "properties": {
+            "httpProxy": {
+              "type": ["string", "null"]
+            },
+            "httpsProxy": {
+              "type": ["string", "null"]
+            },
+            "noProxy": {
+              "type": "array",
+              "items": {
+                "type": ["string", "null"]
+              }
+            }
+          }
+        },
+        "timeouts": {
+          "type": "object",
+          "properties": {
+            "httpResponseHeaders": {
+              "type": ["integer", "null"]
+            },
+            "httpTotal": {
+              "type": ["integer", "null"]
+            }
+          }
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "properties": {
+        "disks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/disk"
+          }
+        },
+        "raid": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/raid"
+          }
+        },
+        "luks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/luks"
+          }
+        },
+        "filesystems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/filesystem"
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/file"
+          }
+        },
+        "directories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/directory"
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/storage/definitions/link"
+          }
+        }
+      },
+      "definitions": {
+        "disk": {
+          "type": "object",
+          "properties": {
+            "device": {
+              "type": "string"
+            },
+            "wipeTable": {
+              "type": ["boolean", "null"]
+            },
+            "partitions": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/storage/definitions/partition"
+              }
+            }
+          },
+          "required": [
+              "device"
+          ]
+        },
+        "raid": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "level": {
+              "type": "string"
+            },
+            "spares": {
+              "type": ["integer", "null"]
+            },
+            "devices": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+              "name",
+              "level",
+              "devices"
+          ]
+        },
+        "luks": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "label": {
+              "type": ["string", "null"]
+            },
+            "uuid": {
+              "type": ["string", "null"]
+            },
+            "device": {
+              "type": ["string", "null"]
+            },
+            "keyFile": {
+              "$ref": "#/definitions/resource"
+            },
+            "wipeVolume": {
+              "type": ["boolean", "null"]
+            },
+            "clevis": {
+              "type": ["object", "null"],
+              "properties": {
+                "custom": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "pin": {
+                      "type": "string"
+                    },
+                    "config": {
+                      "type": "string"
+                    },
+                    "needsNetwork": {
+                      "type": ["boolean", "null"]
+                    }
+                  },
+                  "required": [
+                    "pin",
+                    "config"
+                  ]
+                },
+                "tpm2": {
+                  "type": ["boolean", "null"]
+                },
+                "tang": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/storage/definitions/tang"
+                  }
+                },
+                "threshold": {
+                  "type": ["integer", "null"]
+                }
+              }
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+              "name"
+          ]
+        },
+        "tang": {
+          "type": "object",
+          "properties": {
+            "url": {
+                "type": "string"
+            },
+            "thumbprint": {
+              "type": ["string", "null"]
+            }
+          }
+        },
+        "filesystem": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": ["string", "null"]
+            },
+            "device": {
+              "type": "string"
+            },
+            "format": {
+              "type": ["string", "null"]
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "mountOptions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "wipeFilesystem": {
+              "type": ["boolean", "null"]
+            },
+            "label": {
+              "type": ["string", "null"]
+            },
+            "uuid": {
+              "type": ["string", "null"]
+            }
+          },
+          "required": [
+              "device"
+          ]
+        },
+        "file": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/storage/definitions/node"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "type": ["integer", "null"]
+                },
+                "contents": {
+                  "$ref": "#/definitions/resource"
+                },
+                "append": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/resource"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "directory": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/storage/definitions/node"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "type": ["integer", "null"]
+                }
+              }
+            }
+          ]
+        },
+        "link": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/storage/definitions/node"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "string"
+                },
+                "hard": {
+                  "type": ["boolean", "null"]
+                }
+              },
+              "required": [
+                  "target"
+              ]
+            }
+          ]
+        },
+        "partition": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": ["string", "null"]
+            },
+            "number": {
+              "type": "integer"
+            },
+            "sizeMiB": {
+              "type": ["integer", "null"]
+            },
+            "startMiB": {
+              "type": ["integer", "null"]
+            },
+            "typeGuid": {
+              "type": ["string", "null"]
+            },
+            "guid": {
+              "type": ["string", "null"]
+            },
+            "wipePartitionEntry": {
+              "type": ["boolean", "null"]
+            },
+            "shouldExist": {
+              "type": ["boolean", "null"]
+            },
+            "resize": {
+              "type": ["boolean", "null"]
+            }
+          }
+        },
+        "node": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "overwrite": {
+              "type": ["boolean", "null"]
+            },
+            "user": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": ["integer", "null"]
+                },
+                "name": {
+                  "type": ["string", "null"]
+                }
+              }
+            },
+            "group": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": ["integer", "null"]
+                },
+                "name": {
+                  "type": ["string", "null"]
+                }
+              }
+            }
+          },
+          "required": [
+              "path"
+          ]
+        }
+      }
+    },
+    "systemd": {
+      "type": "object",
+      "properties": {
+        "units": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/systemd/definitions/unit"
+          }
+        }
+      },
+      "definitions": {
+        "unit": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": ["boolean", "null"]
+            },
+            "mask": {
+              "type": ["boolean", "null"]
+            },
+            "contents": {
+              "type": ["string", "null"]
+            },
+            "dropins": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/systemd/definitions/dropin"
+              }
+            }
+          },
+          "required": [
+              "name"
+          ]
+        },
+        "dropin": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "contents": {
+              "type": ["string", "null"]
+            }
+          },
+          "required": [
+              "name"
+          ]
+        }
+      }
+    },
+    "passwd": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/passwd/definitions/user"
+          }
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/passwd/definitions/group"
+          }
+        }
+      },
+      "definitions": {
+        "user": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "passwordHash": {
+              "type": ["string", "null"]
+            },
+            "sshAuthorizedKeys": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "uid": {
+              "type": ["integer", "null"]
+            },
+            "gecos": {
+              "type": ["string", "null"]
+            },
+            "homeDir": {
+              "type": ["string", "null"]
+            },
+            "noCreateHome": {
+              "type": ["boolean", "null"]
+            },
+            "primaryGroup": {
+              "type": ["string", "null"]
+            },
+            "groups": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "noUserGroup": {
+              "type": ["boolean", "null"]
+            },
+            "system": {
+              "type": ["boolean", "null"]
+            },
+            "noLogInit": {
+              "type": ["boolean", "null"]
+            },
+            "shell": {
+              "type": ["string", "null"]
+            },
+            "shouldExist": {
+              "type": ["boolean", "null"]
+            }
+          },
+          "required": [
+              "name"
+          ]
+        },
+        "group": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "gid": {
+              "type": ["integer", "null"]
+            },
+            "passwordHash": {
+              "type": ["string", "null"]
+            },
+            "system": {
+              "type": ["boolean", "null"]
+            },
+            "shouldExist": {
+              "type": ["boolean", "null"]
+            }
+          },
+          "required": [
+              "name"
+          ]
+        }
+      }
+    }
+  }
+}

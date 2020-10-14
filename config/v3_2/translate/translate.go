@@ -17,7 +17,7 @@ package translate
 import (
 	"github.com/coreos/ignition/v2/config/translate"
 	old_types "github.com/coreos/ignition/v2/config/v3_1/types"
-	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_2/types"
 )
 
 func translateIgnition(old old_types.Ignition) (ret types.Ignition) {

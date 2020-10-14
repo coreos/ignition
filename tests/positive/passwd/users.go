@@ -186,7 +186,7 @@ func DeletePasswdUsers() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "3.2.0-experimental"
+	configMinVersion := "3.2.0"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -280,7 +280,7 @@ func DeleteGroups() types.Test {
 			]
 		}
 	}`
-	configMinVersion := "3.2.0-experimental"
+	configMinVersion := "3.2.0"
 	in[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

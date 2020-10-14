@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/v3_2_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -40,7 +40,7 @@ func assertNotNeedsNet(t *testing.T, cfg *types.Config) {
 func TestConfigNeedsNet(t *testing.T) {
 	cfg := types.Config{
 		Ignition: types.Ignition{
-			Version: "3.2.0-experimental",
+			Version: "3.3.0-experimental",
 			Config: types.IgnitionConfig{
 				Replace: types.Resource{
 					Source: util.StrToPtr("http://example.com/config.ign"),

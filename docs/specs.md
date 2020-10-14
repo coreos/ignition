@@ -20,6 +20,7 @@ We recommend that you always use the latest **stable** specification to benefit
 from new features and bug fixes. The following **stable** specification
 versions are currently supported in Ignition:
 
+- [v3.2.0](configuration-v3_2.md)
 - [v3.1.0](configuration-v3_1.md)
 - [v3.0.0](configuration-v3_0.md)
 
@@ -30,7 +31,7 @@ and testing** as it is subject to change **without warning or announcement**.
 The following **experimental** specification version is currently available in
 Ignition:
 
-- [v3.2.0-experimental](configuration-v3_2_experimental.md)
+- [v3.3.0-experimental](configuration-v3_3_experimental.md)
 
 ## Legacy spec 2.x configuration specifications
 

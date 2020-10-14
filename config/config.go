@@ -22,9 +22,12 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_1"
 	trans_3_1 "github.com/coreos/ignition/v2/config/v3_1/translate"
 	types_3_1 "github.com/coreos/ignition/v2/config/v3_1/types"
-	"github.com/coreos/ignition/v2/config/v3_2_experimental"
-	trans_exp "github.com/coreos/ignition/v2/config/v3_2_experimental/translate"
-	types_exp "github.com/coreos/ignition/v2/config/v3_2_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_2"
+	trans_3_2 "github.com/coreos/ignition/v2/config/v3_2/translate"
+	types_3_2 "github.com/coreos/ignition/v2/config/v3_2/types"
+	"github.com/coreos/ignition/v2/config/v3_3_experimental"
+	trans_exp "github.com/coreos/ignition/v2/config/v3_3_experimental/translate"
+	types_exp "github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 
 	"github.com/coreos/go-semver/semver"
 	"github.com/coreos/vcontext/report"
@@ -56,21 +59,30 @@ func Parse(raw []byte) (types_exp.Config, report.Report, error) {
 
 	switch *version {
 	case types_exp.MaxVersion:
-		return v3_2_experimental.Parse(raw)
+		return v3_3_experimental.Parse(raw)
+	case types_3_2.MaxVersion:
+		return exp_from_3_2(v3_2.Parse(raw))
 	case types_3_1.MaxVersion:
-		return exp_from_3_1(v3_1.Parse(raw))
+		return exp_from_3_2(v3_2_from_3_1(v3_1.Parse(raw)))
 	case types_3_0.MaxVersion:
-		return exp_from_3_1(v3_1_from_3_0(v3_0.Parse(raw)))
+		return exp_from_3_2(v3_2_from_3_1(v3_1_from_3_0(v3_0.Parse(raw))))
 	default:
 		return types_exp.Config{}, report.Report{}, errors.ErrUnknownVersion
 	}
 }
 
-func exp_from_3_1(cfg types_3_1.Config, r report.Report, err error) (types_exp.Config, report.Report, error) {
+func exp_from_3_2(cfg types_3_2.Config, r report.Report, err error) (types_exp.Config, report.Report, error) {
 	if err != nil {
 		return types_exp.Config{}, r, err
 	}
 	return trans_exp.Translate(cfg), r, nil
+}
+
+func v3_2_from_3_1(cfg types_3_1.Config, r report.Report, err error) (types_3_2.Config, report.Report, error) {
+	if err != nil {
+		return types_3_2.Config{}, r, err
+	}
+	return trans_3_2.Translate(cfg), r, nil
 }
 
 func v3_1_from_3_0(cfg types_3_0.Config, r report.Report, err error) (types_3_1.Config, report.Report, error) {
