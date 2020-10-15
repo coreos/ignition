@@ -86,19 +86,36 @@ func (s *stage) createUnits(config types.Config) error {
 				}
 			}
 		}
-		if unit.Mask != nil && *unit.Mask {
-			relabelpath := ""
-			if err := s.Logger.LogOp(
-				func() error {
-					var err error
-					relabelpath, err = s.MaskUnit(unit)
+		if unit.Mask != nil {
+			if *unit.Mask { // mask: true
+				relabelpath := ""
+				if err := s.Logger.LogOp(
+					func() error {
+						var err error
+						relabelpath, err = s.MaskUnit(unit)
+						return err
+					},
+					"masking unit %q", unit.Name,
+				); err != nil {
 					return err
-				},
-				"masking unit %q", unit.Name,
-			); err != nil {
-				return err
+				}
+				s.relabel(relabelpath)
+			} else { // mask: false
+				masked, err := s.IsUnitMasked(unit)
+				if err != nil {
+					return err
+				}
+				if masked {
+					if err := s.Logger.LogOp(
+						func() error {
+							return s.UnmaskUnit(unit)
+						},
+						"unmasking unit %q", unit.Name,
+					); err != nil {
+						return err
+					}
+				}
 			}
-			s.relabel(relabelpath)
 		}
 	}
 	// if we have presets then create the systemd preset file.
