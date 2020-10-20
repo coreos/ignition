@@ -52,7 +52,7 @@
 # https://github.com/coreos/ignition
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}/v2
-%global commit          947598ed908b374c50028f260eb52da9795a4ba4
+%global commit          5be43fd39ddeed32efe90d69cec57e2cae3bd8a8
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 # define ldflags, buildflags, testflags here. The ldflags were
 # taken from ./build. We will need to periodically check these
@@ -63,23 +63,13 @@
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Version:        2.6.0
-Release:        5.rhaos4.7.git%{shortcommit}%{?dist}
+Version:        2.7.0
+Release:        1.rhaos4.7.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
-# Fix sector size detection on s390x
-# https://github.com/coreos/ignition/pull/1070
-Patch0:         blkid-fix-invalid-pointer-cast-in-DumpDisk.patch
-# engine: fix logging interactions with fetch-offline
-# https://github.com/coreos/ignition/pull/1075
-Patch1:         fetch-don-t-run-if-fetch-offline-fetched-a-config.patch
-Patch2:         engine-fix-logging-interactions-with-fetch-offline.patch
-# vmware: kernel_lockdown breaks guestinfo fetching
-# https://github.com/coreos/ignition/issues/1092
-Patch3:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
-Patch4:         0001-Defer-IDGenerator-initialization-until-first-use.patch
+Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: x86_64 ppc64le aarch64 s390x
@@ -258,6 +248,22 @@ Provides: bundled(golang(google.golang.org/genproto/googleapis/iam/v1)) = 0.0.0-
 Provides: bundled(golang(google.golang.org/genproto/googleapis/rpc/code)) = 0.0.0-20200610104632.gita5b850bcf112
 Provides: bundled(golang(google.golang.org/genproto/googleapis/rpc/status)) = 0.0.0-20200610104632.gita5b850bcf112
 Provides: bundled(golang(google.golang.org/genproto/googleapis/type/expr)) = 0.0.0-20200610104632.gita5b850bcf112
+Provides: bundled(golang(go.opencensus.io)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/internal)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/internal/tagencoding)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/metric/metricdata)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/metric/metricproducer)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/plugin/ochttp)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/plugin/ochttp/propagation/b3)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/resource)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/stats)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/stats/internal)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/stats/view)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/tag)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/trace)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/trace/internal)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/trace/propagation)) = 0.22.5
+Provides: bundled(golang(go.opencensus.io/trace/tracestate)) = 0.22.5
 %endif
 
 
@@ -430,10 +436,6 @@ This package contains a tool for validating Ignition configurations.
 # unpack source0 and apply patches
 %setup -T -b 0 -q -n %{repo}-%{commit}
 %patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
 
 %build
 # Set up PWD as a proper import path for go
@@ -532,6 +534,8 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %gotest %{import_path}/config/v3_0/types
 %gotest %{import_path}/config/v3_1
 %gotest %{import_path}/config/v3_1/types
+%gotest %{import_path}/config/v3_2
+%gotest %{import_path}/config/v3_2/types
 %gotest %{import_path}/config/validate
 %gotest %{import_path}/internal/exec/stages/files
 %gotest %{import_path}/internal/exec/util
@@ -544,7 +548,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %{!?_licensedir:%global license %doc}
 
 %files
-%doc README.md doc/
+%doc README.md docs/
 %{dracutlibdir}/modules.d/*
 %{_prefix}/lib/systemd/system/*.service
 
@@ -567,6 +571,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Mon Oct 19 2020 Stephen Lowrie <slowrie@redhat.com> - 2.7.0-1.rhaos4.7.git5be43fd
+- New release
+
 * Mon Oct 05 2020 Benjamin Gilbert <bgilbert@redhat.com> - 2.6.0-5.rhaos4.7.git947598e
 - Rebuild for 4.7
 
