@@ -9,7 +9,18 @@ Tagging:
  - [ ] Push that tag to GitHub
 
 Packaging:
- - [ ] Create a PR to bump the Ignition spec file in [Fedora](https://src.fedoraproject.org/rpms/ignition).
+ - [ ] Update the Ignition spec file in [Fedora](https://src.fedoraproject.org/rpms/ignition):
+   - Update the commit hash global variable
+   - Bump the `Version`
+   - Switch the `Release` back to `1.git%{shortcommit}%{?dist}`
+   - Remove any patches obsoleted by the new release
+   - Run `go-mods-to-bundled-provides.py | sort` while inside of the Ignition directory you ran `./tag_release` from & copy output into spec file in `# Main package provides` section
+   - Add any new spec paths to `%gotest` lines
+   - Update change log
+ - [ ] Run `./download_ignition.sh`
+ - [ ] Run `kinit your_fas_account@FEDORAPROJECT.ORG`
+ - [ ] Run `fedpkg new-sources tarball-name`
+ - [ ] PR the changes in [Fedora](https://src.fedoraproject.org/rpms/ignition)
  - [ ] Once the PR merges to master, merge master into the other relevant branches (e.g. f30) then push those
  - [ ] On each of those branches run `fedpkg build`
  - [ ] Once the builds have finished, submit them to [bodhi](https://bodhi.fedoraproject.org/updates/new), filling in:
