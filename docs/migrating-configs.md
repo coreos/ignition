@@ -125,9 +125,9 @@ The `passwd` `users` and `groups` sections have a new field `shouldExist`. If sp
 }
 ```
 
-### GCS URL support
+### Google Cloud Storage URL support
 
-The sections which allow fetching a remote URL now accept GCS (`gs://`) URLs in the `source` field.
+The sections which allow fetching a remote URL now accept Google Cloud Storage (`gs://`) URLs in the `source` field.
 
 <!-- ignition -->
 ```json
