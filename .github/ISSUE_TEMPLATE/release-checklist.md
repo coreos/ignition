@@ -17,7 +17,7 @@ Packaging:
    - Run `go-mods-to-bundled-provides.py | sort` while inside of the Ignition directory you ran `./tag_release` from & copy output into spec file in `# Main package provides` section
    - Add any new spec paths to `%gotest` lines
    - Update change log
- - [ ] Run `./download_ignition.sh`
+ - [ ] Run `spectool -g -S ignition.spec`
  - [ ] Run `kinit your_fas_account@FEDORAPROJECT.ORG`
  - [ ] Run `fedpkg new-sources tarball-name`
  - [ ] PR the changes in [Fedora](https://src.fedoraproject.org/rpms/ignition)
