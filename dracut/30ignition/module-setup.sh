@@ -56,8 +56,6 @@ install() {
     # Required on system using SELinux
     inst_multiple -o setfiles
 
-    inst_script "$moddir/ignition-setup-base.sh" \
-        "/usr/sbin/ignition-setup-base"
     inst_script "$moddir/ignition-setup-user.sh" \
         "/usr/sbin/ignition-setup-user"
 
@@ -82,7 +80,6 @@ install() {
             "$systemdsystemunitdir/ignition-$x.target"
     done
 
-    install_ignition_unit ignition-setup-base.service
     install_ignition_unit ignition-setup-user.service
     install_ignition_unit ignition-fetch.service
     install_ignition_unit ignition-fetch-offline.service

@@ -88,7 +88,7 @@ func (e Engine) Run(stageName string) error {
 	}
 	baseConfig := emptyConfig
 
-	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger)
+	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger, e.PlatformConfig.Name())
 	e.logReport(r)
 	if err != nil && err != providers.ErrNoProvider {
 		e.Logger.Crit("failed to acquire system base config: %v", err)

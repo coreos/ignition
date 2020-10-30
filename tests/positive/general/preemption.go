@@ -76,9 +76,14 @@ func makePreemptTest(components string) types.Test {
 	var systemFiles []types.File
 	for _, component := range []string{"b", "u"} {
 		if enabled(component) {
+			var dir string
+			if component == "b" {
+				dir = "base.d"
+			}
 			systemFiles = append(systemFiles, types.File{
 				Node: types.Node{
-					Name: longnames[component] + ".ign",
+					Name:      longnames[component] + ".ign",
+					Directory: dir,
 				},
 				Contents: makeConfig(component),
 			})
