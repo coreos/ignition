@@ -22,6 +22,8 @@ import (
 func init() {
 	register.Register(register.PositiveTest, CreateInstantiatedService())
 	register.Register(register.PositiveTest, CreateEmptyDropinsUnit())
+	register.Register(register.PositiveTest, TestUnmaskUnit())
+	register.Register(register.PositiveTest, TestMaskUnit())
 }
 
 func CreateInstantiatedService() types.Test {
@@ -103,6 +105,149 @@ func CreateEmptyDropinsUnit() types.Test {
 				Directory: "etc/systemd/system/zincati.service.d",
 			},
 			Contents: "",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// TestUnmaskUnit tests unmasking systemd units. In the case that a
+// systemd unit is masked already it will unmask it. In the case it is
+// not masked it will do nothing. In the code below we have foo.service,
+// which is masked in the input, and bar.service, which is not masked in
+// the input. We test that foo.service is properly unmasked and that the
+// unmasking of bar.service is skipped (because it wasn't masked to begin
+// with) and that bar.service gets enabled.
+func TestUnmaskUnit() types.Test {
+	name := "unit.unmask"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+		"ignition": { "version": "$version" },
+		"systemd": {
+			"units": [
+				{
+					"name": "foo.service",
+					"mask": false
+				},
+				{
+					"name": "bar.service",
+					"enabled": true,
+					"mask": false
+				}
+			]
+        }
+		}`
+	configMinVersion := "3.0.0"
+	in[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "etc/systemd/system",
+				Name:      "foo.service",
+			},
+			Target: "/dev/null",
+			Hard:   false,
+		},
+	})
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "foo.service",
+				Directory: "usr/lib/systemd/system",
+			},
+			Contents: "[Unit]\nDescription=f\n[Service]\nType=oneshot\nExecStart=/usr/bin/true\n[Install]\nWantedBy=multi-user.target\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "bar.service",
+				Directory: "usr/lib/systemd/system",
+			},
+			Contents: "[Unit]\nDescription=f\n[Service]\nType=oneshot\nExecStart=/usr/bin/true\n[Install]\nWantedBy=multi-user.target\n",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "20-ignition.preset",
+				Directory: "etc/systemd/system-preset",
+			},
+			Contents: "enable bar.service\n",
+		},
+	})
+	out[0].Partitions.AddRemovedNodes("ROOT", []types.Node{
+		{
+			Directory: "etc/systemd/system",
+			Name:      "foo.service",
+		},
+		{
+			Directory: "etc/systemd/system",
+			Name:      "bar.service",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// TestMaskUnit tests masking systemd units. In this case foo.service
+// verified to be masked by checking it's symlinked to /dev/null.
+// We'll also mask a non-existent bar.service.
+func TestMaskUnit() types.Test {
+	name := "unit.mask"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+		"ignition": { "version": "$version" },
+		"systemd": {
+			"units": [
+				{
+					"name": "foo.service",
+					"mask": true
+				},
+				{
+					"name": "bar.service",
+					"mask": true
+				}
+			]
+        }
+		}`
+	configMinVersion := "3.0.0"
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "foo.service",
+				Directory: "usr/lib/systemd/system",
+			},
+			Contents: "[Unit]\nDescription=f\n[Service]\nType=oneshot\nExecStart=/usr/bin/true\n[Install]\nWantedBy=multi-user.target\n",
+		},
+	})
+	out[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "etc/systemd/system",
+				Name:      "foo.service",
+			},
+			Target: "/dev/null",
+			Hard:   false,
+		},
+		{
+			Node: types.Node{
+				Directory: "etc/systemd/system",
+				Name:      "bar.service",
+			},
+			Target: "/dev/null",
+			Hard:   false,
 		},
 	})
 
