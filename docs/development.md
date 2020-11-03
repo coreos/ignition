@@ -81,6 +81,7 @@ The following packages are required by the Blackbox Test:
 * `gdisk`
 * `coreutils`
 * `mdadm`
+* `libblkid-devel`
 
 ## Writing Blackbox Tests
 

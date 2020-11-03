@@ -101,7 +101,7 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_units_** (list of objects): the list of systemd units.
     * **name** (string): the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service"). Every unit must have a unique `name`.
     * **_enabled_** (boolean): whether or not the service shall be enabled. When true, the service is enabled. When false, the service is disabled. When omitted, the service is unmodified. In order for this to have any effect, the unit must have an install section.
-    * **_mask_** (boolean): whether or not the service shall be masked. When true, the service is masked by symlinking it to `/dev/null`.
+    * **_mask_** (boolean): whether or not the service shall be masked. When true, the service is masked by symlinking it to `/dev/null`. When false, the service is unmasked by deleting the symlink to `/dev/null` if it exists.
     * **_contents_** (string): the contents of the unit.
     * **_dropins_** (list of objects): the list of drop-ins for the unit. Every drop-in must have a unique `name`.
       * **name** (string): the name of the drop-in. This must be suffixed with ".conf".
