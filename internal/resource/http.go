@@ -263,19 +263,22 @@ func (f *Fetcher) newHttpClient() error {
 	return nil
 }
 
-// getReaderWithHeader performs an HTTP GET on the provided URL with the
-// provided request header and returns the response body Reader, HTTP status
-// code, a cancel function for the result's context, and error (if any). By
-// default, User-Agent is added to the header but this can be overridden.
-func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.ReadCloser, int, context.CancelFunc, error) {
-	req, err := http.NewRequest("GET", url, nil)
+// httpReaderWithHeader performs an HTTP request on the provided URL with the
+// provided request header & method and returns the response body Reader, HTTP
+// status code, a cancel function for the result's context, and error (if any).
+// By default, User-Agent is added to the header but this can be overridden.
+func (c HttpClient) httpReaderWithHeader(opts FetchOptions, url string) (io.ReadCloser, int, context.CancelFunc, error) {
+	if opts.HTTPVerb == "" {
+		opts.HTTPVerb = "GET"
+	}
+	req, err := http.NewRequest(opts.HTTPVerb, url, nil)
 	if err != nil {
 		return nil, 0, nil, err
 	}
 
 	req.Header.Set("User-Agent", "Ignition/"+version.Raw)
 
-	for key, values := range header {
+	for key, values := range opts.Headers {
 		req.Header.Del(key)
 		for _, value := range values {
 			req.Header.Add(key, value)
@@ -290,17 +293,17 @@ func (c HttpClient) getReaderWithHeader(url string, header http.Header) (io.Read
 
 	duration := initialBackoff
 	for attempt := 1; ; attempt++ {
-		c.logger.Info("GET %s: attempt #%d", url, attempt)
+		c.logger.Info("%s %s: attempt #%d", opts.HTTPVerb, url, attempt)
 		resp, err := c.client.Do(req.WithContext(ctx))
 
 		if err == nil {
-			c.logger.Info("GET result: %s", http.StatusText(resp.StatusCode))
+			c.logger.Info("%s result: %s", opts.HTTPVerb, http.StatusText(resp.StatusCode))
 			if resp.StatusCode < 500 {
 				return resp.Body, resp.StatusCode, cancelFn, nil
 			}
 			resp.Body.Close()
 		} else {
-			c.logger.Info("GET error: %v", err)
+			c.logger.Info("%s error: %v", opts.HTTPVerb, err)
 		}
 
 		duration = duration * 2

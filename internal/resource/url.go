@@ -112,6 +112,10 @@ type FetchOptions struct {
 	// Compression specifies the type of compression to use when decompressing
 	// the fetched object. If left empty, no decompression will be used.
 	Compression string
+
+	// HTTPVerb is an HTTP request method to indicate the desired action to
+	// be performed for a given resource.
+	HTTPVerb string
 }
 
 // FetchToBuffer will fetch the given url into a temporary file, and then read
@@ -298,7 +302,9 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 		}
 	}
 
-	dataReader, status, ctxCancel, err := f.client.getReaderWithHeader(u.String(), headers)
+	requestOpts := opts
+	requestOpts.Headers = headers
+	dataReader, status, ctxCancel, err := f.client.httpReaderWithHeader(requestOpts, u.String())
 	if ctxCancel != nil {
 		// whatever context getReaderWithHeader created for the request should
 		// be cancelled once we're done reading the response
