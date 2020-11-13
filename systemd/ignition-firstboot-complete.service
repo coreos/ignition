@@ -24,7 +24,8 @@ MountFlags=slave
 ExecStart=/bin/sh -c \
 	'mount -o remount,rw /boot && \
 	if [[ $(uname -m) = s390x ]]; then zipl; fi && \
-	rm /boot/ignition.firstboot'
+	rm /boot/ignition.firstboot && \
+	rm -rf /boot/coreos-firstboot-network'
 
 [Install]
 # Part of basic.target so this happens early on in firstboot
