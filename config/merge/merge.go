@@ -57,7 +57,7 @@ type structInfo struct {
 	// checking done across all fields that share that handle
 	mergedKeys map[string]string
 
-	// map from each handle + key() value to what list it came from
+	// map from each handle + key() to the corresponding item
 	keysToValues map[handleKey]reflect.Value
 
 	// map from each handle + key() to the list it came from
@@ -175,6 +175,7 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 			resultField.Set(reflect.MakeSlice(parentField.Type(), 0, parentField.Len()+childField.Len()))
 			parentKeys := getKeySet(parentField)
 
+			// walk parent items
 			for i := 0; i < parentField.Len(); i++ {
 				parentItem := parentField.Index(i)
 				key := util.CallKey(parentItem)
@@ -202,11 +203,12 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 					appendToSlice(resultField, parentItem)
 				}
 			}
+			// append child items not in parent
 			for i := 0; i < childField.Len(); i++ {
 				childItem := childField.Index(i)
 				key := util.CallKey(childItem)
 				if _, alreadyMerged := parentKeys[key]; !alreadyMerged {
-					// We only check the parentMap for this field. If the parent had a matching entry in a differnt field
+					// We only check the parentMap for this field. If the parent had a matching entry in a different field
 					// then it would be skipped as case 2 above
 					appendToSlice(resultField, childItem)
 				}
