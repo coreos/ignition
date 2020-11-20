@@ -48,6 +48,18 @@ func (c ContextPath) Append(e ...interface{}) ContextPath {
 	}
 }
 
+func (c ContextPath) Copy() ContextPath {
+	// make sure to preserve reflect.DeepEqual() equality
+	var path []interface{}
+	if c.Path != nil {
+		path = append(path, c.Path...)
+	}
+	return ContextPath{
+		Path: path,
+		Tag:  c.Tag,
+	}
+}
+
 // Head returns the first element in the path, panics if empty.
 func (c ContextPath) Head() interface{} {
 	return c.Path[0]

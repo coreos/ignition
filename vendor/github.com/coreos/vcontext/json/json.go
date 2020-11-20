@@ -17,7 +17,7 @@ package json
 import (
 	"github.com/coreos/vcontext/tree"
 	// todo: rewrite this dep
-	json "github.com/ajeddeloh/go-json"
+	json "github.com/coreos/go-json"
 )
 
 func UnmarshalToContext(raw []byte) (tree.Node, error) {
