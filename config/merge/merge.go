@@ -146,7 +146,7 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 	info := newStructInfo(parent, child)
 
 	for i := 0; i < parent.NumField(); i++ {
-		fieldName := parent.Type().Field(i).Name
+		fieldMeta := parent.Type().Field(i)
 		parentField := parent.Field(i)
 		childField := child.Field(i)
 		resultField := result.Field(i)
@@ -161,12 +161,12 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 			resultField.Set(childField)
 		case kind == reflect.Struct:
 			resultField.Set(MergeStruct(parentField, childField))
-		case kind == reflect.Slice && info.ignoreField(fieldName):
+		case kind == reflect.Slice && info.ignoreField(fieldMeta.Name):
 			if parentField.Len()+childField.Len() == 0 {
 				continue
 			}
 			resultField.Set(reflect.AppendSlice(parentField, childField))
-		case kind == reflect.Slice && !info.ignoreField(fieldName):
+		case kind == reflect.Slice && !info.ignoreField(fieldMeta.Name):
 			// ooph, this is a doosey
 			maxlen := parentField.Len() + childField.Len()
 			if maxlen == 0 {
@@ -180,13 +180,13 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 				parentItem := parentField.Index(i)
 				key := util.CallKey(parentItem)
 
-				if childItem, childList, ok := info.getChildEntryByKey(fieldName, key); ok {
-					if childList == fieldName {
+				if childItem, childList, ok := info.getChildEntryByKey(fieldMeta.Name, key); ok {
+					if childList == fieldMeta.Name {
 						// case 1: in child config in same list
 						if childItem.Kind() == reflect.Struct {
 							// If HTTP header Value is nil, it means that we should remove the
 							// parent header from the result.
-							if fieldName == "HTTPHeaders" && childItem.FieldByName("Value").IsNil() {
+							if fieldMeta.Name == "HTTPHeaders" && childItem.FieldByName("Value").IsNil() {
 								continue
 							}
 							appendToSlice(resultField, MergeStruct(parentItem, childItem))
