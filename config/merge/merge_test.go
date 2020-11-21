@@ -641,6 +641,6 @@ func TestMerge(t *testing.T) {
 		in2v := reflect.ValueOf(test.in2)
 		out := MergeStruct(in1v, in2v).Interface().(types.Config)
 
-		assert.Equal(t, test.out, out, "#%d bas merge", i)
+		assert.Equal(t, test.out, out, "#%d bad merge", i)
 	}
 }
