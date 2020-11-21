@@ -15,12 +15,12 @@
 package merge
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 
+	"github.com/coreos/vcontext/path"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,9 +36,10 @@ func toPointer(val string) *string {
 
 func TestMerge(t *testing.T) {
 	type test struct {
-		in1 types.Config
-		in2 types.Config
-		out types.Config
+		in1        types.Config
+		in2        types.Config
+		out        types.Config
+		transcript Transcript
 	}
 
 	tests := []test{
@@ -55,6 +56,9 @@ func TestMerge(t *testing.T) {
 			out: types.Config{
 				Ignition: types.Ignition{Version: "haha this isn't validated"},
 			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_CHILD, "ignition", "version"), path.New(TAG_RESULT, "ignition", "version")},
+			}},
 		},
 		{
 			in1: types.Config{
@@ -257,6 +261,36 @@ func TestMerge(t *testing.T) {
 					},
 				},
 			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_CHILD, "passwd", "users", 0, "name"), path.New(TAG_RESULT, "passwd", "users", 0, "name")},
+				{path.New(TAG_PARENT, "passwd", "users", 0, "sshAuthorizedKeys", 0), path.New(TAG_RESULT, "passwd", "users", 0, "sshAuthorizedKeys", 0)},
+				{path.New(TAG_CHILD, "passwd", "users", 0, "sshAuthorizedKeys", 1), path.New(TAG_RESULT, "passwd", "users", 0, "sshAuthorizedKeys", 1)},
+				{path.New(TAG_CHILD, "passwd", "users", 0, "sshAuthorizedKeys", 0), path.New(TAG_RESULT, "passwd", "users", 0, "sshAuthorizedKeys", 2)},
+				{path.New(TAG_CHILD, "storage", "directories", 0, "path"), path.New(TAG_RESULT, "storage", "directories", 0, "path")},
+				{path.New(TAG_CHILD, "storage", "directories", 0), path.New(TAG_RESULT, "storage", "directories", 0)},
+				{path.New(TAG_CHILD, "storage", "disks", 0, "device"), path.New(TAG_RESULT, "storage", "disks", 0, "device")},
+				{path.New(TAG_CHILD, "storage", "disks", 0, "partitions", 0, "label"), path.New(TAG_RESULT, "storage", "disks", 0, "partitions", 0, "label")},
+				{path.New(TAG_CHILD, "storage", "disks", 0, "partitions", 0, "number"), path.New(TAG_RESULT, "storage", "disks", 0, "partitions", 0, "number")},
+				{path.New(TAG_PARENT, "storage", "disks", 0, "partitions", 0, "startMiB"), path.New(TAG_RESULT, "storage", "disks", 0, "partitions", 0, "startMiB")},
+				{path.New(TAG_CHILD, "storage", "disks", 0, "partitions", 1, "label"), path.New(TAG_RESULT, "storage", "disks", 0, "partitions", 1, "label")},
+				{path.New(TAG_CHILD, "storage", "disks", 0, "partitions", 1, "number"), path.New(TAG_RESULT, "storage", "disks", 0, "partitions", 1, "number")},
+				{path.New(TAG_CHILD, "storage", "disks", 0, "partitions", 1), path.New(TAG_RESULT, "storage", "disks", 0, "partitions", 1)},
+				{path.New(TAG_CHILD, "storage", "disks", 0, "wipeTable"), path.New(TAG_RESULT, "storage", "disks", 0, "wipeTable")},
+				{path.New(TAG_CHILD, "storage", "disks", 1, "device"), path.New(TAG_RESULT, "storage", "disks", 1, "device")},
+				{path.New(TAG_PARENT, "storage", "disks", 1, "wipeTable"), path.New(TAG_RESULT, "storage", "disks", 1, "wipeTable")},
+				{path.New(TAG_CHILD, "storage", "disks", 2, "device"), path.New(TAG_RESULT, "storage", "disks", 2, "device")},
+				{path.New(TAG_CHILD, "storage", "disks", 2, "wipeTable"), path.New(TAG_RESULT, "storage", "disks", 2, "wipeTable")},
+				{path.New(TAG_CHILD, "storage", "disks", 2), path.New(TAG_RESULT, "storage", "disks", 2)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "path"), path.New(TAG_RESULT, "storage", "files", 0, "path")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "source"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "source")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 0)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "source"), path.New(TAG_RESULT, "storage", "files", 0, "append", 1, "source")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 1)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 1, "source"), path.New(TAG_RESULT, "storage", "files", 0, "append", 2, "source")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 1), path.New(TAG_RESULT, "storage", "files", 0, "append", 2)},
+				{path.New(TAG_CHILD, "storage", "links", 0, "path"), path.New(TAG_RESULT, "storage", "links", 0, "path")},
+				{path.New(TAG_CHILD, "storage", "links", 0), path.New(TAG_RESULT, "storage", "links", 0)},
+			}},
 		},
 
 		// merge config reference that contains HTTP headers
@@ -335,6 +369,17 @@ func TestMerge(t *testing.T) {
 					},
 				},
 			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_PARENT, "ignition", "config", "merge", 0, "httpHeaders", 0, "name"), path.New(TAG_RESULT, "ignition", "config", "merge", 0, "httpHeaders", 0, "name")},
+				{path.New(TAG_PARENT, "ignition", "config", "merge", 0, "httpHeaders", 0, "value"), path.New(TAG_RESULT, "ignition", "config", "merge", 0, "httpHeaders", 0, "value")},
+				{path.New(TAG_PARENT, "ignition", "config", "merge", 0, "httpHeaders", 0), path.New(TAG_RESULT, "ignition", "config", "merge", 0, "httpHeaders", 0)},
+				{path.New(TAG_CHILD, "ignition", "config", "merge", 0, "httpHeaders", 2, "name"), path.New(TAG_RESULT, "ignition", "config", "merge", 0, "httpHeaders", 1, "name")},
+				{path.New(TAG_CHILD, "ignition", "config", "merge", 0, "httpHeaders", 2, "value"), path.New(TAG_RESULT, "ignition", "config", "merge", 0, "httpHeaders", 1, "value")},
+				{path.New(TAG_CHILD, "ignition", "config", "merge", 0, "httpHeaders", 1, "name"), path.New(TAG_RESULT, "ignition", "config", "merge", 0, "httpHeaders", 2, "name")},
+				{path.New(TAG_CHILD, "ignition", "config", "merge", 0, "httpHeaders", 1, "value"), path.New(TAG_RESULT, "ignition", "config", "merge", 0, "httpHeaders", 2, "value")},
+				{path.New(TAG_CHILD, "ignition", "config", "merge", 0, "httpHeaders", 1), path.New(TAG_RESULT, "ignition", "config", "merge", 0, "httpHeaders", 2)},
+				{path.New(TAG_CHILD, "ignition", "config", "merge", 0, "source"), path.New(TAG_RESULT, "ignition", "config", "merge", 0, "source")},
+			}},
 		},
 
 		// replace config reference that contains HTTP headers
@@ -407,6 +452,17 @@ func TestMerge(t *testing.T) {
 					},
 				},
 			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_PARENT, "ignition", "config", "replace", "httpHeaders", 0, "name"), path.New(TAG_RESULT, "ignition", "config", "replace", "httpHeaders", 0, "name")},
+				{path.New(TAG_PARENT, "ignition", "config", "replace", "httpHeaders", 0, "value"), path.New(TAG_RESULT, "ignition", "config", "replace", "httpHeaders", 0, "value")},
+				{path.New(TAG_PARENT, "ignition", "config", "replace", "httpHeaders", 0), path.New(TAG_RESULT, "ignition", "config", "replace", "httpHeaders", 0)},
+				{path.New(TAG_CHILD, "ignition", "config", "replace", "httpHeaders", 2, "name"), path.New(TAG_RESULT, "ignition", "config", "replace", "httpHeaders", 1, "name")},
+				{path.New(TAG_CHILD, "ignition", "config", "replace", "httpHeaders", 2, "value"), path.New(TAG_RESULT, "ignition", "config", "replace", "httpHeaders", 1, "value")},
+				{path.New(TAG_CHILD, "ignition", "config", "replace", "httpHeaders", 1, "name"), path.New(TAG_RESULT, "ignition", "config", "replace", "httpHeaders", 2, "name")},
+				{path.New(TAG_CHILD, "ignition", "config", "replace", "httpHeaders", 1, "value"), path.New(TAG_RESULT, "ignition", "config", "replace", "httpHeaders", 2, "value")},
+				{path.New(TAG_CHILD, "ignition", "config", "replace", "httpHeaders", 1), path.New(TAG_RESULT, "ignition", "config", "replace", "httpHeaders", 2)},
+				{path.New(TAG_CHILD, "ignition", "config", "replace", "source"), path.New(TAG_RESULT, "ignition", "config", "replace", "source")},
+			}},
 		},
 
 		// CA reference that contains HTTP headers
@@ -491,6 +547,17 @@ func TestMerge(t *testing.T) {
 					},
 				},
 			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_PARENT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 0, "name"), path.New(TAG_RESULT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 0, "name")},
+				{path.New(TAG_PARENT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 0, "value"), path.New(TAG_RESULT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 0, "value")},
+				{path.New(TAG_PARENT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 0), path.New(TAG_RESULT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 0)},
+				{path.New(TAG_CHILD, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 2, "name"), path.New(TAG_RESULT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 1, "name")},
+				{path.New(TAG_CHILD, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 2, "value"), path.New(TAG_RESULT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 1, "value")},
+				{path.New(TAG_CHILD, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 1, "name"), path.New(TAG_RESULT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 2, "name")},
+				{path.New(TAG_CHILD, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 1, "value"), path.New(TAG_RESULT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 2, "value")},
+				{path.New(TAG_CHILD, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 1), path.New(TAG_RESULT, "ignition", "security", "tls", "certificateAuthorities", 0, "httpHeaders", 2)},
+				{path.New(TAG_CHILD, "ignition", "security", "tls", "certificateAuthorities", 0, "source"), path.New(TAG_RESULT, "ignition", "security", "tls", "certificateAuthorities", 0, "source")},
+			}},
 		},
 
 		// file contents that contain HTTP headers
@@ -575,6 +642,17 @@ func TestMerge(t *testing.T) {
 					},
 				},
 			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents", "httpHeaders", 0, "name"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 0, "name")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents", "httpHeaders", 0, "value"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 0, "value")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents", "httpHeaders", 0), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 0)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "httpHeaders", 2, "name"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 1, "name")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "httpHeaders", 2, "value"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 1, "value")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "httpHeaders", 1, "name"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 2, "name")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "httpHeaders", 1, "value"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 2, "value")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "httpHeaders", 1), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 2)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "source"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "source")},
+			}},
 		},
 
 		// file contents that contain HTTP headers
@@ -667,14 +745,32 @@ func TestMerge(t *testing.T) {
 					},
 				},
 			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "httpHeaders", 0, "name"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 0, "name")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "httpHeaders", 0, "value"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 0, "value")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "httpHeaders", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 0)},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "httpHeaders", 1, "name"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 1, "name")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "httpHeaders", 1, "value"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 1, "value")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "httpHeaders", 1), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 1)},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "source"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "source")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 0)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "httpHeaders", 0, "name"), path.New(TAG_RESULT, "storage", "files", 0, "append", 1, "httpHeaders", 0, "name")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "httpHeaders", 0, "value"), path.New(TAG_RESULT, "storage", "files", 0, "append", 1, "httpHeaders", 0, "value")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "httpHeaders", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 1, "httpHeaders", 0)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "httpHeaders", 1, "name"), path.New(TAG_RESULT, "storage", "files", 0, "append", 1, "httpHeaders", 1, "name")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "httpHeaders", 1, "value"), path.New(TAG_RESULT, "storage", "files", 0, "append", 1, "httpHeaders", 1, "value")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "httpHeaders", 1), path.New(TAG_RESULT, "storage", "files", 0, "append", 1, "httpHeaders", 1)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "source"), path.New(TAG_RESULT, "storage", "files", 0, "append", 1, "source")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 1)},
+			}},
 		},
 	}
 
 	for i, test := range tests {
-		in1v := reflect.ValueOf(test.in1)
-		in2v := reflect.ValueOf(test.in2)
-		out := MergeStruct(in1v, in2v).Interface().(types.Config)
+		outi, transcript := MergeStructTranscribe(test.in1, test.in2)
+		out := outi.(types.Config)
 
 		assert.Equal(t, test.out, out, "#%d bad merge", i)
+		assert.Equal(t, test.transcript, transcript, "#%d bad transcript", i)
 	}
 }

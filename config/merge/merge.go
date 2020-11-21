@@ -15,9 +15,13 @@
 package merge
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/coreos/ignition/v2/config/util"
+
+	"github.com/coreos/vcontext/path"
 )
 
 // Rules of Config Merging:
@@ -34,6 +38,50 @@ import (
 //      - merge entries with the same Key() that are in the same list
 //      - remove entries from the parent with the same Key() that are not in the same list
 //      - append entries that are unique to the child
+
+const (
+	TAG_PARENT = "parent"
+	TAG_CHILD  = "child"
+	TAG_RESULT = "result"
+)
+
+// The path to one output field, and its corresponding input.  From.Tag will
+// be TAG_PARENT or TAG_CHILD depending on the origin of the field.
+type Mapping struct {
+	From path.ContextPath
+	To   path.ContextPath
+}
+
+func (m Mapping) String() string {
+	return fmt.Sprintf("%s:%s → %s", m.From.Tag, m.From, m.To)
+}
+
+type Transcript struct {
+	Mappings []Mapping
+}
+
+func (t Transcript) String() string {
+	var lines []string
+	for _, m := range t.Mappings {
+		lines = append(lines, m.String())
+	}
+	return strings.Join(lines, "\n")
+}
+
+// pathAppendField looks up the JSON field name for field and returns base
+// with that field name appended.
+func pathAppendField(base path.ContextPath, field reflect.StructField) path.ContextPath {
+	tagName := strings.Split(field.Tag.Get("json"), ",")[0]
+	if tagName != "" {
+		return base.Append(tagName)
+	}
+	if field.Anonymous {
+		// field is a struct embedded in another struct (e.g.
+		// FileEmbedded1).  Pretend it doesn't exist.
+		return base
+	}
+	panic("no JSON struct tag for " + field.Name)
+}
 
 // appendToSlice is a helper that appends to a slice without returning a new one.
 // panics if len >= cap
@@ -62,6 +110,9 @@ type structInfo struct {
 
 	// map from each handle + key() to the list it came from
 	keysToLists map[handleKey]string
+
+	// map from each handle + key() to the index within the list
+	keysToListIndexes map[handleKey]int
 }
 
 // returns if this field should not do duplicate checking/merging
@@ -71,9 +122,10 @@ func (s structInfo) ignoreField(name string) bool {
 }
 
 // getChildEntryByKey takes the name of a field (not handle) in the parent and a key and looks that entry
-// up in the child. It will look up across all slices that share the same handle. It return the value and
-// name of the field in the child it was found in. The bool indicates whether it was found.
-func (s structInfo) getChildEntryByKey(fieldName, key string) (reflect.Value, string, bool) {
+// up in the child. It will look up across all slices that share the same handle. It returns the value,
+// name of the field in the child it was found in, and the list index within that field. The bool indicates
+// whether it was found.
+func (s structInfo) getChildEntryByKey(fieldName, key string) (reflect.Value, string, int, bool) {
 	handle := fieldName
 	if tmp, ok := s.mergedKeys[fieldName]; ok {
 		handle = tmp
@@ -84,9 +136,9 @@ func (s structInfo) getChildEntryByKey(fieldName, key string) (reflect.Value, st
 		key:    key,
 	}
 	if v, ok := s.keysToValues[hkey]; ok {
-		return v, s.keysToLists[hkey], true
+		return v, s.keysToLists[hkey], s.keysToListIndexes[hkey], true
 	}
-	return reflect.Value{}, "", false
+	return reflect.Value{}, "", 0, false
 }
 
 func newStructInfo(parent, child reflect.Value) structInfo {
@@ -102,6 +154,7 @@ func newStructInfo(parent, child reflect.Value) structInfo {
 
 	keysToValues := map[handleKey]reflect.Value{}
 	keysToLists := map[handleKey]string{}
+	keysToListIndexes := map[handleKey]int{}
 	for i := 0; i < child.NumField(); i++ {
 		field := child.Field(i)
 		if field.Kind() != reflect.Slice {
@@ -126,21 +179,42 @@ func newStructInfo(parent, child reflect.Value) structInfo {
 			}
 			keysToValues[hkey] = v
 			keysToLists[hkey] = fieldName
+			keysToListIndexes[hkey] = j
 		}
 	}
 
 	return structInfo{
-		ignoreDups:   ignoreDups,
-		mergedKeys:   mergedKeys,
-		keysToValues: keysToValues,
-		keysToLists:  keysToLists,
+		ignoreDups:        ignoreDups,
+		mergedKeys:        mergedKeys,
+		keysToValues:      keysToValues,
+		keysToLists:       keysToLists,
+		keysToListIndexes: keysToListIndexes,
 	}
 }
 
 // MergeStruct is intended for use by config/vX_Y/ packages only. They should expose their own Merge() that is properly
 // typed. Use that one instead.
+// The signature uses reflect.Value instead of interface{} for historical
+// reasons.
 // parent and child MUST be the same type
 func MergeStruct(parent, child reflect.Value) reflect.Value {
+	result, _ := MergeStructTranscribe(parent.Interface(), child.Interface())
+	return reflect.ValueOf(result)
+}
+
+// MergeStructTranscribe is intended for use by external translation code.
+// It merges the specified configs and returns a transcript of the actions
+// taken.  parent and child MUST be the same type.
+func MergeStructTranscribe(parent, child interface{}) (interface{}, Transcript) {
+	var transcript Transcript
+	result := mergeStruct(reflect.ValueOf(parent), path.New(TAG_PARENT), reflect.ValueOf(child), path.New(TAG_CHILD), path.New(TAG_RESULT), &transcript)
+	return result.Interface(), transcript
+}
+
+// parent and child MUST be the same type
+// we transcribe all leaf fields, and all intermediate structs that wholly
+// originate from either parent or child
+func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflect.Value, childPath path.ContextPath, resultPath path.ContextPath, transcript *Transcript) reflect.Value {
 	// use New() so it's settable, addr-able, etc
 	result := reflect.New(parent.Type()).Elem()
 	info := newStructInfo(parent, child)
@@ -150,22 +224,38 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 		parentField := parent.Field(i)
 		childField := child.Field(i)
 		resultField := result.Field(i)
+		parentFieldPath := pathAppendField(parentPath, fieldMeta)
+		childFieldPath := pathAppendField(childPath, fieldMeta)
+		resultFieldPath := pathAppendField(resultPath, fieldMeta)
 
 		kind := parentField.Kind()
 		switch {
 		case util.IsPrimitive(kind):
 			resultField.Set(childField)
+			transcribe(childFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
 		case kind == reflect.Ptr && childField.IsNil():
 			resultField.Set(parentField)
+			transcribe(parentFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
 		case kind == reflect.Ptr && !childField.IsNil():
 			resultField.Set(childField)
+			transcribe(childFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
 		case kind == reflect.Struct:
-			resultField.Set(MergeStruct(parentField, childField))
+			resultField.Set(mergeStruct(parentField, parentFieldPath, childField, childFieldPath, resultFieldPath, transcript))
 		case kind == reflect.Slice && info.ignoreField(fieldMeta.Name):
 			if parentField.Len()+childField.Len() == 0 {
 				continue
 			}
-			resultField.Set(reflect.AppendSlice(parentField, childField))
+			resultField.Set(reflect.MakeSlice(parentField.Type(), 0, parentField.Len()+childField.Len()))
+			for i := 0; i < parentField.Len(); i++ {
+				item := parentField.Index(i)
+				appendToSlice(resultField, item)
+				transcribe(parentFieldPath.Append(i), resultFieldPath.Append(i), item, fieldMeta, transcript)
+			}
+			for i := 0; i < childField.Len(); i++ {
+				item := childField.Index(i)
+				appendToSlice(resultField, item)
+				transcribe(childFieldPath.Append(i), resultFieldPath.Append(parentField.Len()+i), item, fieldMeta, transcript)
+			}
 		case kind == reflect.Slice && !info.ignoreField(fieldMeta.Name):
 			// ooph, this is a doosey
 			maxlen := parentField.Len() + childField.Len()
@@ -178,20 +268,24 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 			// walk parent items
 			for i := 0; i < parentField.Len(); i++ {
 				parentItem := parentField.Index(i)
+				parentItemPath := parentFieldPath.Append(i)
+				resultItemPath := resultFieldPath.Append(resultField.Len())
 				key := util.CallKey(parentItem)
 
-				if childItem, childList, ok := info.getChildEntryByKey(fieldMeta.Name, key); ok {
+				if childItem, childList, childListIndex, ok := info.getChildEntryByKey(fieldMeta.Name, key); ok {
 					if childList == fieldMeta.Name {
 						// case 1: in child config in same list
+						childItemPath := childFieldPath.Append(childListIndex)
 						if childItem.Kind() == reflect.Struct {
 							// If HTTP header Value is nil, it means that we should remove the
 							// parent header from the result.
 							if fieldMeta.Name == "HTTPHeaders" && childItem.FieldByName("Value").IsNil() {
 								continue
 							}
-							appendToSlice(resultField, MergeStruct(parentItem, childItem))
+							appendToSlice(resultField, mergeStruct(parentItem, parentItemPath, childItem, childItemPath, resultItemPath, transcript))
 						} else if util.IsPrimitive(childItem.Kind()) {
 							appendToSlice(resultField, childItem)
+							transcribe(childItemPath, resultItemPath, childItem, fieldMeta, transcript)
 						} else {
 							panic("List of pointers or slices or something else weird")
 						}
@@ -201,16 +295,20 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 				} else {
 					// case 3: not in child config, append it
 					appendToSlice(resultField, parentItem)
+					transcribe(parentItemPath, resultItemPath, parentItem, fieldMeta, transcript)
 				}
 			}
 			// append child items not in parent
 			for i := 0; i < childField.Len(); i++ {
 				childItem := childField.Index(i)
+				childItemPath := childFieldPath.Append(i)
+				resultItemPath := resultFieldPath.Append(resultField.Len())
 				key := util.CallKey(childItem)
 				if _, alreadyMerged := parentKeys[key]; !alreadyMerged {
 					// We only check the parentMap for this field. If the parent had a matching entry in a different field
 					// then it would be skipped as case 2 above
 					appendToSlice(resultField, childItem)
+					transcribe(childItemPath, resultItemPath, childItem, fieldMeta, transcript)
 				}
 			}
 		default:
@@ -219,6 +317,54 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 	}
 
 	return result
+}
+
+// transcribe is called by mergeStruct when the latter decides to merge a
+// subtree wholesale from either the parent or child, and thus loses
+// interest in that subtree.  transcribe descends the rest of that subtree,
+// transcribing all of its populated leaves.  It returns true if we
+// transcribed anything.
+func transcribe(fromPath path.ContextPath, toPath path.ContextPath, value reflect.Value, fieldMeta reflect.StructField, transcript *Transcript) bool {
+	add := func(from, to path.ContextPath) {
+		transcript.Mappings = append(transcript.Mappings, Mapping{
+			From: from.Copy(),
+			To:   to.Copy(),
+		})
+	}
+
+	kind := value.Kind()
+	switch {
+	case util.IsPrimitive(kind):
+		if value.Interface() == reflect.Zero(value.Type()).Interface() {
+			return false
+		}
+		add(fromPath, toPath)
+	case kind == reflect.Ptr:
+		if value.IsNil() {
+			return false
+		}
+		add(fromPath, toPath)
+	case kind == reflect.Struct:
+		var transcribed bool
+		for i := 0; i < value.NumField(); i++ {
+			valueFieldMeta := value.Type().Field(i)
+			transcribed = transcribe(pathAppendField(fromPath, valueFieldMeta), pathAppendField(toPath, valueFieldMeta), value.Field(i), valueFieldMeta, transcript) || transcribed
+		}
+		// embedded structs and empty structs should be invisible
+		if transcribed && !fieldMeta.Anonymous {
+			add(fromPath, toPath)
+		}
+		return transcribed
+	case kind == reflect.Slice:
+		var transcribed bool
+		for i := 0; i < value.Len(); i++ {
+			transcribed = transcribe(fromPath.Append(i), toPath.Append(i), value.Index(i), fieldMeta, transcript) || transcribed
+		}
+		return transcribed
+	default:
+		panic("unreachable code reached")
+	}
+	return true
 }
 
 // getKeySet takes a value of a slice and returns the set of all the Key() values in that slice
