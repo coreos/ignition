@@ -101,6 +101,17 @@ func TestMerge(t *testing.T) {
 						},
 					},
 				},
+				Passwd: types.Passwd{
+					Users: []types.PasswdUser{
+						{
+							Name: "bovik",
+							SSHAuthorizedKeys: []types.SSHAuthorizedKey{
+								"one",
+								"two",
+							},
+						},
+					},
+				},
 			},
 			in2: types.Config{
 				Storage: types.Storage{
@@ -155,6 +166,17 @@ func TestMerge(t *testing.T) {
 						{
 							Node: types.Node{
 								Path: "/baz",
+							},
+						},
+					},
+				},
+				Passwd: types.Passwd{
+					Users: []types.PasswdUser{
+						{
+							Name: "bovik",
+							SSHAuthorizedKeys: []types.SSHAuthorizedKey{
+								"three",
+								"two",
 							},
 						},
 					},
@@ -218,6 +240,18 @@ func TestMerge(t *testing.T) {
 						{
 							Node: types.Node{
 								Path: "/baz",
+							},
+						},
+					},
+				},
+				Passwd: types.Passwd{
+					Users: []types.PasswdUser{
+						{
+							Name: "bovik",
+							SSHAuthorizedKeys: []types.SSHAuthorizedKey{
+								"one",
+								"two",
+								"three",
 							},
 						},
 					},
