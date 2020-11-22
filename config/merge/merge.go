@@ -192,19 +192,18 @@ func newStructInfo(parent, child reflect.Value) structInfo {
 	}
 }
 
-// MergeStruct is intended for use by config/vX_Y/ packages only. They should expose their own Merge() that is properly
-// typed. Use that one instead.
-// The signature uses reflect.Value instead of interface{} for historical
-// reasons.
-// parent and child MUST be the same type
+// Deprecated: Use MergeStructTranscribe() instead.
 func MergeStruct(parent, child reflect.Value) reflect.Value {
 	result, _ := MergeStructTranscribe(parent.Interface(), child.Interface())
 	return reflect.ValueOf(result)
 }
 
-// MergeStructTranscribe is intended for use by external translation code.
-// It merges the specified configs and returns a transcript of the actions
-// taken.  parent and child MUST be the same type.
+// MergeStructTranscribe is intended for use by config/vX_Y/ packages and
+// by generic external translation code.  Most users should use the properly
+// typed wrappers provided by the config/vX_Y/ packages.
+//
+// MergeStructTranscribe merges the specified configs and returns a
+// transcript of the actions taken.  parent and child MUST be the same type.
 func MergeStructTranscribe(parent, child interface{}) (interface{}, Transcript) {
 	var transcript Transcript
 	result := mergeStruct(reflect.ValueOf(parent), path.New(TAG_PARENT), reflect.ValueOf(child), path.New(TAG_CHILD), path.New(TAG_RESULT), &transcript)
