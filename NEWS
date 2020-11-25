@@ -1,3 +1,14 @@
+25-Nov-2020 Ignition 2.8.0
+
+  Features:
+
+    - Support unmasking systemd units
+
+  Changes:
+
+    - Switch system base config from single file to .d directory
+    - Add Go merge API that produces a transcript of merge operations
+  
 13-Oct-2020 Ignition 2.7.0
 
   Features:
