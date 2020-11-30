@@ -52,7 +52,7 @@
 # https://github.com/coreos/ignition
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}/v2
-%global commit          5be43fd39ddeed32efe90d69cec57e2cae3bd8a8
+%global commit          db4d30d079fd663d0f4c6d59c6fae00ffa268093
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 # define ldflags, buildflags, testflags here. The ldflags were
 # taken from ./build. We will need to periodically check these
@@ -63,7 +63,7 @@
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Version:        2.7.0
+Version:        2.8.0
 Release:        1.rhaos4.7.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
@@ -174,11 +174,11 @@ Provides: bundled(golang(github.com/coreos/go-semver/semver)) = 0.3.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/dbus)) = 22.0.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/journal)) = 22.0.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/unit)) = 22.0.0
-Provides: bundled(golang(github.com/coreos/vcontext/json)) = 0.0.0-20190529201340.git22b159166068
-Provides: bundled(golang(github.com/coreos/vcontext/path)) = 0.0.0-20190529201340.git22b159166068
-Provides: bundled(golang(github.com/coreos/vcontext/report)) = 0.0.0-20190529201340.git22b159166068
-Provides: bundled(golang(github.com/coreos/vcontext/tree)) = 0.0.0-20190529201340.git22b159166068
-Provides: bundled(golang(github.com/coreos/vcontext/validate)) = 0.0.0-20190529201340.git22b159166068
+Provides: bundled(golang(github.com/coreos/vcontext/json)) = 0.0.0-20201120045928.gitb0e13dab675c
+Provides: bundled(golang(github.com/coreos/vcontext/path)) = 0.0.0-20201120045928.gitb0e13dab675c
+Provides: bundled(golang(github.com/coreos/vcontext/report)) = 0.0.0-20201120045928.gitb0e13dab675c
+Provides: bundled(golang(github.com/coreos/vcontext/tree)) = 0.0.0-20201120045928.gitb0e13dab675c
+Provides: bundled(golang(github.com/coreos/vcontext/validate)) = 0.0.0-20201120045928.gitb0e13dab675c
 Provides: bundled(golang(github.com/google/renameio)) = 0.1.0
 Provides: bundled(golang(github.com/google/uuid)) = 1.1.1
 Provides: bundled(golang(github.com/pin/tftp)) = 2.1.0
@@ -571,6 +571,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Mon Nov 30 2020 Sohan Kunkerkar <skunkerk@redhat.com> - 2.8.0-1.rhaos4.7.gitdb4d30d
+- New release
+
 * Mon Oct 19 2020 Stephen Lowrie <slowrie@redhat.com> - 2.7.0-1.rhaos4.7.git5be43fd
 - New release
 
