@@ -293,6 +293,89 @@ func TestMerge(t *testing.T) {
 			}},
 		},
 
+		// struct pointers
+		// we're not supposed to have any, but some ended up in the
+		// Clevis and Luks structs in spec 3.2.0
+		// https://github.com/coreos/ignition/issues/1132
+		{
+			in1: types.Config{
+				Storage: types.Storage{
+					Luks: []types.Luks{
+						// nested struct pointers, one override
+						{
+							Clevis: &types.Clevis{
+								Custom: &types.Custom{
+									Config: "cfg",
+									Pin:    "pin",
+								},
+								Threshold: util.IntToPtr(1),
+							},
+							Device: util.StrToPtr("/dev/foo"),
+							Name:   "bar",
+						},
+					},
+				},
+			},
+			in2: types.Config{
+				Storage: types.Storage{
+					Luks: []types.Luks{
+						// nested struct pointers
+						{
+							Clevis: &types.Clevis{
+								Threshold: util.IntToPtr(2),
+							},
+							Name: "bar",
+						},
+						// struct pointer containing nil struct pointer
+						{
+							Clevis: &types.Clevis{
+								Tpm2: util.BoolToPtr(true),
+							},
+							Device: util.StrToPtr("/dev/baz"),
+							Name:   "bleh",
+						},
+					},
+				},
+			},
+			out: types.Config{
+				Storage: types.Storage{
+					Luks: []types.Luks{
+						{
+							Clevis: &types.Clevis{
+								Custom: &types.Custom{
+									Config: "cfg",
+									Pin:    "pin",
+								},
+								Threshold: util.IntToPtr(2),
+							},
+							Device: util.StrToPtr("/dev/foo"),
+							Name:   "bar",
+						},
+						{
+							Clevis: &types.Clevis{
+								Tpm2: util.BoolToPtr(true),
+							},
+							Device: util.StrToPtr("/dev/baz"),
+							Name:   "bleh",
+						},
+					},
+				},
+			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis", "custom", "config"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "custom", "config")},
+				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis", "custom", "pin"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "custom", "pin")},
+				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis", "custom"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "custom")},
+				{path.New(TAG_CHILD, "storage", "luks", 0, "clevis", "threshold"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "threshold")},
+				{path.New(TAG_PARENT, "storage", "luks", 0, "device"), path.New(TAG_RESULT, "storage", "luks", 0, "device")},
+				{path.New(TAG_CHILD, "storage", "luks", 0, "name"), path.New(TAG_RESULT, "storage", "luks", 0, "name")},
+				{path.New(TAG_CHILD, "storage", "luks", 1, "clevis", "tpm2"), path.New(TAG_RESULT, "storage", "luks", 1, "clevis", "tpm2")},
+				{path.New(TAG_CHILD, "storage", "luks", 1, "clevis"), path.New(TAG_RESULT, "storage", "luks", 1, "clevis")},
+				{path.New(TAG_CHILD, "storage", "luks", 1, "device"), path.New(TAG_RESULT, "storage", "luks", 1, "device")},
+				{path.New(TAG_CHILD, "storage", "luks", 1, "name"), path.New(TAG_RESULT, "storage", "luks", 1, "name")},
+				{path.New(TAG_CHILD, "storage", "luks", 1), path.New(TAG_RESULT, "storage", "luks", 1)},
+			}},
+		},
+
 		// merge config reference that contains HTTP headers
 		{
 			in1: types.Config{
