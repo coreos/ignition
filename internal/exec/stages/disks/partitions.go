@@ -93,10 +93,10 @@ func partitionMatchesCommon(existing util.PartitionInfo, spec sgdisk.Partition) 
 	if spec.StartSector != nil && *spec.StartSector != existing.StartSector {
 		return fmt.Errorf("starting sector did not match (specified %d, got %d)", *spec.StartSector, existing.StartSector)
 	}
-	if spec.GUID != nil && *spec.GUID != "" && strings.ToLower(*spec.GUID) != strings.ToLower(existing.GUID) {
+	if spec.GUID != nil && *spec.GUID != "" && !strings.EqualFold(*spec.GUID, existing.GUID) {
 		return fmt.Errorf("GUID did not match (specified %q, got %q)", *spec.GUID, existing.GUID)
 	}
-	if spec.TypeGUID != nil && *spec.TypeGUID != "" && strings.ToLower(*spec.TypeGUID) != strings.ToLower(existing.TypeGUID) {
+	if spec.TypeGUID != nil && *spec.TypeGUID != "" && !strings.EqualFold(*spec.TypeGUID, existing.TypeGUID) {
 		return fmt.Errorf("type GUID did not match (specified %q, got %q)", *spec.TypeGUID, existing.TypeGUID)
 	}
 	if spec.Label != nil && *spec.Label != existing.Label {

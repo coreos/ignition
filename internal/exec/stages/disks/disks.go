@@ -57,8 +57,6 @@ func (creator) Name() string {
 
 type stage struct {
 	util.Util
-
-	client *resource.HttpClient
 }
 
 func (stage) Name() string {
