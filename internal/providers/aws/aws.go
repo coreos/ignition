@@ -62,11 +62,13 @@ func NewFetcher(l *log.Logger) (resource.Fetcher, error) {
 	}, nil
 }
 
+// Init prepares the fetcher for this platform
 func Init(f *resource.Fetcher) error {
 	// Determine the partition and region this instance is in
 	regionHint, err := ec2metadata.New(f.AWSSession).Region()
 	if err != nil {
 		regionHint = "us-east-1"
+		f.Logger.Warning("failed to determine EC2 region, falling back to default %s: %v", regionHint, err)
 	}
 	f.S3RegionHint = regionHint
 	return nil
