@@ -27,9 +27,8 @@ func TestParse(t *testing.T) {
 		config []byte
 	}
 	type out struct {
-		config         types.Config
-		err            error
-		checkOnStrings bool
+		config types.Config
+		err    error
 	}
 
 	tests := []struct {
@@ -136,8 +135,7 @@ func TestParse(t *testing.T) {
 
 	for i, test := range tests {
 		config, report, err := Parse(test.in.config)
-		if (!test.out.checkOnStrings && test.out.err != err) ||
-			(test.out.checkOnStrings && test.out.err.Error() != err.Error()) {
+		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v, report: %+v", i, test.out.err, err, report)
 		}
 		assert.Equal(t, test.out.config, config, "#%d: bad config, report: %+v", i, report)
