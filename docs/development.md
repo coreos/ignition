@@ -137,6 +137,7 @@ The changes that are required to achieve these effects are typically the followi
 - Update `config/vX_(Y+1)_experimental/config_test.go` to test that the new stable version is invalid and the new experimental version is valid
 - Update `config/vX_(Y+1)_experimental/translate/translate.go` to translate from the previous stable version.  Update the `old_types` import, delete all functions except `translateIgnition` and `Translate`, and ensure `translateIgnition` translates the entire `Ignition` struct.
 - Update `config/config.go` to handle the new stable and experimental versions.
+- Update `config/config_test.go` to add the new experimental version to `TestConfigStructure`.
 - Update `generate` to generate the new stable and experimental versions, and rerun `generate`.
 
 ### Update all relevant places to use the new experimental package
