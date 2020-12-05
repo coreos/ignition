@@ -36,8 +36,10 @@ var (
 func (p Partition) Key() string {
 	if p.Number != 0 {
 		return fmt.Sprintf("number:%d", p.Number)
-	} else {
+	} else if p.Label != nil {
 		return fmt.Sprintf("label:%s", *p.Label)
+	} else {
+		return ""
 	}
 }
 

@@ -77,9 +77,12 @@ func testConfigType(t reflect.Type) error {
 			}
 			if field.Type.Kind() == reflect.Slice && field.Type.Elem().Kind() != reflect.String {
 				if _, ignored := ignoredFields[field.Name]; !ignored {
-					if _, ok := reflect.New(field.Type.Elem()).Interface().(util.Keyed); !ok {
+					keyed, ok := reflect.New(field.Type.Elem()).Interface().(util.Keyed)
+					if !ok {
 						return fmt.Errorf("Type %s has slice field %s without Key() defined on %s debug: %v", t.Name(), field.Name, field.Type.Elem().Name(), ignoredFields)
 					}
+					// check for nil pointer dereference when calling Key() on zero value
+					keyed.Key()
 				}
 			}
 		}
