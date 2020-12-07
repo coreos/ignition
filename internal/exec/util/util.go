@@ -15,16 +15,11 @@
 package util
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/resource"
-)
-
-var (
-	errEscapedMountpoint = errors.New("Symlink traversal resulted in path outside of filesystem")
 )
 
 // Util encapsulates logging and destdir indirection for the util methods.
@@ -44,10 +39,6 @@ func SplitPath(p string) []string {
 	}
 	dir = filepath.Clean(dir)
 	return append(SplitPath(dir), file)
-}
-
-func wantsToEscape(p string) bool {
-	return filepath.Join("/", p) == filepath.Join("/a", p)
 }
 
 // ResolveSymlink resolves the symlink path, respecting the u.DestDir root. If

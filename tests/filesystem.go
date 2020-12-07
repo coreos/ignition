@@ -405,16 +405,6 @@ func intJoin(ints []int, delimiter string) string {
 	return strings.Join(strArr, delimiter)
 }
 
-func removeEmpty(strings []string) []string {
-	var r []string
-	for _, str := range strings {
-		if str != "" {
-			r = append(r, str)
-		}
-	}
-	return r
-}
-
 func createFilesForPartition(ctx context.Context, partition *types.Partition) (err error) {
 	if len(partition.Directories) == 0 &&
 		len(partition.Files) == 0 &&

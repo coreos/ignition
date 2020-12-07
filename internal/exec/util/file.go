@@ -47,17 +47,6 @@ type FetchOp struct {
 	Node         types.Node
 }
 
-// newHashedReader returns a new ReadCloser that also writes to the provided hash.
-func newHashedReader(reader io.ReadCloser, hasher hash.Hash) io.ReadCloser {
-	return struct {
-		io.Reader
-		io.Closer
-	}{
-		Reader: io.TeeReader(reader, hasher),
-		Closer: reader,
-	}
-}
-
 func newFetchOp(l *log.Logger, node types.Node, contents types.Resource) (FetchOp, error) {
 	var expectedSum []byte
 
