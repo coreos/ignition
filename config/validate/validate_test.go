@@ -128,29 +128,29 @@ func TestValidateWithContext(t *testing.T) {
 		},
 		{
 			in: test3{
-				NoDups: make([]testDup, 1, 1),
+				NoDups: make([]testDup, 1),
 			},
 		},
 		{
 			in: test3{
-				NoDups: make([]testDup, 2, 2),
+				NoDups: make([]testDup, 2),
 			},
 			out: mkReport(ignerrors.ErrDuplicate, path.New("json", "dups", 1), report.Error, 0, 0),
 		},
 		{
 			in: test4{
-				Ignored: make([]testDup, 2, 2),
+				Ignored: make([]testDup, 2),
 			},
 		},
 		{
 			in: test5{
-				NoDups1: make([]testDup, 1, 1),
+				NoDups1: make([]testDup, 1),
 			},
 		},
 		{
 			in: test5{
-				NoDups1: make([]testDup, 1, 1),
-				NoDups2: make([]testDup, 1, 1),
+				NoDups1: make([]testDup, 1),
+				NoDups2: make([]testDup, 1),
 			},
 			out: mkReport(ignerrors.ErrDuplicate, path.New("json", "dups2", 0), report.Error, 0, 0),
 		},

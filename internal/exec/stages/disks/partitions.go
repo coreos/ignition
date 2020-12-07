@@ -220,8 +220,8 @@ func parseSgdiskPretend(sgdiskOut string, partitionNumbers []int) (map[int]sgdis
 	if len(partitionNumbers) == 0 {
 		return nil, nil
 	}
-	startRegex := regexp.MustCompile("^First sector: (\\d*) \\(.*\\)$")
-	endRegex := regexp.MustCompile("^Last sector: (\\d*) \\(.*\\)$")
+	startRegex := regexp.MustCompile(`^First sector: (\d*) \(.*\)$`)
+	endRegex := regexp.MustCompile(`^Last sector: (\d*) \(.*\)$`)
 	const (
 		START             = iota
 		END               = iota
