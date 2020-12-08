@@ -43,9 +43,7 @@ func (s *stage) warnOnOldSystemdVersion() error {
 		return err
 	}
 	if systemdVersion < 240 {
-		if err := s.Logger.Warning("The version of systemd (%q) is less than 240. Enabling/disabling instantiated units may not work. See https://github.com/coreos/ignition/issues/586 for more information.", systemdVersion); err != nil {
-			return err
-		}
+		s.Logger.Warning("The version of systemd (%q) is less than 240. Enabling/disabling instantiated units may not work. See https://github.com/coreos/ignition/issues/586 for more information.", systemdVersion)
 	}
 	return nil
 }

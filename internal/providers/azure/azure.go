@@ -90,10 +90,12 @@ func FetchFromOvfDevice(f *resource.Fetcher, ovfFsTypes []string) (types.Config,
 	); err != nil {
 		return types.Config{}, report.Report{}, fmt.Errorf("failed to mount device %q at %q: %v", devicePath, mnt, err)
 	}
-	defer logger.LogOp(
-		func() error { return unix.Unmount(mnt, 0) },
-		"unmounting %q at %q", devicePath, mnt,
-	)
+	defer func() {
+		_ = logger.LogOp(
+			func() error { return unix.Unmount(mnt, 0) },
+			"unmounting %q at %q", devicePath, mnt,
+		)
+	}()
 
 	logger.Debug("reading config")
 	rawConfig, err := ioutil.ReadFile(filepath.Join(mnt, configPath))
