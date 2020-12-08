@@ -25,7 +25,7 @@ import (
 
 var (
 	proxyServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(ignConfig))
+		_, _ = w.Write([]byte(ignConfig))
 	}))
 
 	mockConfigURL = "http://www.fake.tld"

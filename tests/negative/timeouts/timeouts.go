@@ -44,7 +44,7 @@ var (
 		time.Sleep(time.Second * 2)
 		// Give a config that merges ourselves and sets the timeouts to 1
 		// second (less than we wait!)
-		w.Write([]byte(fmt.Sprintf(`{
+		_, _ = w.Write([]byte(fmt.Sprintf(`{
 			"ignition": {
 				"version": "$version",
 				"config": {
@@ -161,7 +161,7 @@ func AppendNoneThenLowerHTTPTimeouts() types.Test {
 			time.Sleep(time.Second * 2)
 			// Give a config that merges ourselves and sets the timeouts to 1
 			// second (less than we wait!)
-			w.Write([]byte(`{
+			_, _ = w.Write([]byte(`{
 				"ignition": {
 					"version": "$version"
 				}
@@ -171,7 +171,7 @@ func AppendNoneThenLowerHTTPTimeouts() types.Test {
 		configNoDelayServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Give a config that merges ourselves and sets the timeouts to 1
 			// second (less than we wait!)
-			w.Write([]byte(fmt.Sprintf(`{
+			_, _ = w.Write([]byte(fmt.Sprintf(`{
 			"ignition": 
 				"version": "$version",
 				"config": {

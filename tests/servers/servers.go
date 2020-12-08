@@ -61,19 +61,19 @@ fdsa`)
 
 // HTTP Server
 func (server *HTTPServer) Config(w http.ResponseWriter, r *http.Request) {
-	w.Write(servedConfig)
+	_, _ = w.Write(servedConfig)
 }
 
 func (server *HTTPServer) Contents(w http.ResponseWriter, r *http.Request) {
-	w.Write(servedContents)
+	_, _ = w.Write(servedContents)
 }
 
 func (server *HTTPServer) Certificates(w http.ResponseWriter, r *http.Request) {
-	w.Write(fixtures.PublicKey)
+	_, _ = w.Write(fixtures.PublicKey)
 }
 
 func (server *HTTPServer) CABundle(w http.ResponseWriter, r *http.Request) {
-	w.Write(fixtures.CABundle)
+	_, _ = w.Write(fixtures.CABundle)
 }
 
 func compress(contents []byte) []byte {
@@ -89,20 +89,20 @@ func compress(contents []byte) []byte {
 }
 
 func (server *HTTPServer) ConfigCompressed(w http.ResponseWriter, r *http.Request) {
-	w.Write(compress(servedConfig))
+	_, _ = w.Write(compress(servedConfig))
 }
 
 func (server *HTTPServer) ContentsCompressed(w http.ResponseWriter, r *http.Request) {
-	w.Write(compress(servedContents))
+	_, _ = w.Write(compress(servedContents))
 }
 
 func (server *HTTPServer) CertificatesCompressed(w http.ResponseWriter, r *http.Request) {
-	w.Write(compress(fixtures.PublicKey))
+	_, _ = w.Write(compress(fixtures.PublicKey))
 }
 
 func errorHandler(w http.ResponseWriter, message string) {
 	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte(message))
+	_, _ = w.Write([]byte(message))
 }
 
 // headerCheck validates that all required headers are present
@@ -161,19 +161,19 @@ func overwrittenHeaderCheck(w http.ResponseWriter, r *http.Request) {
 func (server *HTTPServer) ConfigHeaders(w http.ResponseWriter, r *http.Request) {
 	headerCheck(w, r)
 
-	w.Write(servedConfig)
+	_, _ = w.Write(servedConfig)
 }
 
 func (server *HTTPServer) ContentsHeaders(w http.ResponseWriter, r *http.Request) {
 	headerCheck(w, r)
 
-	w.Write(servedContents)
+	_, _ = w.Write(servedContents)
 }
 
 func (server *HTTPServer) CertificatesHeaders(w http.ResponseWriter, r *http.Request) {
 	headerCheck(w, r)
 
-	w.Write(fixtures.PublicKey)
+	_, _ = w.Write(fixtures.PublicKey)
 }
 
 // redirectedHeaderCheck validates that user's headers from the original request are missing
@@ -198,7 +198,7 @@ func (server *HTTPServer) ConfigRedirect(w http.ResponseWriter, r *http.Request)
 func (server *HTTPServer) ConfigRedirected(w http.ResponseWriter, r *http.Request) {
 	redirectedHeaderCheck(w, r)
 
-	w.Write(servedConfig)
+	_, _ = w.Write(servedConfig)
 }
 
 // ContentsRedirect redirects the request to ContentsRedirected
@@ -210,7 +210,7 @@ func (server *HTTPServer) ContentsRedirect(w http.ResponseWriter, r *http.Reques
 func (server *HTTPServer) ContentsRedirected(w http.ResponseWriter, r *http.Request) {
 	redirectedHeaderCheck(w, r)
 
-	w.Write(servedContents)
+	_, _ = w.Write(servedContents)
 }
 
 // CertificatesRedirect redirects the request to CertificatesRedirected
@@ -222,25 +222,25 @@ func (server *HTTPServer) CertificatesRedirect(w http.ResponseWriter, r *http.Re
 func (server *HTTPServer) CertificatesRedirected(w http.ResponseWriter, r *http.Request) {
 	redirectedHeaderCheck(w, r)
 
-	w.Write(fixtures.PublicKey)
+	_, _ = w.Write(fixtures.PublicKey)
 }
 
 func (server *HTTPServer) ConfigHeadersOverwrite(w http.ResponseWriter, r *http.Request) {
 	overwrittenHeaderCheck(w, r)
 
-	w.Write(servedConfig)
+	_, _ = w.Write(servedConfig)
 }
 
 func (server *HTTPServer) ContentsHeadersOverwrite(w http.ResponseWriter, r *http.Request) {
 	overwrittenHeaderCheck(w, r)
 
-	w.Write(servedContents)
+	_, _ = w.Write(servedContents)
 }
 
 func (server *HTTPServer) CertificatesHeadersOverwrite(w http.ResponseWriter, r *http.Request) {
 	overwrittenHeaderCheck(w, r)
 
-	w.Write(fixtures.PublicKey)
+	_, _ = w.Write(fixtures.PublicKey)
 }
 
 type HTTPServer struct{}
@@ -266,7 +266,9 @@ func (server *HTTPServer) Start() {
 	http.HandleFunc("/config_headers_overwrite", server.ConfigHeadersOverwrite)
 	http.HandleFunc("/caBundle", server.CABundle)
 	s := &http.Server{Addr: ":8080"}
-	go s.ListenAndServe()
+	go func() {
+		_ = s.ListenAndServe()
+	}()
 }
 
 // TFTP Server
@@ -293,5 +295,7 @@ type TFTPServer struct{}
 func (server *TFTPServer) Start() {
 	s := tftp.NewServer(server.ReadHandler, nil)
 	s.SetTimeout(5 * time.Second)
-	go s.ListenAndServe(":69")
+	go func() {
+		_ = s.ListenAndServe(":69")
+	}()
 }

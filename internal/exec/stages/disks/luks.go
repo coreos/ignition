@@ -110,7 +110,9 @@ func (s *stage) createLuks(config types.Config) error {
 		var ignitionCreatedKeyFile bool
 		// create keyfile inside of tmpfs, it will be copied to the
 		// sysroot by the files stage
-		os.MkdirAll(distro.LuksInitramfsKeyFilePath(), 0700)
+		if err := os.MkdirAll(distro.LuksInitramfsKeyFilePath(), 0700); err != nil {
+			return fmt.Errorf("creating directory for keyfile: %v", err)
+		}
 		keyFilePath := filepath.Join(distro.LuksInitramfsKeyFilePath(), luks.Name)
 		devAlias := execUtil.DeviceAlias(*luks.Device)
 		if util.NilOrEmpty(luks.KeyFile.Source) {
