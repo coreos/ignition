@@ -232,7 +232,7 @@ func (u Util) PerformFetch(f FetchOp) error {
 		}
 		defer targetFile.Close()
 
-		if _, err = tmp.Seek(0, os.SEEK_SET); err != nil {
+		if _, err = tmp.Seek(0, io.SeekStart); err != nil {
 			return err
 		}
 		if _, err = io.Copy(targetFile, tmp); err != nil {

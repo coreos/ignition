@@ -432,7 +432,7 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 	}
 	if opts.Hash != nil {
 		opts.Hash.Reset()
-		_, err = dest.Seek(0, os.SEEK_SET)
+		_, err = dest.Seek(0, io.SeekStart)
 		if err != nil {
 			return err
 		}

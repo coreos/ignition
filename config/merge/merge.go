@@ -293,7 +293,7 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 						} else {
 							panic("List of pointers or slices or something else weird")
 						}
-					} else {
+					} else { // nolint:staticcheck
 						// case 2: in child config in different list. Do nothing since it'll be handled iterating over that list
 					}
 				} else {

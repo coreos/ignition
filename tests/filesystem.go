@@ -155,8 +155,15 @@ func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, app
 	args := []string{"-platform", "file", "-stage", stage,
 		"-root", root, "-log-to-stdout", "--config-cache", filepath.Join(cwd, "ignition.json")}
 	cmd := exec.CommandContext(ctx, "ignition", args...)
+	if cmd == nil {
+		return fmt.Errorf("exec.CommandContext() returned nil")
+	}
 	t.Log("ignition", args)
+	// `staticcheck` linter warns even after resolving
+	// the `nil pointer dereference` warnings.
+	// nolint:staticcheck
 	cmd.Dir = cwd
+	// nolint:staticcheck
 	cmd.Env = append(os.Environ(), appendEnv...)
 	out, err := cmd.CombinedOutput()
 	if cmd != nil && cmd.Process != nil {

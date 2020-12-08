@@ -40,9 +40,9 @@ const (
 type sectionState int
 
 const (
-	notInSection     sectionState = 0
-	expectingSection              = 1
-	inSection                     = 2
+	notInSection sectionState = iota
+	expectingSection
+	inSection
 )
 
 func main() {
@@ -62,6 +62,10 @@ func main() {
 	}
 
 	if err := filepath.Walk(flags.root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if !strings.HasSuffix(info.Name(), ".md") || info.IsDir() {
 			return nil
 		}
