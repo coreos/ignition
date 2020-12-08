@@ -21,6 +21,9 @@ import (
 
 	"github.com/coreos/ignition/v2/config/util"
 	v3_0 "github.com/coreos/ignition/v2/config/v3_0/types"
+	v3_1 "github.com/coreos/ignition/v2/config/v3_1/types"
+	v3_2 "github.com/coreos/ignition/v2/config/v3_2/types"
+	v3_3 "github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 )
 
 func testConfigType(t reflect.Type) error {
@@ -32,8 +35,15 @@ func testConfigType(t reflect.Type) error {
 		return nil
 	case k == reflect.Ptr:
 		pK := t.Elem().Kind()
-		switch {
-		case util.IsPrimitive(pK):
+		if util.IsPrimitive(pK) {
+			return nil
+		}
+		switch t.Elem() {
+		case reflect.TypeOf(v3_2.Clevis{}), reflect.TypeOf(v3_2.Custom{}), reflect.TypeOf(v3_3.Clevis{}), reflect.TypeOf(v3_3.Custom{}):
+			// these structs ended up with pointers; can't be helped now
+			if err := testConfigType(t.Elem()); err != nil {
+				return fmt.Errorf("Type %s has invalid children: %v", t.Elem().Name(), err)
+			}
 			return nil
 		default:
 			return fmt.Errorf("Type %s is a pointer that points to a non-primitive type", t.Name())
@@ -67,9 +77,12 @@ func testConfigType(t reflect.Type) error {
 			}
 			if field.Type.Kind() == reflect.Slice && field.Type.Elem().Kind() != reflect.String {
 				if _, ignored := ignoredFields[field.Name]; !ignored {
-					if _, ok := reflect.New(field.Type.Elem()).Interface().(util.Keyed); !ok {
+					keyed, ok := reflect.New(field.Type.Elem()).Interface().(util.Keyed)
+					if !ok {
 						return fmt.Errorf("Type %s has slice field %s without Key() defined on %s debug: %v", t.Name(), field.Name, field.Type.Elem().Name(), ignoredFields)
 					}
+					// check for nil pointer dereference when calling Key() on zero value
+					keyed.Key()
 				}
 			}
 		}
@@ -84,6 +97,9 @@ func testConfigType(t reflect.Type) error {
 func TestConfigStructure(t *testing.T) {
 	configs := []reflect.Type{
 		reflect.TypeOf(v3_0.Config{}),
+		reflect.TypeOf(v3_1.Config{}),
+		reflect.TypeOf(v3_2.Config{}),
+		reflect.TypeOf(v3_3.Config{}),
 	}
 
 	for _, configType := range configs {
