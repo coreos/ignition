@@ -247,7 +247,7 @@ func (disk *Disk) replaceAllUUIDVarsInPartitions(UUIDmap map[string]string) erro
 func replaceUUIDVars(str string, UUIDmap map[string]string) (string, error) {
 	finalStr := str
 
-	pattern := regexp.MustCompile("\\$uuid([0-9]+)")
+	pattern := regexp.MustCompile(`\$uuid([0-9]+)`)
 	for _, match := range pattern.FindAllStringSubmatch(str, -1) {
 		if len(match) != 2 {
 			return str, fmt.Errorf("find all string submatch error: want length of 2, got length of %d", len(match))
@@ -269,7 +269,7 @@ func getUUID(key string, UUIDmap map[string]string) string {
 // ReplaceAllVersionVars replaces Version variable (format $version) in configs with ConfigMinVersion
 // Updates the old config version (oldVersion) with a new one (newVersion)
 func (t *Test) ReplaceAllVersionVars(version string) {
-	pattern := regexp.MustCompile("\\$version")
+	pattern := regexp.MustCompile(`\$version`)
 	t.Config = pattern.ReplaceAllString(t.Config, version)
 	t.Name += " " + version
 }

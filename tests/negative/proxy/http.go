@@ -26,7 +26,6 @@ import (
 var (
 	proxyServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Proxy is unavailable", http.StatusServiceUnavailable)
-		return
 	}))
 
 	mockConfigURL = "http://www.fake.tld"
