@@ -43,11 +43,31 @@ func TestFilesystemValidateFormat(t *testing.T) {
 			nil,
 		},
 		{
+			Filesystem{Label: util.StrToPtr("z")},
+			errors.ErrFormatNilWithOthers,
+		},
+		{
+			Filesystem{MountOptions: []MountOption{MountOption("z")}},
+			errors.ErrFormatNilWithOthers,
+		},
+		{
+			Filesystem{Options: []FilesystemOption{FilesystemOption("z")}},
+			errors.ErrFormatNilWithOthers,
+		},
+		{
 			Filesystem{Format: util.StrToPtr(""), Path: util.StrToPtr("/")},
 			errors.ErrFormatNilWithOthers,
 		},
 		{
 			Filesystem{Format: nil, Path: util.StrToPtr("/")},
+			errors.ErrFormatNilWithOthers,
+		},
+		{
+			Filesystem{UUID: util.StrToPtr("z")},
+			errors.ErrFormatNilWithOthers,
+		},
+		{
+			Filesystem{WipeFilesystem: util.BoolToPtr(true)},
 			errors.ErrFormatNilWithOthers,
 		},
 	}

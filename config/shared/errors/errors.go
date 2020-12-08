@@ -46,7 +46,7 @@ var (
 	ErrVerificationAndNilSource  = errors.New("source must be specified if verification is specified")
 	ErrFilesystemInvalidFormat   = errors.New("invalid filesystem format")
 	ErrLabelNeedsFormat          = errors.New("filesystem must specify format if label is specified")
-	ErrFormatNilWithOthers       = errors.New("format cannot be empty when path, label, uuid, or options are specified")
+	ErrFormatNilWithOthers       = errors.New("format cannot be empty when path, label, uuid, wipeFilesystem, options, or mountOptions is specified")
 	ErrExt4LabelTooLong          = errors.New("filesystem labels cannot be longer than 16 characters when using ext4")
 	ErrBtrfsLabelTooLong         = errors.New("filesystem labels cannot be longer than 256 characters when using btrfs")
 	ErrXfsLabelTooLong           = errors.New("filesystem labels cannot be longer than 12 characters when using xfs")
