@@ -85,6 +85,7 @@ install() {
     install_ignition_unit ignition-fetch-offline.service
     install_ignition_unit ignition-disks.service
     install_ignition_unit ignition-mount.service
+    install_ignition_unit ignition-sysusers.service
     install_ignition_unit ignition-files.service
 
     # units only started when we have a boot disk

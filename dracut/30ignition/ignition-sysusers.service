@@ -1,5 +1,5 @@
 [Unit]
-Description=Ignition (files)
+Description=Ignition (sysusers)
 Documentation=https://github.com/coreos/ignition
 ConditionPathExists=/etc/initrd-release
 DefaultDependencies=false
@@ -9,13 +9,11 @@ OnFailure=emergency.target
 OnFailureJobMode=isolate
 
 # Stage order: setup -> fetch-offline [-> fetch] -> disks -> mount -> sysusers -> files.
-After=ignition-sysusers.service
-
-# Run before initrd-parse-etc so that we can drop files it then picks up.
-Before=initrd-parse-etc.service
+After=ignition-mount.service
+Before=ignition-files.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=/run/ignition.env
-ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=files --log-to-stdout
+ExecStart=/usr/sbin/chroot /sysroot /bin/bash -c "mount proc /proc -t proc && /usr/bin/systemd-sysusers && umount /proc"
