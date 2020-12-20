@@ -18,6 +18,8 @@
 package aws
 
 import (
+	"errors"
+	"net/http"
 	"net/url"
 
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
@@ -33,15 +35,21 @@ import (
 )
 
 var (
-	userdataUrl = url.URL{
+	userdataURL = url.URL{
 		Scheme: "http",
 		Host:   "169.254.169.254",
 		Path:   "2019-10-01/user-data",
 	}
+	imdsTokenURL = url.URL{
+		Scheme: "http",
+		Host:   "169.254.169.254",
+		Path:   "latest/api/token",
+	}
+	errIMDSV2 = errors.New("failed to fetch IMDSv2 session token")
 )
 
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{})
+	data, err := fetchFromAWSMetadata(userdataURL, resource.FetchOptions{}, f)
 	if err != nil && err != resource.ErrNotFound {
 		return types.Config{}, report.Report{}, err
 	}
@@ -72,4 +80,39 @@ func Init(f *resource.Fetcher) error {
 	}
 	f.S3RegionHint = regionHint
 	return nil
+}
+
+// fetchFromAWSMetadata fetches metadata from the `IMDSv2` service if its
+// configured, else it will fall back to `IMDSv1`.
+func fetchFromAWSMetadata(u url.URL, opts resource.FetchOptions, f *resource.Fetcher) ([]byte, error) {
+	token, err := fetchAWSIMDSV2Token(f)
+	if err == errIMDSV2 {
+		// Do nothing
+		f.Logger.Info("IMDSv2 service is unavailable; falling back to IMDSv1")
+	} else if err != nil {
+		return nil, err
+	} else {
+		opts.Headers.Add("X-aws-ec2-metadata-token", token)
+	}
+	return f.FetchToBuffer(u, opts)
+}
+
+// fetchAWSIMDSV2Token fetches a session token from an EC2 instance (if the
+// instace is configured to use `IMDSv2`), otherwise, it will return an error.
+func fetchAWSIMDSV2Token(f *resource.Fetcher) (string, error) {
+	opts := resource.FetchOptions{
+		Headers: http.Header{
+			"x-aws-ec2-metadata-token-ttl-seconds": []string{"21600"},
+		},
+		HTTPVerb: "PUT",
+	}
+	token, err := f.FetchToBuffer(imdsTokenURL, opts)
+	if err == resource.ErrNotFound {
+		f.Logger.Debug("cannot read IMDSv2 session token from %q", imdsTokenURL.String())
+		return "", errIMDSV2
+	} else if err != nil {
+		f.Logger.Debug("unexpected error retrieving IMDSv2 session token: %v", err)
+		return "", err
+	}
+	return string(token), nil
 }
