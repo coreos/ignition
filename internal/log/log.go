@@ -65,43 +65,43 @@ func (l Logger) Close() {
 }
 
 // Emerg logs a message at emergency priority.
-func (l Logger) Emerg(format string, a ...interface{}) error {
-	return l.log(l.ops.Emerg, format, a...)
+func (l Logger) Emerg(format string, a ...interface{}) {
+	l.log(l.ops.Emerg, format, a...)
 }
 
 // Alert logs a message at alert priority.
-func (l Logger) Alert(format string, a ...interface{}) error {
-	return l.log(l.ops.Alert, format, a...)
+func (l Logger) Alert(format string, a ...interface{}) {
+	l.log(l.ops.Alert, format, a...)
 }
 
 // Crit logs a message at critical priority.
-func (l Logger) Crit(format string, a ...interface{}) error {
-	return l.log(l.ops.Crit, format, a...)
+func (l Logger) Crit(format string, a ...interface{}) {
+	l.log(l.ops.Crit, format, a...)
 }
 
 // Err logs a message at error priority.
-func (l Logger) Err(format string, a ...interface{}) error {
-	return l.log(l.ops.Err, format, a...)
+func (l Logger) Err(format string, a ...interface{}) {
+	l.log(l.ops.Err, format, a...)
 }
 
 // Warning logs a message at warning priority.
-func (l Logger) Warning(format string, a ...interface{}) error {
-	return l.log(l.ops.Warning, format, a...)
+func (l Logger) Warning(format string, a ...interface{}) {
+	l.log(l.ops.Warning, format, a...)
 }
 
 // Notice logs a message at notice priority.
-func (l Logger) Notice(format string, a ...interface{}) error {
-	return l.log(l.ops.Notice, format, a...)
+func (l Logger) Notice(format string, a ...interface{}) {
+	l.log(l.ops.Notice, format, a...)
 }
 
 // Info logs a message at info priority.
-func (l Logger) Info(format string, a ...interface{}) error {
-	return l.log(l.ops.Info, format, a...)
+func (l Logger) Info(format string, a ...interface{}) {
+	l.log(l.ops.Info, format, a...)
 }
 
 // Debug logs a message at debug priority.
-func (l Logger) Debug(format string, a ...interface{}) error {
-	return l.log(l.ops.Debug, format, a...)
+func (l Logger) Debug(format string, a ...interface{}) {
+	l.log(l.ops.Debug, format, a...)
 }
 
 // PushPrefix pushes the supplied message onto the Logger's prefix stack.
@@ -189,8 +189,8 @@ func (l Logger) logFinish(format string, a ...interface{}) {
 }
 
 // log logs a formatted message using the supplied logFunc.
-func (l Logger) log(logFunc func(string) error, format string, a ...interface{}) error {
-	return logFunc(l.sprintf(format, a...))
+func (l Logger) log(logFunc func(string) error, format string, a ...interface{}) {
+	_ = logFunc(l.sprintf(format, a...))
 }
 
 // sprintf returns the current prefix stack, if any, concatenated with the supplied format string and args in expanded form.

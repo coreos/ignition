@@ -19,27 +19,17 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/exec/util"
-	"github.com/coreos/ignition/v2/internal/log"
 )
-
-type pathWrapper string
-
-func (pw pathWrapper) getPath() string {
-	return string(pw)
-}
-
-func (pw pathWrapper) create(l *log.Logger, u util.Util) error {
-	return nil
-}
 
 func TestEntrySort(t *testing.T) {
 	type in struct {
-		data []string
+		data []types.Directory
 	}
 
 	type out struct {
-		data []string
+		data []types.Directory
 	}
 
 	tests := []struct {
@@ -47,28 +37,174 @@ func TestEntrySort(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{data: []string{"/a/b/c/d/e/", "/a/b/c/d/", "/a/b/c/", "/a/b/", "/a/"}},
-			out: out{data: []string{"/a/", "/a/b/", "/a/b/c/", "/a/b/c/d/", "/a/b/c/d/e/"}},
+			in: in{data: []types.Directory{
+				{
+					Node: types.Node{
+						Path: "/a/b/c/d/e/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/c/d/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/c/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/",
+					},
+				},
+			}},
+			out: out{data: []types.Directory{
+				{
+					Node: types.Node{
+						Path: "/a/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/c/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/c/d/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/c/d/e/",
+					},
+				},
+			}},
 		},
 		{
-			in:  in{data: []string{"/a////b/c/d/e/", "/", "/a/b/c//d/", "/a/b/c/", "/a/b/", "/a/"}},
-			out: out{data: []string{"/", "/a/", "/a/b/", "/a/b/c/", "/a/b/c//d/", "/a////b/c/d/e/"}},
+			in: in{data: []types.Directory{
+				{
+					Node: types.Node{
+						Path: "/a////b/c/d/e/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/c//d/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/c/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/",
+					},
+				},
+			}},
+			out: out{data: []types.Directory{
+				{
+					Node: types.Node{
+						Path: "/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/c/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/b/c//d/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a////b/c/d/e/",
+					},
+				},
+			}},
 		},
 		{
-			in:  in{data: []string{"/a/", "/a/../a/b", "/"}},
-			out: out{data: []string{"/", "/a/", "/a/../a/b"}},
+			in: in{data: []types.Directory{
+				{
+					Node: types.Node{
+						Path: "/a/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/../a/b",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/",
+					},
+				},
+			}},
+			out: out{data: []types.Directory{
+				{
+					Node: types.Node{
+						Path: "/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/",
+					},
+				},
+				{
+					Node: types.Node{
+						Path: "/a/../a/b",
+					},
+				},
+			}},
 		},
 	}
 
 	for i, test := range tests {
-		dirs := make([]pathWrapper, len(test.in.data))
-		for j := range dirs {
-			dirs[j] = pathWrapper(test.in.data[j])
+		entries := []filesystemEntry{}
+		for _, entry := range test.in.data {
+			entries = append(entries, dirEntry(entry))
 		}
-		sort.Slice(dirs, func(i, j int) bool { return util.Depth(dirs[i].getPath()) < util.Depth(dirs[j].getPath()) })
-		outpaths := make([]string, len(test.in.data))
-		for j, dir := range dirs {
-			outpaths[j] = dir.getPath()
+		sort.Slice(entries, func(i, j int) bool { return util.Depth(entries[i].node().Path) < util.Depth(entries[j].node().Path) })
+		outpaths := make([]types.Directory, len(test.in.data))
+		for j, dir := range entries {
+			outpaths[j].Node.Path = dir.node().Path
 		}
 		if !reflect.DeepEqual(test.out.data, outpaths) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.data, outpaths)

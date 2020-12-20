@@ -224,7 +224,7 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 	loopdev := disk.Device
 	defer func() {
 		if err != nil {
-			destroyDevice(loopdev)
+			_ = destroyDevice(loopdev)
 		}
 	}()
 
@@ -470,7 +470,9 @@ func createFilesFromSlice(basedir string, files []types.File) error {
 			}
 			writer.Flush()
 		}
-		os.Chown(filepath.Join(basedir, file.Directory, file.Name), file.User, file.Group)
+		if err := os.Chown(filepath.Join(basedir, file.Directory, file.Name), file.User, file.Group); err != nil {
+			return err
+		}
 	}
 	return nil
 }

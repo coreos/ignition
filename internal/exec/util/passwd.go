@@ -218,7 +218,7 @@ func (u Util) AuthorizeSSHKeys(c types.PasswdUser) error {
 		if err != nil {
 			return fmt.Errorf("failed to set SSH key: %v", err)
 		}
-		journal.Send(fmt.Sprintf("wrote ssh authorized keys file for user: %s", c.Name), journal.PriInfo, map[string]string{
+		_ = journal.Send(fmt.Sprintf("wrote ssh authorized keys file for user: %s", c.Name), journal.PriInfo, map[string]string{
 			"IGNITION_USER_NAME": c.Name,
 			"IGNITION_PATH":      path,
 			"MESSAGE_ID":         ignitionSSHAuthorizedkeysMessageID,

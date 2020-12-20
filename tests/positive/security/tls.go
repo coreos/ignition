@@ -78,10 +78,10 @@ var (
 		}`)
 
 	customCAServer = httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(customCAServerFile)
+		_, _ = w.Write(customCAServerFile)
 	}))
 	customCAServer2 = httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(customCAServerFile2)
+		_, _ = w.Write(customCAServerFile2)
 	}))
 )
 

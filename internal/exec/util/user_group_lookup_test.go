@@ -63,7 +63,10 @@ func TestUserLookup(t *testing.T) {
 
 	// perform a user lookup to ensure libnss_files.so is loaded
 	// note this assumes /etc/nsswitch.conf invokes files.
-	user.Lookup("root")
+	_, err := user.Lookup("root")
+	if err != nil {
+		t.Fatalf("user lookup failed (libnss_files.so might not be loaded): %v", err)
+	}
 
 	td, err := tempBase()
 	if err != nil {

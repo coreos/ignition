@@ -102,10 +102,12 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
 		return nil, err
 	}
-	defer logger.LogOp(
-		func() error { return syscall.Unmount(mnt, 0) },
-		"unmounting %q at %q", path, mnt,
-	)
+	defer func() {
+		_ = logger.LogOp(
+			func() error { return syscall.Unmount(mnt, 0) },
+			"unmounting %q at %q", path, mnt,
+		)
+	}()
 
 	if !fileExists(filepath.Join(mnt, cidataPath)) {
 		return nil, nil

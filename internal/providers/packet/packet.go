@@ -107,7 +107,7 @@ func postMessage(stageName string, e error, url string) error {
 		State   string `json:"state"`
 		Message string `json:"message"`
 	}
-	m := mStruct{}
+	var m mStruct
 	if e != nil {
 		m = mStruct{
 			State:   "failed",

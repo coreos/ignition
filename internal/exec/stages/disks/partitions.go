@@ -322,7 +322,9 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		op := sgdisk.Begin(s.Logger, devAlias)
 		s.Logger.Info("wiping partition table requested on %q", devAlias)
 		op.WipeTable(true)
-		op.Commit()
+		if err := op.Commit(); err != nil {
+			return err
+		}
 	}
 
 	// Ensure all partitions with number 0 are last
