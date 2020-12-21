@@ -72,8 +72,8 @@ Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcomm
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
 
 %define gopath %{_datadir}/gocode
-ExclusiveArch: x86_64 ppc64le aarch64 s390x
-BuildRequires: golang >= 1.10
+ExclusiveArch: %{go_arches}
+BuildRequires: compiler(go-compiler)
 # add non golang BuildRequires that weren't detected
 BuildRequires: libblkid-devel
 
