@@ -55,6 +55,8 @@ func (s stage) createPartitions(config types.Config) error {
 	for _, dev := range config.Storage.Disks {
 		devAlias := util.DeviceAlias(string(dev.Device))
 
+		// For s390x partitionDisk refer to partition_s390_disk.go
+		// and for other arches refer to partition_disk.go
 		err := s.Logger.LogOp(func() error {
 			return s.partitionDisk(dev, devAlias)
 		}, "partitioning %q", devAlias)
@@ -316,8 +318,8 @@ func (p PartitionList) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
-// partitionDisk partitions devAlias according to the spec given by dev
-func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
+// partitionGPTDisk partitions devAlias according to the spec given by dev
+func (s stage) partitionGPTDisk(dev types.Disk, devAlias string) error {
 	if dev.WipeTable != nil && *dev.WipeTable {
 		op := sgdisk.Begin(s.Logger, devAlias)
 		s.Logger.Info("wiping partition table requested on %q", devAlias)

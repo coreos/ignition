@@ -61,6 +61,9 @@ var (
 	// LUKS programs
 	clevisCmd     = "clevis"
 	cryptsetupCmd = "cryptsetup"
+	// DASD partitioning tools
+	dasdfmtCmd = "dasdfmt"
+	fdasdCmd   = "fdasd"
 
 	// Flags
 	selinuxRelabel  = "true"
@@ -110,6 +113,8 @@ func CryptsetupCmd() string { return cryptsetupCmd }
 
 func LuksInitramfsKeyFilePath() string { return luksInitramfsKeyFilePath }
 func LuksRealRootKeyFilePath() string  { return luksRealRootKeyFilePath }
+func DasdfmtCmd() string               { return dasdfmtCmd }
+func FdasdCmd() string                 { return fdasdCmd }
 
 func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !BlackboxTesting() }
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
