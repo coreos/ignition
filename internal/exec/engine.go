@@ -107,6 +107,20 @@ func (e Engine) Run(stageName string) error {
 		e.Fetcher.Offline = true
 	}
 
+	// Run the platform config's Init function pre-config fetch
+	// to perform any additional fetcher configuration  e.x.
+	// configuring the S3RegionHint when running on AWS.
+	err = e.PlatformConfig.InitFunc()(e.Fetcher)
+	if err == resource.ErrNeedNet && stageName == "fetch-offline" {
+		err = SignalNeedNet()
+		if err != nil {
+			e.Logger.Crit("failed to signal neednet: %v", err)
+		}
+		return err
+	} else if err != nil {
+		return fmt.Errorf("initializing platform config: %v", err)
+	}
+
 	cfg, err := e.acquireConfig(stageName)
 	if err == resource.ErrNeedNet && stageName == "fetch-offline" {
 		err = SignalNeedNet()
@@ -123,14 +137,6 @@ func (e Engine) Run(stageName string) error {
 
 	e.Logger.PushPrefix(stageName)
 	defer e.Logger.PopPrefix()
-
-	// Run the platform config's Init function post-config fetch
-	// to perform any additional fetcher configuration that might
-	// need networking to already be set up. e.x. configuring the
-	// S3RegionHint when running on AWS
-	if err := e.PlatformConfig.InitFunc()(e.Fetcher); err != nil {
-		return fmt.Errorf("initializing platform config: %v", err)
-	}
 
 	fullConfig := latest.Merge(baseConfig, latest.Merge(systemBaseConfig, cfg))
 	if err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(fullConfig); err != nil {
