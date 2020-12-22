@@ -1,0 +1,34 @@
+name: Go
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+
+  test-build:
+    name: test build
+    strategy:
+      matrix:
+        go-version: [1.13.x, 1.14.x, 1.15.x]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+    - name: Install libblkid-dev
+      run: sudo apt-get install libblkid-dev
+    - name: Run tests
+      run: ./test
+    - name: Validate container build
+      run: docker build -f Dockerfile.validate .
+    - name: Run linter
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: v1.33
+        args: -E=gofmt --timeout=30m0s
