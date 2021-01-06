@@ -41,7 +41,7 @@ import (
 )
 
 const (
-	initialBackoff = 100 * time.Millisecond
+	initialBackoff = 200 * time.Millisecond
 	maxBackoff     = 5 * time.Second
 
 	defaultHttpResponseHeaderTimeout = 10
@@ -306,16 +306,16 @@ func (c HttpClient) httpReaderWithHeader(opts FetchOptions, url string) (io.Read
 			c.logger.Info("%s error: %v", opts.HTTPVerb, err)
 		}
 
-		duration = duration * 2
-		if duration > maxBackoff {
-			duration = maxBackoff
-		}
-
 		// Wait before next attempt or exit if we timeout while waiting
 		select {
 		case <-time.After(duration):
 		case <-ctx.Done():
 			return nil, 0, cancelFn, ErrTimeout
+		}
+
+		duration = duration * 2
+		if duration > maxBackoff {
+			duration = maxBackoff
 		}
 	}
 }
