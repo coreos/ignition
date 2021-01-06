@@ -92,6 +92,9 @@ func fetchFromAWSMetadata(u url.URL, opts resource.FetchOptions, f *resource.Fet
 	} else if err != nil {
 		return nil, err
 	} else {
+		if opts.Headers == nil {
+			opts.Headers = make(http.Header)
+		}
 		opts.Headers.Add("X-aws-ec2-metadata-token", token)
 	}
 	return f.FetchToBuffer(u, opts)
