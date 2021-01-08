@@ -1,3 +1,20 @@
+08-Jan-2021 Ignition 2.9.0
+
+  Changes:
+
+    - Require storage.filesystems.format if wipeFilesystem or mountOptions is 
+      specified
+    - Refactor code to address golangci-lint warnings
+
+  Bug Fixes:
+
+    - Fix fetching configs from S3 resources when running on non-default AWS 
+      partitions
+    - Fix fetching userdata from IMDSv2 on AWS
+    - Fix crash on partitions with no number or label
+    - Correctly document storage.filesystems.path as optional
+    - Clarify documented semantics of systemd.units.name
+
 02-Dec-2020 Ignition 2.8.1
 
   Bug Fixes:
