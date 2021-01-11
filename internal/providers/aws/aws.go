@@ -40,11 +40,6 @@ var (
 		Host:   "169.254.169.254",
 		Path:   "2019-10-01/user-data",
 	}
-	metadataServiceProbeURL = url.URL{
-		Scheme: "http",
-		Host:   "169.254.169.254",
-		Path:   "latest",
-	}
 	imdsTokenURL = url.URL{
 		Scheme: "http",
 		Host:   "169.254.169.254",
@@ -78,17 +73,17 @@ func NewFetcher(l *log.Logger) (resource.Fetcher, error) {
 // Init prepares the fetcher for this platform
 func Init(f *resource.Fetcher) error {
 	// During the fetch stage we might be running before the networking
-	// is fully ready. Perform an HTTP fetch against the metadata probe
-	// URL to ensure that networking is up before we attempt to fetch
-	// the region hint from ec2metadata.
+	// is fully ready. Perform an HTTP fetch against the IMDS token URL
+	// to ensure that networking is up before we attempt to fetch the
+	// region hint from ec2metadata.
 	//
-	// NOTE: the FetchToBuffer call against the metadata service probe
-	// URL is a temporary solution to handle waiting for networking
-	// before fetching from the AWS API. We do this instead of an
-	// infinite retry loop on the API call because, without a clear
-	// understanding of the failure cases, that would risk provisioning
-	// failures due to quirks of the ec2metadata API.  Additionally a
-	// finite retry loop would have to time out quickly enough to avoid
+	// NOTE: the FetchToBuffer call against the IMDS token URL is a
+	// temporary solution to handle waiting for networking before
+	// fetching from the AWS API. We do this instead of an infinite
+	// retry loop on the API call because, without a clear understanding
+	// of the failure cases, that would risk provisioning failures due
+	// to quirks of the ec2metadata API.  Additionally a finite retry
+	// loop would have to time out quickly enough to avoid
 	// extraordinarily long boots on failure (since this code runs in
 	// every stage) but that would risk premature timeouts if the
 	// network takes a while to come up.
@@ -102,8 +97,16 @@ func Init(f *resource.Fetcher) error {
 	// NOTE: FetchToBuffer is handling the ErrNeedNet case.  If we move
 	// to an alternative method, we will need to handle the detection in
 	// this function.
-	_, err := f.FetchToBuffer(metadataServiceProbeURL, resource.FetchOptions{})
-	if err != nil {
+	opts := resource.FetchOptions{
+		Headers: http.Header{
+			"x-aws-ec2-metadata-token-ttl-seconds": []string{"21600"},
+		},
+		HTTPVerb: "PUT",
+	}
+	_, err := f.FetchToBuffer(imdsTokenURL, opts)
+	// ErrNotFound would just mean that the instance might not have
+	// IMDSv2 enabled
+	if err != nil && err != resource.ErrNotFound {
 		return err
 	}
 
