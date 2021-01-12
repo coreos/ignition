@@ -64,12 +64,15 @@
 
 Name:           ignition
 Version:        2.9.0
-Release:        1.rhaos4.7.git%{shortcommit}%{?dist}
+Release:        2.rhaos4.7.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
+# Fix AWS probing by using the IMDS token URL to ensure that networking is up
+# https://github.com/coreos/ignition/pull/1161
+Patch1:         internal-providers-aws-probe-the-IMDS-token-URL.patch
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: %{go_arches}
@@ -436,6 +439,7 @@ This package contains a tool for validating Ignition configurations.
 # unpack source0 and apply patches
 %setup -T -b 0 -q -n %{repo}-%{commit}
 %patch0 -p1
+%patch1 -p1
 
 %build
 # Set up PWD as a proper import path for go
@@ -571,6 +575,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Tue Jan 12 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.9.0-2.rhaos4.7.git1d56dc8
+- Fix AWS probing by using the IMDS token URL to ensure that networking is up
+
 * Fri Jan 08 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.9.0-1.rhaos4.7.git1d56dc8
 - New release
 - Update ExclusiveArch and golang BuildRequires for current packaging guidelines
