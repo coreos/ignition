@@ -97,7 +97,7 @@ func main() {
 
 		return nil
 	}); err != nil {
-		fmt.Fprintf(os.Stderr, "failed while validating docs: %v", err)
+		fmt.Fprintf(os.Stderr, "failed while validating docs: %v\n", err)
 		os.Exit(1)
 	}
 }
