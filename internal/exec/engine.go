@@ -141,11 +141,11 @@ func (e Engine) Run(stageName string) error {
 	fullConfig := latest.Merge(baseConfig, latest.Merge(systemBaseConfig, cfg))
 	if err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(fullConfig); err != nil {
 		// e.Logger could be nil
-		fmt.Fprintf(os.Stderr, "%s failed", stageName)
+		fmt.Fprintf(os.Stderr, "%s failed\n", stageName)
 		tmp, jsonerr := json.MarshalIndent(fullConfig, "", "  ")
 		if jsonerr != nil {
 			// Nothing else to do with this error
-			fmt.Fprintf(os.Stderr, "Could not marshal full config: %v", err)
+			fmt.Fprintf(os.Stderr, "Could not marshal full config: %v\n", err)
 		} else {
 			fmt.Fprintf(os.Stderr, "Full config:\n%s", string(tmp))
 		}
