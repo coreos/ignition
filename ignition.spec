@@ -433,10 +433,7 @@ This package contains a tool for validating Ignition configurations.
 
 
 %prep
-# unpack source0 and apply patches
-%setup -q
-%patch0 -p1
-%patch1 -p1
+%autosetup -p1
 
 %build
 # Set up PWD as a proper import path for go
@@ -574,6 +571,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %changelog
 * Fri Feb 05 2021 Benjamin Gilbert <bgilbert@redhat.com> - 2.9.0-3.rhaos4.8
 - Drop Git commit hash from Release
+- Switch to %%autosetup
 
 * Fri Feb 5 2021 Micah Abbott <miabbott@redhat.com> - 2.9.0-2.rhaos4.8.git1d56dc8
 - New build for RHCOS 4.8
