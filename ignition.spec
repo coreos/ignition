@@ -64,7 +64,7 @@
 
 Name:           ignition
 Version:        2.9.0
-Release:        2.rhaos4.7.git%{shortcommit}%{?dist}
+Release:        2.rhaos4.8.git%{shortcommit}%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
@@ -575,6 +575,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Fri Feb 5 2021 Micah Abbott <miabbott@redhat.com> - 2.9.0-2.rhaos4.8.git1d56dc8
+- New build for RHCOS 4.8
+
 * Tue Jan 12 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.9.0-2.rhaos4.7.git1d56dc8
 - Fix AWS probing by using the IMDS token URL to ensure that networking is up
 
