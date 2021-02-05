@@ -52,8 +52,6 @@
 # https://github.com/coreos/ignition
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}/v2
-%global commit          1d56dc8e717a10c1a8b392050bcb3d269cd42154
-%global shortcommit     %(c=%{commit}; echo ${c:0:7})
 # define ldflags, buildflags, testflags here. The ldflags were
 # taken from ./build. We will need to periodically check these
 # for consistency
@@ -64,11 +62,11 @@
 
 Name:           ignition
 Version:        2.9.0
-Release:        2.rhaos4.8.git%{shortcommit}%{?dist}
+Release:        3.rhaos4.8%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
-Source0:        https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
+Source0:        https://%{provider_prefix}/archive/v%{version}/%{repo}-%{version}.tar.gz
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
 # Fix AWS probing by using the IMDS token URL to ensure that networking is up
 # https://github.com/coreos/ignition/pull/1161
@@ -435,9 +433,8 @@ This package contains a tool for validating Ignition configurations.
 
 
 %prep
-# setup command reference: http://ftp.rpm.org/max-rpm/s1-rpm-inside-macros.html
 # unpack source0 and apply patches
-%setup -T -b 0 -q -n %{repo}-%{commit}
+%setup -q
 %patch0 -p1
 %patch1 -p1
 
@@ -575,6 +572,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Fri Feb 05 2021 Benjamin Gilbert <bgilbert@redhat.com> - 2.9.0-3.rhaos4.8
+- Drop Git commit hash from Release
+
 * Fri Feb 5 2021 Micah Abbott <miabbott@redhat.com> - 2.9.0-2.rhaos4.8.git1d56dc8
 - New build for RHCOS 4.8
 
