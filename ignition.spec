@@ -271,10 +271,10 @@ Provides: bundled(golang(go.opencensus.io/trace/tracestate)) = 0.22.5
 %description
 Ignition is a utility used to manipulate systems during the initramfs.
 This includes partitioning disks, formatting partitions, writing files
-(regular files, systemd units, networkd units, etc.), and configuring
-users. On first boot, Ignition reads its configuration from a source
-of truth (remote URL, network metadata service, hypervisor bridge, etc.)
-and applies the configuration.
+(regular files, systemd units, etc.), and configuring users. On first
+boot, Ignition reads its configuration from a source of truth (remote
+URL, network metadata service, hypervisor bridge, etc.) and applies
+the configuration.
 
 ############## devel subpackage ##############
 
@@ -424,10 +424,10 @@ Conflicts: ignition < 0.31.0-3
 %description validate
 Ignition is a utility used to manipulate systems during the initramfs.
 This includes partitioning disks, formatting partitions, writing files
-(regular files, systemd units, networkd units, etc.), and configuring
-users. On first boot, Ignition reads its configuration from a source
-of truth (remote URL, network metadata service, hypervisor bridge, etc.)
-and applies the configuration.
+(regular files, systemd units, etc.), and configuring users. On first
+boot, Ignition reads its configuration from a source of truth (remote
+URL, network metadata service, hypervisor bridge, etc.) and applies
+the configuration.
 
 This package contains a tool for validating Ignition configurations.
 
@@ -572,6 +572,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 * Fri Feb 05 2021 Benjamin Gilbert <bgilbert@redhat.com> - 2.9.0-3.rhaos4.8
 - Drop Git commit hash from Release
 - Switch to %%autosetup
+- Drop mention of networkd in package description
 
 * Fri Feb 5 2021 Micah Abbott <miabbott@redhat.com> - 2.9.0-2.rhaos4.8.git1d56dc8
 - New build for RHCOS 4.8
