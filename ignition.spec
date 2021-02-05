@@ -546,6 +546,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %{!?_licensedir:%global license %doc}
 
 %files
+%license LICENSE
 %doc README.md docs/
 %{dracutlibdir}/modules.d/*
 %{_prefix}/lib/systemd/system/*.service
@@ -573,6 +574,7 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 - Drop Git commit hash from Release
 - Switch to %%autosetup
 - Drop mention of networkd in package description
+- Add LICENSE file to base package
 
 * Fri Feb 5 2021 Micah Abbott <miabbott@redhat.com> - 2.9.0-2.rhaos4.8.git1d56dc8
 - New build for RHCOS 4.8
