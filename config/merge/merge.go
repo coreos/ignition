@@ -339,7 +339,7 @@ func transcribe(fromPath path.ContextPath, toPath path.ContextPath, value reflec
 	kind := value.Kind()
 	switch {
 	case util.IsPrimitive(kind):
-		if value.Interface() == reflect.Zero(value.Type()).Interface() {
+		if value.IsZero() {
 			return false
 		}
 		add(fromPath, toPath)
