@@ -845,6 +845,67 @@ func TestMerge(t *testing.T) {
 				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 1)},
 			}},
 		},
+
+		// strictly-parent or strictly-child subtrees
+		{
+			in1: types.Config{
+				Storage: types.Storage{
+					Filesystems: []types.Filesystem{
+						{
+							Device:  "/dev/sda",
+							Options: []types.FilesystemOption{"a", "b"},
+						},
+						{
+							Device:  "/dev/sdb",
+							Options: []types.FilesystemOption{"a", "b"},
+						},
+					},
+				},
+			},
+			in2: types.Config{
+				Storage: types.Storage{
+					Filesystems: []types.Filesystem{
+						{
+							Device:       "/dev/sda",
+							MountOptions: []types.MountOption{"c", "d"},
+						},
+						{
+							Device:  "/dev/sdb",
+							Options: []types.FilesystemOption{"c", "d"},
+						},
+					},
+				},
+			},
+			out: types.Config{
+				Storage: types.Storage{
+					Filesystems: []types.Filesystem{
+						{
+							Device:       "/dev/sda",
+							MountOptions: []types.MountOption{"c", "d"},
+							Options:      []types.FilesystemOption{"a", "b"},
+						},
+						{
+							Device:  "/dev/sdb",
+							Options: []types.FilesystemOption{"a", "b", "c", "d"},
+						},
+					},
+				},
+			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_CHILD, "storage", "filesystems", 0, "device"), path.New(TAG_RESULT, "storage", "filesystems", 0, "device")},
+				{path.New(TAG_CHILD, "storage", "filesystems", 0, "mountOptions", 0), path.New(TAG_RESULT, "storage", "filesystems", 0, "mountOptions", 0)},
+				{path.New(TAG_CHILD, "storage", "filesystems", 0, "mountOptions", 1), path.New(TAG_RESULT, "storage", "filesystems", 0, "mountOptions", 1)},
+				{path.New(TAG_CHILD, "storage", "filesystems", 0, "mountOptions"), path.New(TAG_RESULT, "storage", "filesystems", 0, "mountOptions")},
+				{path.New(TAG_PARENT, "storage", "filesystems", 0, "options", 0), path.New(TAG_RESULT, "storage", "filesystems", 0, "options", 0)},
+				{path.New(TAG_PARENT, "storage", "filesystems", 0, "options", 1), path.New(TAG_RESULT, "storage", "filesystems", 0, "options", 1)},
+				{path.New(TAG_PARENT, "storage", "filesystems", 0, "options"), path.New(TAG_RESULT, "storage", "filesystems", 0, "options")},
+				{path.New(TAG_CHILD, "storage", "filesystems", 1, "device"), path.New(TAG_RESULT, "storage", "filesystems", 1, "device")},
+				{path.New(TAG_PARENT, "storage", "filesystems", 1, "options", 0), path.New(TAG_RESULT, "storage", "filesystems", 1, "options", 0)},
+				{path.New(TAG_PARENT, "storage", "filesystems", 1, "options", 1), path.New(TAG_RESULT, "storage", "filesystems", 1, "options", 1)},
+				{path.New(TAG_CHILD, "storage", "filesystems", 1, "options", 0), path.New(TAG_RESULT, "storage", "filesystems", 1, "options", 2)},
+				{path.New(TAG_CHILD, "storage", "filesystems", 1, "options", 1), path.New(TAG_RESULT, "storage", "filesystems", 1, "options", 3)},
+			}},
+		},
 	}
 
 	for i, test := range tests {

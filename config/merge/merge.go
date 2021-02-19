@@ -260,6 +260,12 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 				appendToSlice(resultField, item)
 				transcribe(childFieldPath.Append(i), resultFieldPath.Append(parentField.Len()+i), item, fieldMeta, transcript)
 			}
+			// transcribe the list itself if all items come from one side
+			if parentField.Len() == 0 {
+				transcribeOne(childFieldPath, resultFieldPath, transcript)
+			} else if childField.Len() == 0 {
+				transcribeOne(parentFieldPath, resultFieldPath, transcript)
+			}
 		case kind == reflect.Slice && !info.ignoreField(fieldMeta.Name):
 			// ooph, this is a doosey
 			maxlen := parentField.Len() + childField.Len()
