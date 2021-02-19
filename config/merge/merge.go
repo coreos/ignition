@@ -363,6 +363,9 @@ func transcribe(fromPath path.ContextPath, toPath path.ContextPath, value reflec
 		for i := 0; i < value.Len(); i++ {
 			transcribed = transcribe(fromPath.Append(i), toPath.Append(i), value.Index(i), fieldMeta, transcript) || transcribed
 		}
+		if transcribed {
+			transcribeOne(fromPath, toPath, transcript)
+		}
 		return transcribed
 	default:
 		panic("unreachable code reached")
