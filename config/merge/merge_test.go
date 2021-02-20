@@ -30,10 +30,6 @@ var (
 	fileURL   = "http://example.com/myfile.txt"
 )
 
-func toPointer(val string) *string {
-	return &val
-}
-
 func TestMerge(t *testing.T) {
 	type test struct {
 		in1        types.Config
@@ -387,15 +383,15 @@ func TestMerge(t *testing.T) {
 								HTTPHeaders: []types.HTTPHeader{
 									{
 										Name:  "old-header",
-										Value: toPointer("old-value"),
+										Value: util.StrToPtr("old-value"),
 									},
 									{
 										Name:  "same-header",
-										Value: toPointer("old-value"),
+										Value: util.StrToPtr("old-value"),
 									},
 									{
 										Name:  "to-remove-header",
-										Value: toPointer("some-value"),
+										Value: util.StrToPtr("some-value"),
 									},
 								},
 							},
@@ -415,11 +411,11 @@ func TestMerge(t *testing.T) {
 									},
 									{
 										Name:  "new-header",
-										Value: toPointer("new-value"),
+										Value: util.StrToPtr("new-value"),
 									},
 									{
 										Name:  "same-header",
-										Value: toPointer("new-value"),
+										Value: util.StrToPtr("new-value"),
 									},
 								},
 							},
@@ -436,15 +432,15 @@ func TestMerge(t *testing.T) {
 								HTTPHeaders: []types.HTTPHeader{
 									{
 										Name:  "old-header",
-										Value: toPointer("old-value"),
+										Value: util.StrToPtr("old-value"),
 									},
 									{
 										Name:  "same-header",
-										Value: toPointer("new-value"),
+										Value: util.StrToPtr("new-value"),
 									},
 									{
 										Name:  "new-header",
-										Value: toPointer("new-value"),
+										Value: util.StrToPtr("new-value"),
 									},
 								},
 							},
@@ -475,15 +471,15 @@ func TestMerge(t *testing.T) {
 							HTTPHeaders: []types.HTTPHeader{
 								{
 									Name:  "old-header",
-									Value: toPointer("old-value"),
+									Value: util.StrToPtr("old-value"),
 								},
 								{
 									Name:  "same-header",
-									Value: toPointer("old-value"),
+									Value: util.StrToPtr("old-value"),
 								},
 								{
 									Name:  "to-remove-header",
-									Value: toPointer("some-value"),
+									Value: util.StrToPtr("some-value"),
 								},
 							},
 						},
@@ -501,11 +497,11 @@ func TestMerge(t *testing.T) {
 								},
 								{
 									Name:  "new-header",
-									Value: toPointer("new-value"),
+									Value: util.StrToPtr("new-value"),
 								},
 								{
 									Name:  "same-header",
-									Value: toPointer("new-value"),
+									Value: util.StrToPtr("new-value"),
 								},
 							},
 						},
@@ -520,15 +516,15 @@ func TestMerge(t *testing.T) {
 							HTTPHeaders: []types.HTTPHeader{
 								{
 									Name:  "old-header",
-									Value: toPointer("old-value"),
+									Value: util.StrToPtr("old-value"),
 								},
 								{
 									Name:  "same-header",
-									Value: toPointer("new-value"),
+									Value: util.StrToPtr("new-value"),
 								},
 								{
 									Name:  "new-header",
-									Value: toPointer("new-value"),
+									Value: util.StrToPtr("new-value"),
 								},
 							},
 						},
@@ -560,15 +556,15 @@ func TestMerge(t *testing.T) {
 									HTTPHeaders: []types.HTTPHeader{
 										{
 											Name:  "old-header",
-											Value: toPointer("old-value"),
+											Value: util.StrToPtr("old-value"),
 										},
 										{
 											Name:  "same-header",
-											Value: toPointer("old-value"),
+											Value: util.StrToPtr("old-value"),
 										},
 										{
 											Name:  "to-remove-header",
-											Value: toPointer("some-value"),
+											Value: util.StrToPtr("some-value"),
 										},
 									},
 								},
@@ -590,11 +586,11 @@ func TestMerge(t *testing.T) {
 										},
 										{
 											Name:  "new-header",
-											Value: toPointer("new-value"),
+											Value: util.StrToPtr("new-value"),
 										},
 										{
 											Name:  "same-header",
-											Value: toPointer("new-value"),
+											Value: util.StrToPtr("new-value"),
 										},
 									},
 								},
@@ -613,15 +609,15 @@ func TestMerge(t *testing.T) {
 									HTTPHeaders: []types.HTTPHeader{
 										{
 											Name:  "old-header",
-											Value: toPointer("old-value"),
+											Value: util.StrToPtr("old-value"),
 										},
 										{
 											Name:  "same-header",
-											Value: toPointer("new-value"),
+											Value: util.StrToPtr("new-value"),
 										},
 										{
 											Name:  "new-header",
-											Value: toPointer("new-value"),
+											Value: util.StrToPtr("new-value"),
 										},
 									},
 								},
@@ -655,15 +651,15 @@ func TestMerge(t *testing.T) {
 									HTTPHeaders: []types.HTTPHeader{
 										{
 											Name:  "old-header",
-											Value: toPointer("old-value"),
+											Value: util.StrToPtr("old-value"),
 										},
 										{
 											Name:  "same-header",
-											Value: toPointer("old-value"),
+											Value: util.StrToPtr("old-value"),
 										},
 										{
 											Name:  "to-remove-header",
-											Value: toPointer("some-value"),
+											Value: util.StrToPtr("some-value"),
 										},
 									},
 								},
@@ -685,11 +681,11 @@ func TestMerge(t *testing.T) {
 										},
 										{
 											Name:  "new-header",
-											Value: toPointer("new-value"),
+											Value: util.StrToPtr("new-value"),
 										},
 										{
 											Name:  "same-header",
-											Value: toPointer("new-value"),
+											Value: util.StrToPtr("new-value"),
 										},
 									},
 								},
@@ -708,15 +704,15 @@ func TestMerge(t *testing.T) {
 									HTTPHeaders: []types.HTTPHeader{
 										{
 											Name:  "old-header",
-											Value: toPointer("old-value"),
+											Value: util.StrToPtr("old-value"),
 										},
 										{
 											Name:  "same-header",
-											Value: toPointer("new-value"),
+											Value: util.StrToPtr("new-value"),
 										},
 										{
 											Name:  "new-header",
-											Value: toPointer("new-value"),
+											Value: util.StrToPtr("new-value"),
 										},
 									},
 								},
@@ -751,11 +747,11 @@ func TestMerge(t *testing.T) {
 										HTTPHeaders: []types.HTTPHeader{
 											{
 												Name:  "old-header",
-												Value: toPointer("old-value"),
+												Value: util.StrToPtr("old-value"),
 											},
 											{
 												Name:  "same-header",
-												Value: toPointer("old-value"),
+												Value: util.StrToPtr("old-value"),
 											},
 										},
 									},
@@ -776,11 +772,11 @@ func TestMerge(t *testing.T) {
 										HTTPHeaders: []types.HTTPHeader{
 											{
 												Name:  "new-header",
-												Value: toPointer("new-value"),
+												Value: util.StrToPtr("new-value"),
 											},
 											{
 												Name:  "same-header",
-												Value: toPointer("new-value"),
+												Value: util.StrToPtr("new-value"),
 											},
 										},
 									},
@@ -801,11 +797,11 @@ func TestMerge(t *testing.T) {
 										HTTPHeaders: []types.HTTPHeader{
 											{
 												Name:  "old-header",
-												Value: toPointer("old-value"),
+												Value: util.StrToPtr("old-value"),
 											},
 											{
 												Name:  "same-header",
-												Value: toPointer("old-value"),
+												Value: util.StrToPtr("old-value"),
 											},
 										},
 									},
@@ -814,11 +810,11 @@ func TestMerge(t *testing.T) {
 										HTTPHeaders: []types.HTTPHeader{
 											{
 												Name:  "new-header",
-												Value: toPointer("new-value"),
+												Value: util.StrToPtr("new-value"),
 											},
 											{
 												Name:  "same-header",
-												Value: toPointer("new-value"),
+												Value: util.StrToPtr("new-value"),
 											},
 										},
 									},
