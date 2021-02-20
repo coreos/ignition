@@ -1048,6 +1048,228 @@ func TestMerge(t *testing.T) {
 				{path.New(TAG_CHILD, "storage", "links"), path.New(TAG_RESULT, "storage", "links")},
 			}},
 		},
+
+		// completely parent subtree
+		{
+			in1: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Path: "/a",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:"),
+									HTTPHeaders: []types.HTTPHeader{
+										{
+											Name:  "header",
+											Value: util.StrToPtr("value"),
+										},
+									},
+								},
+								Append: []types.Resource{
+									{
+										Source: util.StrToPtr("data:"),
+										HTTPHeaders: []types.HTTPHeader{
+											{
+												Name:  "header",
+												Value: util.StrToPtr("value"),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Filesystems: []types.Filesystem{
+						{
+							Device: "/dev/sda",
+							Options: []types.FilesystemOption{
+								"z",
+							},
+						},
+					},
+				},
+			},
+			in2: types.Config{},
+			out: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Path: "/a",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:"),
+									HTTPHeaders: []types.HTTPHeader{
+										{
+											Name:  "header",
+											Value: util.StrToPtr("value"),
+										},
+									},
+								},
+								Append: []types.Resource{
+									{
+										Source: util.StrToPtr("data:"),
+										HTTPHeaders: []types.HTTPHeader{
+											{
+												Name:  "header",
+												Value: util.StrToPtr("value"),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Filesystems: []types.Filesystem{
+						{
+							Device: "/dev/sda",
+							Options: []types.FilesystemOption{
+								"z",
+							},
+						},
+					},
+				},
+			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_PARENT, "storage", "files", 0, "path"), path.New(TAG_RESULT, "storage", "files", 0, "path")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "httpHeaders", 0, "name"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 0, "name")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "httpHeaders", 0, "value"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 0, "value")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "httpHeaders", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 0)},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "httpHeaders"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0, "source"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "source")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 0)},
+				{path.New(TAG_PARENT, "storage", "files", 0, "append"), path.New(TAG_RESULT, "storage", "files", 0, "append")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents", "httpHeaders", 0, "name"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 0, "name")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents", "httpHeaders", 0, "value"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 0, "value")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents", "httpHeaders", 0), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 0)},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents", "httpHeaders"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents", "source"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "source")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents"), path.New(TAG_RESULT, "storage", "files", 0, "contents")},
+				{path.New(TAG_PARENT, "storage", "files", 0), path.New(TAG_RESULT, "storage", "files", 0)},
+				{path.New(TAG_PARENT, "storage", "files"), path.New(TAG_RESULT, "storage", "files")},
+				{path.New(TAG_PARENT, "storage", "filesystems", 0, "device"), path.New(TAG_RESULT, "storage", "filesystems", 0, "device")},
+				{path.New(TAG_PARENT, "storage", "filesystems", 0, "options", 0), path.New(TAG_RESULT, "storage", "filesystems", 0, "options", 0)},
+				{path.New(TAG_PARENT, "storage", "filesystems", 0, "options"), path.New(TAG_RESULT, "storage", "filesystems", 0, "options")},
+				{path.New(TAG_PARENT, "storage", "filesystems", 0), path.New(TAG_RESULT, "storage", "filesystems", 0)},
+				{path.New(TAG_PARENT, "storage", "filesystems"), path.New(TAG_RESULT, "storage", "filesystems")},
+				{path.New(TAG_PARENT, "storage"), path.New(TAG_RESULT, "storage")},
+			}},
+		},
+
+		// completely child subtree
+		{
+			in1: types.Config{},
+			in2: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Path: "/a",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:"),
+									HTTPHeaders: []types.HTTPHeader{
+										{
+											Name:  "header",
+											Value: util.StrToPtr("value"),
+										},
+									},
+								},
+								Append: []types.Resource{
+									{
+										Source: util.StrToPtr("data:"),
+										HTTPHeaders: []types.HTTPHeader{
+											{
+												Name:  "header",
+												Value: util.StrToPtr("value"),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Filesystems: []types.Filesystem{
+						{
+							Device: "/dev/sda",
+							Options: []types.FilesystemOption{
+								"z",
+							},
+						},
+					},
+				},
+			},
+			out: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Path: "/a",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:"),
+									HTTPHeaders: []types.HTTPHeader{
+										{
+											Name:  "header",
+											Value: util.StrToPtr("value"),
+										},
+									},
+								},
+								Append: []types.Resource{
+									{
+										Source: util.StrToPtr("data:"),
+										HTTPHeaders: []types.HTTPHeader{
+											{
+												Name:  "header",
+												Value: util.StrToPtr("value"),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Filesystems: []types.Filesystem{
+						{
+							Device: "/dev/sda",
+							Options: []types.FilesystemOption{
+								"z",
+							},
+						},
+					},
+				},
+			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_CHILD, "storage", "files", 0, "path"), path.New(TAG_RESULT, "storage", "files", 0, "path")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "httpHeaders", 0, "name"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 0, "name")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "httpHeaders", 0, "value"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 0, "value")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "httpHeaders", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders", 0)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "httpHeaders"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "httpHeaders")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0, "source"), path.New(TAG_RESULT, "storage", "files", 0, "append", 0, "source")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append", 0), path.New(TAG_RESULT, "storage", "files", 0, "append", 0)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "append"), path.New(TAG_RESULT, "storage", "files", 0, "append")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "httpHeaders", 0, "name"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 0, "name")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "httpHeaders", 0, "value"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 0, "value")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "httpHeaders", 0), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders", 0)},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "httpHeaders"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "httpHeaders")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "source"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "source")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents"), path.New(TAG_RESULT, "storage", "files", 0, "contents")},
+				{path.New(TAG_CHILD, "storage", "files", 0), path.New(TAG_RESULT, "storage", "files", 0)},
+				{path.New(TAG_CHILD, "storage", "files"), path.New(TAG_RESULT, "storage", "files")},
+				{path.New(TAG_CHILD, "storage", "filesystems", 0, "device"), path.New(TAG_RESULT, "storage", "filesystems", 0, "device")},
+				{path.New(TAG_CHILD, "storage", "filesystems", 0, "options", 0), path.New(TAG_RESULT, "storage", "filesystems", 0, "options", 0)},
+				{path.New(TAG_CHILD, "storage", "filesystems", 0, "options"), path.New(TAG_RESULT, "storage", "filesystems", 0, "options")},
+				{path.New(TAG_CHILD, "storage", "filesystems", 0), path.New(TAG_RESULT, "storage", "filesystems", 0)},
+				{path.New(TAG_CHILD, "storage", "filesystems"), path.New(TAG_RESULT, "storage", "filesystems")},
+				{path.New(TAG_CHILD, "storage"), path.New(TAG_RESULT, "storage")},
+			}},
+		},
 	}
 
 	for i, test := range tests {
