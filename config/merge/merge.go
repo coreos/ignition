@@ -280,6 +280,7 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 			}
 			resultField.Set(reflect.MakeSlice(parentField.Type(), 0, parentField.Len()+childField.Len()))
 			parentKeys := getKeySet(parentField)
+			var itemFromParent, itemFromChild bool
 
 			// walk parent items
 			for i := 0; i < parentField.Len(); i++ {
@@ -299,9 +300,13 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 								continue
 							}
 							appendToSlice(resultField, mergeStruct(parentItem, parentItemPath, childItem, childItemPath, resultItemPath, transcript))
+							// prevent transcription of the base list
+							itemFromParent = true
+							itemFromChild = true
 						} else if util.IsPrimitive(childItem.Kind()) {
 							appendToSlice(resultField, childItem)
 							transcribe(childItemPath, resultItemPath, childItem, fieldMeta, transcript)
+							itemFromChild = true
 						} else {
 							panic("List of pointers or slices or something else weird")
 						}
@@ -312,6 +317,7 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 					// case 3: not in child config, append it
 					appendToSlice(resultField, parentItem)
 					transcribe(parentItemPath, resultItemPath, parentItem, fieldMeta, transcript)
+					itemFromParent = true
 				}
 			}
 			// append child items not in parent
@@ -325,7 +331,14 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 					// then it would be skipped as case 2 above
 					appendToSlice(resultField, childItem)
 					transcribe(childItemPath, resultItemPath, childItem, fieldMeta, transcript)
+					itemFromChild = true
 				}
+			}
+			// if we have list nodes only from one side, credit that side with the list
+			if itemFromParent && !itemFromChild {
+				transcribeOne(parentFieldPath, resultFieldPath, transcript)
+			} else if itemFromChild && !itemFromParent {
+				transcribeOne(childFieldPath, resultFieldPath, transcript)
 			}
 		default:
 			panic("unreachable code reached")

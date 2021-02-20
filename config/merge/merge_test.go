@@ -264,6 +264,7 @@ func TestMerge(t *testing.T) {
 				{path.New(TAG_CHILD, "passwd", "users", 0, "sshAuthorizedKeys", 0), path.New(TAG_RESULT, "passwd", "users", 0, "sshAuthorizedKeys", 2)},
 				{path.New(TAG_CHILD, "storage", "directories", 0, "path"), path.New(TAG_RESULT, "storage", "directories", 0, "path")},
 				{path.New(TAG_CHILD, "storage", "directories", 0), path.New(TAG_RESULT, "storage", "directories", 0)},
+				{path.New(TAG_CHILD, "storage", "directories"), path.New(TAG_RESULT, "storage", "directories")},
 				{path.New(TAG_CHILD, "storage", "disks", 0, "device"), path.New(TAG_RESULT, "storage", "disks", 0, "device")},
 				{path.New(TAG_CHILD, "storage", "disks", 0, "partitions", 0, "label"), path.New(TAG_RESULT, "storage", "disks", 0, "partitions", 0, "label")},
 				{path.New(TAG_CHILD, "storage", "disks", 0, "partitions", 0, "number"), path.New(TAG_RESULT, "storage", "disks", 0, "partitions", 0, "number")},
@@ -286,6 +287,7 @@ func TestMerge(t *testing.T) {
 				{path.New(TAG_CHILD, "storage", "files", 0, "append", 1), path.New(TAG_RESULT, "storage", "files", 0, "append", 2)},
 				{path.New(TAG_CHILD, "storage", "links", 0, "path"), path.New(TAG_RESULT, "storage", "links", 0, "path")},
 				{path.New(TAG_CHILD, "storage", "links", 0), path.New(TAG_RESULT, "storage", "links", 0)},
+				{path.New(TAG_CHILD, "storage", "links"), path.New(TAG_RESULT, "storage", "links")},
 			}},
 		},
 
@@ -890,6 +892,13 @@ func TestMerge(t *testing.T) {
 							},
 						},
 					},
+					Directories: []types.Directory{
+						{
+							Node: types.Node{
+								Path: "/d",
+							},
+						},
+					},
 				},
 			},
 			in2: types.Config{
@@ -931,6 +940,13 @@ func TestMerge(t *testing.T) {
 								Contents: types.Resource{
 									Compression: util.StrToPtr("gzip"),
 								},
+							},
+						},
+					},
+					Links: []types.Link{
+						{
+							Node: types.Node{
+								Path: "/e",
 							},
 						},
 					},
@@ -984,9 +1000,26 @@ func TestMerge(t *testing.T) {
 							},
 						},
 					},
+					Directories: []types.Directory{
+						{
+							Node: types.Node{
+								Path: "/d",
+							},
+						},
+					},
+					Links: []types.Link{
+						{
+							Node: types.Node{
+								Path: "/e",
+							},
+						},
+					},
 				},
 			},
 			transcript: Transcript{[]Mapping{
+				{path.New(TAG_PARENT, "storage", "directories", 0, "path"), path.New(TAG_RESULT, "storage", "directories", 0, "path")},
+				{path.New(TAG_PARENT, "storage", "directories", 0), path.New(TAG_RESULT, "storage", "directories", 0)},
+				{path.New(TAG_PARENT, "storage", "directories"), path.New(TAG_RESULT, "storage", "directories")},
 				{path.New(TAG_CHILD, "storage", "files", 0, "path"), path.New(TAG_RESULT, "storage", "files", 0, "path")},
 				{path.New(TAG_PARENT, "storage", "files", 0, "contents", "source"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "source")},
 				{path.New(TAG_PARENT, "storage", "files", 0, "contents"), path.New(TAG_RESULT, "storage", "files", 0, "contents")},
@@ -1010,6 +1043,9 @@ func TestMerge(t *testing.T) {
 				{path.New(TAG_PARENT, "storage", "filesystems", 1, "options", 1), path.New(TAG_RESULT, "storage", "filesystems", 1, "options", 1)},
 				{path.New(TAG_CHILD, "storage", "filesystems", 1, "options", 0), path.New(TAG_RESULT, "storage", "filesystems", 1, "options", 2)},
 				{path.New(TAG_CHILD, "storage", "filesystems", 1, "options", 1), path.New(TAG_RESULT, "storage", "filesystems", 1, "options", 3)},
+				{path.New(TAG_CHILD, "storage", "links", 0, "path"), path.New(TAG_RESULT, "storage", "links", 0, "path")},
+				{path.New(TAG_CHILD, "storage", "links", 0), path.New(TAG_RESULT, "storage", "links", 0)},
+				{path.New(TAG_CHILD, "storage", "links"), path.New(TAG_RESULT, "storage", "links")},
 			}},
 		},
 	}
