@@ -329,20 +329,13 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 // transcribing all of its populated leaves.  It returns true if we
 // transcribed anything.
 func transcribe(fromPath path.ContextPath, toPath path.ContextPath, value reflect.Value, fieldMeta reflect.StructField, transcript *Transcript) bool {
-	add := func(from, to path.ContextPath) {
-		transcript.Mappings = append(transcript.Mappings, Mapping{
-			From: from.Copy(),
-			To:   to.Copy(),
-		})
-	}
-
 	kind := value.Kind()
 	switch {
 	case util.IsPrimitive(kind):
 		if value.IsZero() {
 			return false
 		}
-		add(fromPath, toPath)
+		transcribeOne(fromPath, toPath, transcript)
 	case kind == reflect.Ptr:
 		if value.IsNil() {
 			return false
@@ -353,7 +346,7 @@ func transcribe(fromPath path.ContextPath, toPath path.ContextPath, value reflec
 			// https://github.com/coreos/ignition/issues/1132
 			return transcribe(fromPath, toPath, value.Elem(), fieldMeta, transcript)
 		}
-		add(fromPath, toPath)
+		transcribeOne(fromPath, toPath, transcript)
 	case kind == reflect.Struct:
 		var transcribed bool
 		for i := 0; i < value.NumField(); i++ {
@@ -362,7 +355,7 @@ func transcribe(fromPath path.ContextPath, toPath path.ContextPath, value reflec
 		}
 		// embedded structs and empty structs should be invisible
 		if transcribed && !fieldMeta.Anonymous {
-			add(fromPath, toPath)
+			transcribeOne(fromPath, toPath, transcript)
 		}
 		return transcribed
 	case kind == reflect.Slice:
@@ -375,6 +368,14 @@ func transcribe(fromPath path.ContextPath, toPath path.ContextPath, value reflec
 		panic("unreachable code reached")
 	}
 	return true
+}
+
+// transcribeOne records one Mapping into a Transcript.
+func transcribeOne(from, to path.ContextPath, transcript *Transcript) {
+	transcript.Mappings = append(transcript.Mappings, Mapping{
+		From: from.Copy(),
+		To:   to.Copy(),
+	})
 }
 
 // getKeySet takes a value of a slice and returns the set of all the Key() values in that slice
