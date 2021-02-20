@@ -860,6 +860,36 @@ func TestMerge(t *testing.T) {
 							Options: []types.FilesystemOption{"a", "b"},
 						},
 					},
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Path: "/a",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:"),
+								},
+							},
+						},
+						{
+							Node: types.Node{
+								Path: "/b",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Mode: util.IntToPtr(0644),
+							},
+						},
+						{
+							Node: types.Node{
+								Path: "/c",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:"),
+								},
+							},
+						},
+					},
 				},
 			},
 			in2: types.Config{
@@ -872,6 +902,36 @@ func TestMerge(t *testing.T) {
 						{
 							Device:  "/dev/sdb",
 							Options: []types.FilesystemOption{"c", "d"},
+						},
+					},
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Path: "/a",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Mode: util.IntToPtr(0644),
+							},
+						},
+						{
+							Node: types.Node{
+								Path: "/b",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:"),
+								},
+							},
+						},
+						{
+							Node: types.Node{
+								Path: "/c",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Compression: util.StrToPtr("gzip"),
+								},
+							},
 						},
 					},
 				},
@@ -889,9 +949,55 @@ func TestMerge(t *testing.T) {
 							Options: []types.FilesystemOption{"a", "b", "c", "d"},
 						},
 					},
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Path: "/a",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:"),
+								},
+								Mode: util.IntToPtr(0644),
+							},
+						},
+						{
+							Node: types.Node{
+								Path: "/b",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:"),
+								},
+								Mode: util.IntToPtr(0644),
+							},
+						},
+						{
+							Node: types.Node{
+								Path: "/c",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Compression: util.StrToPtr("gzip"),
+									Source:      util.StrToPtr("data:"),
+								},
+							},
+						},
+					},
 				},
 			},
 			transcript: Transcript{[]Mapping{
+				{path.New(TAG_CHILD, "storage", "files", 0, "path"), path.New(TAG_RESULT, "storage", "files", 0, "path")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents", "source"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "source")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents"), path.New(TAG_RESULT, "storage", "files", 0, "contents")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "mode"), path.New(TAG_RESULT, "storage", "files", 0, "mode")},
+				{path.New(TAG_CHILD, "storage", "files", 1, "path"), path.New(TAG_RESULT, "storage", "files", 1, "path")},
+				{path.New(TAG_CHILD, "storage", "files", 1, "contents", "source"), path.New(TAG_RESULT, "storage", "files", 1, "contents", "source")},
+				{path.New(TAG_CHILD, "storage", "files", 1, "contents"), path.New(TAG_RESULT, "storage", "files", 1, "contents")},
+				{path.New(TAG_PARENT, "storage", "files", 1, "mode"), path.New(TAG_RESULT, "storage", "files", 1, "mode")},
+				{path.New(TAG_CHILD, "storage", "files", 2, "path"), path.New(TAG_RESULT, "storage", "files", 2, "path")},
+				{path.New(TAG_CHILD, "storage", "files", 2, "contents", "compression"), path.New(TAG_RESULT, "storage", "files", 2, "contents", "compression")},
+				{path.New(TAG_PARENT, "storage", "files", 2, "contents", "source"), path.New(TAG_RESULT, "storage", "files", 2, "contents", "source")},
 				{path.New(TAG_CHILD, "storage", "filesystems", 0, "device"), path.New(TAG_RESULT, "storage", "filesystems", 0, "device")},
 				{path.New(TAG_CHILD, "storage", "filesystems", 0, "mountOptions", 0), path.New(TAG_RESULT, "storage", "filesystems", 0, "mountOptions", 0)},
 				{path.New(TAG_CHILD, "storage", "filesystems", 0, "mountOptions", 1), path.New(TAG_RESULT, "storage", "filesystems", 0, "mountOptions", 1)},

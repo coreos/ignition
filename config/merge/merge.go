@@ -243,6 +243,12 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 		case kind == reflect.Ptr && !childField.IsNil():
 			resultField.Set(childField)
 			transcribe(childFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
+		case kind == reflect.Struct && childField.IsZero():
+			resultField.Set(parentField)
+			transcribe(parentFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
+		case kind == reflect.Struct && parentField.IsZero():
+			resultField.Set(childField)
+			transcribe(childFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
 		case kind == reflect.Struct:
 			resultField.Set(mergeStruct(parentField, parentFieldPath, childField, childFieldPath, resultFieldPath, transcript))
 		case kind == reflect.Slice && info.ignoreField(fieldMeta.Name):
