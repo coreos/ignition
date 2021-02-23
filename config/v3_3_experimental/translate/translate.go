@@ -27,9 +27,18 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	return
 }
 
+func translateClevisCustom(old old_types.Custom) (ret types.ClevisCustom) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Config, &ret.Config)
+	tr.Translate(&old.NeedsNetwork, &ret.NeedsNetwork)
+	tr.Translate(&old.Pin, &ret.Pin)
+	return
+}
+
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
+	tr.AddCustomTranslator(translateClevisCustom)
 	tr.Translate(&old, &ret)
 	return
 }

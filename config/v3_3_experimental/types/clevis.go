@@ -21,7 +21,7 @@ import (
 	"github.com/coreos/vcontext/report"
 )
 
-func (cu Custom) Validate(c path.ContextPath) (r report.Report) {
+func (cu ClevisCustom) Validate(c path.ContextPath) (r report.Report) {
 	if cu.Pin == "" && cu.Config == "" {
 		return
 	}
