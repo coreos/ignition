@@ -260,39 +260,7 @@
               "type": ["boolean", "null"]
             },
             "clevis": {
-              "type": ["object", "null"],
-              "properties": {
-                "custom": {
-                  "type": ["object", "null"],
-                  "properties": {
-                    "pin": {
-                      "type": "string"
-                    },
-                    "config": {
-                      "type": "string"
-                    },
-                    "needsNetwork": {
-                      "type": ["boolean", "null"]
-                    }
-                  },
-                  "required": [
-                    "pin",
-                    "config"
-                  ]
-                },
-                "tpm2": {
-                  "type": ["boolean", "null"]
-                },
-                "tang": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/storage/definitions/tang"
-                  }
-                },
-                "threshold": {
-                  "type": ["integer", "null"]
-                }
-              }
+              "$ref": "#/definitions/storage/definitions/clevis"
             },
             "options": {
               "type": "array",
@@ -303,6 +271,44 @@
           },
           "required": [
               "name"
+          ]
+        },
+        "clevis": {
+          "type": ["object", "null"],
+          "properties": {
+            "custom": {
+              "$ref": "#/definitions/storage/definitions/custom"
+            },
+            "tpm2": {
+              "type": ["boolean", "null"]
+            },
+            "tang": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/storage/definitions/tang"
+              }
+            },
+            "threshold": {
+              "type": ["integer", "null"]
+            }
+          }
+        },
+        "custom": {
+          "type": ["object", "null"],
+          "properties": {
+            "pin": {
+              "type": "string"
+            },
+            "config": {
+              "type": "string"
+            },
+            "needsNetwork": {
+              "type": ["boolean", "null"]
+            }
+          },
+          "required": [
+            "pin",
+            "config"
           ]
         },
         "tang": {
