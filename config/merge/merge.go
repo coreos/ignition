@@ -295,6 +295,10 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 					if childList == fieldMeta.Name {
 						// case 1: in child config in same list
 						childItemPath := childFieldPath.Append(childListIndex)
+						// record the contribution of both parent and child, even if one wins
+						// or cancels the other
+						itemFromParent = true
+						itemFromChild = true
 						if childItem.Kind() == reflect.Struct {
 							// If HTTP header Value is nil, it means that we should remove the
 							// parent header from the result.
@@ -302,13 +306,9 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 								continue
 							}
 							appendToSlice(resultField, mergeStruct(parentItem, parentItemPath, childItem, childItemPath, resultItemPath, transcript))
-							// prevent transcription of the base list
-							itemFromParent = true
-							itemFromChild = true
 						} else if util.IsPrimitive(childItem.Kind()) {
 							appendToSlice(resultField, childItem)
 							transcribe(childItemPath, resultItemPath, childItem, fieldMeta, transcript)
-							itemFromChild = true
 						} else {
 							panic("List of pointers or slices or something else weird")
 						}
@@ -336,10 +336,10 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 					itemFromChild = true
 				}
 			}
-			// if we have list nodes only from one side, credit that side with the list
-			if itemFromParent && !itemFromChild {
+			if itemFromParent {
 				transcribeOne(parentFieldPath, resultFieldPath, transcript)
-			} else if itemFromChild && !itemFromParent {
+			}
+			if itemFromChild {
 				transcribeOne(childFieldPath, resultFieldPath, transcript)
 			}
 		default:
