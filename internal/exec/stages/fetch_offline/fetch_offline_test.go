@@ -76,7 +76,7 @@ func TestConfigNeedsNet(t *testing.T) {
 		{
 			Name:   "foobar",
 			Device: util.StrToPtr("bazboo"),
-			Clevis: &types.Clevis{
+			Clevis: types.Clevis{
 				Tang: []types.Tang{
 					{
 						Thumbprint: util.StrToPtr("mythumbprint"),

@@ -39,7 +39,7 @@ func testConfigType(t reflect.Type) error {
 			return nil
 		}
 		switch t.Elem() {
-		case reflect.TypeOf(v3_2.Clevis{}), reflect.TypeOf(v3_2.Custom{}), reflect.TypeOf(v3_3.Clevis{}), reflect.TypeOf(v3_3.Custom{}):
+		case reflect.TypeOf(v3_2.Clevis{}), reflect.TypeOf(v3_2.Custom{}):
 			// these structs ended up with pointers; can't be helped now
 			if err := testConfigType(t.Elem()); err != nil {
 				return fmt.Errorf("Type %s has invalid children: %v", t.Elem().Name(), err)

@@ -158,7 +158,7 @@ func (s *stage) createLuks(config types.Config) error {
 			// we can't guarantee that what is stored in the header is
 			// exactly what would be generated from the given config
 			var exists bool
-			if !ignitionCreatedKeyFile && luks.Clevis == nil {
+			if !ignitionCreatedKeyFile && !luks.Clevis.IsPresent() {
 				var err error
 				exists, err = s.checkLuksDeviceExists(luks, keyFilePath)
 				if err != nil {
@@ -248,11 +248,11 @@ func (s *stage) createLuks(config types.Config) error {
 			return fmt.Errorf("opening luks device: %v", err)
 		}
 
-		if luks.Clevis != nil {
+		if luks.Clevis.IsPresent() {
 			var pin string
 			var config string
 
-			if luks.Clevis.Custom != nil {
+			if luks.Clevis.Custom.Pin != "" {
 				pin = luks.Clevis.Custom.Pin
 				config = luks.Clevis.Custom.Config
 			}
@@ -304,7 +304,7 @@ func (s *stage) createLuks(config types.Config) error {
 		}
 
 		// assume the user does not want a key file & remove it for clevis based devices
-		if ignitionCreatedKeyFile && luks.Clevis != nil {
+		if ignitionCreatedKeyFile && luks.Clevis.IsPresent() {
 			if _, err := s.Logger.LogCmd(
 				exec.Command(distro.CryptsetupCmd(), "luksRemoveKey", devAlias, keyFilePath),
 				"removing key file for %v", luks.Name,
