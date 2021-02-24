@@ -27,6 +27,22 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	return
 }
 
+func translateLuks(old old_types.Luks) (ret types.Luks) {
+	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateClevis)
+	if old.Clevis != nil {
+		tr.Translate(old.Clevis, &ret.Clevis)
+	}
+	tr.Translate(&old.Device, &ret.Device)
+	tr.Translate(&old.KeyFile, &ret.KeyFile)
+	tr.Translate(&old.Label, &ret.Label)
+	tr.Translate(&old.Name, &ret.Name)
+	tr.Translate(&old.Options, &ret.Options)
+	tr.Translate(&old.UUID, &ret.UUID)
+	tr.Translate(&old.WipeVolume, &ret.WipeVolume)
+	return
+}
+
 func translateClevis(old old_types.Clevis) (ret types.Clevis) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateClevisCustom)
@@ -50,7 +66,7 @@ func translateClevisCustom(old old_types.Custom) (ret types.ClevisCustom) {
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
-	tr.AddCustomTranslator(translateClevis)
+	tr.AddCustomTranslator(translateLuks)
 	tr.Translate(&old, &ret)
 	return
 }

@@ -274,7 +274,7 @@
           ]
         },
         "clevis": {
-          "type": ["object", "null"],
+          "type": "object",
           "properties": {
             "custom": {
               "$ref": "#/definitions/storage/definitions/clevisCustom"

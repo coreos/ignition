@@ -21,6 +21,13 @@ import (
 	"github.com/coreos/vcontext/report"
 )
 
+func (c Clevis) IsPresent() bool {
+	return c.Custom.Pin != "" ||
+		len(c.Tang) > 0 ||
+		c.Tpm2 != nil && *c.Tpm2 ||
+		c.Threshold != nil && *c.Threshold != 0
+}
+
 func (cu ClevisCustom) Validate(c path.ContextPath) (r report.Report) {
 	if cu.Pin == "" && cu.Config == "" && !(cu.NeedsNetwork != nil && *cu.NeedsNetwork) {
 		return
