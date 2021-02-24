@@ -294,7 +294,7 @@
           }
         },
         "clevisCustom": {
-          "type": ["object", "null"],
+          "type": "object",
           "properties": {
             "pin": {
               "type": "string"

@@ -22,7 +22,7 @@ import (
 )
 
 func (cu ClevisCustom) Validate(c path.ContextPath) (r report.Report) {
-	if cu.Pin == "" && cu.Config == "" {
+	if cu.Pin == "" && cu.Config == "" && !(cu.NeedsNetwork != nil && *cu.NeedsNetwork) {
 		return
 	}
 	switch cu.Pin {

@@ -252,7 +252,7 @@ func (s *stage) createLuks(config types.Config) error {
 			var pin string
 			var config string
 
-			if luks.Clevis.Custom != nil {
+			if luks.Clevis.Custom.Pin != "" {
 				pin = luks.Clevis.Custom.Pin
 				config = luks.Clevis.Custom.Config
 			}

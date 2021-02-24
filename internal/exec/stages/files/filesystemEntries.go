@@ -62,7 +62,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 		}
 		uuid := strings.TrimSpace(string(out))
 		netdev := ""
-		if luks.Clevis != nil && (len(luks.Clevis.Tang) > 0 || (luks.Clevis.Custom != nil && luks.Clevis.Custom.NeedsNetwork != nil && *luks.Clevis.Custom.NeedsNetwork)) {
+		if luks.Clevis != nil && (len(luks.Clevis.Tang) > 0 || (luks.Clevis.Custom.Pin != "" && luks.Clevis.Custom.NeedsNetwork != nil && *luks.Clevis.Custom.NeedsNetwork)) {
 			netdev = ",_netdev"
 		}
 		keyfile := "none"
