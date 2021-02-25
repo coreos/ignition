@@ -132,7 +132,7 @@ func (u Util) WriteLink(s types.Link) error {
 		return fmt.Errorf("Could not create leading directories: %v", err)
 	}
 
-	if s.Hard != nil && *s.Hard {
+	if cutil.IsTrue(s.Hard) {
 		targetPath, err := u.JoinPath(s.Target)
 		if err != nil {
 			return err

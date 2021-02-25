@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 )
 
@@ -68,10 +69,10 @@ func (s *stage) createPasswd(config types.Config) error {
 		s.relabel(deglobbed...)
 		s.relabel("/etc/.pwd.lock")
 		for _, user := range config.Passwd.Users {
-			if user.NoCreateHome != nil && *user.NoCreateHome {
+			if util.IsTrue(user.NoCreateHome) {
 				continue
 			}
-			if user.ShouldExist != nil && !*user.ShouldExist {
+			if util.IsFalse(user.ShouldExist) {
 				continue
 			}
 			homedir, err := s.GetUserHomeDir(user)
@@ -112,7 +113,7 @@ func (s stage) ensureUsers(config types.Config) error {
 				u.Name, err)
 		}
 
-		if u.ShouldExist != nil && !*u.ShouldExist {
+		if util.IsFalse(u.ShouldExist) {
 			continue
 		}
 

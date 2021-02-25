@@ -37,7 +37,7 @@ const (
 )
 
 func appendIfTrue(args []string, test *bool, newargs string) []string {
-	if test != nil && *test {
+	if util.IsTrue(test) {
 		return append(args, newargs)
 	}
 	return args
@@ -55,7 +55,7 @@ func appendIfStringSet(args []string, arg string, str *string) []string {
 // If the `shouldExist` field is set to false and the user already exists, then
 // they will be deleted.
 func (u Util) EnsureUser(c types.PasswdUser) error {
-	shouldExist := c.ShouldExist == nil || *c.ShouldExist
+	shouldExist := !util.IsFalse(c.ShouldExist)
 	exists, err := u.CheckIfUserExists(c)
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 
 		args = appendIfStringSet(args, "--home-dir", c.HomeDir)
 
-		if c.NoCreateHome != nil && *c.NoCreateHome {
+		if util.IsTrue(c.NoCreateHome) {
 			args = append(args, "--no-create-home")
 		} else {
 			args = append(args, "--create-home")
@@ -264,7 +264,7 @@ func (u Util) SetPasswordHash(c types.PasswdUser) error {
 // `shouldExist` field is set to false and the group already exists,
 // then it will be deleted.
 func (u Util) EnsureGroup(g types.PasswdGroup) error {
-	shouldExist := g.ShouldExist == nil || *g.ShouldExist
+	shouldExist := !util.IsFalse(g.ShouldExist)
 	exists, err := u.CheckIfGroupExists(g)
 	if err != nil {
 		return err

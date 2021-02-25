@@ -16,6 +16,7 @@ package types
 
 import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/util"
 
 	"github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
@@ -24,12 +25,12 @@ import (
 func (c Clevis) IsPresent() bool {
 	return c.Custom.Pin != "" ||
 		len(c.Tang) > 0 ||
-		c.Tpm2 != nil && *c.Tpm2 ||
+		util.IsTrue(c.Tpm2) ||
 		c.Threshold != nil && *c.Threshold != 0
 }
 
 func (cu ClevisCustom) Validate(c path.ContextPath) (r report.Report) {
-	if cu.Pin == "" && cu.Config == "" && !(cu.NeedsNetwork != nil && *cu.NeedsNetwork) {
+	if cu.Pin == "" && cu.Config == "" && !util.IsTrue(cu.NeedsNetwork) {
 		return
 	}
 	switch cu.Pin {

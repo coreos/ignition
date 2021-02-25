@@ -23,6 +23,7 @@ import (
 	"sort"
 	"strings"
 
+	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
@@ -62,7 +63,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 		}
 		uuid := strings.TrimSpace(string(out))
 		netdev := ""
-		if len(luks.Clevis.Tang) > 0 || (luks.Clevis.Custom.Pin != "" && luks.Clevis.Custom.NeedsNetwork != nil && *luks.Clevis.Custom.NeedsNetwork) {
+		if len(luks.Clevis.Tang) > 0 || luks.Clevis.Custom.Pin != "" && cutil.IsTrue(luks.Clevis.Custom.NeedsNetwork) {
 			netdev = ",_netdev"
 		}
 		keyfile := "none"
@@ -250,7 +251,7 @@ func (tmp linkEntry) node() types.Node {
 
 func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	s := types.Link(tmp)
-	hard := s.Hard != nil && *s.Hard
+	hard := cutil.IsTrue(s.Hard)
 	st, err := os.Lstat(s.Path)
 	switch {
 	case os.IsNotExist(err):
@@ -345,7 +346,7 @@ func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, e
 		}
 		paths[path] = l.Path
 		l.Path = path
-		if l.Hard != nil && *l.Hard {
+		if cutil.IsTrue(l.Hard) {
 			hardlinks = append(hardlinks, linkEntry(l))
 		} else {
 			entries = append(entries, linkEntry(l))
@@ -363,7 +364,7 @@ func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, e
 }
 
 func (s *stage) removePathOnOverwrite(e filesystemEntry) error {
-	if e.node().Overwrite != nil && *e.node().Overwrite {
+	if cutil.IsTrue(e.node().Overwrite) {
 		return os.RemoveAll(e.node().Path)
 	}
 	return nil

@@ -82,7 +82,7 @@ func partitionMatches(existing util.PartitionInfo, spec sgdisk.Partition) error 
 // partitionMatchesResize returns if the existing partition should be resized by evaluating if
 // `resize`field is true and partition matches in all respects except size.
 func partitionMatchesResize(existing util.PartitionInfo, spec sgdisk.Partition) bool {
-	return spec.Resize != nil && *spec.Resize && partitionMatchesCommon(existing, spec) == nil
+	return cutil.IsTrue(spec.Resize) && partitionMatchesCommon(existing, spec) == nil
 }
 
 // partitionMatchesCommon handles the common tests (excluding the partition size) to determine
@@ -142,11 +142,11 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 		if info, exists := diskInfo.GetPartition(part.Number); exists {
 			// delete all existing partitions
 			op.DeletePartition(part.Number)
-			if part.StartSector == nil && (part.WipePartitionEntry == nil || !*part.WipePartitionEntry) {
+			if part.StartSector == nil && !cutil.IsTrue(part.WipePartitionEntry) {
 				// don't care means keep the same if we can't wipe, otherwise stick it at start 0
 				part.StartSector = &info.StartSector
 			}
-			if part.SizeInSectors == nil && (part.WipePartitionEntry == nil || !*part.WipePartitionEntry) {
+			if part.SizeInSectors == nil && !cutil.IsTrue(part.WipePartitionEntry) {
 				part.SizeInSectors = &info.SizeInSectors
 			}
 		}
@@ -281,7 +281,7 @@ func parseSgdiskPretend(sgdiskOut string, partitionNumbers []int) (map[int]sgdis
 // partitionShouldExist returns whether a bool is indicating if a partition should exist or not.
 // nil (unspecified in json) is treated the same as true.
 func partitionShouldExist(part sgdisk.Partition) bool {
-	return part.ShouldExist == nil || *part.ShouldExist
+	return !cutil.IsFalse(part.ShouldExist)
 }
 
 // getPartitionMap returns a map of partitions on device, indexed by partition number
@@ -319,7 +319,7 @@ func (p PartitionList) Swap(i, j int) {
 
 // partitionDisk partitions devAlias according to the spec given by dev
 func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
-	if dev.WipeTable != nil && *dev.WipeTable {
+	if cutil.IsTrue(dev.WipeTable) {
 		op := sgdisk.Begin(s.Logger, devAlias)
 		s.Logger.Info("wiping partition table requested on %q", devAlias)
 		op.WipeTable(true)
@@ -354,7 +354,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 			matchErr = partitionMatches(info, part)
 		}
 		matches := exists && matchErr == nil
-		wipeEntry := part.WipePartitionEntry != nil && *part.WipePartitionEntry
+		wipeEntry := cutil.IsTrue(part.WipePartitionEntry)
 
 		// This is a translation of the matrix in the operator notes.
 		switch {

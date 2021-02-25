@@ -42,8 +42,7 @@ func (u Unit) Validate(c cpath.ContextPath) (r report.Report) {
 	opts, err := validateUnitContent(u.Contents)
 	r.AddOnError(c, err)
 
-	isEnabled := u.Enabled != nil && *u.Enabled
-	r.AddOnWarn(c, validations.ValidateInstallSection(u.Name, isEnabled, util.NilOrEmpty(u.Contents), opts))
+	r.AddOnWarn(c, validations.ValidateInstallSection(u.Name, util.IsTrue(u.Enabled), util.NilOrEmpty(u.Contents), opts))
 
 	return
 }
