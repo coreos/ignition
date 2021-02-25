@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/coreos/go-systemd/v22/journal"
+	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/as_user"
 	"github.com/coreos/ignition/v2/internal/distro"
@@ -36,14 +37,14 @@ const (
 )
 
 func appendIfTrue(args []string, test *bool, newargs string) []string {
-	if test != nil && *test {
+	if util.IsTrue(test) {
 		return append(args, newargs)
 	}
 	return args
 }
 
 func appendIfStringSet(args []string, arg string, str *string) []string {
-	if str != nil && *str != "" {
+	if util.NotEmpty(str) {
 		return append(args, arg, *str)
 	}
 	return args
@@ -54,7 +55,7 @@ func appendIfStringSet(args []string, arg string, str *string) []string {
 // If the `shouldExist` field is set to false and the user already exists, then
 // they will be deleted.
 func (u Util) EnsureUser(c types.PasswdUser) error {
-	shouldExist := c.ShouldExist == nil || *c.ShouldExist
+	shouldExist := !util.IsFalse(c.ShouldExist)
 	exists, err := u.CheckIfUserExists(c)
 	if err != nil {
 		return err
@@ -78,7 +79,7 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 	if exists {
 		cmd = distro.UsermodCmd()
 
-		if c.HomeDir != nil && *c.HomeDir != "" {
+		if util.NotEmpty(c.HomeDir) {
 			args = append(args, "--home", *c.HomeDir, "--move-home")
 		}
 	} else {
@@ -86,7 +87,7 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 
 		args = appendIfStringSet(args, "--home-dir", c.HomeDir)
 
-		if c.NoCreateHome != nil && *c.NoCreateHome {
+		if util.IsTrue(c.NoCreateHome) {
 			args = append(args, "--no-create-home")
 		} else {
 			args = append(args, "--create-home")
@@ -263,7 +264,7 @@ func (u Util) SetPasswordHash(c types.PasswdUser) error {
 // `shouldExist` field is set to false and the group already exists,
 // then it will be deleted.
 func (u Util) EnsureGroup(g types.PasswdGroup) error {
-	shouldExist := g.ShouldExist == nil || *g.ShouldExist
+	shouldExist := !util.IsFalse(g.ShouldExist)
 	exists, err := u.CheckIfGroupExists(g)
 	if err != nil {
 		return err
@@ -288,7 +289,7 @@ func (u Util) EnsureGroup(g types.PasswdGroup) error {
 			strconv.FormatUint(uint64(*g.Gid), 10))
 	}
 
-	if g.PasswordHash != nil && *g.PasswordHash != "" {
+	if util.NotEmpty(g.PasswordHash) {
 		args = append(args, "--password", *g.PasswordHash)
 	} else {
 		args = append(args, "--password", "*")

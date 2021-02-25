@@ -25,6 +25,7 @@ import (
 	"runtime"
 	"strings"
 
+	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
@@ -118,7 +119,7 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 	}
 	s.Logger.Info("found %s filesystem at %q with uuid %q and label %q", info.Type, fs.Device, info.UUID, info.Label)
 
-	if fs.WipeFilesystem == nil || !*fs.WipeFilesystem {
+	if !cutil.IsTrue(fs.WipeFilesystem) {
 		// If the filesystem isn't forcefully being created, then we need
 		// to check if it is of the correct type or that no filesystem exists.
 		if info.Type == *fs.Format &&

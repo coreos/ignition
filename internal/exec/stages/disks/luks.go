@@ -149,7 +149,7 @@ func (s *stage) createLuks(config types.Config) error {
 			}
 		}
 
-		if luks.WipeVolume == nil || !*luks.WipeVolume {
+		if !util.IsTrue(luks.WipeVolume) {
 			// If the volume isn't forcefully being created, then we need
 			// to check if it is of the correct type or that no volume exists.
 

@@ -49,7 +49,7 @@ func (f Filesystem) validateFormat() error {
 		if util.NotEmpty(f.Path) ||
 			util.NotEmpty(f.Label) ||
 			util.NotEmpty(f.UUID) ||
-			f.WipeFilesystem != nil && *f.WipeFilesystem ||
+			util.IsTrue(f.WipeFilesystem) ||
 			len(f.Options) != 0 {
 			return errors.ErrFormatNilWithOthers
 		}

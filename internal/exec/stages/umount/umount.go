@@ -21,6 +21,7 @@ package umount
 import (
 	"sort"
 
+	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
 	"github.com/coreos/ignition/v2/internal/exec/util"
@@ -64,7 +65,7 @@ func (stage) Name() string {
 func (s stage) Run(config types.Config) error {
 	fss := []types.Filesystem{}
 	for _, fs := range config.Storage.Filesystems {
-		if fs.Path != nil && *fs.Path != "" {
+		if cutil.NotEmpty(fs.Path) {
 			fss = append(fss, fs)
 		}
 	}

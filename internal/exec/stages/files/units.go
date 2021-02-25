@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
+	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
@@ -229,7 +230,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 			}
 		}
 
-		if unit.Contents == nil || *unit.Contents == "" {
+		if cutil.NilOrEmpty(unit.Contents) {
 			return nil
 		}
 
