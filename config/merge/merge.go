@@ -238,6 +238,8 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 			// ended up in the Clevis and Luks structs in spec 3.2.0
 			// https://github.com/coreos/ignition/issues/1132
 			resultField.Set(mergeStruct(parentField.Elem(), parentFieldPath, childField.Elem(), childFieldPath, resultFieldPath, transcript).Addr())
+			transcribeOne(parentFieldPath, resultFieldPath, transcript)
+			transcribeOne(childFieldPath, resultFieldPath, transcript)
 		case kind == reflect.Ptr && childField.IsNil():
 			resultField.Set(parentField)
 			transcribe(parentFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
@@ -252,6 +254,10 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 			transcribe(childFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
 		case kind == reflect.Struct:
 			resultField.Set(mergeStruct(parentField, parentFieldPath, childField, childFieldPath, resultFieldPath, transcript))
+			if !fieldMeta.Anonymous {
+				transcribeOne(parentFieldPath, resultFieldPath, transcript)
+				transcribeOne(childFieldPath, resultFieldPath, transcript)
+			}
 		case kind == reflect.Slice && info.ignoreField(fieldMeta.Name):
 			if parentField.Len()+childField.Len() == 0 {
 				continue
@@ -306,6 +312,8 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 								continue
 							}
 							appendToSlice(resultField, mergeStruct(parentItem, parentItemPath, childItem, childItemPath, resultItemPath, transcript))
+							transcribeOne(parentItemPath, resultItemPath, transcript)
+							transcribeOne(childItemPath, resultItemPath, transcript)
 						} else if util.IsPrimitive(childItem.Kind()) {
 							appendToSlice(resultField, childItem)
 							transcribe(childItemPath, resultItemPath, childItem, fieldMeta, transcript)
