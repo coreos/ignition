@@ -211,8 +211,9 @@ func MergeStructTranscribe(parent, child interface{}) (interface{}, Transcript) 
 }
 
 // parent and child MUST be the same type
-// we transcribe all leaf fields, and all intermediate structs that wholly
-// originate from either parent or child
+// the transcript lists children before parents
+// all interior nodes that have contributions from both parent and child
+// receive separate transcript mappings for parent and child, in that order
 func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflect.Value, childPath path.ContextPath, resultPath path.ContextPath, transcript *Transcript) reflect.Value {
 	// use New() so it's settable, addr-able, etc
 	result := reflect.New(parent.Type()).Elem()
@@ -266,11 +267,12 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 				appendToSlice(resultField, item)
 				transcribe(childFieldPath.Append(i), resultFieldPath.Append(parentField.Len()+i), item, fieldMeta, transcript)
 			}
-			// transcribe the list itself if all items come from one side
-			if parentField.Len() == 0 {
-				transcribeOne(childFieldPath, resultFieldPath, transcript)
-			} else if childField.Len() == 0 {
+			// transcribe the list itself
+			if parentField.Len() > 0 {
 				transcribeOne(parentFieldPath, resultFieldPath, transcript)
+			}
+			if childField.Len() > 0 {
+				transcribeOne(childFieldPath, resultFieldPath, transcript)
 			}
 		case kind == reflect.Slice && !info.ignoreField(fieldMeta.Name):
 			// ooph, this is a doosey
