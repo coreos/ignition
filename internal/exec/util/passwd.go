@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/coreos/go-systemd/v22/journal"
+	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/as_user"
 	"github.com/coreos/ignition/v2/internal/distro"
@@ -43,7 +44,7 @@ func appendIfTrue(args []string, test *bool, newargs string) []string {
 }
 
 func appendIfStringSet(args []string, arg string, str *string) []string {
-	if str != nil && *str != "" {
+	if util.NotEmpty(str) {
 		return append(args, arg, *str)
 	}
 	return args
@@ -78,7 +79,7 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 	if exists {
 		cmd = distro.UsermodCmd()
 
-		if c.HomeDir != nil && *c.HomeDir != "" {
+		if util.NotEmpty(c.HomeDir) {
 			args = append(args, "--home", *c.HomeDir, "--move-home")
 		}
 	} else {
@@ -288,7 +289,7 @@ func (u Util) EnsureGroup(g types.PasswdGroup) error {
 			strconv.FormatUint(uint64(*g.Gid), 10))
 	}
 
-	if g.PasswordHash != nil && *g.PasswordHash != "" {
+	if util.NotEmpty(g.PasswordHash) {
 		args = append(args, "--password", *g.PasswordHash)
 	} else {
 		args = append(args, "--password", "*")

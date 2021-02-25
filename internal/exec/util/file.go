@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/resource"
@@ -304,7 +305,7 @@ func (u Util) ResolveNodeUidAndGid(n types.Node, defaultUid, defaultGid int) (in
 
 	if n.User.ID != nil {
 		uid = *n.User.ID
-	} else if n.User.Name != nil && *n.User.Name != "" {
+	} else if cutil.NotEmpty(n.User.Name) {
 		uid, err = u.getUserID(*n.User.Name)
 		if err != nil {
 			return 0, 0, err
@@ -313,7 +314,7 @@ func (u Util) ResolveNodeUidAndGid(n types.Node, defaultUid, defaultGid int) (in
 
 	if n.Group.ID != nil {
 		gid = *n.Group.ID
-	} else if n.Group.Name != nil && *n.Group.Name != "" {
+	} else if cutil.NotEmpty(n.Group.Name) {
 		gid, err = u.getGroupID(*n.Group.Name)
 		if err != nil {
 			return 0, 0, err

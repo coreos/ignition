@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"strings"
 
+	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/sgdisk"
@@ -93,10 +94,10 @@ func partitionMatchesCommon(existing util.PartitionInfo, spec sgdisk.Partition) 
 	if spec.StartSector != nil && *spec.StartSector != existing.StartSector {
 		return fmt.Errorf("starting sector did not match (specified %d, got %d)", *spec.StartSector, existing.StartSector)
 	}
-	if spec.GUID != nil && *spec.GUID != "" && !strings.EqualFold(*spec.GUID, existing.GUID) {
+	if cutil.NotEmpty(spec.GUID) && !strings.EqualFold(*spec.GUID, existing.GUID) {
 		return fmt.Errorf("GUID did not match (specified %q, got %q)", *spec.GUID, existing.GUID)
 	}
-	if spec.TypeGUID != nil && *spec.TypeGUID != "" && !strings.EqualFold(*spec.TypeGUID, existing.TypeGUID) {
+	if cutil.NotEmpty(spec.TypeGUID) && !strings.EqualFold(*spec.TypeGUID, existing.TypeGUID) {
 		return fmt.Errorf("type GUID did not match (specified %q, got %q)", *spec.TypeGUID, existing.TypeGUID)
 	}
 	if spec.Label != nil && *spec.Label != existing.Label {
