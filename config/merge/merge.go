@@ -211,8 +211,9 @@ func MergeStructTranscribe(parent, child interface{}) (interface{}, Transcript) 
 }
 
 // parent and child MUST be the same type
-// we transcribe all leaf fields, and all intermediate structs that wholly
-// originate from either parent or child
+// the transcript lists children before parents
+// all interior nodes that have contributions from both parent and child
+// receive separate transcript mappings for parent and child, in that order
 func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflect.Value, childPath path.ContextPath, resultPath path.ContextPath, transcript *Transcript) reflect.Value {
 	// use New() so it's settable, addr-able, etc
 	result := reflect.New(parent.Type()).Elem()
@@ -237,6 +238,8 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 			// ended up in the Clevis and Luks structs in spec 3.2.0
 			// https://github.com/coreos/ignition/issues/1132
 			resultField.Set(mergeStruct(parentField.Elem(), parentFieldPath, childField.Elem(), childFieldPath, resultFieldPath, transcript).Addr())
+			transcribeOne(parentFieldPath, resultFieldPath, transcript)
+			transcribeOne(childFieldPath, resultFieldPath, transcript)
 		case kind == reflect.Ptr && childField.IsNil():
 			resultField.Set(parentField)
 			transcribe(parentFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
@@ -251,6 +254,10 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 			transcribe(childFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
 		case kind == reflect.Struct:
 			resultField.Set(mergeStruct(parentField, parentFieldPath, childField, childFieldPath, resultFieldPath, transcript))
+			if !fieldMeta.Anonymous {
+				transcribeOne(parentFieldPath, resultFieldPath, transcript)
+				transcribeOne(childFieldPath, resultFieldPath, transcript)
+			}
 		case kind == reflect.Slice && info.ignoreField(fieldMeta.Name):
 			if parentField.Len()+childField.Len() == 0 {
 				continue
@@ -266,11 +273,12 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 				appendToSlice(resultField, item)
 				transcribe(childFieldPath.Append(i), resultFieldPath.Append(parentField.Len()+i), item, fieldMeta, transcript)
 			}
-			// transcribe the list itself if all items come from one side
-			if parentField.Len() == 0 {
-				transcribeOne(childFieldPath, resultFieldPath, transcript)
-			} else if childField.Len() == 0 {
+			// transcribe the list itself
+			if parentField.Len() > 0 {
 				transcribeOne(parentFieldPath, resultFieldPath, transcript)
+			}
+			if childField.Len() > 0 {
+				transcribeOne(childFieldPath, resultFieldPath, transcript)
 			}
 		case kind == reflect.Slice && !info.ignoreField(fieldMeta.Name):
 			// ooph, this is a doosey
@@ -293,6 +301,10 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 					if childList == fieldMeta.Name {
 						// case 1: in child config in same list
 						childItemPath := childFieldPath.Append(childListIndex)
+						// record the contribution of both parent and child, even if one wins
+						// or cancels the other
+						itemFromParent = true
+						itemFromChild = true
 						if childItem.Kind() == reflect.Struct {
 							// If HTTP header Value is nil, it means that we should remove the
 							// parent header from the result.
@@ -300,13 +312,11 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 								continue
 							}
 							appendToSlice(resultField, mergeStruct(parentItem, parentItemPath, childItem, childItemPath, resultItemPath, transcript))
-							// prevent transcription of the base list
-							itemFromParent = true
-							itemFromChild = true
+							transcribeOne(parentItemPath, resultItemPath, transcript)
+							transcribeOne(childItemPath, resultItemPath, transcript)
 						} else if util.IsPrimitive(childItem.Kind()) {
 							appendToSlice(resultField, childItem)
 							transcribe(childItemPath, resultItemPath, childItem, fieldMeta, transcript)
-							itemFromChild = true
 						} else {
 							panic("List of pointers or slices or something else weird")
 						}
@@ -334,10 +344,10 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 					itemFromChild = true
 				}
 			}
-			// if we have list nodes only from one side, credit that side with the list
-			if itemFromParent && !itemFromChild {
+			if itemFromParent {
 				transcribeOne(parentFieldPath, resultFieldPath, transcript)
-			} else if itemFromChild && !itemFromParent {
+			}
+			if itemFromChild {
 				transcribeOne(childFieldPath, resultFieldPath, transcript)
 			}
 		default:
