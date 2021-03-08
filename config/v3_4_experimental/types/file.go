@@ -30,7 +30,7 @@ func (f File) Validate(c path.ContextPath) (r report.Report) {
 }
 
 func (f File) validateOverwrite() error {
-	if util.IsTrue(f.Overwrite) && f.Contents.Source == nil {
+	if util.IsTrue(f.Overwrite) && len(f.Contents.GetSources()) == 0 {
 		return errors.ErrOverwriteAndNilSource
 	}
 	return nil

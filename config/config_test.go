@@ -126,6 +126,8 @@ func checkStructFieldKey(t reflect.Type, keyedStructs typeSet) error {
 				if err := checkStruct(field.Type, v.Field(i)); err != nil {
 					return err
 				}
+			case t.Name() == "Resource" && field.Name == "Sources":
+				// Since we support Source and Sources, this case should be an exception
 			default:
 				// slice, struct, or invalid type
 				if affectsKey {
