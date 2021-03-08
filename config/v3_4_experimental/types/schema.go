@@ -204,6 +204,7 @@ type Resource struct {
 	Compression  *string      `json:"compression,omitempty"`
 	HTTPHeaders  HTTPHeaders  `json:"httpHeaders,omitempty"`
 	Source       *string      `json:"source,omitempty"`
+	Sources      []Source     `json:"sources,omitempty"`
 	Verification Verification `json:"verification,omitempty"`
 }
 
@@ -212,6 +213,8 @@ type SSHAuthorizedKey string
 type Security struct {
 	TLS TLS `json:"tls,omitempty"`
 }
+
+type Source string
 
 type Storage struct {
 	Directories []Directory  `json:"directories,omitempty"`

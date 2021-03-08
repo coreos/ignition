@@ -29,6 +29,12 @@
         "source": {
           "type": ["string", "null"]
         },
+        "sources": {
+          "type":  "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "compression": {
           "type": ["string", "null"]
         },

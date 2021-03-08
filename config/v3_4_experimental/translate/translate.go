@@ -22,13 +22,26 @@ import (
 
 func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	// use a new translator so we don't recurse infinitely
-	translate.NewTranslator().Translate(&old, &ret)
+	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateResource)
+	tr.Translate(&old, &ret)
 	ret.Version = types.MaxVersion.String()
+	return
+}
+
+func translateResource(old old_types.Resource) (ret types.Resource) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Compression, &ret.Compression)
+	tr.Translate(&old.HTTPHeaders, &ret.HTTPHeaders)
+	// Source: x is not equivalent to Sources: [x]
+	tr.Translate(&old.Source, &ret.Source)
+	tr.Translate(&old.Verification, &ret.Verification)
 	return
 }
 
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateResource)
 	tr.AddCustomTranslator(translateIgnition)
 	tr.Translate(&old, &ret)
 	return
