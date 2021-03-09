@@ -123,7 +123,7 @@ func (s *stage) createLuks(config types.Config) error {
 		keyFile.Close()
 		defer os.Remove(keyFilePath)
 		devAlias := execUtil.DeviceAlias(*luks.Device)
-		if util.NilOrEmpty(luks.KeyFile.Source) {
+		if luks.KeyFile.SourcesAreEmpty() {
 			// generate keyfile contents
 			key, err := randHex(4096)
 			if err != nil {

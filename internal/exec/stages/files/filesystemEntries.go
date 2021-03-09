@@ -86,7 +86,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 				},
 				types.FileEmbedded1{
 					Contents: types.Resource{
-						Source: &contentsUri,
+						Sources: []types.Source{types.Source(contentsUri)},
 					},
 					Mode: cutil.IntToPtr(0600),
 				},
@@ -94,7 +94,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 		}
 		uri := dataurl.EncodeBytes([]byte(fmt.Sprintf("%s UUID=%s %s luks%s\n", luks.Name, uuid, keyfile, netdev)))
 		crypttab.Append = append(crypttab.Append, types.Resource{
-			Source: &uri,
+			Sources: []types.Source{types.Source(uri)},
 		})
 	}
 	// if we're creating keyfiles we want to write the containing directory (if it doesn't
@@ -264,14 +264,13 @@ func (tmp fileEntry) node() types.Node {
 func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	f := types.File(tmp)
 
-	empty := "" // golang--
-
 	st, err := os.Lstat(f.Path)
 	regular := (st == nil) || st.Mode().IsRegular()
+	sources := f.Contents.GetSources()
 	switch {
-	case os.IsNotExist(err) && f.Contents.Source == nil:
+	case os.IsNotExist(err) && len(sources) == 0:
 		// set f.Contents so we create an empty file
-		f.Contents.Source = &empty
+		f.Contents.Sources = []types.Source{""}
 	case os.IsNotExist(err):
 		break
 	case err != nil:
@@ -279,9 +278,9 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	// Cases where there is file there
 	case !regular:
 		return fmt.Errorf("error creating file %q: A non regular file exists there already and overwrite is false", f.Path)
-	case f.Contents.Source != nil:
+	case len(sources) != 0:
 		return fmt.Errorf("error creating file %q: A file exists there already and overwrite is false", f.Path)
-	case regular && f.Contents.Source == nil:
+	case regular && len(sources) == 0:
 		break
 	default:
 		return fmt.Errorf("Ignition encountered an internal error processing %q and must die now. Please file a bug", f.Path)

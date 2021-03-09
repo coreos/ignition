@@ -116,12 +116,17 @@ func configNeedsNetRecurse(v reflect.Value) (bool, error) {
 }
 
 func sourceNeedsNet(res types.Resource) (bool, error) {
-	if res.Source == nil {
+	sources := res.GetSources()
+	if len(sources) == 0 {
 		return false, nil
 	}
-	if u, err := url.Parse(*res.Source); err != nil {
-		return false, err
-	} else {
-		return util.UrlNeedsNet(*u), nil
+	needsnet := false
+	for _, src := range sources {
+		if u, err := url.Parse(string(src)); err != nil {
+			return false, err
+		} else {
+			needsnet = needsnet || util.UrlNeedsNet(*u)
+		}
 	}
+	return needsnet, nil
 }

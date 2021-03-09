@@ -105,13 +105,20 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 	}
 
 	for _, ca := range cas {
-		cablob, err := f.getCABlob(ca)
-		if err != nil {
-			return err
+		sources := ca.GetSources()
+		if len(sources) == 0 {
+			f.Logger.Crit("invalid CA: %v", ignerrors.ErrSourceRequired)
+			return ignerrors.ErrSourceRequired
 		}
-		if err := f.parseCABundle(cablob, ca, pool); err != nil {
-			f.Logger.Err("Unable to parse CA bundle: %s", err)
-			return err
+		for _, src := range sources {
+			cablob, err := f.getCABlob(ca, string(src))
+			if err != nil {
+				return err
+			}
+			if err := f.parseCABundle(cablob, ca, string(src), pool); err != nil {
+				f.Logger.Err("Unable to parse CA bundle: %s", err)
+				return err
+			}
 		}
 	}
 	f.client.transport.TLSClientConfig = &tls.Config{RootCAs: pool}
@@ -119,16 +126,16 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 }
 
 // parseCABundle parses a CA bundle which includes multiple CAs.
-func (f *Fetcher) parseCABundle(cablob []byte, ca types.Resource, pool *x509.CertPool) error {
+func (f *Fetcher) parseCABundle(cablob []byte, ca types.Resource, src string, pool *x509.CertPool) error {
 	for len(cablob) > 0 {
 		block, rest := pem.Decode(cablob)
 		if block == nil {
-			f.Logger.Err("Unable to decode CA (%v)", ca.Source)
+			f.Logger.Err("Unable to decode CA (%v)", src)
 			return ErrPEMDecodeFailed
 		}
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
-			f.Logger.Err("Unable to parse CA (%v): %s", ca.Source, err)
+			f.Logger.Err("Unable to parse CA (%v): %s", src, err)
 			return err
 		}
 		f.Logger.Info("Adding %q to list of CAs", cert.Subject.CommonName)
@@ -138,16 +145,11 @@ func (f *Fetcher) parseCABundle(cablob []byte, ca types.Resource, pool *x509.Cer
 	return nil
 }
 
-func (f *Fetcher) getCABlob(ca types.Resource) ([]byte, error) {
-	// this is also already checked at validation time
-	if ca.Source == nil {
-		f.Logger.Crit("invalid CA: %v", ignerrors.ErrSourceRequired)
-		return nil, ignerrors.ErrSourceRequired
-	}
-	if blob, ok := f.client.cas[*ca.Source]; ok {
+func (f *Fetcher) getCABlob(ca types.Resource, src string) ([]byte, error) {
+	if blob, ok := f.client.cas[src]; ok {
 		return blob, nil
 	}
-	u, err := url.Parse(*ca.Source)
+	u, err := url.Parse(src)
 	if err != nil {
 		f.Logger.Crit("Unable to parse CA URL: %s", err)
 		return nil, err
@@ -193,27 +195,34 @@ func (f *Fetcher) getCABlob(ca types.Resource) ([]byte, error) {
 		f.Logger.Err("Unable to fetch CA (%s): %s", u, err)
 		return nil, err
 	}
-	f.client.cas[*ca.Source] = cablob
+	f.client.cas[src] = cablob
 	return cablob, nil
-
 }
 
 // RewriteCAsWithDataUrls will modify the passed in slice of CA references to
 // contain the actual CA file via a dataurl in their source field.
 func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.Resource) error {
 	for i, ca := range cas {
-		blob, err := f.getCABlob(ca)
-		if err != nil {
-			return err
+		sources := ca.GetSources()
+		// TODO: remove Source in a future
+		if ca.Source != nil {
+			cas[i].Source = nil
+			cas[i].Sources = sources
 		}
+		for idx, src := range sources {
+			blob, err := f.getCABlob(ca, string(src))
+			if err != nil {
+				return err
+			}
 
-		// Clean HTTP headers
-		cas[i].HTTPHeaders = nil
-		// the rewrite wipes the compression
-		cas[i].Compression = nil
+			// Clean HTTP headers
+			cas[i].HTTPHeaders = nil
+			// the rewrite wipes the compression
+			cas[i].Compression = nil
 
-		encoded := dataurl.EncodeBytes(blob)
-		cas[i].Source = &encoded
+			encoded := dataurl.EncodeBytes(blob)
+			cas[i].Sources[idx] = types.Source(encoded)
+		}
 	}
 	return nil
 }

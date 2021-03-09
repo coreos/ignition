@@ -48,10 +48,10 @@ type FetchOp struct {
 	Node         types.Node
 }
 
-func newFetchOp(l *log.Logger, node types.Node, contents types.Resource) (FetchOp, error) {
+func newFetchOp(l *log.Logger, node types.Node, contents types.Resource, src string) (FetchOp, error) {
 	var expectedSum []byte
 
-	uri, err := url.Parse(*contents.Source)
+	uri, err := url.Parse(src)
 	if err != nil {
 		return FetchOp{}, err
 	}
@@ -104,9 +104,9 @@ func newFetchOp(l *log.Logger, node types.Node, contents types.Resource) (FetchO
 // the issue will be logged and nil will be returned.
 func (u Util) PrepareFetches(l *log.Logger, f types.File) ([]FetchOp, error) {
 	ops := []FetchOp{}
-
-	if f.Contents.Source != nil {
-		if base, err := newFetchOp(l, f.Node, f.Contents); err != nil {
+	sources := f.Contents.GetSources()
+	for _, src := range sources {
+		if base, err := newFetchOp(l, f.Node, f.Contents, string(src)); err != nil {
 			return nil, err
 		} else {
 			ops = append(ops, base)
@@ -114,14 +114,16 @@ func (u Util) PrepareFetches(l *log.Logger, f types.File) ([]FetchOp, error) {
 	}
 
 	for _, appendee := range f.Append {
-		if op, err := newFetchOp(l, f.Node, appendee); err != nil {
-			return nil, err
-		} else {
-			op.Append = true
-			ops = append(ops, op)
+		sources := appendee.GetSources()
+		for _, src := range sources {
+			if op, err := newFetchOp(l, f.Node, appendee, string(src)); err != nil {
+				return nil, err
+			} else {
+				op.Append = true
+				ops = append(ops, op)
+			}
 		}
 	}
-
 	return ops, nil
 }
 

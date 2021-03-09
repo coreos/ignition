@@ -124,3 +124,12 @@ func (res Resource) GetSources() []Source {
 	}
 	return res.Sources
 }
+
+func (res Resource) SourcesAreEmpty() bool {
+	for _, src := range res.GetSources() {
+		if src != "" {
+			return false
+		}
+	}
+	return true
+}
