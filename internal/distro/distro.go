@@ -62,6 +62,9 @@ var (
 	clevisCmd     = "clevis"
 	cryptsetupCmd = "cryptsetup"
 
+	// kargs programs
+	kargsCmd = "ignition-kargs-helper"
+
 	// Flags
 	selinuxRelabel  = "true"
 	blackboxTesting = "false"
@@ -107,6 +110,8 @@ func CioIgnoreCmd() string { return cioIgnoreCmd }
 
 func ClevisCmd() string     { return clevisCmd }
 func CryptsetupCmd() string { return cryptsetupCmd }
+
+func KargsCmd() string { return kargsCmd }
 
 func LuksInitramfsKeyFilePath() string { return luksInitramfsKeyFilePath }
 func LuksRealRootKeyFilePath() string  { return luksRealRootKeyFilePath }
