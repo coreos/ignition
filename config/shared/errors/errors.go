@@ -97,6 +97,7 @@ var (
 	ErrHashWrongSize                   = errors.New("incorrect size for hash sum")
 	ErrHashUnrecognized                = errors.New("unrecognized hash function")
 	ErrEngineConfiguration             = errors.New("engine incorrectly configured")
+	ErrFetchCancelled                  = errors.New("fetch was cancelled")
 
 	// AWS S3 specific errors
 	ErrInvalidS3ObjectVersionId = errors.New("invalid S3 object VersionId")
