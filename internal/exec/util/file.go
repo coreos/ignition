@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	ignerrors "github.com/coreos/ignition/v2/config/shared/errors"
 	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -102,29 +103,30 @@ func newFetchOp(l *log.Logger, node types.Node, contents types.Resource, src str
 // FetchOp. This includes operations such as parsing the source URL, generating
 // a hasher, and performing user/group name lookups. If an error is encountered,
 // the issue will be logged and nil will be returned.
-func (u Util) PrepareFetches(l *log.Logger, f types.File) ([]FetchOp, error) {
+func (u Util) PrepareFetches(l *log.Logger, f types.File) ([]FetchOp, []FetchOp, error) {
 	ops := []FetchOp{}
 	sources := f.Contents.GetSources()
 	for _, src := range sources {
 		if base, err := newFetchOp(l, f.Node, f.Contents, string(src)); err != nil {
-			return nil, err
+			return nil, nil, err
 		} else {
 			ops = append(ops, base)
 		}
 	}
 
+	appendies := []FetchOp{}
 	for _, appendee := range f.Append {
 		sources := appendee.GetSources()
 		for _, src := range sources {
 			if op, err := newFetchOp(l, f.Node, appendee, string(src)); err != nil {
-				return nil, err
+				return nil, nil, err
 			} else {
 				op.Append = true
-				ops = append(ops, op)
+				appendies = append(appendies, op)
 			}
 		}
 	}
-	return ops, nil
+	return ops, appendies, nil
 }
 
 func (u Util) WriteLink(s types.Link) error {
@@ -358,4 +360,57 @@ func (u Util) getGroupID(name string) (int, error) {
 		return 0, fmt.Errorf("Couldn't parse gid %q: %v", g.Gid, err)
 	}
 	return int(gid), nil
+}
+
+func (u Util) processFetchOp(msg string, path string, op FetchOp, abort <-chan int) error {
+	select {
+	case <-abort:
+		return fmt.Errorf("%q: %v", op.Node.Path, ignerrors.ErrFetchCancelled)
+	default:
+		fetcher := func() error {
+			return u.PerformFetch(op)
+		}
+		err := u.LogOp(fetcher, "%s %q", msg, path)
+		if err != nil {
+			return fmt.Errorf("%q: %v", op.Node.Path, err)
+		}
+		return nil
+	}
+}
+
+func (u Util) PerformFetches(path string, fetchOps []FetchOp, appendOps []FetchOp) error {
+	u.Logger.Debug("--->")
+	parallelFetch := func(msg string, ops []FetchOp) error {
+		ret := make(chan error, len(ops))
+		abort := make(chan int)
+
+		for _, op := range ops {
+			go func(op FetchOp) {
+				ret <- u.processFetchOp(msg, path, op, abort)
+			}(op)
+		}
+
+		closed := false
+		var err error
+		for range ops {
+			if e := <-ret; e == nil && !closed {
+				closed = true
+				close(abort)
+			} else {
+				err = e
+			}
+		}
+
+		return err
+	}
+
+	if err := parallelFetch("writing file", fetchOps); err != nil {
+		return err
+	}
+
+	if err := parallelFetch("appending to file ", appendOps); err != nil {
+		return err
+	}
+	u.Logger.Debug("<---")
+	return nil
 }

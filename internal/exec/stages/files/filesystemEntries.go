@@ -286,24 +286,15 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 		return fmt.Errorf("Ignition encountered an internal error processing %q and must die now. Please file a bug", f.Path)
 	}
 
-	fetchOps, err := u.PrepareFetches(l, f)
+	fetchOps, appendOps, err := u.PrepareFetches(l, f)
 	if err != nil {
 		return fmt.Errorf("failed to resolve file %q: %v", f.Path, err)
 	}
 
-	for _, op := range fetchOps {
-		msg := "writing file %q"
-		if op.Append {
-			msg = "appending to file %q"
-		}
-		if err := l.LogOp(
-			func() error {
-				return u.PerformFetch(op)
-			}, msg, f.Path,
-		); err != nil {
-			return fmt.Errorf("failed to create file %q: %v", op.Node.Path, err)
-		}
+	if err := u.PerformFetches(f.Path, fetchOps, appendOps); err != nil {
+		return fmt.Errorf("failed to create file %v", err)
 	}
+
 	if err := u.SetPermissions(f.Mode, f.Node); err != nil {
 		return fmt.Errorf("error setting file permissions for %s: %v", f.Path, err)
 	}

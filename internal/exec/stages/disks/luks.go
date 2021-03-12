@@ -142,18 +142,14 @@ func (s *stage) createLuks(config types.Config) error {
 					Contents: luks.KeyFile,
 				},
 			}
-			fetchOps, err := s.Util.PrepareFetches(s.Util.Logger, f)
+
+			fetchOps, appendOps, err := s.Util.PrepareFetches(s.Util.Logger, f)
 			if err != nil {
 				return fmt.Errorf("failed to resolve keyfile %q: %v", f.Path, err)
 			}
-			for _, op := range fetchOps {
-				if err := s.Util.Logger.LogOp(
-					func() error {
-						return s.Util.PerformFetch(op)
-					}, "writing file %q", f.Path,
-				); err != nil {
-					return fmt.Errorf("failed to create keyfile %q: %v", op.Node.Path, err)
-				}
+
+			if err := s.Util.PerformFetches(f.Path, fetchOps, appendOps); err != nil {
+				return fmt.Errorf("failed to append keyfile %v", err)
 			}
 		}
 
