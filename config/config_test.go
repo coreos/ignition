@@ -104,7 +104,7 @@ func TestConfigStructure(t *testing.T) {
 
 	for _, configType := range configs {
 		if err := testConfigType(configType); err != nil {
-			t.Errorf("Type %s was invalid: %v", configType.Name(), err)
+			t.Errorf("Type %s/%s was invalid: %v", configType.PkgPath(), configType.Name(), err)
 		}
 	}
 }
