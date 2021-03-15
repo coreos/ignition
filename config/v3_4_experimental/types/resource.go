@@ -33,20 +33,23 @@ func (res Resource) Key() string {
 func (res Resource) Validate(c path.ContextPath) (r report.Report) {
 	r.AddOnError(c.Append("compression"), res.validateCompression())
 	r.AddOnError(c.Append("verification", "hash"), res.validateVerification())
-	r.AddOnError(c.Append("resource"), res.validateSources())
-
-	sources := res.GetSources()
-	for _, src := range sources {
-		url := string(src)
-		r.AddOnError(c.Append("source"), validateURLNilOK(&url))
-	}
+	r.AddOnError(c.Append("source"), res.validateSources())
 	r.AddOnError(c.Append("httpHeaders"), res.validateSchemeForHTTPHeaders())
 	return
 }
 
 func (res Resource) validateSources() error {
 	if res.Source != nil && len(res.Sources) > 0 {
-		return errors.ErrInvalidScheme
+		return errors.ErrSourcesInvalid
+	}
+
+	for _, src := range res.GetSources() {
+		if src == "" {
+			continue
+		}
+		if err := validateURL(string(src)); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -103,17 +106,8 @@ func (res Resource) validateRequiredSource() error {
 	if err := res.validateSources(); err != nil {
 		return err
 	}
-	sources := res.GetSources()
-	if len(sources) == 0 {
+	if len(res.GetSources()) == 0 {
 		return errors.ErrSourceRequired
-	}
-	for _, src := range sources {
-		if src == "" {
-			return errors.ErrSourceRequired
-		}
-		if err := validateURL(string(src)); err != nil {
-			return err
-		}
 	}
 	return nil
 }

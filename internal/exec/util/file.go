@@ -215,7 +215,6 @@ func (u Util) PerformFetch(f FetchOp, abort <-chan int) error {
 			case FetchFile:
 				err := u.Fetcher.Fetch(f.Url, tmp, f.FetchOptions, abort)
 				if err != nil {
-					u.Crit("Error fetching file %q: %v", path, err)
 					return err
 				}
 			case AppendToAFile:
@@ -387,11 +386,7 @@ func (u Util) processFetchOp(msg string, path string, op FetchOp, abort <-chan i
 		fetcher := func() error {
 			return u.PerformFetch(op, abort)
 		}
-		err := u.LogOp(fetcher, "%s %q", msg, path)
-		if err != nil {
-			return fmt.Errorf("%q: %v", op.Node.Path, err)
-		}
-		return nil
+		return u.LogOp(fetcher, "%s %s -> %q", msg, op.Url.Host, path)
 	}
 }
 
@@ -423,10 +418,12 @@ func (u Util) PerformFetches(path string, fetchOps []FetchOp, appendOps []FetchO
 	}
 
 	if err := parallelFetch("writing file", fetchOps); err != nil {
+		u.Crit("Error fetching file %q: %v", path, err)
 		return err
 	}
 
 	if err := parallelFetch("appending to file ", appendOps); err != nil {
+		u.Crit("Error appending to file %q: %v", path, err)
 		return err
 	}
 	return nil

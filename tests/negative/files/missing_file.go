@@ -23,6 +23,7 @@ func init() {
 	register.Register(register.NegativeTest, MissingRemoteContentsHTTP())
 	register.Register(register.NegativeTest, InvalidHeaderRemoteContentsHTTP())
 	register.Register(register.NegativeTest, MissingRemoteContentsTFTP())
+	register.Register(register.NegativeTest, MissingRemoteContentsHTTPMultipleSources())
 }
 
 func MissingRemoteContentsHTTP() types.Test {
@@ -41,6 +42,32 @@ func MissingRemoteContentsHTTP() types.Test {
 	  }
 	}`
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func MissingRemoteContentsHTTPMultipleSources() types.Test {
+	name := "files.create.multiple.sources.http.notfound"
+	in := types.GetBaseDisk()
+	out := in
+	config := `{
+		"ignition": { "version": "$version" },
+		"storage": {
+		  "files": [{
+			"path": "/foo/bar",
+			"contents": {
+			  "sources": ["http://127.0.0.1:443/asdf", "http://127.0.0.1:8080/asdf"]
+			}
+		  }]
+		}
+	}`
+	configMinVersion := "3.4.0-experimental"
 
 	return types.Test{
 		Name:             name,
