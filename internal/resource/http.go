@@ -185,12 +185,14 @@ func (f *Fetcher) getCABlob(ca types.Resource, src string) ([]byte, error) {
 		compression = *ca.Compression
 	}
 
+	abort := make(chan int)
+	defer close(abort)
 	cablob, err := f.FetchToBuffer(*u, FetchOptions{
 		Hash:        hasher,
 		Headers:     headers,
 		ExpectedSum: expectedSum,
 		Compression: compression,
-	})
+	}, abort)
 	if err != nil {
 		f.Logger.Err("Unable to fetch CA (%s): %s", u, err)
 		return nil, err
@@ -276,7 +278,7 @@ func (f *Fetcher) newHttpClient() error {
 // provided request header & method and returns the response body Reader, HTTP
 // status code, a cancel function for the result's context, and error (if any).
 // By default, User-Agent is added to the header but this can be overridden.
-func (c HttpClient) httpReaderWithHeader(opts FetchOptions, url string) (io.ReadCloser, int, context.CancelFunc, error) {
+func (c HttpClient) httpReaderWithHeader(opts FetchOptions, url string, abort <-chan int) (io.ReadCloser, int, context.CancelFunc, error) {
 	if opts.HTTPVerb == "" {
 		opts.HTTPVerb = "GET"
 	}
@@ -317,6 +319,8 @@ func (c HttpClient) httpReaderWithHeader(opts FetchOptions, url string) (io.Read
 
 		// Wait before next attempt or exit if we timeout while waiting
 		select {
+		case <-abort:
+			return nil, 0, cancelFn, ignerrors.ErrFetchCancelled
 		case <-time.After(duration):
 		case <-ctx.Done():
 			return nil, 0, cancelFn, ErrTimeout

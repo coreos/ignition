@@ -290,7 +290,9 @@ func (s *stage) createLuks(config types.Config) error {
 					return fmt.Errorf("parsing tang URL: %v", err)
 				}
 				u.Path = path.Join(u.Path, "adv")
-				_, err = s.Fetcher.FetchToBuffer(*u, resource.FetchOptions{})
+				abort := make(chan int)
+				defer close(abort)
+				_, err = s.Fetcher.FetchToBuffer(*u, resource.FetchOptions{}, abort)
 				if err != nil {
 					return fmt.Errorf("fetching tang advertisement: %v", err)
 				}

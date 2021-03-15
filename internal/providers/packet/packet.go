@@ -55,11 +55,13 @@ var (
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	// Packet's metadata service returns "Not Acceptable" when queried
 	// with the default Accept header.
+	abort := make(chan int)
+	defer close(abort)
 	headers := make(http.Header)
 	headers.Set("Accept", "*/*")
 	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{
 		Headers: headers,
-	})
+	}, abort)
 	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}
@@ -69,13 +71,15 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 
 // PostStatus posts a message that will show on the Packet Instance Timeline
 func PostStatus(stageName string, f resource.Fetcher, errMsg error) error {
+	abort := make(chan int)
+	defer close(abort)
 	f.Logger.Info("POST message to Packet Timeline")
 	// fetch JSON from https://metadata.packet.net/metadata
 	headers := make(http.Header)
 	headers.Set("Accept", "*/*")
 	data, err := f.FetchToBuffer(metadataUrl, resource.FetchOptions{
 		Headers: headers,
-	})
+	}, abort)
 	if err != nil {
 		return err
 	}

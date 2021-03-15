@@ -39,11 +39,13 @@ var (
 )
 
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+	abort := make(chan int)
+	defer close(abort)
 	headers := make(http.Header)
 	headers.Set(metadataHeaderKey, metadataHeaderVal)
 	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{
 		Headers: headers,
-	})
+	}, abort)
 	if err != nil && err != resource.ErrNotFound {
 		return types.Config{}, report.Report{}, err
 	}

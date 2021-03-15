@@ -435,7 +435,7 @@ func (e *Engine) fetchResource(cfgRef types.Resource, src string, abort <-chan i
 				ret.cfg, ret.err = e.Fetcher.FetchToBuffer(*ret.uri, resource.FetchOptions{
 					Headers:     headers,
 					Compression: compression,
-				})
+				}, abort)
 				if ret.err != nil {
 					e.Logger.Warning("Fetching %s failed: %s", src, ret.err)
 					return

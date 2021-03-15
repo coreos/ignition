@@ -201,6 +201,8 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 
 	return s.Logger.LogOp(func() error {
 		relabeledDropinDir := false
+		abort := make(chan int)
+		defer close(abort)
 		for _, dropin := range unit.Dropins {
 			if dropin.Contents == nil {
 				continue
@@ -219,7 +221,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 				relabelPath = f.Node.Path[len(s.DestDir):]
 			}
 			if err := s.Logger.LogOp(
-				func() error { return u.PerformFetch(f) },
+				func() error { return u.PerformFetch(f, abort) },
 				"writing systemd drop-in %q at %q", dropin.Name, f.Node.Path,
 			); err != nil {
 				return err
@@ -248,7 +250,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 			relabelPath = f.Node.Path[len(s.DestDir):]
 		}
 		if err := s.Logger.LogOp(
-			func() error { return u.PerformFetch(f) },
+			func() error { return u.PerformFetch(f, abort) },
 			"writing unit %q at %q", unit.Name, f.Node.Path,
 		); err != nil {
 			return err
