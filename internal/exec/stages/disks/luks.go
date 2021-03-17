@@ -143,12 +143,7 @@ func (s *stage) createLuks(config types.Config) error {
 				},
 			}
 
-			fetchOps, appendOps, err := s.Util.PrepareFetches(s.Util.Logger, f)
-			if err != nil {
-				return fmt.Errorf("failed to resolve keyfile %q: %v", f.Path, err)
-			}
-
-			if err := s.Util.PerformFetches(f.Path, fetchOps, appendOps); err != nil {
+			if _, err := s.Fetcher.FetchData(f); err != nil {
 				return fmt.Errorf("failed to append keyfile %v", err)
 			}
 		}

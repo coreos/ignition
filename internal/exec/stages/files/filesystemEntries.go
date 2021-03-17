@@ -286,12 +286,7 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 		return fmt.Errorf("Ignition encountered an internal error processing %q and must die now. Please file a bug", f.Path)
 	}
 
-	fetchOps, appendOps, err := u.PrepareFetches(l, f)
-	if err != nil {
-		return fmt.Errorf("failed to resolve file %q: %v", f.Path, err)
-	}
-
-	if err := u.PerformFetches(f.Path, fetchOps, appendOps); err != nil {
+	if _, err := u.Fetcher.FetchData(f); err != nil {
 		return fmt.Errorf("failed to create file %v", err)
 	}
 

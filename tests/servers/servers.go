@@ -246,6 +246,7 @@ func (server *HTTPServer) CertificatesHeadersOverwrite(w http.ResponseWriter, r 
 type HTTPServer struct{}
 
 func (server *HTTPServer) Start() {
+	http.HandleFunc("/contents2", server.Contents)
 	http.HandleFunc("/contents", server.Contents)
 	http.HandleFunc("/contents_compressed", server.ContentsCompressed)
 	http.HandleFunc("/contents_headers", server.ContentsHeaders)

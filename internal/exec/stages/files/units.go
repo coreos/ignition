@@ -212,17 +212,20 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 				s.Logger.Crit("error converting systemd dropin: %v", err)
 				return err
 			}
-			relabelPath := f.Node.Path
+			relabelPath := f.File.Node.Path
 			if !runtime {
 				// trim off prefix since this needs to be relative to the sysroot
-				if !strings.HasPrefix(f.Node.Path, s.DestDir) {
-					panic(fmt.Sprintf("Dropin path %s isn't under prefix %s", f.Node.Path, s.DestDir))
+				if !strings.HasPrefix(f.File.Node.Path, s.DestDir) {
+					panic(fmt.Sprintf("Dropin path %s isn't under prefix %s", f.File.Node.Path, s.DestDir))
 				}
-				relabelPath = f.Node.Path[len(s.DestDir):]
+				relabelPath = f.File.Node.Path[len(s.DestDir):]
 			}
 			if err := s.Logger.LogOp(
-				func() error { return u.PerformFetch(f, abort) },
-				"writing systemd drop-in %q at %q", dropin.Name, f.Node.Path,
+				func() error {
+					_, err := u.Fetcher.PerformFetch(f, "", abort, nil)
+					return err
+				},
+				"writing systemd drop-in %q at %q", dropin.Name, f.File.Node.Path,
 			); err != nil {
 				return err
 			}
@@ -241,17 +244,20 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 			s.Logger.Crit("error converting unit: %v", err)
 			return err
 		}
-		relabelPath := f.Node.Path
+		relabelPath := f.File.Node.Path
 		if !runtime {
 			// trim off prefix since this needs to be relative to the sysroot
-			if !strings.HasPrefix(f.Node.Path, s.DestDir) {
-				panic(fmt.Sprintf("Unit path %s isn't under prefix %s", f.Node.Path, s.DestDir))
+			if !strings.HasPrefix(f.File.Node.Path, s.DestDir) {
+				panic(fmt.Sprintf("Unit path %s isn't under prefix %s", f.File.Node.Path, s.DestDir))
 			}
-			relabelPath = f.Node.Path[len(s.DestDir):]
+			relabelPath = f.File.Node.Path[len(s.DestDir):]
 		}
 		if err := s.Logger.LogOp(
-			func() error { return u.PerformFetch(f, abort) },
-			"writing unit %q at %q", unit.Name, f.Node.Path,
+			func() error {
+				_, err := u.Fetcher.PerformFetch(f, "", abort, nil)
+				return err
+			},
+			"writing unit %q at %q", unit.Name, f.File.Node.Path,
 		); err != nil {
 			return err
 		}

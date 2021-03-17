@@ -16,7 +16,6 @@ package util
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -24,6 +23,7 @@ import (
 	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
+	"github.com/coreos/ignition/v2/internal/resource"
 
 	"github.com/vincent-petithory/dataurl"
 )
@@ -33,14 +33,10 @@ const (
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, error) {
+func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (resource.FetchOp, error) {
 	if unit.Contents == nil {
 		empty := ""
 		unit.Contents = &empty
-	}
-	u, err := url.Parse(dataurl.EncodeBytes([]byte(*unit.Contents)))
-	if err != nil {
-		return FetchOp{}, err
 	}
 
 	var path string
@@ -50,26 +46,24 @@ func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, erro
 		path = SystemdUnitsPath()
 	}
 
-	if path, err = ut.JoinPath(path, unit.Name); err != nil {
-		return FetchOp{}, err
+	path, err := ut.JoinPath(path, unit.Name)
+	if err != nil {
+		return resource.FetchOp{}, err
 	}
 
-	return FetchOp{
-		Node: types.Node{
-			Path: path,
-		},
-		Url: *u,
+	file := types.File{}
+	file.Node.Path = path
+
+	return resource.FetchOp{
+		Src:  dataurl.EncodeBytes([]byte(*unit.Contents)),
+		File: &file,
 	}, nil
 }
 
-func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, runtime bool) (FetchOp, error) {
+func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, runtime bool) (resource.FetchOp, error) {
 	if dropin.Contents == nil {
 		empty := ""
 		dropin.Contents = &empty
-	}
-	u, err := url.Parse(dataurl.EncodeBytes([]byte(*dropin.Contents)))
-	if err != nil {
-		return FetchOp{}, err
 	}
 
 	var path string
@@ -79,15 +73,17 @@ func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, r
 		path = SystemdDropinsPath(string(unit.Name))
 	}
 
-	if path, err = ut.JoinPath(path, dropin.Name); err != nil {
-		return FetchOp{}, err
+	path, err := ut.JoinPath(path, dropin.Name)
+	if err != nil {
+		return resource.FetchOp{}, err
 	}
 
-	return FetchOp{
-		Node: types.Node{
-			Path: path,
-		},
-		Url: *u,
+	file := types.File{}
+	file.Node.Path = path
+
+	return resource.FetchOp{
+		Src:  dataurl.EncodeBytes([]byte(*dropin.Contents)),
+		File: &file,
 	}, nil
 }
 

@@ -29,6 +29,7 @@ func init() {
 	register.Register(register.PositiveTest, ApplyDefaultFilePermissions())
 	register.Register(register.PositiveTest, CreateFileFromCompressedDataURL())
 	register.Register(register.PositiveTest, CreateFileOnRootMultipleSources())
+	register.Register(register.PositiveTest, AppendToAFileMultipleSources())
 	// TODO: Investigate why ignition's C code hates our environment
 	// register.Register(register.PositiveTest, UserGroupByName())
 }
@@ -75,7 +76,7 @@ func CreateFileOnRootMultipleSources() types.Test {
 	  "storage": {
 	    "files": [{
 	      "path": "/foo/bar",
-	      "contents": { "sources": ["http://127.0.0.1:443/contents", "http://127.0.0.1:8081/contents", "http://127.0.0.1:21/contents", "http://127.0.0.1:80/contents", "http://127.0.0.1:8082/contents", "http://127.0.0.1:8080/contents"] }
+	      "contents": { "sources": ["http://127.0.0.1:443/contents", "http://127.0.0.1:8081/contents", "http://127.0.0.1:21/contents", "http://127.0.0.1:80/contents", "http://127.0.0.1:8080/contents2", "http://127.0.0.1:8080/contents"] }
 	    }]
 	  }
 	}`
@@ -208,6 +209,46 @@ func ForceFileCreation() types.Test {
 		},
 	})
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func AppendToAFileMultipleSources() types.Test {
+	name := "files.append.withcreate.multiple"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": {
+	        "source": "data:,hello%20world%0A"
+	      },
+	      "user": {"id": 500},
+	      "group": {"id": 500},
+	      "append": [{ "sources": ["http://127.0.0.1:8080/contents", "http://127.0.0.1:80/contents", "http://127.0.0.1:8080/contents2"] }]
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+				User:      500,
+				Group:     500,
+			},
+			Contents: "hello world\nasdf\nfdsa",
+		},
+	})
+	configMinVersion := "3.4.0-experimental"
 
 	return types.Test{
 		Name:             name,

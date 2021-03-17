@@ -20,8 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -386,75 +384,6 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 	return appendedCfg, nil
 }
 
-type fetchResult struct {
-	uri *url.URL
-	cfg []byte
-	err error
-}
-
-func (e *Engine) fetchResource(cfgRef types.Resource, src string, abort <-chan int) (ret fetchResult) {
-	e.Logger.Info("Fetching %s", src)
-
-	const (
-		ParsingUrl = iota
-		ParsingHTTPHeaders
-		Fetching
-		CalculatingSHA512
-		finish
-	)
-
-	var headers http.Header
-	compression := ""
-
-	for stage := ParsingUrl; stage < finish; stage++ {
-		select {
-		case <-abort:
-			e.Logger.Warning("Fetching %s was cancelled", src)
-			return fetchResult{err: errors.ErrFetchCancelled}
-		default:
-			switch stage {
-			case ParsingUrl:
-				ret.uri, ret.err = url.Parse(string(src))
-				if ret.err != nil {
-					e.Logger.Warning("Fetching %s failed: %s", src, ret.err)
-					return
-				}
-			case ParsingHTTPHeaders:
-				if cfgRef.HTTPHeaders != nil && len(cfgRef.HTTPHeaders) > 0 {
-					headers, ret.err = cfgRef.HTTPHeaders.Parse()
-					if ret.err != nil {
-						e.Logger.Warning("Fetching %s failed: %s", src, ret.err)
-						return
-					}
-				}
-
-			case Fetching:
-				if cfgRef.Compression != nil {
-					compression = *cfgRef.Compression
-				}
-				ret.cfg, ret.err = e.Fetcher.FetchToBuffer(*ret.uri, resource.FetchOptions{
-					Headers:     headers,
-					Compression: compression,
-				}, abort)
-				if ret.err != nil {
-					e.Logger.Warning("Fetching %s failed: %s", src, ret.err)
-					return
-				}
-
-			case CalculatingSHA512:
-				hash := sha512.Sum512(ret.cfg)
-				if ret.uri.Scheme != "data" {
-					e.Logger.Debug("fetched referenced config at %s with SHA512: %s", src, hex.EncodeToString(hash[:]))
-				} else {
-					// data url's might contain secrets
-					e.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))
-				}
-			}
-		}
-	}
-	return
-}
-
 // fetchReferencedConfig fetches and parses the requested config.
 // cfgRef.Source must not be nil
 func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, error) {
@@ -465,42 +394,30 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, err
 		return types.Config{}, errors.ErrSourceRequired
 	}
 
-	ret := make(chan fetchResult, len(sources))
-	abort := make(chan int)
-	for _, src := range sources {
-		go func(src string) {
-			ret <- e.fetchResource(cfgRef, src, abort)
-		}(string(src))
+	result, err := e.Fetcher.FetchData(cfgRef)
+	if err != nil {
+		return types.Config{}, err
 	}
 
-	closed := false
-	var data fetchResult
-	for range sources {
-		d := <-ret
-		if closed {
-			continue
-		}
-		data = d
-		if data.err == nil {
-			closed = true
-			close(abort)
-		}
-	}
-	if data.err != nil {
-		return types.Config{}, data.err
+	hash := sha512.Sum512(result.Cfg)
+	if result.Uri.Scheme != "data" {
+		e.Logger.Debug("fetched referenced config at %s with SHA512: %s", result.Uri.Path, hex.EncodeToString(hash[:]))
+	} else {
+		// data url's might contain secrets
+		e.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))
 	}
 
 	e.State.FetchedConfigs = append(e.State.FetchedConfigs, state.FetchedConfig{
 		Kind:       "user",
-		Source:     data.uri.Path,
+		Source:     result.Uri.Path,
 		Referenced: true,
 	})
 
-	if err := util.AssertValid(cfgRef.Verification, data.cfg); err != nil {
+	if err := util.AssertValid(cfgRef.Verification, result.Cfg); err != nil {
 		return types.Config{}, err
 	}
 
-	cfg, r, err := config.Parse(data.cfg)
+	cfg, r, err := config.Parse(result.Cfg)
 	e.logReport(r)
 	if err != nil {
 		return types.Config{}, err
