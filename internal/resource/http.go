@@ -18,7 +18,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"io"
@@ -32,7 +31,6 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	"github.com/coreos/ignition/v2/internal/earlyrand"
 	"github.com/coreos/ignition/v2/internal/log"
-	"github.com/coreos/ignition/v2/internal/util"
 	"github.com/coreos/ignition/v2/internal/version"
 
 	"github.com/vincent-petithory/dataurl"
@@ -105,20 +103,17 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 	}
 
 	for _, ca := range cas {
-		sources := ca.GetSources()
-		if len(sources) == 0 {
+		if len(ca.GetSources()) == 0 {
 			f.Logger.Crit("invalid CA: %v", ignerrors.ErrSourceRequired)
 			return ignerrors.ErrSourceRequired
 		}
-		for _, src := range sources {
-			cablob, err := f.getCABlob(ca, string(src))
-			if err != nil {
-				return err
-			}
-			if err := f.parseCABundle(cablob, ca, string(src), pool); err != nil {
-				f.Logger.Err("Unable to parse CA bundle: %s", err)
-				return err
-			}
+		src, cablob, err := f.getCABlob(ca)
+		if err != nil {
+			return err
+		}
+		if err := f.parseCABundle(cablob, ca, src, pool); err != nil {
+			f.Logger.Err("Unable to parse CA bundle: %s", err)
+			return err
 		}
 	}
 	f.client.transport.TLSClientConfig = &tls.Config{RootCAs: pool}
@@ -145,86 +140,39 @@ func (f *Fetcher) parseCABundle(cablob []byte, ca types.Resource, src string, po
 	return nil
 }
 
-func (f *Fetcher) getCABlob(ca types.Resource, src string) ([]byte, error) {
-	if blob, ok := f.client.cas[src]; ok {
-		return blob, nil
-	}
-	u, err := url.Parse(src)
-	if err != nil {
-		f.Logger.Crit("Unable to parse CA URL: %s", err)
-		return nil, err
-	}
-	hasher, err := util.GetHasher(ca.Verification)
-	if err != nil {
-		f.Logger.Crit("Unable to get hasher: %s", err)
-		return nil, err
-	}
-
-	var expectedSum []byte
-	if hasher != nil {
-		// explicitly ignoring the error here because the config should already
-		// be validated by this point
-		_, expectedSumString, _ := util.HashParts(ca.Verification)
-		expectedSum, err = hex.DecodeString(expectedSumString)
-		if err != nil {
-			f.Logger.Crit("Error parsing verification string %q: %v", expectedSumString, err)
-			return nil, err
+func (f *Fetcher) getCABlob(ca types.Resource) (string, []byte, error) {
+	for _, src := range ca.GetSources() {
+		if blob, ok := f.client.cas[string(src)]; ok {
+			return string(src), blob, nil
 		}
 	}
 
-	var headers http.Header
-	if ca.HTTPHeaders != nil && len(ca.HTTPHeaders) > 0 {
-		headers, err = ca.HTTPHeaders.Parse()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	var compression string
-	if ca.Compression != nil {
-		compression = *ca.Compression
-	}
-
-	abort := make(chan int)
-	defer close(abort)
-	cablob, err := f.FetchToBuffer(*u, FetchOptions{
-		Hash:        hasher,
-		Headers:     headers,
-		ExpectedSum: expectedSum,
-		Compression: compression,
-	}, abort)
+	result, err := f.FetchData(ca)
 	if err != nil {
-		f.Logger.Err("Unable to fetch CA (%s): %s", u, err)
-		return nil, err
+		f.Logger.Err("Unable to fetch CA: %s", err)
+		return "", nil, err
 	}
-	f.client.cas[src] = cablob
-	return cablob, nil
+	f.client.cas[result.Src] = result.Cfg
+	return result.Src, result.Cfg, nil
 }
 
 // RewriteCAsWithDataUrls will modify the passed in slice of CA references to
 // contain the actual CA file via a dataurl in their source field.
 func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.Resource) error {
 	for i, ca := range cas {
-		sources := ca.GetSources()
-		// TODO: remove Source in a future
-		if ca.Source != nil {
-			cas[i].Source = nil
-			cas[i].Sources = sources
+		_, blob, err := f.getCABlob(ca)
+		if err != nil {
+			return err
 		}
-		for idx, src := range sources {
-			blob, err := f.getCABlob(ca, string(src))
-			if err != nil {
-				return err
-			}
 
-			// Clean HTTP headers
-			cas[i].HTTPHeaders = nil
-			// the rewrite wipes the compression
-			cas[i].Compression = nil
+		// Clean HTTP headers
+		cas[i].HTTPHeaders = nil
+		// the rewrite wipes the compression
+		cas[i].Compression = nil
 
-			encoded := dataurl.EncodeBytes(blob)
-			cas[i].Sources[idx] = types.Source(encoded)
-		}
+		encoded := dataurl.EncodeBytes(blob)
+		cas[i].Source = nil
+		cas[i].Sources = []types.Source{types.Source(encoded)}
 	}
 	return nil
 }
