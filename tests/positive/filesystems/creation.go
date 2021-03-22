@@ -23,6 +23,8 @@ import (
 
 func init() {
 	register.Register(register.PositiveTest, WipeFilesystemWithSameType())
+	register.Register(register.PositiveTest, EraseBlockDeviceWithPreExistingFileSystem())
+	register.Register(register.PositiveTest, EraseBlockDeviceWithNoFileSystem())
 	register.Register(register.PositiveTest, FilesystemCreationOnMultipleDisks())
 }
 
@@ -67,6 +69,88 @@ func WipeFilesystemWithSameType() types.Test {
 			Directory: "",
 		},
 	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// EraseBlockDeviceWithPreExistingFileSystem verifies that
+// the Ignition erases the block device with pre-existing
+// filesystem on it and doesn't create any filesystem on
+// the given partition if `wipeFileSystem is set to `true`
+// and the format is set to `none`.
+func EraseBlockDeviceWithPreExistingFileSystem() types.Test {
+	name := "filesystem.erase.block.device.withpreexistingfilesystem"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	mntDevices := []types.MntDevice{
+		{
+			Label:        "OEM",
+			Substitution: "$DEVICE",
+		},
+	}
+	config := `{
+		"ignition": { "version": "$version" },
+		"storage": {
+			"filesystems": [{
+				"device": "$DEVICE",
+				"format": "none",
+				"path": "/tmp0",
+				"wipeFilesystem": true
+			}]
+		}
+	}`
+	configMinVersion := "3.3.0-experimental"
+
+	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
+	out[0].Partitions.GetPartition("OEM").FilesystemType = ""
+	out[0].Partitions.GetPartition("OEM").Files = []types.File{}
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		MntDevices:       mntDevices,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// EraseBlockDeviceWithNoFileSystem verifies that the Ignition
+// succeeds without any changes to the block device if `wipeFileSystem
+// is set to `false` and the format is set to `none`.
+func EraseBlockDeviceWithNoFileSystem() types.Test {
+	name := "filesystem.erase.block.device.withnofilesystem"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	mntDevices := []types.MntDevice{
+		{
+			Label:        "OEM",
+			Substitution: "$DEVICE",
+		},
+	}
+	config := `{
+		"ignition": { "version": "$version" },
+		"storage": {
+			"filesystems": [{
+				"device": "$DEVICE",
+				"format": "none",
+				"path": "/tmp0",
+				"wipeFilesystem": false
+			}]
+		}
+	}`
+	configMinVersion := "3.3.0-experimental"
+
+	in[0].Partitions.GetPartition("OEM").FilesystemType = ""
+	out[0].Partitions.GetPartition("OEM").FilesystemType = ""
+	out[0].Partitions.GetPartition("OEM").Files = []types.File{}
 
 	return types.Test{
 		Name:             name,
