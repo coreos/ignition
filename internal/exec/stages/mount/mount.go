@@ -94,14 +94,14 @@ func checkForNonDirectories(path string) error {
 			return err
 		}
 		if !st.Mode().IsDir() {
-			return fmt.Errorf("Mount path %q contains non-directory component %q", path, p)
+			return fmt.Errorf("mount path %q contains non-directory component %q", path, p)
 		}
 	}
 	return nil
 }
 
 func (s stage) mountFs(fs types.Filesystem) error {
-	if fs.Format == nil || *fs.Format == "swap" || *fs.Format == "" {
+	if fs.Format == nil || *fs.Format == "swap" || *fs.Format == "" || *fs.Format == "none" {
 		return nil
 	}
 

@@ -80,7 +80,7 @@ func (s stage) Run(config types.Config) error {
 }
 
 func (s stage) umountFs(fs types.Filesystem) error {
-	if fs.Format != nil && *fs.Format == "swap" {
+	if fs.Format == nil || *fs.Format == "swap" || *fs.Format == "" || *fs.Format == "none" {
 		return nil
 	}
 	path, err := s.JoinPath(*fs.Path)

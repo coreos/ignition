@@ -301,10 +301,11 @@ func formatPartition(ctx context.Context, partition *types.Partition) error {
 		return writePartitionData(partition.Device, partition.FilesystemImage)
 	default:
 		if partition.FilesystemType == "blank" ||
-			partition.FilesystemType == "" {
+			partition.FilesystemType == "" ||
+			partition.FilesystemType == "none" {
 			return nil
 		}
-		return fmt.Errorf("Unknown partition: %v", partition.FilesystemType)
+		return fmt.Errorf("unknown partition: %v", partition.FilesystemType)
 	}
 
 	if partition.FilesystemLabel != "" {
