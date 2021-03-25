@@ -1,32 +1,47 @@
 // Documentation: https://github.com/coreos/coreos-ci/blob/master/README-upstream-ci.md
 
-cosaPod(buildroot: true) {
+buildPod {
     checkout scm
 
     // hack to satisfy golang compiler wanting to cache things
     shwrap("mkdir cache")
     withEnv(["XDG_CACHE_HOME=${env.WORKSPACE}/cache"]) {
+        // XXX: convert all this to coreos-ci-lib sugar
+        stage("Build") {
+            shwrap("make")
+            shwrap("make install DESTDIR=install")
+            stash name: 'build', includes: 'install/**'
+        }
         // first, run gofmt/govet/unit tests
         stage("Unit Tests") {
             shwrap("./test")
         }
-        fcosBuild(make: true, skipKola: true)
+        stage("Build Blackbox Tests") {
+            shwrap("""
+                ./build_blackbox_tests
+                mkdir -p tests/kola/blackbox/data/bin
+                mv tests.test bin/amd64/* tests/kola/blackbox/data/bin
+            """)
+            stash name: 'blackbox', includes: 'tests/kola/blackbox/data/bin/**'
+        }
     }
+}
+
+cosaPod {
+    checkout scm
+
+    unstash name: 'build'
+    fcosBuild(skipKola: true, overlays: ["install"])
 
     // we run the blackbox tests separately instead of as part of the main kola
     // run since it's a distinct kind of test and we want to draw more
     // attention to it in the Jenkins UI
-    // XXX: need a e.g. `--tag !external`
 
-    fcosKola(extraArgs: "--denylist-test ext.*")
+    fcosKola(extraArgs: "--denylist-test ext.*.blackbox")
 
     parallel blackbox: {
-        shwrap("""
-            ./build_blackbox_tests
-            mkdir -p tests/kola/blackbox/data
-            mv tests.test bin tests/kola/blackbox/data
-        """)
-        fcosKola(extraArgs: "--tag external", skipUpgrade: true)
+        unstash name: 'blackbox'
+        fcosKola(extraArgs: "ext.*.blackbox", skipUpgrade: true)
     }, testiso: {
         try {
             shwrap("""
