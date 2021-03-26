@@ -26,6 +26,8 @@ import (
 	v3_3 "github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 )
 
+type typeSet map[reflect.Type]struct{}
+
 // helper to check whether a type and field matches a denylist of known problems
 // examples are either structs or names of structs
 func ignore(t reflect.Type, field reflect.StructField, fieldName string, examples ...interface{}) bool {
@@ -85,7 +87,9 @@ func fieldAffectsKey(key func() string, v reflect.Value) bool {
 
 // check the fields that affect the key function of a keyed struct
 // to ensure that we're using pointer and non-pointer fields properly.
-func checkStructFieldKey(t reflect.Type) error {
+// add the type of the struct and any anonymous embedded structs to
+// keyedStructs.
+func checkStructFieldKey(t reflect.Type, keyedStructs typeSet) error {
 	v := reflect.New(t).Elem()
 	// wrapper to get the current key of @v
 	getKey := func() string {
@@ -98,6 +102,7 @@ func checkStructFieldKey(t reflect.Type) error {
 	// check the fields of one struct
 	var checkStruct func(t reflect.Type, v reflect.Value) error
 	checkStruct = func(t reflect.Type, v reflect.Value) error {
+		keyedStructs[t] = struct{}{}
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
 			affectsKey := fieldAffectsKey(getKey, v.Field(i))
@@ -146,7 +151,9 @@ func checkStructFieldKey(t reflect.Type) error {
 	return nil
 }
 
-func testConfigType(t reflect.Type) error {
+// keyedStructs is a running set of visited struct types that are either
+// keyed and in a list, or anonymously embedded in such a type
+func testConfigType(t reflect.Type, keyedStructs typeSet) error {
 	k := t.Kind()
 	switch {
 	case util.IsInvalidInConfig(k):
@@ -161,7 +168,7 @@ func testConfigType(t reflect.Type) error {
 		switch t.Elem() {
 		case reflect.TypeOf(v3_2.Clevis{}), reflect.TypeOf(v3_2.Custom{}):
 			// these structs ended up with pointers; can't be helped now
-			if err := testConfigType(t.Elem()); err != nil {
+			if err := testConfigType(t.Elem(), keyedStructs); err != nil {
 				return fmt.Errorf("Type %s has invalid children: %v", t.Elem().Name(), err)
 			}
 			return nil
@@ -174,7 +181,7 @@ func testConfigType(t reflect.Type) error {
 		case util.IsPrimitive(eK):
 			return nil
 		case eK == reflect.Struct:
-			if err := testConfigType(t.Elem()); err != nil {
+			if err := testConfigType(t.Elem(), keyedStructs); err != nil {
 				return fmt.Errorf("Type %s has invalid children: %v", t.Name(), err)
 			}
 			return nil
@@ -192,7 +199,7 @@ func testConfigType(t reflect.Type) error {
 		}
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
-			if err := testConfigType(field.Type); err != nil {
+			if err := testConfigType(field.Type, keyedStructs); err != nil {
 				return fmt.Errorf("Type %s has invalid field %s: %v", t.Name(), field.Name, err)
 			}
 			if field.Type.Kind() == reflect.Slice && field.Type.Elem().Kind() != reflect.String {
@@ -206,7 +213,7 @@ func testConfigType(t reflect.Type) error {
 					}
 					// explicitly check for nil pointer dereference when calling Key() on zero value
 					keyed.Key()
-					if err := checkStructFieldKey(elemType); err != nil {
+					if err := checkStructFieldKey(elemType, keyedStructs); err != nil {
 						return fmt.Errorf("Type %s has invalid field %s: %v", t.Name(), field.Name, err)
 					}
 				}
@@ -215,6 +222,43 @@ func testConfigType(t reflect.Type) error {
 		return nil
 	default:
 		return fmt.Errorf("Testing code encountered a failure at %s", t.Name())
+	}
+}
+
+// Walk a struct hierarchy, checking every struct type not in ignoreTypes
+// for non-pointer fields.  Return an error if any are found that aren't on
+// an allowlist of known problems.  ignoreTypes is a set of struct types
+// that have already been checked against the rules for typed structs, and
+// shouldn't be checked against our stricter rules.
+func checkNonKeyedStructFields(t reflect.Type, ignoreTypes typeSet) error {
+	kind := t.Kind()
+	switch {
+	case util.IsPrimitive(kind):
+		return nil
+	case kind == reflect.Ptr:
+		return checkNonKeyedStructFields(t.Elem(), ignoreTypes)
+	case kind == reflect.Slice:
+		return checkNonKeyedStructFields(t.Elem(), ignoreTypes)
+	case kind == reflect.Struct:
+		_, ignoreType := ignoreTypes[t]
+		for i := 0; i < t.NumField(); i++ {
+			f := t.Field(i)
+			// ignition.version is allowed to be non-pointer in
+			// every spec version
+			if !ignoreType &&
+				util.IsPrimitive(f.Type.Kind()) &&
+				!ignore(t, f, "Version", "Ignition") &&
+				!ignore(t, f, "Config", v3_2.Custom{}, v3_3.ClevisCustom{}) &&
+				!ignore(t, f, "Pin", v3_2.Custom{}, v3_3.ClevisCustom{}) {
+				return fmt.Errorf("Type %s has non-pointer primitive field %s", t.Name(), f.Name)
+			}
+			if err := checkNonKeyedStructFields(f.Type, ignoreTypes); err != nil {
+				return fmt.Errorf("Type %s has invalid field %s: %v", t.Name(), f.Name, err)
+			}
+		}
+		return nil
+	default:
+		panic(fmt.Sprintf("unexpected kind %s", kind))
 	}
 }
 
@@ -229,7 +273,10 @@ func TestConfigStructure(t *testing.T) {
 	}
 
 	for _, configType := range configs {
-		if err := testConfigType(configType); err != nil {
+		keyedStructs := make(typeSet)
+		if err := testConfigType(configType, keyedStructs); err != nil {
+			t.Errorf("Type %s/%s was invalid: %v", configType.PkgPath(), configType.Name(), err)
+		} else if err := checkNonKeyedStructFields(configType, keyedStructs); err != nil {
 			t.Errorf("Type %s/%s was invalid: %v", configType.PkgPath(), configType.Name(), err)
 		}
 	}
