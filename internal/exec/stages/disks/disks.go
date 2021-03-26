@@ -121,7 +121,7 @@ func (s stage) Run(config types.Config) error {
 		return fmt.Errorf("udevadm settle failed: %v", err)
 	}
 
-	return nil
+	panic("CI failure")
 }
 
 // waitOnDevices waits for the devices enumerated in devs as a logged operation
