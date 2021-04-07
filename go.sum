@@ -53,8 +53,8 @@ github.com/coreos/go-semver v0.3.0 h1:wkHLiw0WNATZnSG7epLsujiMCgPAc9xhjJ4tgnAxmf
 github.com/coreos/go-semver v0.3.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/coreos/go-systemd/v22 v22.0.0 h1:XJIw/+VlJ+87J+doOxznsAWIdmWuViOVhkQamW5YV28=
 github.com/coreos/go-systemd/v22 v22.0.0/go.mod h1:xO0FLkIi5MaZafQlIrOotqXZ90ih+1atmu1JpKERPPk=
-github.com/coreos/vcontext v0.0.0-20201120045928-b0e13dab675c h1:jA28WeORitsxGFVWhyWB06sAG2HbLHPQuHwDydhU2CQ=
-github.com/coreos/vcontext v0.0.0-20201120045928-b0e13dab675c/go.mod h1:z4pMVvaUrxs98RROlIYdAQCKhEicjnTirOaVyDRH5h8=
+github.com/coreos/vcontext v0.0.0-20210407161507-4ee6c745c8bd h1:iHdPNrKIKSSlAy6nCmBliwn7xFTDu+OoFkArqMTr6Zc=
+github.com/coreos/vcontext v0.0.0-20210407161507-4ee6c745c8bd/go.mod h1:z4pMVvaUrxs98RROlIYdAQCKhEicjnTirOaVyDRH5h8=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
