@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.30.28
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/go-systemd/v22 v22.0.0
-	github.com/coreos/vcontext v0.0.0-20201120045928-b0e13dab675c
+	github.com/coreos/vcontext v0.0.0-20210407161507-4ee6c745c8bd
 	github.com/google/renameio v0.1.0
 	github.com/google/uuid v1.1.1
 	github.com/pin/tftp v2.1.0+incompatible
