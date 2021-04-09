@@ -13,7 +13,7 @@ Packaging:
  - [ ] Update the Ignition spec file in [Fedora](https://src.fedoraproject.org/rpms/ignition):
    - Update the commit hash global variable
    - Bump the `Version`
-   - Switch the `Release` back to `1.git%{shortcommit}%{?dist}`
+   - Switch the `Release` back to `1%{?dist}`
    - Remove any patches obsoleted by the new release
    - Run `go-mods-to-bundled-provides.py | sort` while inside of the Ignition directory you ran `./tag_release` from & copy output into spec file in `# Main package provides` section
    - Add any new spec paths to `%gotest` lines
