@@ -21,8 +21,10 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -30,6 +32,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
+	"github.com/coreos/ignition/v2/internal/resource"
 )
 
 var (
@@ -280,6 +283,24 @@ func (s *stage) createLuks(config types.Config) error {
 					return fmt.Errorf("creating clevis json: %v", err)
 				}
 				config = string(clevisJson)
+			}
+
+			// We cannot guarantee that networking is up yet, loop
+			// through each tang device and fetch the server
+			// advertisement to utilize Ignition's retry logic before we
+			// pass the device to clevis. We have to loop each device as
+			// the devices could be on different NICs that haven't come
+			// up yet.
+			for _, tang := range luks.Clevis.Tang {
+				u, err := url.Parse(tang.URL)
+				if err != nil {
+					return fmt.Errorf("parsing tang URL: %v", err)
+				}
+				u.Path = path.Join(u.Path, "adv")
+				_, err = s.Fetcher.FetchToBuffer(*u, resource.FetchOptions{})
+				if err != nil {
+					return fmt.Errorf("fetching tang advertisement: %v", err)
+				}
 			}
 
 			if _, err := s.Logger.LogCmd(
