@@ -1,0 +1,22 @@
+[Unit]
+Description=Ignition (kargs)
+Documentation=https://github.com/coreos/ignition
+ConditionPathExists=/etc/initrd-release
+DefaultDependencies=false
+Before=ignition-complete.target
+
+# Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
+After=ignition-fetch.service
+Before=ignition-disks.service
+
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=kargs
+# MountFlags=slave is so the umount of /boot is guaranteed to happen.
+# /boot will only be mounted for the lifetime of the unit.
+MountFlags=slave

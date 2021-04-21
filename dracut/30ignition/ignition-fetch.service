@@ -9,7 +9,7 @@ ConditionPathExists=/run/ignition/neednet
 # Don't run if the `fetch-offline` stage successfully fetched a config
 ConditionPathExists=!/run/ignition.json
 
-# Stage order: setup -> fetch-offline [-> fetch] -> disks -> mount -> files.
+# Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
 # We run after the setup stage has run because it may copy in new/different
 # ignition configs for us to consume.
 After=ignition-fetch-offline.service
