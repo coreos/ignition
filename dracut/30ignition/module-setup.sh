@@ -59,6 +59,9 @@ install() {
     inst_script "$moddir/ignition-setup-user.sh" \
         "/usr/sbin/ignition-setup-user"
 
+    inst_script "$moddir/ignition-kargs-helper.sh" \
+        "/usr/sbin/ignition-kargs-helper"
+
     # Distro packaging is expected to install the ignition binary into the
     # module directory.
     inst_simple "$moddir/ignition" \
@@ -83,6 +86,7 @@ install() {
     install_ignition_unit ignition-setup-user.service
     install_ignition_unit ignition-fetch.service
     install_ignition_unit ignition-fetch-offline.service
+    install_ignition_unit ignition-kargs.service
     install_ignition_unit ignition-disks.service
     install_ignition_unit ignition-mount.service
     install_ignition_unit ignition-files.service

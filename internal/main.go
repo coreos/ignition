@@ -26,6 +26,7 @@ import (
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/fetch"
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/fetch_offline"
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/files"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/kargs"
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/mount"
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/umount"
 	"github.com/coreos/ignition/v2/internal/log"

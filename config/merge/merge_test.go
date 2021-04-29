@@ -18,7 +18,8 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/v3_2/types"
+	v3_2 "github.com/coreos/ignition/v2/config/v3_2/types"
+	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 
 	"github.com/coreos/vcontext/path"
 	"github.com/stretchr/testify/assert"
@@ -314,97 +315,6 @@ func TestMerge(t *testing.T) {
 				{path.New(TAG_CHILD, "storage", "links", 0, "path"), path.New(TAG_RESULT, "storage", "links", 0, "path")},
 				{path.New(TAG_CHILD, "storage", "links", 0), path.New(TAG_RESULT, "storage", "links", 0)},
 				{path.New(TAG_CHILD, "storage", "links"), path.New(TAG_RESULT, "storage", "links")},
-				{path.New(TAG_PARENT, "storage"), path.New(TAG_RESULT, "storage")},
-				{path.New(TAG_CHILD, "storage"), path.New(TAG_RESULT, "storage")},
-			}},
-		},
-
-		// struct pointers
-		// we're not supposed to have any, but some ended up in the
-		// Clevis and Luks structs in spec 3.2.0
-		// https://github.com/coreos/ignition/issues/1132
-		{
-			in1: types.Config{
-				Storage: types.Storage{
-					Luks: []types.Luks{
-						// nested struct pointers, one override
-						{
-							Clevis: &types.Clevis{
-								Custom: &types.Custom{
-									Config: "cfg",
-									Pin:    "pin",
-								},
-								Threshold: util.IntToPtr(1),
-							},
-							Device: util.StrToPtr("/dev/foo"),
-							Name:   "bar",
-						},
-					},
-				},
-			},
-			in2: types.Config{
-				Storage: types.Storage{
-					Luks: []types.Luks{
-						// nested struct pointers
-						{
-							Clevis: &types.Clevis{
-								Threshold: util.IntToPtr(2),
-							},
-							Name: "bar",
-						},
-						// struct pointer containing nil struct pointer
-						{
-							Clevis: &types.Clevis{
-								Tpm2: util.BoolToPtr(true),
-							},
-							Device: util.StrToPtr("/dev/baz"),
-							Name:   "bleh",
-						},
-					},
-				},
-			},
-			out: types.Config{
-				Storage: types.Storage{
-					Luks: []types.Luks{
-						{
-							Clevis: &types.Clevis{
-								Custom: &types.Custom{
-									Config: "cfg",
-									Pin:    "pin",
-								},
-								Threshold: util.IntToPtr(2),
-							},
-							Device: util.StrToPtr("/dev/foo"),
-							Name:   "bar",
-						},
-						{
-							Clevis: &types.Clevis{
-								Tpm2: util.BoolToPtr(true),
-							},
-							Device: util.StrToPtr("/dev/baz"),
-							Name:   "bleh",
-						},
-					},
-				},
-			},
-			transcript: Transcript{[]Mapping{
-				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis", "custom", "config"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "custom", "config")},
-				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis", "custom", "pin"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "custom", "pin")},
-				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis", "custom"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "custom")},
-				{path.New(TAG_CHILD, "storage", "luks", 0, "clevis", "threshold"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "threshold")},
-				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis")},
-				{path.New(TAG_CHILD, "storage", "luks", 0, "clevis"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis")},
-				{path.New(TAG_PARENT, "storage", "luks", 0, "device"), path.New(TAG_RESULT, "storage", "luks", 0, "device")},
-				{path.New(TAG_CHILD, "storage", "luks", 0, "name"), path.New(TAG_RESULT, "storage", "luks", 0, "name")},
-				{path.New(TAG_PARENT, "storage", "luks", 0), path.New(TAG_RESULT, "storage", "luks", 0)},
-				{path.New(TAG_CHILD, "storage", "luks", 0), path.New(TAG_RESULT, "storage", "luks", 0)},
-				{path.New(TAG_CHILD, "storage", "luks", 1, "clevis", "tpm2"), path.New(TAG_RESULT, "storage", "luks", 1, "clevis", "tpm2")},
-				{path.New(TAG_CHILD, "storage", "luks", 1, "clevis"), path.New(TAG_RESULT, "storage", "luks", 1, "clevis")},
-				{path.New(TAG_CHILD, "storage", "luks", 1, "device"), path.New(TAG_RESULT, "storage", "luks", 1, "device")},
-				{path.New(TAG_CHILD, "storage", "luks", 1, "name"), path.New(TAG_RESULT, "storage", "luks", 1, "name")},
-				{path.New(TAG_CHILD, "storage", "luks", 1), path.New(TAG_RESULT, "storage", "luks", 1)},
-				{path.New(TAG_PARENT, "storage", "luks"), path.New(TAG_RESULT, "storage", "luks")},
-				{path.New(TAG_CHILD, "storage", "luks"), path.New(TAG_RESULT, "storage", "luks")},
 				{path.New(TAG_PARENT, "storage"), path.New(TAG_RESULT, "storage")},
 				{path.New(TAG_CHILD, "storage"), path.New(TAG_RESULT, "storage")},
 			}},
@@ -1382,11 +1292,167 @@ func TestMerge(t *testing.T) {
 				{path.New(TAG_CHILD, "storage"), path.New(TAG_RESULT, "storage")},
 			}},
 		},
+
+		// kernel arguments MergedKeys test where child ShouldNotExist overrides parent ShouldExist
+		{
+			in1: types.Config{
+				KernelArguments: types.KernelArguments{
+					ShouldExist: []types.KernelArgument{
+						"foo",
+						"bar baz",
+						"test",
+					},
+					ShouldNotExist: []types.KernelArgument{
+						"brown fox",
+					},
+				},
+			},
+			in2: types.Config{
+				KernelArguments: types.KernelArguments{
+					ShouldNotExist: []types.KernelArgument{
+						"test",
+					},
+				},
+			},
+			out: types.Config{
+				KernelArguments: types.KernelArguments{
+					ShouldExist: []types.KernelArgument{
+						"foo",
+						"bar baz",
+					},
+					ShouldNotExist: []types.KernelArgument{
+						"brown fox",
+						"test",
+					},
+				},
+			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_PARENT, "kernelArguments", "shouldExist", 0), path.New(TAG_RESULT, "kernelArguments", "shouldExist", 0)},
+				{path.New(TAG_PARENT, "kernelArguments", "shouldExist", 1), path.New(TAG_RESULT, "kernelArguments", "shouldExist", 1)},
+				{path.New(TAG_PARENT, "kernelArguments", "shouldExist"), path.New(TAG_RESULT, "kernelArguments", "shouldExist")},
+				{path.New(TAG_PARENT, "kernelArguments", "shouldNotExist", 0), path.New(TAG_RESULT, "kernelArguments", "shouldNotExist", 0)},
+				{path.New(TAG_CHILD, "kernelArguments", "shouldNotExist", 0), path.New(TAG_RESULT, "kernelArguments", "shouldNotExist", 1)},
+				{path.New(TAG_PARENT, "kernelArguments", "shouldNotExist"), path.New(TAG_RESULT, "kernelArguments", "shouldNotExist")},
+				{path.New(TAG_CHILD, "kernelArguments", "shouldNotExist"), path.New(TAG_RESULT, "kernelArguments", "shouldNotExist")},
+				{path.New(TAG_PARENT, "kernelArguments"), path.New(TAG_RESULT, "kernelArguments")},
+				{path.New(TAG_CHILD, "kernelArguments"), path.New(TAG_RESULT, "kernelArguments")},
+			}},
+		},
 	}
 
 	for i, test := range tests {
 		outi, transcript := MergeStructTranscribe(test.in1, test.in2)
 		out := outi.(types.Config)
+
+		assert.Equal(t, test.out, out, "#%d bad merge", i)
+		assert.Equal(t, test.transcript, transcript, "#%d bad transcript", i)
+	}
+}
+
+// We are explicitly testing 3.2.0 because it mistakenly has struct
+// pointers. These should not exist but ended up in the Clevis & Luks
+// structs in spec 3.2.0.
+// https://github.com/coreos/ignition/issues/1132
+func TestMergeStructPointers(t *testing.T) {
+	type test struct {
+		in1        v3_2.Config
+		in2        v3_2.Config
+		out        v3_2.Config
+		transcript Transcript
+	}
+
+	tests := []test{
+		{
+			in1: v3_2.Config{
+				Storage: v3_2.Storage{
+					Luks: []v3_2.Luks{
+						// nested struct pointers, one override
+						{
+							Clevis: &v3_2.Clevis{
+								Custom: &v3_2.Custom{
+									Config: "cfg",
+									Pin:    "pin",
+								},
+								Threshold: util.IntToPtr(1),
+							},
+							Device: util.StrToPtr("/dev/foo"),
+							Name:   "bar",
+						},
+					},
+				},
+			},
+			in2: v3_2.Config{
+				Storage: v3_2.Storage{
+					Luks: []v3_2.Luks{
+						// nested struct pointers
+						{
+							Clevis: &v3_2.Clevis{
+								Threshold: util.IntToPtr(2),
+							},
+							Name: "bar",
+						},
+						// struct pointer containing nil struct pointer
+						{
+							Clevis: &v3_2.Clevis{
+								Tpm2: util.BoolToPtr(true),
+							},
+							Device: util.StrToPtr("/dev/baz"),
+							Name:   "bleh",
+						},
+					},
+				},
+			},
+			out: v3_2.Config{
+				Storage: v3_2.Storage{
+					Luks: []v3_2.Luks{
+						{
+							Clevis: &v3_2.Clevis{
+								Custom: &v3_2.Custom{
+									Config: "cfg",
+									Pin:    "pin",
+								},
+								Threshold: util.IntToPtr(2),
+							},
+							Device: util.StrToPtr("/dev/foo"),
+							Name:   "bar",
+						},
+						{
+							Clevis: &v3_2.Clevis{
+								Tpm2: util.BoolToPtr(true),
+							},
+							Device: util.StrToPtr("/dev/baz"),
+							Name:   "bleh",
+						},
+					},
+				},
+			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis", "custom", "config"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "custom", "config")},
+				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis", "custom", "pin"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "custom", "pin")},
+				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis", "custom"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "custom")},
+				{path.New(TAG_CHILD, "storage", "luks", 0, "clevis", "threshold"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis", "threshold")},
+				{path.New(TAG_PARENT, "storage", "luks", 0, "clevis"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis")},
+				{path.New(TAG_CHILD, "storage", "luks", 0, "clevis"), path.New(TAG_RESULT, "storage", "luks", 0, "clevis")},
+				{path.New(TAG_PARENT, "storage", "luks", 0, "device"), path.New(TAG_RESULT, "storage", "luks", 0, "device")},
+				{path.New(TAG_CHILD, "storage", "luks", 0, "name"), path.New(TAG_RESULT, "storage", "luks", 0, "name")},
+				{path.New(TAG_PARENT, "storage", "luks", 0), path.New(TAG_RESULT, "storage", "luks", 0)},
+				{path.New(TAG_CHILD, "storage", "luks", 0), path.New(TAG_RESULT, "storage", "luks", 0)},
+				{path.New(TAG_CHILD, "storage", "luks", 1, "clevis", "tpm2"), path.New(TAG_RESULT, "storage", "luks", 1, "clevis", "tpm2")},
+				{path.New(TAG_CHILD, "storage", "luks", 1, "clevis"), path.New(TAG_RESULT, "storage", "luks", 1, "clevis")},
+				{path.New(TAG_CHILD, "storage", "luks", 1, "device"), path.New(TAG_RESULT, "storage", "luks", 1, "device")},
+				{path.New(TAG_CHILD, "storage", "luks", 1, "name"), path.New(TAG_RESULT, "storage", "luks", 1, "name")},
+				{path.New(TAG_CHILD, "storage", "luks", 1), path.New(TAG_RESULT, "storage", "luks", 1)},
+				{path.New(TAG_PARENT, "storage", "luks"), path.New(TAG_RESULT, "storage", "luks")},
+				{path.New(TAG_CHILD, "storage", "luks"), path.New(TAG_RESULT, "storage", "luks")},
+				{path.New(TAG_PARENT, "storage"), path.New(TAG_RESULT, "storage")},
+				{path.New(TAG_CHILD, "storage"), path.New(TAG_RESULT, "storage")},
+			}},
+		},
+	}
+
+	for i, test := range tests {
+		outi, transcript := MergeStructTranscribe(test.in1, test.in2)
+		out := outi.(v3_2.Config)
 
 		assert.Equal(t, test.out, out, "#%d bad merge", i)
 		assert.Equal(t, test.transcript, transcript, "#%d bad transcript", i)
