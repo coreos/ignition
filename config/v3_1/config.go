@@ -33,7 +33,7 @@ func Merge(parent, child types.Config) types.Config {
 // Parse parses the raw config into a types.Config struct and generates a report of any
 // errors, warnings, info, and deprecations it encountered
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
-	if isEmpty(rawConfig) {
+	if len(rawConfig) == 0 {
 		return types.Config{}, report.Report{}, errors.ErrEmpty
 	}
 
@@ -54,8 +54,4 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	}
 
 	return config, rpt, nil
-}
-
-func isEmpty(userdata []byte) bool {
-	return len(userdata) == 0
 }
