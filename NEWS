@@ -1,3 +1,21 @@
+29-Apr-2021 Ignition 2.10.0
+
+  Breaking Changes:
+
+    - Rename Custom struct to ClevisCustom (3.3.0-exp)
+    - Embed Clevis and ClevisCustom structs in parents (3.3.0-exp)
+    - Always include interior nodes in merge transcript
+
+  Features:
+
+    - Add kernel argument support (3.3.0-exp)
+
+  Bug Fixes:
+
+    - Fix fetching userdata on AWS when IMDSv1 is disabled
+    - Fix creating Tang-based LUKS volumes before network is up
+    - Document storage.filesystems.wipeFilesystem default
+
 08-Jan-2021 Ignition 2.9.0
 
   Changes:
