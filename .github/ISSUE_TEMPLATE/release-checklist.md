@@ -11,7 +11,6 @@ Tagging:
 
 Packaging:
  - [ ] Update the Ignition spec file in [Fedora](https://src.fedoraproject.org/rpms/ignition):
-   - Update the commit hash global variable
    - Bump the `Version`
    - Switch the `Release` back to `1%{?dist}`
    - Remove any patches obsoleted by the new release
