@@ -29,35 +29,17 @@ import (
 	trans_exp "github.com/coreos/ignition/v2/config/v3_3_experimental/translate"
 	types_exp "github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 
-	"github.com/coreos/go-semver/semver"
 	"github.com/coreos/vcontext/report"
 )
-
-type versionStub struct {
-	Ignition struct {
-		Version string
-	}
-}
 
 // Parse parses a config of any supported version and returns the equivalent config at the latest
 // supported version.
 func Parse(raw []byte) (types_exp.Config, report.Report, error) {
-	if len(raw) == 0 {
-		return types_exp.Config{}, report.Report{}, errors.ErrEmpty
-	}
-
-	stub := versionStub{}
-	rpt, err := util.HandleParseErrors(raw, &stub)
+	version, r, err := util.GetConfigVersion(raw)
 	if err != nil {
-		return types_exp.Config{}, rpt, err
+		return types_exp.Config{}, r, err
 	}
-
-	version, err := semver.NewVersion(stub.Ignition.Version)
-	if err != nil {
-		return types_exp.Config{}, report.Report{}, errors.ErrInvalidVersion
-	}
-
-	switch *version {
+	switch version {
 	case types_exp.MaxVersion:
 		return v3_3_experimental.Parse(raw)
 	case types_3_2.MaxVersion:
