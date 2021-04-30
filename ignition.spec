@@ -62,7 +62,7 @@
 
 Name:           ignition
 Version:        2.9.0
-Release:        3.rhaos4.8%{?dist}
+Release:        3.rhaos4.9%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
