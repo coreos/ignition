@@ -61,16 +61,13 @@
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Version:        2.9.0
-Release:        3.rhaos4.9%{?dist}
+Version:        2.10.1
+Release:        1.rhaos4.9%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/v%{version}/%{repo}-%{version}.tar.gz
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
-# Fix AWS probing by using the IMDS token URL to ensure that networking is up
-# https://github.com/coreos/ignition/pull/1161
-Patch1:         internal-providers-aws-probe-the-IMDS-token-URL.patch
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: %{go_arches}
@@ -175,11 +172,11 @@ Provides: bundled(golang(github.com/coreos/go-semver/semver)) = 0.3.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/dbus)) = 22.0.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/journal)) = 22.0.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/unit)) = 22.0.0
-Provides: bundled(golang(github.com/coreos/vcontext/json)) = 0.0.0-20201120045928.gitb0e13dab675c
-Provides: bundled(golang(github.com/coreos/vcontext/path)) = 0.0.0-20201120045928.gitb0e13dab675c
-Provides: bundled(golang(github.com/coreos/vcontext/report)) = 0.0.0-20201120045928.gitb0e13dab675c
-Provides: bundled(golang(github.com/coreos/vcontext/tree)) = 0.0.0-20201120045928.gitb0e13dab675c
-Provides: bundled(golang(github.com/coreos/vcontext/validate)) = 0.0.0-20201120045928.gitb0e13dab675c
+Provides: bundled(golang(github.com/coreos/vcontext/json)) = 0.0.0-20210407161507.git4ee6c745c8bd
+Provides: bundled(golang(github.com/coreos/vcontext/path)) = 0.0.0-20210407161507.git4ee6c745c8bd
+Provides: bundled(golang(github.com/coreos/vcontext/report)) = 0.0.0-20210407161507.git4ee6c745c8bd
+Provides: bundled(golang(github.com/coreos/vcontext/tree)) = 0.0.0-20210407161507.git4ee6c745c8bd
+Provides: bundled(golang(github.com/coreos/vcontext/validate)) = 0.0.0-20210407161507.git4ee6c745c8bd
 Provides: bundled(golang(github.com/google/renameio)) = 0.1.0
 Provides: bundled(golang(github.com/google/uuid)) = 1.1.1
 Provides: bundled(golang(github.com/pin/tftp)) = 2.1.0
@@ -529,11 +526,17 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %gotest %{import_path}/config/merge
 %gotest %{import_path}/config/translate
 %gotest %{import_path}/config/v3_0
+%gotest %{import_path}/config/v3_0/translate
 %gotest %{import_path}/config/v3_0/types
 %gotest %{import_path}/config/v3_1
+%gotest %{import_path}/config/v3_1/translate
 %gotest %{import_path}/config/v3_1/types
 %gotest %{import_path}/config/v3_2
+%gotest %{import_path}/config/v3_2/translate
 %gotest %{import_path}/config/v3_2/types
+%gotest %{import_path}/config/v3_3_experimental
+%gotest %{import_path}/config/v3_3_experimental/translate
+%gotest %{import_path}/config/v3_3_experimental/types
 %gotest %{import_path}/config/validate
 %gotest %{import_path}/internal/exec/stages/files
 %gotest %{import_path}/internal/exec/util
@@ -570,6 +573,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Mon May 03 2021 Stephen Lowrie <slowrie@redhat.com> - 2.10.1-1.rhaos4.9
+- New release
+
 * Fri Feb 05 2021 Benjamin Gilbert <bgilbert@redhat.com> - 2.9.0-3.rhaos4.8
 - Drop Git commit hash from Release
 - Switch to %%autosetup
