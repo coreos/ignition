@@ -129,8 +129,41 @@ func TestParse(t *testing.T) {
 		},
 	}
 
+	testsCompt := []struct {
+		in  in
+		out out
+	}{
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.2.0"}}`)},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.0.0"}}`)},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.1.0"}}`)},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.3.0-experimental"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte{}},
+			out: out{err: errors.ErrEmpty},
+		},
+	}
+
 	for i, test := range tests {
 		config, report, err := Parse(test.in.config)
+		if test.out.err != err {
+			t.Errorf("#%d: bad error: want %v, got %v, report: %+v", i, test.out.err, err, report)
+		}
+		assert.Equal(t, test.out.config, config, "#%d: bad config, report: %+v", i, report)
+	}
+	for i, test := range testsCompt {
+		config, report, err := ParseCompatibleVersion(test.in.config)
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v, report: %+v", i, test.out.err, err, report)
 		}

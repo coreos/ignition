@@ -33,7 +33,7 @@ func Merge(parent, child types.Config) types.Config {
 // Parse parses the raw config into a types.Config struct and generates a report of any
 // errors, warnings, info, and deprecations it encountered
 func Parse(rawConfig []byte) (types.Config, report.Report, error) {
-	if isEmpty(rawConfig) {
+	if len(rawConfig) == 0 {
 		return types.Config{}, report.Report{}, errors.ErrEmpty
 	}
 
@@ -56,6 +56,18 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	return config, rpt, nil
 }
 
-func isEmpty(userdata []byte) bool {
-	return len(userdata) == 0
+// ParseCompatibleVersion parses the raw config of version 3.0.0 into
+// a 3.0 types.Config struct and generates a report of any errors, warnings,
+// info, and deprecations it encountered
+func ParseCompatibleVersion(raw []byte) (types.Config, report.Report, error) {
+	version, rpt, err := util.GetConfigVersion(raw)
+	if err != nil {
+		return types.Config{}, rpt, err
+	}
+
+	if version == types.MaxVersion {
+		return Parse(raw)
+	}
+
+	return types.Config{}, report.Report{}, errors.ErrUnknownVersion
 }
