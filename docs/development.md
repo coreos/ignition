@@ -103,7 +103,7 @@ ConfigMinVersion: `string` type which describes the minimum config version the t
 
 The test should be added to the init function inside of the test file. If the test module is being created then an `init` function should be created which registers the tests and the package must be imported inside of `tests/registry/registry.go` to allow for discovery.
 
-UUIDs may be required in the following fields of a Test object: In, Out, and Config. Replace all GUIDs with GUID varaibles which take on the format `$uuid<num>` (e.g. $uuid123). Where `<num>` must be a positive integer. GUID variables with identical `<num>` fields will be replaced with identical GUIDs. For example, look at [tests/positive/partitions/zeros.go](https://github.com/coreos/ignition/blob/master/tests/positive/partitions/zeros.go).
+UUIDs may be required in the following fields of a Test object: In, Out, and Config. Replace all GUIDs with GUID varaibles which take on the format `$uuid<num>` (e.g. $uuid123). Where `<num>` must be a positive integer. GUID variables with identical `<num>` fields will be replaced with identical GUIDs. For example, look at [tests/positive/partitions/zeros.go](https://github.com/coreos/ignition/blob/main/tests/positive/partitions/zeros.go).
 
 ## Releasing Ignition
 

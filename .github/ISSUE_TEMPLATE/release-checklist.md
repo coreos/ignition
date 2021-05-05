@@ -2,8 +2,8 @@ Release checklist:
 
 Tagging:
  - [ ] Write release notes in NEWS. Get them reviewed and merged
-     - [ ] If doing a branched release, also include a PR to merge the NEWS changes into master
- - [ ] Ensure your local copy is up to date with the upstream master branch (`git@github.com:coreos/ignition.git`)
+     - [ ] If doing a branched release, also include a PR to merge the NEWS changes into main
+ - [ ] Ensure your local copy is up to date with the upstream main branch (`git@github.com:coreos/ignition.git`)
  - [ ] Ensure your working directory is clean (`git clean -fdx`)
  - [ ] Ensure you can sign commits and any yubikeys/smartcards are plugged in
  - [ ] Run `./tag_release.sh <vX.Y.z> <git commit hash>`
