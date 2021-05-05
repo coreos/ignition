@@ -120,11 +120,15 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 	s.Logger.Info("found %s filesystem at %q with uuid %q and label %q", info.Type, fs.Device, info.UUID, info.Label)
 
 	if !cutil.IsTrue(fs.WipeFilesystem) {
+		fileSystemFormat := *fs.Format
+		if fileSystemFormat == "none" {
+			fileSystemFormat = ""
+		}
 		// If the filesystem isn't forcefully being created, then we need
 		// to check if it is of the correct type or that no filesystem exists.
-		if info.Type == *fs.Format &&
+		if info.Type == fileSystemFormat &&
 			(fs.Label == nil || info.Label == *fs.Label) &&
-			(fs.UUID == nil || canonicalizeFilesystemUUID(info.Type, info.UUID) == canonicalizeFilesystemUUID(*fs.Format, *fs.UUID)) {
+			(fs.UUID == nil || canonicalizeFilesystemUUID(info.Type, info.UUID) == canonicalizeFilesystemUUID(fileSystemFormat, *fs.UUID)) {
 			s.Logger.Info("filesystem at %q is already correctly formatted. Skipping mkfs...", fs.Device)
 			return nil
 		} else if info.Type != "" {
@@ -190,6 +194,9 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		if fs.Label != nil {
 			args = append(args, "-n", *fs.Label)
 		}
+	case "none":
+		// The user specifies this format to skip the creation of a filesystem on a block device.
+		return nil
 	default:
 		return fmt.Errorf("unsupported filesystem format: %q", *fs.Format)
 	}
