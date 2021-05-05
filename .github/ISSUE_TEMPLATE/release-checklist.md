@@ -48,4 +48,4 @@ Quay release:
   - [ ] Click the gear next to the tag, select "Add New Tag", enter `release`, and confirm
 
 Housekeeping:
- - [ ] Vendor the new Ignition version in [mantle](https://github.com/coreos/coreos-assembler/tree/master/mantle)
+ - [ ] Vendor the new Ignition version in [mantle](https://github.com/coreos/coreos-assembler/tree/main/mantle)
