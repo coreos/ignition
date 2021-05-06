@@ -300,5 +300,20 @@ Type=ext4
 WantedBy=local-fs.target
 ```
 
+## Set Kernel Arguments
+
+This config will ensure that the `example` and `foo bar` kernel arguments are set and the `somekarg` kernel argument is not set.
+
+<!-- ignition -->
+```json
+{
+  "ignition": {"version": "3.3.0-experimental"},
+  "kernelArguments": {
+    "shouldExist": ["example", "foo bar"],
+    "shouldNotExist": ["somekarg"]
+  }
+}
+```
+
 [rfc2397]: http://tools.ietf.org/html/rfc2397
 [operator-notes]: operator-notes.md
