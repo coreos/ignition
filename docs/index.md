@@ -24,4 +24,4 @@ See [CONTRIBUTING][contributing] for details on submitting patches and the contr
 To help triage or fix bugs, see the current [Ignition issues](https://github.com/coreos/ignition/issues/).
 
 [getting started]: getting-started.md
-[contributing]: https://github.com/coreos/ignition/blob/master/CONTRIBUTING.md
+[contributing]: https://github.com/coreos/ignition/blob/main/CONTRIBUTING.md
