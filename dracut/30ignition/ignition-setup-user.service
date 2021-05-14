@@ -11,10 +11,6 @@ OnFailureJobMode=isolate
 # Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
 Before=ignition-fetch-offline.service
 
-# We want to make sure we're not racing with multipath taking ownership of the
-# boot device.
-Before=multipathd.service
-
 # On diskful boots, ignition-generator adds Requires/After on
 # dev-disk-by\x2dlabel-boot.device
 
