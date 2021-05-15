@@ -156,17 +156,17 @@ func (s *stage) createLuks(config types.Config) error {
 			// If the volume isn't forcefully being created, then we need
 			// to check if it is of the correct type or that no volume exists.
 
-			// check if the LUKS device already exists, device will be
-			// opened if it exists; don't allow clevis device re-use as
-			// we can't guarantee that what is stored in the header is
-			// exactly what would be generated from the given config
-			var exists bool
-			if !ignitionCreatedKeyFile && !luks.Clevis.IsPresent() {
-				var err error
-				exists, err = s.checkLuksDeviceExists(luks, keyFilePath)
-				if err != nil {
-					return fmt.Errorf("checking if luks device exists: %v", err)
+			if s.isLuksDevice(*luks.Device) {
+				// try to reuse the LUKS device; device will be opened
+				// if successful.
+				if err := s.reuseLuksDevice(luks, keyFilePath); err != nil {
+					s.Logger.Err("volume wipe was not requested and luks device %q could not be reused: %v", *luks.Device, err)
+					return ErrBadVolume
 				}
+				// Re-used devices cannot have Ignition generated key-files or be clevis devices so we cannot
+				// leak any key files when exiting the loop early
+				s.Logger.Info("volume at %q is already correctly formatted. Skipping...", *luks.Device)
+				continue
 			}
 
 			var info execUtil.FilesystemInfo
@@ -193,14 +193,8 @@ func (s *stage) createLuks(config types.Config) error {
 				return err
 			}
 			s.Logger.Info("found %s at %q with uuid %q and label %q", info.Type, *luks.Device, info.UUID, info.Label)
-
-			if exists {
-				// Re-used devices cannot have Ignition generated key-files or be clevis devices so we cannot
-				// leak any key files when exiting the loop early
-				s.Logger.Info("volume at %q is already correctly formatted. Skipping...", *luks.Device)
-				continue
-			} else if info.Type != "" {
-				s.Logger.Err("volume at %q is not of the correct type, label, or UUID (found %s, %q, %s) and a volume wipe was not requested", *luks.Device, info.Type, info.Label, info.UUID)
+			if info.Type != "" {
+				s.Logger.Err("volume at %q is not of the correct type (found %s) and a volume wipe was not requested", *luks.Device, info.Type)
 				return ErrBadVolume
 			}
 		} else {
@@ -341,33 +335,52 @@ func (s *stage) createLuks(config types.Config) error {
 	return nil
 }
 
-func (s *stage) checkLuksDeviceExists(luks types.Luks, keyFilePath string) (bool, error) {
-	devAlias := execUtil.DeviceAlias(*luks.Device)
+func (s *stage) isLuksDevice(device string) bool {
+	devAlias := execUtil.DeviceAlias(device)
 	if _, err := s.Logger.LogCmd(
 		exec.Command(distro.CryptsetupCmd(), "isLuks", "--type", "luks2", devAlias),
-		"checking if %v is a luks device", *luks.Device,
+		"checking if %v is a luks device", device,
 	); err != nil {
 		// isLuks returns exit status 1 if the device is not LUKS
-		return false, nil
+		return false
+	}
+	return true
+}
+
+// Check LUKS device against config and open it.
+func (s *stage) reuseLuksDevice(luks types.Luks, keyFilePath string) error {
+	devAlias := execUtil.DeviceAlias(*luks.Device)
+
+	// don't allow clevis device re-use as we can't guarantee that what
+	// is stored in the header is exactly what would be generated from
+	// the given config
+	if luks.Clevis.IsPresent() {
+		return fmt.Errorf("config must not specify clevis binding")
+	}
+
+	// ephemeral keyfiles won't match the existing device
+	if util.NilOrEmpty(luks.KeyFile.Source) {
+		return fmt.Errorf("config must specify keyfile")
 	}
 
 	if luks.Label != nil {
 		fsInfo, err := execUtil.GetFilesystemInfo(devAlias, true)
 		if err != nil {
-			return false, fmt.Errorf("retrieving filesystem info: %v", err)
+			return fmt.Errorf("retrieving filesystem info: %v", err)
 		}
 		if fsInfo.Label != *luks.Label {
-			return false, nil
+			return fmt.Errorf("volume label %q doesn't match expected label %q", fsInfo.Label, *luks.Label)
 		}
 	}
 
 	if luks.UUID != nil {
 		uuid, err := exec.Command(distro.CryptsetupCmd(), "luksUUID", devAlias).CombinedOutput()
 		if err != nil {
-			return false, err
+			return err
 		}
-		if strings.TrimSpace(string(uuid)) != *luks.UUID {
-			return false, nil
+		uuidStr := strings.TrimSpace(string(uuid))
+		if uuidStr != *luks.UUID {
+			return fmt.Errorf("volume UUID %q doesn't match expected UUID %q", uuidStr, *luks.UUID)
 		}
 	}
 
@@ -376,7 +389,7 @@ func (s *stage) checkLuksDeviceExists(luks types.Luks, keyFilePath string) (bool
 		exec.Command(distro.CryptsetupCmd(), "luksOpen", devAlias, luks.Name, "--key-file", keyFilePath),
 		"opening luks device %v", luks.Name,
 	); err != nil {
-		return false, nil
+		return fmt.Errorf("failed to open device using specified keyfile")
 	}
-	return true, nil
+	return nil
 }
