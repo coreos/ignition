@@ -14,7 +14,7 @@ Odds are good that you don't want to invoke Ignition directly. In fact, it isn't
 ## Contact
 
 - Mailing list: [coreos@lists.fedoraproject.org](https://lists.fedoraproject.org/archives/list/coreos@lists.fedoraproject.org/)
-- IRC: #[fedora-coreos](irc://irc.freenode.org:6697/#fedora-coreos) on freenode.org
+- IRC: #[fedora-coreos](ircs://irc.libera.chat:6697/#fedora-coreos) on Libera.Chat
 - Reporting bugs: [issues](https://github.com/coreos/ignition/issues/new/choose)
 
 ## Contributing
