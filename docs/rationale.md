@@ -33,4 +33,4 @@ Ignition configs do not allow users to provide arbitrary logic (including script
 
 Ignition configs were designed to be human readable, but difficult to write, to discourage users from attempting to write configs by hand.
 
-Use a separate tool to generate Ignition configs. For Fedora CoreOS, files called [Butane](https://coreos.github.io/butane/) Configs can be written in YAML and then converted into Ignition configs. This conversion process allows for distribution specific configs to be converted into a distribution-agnostic Ignition config, and ensures that the Ignition config gets validated before a user attempts to use it.
+Use [Butane](https://coreos.github.io/butane/), or a similar tool, to generate Ignition configs. Butane reads [Butane configs](https://coreos.github.io/butane/specs/), which are YAML files containing distribution-independent Ignition directives and optional distribution-specific directives that provide an easier way to perform certain configuration tasks. Butane validates a Butane config for common errors and produces an Ignition config ready to be passed to a machine.
