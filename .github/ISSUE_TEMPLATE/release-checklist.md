@@ -35,7 +35,7 @@ GitHub release:
  - [ ] Wait until the Bodhi update shows "Signed :heavy_check_mark:" in the Metadata box.
  - [ ] [File a releng ticket](https://pagure.io/releng/new_issue) based on [prior signing tickets](https://pagure.io/releng/issue/9602).
    - [ ] Update the script and test it locally by dropping the `sigul` lines.
- - [ ] Ping `mboddu` in Freenode `#fedora-coreos`, linking to the ticket
+ - [ ] Ping `mboddu` in Libera.Chat `#fedora-coreos`, linking to the ticket
  - [ ] Wait for the ticket to be closed
  - [ ] Download the artifacts and signatures
  - [ ] Verify the signatures
