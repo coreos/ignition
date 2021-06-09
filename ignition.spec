@@ -62,7 +62,7 @@
 
 Name:           ignition
 Version:        2.10.1
-Release:        1.rhaos4.9%{?dist}
+Release:        2.rhaos4.9%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
@@ -573,6 +573,10 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Wed Jun 9 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.10.1-2.rhaos4.9
+- Rebuild to address the CVE related to golang's net/http package
+  https://bugzilla.redhat.com/show_bug.cgi?id=1959248
+
 * Mon May 03 2021 Stephen Lowrie <slowrie@redhat.com> - 2.10.1-1.rhaos4.9
 - New release
 
