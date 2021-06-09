@@ -51,7 +51,7 @@ def go_mod_tag_to_rpm_provides_version(tag):
         tag = tag[1:]
 
     # is this a pseudo-version? e.g. v0.0.0-20181031085051-9002847aa142
-    m = re.match("(.*)-([0-9]{14})-([a-f0-9]{12})", tag)
+    m = re.match("(.*)-([0-9.]+)-([a-f0-9]{12})", tag)
     if m:
         # rpm doesn't like multiple dashes in the version, so just merge the
         # timestamp and the commit checksum into the "release" field
