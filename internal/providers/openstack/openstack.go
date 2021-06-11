@@ -71,8 +71,6 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 			if err != nil {
 				switch err {
 				case context.Canceled:
-				case context.DeadlineExceeded:
-					f.Logger.Err("timed out while fetching config from %s", name)
 				default:
 					f.Logger.Err("failed to fetch config from %s: %v", name, err)
 				}
@@ -101,9 +99,6 @@ Loop:
 	for {
 		select {
 		case <-ctx.Done():
-			if ctx.Err() == context.DeadlineExceeded {
-				f.Logger.Info("neither config drive nor metadata service were available in time. Continuing without a config...")
-			}
 			break Loop
 		case <-errChan:
 			dispatchCount--
