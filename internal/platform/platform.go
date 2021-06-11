@@ -32,6 +32,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/noop"
 	"github.com/coreos/ignition/v2/internal/providers/openstack"
 	"github.com/coreos/ignition/v2/internal/providers/packet"
+	"github.com/coreos/ignition/v2/internal/providers/powervs"
 	"github.com/coreos/ignition/v2/internal/providers/qemu"
 	"github.com/coreos/ignition/v2/internal/providers/virtualbox"
 	"github.com/coreos/ignition/v2/internal/providers/vmware"
@@ -151,6 +152,10 @@ func init() {
 		name:   "packet",
 		fetch:  packet.FetchConfig,
 		status: packet.PostStatus,
+	})
+	configs.Register(Config{
+		name:  "powervs",
+		fetch: powervs.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "qemu",
