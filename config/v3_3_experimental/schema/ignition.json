@@ -298,19 +298,15 @@
           "type": "object",
           "properties": {
             "pin": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "config": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "needsNetwork": {
               "type": ["boolean", "null"]
             }
-          },
-          "required": [
-            "pin",
-            "config"
-          ]
+          }
         },
         "tang": {
           "type": "object",

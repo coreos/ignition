@@ -248,8 +248,8 @@ func checkNonKeyedStructFields(t reflect.Type, ignoreTypes typeSet) error {
 			if !ignoreType &&
 				util.IsPrimitive(f.Type.Kind()) &&
 				!ignore(t, f, "Version", "Ignition") &&
-				!ignore(t, f, "Config", v3_2.Custom{}, v3_3.ClevisCustom{}) &&
-				!ignore(t, f, "Pin", v3_2.Custom{}, v3_3.ClevisCustom{}) {
+				!ignore(t, f, "Config", v3_2.Custom{}) &&
+				!ignore(t, f, "Pin", v3_2.Custom{}) {
 				return fmt.Errorf("Type %s has non-pointer primitive field %s", t.Name(), f.Name)
 			}
 			if err := checkNonKeyedStructFields(f.Type, ignoreTypes); err != nil {

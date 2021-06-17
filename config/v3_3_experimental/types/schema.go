@@ -10,9 +10,9 @@ type Clevis struct {
 }
 
 type ClevisCustom struct {
-	Config       string `json:"config"`
-	NeedsNetwork *bool  `json:"needsNetwork,omitempty"`
-	Pin          string `json:"pin"`
+	Config       *string `json:"config,omitempty"`
+	NeedsNetwork *bool   `json:"needsNetwork,omitempty"`
+	Pin          *string `json:"pin,omitempty"`
 }
 
 type Config struct {

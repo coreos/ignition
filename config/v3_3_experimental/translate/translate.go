@@ -68,9 +68,9 @@ func translateClevis(old old_types.Clevis) (ret types.Clevis) {
 
 func translateClevisCustom(old old_types.Custom) (ret types.ClevisCustom) {
 	tr := translate.NewTranslator()
-	tr.Translate(&old.Config, &ret.Config)
+	ret.Config = util.StrToPtr(old.Config)
 	tr.Translate(&old.NeedsNetwork, &ret.NeedsNetwork)
-	tr.Translate(&old.Pin, &ret.Pin)
+	ret.Pin = util.StrToPtr(old.Pin)
 	return
 }
 

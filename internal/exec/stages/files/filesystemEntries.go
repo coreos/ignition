@@ -63,7 +63,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 		}
 		uuid := strings.TrimSpace(string(out))
 		netdev := ""
-		if len(luks.Clevis.Tang) > 0 || luks.Clevis.Custom.Pin != "" && cutil.IsTrue(luks.Clevis.Custom.NeedsNetwork) {
+		if len(luks.Clevis.Tang) > 0 || cutil.NotEmpty(luks.Clevis.Custom.Pin) && cutil.IsTrue(luks.Clevis.Custom.NeedsNetwork) {
 			netdev = ",_netdev"
 		}
 		keyfile := "none"

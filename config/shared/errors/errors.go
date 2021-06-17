@@ -56,6 +56,7 @@ var (
 	ErrLuksLabelTooLong          = errors.New("luks device labels cannot be longer than 47 characters")
 	ErrLuksNameContainsSlash     = errors.New("device names cannot contain slashes")
 	ErrInvalidLuksKeyFile        = errors.New("invalid key-file source")
+	ErrClevisPinRequired         = errors.New("missing required custom clevis pin")
 	ErrUnknownClevisPin          = errors.New("unsupported clevis pin")
 	ErrClevisConfigRequired      = errors.New("missing required custom clevis config")
 	ErrClevisCustomWithOthers    = errors.New("cannot use custom clevis config with tpm2, tang, or threshold")
