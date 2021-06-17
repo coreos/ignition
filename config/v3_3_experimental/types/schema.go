@@ -191,7 +191,7 @@ type Proxy struct {
 }
 
 type Raid struct {
-	Devices []Device     `json:"devices"`
+	Devices []Device     `json:"devices,omitempty"`
 	Level   string       `json:"level"`
 	Name    string       `json:"name"`
 	Options []RaidOption `json:"options,omitempty"`
