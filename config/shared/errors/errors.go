@@ -67,7 +67,7 @@ var (
 	ErrNoPath                    = errors.New("path not specified")
 	ErrPathRelative              = errors.New("path not absolute")
 	ErrDirtyPath                 = errors.New("path is not fully simplified")
-	ErrSparesUnsupportedForLevel = errors.New("spares unsupported for arrays with a level greater than 0")
+	ErrSparesUnsupportedForLevel = errors.New("spares unsupported for linear and raid0 arrays")
 	ErrUnrecognizedRaidLevel     = errors.New("unrecognized raid level")
 	ErrShouldNotExistWithOthers  = errors.New("shouldExist specified false with other options also specified")
 	ErrZeroesWithShouldNotExist  = errors.New("shouldExist is false for a partition and other partition(s) has start or size 0")
