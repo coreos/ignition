@@ -58,6 +58,14 @@ func TestRaidValidate(t *testing.T) {
 			at:  path.New("", "level"),
 			out: errors.ErrUnrecognizedRaidLevel,
 		},
+		{
+			in: Raid{
+				Name:  "name",
+				Level: "0",
+			},
+			at:  path.New("", "devices"),
+			out: errors.ErrRaidDevicesRequired,
+		},
 	}
 
 	for i, test := range tests {
