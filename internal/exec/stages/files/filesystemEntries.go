@@ -260,7 +260,7 @@ func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 		return fmt.Errorf("stat() failed on %s: %v", s.Path, err)
 	case hard:
 		// check that the file at that path points to the same inode as target
-		targetPath, err := u.JoinPath(s.Target)
+		targetPath, err := u.JoinPath(*s.Target)
 		if err != nil {
 			return fmt.Errorf("error resolving target path of hard link %s: %v", s.Path, err)
 		}
@@ -271,17 +271,17 @@ func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 		if !os.SameFile(st, targetst) {
 			return fmt.Errorf("error creating hard link %s: a file already exists at that path but is not the target and overwrite is false", s.Path)
 		}
-		l.Info("Hardlink %s to %s already exists, doing nothing", s.Path, s.Target)
+		l.Info("Hardlink %s to %s already exists, doing nothing", s.Path, *s.Target)
 		return nil
 	case !hard:
 		// if the existing file is a symlink, check that its target is correct
 		if st.Mode()&os.ModeSymlink != 0 {
 			if target, err := os.Readlink(s.Path); err != nil {
 				return fmt.Errorf("error reading link at %s: %v", s.Path, err)
-			} else if filepath.Clean(target) != filepath.Clean(s.Target) {
-				return fmt.Errorf("error creating symlink %s: a symlink exists at that path but points to %s, not %s and overwrite is false", s.Path, target, s.Target)
+			} else if filepath.Clean(target) != filepath.Clean(*s.Target) {
+				return fmt.Errorf("error creating symlink %s: a symlink exists at that path but points to %s, not %s and overwrite is false", s.Path, target, *s.Target)
 			} else {
-				l.Info("Symlink %s to %s already exists, doing nothing", s.Path, s.Target)
+				l.Info("Symlink %s to %s already exists, doing nothing", s.Path, *s.Target)
 				return nil
 			}
 		}
@@ -291,7 +291,7 @@ func (tmp linkEntry) create(l *log.Logger, u util.Util) error {
 	if err := l.LogOp(
 		func() error {
 			return u.WriteLink(s)
-		}, "writing link %q -> %q", s.Path, s.Target,
+		}, "writing link %q -> %q", s.Path, *s.Target,
 	); err != nil {
 		return fmt.Errorf("failed to create link %q: %v", s.Path, err)
 	}

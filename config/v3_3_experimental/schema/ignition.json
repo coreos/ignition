@@ -410,15 +410,12 @@
               "type": "object",
               "properties": {
                 "target": {
-                  "type": "string"
+                  "type": ["string", "null"]
                 },
                 "hard": {
                   "type": ["boolean", "null"]
                 }
-              },
-              "required": [
-                  "target"
-              ]
+              }
             }
           ]
         },

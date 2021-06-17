@@ -16,6 +16,7 @@ package translate
 
 import (
 	"github.com/coreos/ignition/v2/config/translate"
+	"github.com/coreos/ignition/v2/config/util"
 	old_types "github.com/coreos/ignition/v2/config/v3_2/types"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 )
@@ -63,10 +64,18 @@ func translateClevisCustom(old old_types.Custom) (ret types.ClevisCustom) {
 	return
 }
 
+func translateLinkEmbedded1(old old_types.LinkEmbedded1) (ret types.LinkEmbedded1) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Hard, &ret.Hard)
+	ret.Target = util.StrToPtr(old.Target)
+	return
+}
+
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
 	tr.AddCustomTranslator(translateLuks)
+	tr.AddCustomTranslator(translateLinkEmbedded1)
 	tr.Translate(&old.Ignition, &ret.Ignition)
 	tr.Translate(&old.Passwd, &ret.Passwd)
 	tr.Translate(&old.Storage, &ret.Storage)

@@ -39,10 +39,12 @@ func TestStorageValidate(t *testing.T) {
 			in: Storage{
 				Links: []Link{
 					{
-						Node: Node{Path: "/foo"},
+						Node:          Node{Path: "/foo"},
+						LinkEmbedded1: LinkEmbedded1{Target: util.StrToPtr("/foo-t")},
 					},
 					{
-						Node: Node{Path: "/quux"},
+						Node:          Node{Path: "/quux"},
+						LinkEmbedded1: LinkEmbedded1{Target: util.StrToPtr("/quux-t")},
 					},
 				},
 				Files: []File{
@@ -62,7 +64,8 @@ func TestStorageValidate(t *testing.T) {
 			in: Storage{
 				Links: []Link{
 					{
-						Node: Node{Path: "/foo"},
+						Node:          Node{Path: "/foo"},
+						LinkEmbedded1: LinkEmbedded1{Target: util.StrToPtr("/foo-t")},
 					},
 				},
 				Files: []File{
@@ -78,7 +81,8 @@ func TestStorageValidate(t *testing.T) {
 			in: Storage{
 				Links: []Link{
 					{
-						Node: Node{Path: "/foo"},
+						Node:          Node{Path: "/foo"},
+						LinkEmbedded1: LinkEmbedded1{Target: util.StrToPtr("/foo-t")},
 					},
 				},
 				Directories: []Directory{
@@ -94,10 +98,12 @@ func TestStorageValidate(t *testing.T) {
 			in: Storage{
 				Links: []Link{
 					{
-						Node: Node{Path: "/foo"},
+						Node:          Node{Path: "/foo"},
+						LinkEmbedded1: LinkEmbedded1{Target: util.StrToPtr("/foo-t")},
 					},
 					{
-						Node: Node{Path: "/foo/bar"},
+						Node:          Node{Path: "/foo/bar"},
+						LinkEmbedded1: LinkEmbedded1{Target: util.StrToPtr("/foo-bar-t")},
 					},
 				},
 			},
@@ -108,10 +114,36 @@ func TestStorageValidate(t *testing.T) {
 			in: Storage{
 				Links: []Link{
 					{
-						Node: Node{Path: "/foo"},
+						Node:          Node{Path: "/foo"},
+						LinkEmbedded1: LinkEmbedded1{Hard: util.BoolToPtr(true)},
+					},
+				},
+			},
+			out: errors.ErrLinkTargetRequired,
+			at:  path.New("", "links", 0, "target"),
+		},
+		{
+			in: Storage{
+				Links: []Link{
+					{
+						Node:          Node{Path: "/foo"},
+						LinkEmbedded1: LinkEmbedded1{Target: util.StrToPtr("")},
+					},
+				},
+			},
+			out: errors.ErrLinkTargetRequired,
+			at:  path.New("", "links", 0, "target"),
+		},
+		{
+			in: Storage{
+				Links: []Link{
+					{
+						Node:          Node{Path: "/foo"},
+						LinkEmbedded1: LinkEmbedded1{Target: util.StrToPtr("/foo-t")},
 					},
 					{
-						Node: Node{Path: "/foob/bar"},
+						Node:          Node{Path: "/foob/bar"},
+						LinkEmbedded1: LinkEmbedded1{Target: util.StrToPtr("/foob-bar-t")},
 					},
 				},
 			},
@@ -123,7 +155,7 @@ func TestStorageValidate(t *testing.T) {
 					{
 						Node: Node{Path: "/quux"},
 						LinkEmbedded1: LinkEmbedded1{
-							Target: "/foo/bar",
+							Target: util.StrToPtr("/foo/bar"),
 							Hard:   util.BoolToPtr(true),
 						},
 					},

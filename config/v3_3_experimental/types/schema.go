@@ -104,8 +104,8 @@ type Link struct {
 }
 
 type LinkEmbedded1 struct {
-	Hard   *bool  `json:"hard,omitempty"`
-	Target string `json:"target"`
+	Hard   *bool   `json:"hard,omitempty"`
+	Target *string `json:"target,omitempty"`
 }
 
 type Luks struct {

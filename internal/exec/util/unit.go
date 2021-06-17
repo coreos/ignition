@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"syscall"
 
+	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 
@@ -187,7 +188,7 @@ func (ut Util) EnableRuntimeUnit(unit types.Unit, target string) error {
 			Path: nodePath,
 		},
 		LinkEmbedded1: types.LinkEmbedded1{
-			Target: targetPath,
+			Target: cutil.StrToPtr(targetPath),
 		},
 	}
 

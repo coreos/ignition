@@ -133,14 +133,14 @@ func (u Util) WriteLink(s types.Link) error {
 	}
 
 	if cutil.IsTrue(s.Hard) {
-		targetPath, err := u.JoinPath(s.Target)
+		targetPath, err := u.JoinPath(*s.Target)
 		if err != nil {
 			return err
 		}
 		return os.Link(targetPath, path)
 	}
 
-	if err := os.Symlink(s.Target, path); err != nil {
+	if err := os.Symlink(*s.Target, path); err != nil {
 		return fmt.Errorf("Could not create symlink: %v", err)
 	}
 
