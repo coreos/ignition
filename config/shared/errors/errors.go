@@ -68,6 +68,7 @@ var (
 	ErrNoPath                    = errors.New("path not specified")
 	ErrPathRelative              = errors.New("path not absolute")
 	ErrDirtyPath                 = errors.New("path is not fully simplified")
+	ErrRaidLevelRequired         = errors.New("raid level is required")
 	ErrSparesUnsupportedForLevel = errors.New("spares unsupported for linear and raid0 arrays")
 	ErrUnrecognizedRaidLevel     = errors.New("unrecognized raid level")
 	ErrRaidDevicesRequired       = errors.New("raid devices required")

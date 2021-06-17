@@ -217,7 +217,7 @@
               "type": "string"
             },
             "level": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "spares": {
               "type": ["integer", "null"]
@@ -236,8 +236,7 @@
             }
           },
           "required": [
-              "name",
-              "level"
+              "name"
           ]
         },
         "luks": {

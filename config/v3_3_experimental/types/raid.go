@@ -16,6 +16,7 @@ package types
 
 import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/util"
 
 	"github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
@@ -40,7 +41,10 @@ func (ra Raid) Validate(c path.ContextPath) (r report.Report) {
 }
 
 func (r Raid) validateLevel() error {
-	switch r.Level {
+	if util.NilOrEmpty(r.Level) {
+		return errors.ErrRaidLevelRequired
+	}
+	switch *r.Level {
 	case "linear", "raid0", "0", "stripe":
 		if r.Spares != nil && *r.Spares != 0 {
 			return errors.ErrSparesUnsupportedForLevel

@@ -34,7 +34,7 @@ func TestRaidValidate(t *testing.T) {
 		{
 			in: Raid{
 				Name:    "name",
-				Level:   "0",
+				Level:   util.StrToPtr("0"),
 				Devices: []Device{"/dev/fd0"},
 				Spares:  util.IntToPtr(0),
 			},
@@ -43,7 +43,15 @@ func TestRaidValidate(t *testing.T) {
 		{
 			in: Raid{
 				Name:    "name",
-				Level:   "0",
+				Devices: []Device{"/dev/fd0"},
+			},
+			at:  path.New("", "level"),
+			out: errors.ErrRaidLevelRequired,
+		},
+		{
+			in: Raid{
+				Name:    "name",
+				Level:   util.StrToPtr("0"),
 				Devices: []Device{"/dev/fd0"},
 				Spares:  util.IntToPtr(1),
 			},
@@ -54,6 +62,7 @@ func TestRaidValidate(t *testing.T) {
 			in: Raid{
 				Name:    "name",
 				Devices: []Device{"/dev/fd0"},
+				Level:   util.StrToPtr("zzz"),
 			},
 			at:  path.New("", "level"),
 			out: errors.ErrUnrecognizedRaidLevel,
@@ -61,7 +70,7 @@ func TestRaidValidate(t *testing.T) {
 		{
 			in: Raid{
 				Name:  "name",
-				Level: "0",
+				Level: util.StrToPtr("0"),
 			},
 			at:  path.New("", "devices"),
 			out: errors.ErrRaidDevicesRequired,

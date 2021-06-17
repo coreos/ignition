@@ -113,7 +113,7 @@ func checkStructFieldKey(t reflect.Type, keyedStructs typeSet) error {
 				haveNonPointerKey = true
 				if !affectsKey &&
 					!ignore(t, field, "Target", v3_0.LinkEmbedded1{}, v3_1.LinkEmbedded1{}, v3_2.LinkEmbedded1{}) &&
-					!ignore(t, field, "Level", v3_0.Raid{}, v3_1.Raid{}, v3_2.Raid{}, v3_3.Raid{}) {
+					!ignore(t, field, "Level", v3_0.Raid{}, v3_1.Raid{}, v3_2.Raid{}) {
 					return fmt.Errorf("Non-pointer %s.%s does not affect key", t.Name(), field.Name)
 				}
 			case field.Type.Kind() == reflect.Ptr && util.IsPrimitive(field.Type.Elem().Kind()):

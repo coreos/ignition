@@ -56,7 +56,7 @@ func (s stage) createRaids(config types.Config) error {
 			"--force",
 			"--run",
 			"--homehost", "any",
-			"--level", md.Level,
+			"--level", *md.Level,
 			"--raid-devices", fmt.Sprintf("%d", len(md.Devices)-*md.Spares),
 		}
 

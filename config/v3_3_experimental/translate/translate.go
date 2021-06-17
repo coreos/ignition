@@ -28,6 +28,16 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	return
 }
 
+func translateRaid(old old_types.Raid) (ret types.Raid) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Devices, &ret.Devices)
+	ret.Level = util.StrToPtr(old.Level)
+	tr.Translate(&old.Name, &ret.Name)
+	tr.Translate(&old.Options, &ret.Options)
+	tr.Translate(&old.Spares, &ret.Spares)
+	return
+}
+
 func translateLuks(old old_types.Luks) (ret types.Luks) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateClevis)
@@ -74,6 +84,7 @@ func translateLinkEmbedded1(old old_types.LinkEmbedded1) (ret types.LinkEmbedded
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
+	tr.AddCustomTranslator(translateRaid)
 	tr.AddCustomTranslator(translateLuks)
 	tr.AddCustomTranslator(translateLinkEmbedded1)
 	tr.Translate(&old.Ignition, &ret.Ignition)
