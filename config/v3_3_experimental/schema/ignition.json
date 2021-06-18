@@ -217,7 +217,7 @@
               "type": "string"
             },
             "level": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "spares": {
               "type": ["integer", "null"]
@@ -236,8 +236,7 @@
             }
           },
           "required": [
-              "name",
-              "level"
+              "name"
           ]
         },
         "luks": {
@@ -299,19 +298,15 @@
           "type": "object",
           "properties": {
             "pin": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "config": {
-              "type": "string"
+              "type": ["string", "null"]
             },
             "needsNetwork": {
               "type": ["boolean", "null"]
             }
-          },
-          "required": [
-            "pin",
-            "config"
-          ]
+          }
         },
         "tang": {
           "type": "object",
@@ -410,15 +405,12 @@
               "type": "object",
               "properties": {
                 "target": {
-                  "type": "string"
+                  "type": ["string", "null"]
                 },
                 "hard": {
                   "type": ["boolean", "null"]
                 }
-              },
-              "required": [
-                  "target"
-              ]
+              }
             }
           ]
         },

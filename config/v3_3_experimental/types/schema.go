@@ -10,9 +10,9 @@ type Clevis struct {
 }
 
 type ClevisCustom struct {
-	Config       string `json:"config"`
-	NeedsNetwork *bool  `json:"needsNetwork,omitempty"`
-	Pin          string `json:"pin"`
+	Config       *string `json:"config,omitempty"`
+	NeedsNetwork *bool   `json:"needsNetwork,omitempty"`
+	Pin          *string `json:"pin,omitempty"`
 }
 
 type Config struct {
@@ -104,8 +104,8 @@ type Link struct {
 }
 
 type LinkEmbedded1 struct {
-	Hard   *bool  `json:"hard,omitempty"`
-	Target string `json:"target"`
+	Hard   *bool   `json:"hard,omitempty"`
+	Target *string `json:"target,omitempty"`
 }
 
 type Luks struct {
@@ -192,7 +192,7 @@ type Proxy struct {
 
 type Raid struct {
 	Devices []Device     `json:"devices,omitempty"`
-	Level   string       `json:"level"`
+	Level   *string      `json:"level,omitempty"`
 	Name    string       `json:"name"`
 	Options []RaidOption `json:"options,omitempty"`
 	Spares  *int         `json:"spares,omitempty"`

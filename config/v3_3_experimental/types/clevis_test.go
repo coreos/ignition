@@ -25,55 +25,45 @@ import (
 	"github.com/coreos/vcontext/report"
 )
 
-func TestRaidValidate(t *testing.T) {
+func TestClevisCustomValidate(t *testing.T) {
 	tests := []struct {
-		in  Raid
+		in  ClevisCustom
 		at  path.ContextPath
 		out error
 	}{
 		{
-			in: Raid{
-				Name:    "name",
-				Level:   util.StrToPtr("0"),
-				Devices: []Device{"/dev/fd0"},
-				Spares:  util.IntToPtr(0),
+			in:  ClevisCustom{},
+			out: nil,
+		},
+		{
+			in: ClevisCustom{
+				Config:       util.StrToPtr("z"),
+				NeedsNetwork: util.BoolToPtr(true),
+				Pin:          util.StrToPtr("sss"),
 			},
 			out: nil,
 		},
 		{
-			in: Raid{
-				Name:    "name",
-				Devices: []Device{"/dev/fd0"},
+			in: ClevisCustom{
+				Config: util.StrToPtr("z"),
 			},
-			at:  path.New("", "level"),
-			out: errors.ErrRaidLevelRequired,
+			at:  path.New("", "pin"),
+			out: errors.ErrClevisPinRequired,
 		},
 		{
-			in: Raid{
-				Name:    "name",
-				Level:   util.StrToPtr("0"),
-				Devices: []Device{"/dev/fd0"},
-				Spares:  util.IntToPtr(1),
+			in: ClevisCustom{
+				Config: util.StrToPtr("z"),
+				Pin:    util.StrToPtr("z"),
 			},
-			at:  path.New("", "level"),
-			out: errors.ErrSparesUnsupportedForLevel,
+			at:  path.New("", "pin"),
+			out: errors.ErrUnknownClevisPin,
 		},
 		{
-			in: Raid{
-				Name:    "name",
-				Devices: []Device{"/dev/fd0"},
-				Level:   util.StrToPtr("zzz"),
+			in: ClevisCustom{
+				Pin: util.StrToPtr("tpm2"),
 			},
-			at:  path.New("", "level"),
-			out: errors.ErrUnrecognizedRaidLevel,
-		},
-		{
-			in: Raid{
-				Name:  "name",
-				Level: util.StrToPtr("0"),
-			},
-			at:  path.New("", "devices"),
-			out: errors.ErrRaidDevicesRequired,
+			at:  path.New("", "config"),
+			out: errors.ErrClevisConfigRequired,
 		},
 	}
 

@@ -112,8 +112,8 @@ func checkStructFieldKey(t reflect.Type, keyedStructs typeSet) error {
 				// non-pointer primitive; must affect key
 				haveNonPointerKey = true
 				if !affectsKey &&
-					!ignore(t, field, "Target", v3_0.LinkEmbedded1{}, v3_1.LinkEmbedded1{}, v3_2.LinkEmbedded1{}, v3_3.LinkEmbedded1{}) &&
-					!ignore(t, field, "Level", v3_0.Raid{}, v3_1.Raid{}, v3_2.Raid{}, v3_3.Raid{}) {
+					!ignore(t, field, "Target", v3_0.LinkEmbedded1{}, v3_1.LinkEmbedded1{}, v3_2.LinkEmbedded1{}) &&
+					!ignore(t, field, "Level", v3_0.Raid{}, v3_1.Raid{}, v3_2.Raid{}) {
 					return fmt.Errorf("Non-pointer %s.%s does not affect key", t.Name(), field.Name)
 				}
 			case field.Type.Kind() == reflect.Ptr && util.IsPrimitive(field.Type.Elem().Kind()):
@@ -248,8 +248,8 @@ func checkNonKeyedStructFields(t reflect.Type, ignoreTypes typeSet) error {
 			if !ignoreType &&
 				util.IsPrimitive(f.Type.Kind()) &&
 				!ignore(t, f, "Version", "Ignition") &&
-				!ignore(t, f, "Config", v3_2.Custom{}, v3_3.ClevisCustom{}) &&
-				!ignore(t, f, "Pin", v3_2.Custom{}, v3_3.ClevisCustom{}) {
+				!ignore(t, f, "Config", v3_2.Custom{}) &&
+				!ignore(t, f, "Pin", v3_2.Custom{}) {
 				return fmt.Errorf("Type %s has non-pointer primitive field %s", t.Name(), f.Name)
 			}
 			if err := checkNonKeyedStructFields(f.Type, ignoreTypes); err != nil {

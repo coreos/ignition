@@ -16,6 +16,7 @@ package translate
 
 import (
 	"github.com/coreos/ignition/v2/config/translate"
+	"github.com/coreos/ignition/v2/config/util"
 	old_types "github.com/coreos/ignition/v2/config/v3_2/types"
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 )
@@ -24,6 +25,16 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	// use a new translator so we don't recurse infinitely
 	translate.NewTranslator().Translate(&old, &ret)
 	ret.Version = types.MaxVersion.String()
+	return
+}
+
+func translateRaid(old old_types.Raid) (ret types.Raid) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Devices, &ret.Devices)
+	ret.Level = util.StrToPtr(old.Level)
+	tr.Translate(&old.Name, &ret.Name)
+	tr.Translate(&old.Options, &ret.Options)
+	tr.Translate(&old.Spares, &ret.Spares)
 	return
 }
 
@@ -57,16 +68,25 @@ func translateClevis(old old_types.Clevis) (ret types.Clevis) {
 
 func translateClevisCustom(old old_types.Custom) (ret types.ClevisCustom) {
 	tr := translate.NewTranslator()
-	tr.Translate(&old.Config, &ret.Config)
+	ret.Config = util.StrToPtr(old.Config)
 	tr.Translate(&old.NeedsNetwork, &ret.NeedsNetwork)
-	tr.Translate(&old.Pin, &ret.Pin)
+	ret.Pin = util.StrToPtr(old.Pin)
+	return
+}
+
+func translateLinkEmbedded1(old old_types.LinkEmbedded1) (ret types.LinkEmbedded1) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Hard, &ret.Hard)
+	ret.Target = util.StrToPtr(old.Target)
 	return
 }
 
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
+	tr.AddCustomTranslator(translateRaid)
 	tr.AddCustomTranslator(translateLuks)
+	tr.AddCustomTranslator(translateLinkEmbedded1)
 	tr.Translate(&old.Ignition, &ret.Ignition)
 	tr.Translate(&old.Passwd, &ret.Passwd)
 	tr.Translate(&old.Storage, &ret.Storage)

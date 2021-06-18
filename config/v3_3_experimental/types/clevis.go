@@ -23,22 +23,26 @@ import (
 )
 
 func (c Clevis) IsPresent() bool {
-	return c.Custom.Pin != "" ||
+	return util.NotEmpty(c.Custom.Pin) ||
 		len(c.Tang) > 0 ||
 		util.IsTrue(c.Tpm2) ||
 		c.Threshold != nil && *c.Threshold != 0
 }
 
 func (cu ClevisCustom) Validate(c path.ContextPath) (r report.Report) {
-	if cu.Pin == "" && cu.Config == "" && !util.IsTrue(cu.NeedsNetwork) {
+	if util.NilOrEmpty(cu.Pin) && util.NilOrEmpty(cu.Config) && !util.IsTrue(cu.NeedsNetwork) {
 		return
 	}
-	switch cu.Pin {
-	case "tpm2", "tang", "sss":
-	default:
-		r.AddOnError(c.Append("pin"), errors.ErrUnknownClevisPin)
+	if util.NotEmpty(cu.Pin) {
+		switch *cu.Pin {
+		case "tpm2", "tang", "sss":
+		default:
+			r.AddOnError(c.Append("pin"), errors.ErrUnknownClevisPin)
+		}
+	} else {
+		r.AddOnError(c.Append("pin"), errors.ErrClevisPinRequired)
 	}
-	if cu.Config == "" {
+	if util.NilOrEmpty(cu.Config) {
 		r.AddOnError(c.Append("config"), errors.ErrClevisConfigRequired)
 	}
 	return
