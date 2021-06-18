@@ -16,6 +16,7 @@ package translate
 
 import (
 	"github.com/coreos/ignition/v2/config/translate"
+	"github.com/coreos/ignition/v2/config/util"
 	old_types "github.com/coreos/ignition/v2/config/v3_0/types"
 	"github.com/coreos/ignition/v2/config/v3_1/types"
 )
@@ -44,7 +45,7 @@ func translateConfigReference(old old_types.ConfigReference) (ret types.Resource
 func translateCAReference(old old_types.CaReference) (ret types.Resource) {
 	// use a new translator so we don't recurse infinitely
 	tr := translate.NewTranslator()
-	ret.Source = &old.Source
+	ret.Source = util.StrToPtr(old.Source)
 	tr.Translate(&old.Verification, &ret.Verification)
 	return
 }

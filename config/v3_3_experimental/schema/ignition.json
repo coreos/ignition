@@ -237,8 +237,7 @@
           },
           "required": [
               "name",
-              "level",
-              "devices"
+              "level"
           ]
         },
         "luks": {

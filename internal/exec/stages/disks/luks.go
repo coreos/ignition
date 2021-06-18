@@ -252,10 +252,8 @@ func (s *stage) createLuks(config types.Config) error {
 			if luks.Clevis.Custom.Pin != "" {
 				pin = luks.Clevis.Custom.Pin
 				config = luks.Clevis.Custom.Config
-			}
-
-			// if the override pin is empty the config must also be empty
-			if pin == "" {
+			} else {
+				// if the override pin is empty the config must also be empty
 				pin = "sss"
 				c := Clevis{
 					Threshold: 1,
