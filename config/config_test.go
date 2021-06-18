@@ -228,7 +228,7 @@ func testConfigType(t reflect.Type, keyedStructs typeSet) error {
 // Walk a struct hierarchy, checking every struct type not in ignoreTypes
 // for non-pointer fields.  Return an error if any are found that aren't on
 // an allowlist of known problems.  ignoreTypes is a set of struct types
-// that have already been checked against the rules for typed structs, and
+// that have already been checked against the rules for keyed structs, and
 // shouldn't be checked against our stricter rules.
 func checkNonKeyedStructFields(t reflect.Type, ignoreTypes typeSet) error {
 	kind := t.Kind()
