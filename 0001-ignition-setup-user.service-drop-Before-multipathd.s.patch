@@ -1,0 +1,33 @@
+From 88a96f132240a71112397adbb4b7ffafd570e723 Mon Sep 17 00:00:00 2001
+From: Jonathan Lebon <jonathan@jlebon.com>
+Date: Wed, 12 May 2021 17:27:20 -0400
+Subject: [PATCH] ignition-setup-user.service: drop Before=multipathd.service
+
+We don't officially support multipath enabled on first boot yet. That's
+what I'm working on, but this gets in the way because we actually need
+to do the *opposite* (i.e. ensure that any I/O going to multipathed
+devices is done through the multipath device node).
+
+Related: https://bugzilla.redhat.com/show_bug.cgi?id=1954025
+---
+ dracut/30ignition/ignition-setup-user.service | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/dracut/30ignition/ignition-setup-user.service b/dracut/30ignition/ignition-setup-user.service
+index aa0524c..40c53dd 100644
+--- a/dracut/30ignition/ignition-setup-user.service
++++ b/dracut/30ignition/ignition-setup-user.service
+@@ -11,10 +11,6 @@ OnFailureJobMode=isolate
+ # Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
+ Before=ignition-fetch-offline.service
+
+-# We want to make sure we're not racing with multipath taking ownership of the
+-# boot device.
+-Before=multipathd.service
+-
+ # On diskful boots, ignition-generator adds Requires/After on
+ # dev-disk-by\x2dlabel-boot.device
+ 
+-- 
+2.31.1
+

@@ -62,12 +62,13 @@
 
 Name:           ignition
 Version:        2.10.1
-Release:        2.rhaos4.9%{?dist}
+Release:        3.rhaos4.9%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/v%{version}/%{repo}-%{version}.tar.gz
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
+Patch1:         0001-ignition-setup-user.service-drop-Before-multipathd.s.patch
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: %{go_arches}
@@ -573,6 +574,12 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Mon Jun 21 2021 Jonathan Lebon <jlebon@redhat.com> - 2.10.1-3.rhaos4.9
+- Backport patch for multipath on firstboot
+  https://github.com/coreos/ignition/pull/1208
+  https://github.com/coreos/fedora-coreos-config/pull/1011
+  https://bugzilla.redhat.com/show_bug.cgi?id=1954025
+
 * Wed Jun 9 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.10.1-2.rhaos4.9
 - Rebuild to address the CVE related to golang's net/http package
   https://bugzilla.redhat.com/show_bug.cgi?id=1959248
