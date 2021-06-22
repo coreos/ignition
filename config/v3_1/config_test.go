@@ -138,6 +138,14 @@ func TestParse(t *testing.T) {
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.3.0"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.4.0-experimental"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
 			in:  in{config: []byte{}},
 			out: out{err: errors.ErrEmpty},
 		},

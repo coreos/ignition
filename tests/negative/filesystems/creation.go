@@ -48,7 +48,7 @@ func EraseBlockDeviceWithInvalidoptions() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.3.0-experimental"
+	configMinVersion := "3.3.0"
 
 	in[0].Partitions.GetPartition("EFI-SYSTEM").FilesystemType = "ext4"
 
