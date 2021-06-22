@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v3_3
+package v3_4_experimental
 
 import (
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/v3_3/types"
+	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -77,7 +77,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "3.3.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0-experimental"}}`)},
@@ -118,6 +118,10 @@ func TestParse(t *testing.T) {
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "3.3.0-experimental"}}`)},
 			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.4.0-experimental"}}`)},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"},}`)},

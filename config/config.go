@@ -15,8 +15,8 @@
 package config
 
 import (
-	exp "github.com/coreos/ignition/v2/config/v3_3_experimental"
-	types_exp "github.com/coreos/ignition/v2/config/v3_3_experimental/types"
+	exp "github.com/coreos/ignition/v2/config/v3_4_experimental"
+	types_exp "github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 
 	"github.com/coreos/vcontext/report"
 )

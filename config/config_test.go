@@ -23,7 +23,8 @@ import (
 	v3_0 "github.com/coreos/ignition/v2/config/v3_0/types"
 	v3_1 "github.com/coreos/ignition/v2/config/v3_1/types"
 	v3_2 "github.com/coreos/ignition/v2/config/v3_2/types"
-	v3_3 "github.com/coreos/ignition/v2/config/v3_3_experimental/types"
+	v3_3 "github.com/coreos/ignition/v2/config/v3_3/types"
+	v3_4 "github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 )
 
 type typeSet map[reflect.Type]struct{}
@@ -270,6 +271,7 @@ func TestConfigStructure(t *testing.T) {
 		reflect.TypeOf(v3_1.Config{}),
 		reflect.TypeOf(v3_2.Config{}),
 		reflect.TypeOf(v3_3.Config{}),
+		reflect.TypeOf(v3_4.Config{}),
 	}
 
 	for _, configType := range configs {
