@@ -37,6 +37,8 @@ const (
 )
 
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+	abort := make(chan int)
+	defer close(abort)
 	url, err := readCmdline(f.Logger)
 	if err != nil {
 		return types.Config{}, report.Report{}, err
@@ -46,7 +48,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
 	}
 
-	data, err := f.FetchToBuffer(*url, resource.FetchOptions{})
+	data, err := f.FetchToBuffer(*url, resource.FetchOptions{}, abort)
 	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}

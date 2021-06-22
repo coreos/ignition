@@ -37,7 +37,9 @@ var (
 
 // FetchConfig fetch Exoscale ign user-data config
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	data, err := f.FetchToBuffer(userdataURL, resource.FetchOptions{})
+	abort := make(chan int)
+	defer close(abort)
+	data, err := f.FetchToBuffer(userdataURL, resource.FetchOptions{}, abort)
 	if err != nil && err != resource.ErrNotFound {
 		return types.Config{}, report.Report{}, err
 	}

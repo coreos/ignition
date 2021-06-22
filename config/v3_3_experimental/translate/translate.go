@@ -23,7 +23,9 @@ import (
 
 func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	// use a new translator so we don't recurse infinitely
-	translate.NewTranslator().Translate(&old, &ret)
+	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateResource)
+	tr.Translate(&old, &ret)
 	ret.Version = types.MaxVersion.String()
 	return
 }
@@ -41,6 +43,7 @@ func translateRaid(old old_types.Raid) (ret types.Raid) {
 func translateLuks(old old_types.Luks) (ret types.Luks) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateClevis)
+	tr.AddCustomTranslator(translateResource)
 	if old.Clevis != nil {
 		tr.Translate(old.Clevis, &ret.Clevis)
 	}
@@ -81,8 +84,19 @@ func translateLinkEmbedded1(old old_types.LinkEmbedded1) (ret types.LinkEmbedded
 	return
 }
 
+func translateResource(old old_types.Resource) (ret types.Resource) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Compression, &ret.Compression)
+	tr.Translate(&old.HTTPHeaders, &ret.HTTPHeaders)
+	// Source: x is not equivalent to Sources: [x]
+	tr.Translate(&old.Source, &ret.Source)
+	tr.Translate(&old.Verification, &ret.Verification)
+	return
+}
+
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateResource)
 	tr.AddCustomTranslator(translateIgnition)
 	tr.AddCustomTranslator(translateRaid)
 	tr.AddCustomTranslator(translateLuks)

@@ -18,7 +18,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"io"
@@ -32,7 +31,6 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
 	"github.com/coreos/ignition/v2/internal/earlyrand"
 	"github.com/coreos/ignition/v2/internal/log"
-	"github.com/coreos/ignition/v2/internal/util"
 	"github.com/coreos/ignition/v2/internal/version"
 
 	"github.com/vincent-petithory/dataurl"
@@ -105,11 +103,15 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 	}
 
 	for _, ca := range cas {
-		cablob, err := f.getCABlob(ca)
+		if len(ca.GetSources()) == 0 {
+			f.Logger.Crit("invalid CA: %v", ignerrors.ErrSourceRequired)
+			return ignerrors.ErrSourceRequired
+		}
+		src, cablob, err := f.getCABlob(ca)
 		if err != nil {
 			return err
 		}
-		if err := f.parseCABundle(cablob, ca, pool); err != nil {
+		if err := f.parseCABundle(cablob, ca, src, pool); err != nil {
 			f.Logger.Err("Unable to parse CA bundle: %s", err)
 			return err
 		}
@@ -119,16 +121,16 @@ func (f *Fetcher) UpdateHttpTimeoutsAndCAs(timeouts types.Timeouts, cas []types.
 }
 
 // parseCABundle parses a CA bundle which includes multiple CAs.
-func (f *Fetcher) parseCABundle(cablob []byte, ca types.Resource, pool *x509.CertPool) error {
+func (f *Fetcher) parseCABundle(cablob []byte, ca types.Resource, src string, pool *x509.CertPool) error {
 	for len(cablob) > 0 {
 		block, rest := pem.Decode(cablob)
 		if block == nil {
-			f.Logger.Err("Unable to decode CA (%v)", ca.Source)
+			f.Logger.Err("Unable to decode CA (%v)", src)
 			return ErrPEMDecodeFailed
 		}
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
-			f.Logger.Err("Unable to parse CA (%v): %s", ca.Source, err)
+			f.Logger.Err("Unable to parse CA (%v): %s", src, err)
 			return err
 		}
 		f.Logger.Info("Adding %q to list of CAs", cert.Subject.CommonName)
@@ -138,71 +140,27 @@ func (f *Fetcher) parseCABundle(cablob []byte, ca types.Resource, pool *x509.Cer
 	return nil
 }
 
-func (f *Fetcher) getCABlob(ca types.Resource) ([]byte, error) {
-	// this is also already checked at validation time
-	if ca.Source == nil {
-		f.Logger.Crit("invalid CA: %v", ignerrors.ErrSourceRequired)
-		return nil, ignerrors.ErrSourceRequired
-	}
-	if blob, ok := f.client.cas[*ca.Source]; ok {
-		return blob, nil
-	}
-	u, err := url.Parse(*ca.Source)
-	if err != nil {
-		f.Logger.Crit("Unable to parse CA URL: %s", err)
-		return nil, err
-	}
-	hasher, err := util.GetHasher(ca.Verification)
-	if err != nil {
-		f.Logger.Crit("Unable to get hasher: %s", err)
-		return nil, err
-	}
-
-	var expectedSum []byte
-	if hasher != nil {
-		// explicitly ignoring the error here because the config should already
-		// be validated by this point
-		_, expectedSumString, _ := util.HashParts(ca.Verification)
-		expectedSum, err = hex.DecodeString(expectedSumString)
-		if err != nil {
-			f.Logger.Crit("Error parsing verification string %q: %v", expectedSumString, err)
-			return nil, err
+func (f *Fetcher) getCABlob(ca types.Resource) (string, []byte, error) {
+	for _, src := range ca.GetSources() {
+		if blob, ok := f.client.cas[string(src)]; ok {
+			return string(src), blob, nil
 		}
 	}
 
-	var headers http.Header
-	if ca.HTTPHeaders != nil && len(ca.HTTPHeaders) > 0 {
-		headers, err = ca.HTTPHeaders.Parse()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	var compression string
-	if ca.Compression != nil {
-		compression = *ca.Compression
-	}
-
-	cablob, err := f.FetchToBuffer(*u, FetchOptions{
-		Hash:        hasher,
-		Headers:     headers,
-		ExpectedSum: expectedSum,
-		Compression: compression,
-	})
+	result, err := f.FetchData(ca)
 	if err != nil {
-		f.Logger.Err("Unable to fetch CA (%s): %s", u, err)
-		return nil, err
+		f.Logger.Err("Unable to fetch CA: %s", err)
+		return "", nil, err
 	}
-	f.client.cas[*ca.Source] = cablob
-	return cablob, nil
-
+	f.client.cas[result.Src] = result.Cfg
+	return result.Src, result.Cfg, nil
 }
 
 // RewriteCAsWithDataUrls will modify the passed in slice of CA references to
 // contain the actual CA file via a dataurl in their source field.
 func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.Resource) error {
 	for i, ca := range cas {
-		blob, err := f.getCABlob(ca)
+		_, blob, err := f.getCABlob(ca)
 		if err != nil {
 			return err
 		}
@@ -213,7 +171,8 @@ func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.Resource) error {
 		cas[i].Compression = nil
 
 		encoded := dataurl.EncodeBytes(blob)
-		cas[i].Source = &encoded
+		cas[i].Source = nil
+		cas[i].Sources = []types.Source{types.Source(encoded)}
 	}
 	return nil
 }
@@ -267,7 +226,7 @@ func (f *Fetcher) newHttpClient() error {
 // provided request header & method and returns the response body Reader, HTTP
 // status code, a cancel function for the result's context, and error (if any).
 // By default, User-Agent is added to the header but this can be overridden.
-func (c HttpClient) httpReaderWithHeader(opts FetchOptions, url string) (io.ReadCloser, int, context.CancelFunc, error) {
+func (c HttpClient) httpReaderWithHeader(opts FetchOptions, url string, abort <-chan int) (io.ReadCloser, int, context.CancelFunc, error) {
 	if opts.HTTPVerb == "" {
 		opts.HTTPVerb = "GET"
 	}
@@ -308,6 +267,8 @@ func (c HttpClient) httpReaderWithHeader(opts FetchOptions, url string) (io.Read
 
 		// Wait before next attempt or exit if we timeout while waiting
 		select {
+		case <-abort:
+			return nil, 0, cancelFn, ignerrors.ErrFetchCancelled
 		case <-time.After(duration):
 		case <-ctx.Done():
 			return nil, 0, cancelFn, ErrTimeout

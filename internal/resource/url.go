@@ -121,7 +121,7 @@ type FetchOptions struct {
 // FetchToBuffer will fetch the given url into a temporary file, and then read
 // in the contents of the file and delete it. It will return the downloaded
 // contents, or an error if one was encountered.
-func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
+func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions, abort <-chan int) ([]byte, error) {
 	if f.Offline && util.UrlNeedsNet(u) {
 		return nil, ErrNeedNet
 	}
@@ -130,7 +130,7 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 	dest := new(bytes.Buffer)
 	switch u.Scheme {
 	case "http", "https":
-		err = f.fetchFromHTTP(u, dest, opts)
+		err = f.fetchFromHTTP(u, dest, opts, abort)
 	case "tftp":
 		err = f.fetchFromTFTP(u, dest, opts)
 	case "data":
@@ -184,14 +184,14 @@ func (s *s3buf) Seek(offset int64, whence int) (int64, error) {
 // at the beginning. Since some url schemes (ex: s3) use chunked downloads and
 // fetch chunks out of order, Fetch's behavior when dest is not an empty file is
 // undefined.
-func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
+func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions, abort <-chan int) error {
 	if f.Offline && util.UrlNeedsNet(u) {
 		return ErrNeedNet
 	}
 
 	switch u.Scheme {
 	case "http", "https":
-		return f.fetchFromHTTP(u, dest, opts)
+		return f.fetchFromHTTP(u, dest, opts, abort)
 	case "tftp":
 		return f.fetchFromTFTP(u, dest, opts)
 	case "data":
@@ -271,7 +271,7 @@ func (f *Fetcher) fetchFromTFTP(u url.URL, dest io.Writer, opts FetchOptions) er
 
 // FetchFromHTTP fetches a resource from u via HTTP(S) into dest, returning an
 // error if one is encountered.
-func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) error {
+func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions, abort <-chan int) error {
 	// for the case when "config is not valid"
 	// this if necessary if not spawned through kola (e.g. Packet Dashboard)
 	if f.client == nil {
@@ -304,7 +304,7 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 
 	requestOpts := opts
 	requestOpts.Headers = headers
-	dataReader, status, ctxCancel, err := f.client.httpReaderWithHeader(requestOpts, u.String())
+	dataReader, status, ctxCancel, err := f.client.httpReaderWithHeader(requestOpts, u.String(), abort)
 	if ctxCancel != nil {
 		// whatever context getReaderWithHeader created for the request should
 		// be cancelled once we're done reading the response

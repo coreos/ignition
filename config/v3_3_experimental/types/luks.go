@@ -50,8 +50,11 @@ func (l Luks) Validate(c path.ContextPath) (r report.Report) {
 	}
 
 	// fail if a key file is provided and is not valid
-	if err := validateURLNilOK(l.KeyFile.Source); err != nil {
-		r.AddOnError(c.Append("keys"), errors.ErrInvalidLuksKeyFile)
+	for _, src := range l.KeyFile.GetSources() {
+		url := string(src)
+		if err := validateURLNilOK(&url); err != nil {
+			r.AddOnError(c.Append("keys"), errors.ErrInvalidLuksKeyFile)
+		}
 	}
 	return
 }

@@ -118,7 +118,7 @@ func (s *stage) createLuks(config types.Config) error {
 		}
 		keyFilePath := filepath.Join(distro.LuksInitramfsKeyFilePath(), luks.Name)
 		devAlias := execUtil.DeviceAlias(*luks.Device)
-		if util.NilOrEmpty(luks.KeyFile.Source) {
+		if luks.KeyFile.SourcesAreEmpty() {
 			// create a keyfile
 			key, err := randHex(4096)
 			if err != nil {
@@ -137,18 +137,9 @@ func (s *stage) createLuks(config types.Config) error {
 					Contents: luks.KeyFile,
 				},
 			}
-			fetchOps, err := s.Util.PrepareFetches(s.Util.Logger, f)
-			if err != nil {
-				return fmt.Errorf("failed to resolve keyfile %q: %v", f.Path, err)
-			}
-			for _, op := range fetchOps {
-				if err := s.Util.Logger.LogOp(
-					func() error {
-						return s.Util.PerformFetch(op)
-					}, "writing file %q", f.Path,
-				); err != nil {
-					return fmt.Errorf("failed to create keyfile %q: %v", op.Node.Path, err)
-				}
+
+			if _, err := s.Fetcher.FetchData(f); err != nil {
+				return fmt.Errorf("failed to append keyfile %v", err)
 			}
 		}
 
@@ -289,7 +280,9 @@ func (s *stage) createLuks(config types.Config) error {
 					return fmt.Errorf("parsing tang URL: %v", err)
 				}
 				u.Path = path.Join(u.Path, "adv")
-				_, err = s.Fetcher.FetchToBuffer(*u, resource.FetchOptions{})
+				abort := make(chan int)
+				defer close(abort)
+				_, err = s.Fetcher.FetchToBuffer(*u, resource.FetchOptions{}, abort)
 				if err != nil {
 					return fmt.Errorf("fetching tang advertisement: %v", err)
 				}

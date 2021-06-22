@@ -20,8 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -341,7 +339,8 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 // provided config will be returned unmodified. An updated fetcher will be
 // returned with any new timeouts set.
 func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
-	if cfgRef := cfg.Ignition.Config.Replace; cfgRef.Source != nil {
+	cfgRef := cfg.Ignition.Config.Replace
+	if len(cfgRef.GetSources()) != 0 {
 		newCfg, err := e.fetchReferencedConfig(cfgRef)
 		if err != nil {
 			return types.Config{}, err
@@ -387,36 +386,19 @@ func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
 // cfgRef.Source must not be nil
 func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, error) {
 	// this is also already checked at validation time
-	if cfgRef.Source == nil {
+	if len(cfgRef.GetSources()) == 0 {
 		e.Logger.Crit("invalid referenced config: %v", errors.ErrSourceRequired)
 		return types.Config{}, errors.ErrSourceRequired
 	}
-	u, err := url.Parse(*cfgRef.Source)
-	if err != nil {
-		return types.Config{}, err
-	}
-	var headers http.Header
-	if cfgRef.HTTPHeaders != nil && len(cfgRef.HTTPHeaders) > 0 {
-		headers, err = cfgRef.HTTPHeaders.Parse()
-		if err != nil {
-			return types.Config{}, err
-		}
-	}
-	compression := ""
-	if cfgRef.Compression != nil {
-		compression = *cfgRef.Compression
-	}
-	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{
-		Headers:     headers,
-		Compression: compression,
-	})
+
+	result, err := e.Fetcher.FetchData(cfgRef)
 	if err != nil {
 		return types.Config{}, err
 	}
 
-	hash := sha512.Sum512(rawCfg)
-	if u.Scheme != "data" {
-		e.Logger.Debug("fetched referenced config at %s with SHA512: %s", *cfgRef.Source, hex.EncodeToString(hash[:]))
+	hash := sha512.Sum512(result.Cfg)
+	if result.Uri.Scheme != "data" {
+		e.Logger.Debug("fetched referenced config at %s with SHA512: %s", result.Uri.Path, hex.EncodeToString(hash[:]))
 	} else {
 		// data url's might contain secrets
 		e.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))
@@ -424,15 +406,15 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, err
 
 	e.fetchedConfigs = append(e.fetchedConfigs, fetchedConfig{
 		kind:       "user",
-		source:     u.Path,
+		source:     result.Uri.Path,
 		referenced: true,
 	})
 
-	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
+	if err := util.AssertValid(cfgRef.Verification, result.Cfg); err != nil {
 		return types.Config{}, err
 	}
 
-	cfg, r, err := config.Parse(rawCfg)
+	cfg, r, err := config.Parse(result.Cfg)
 	e.logReport(r)
 	if err != nil {
 		return types.Config{}, err

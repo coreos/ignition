@@ -103,7 +103,9 @@ func Init(f *resource.Fetcher) error {
 		},
 		HTTPVerb: "PUT",
 	}
-	_, err := f.FetchToBuffer(imdsTokenURL, opts)
+	abort := make(chan int)
+	defer close(abort)
+	_, err := f.FetchToBuffer(imdsTokenURL, opts, abort)
 	// ErrNotFound would just mean that the instance might not have
 	// IMDSv2 enabled
 	if err != nil && err != resource.ErrNotFound {
@@ -135,7 +137,10 @@ func fetchFromAWSMetadata(u url.URL, opts resource.FetchOptions, f *resource.Fet
 		}
 		opts.Headers.Add("X-aws-ec2-metadata-token", token)
 	}
-	return f.FetchToBuffer(u, opts)
+	abort := make(chan int)
+	defer close(abort)
+	data, err := f.FetchToBuffer(u, opts, abort)
+	return data, err
 }
 
 // fetchAWSIMDSV2Token fetches a session token from an EC2 instance (if the
@@ -147,7 +152,9 @@ func fetchAWSIMDSV2Token(f *resource.Fetcher) (string, error) {
 		},
 		HTTPVerb: "PUT",
 	}
-	token, err := f.FetchToBuffer(imdsTokenURL, opts)
+	abort := make(chan int)
+	defer close(abort)
+	token, err := f.FetchToBuffer(imdsTokenURL, opts, abort)
 	if err == resource.ErrNotFound {
 		f.Logger.Debug("cannot read IMDSv2 session token from %q", imdsTokenURL.String())
 		return "", errIMDSV2

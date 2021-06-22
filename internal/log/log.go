@@ -20,6 +20,8 @@ import (
 	"log/syslog"
 	"os/exec"
 	"strings"
+
+	"github.com/coreos/ignition/v2/config/shared/errors"
 )
 
 type LoggerOps interface {
@@ -166,7 +168,11 @@ func (l *Logger) LogOp(op func() error, format string, a ...interface{}) error {
 
 	l.logStart(format, a...)
 	if err := op(); err != nil {
-		l.logFail("%s: %v", fmt.Sprintf(format, a...), err)
+		if err != errors.ErrFetchCancelled {
+			l.logFail("%s: %v", fmt.Sprintf(format, a...), err)
+		} else {
+			l.logAborted("%s: %v", fmt.Sprintf(format, a...), err)
+		}
 		return err
 	}
 	l.logFinish(format, a...)
@@ -181,6 +187,11 @@ func (l Logger) logStart(format string, a ...interface{}) {
 // logFail logs the failure of a multi-step/substantial/time-consuming operation.
 func (l Logger) logFail(format string, a ...interface{}) {
 	l.Crit(fmt.Sprintf("[failed]   %s", format), a...)
+}
+
+// logAborted logs the termination of a multi-step/substantial/time-consuming operation.
+func (l Logger) logAborted(format string, a ...interface{}) {
+	l.Debug(fmt.Sprintf("[aborted]   %s", format), a...)
 }
 
 // logFinish logs the completion of a multi-step/substantial/time-consuming operation.

@@ -153,7 +153,9 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 }
 
 func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
-	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{})
+	abort := make(chan int)
+	defer close(abort)
+	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{}, abort)
 
 	// the metadata server exists but doesn't contain any actual metadata,
 	// assume that there is no config specified

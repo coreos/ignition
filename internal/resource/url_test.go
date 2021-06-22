@@ -116,6 +116,8 @@ func TestDataUrl(t *testing.T) {
 		Logger: &logger,
 	}
 
+	abort := make(chan int)
+	defer close(abort)
 	for i, test := range tests {
 		u, err := url.Parse(test.in.url)
 		if err != nil {
@@ -123,7 +125,7 @@ func TestDataUrl(t *testing.T) {
 			continue
 		}
 		test.in.opts.Hash = sha512.New()
-		result, err := f.FetchToBuffer(*u, test.in.opts)
+		result, err := f.FetchToBuffer(*u, test.in.opts, abort)
 		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: fetching URL: expected error %+v, got %+v", i, test.out.err, err)
 			continue
@@ -209,6 +211,8 @@ func TestFetchOffline(t *testing.T) {
 		Offline: true,
 	}
 
+	abort := make(chan int)
+	defer close(abort)
 	for i, test := range tests {
 		u, err := url.Parse(test.in.url)
 		if err != nil {
@@ -216,7 +220,7 @@ func TestFetchOffline(t *testing.T) {
 			continue
 		}
 		test.in.opts.Hash = sha512.New()
-		result, err := f.FetchToBuffer(*u, test.in.opts)
+		result, err := f.FetchToBuffer(*u, test.in.opts, abort)
 		if !reflect.DeepEqual(test.out.err, err) {
 			t.Errorf("#%d: fetching URL: expected error %+v, got %+v", i, test.out.err, err)
 			continue
