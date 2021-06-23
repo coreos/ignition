@@ -172,11 +172,6 @@ Finally, update docs.
 
 ### External Tests
 
-If there are any external kola tests that were using the now stabilized experimental spec that are not part of the Ignition repo (e.x. tests in the [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config/tree/testing-devel/tests/kola) repo) then CI will fail for the spec stabilization PR.
+If there are any external kola tests that were using the now stabilized experimental spec that are not part of the Ignition repo (e.x. tests in the [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config/tree/testing-devel/tests/kola) repo) then CI will fail for the spec stabilization PR. We have a commented-out workaround for this in `.cci.jenkinsfile`. Uncomment it.
 
-- Add any tests using the experimental spec to the [fedora-coreos-config denylist](https://github.com/coreos/fedora-coreos-config/blob/testing-devel/kola-denylist.yaml) and re-run CI
-- Merge the spec stabilization PR
-- Perform a new Ignition release
-- Bump the Ignition packaging
-- Vendor the new Ignition release into [coreos-assembler](https://github.com/coreos/coreos-assembler)
-- Update the lockfile on the testing-devel branch in [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config) to use the new Ignition release & the external test to use the new stabilized spec version, removing it from the denylist.
+When bumping the Ignition package in fedora-coreos-config, you'll need to update the external test in that repo to make CI green. At that point, you must comment out the workaround.
