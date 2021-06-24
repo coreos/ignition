@@ -2,7 +2,7 @@
 layout: default
 title: Config Spec v3.0.0
 parent: Configuration specifications
-nav_order: 4
+nav_order: 49
 ---
 
 # Configuration Specification v3.0.0
