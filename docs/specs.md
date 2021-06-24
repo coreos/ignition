@@ -40,3 +40,16 @@ Documentation for the spec 1 and 2.x configuration specifications is available
 in the legacy [`spec2x` branch](https://github.com/coreos/ignition/tree/spec2x/doc)
 of Ignition. Those specification versions are used by older versions of RHEL
 CoreOS and Flatcar Container Linux. This branch is no longer maintained.
+
+## Specification versions and Ignition releases
+
+This table lists, for each stable specification version, the first released
+version of Ignition that supports it. To get all bug fixes, it is usually
+recommended to use the latest Ignition release.
+
+| Spec version | Ignition release |
+|--------------|------------------|
+| 3.0.0        | 2.0.0            |
+| 3.1.0        | 2.3.0            |
+| 3.2.0        | 2.7.0            |
+| 3.3.0        | 2.11.0           |

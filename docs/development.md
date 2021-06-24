@@ -167,7 +167,7 @@ Finally, update docs.
 - In `docs/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning. Update the `nav_order` field in the Jekyll front matter to be one less than the `nav_order` of the previous stable spec.
 - In `docs/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
 - Add a section to `docs/migrating-configs.md`.
-- In `docs/specs.md`, update the list of stable and experimental spec versions, listing the latest stable release first.
+- In `docs/specs.md`, update the list of stable and experimental spec versions (listing the latest stable release first) and update the table listing the Ignition release where a spec has been marked as stable.
 
 ### External Tests
 
