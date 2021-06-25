@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	config "github.com/coreos/ignition/v2/config/v3_4_experimental"
+	"github.com/coreos/ignition/v2/config"
 )
 
 // Specific section marker used in the docs to indicate that the Markdown code
@@ -88,10 +88,16 @@ func main() {
 		}
 
 		for _, json := range jsonSections {
-			_, r, _ := config.Parse([]byte(strings.Join(json, "\n")))
+			cfg := strings.Join(json, "\n")
+			_, r, err := config.Parse([]byte(cfg))
+			// the report provides a more specific error
+			// description, so check that first
 			reportStr := r.String()
 			if reportStr != "" {
-				return fmt.Errorf("non-empty parsing report in %s: %s\nConfig:\n%s", info.Name(), reportStr, json)
+				return fmt.Errorf("non-empty parsing report in %s: %s\nConfig:\n%s", info.Name(), reportStr, cfg)
+			}
+			if err != nil {
+				return fmt.Errorf("fatal error parsing %s: %s\nConfig:\n%s", info.Name(), err, cfg)
 			}
 		}
 

@@ -26,7 +26,7 @@ The config gained a new top-level `kernelArguments` section. It allows specifyin
 {
   "ignition": { "version": "3.3.0" },
   "kernelArguments": {
-    "shouldExit": [
+    "shouldExist": [
       "foobar",
       "baz boo"
     ],
@@ -123,7 +123,7 @@ Ignition now supports creating LUKS2 encrypted storage volumes. Volumes can be c
       "path": "/var/lib/static_key_example",
       "device": "/dev/disk/by-id/dm-name-static-key-example",
       "format": "ext4",
-      "label": "STATIC-KEY-EXAMPLE"
+      "label": "STATIC-EXAMPLE"
     },{
       "path": "/var/lib/tpm_example",
       "device": "/dev/disk/by-id/dm-name-tpm-example",
@@ -140,7 +140,7 @@ Ignition now supports creating LUKS2 encrypted storage volumes. Volumes can be c
     "units": [{
       "name": "var-lib-static_key_example.mount",
       "enabled": true,
-      "contents": "[Mount]\nWhat=/dev/disk/by-label/STATIC-KEY-EXAMPLE\nWhere=/var/lib/static_key_example\nType=ext4\n\n[Install]\nWantedBy=local-fs.target"
+      "contents": "[Mount]\nWhat=/dev/disk/by-label/STATIC-EXAMPLE\nWhere=/var/lib/static_key_example\nType=ext4\n\n[Install]\nWantedBy=local-fs.target"
     },{
       "name": "var-lib-tpm_example.mount",
       "enabled": true,
