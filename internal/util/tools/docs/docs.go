@@ -88,10 +88,11 @@ func main() {
 		}
 
 		for _, json := range jsonSections {
-			_, r, _ := config.Parse([]byte(strings.Join(json, "\n")))
+			cfg := strings.Join(json, "\n")
+			_, r, _ := config.Parse([]byte(cfg))
 			reportStr := r.String()
 			if reportStr != "" {
-				return fmt.Errorf("non-empty parsing report in %s: %s\nConfig:\n%s", info.Name(), reportStr, json)
+				return fmt.Errorf("non-empty parsing report in %s: %s\nConfig:\n%s", info.Name(), reportStr, cfg)
 			}
 		}
 
