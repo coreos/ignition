@@ -18,7 +18,7 @@
 package azurestack
 
 import (
-	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	"github.com/coreos/ignition/v2/internal/providers/azure"
 	"github.com/coreos/ignition/v2/internal/resource"
 	"github.com/coreos/vcontext/report"

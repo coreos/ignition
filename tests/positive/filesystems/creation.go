@@ -106,7 +106,7 @@ func EraseBlockDeviceWithPreExistingFileSystem() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.3.0-experimental"
+	configMinVersion := "3.3.0"
 
 	in[0].Partitions.GetPartition("OEM").FilesystemType = "ext4"
 	out[0].Partitions.GetPartition("OEM").FilesystemType = ""
@@ -146,7 +146,7 @@ func EraseBlockDeviceWithNoFileSystem() types.Test {
 			}]
 		}
 	}`
-	configMinVersion := "3.3.0-experimental"
+	configMinVersion := "3.3.0"
 
 	in[0].Partitions.GetPartition("OEM").FilesystemType = ""
 	out[0].Partitions.GetPartition("OEM").FilesystemType = ""

@@ -134,10 +134,6 @@ func TestParse(t *testing.T) {
 		out out
 	}{
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "3.2.0"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
-		},
-		{
 			in:  in{config: []byte(`{"ignition": {"version": "3.0.0"}}`)},
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
@@ -146,7 +142,15 @@ func TestParse(t *testing.T) {
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "3.3.0-experimental"}}`)},
+			in:  in{config: []byte(`{"ignition": {"version": "3.2.0"}}`)},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.3.0"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.4.0-experimental"}}`)},
 			out: out{err: errors.ErrUnknownVersion},
 		},
 		{

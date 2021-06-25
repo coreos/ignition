@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/v3_3_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 )
 
 func TestParseInstanceUnit(t *testing.T) {

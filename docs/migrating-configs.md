@@ -11,6 +11,56 @@ Occasionally, there are changes made to Ignition's configuration that break back
 1. TOC
 {:toc}
 
+## From Version 3.2.0 to 3.3.0
+
+There are not any breaking changes between versions 3.2.0 and 3.3.0 of the configuration specification. Any valid 3.2.0 configuration can be updated to a 3.3.0 configuration by simply changing the version string in the config.
+
+The following is a list of notable new features, deprecations, and changes.
+
+### Kernel arguments
+
+The config gained a new top-level `kernelArguments` section. It allows specifying arguments that should be included or excluded from the kernel command line.
+
+<!-- ignition -->
+```json
+{
+  "ignition": { "version": "3.3.0" },
+  "kernelArguments": {
+    "shouldExit": [
+      "foobar",
+      "baz boo"
+    ],
+    "shouldNotExist": [
+      "raboof"
+    ]
+  }
+}
+```
+
+The config above will ensure that the kernel argument `foobar` is present, and the kernel argument `raboof` is absent. It will also ensure that the kernel arguments `baz boo` are present exactly in that order.
+
+This feature requires integration with the distribution where Ignition is used. See the [distributor notes][distributor-notes] for details.
+
+### New special filesystem format 'none'
+
+The `format` field of the `filesystems` section can now also be set to `none`. This allows skipping the creation of any filesystem (if `wipeFilesystem` is true), or triggering an error if there are any filesystem (if `wipeFilesystem` is false).
+
+<!-- ignition -->
+```json
+{
+  "ignition": { "version": "3.3.0" },
+  "storage": {
+    "filesystems": [{
+      "device": "/dev/vdb1",
+      "wipeFilesystem": true,
+      "format": "none"
+    }]
+  }
+}
+```
+
+See the [operator notes][operator-notes] for more details.
+
 ## From Version 3.1.0 to 3.2.0
 
 There are not any breaking changes between versions 3.1.0 and 3.2.0 of the configuration specification. Any valid 3.1.0 configuration can be updated to a 3.2.0 configuration by simply changing the version string in the config.

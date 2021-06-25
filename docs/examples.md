@@ -307,7 +307,7 @@ This config will ensure that the `example` and `foo bar` kernel arguments are se
 <!-- ignition -->
 ```json
 {
-  "ignition": {"version": "3.3.0-experimental"},
+  "ignition": {"version": "3.3.0"},
   "kernelArguments": {
     "shouldExist": ["example", "foo bar"],
     "shouldNotExist": ["somekarg"]
