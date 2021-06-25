@@ -72,7 +72,7 @@ func ParseCompatibleVersion(raw []byte) (types.Config, report.Report, error) {
 	}
 	prevCfg, r, err := prev.ParseCompatibleVersion(raw)
 	if err != nil {
-		return types.Config{}, report.Report{}, err
+		return types.Config{}, r, err
 	}
 	return translate.Translate(prevCfg), r, nil
 }
