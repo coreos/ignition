@@ -139,6 +139,10 @@ func TestParse(t *testing.T) {
 			in:  in{config: []byte{}},
 			out: out{err: errors.ErrEmpty},
 		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.4.0-experimental"}, "storage": {"filesystems": [{"format": "ext4", "label": "zzzzzzzzzzzzzzzzzzzzzzzzzzz"}]}}`)},
+			out: out{err: errors.ErrInvalid},
+		},
 	}
 
 	testsCompt := []struct {
@@ -173,6 +177,14 @@ func TestParse(t *testing.T) {
 			in:  in{config: []byte{}},
 			out: out{err: errors.ErrEmpty},
 		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.0.0"}, "storage": {"filesystems": [{"format": "ext4", "label": "zzzzzzzzzzzzzzzzzzzzzzzzzzz"}]}}`)},
+			out: out{err: errors.ErrInvalid},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.4.0-experimental"}, "storage": {"filesystems": [{"format": "ext4", "label": "zzzzzzzzzzzzzzzzzzzzzzzzzzz"}]}}`)},
+			out: out{err: errors.ErrInvalid},
+		},
 	}
 
 	for i, test := range tests {
@@ -180,12 +192,18 @@ func TestParse(t *testing.T) {
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v, report: %+v", i, test.out.err, err, report)
 		}
+		if test.out.err == errors.ErrInvalid && len(report.Entries) == 0 {
+			t.Errorf("#%d: expected report, got none", i)
+		}
 		assert.Equal(t, test.out.config, config, "#%d: bad config, report: %+v", i, report)
 	}
 	for i, test := range testsCompt {
 		config, report, err := ParseCompatibleVersion(test.in.config)
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v, report: %+v", i, test.out.err, err, report)
+		}
+		if test.out.err == errors.ErrInvalid && len(report.Entries) == 0 {
+			t.Errorf("#%d: expected report, got none", i)
 		}
 		assert.Equal(t, test.out.config, config, "#%d: bad config, report: %+v", i, report)
 	}
