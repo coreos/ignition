@@ -164,11 +164,10 @@ Update the blackbox tests.
 Finally, update docs.
 
 - Rename `docs/configuration-vX_Y-experimental.md` to `docs/configuration-vX_Y.md` and make a copy as `docs/configuration-vX_(Y+1)_experimental.md`.
-- In `docs/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning.
+- In `docs/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning. Update the `nav_order` field in the Jekyll front matter to be one less than the `nav_order` of the previous stable spec.
 - In `docs/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
 - Add a section to `docs/migrating-configs.md`.
 - In `docs/specs.md`, update the list of stable and experimental spec versions, listing the latest stable release first.
-- Update the `nav_order: X` field in the Jekyll front matter in every `docs/configuration-v*.md` to keep the configuration specs in a decreasing order with the latest stable configuration first. Always keep the experimental config spec last.
 
 ### External Tests
 
