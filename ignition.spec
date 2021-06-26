@@ -61,14 +61,13 @@
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Version:        2.10.1
-Release:        3.rhaos4.9%{?dist}
+Version:        2.11.0
+Release:        1.rhaos4.9%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/v%{version}/%{repo}-%{version}.tar.gz
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
-Patch1:         0001-ignition-setup-user.service-drop-Before-multipathd.s.patch
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: %{go_arches}
@@ -574,6 +573,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Fri Jun 25 2021 Benjamin Gilbert <bgilbert@redhat.com> - 2.11.0-1.rhaos4.9
+- New release
+
 * Mon Jun 21 2021 Jonathan Lebon <jlebon@redhat.com> - 2.10.1-3.rhaos4.9
 - Backport patch for multipath on firstboot
   https://github.com/coreos/ignition/pull/1208
