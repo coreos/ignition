@@ -15,7 +15,6 @@ Packaging:
    - Switch the `Release` back to `1%{?dist}`
    - Remove any patches obsoleted by the new release
    - Run `go-mods-to-bundled-provides.py | sort` while inside of the Ignition directory you ran `./tag_release` from & copy output into spec file in `# Main package provides` section
-   - Add any new spec paths to `%gotest` lines
    - Update change log
  - [ ] Run `spectool -g -S ignition.spec`
  - [ ] Run `kinit your_fas_account@FEDORAPROJECT.ORG`
