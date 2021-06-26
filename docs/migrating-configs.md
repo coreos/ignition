@@ -41,9 +41,9 @@ The config above will ensure that the kernel argument `foobar` is present, and t
 
 This feature requires integration with the distribution where Ignition is used. See the [distributor notes][distributor-notes] for details.
 
-### New special filesystem format 'none'
+### New filesystem format `none`
 
-The `format` field of the `filesystems` section can now also be set to `none`. This allows skipping the creation of any filesystem (if `wipeFilesystem` is true), or triggering an error if there are any filesystem (if `wipeFilesystem` is false).
+The `format` field of the `filesystems` section can now be set to `none`. This setting erases an existing filesystem signature without creating a new filesystem (if `wipeFilesystem` is true), or fails if there is any existing filesystem (if `wipeFilesystem` is false).
 
 <!-- ignition -->
 ```json
@@ -59,7 +59,7 @@ The `format` field of the `filesystems` section can now also be set to `none`. T
 }
 ```
 
-See the [operator notes][operator-notes] for more details.
+Refer to the [filesystem reuse semantics](operator-notes.md#filesystem-reuse-semantics) for more information.
 
 ## From Version 3.1.0 to 3.2.0
 
