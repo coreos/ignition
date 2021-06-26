@@ -133,11 +133,11 @@ The changes that are required to achieve these effects are typically the followi
 
 - Copy `config/vX_Y` into `config/vX_(Y+1)_experimental`, and update the golang `package` statements
 - Update all `config/vX_Y` imports in `config/vX_(Y+1)_experimental` to `config/vX_(Y+1)_experimental`
-- Update `MaxVersion` in `config/vX_(Y+1)_experimental/types/config.go` to have the correct major/minor versions and `PreRelease` set to `"experimental"`
+- Update `config/vX_(Y+1)_experimental/types/config.go` to set `MaxVersion` to the correct major/minor versions with `PreRelease` set to `"experimental"`
+- Update `config/vX_(Y+1)_experimental/config.go` to point the `prev` import to the new stable `vX_Y` package
 - Update `config/vX_(Y+1)_experimental/config_test.go` to test that the new stable version is invalid and the new experimental version is valid
 - Update `config/vX_(Y+1)_experimental/translate/translate.go` to translate from the previous stable version.  Update the `old_types` import, delete all functions except `translateIgnition` and `Translate`, and ensure `translateIgnition` translates the entire `Ignition` struct.
 - Update `config/config.go` imports to point to the experimental version.
-- Update the `prev` import in `config/vX_(Y+1)_experimental/config.go` to point to the now stable `vX_Y` package.
 - Update `config/config_test.go` to add the new experimental version to `TestConfigStructure`.
 - Update `generate` to generate the new stable and experimental versions, and rerun `generate`.
 
@@ -164,14 +164,13 @@ Update the blackbox tests.
 Finally, update docs.
 
 - Rename `docs/configuration-vX_Y-experimental.md` to `docs/configuration-vX_Y.md` and make a copy as `docs/configuration-vX_(Y+1)_experimental.md`.
-- In `docs/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning.
+- In `docs/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning. Update the `nav_order` field in the Jekyll front matter to be one less than the `nav_order` of the previous stable spec.
 - In `docs/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
 - Add a section to `docs/migrating-configs.md`.
 - In `docs/specs.md`, update the list of stable and experimental spec versions, listing the latest stable release first.
-- Update the `nav_order: X` field in the Jekyll front matter in every `docs/configuration-v*.md` to keep the configuration specs in a decreasing order with the latest stable configuration first. Always keep the experimental config spec last.
 
 ### External Tests
 
-If there are any external kola tests that were using the now stabilized experimental spec that are not part of the Ignition repo (e.x. tests in the [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config/tree/testing-devel/tests/kola) repo) then CI will fail for the spec stabilization PR. We have a commented-out workaround for this in `.cci.jenkinsfile`. Uncomment it.
+If there are any external kola tests that were using the now stabilized experimental spec that are not part of the Ignition repo (e.g. tests in the [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config/tree/testing-devel/tests/kola) repo), CI will fail for the spec stabilization PR. Uncomment the commented-out workaround for this in `.cci.jenkinsfile`.
 
 When bumping the Ignition package in fedora-coreos-config, you'll need to update the external test in that repo to make CI green. At that point, you must comment out the workaround.
