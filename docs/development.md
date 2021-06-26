@@ -133,11 +133,11 @@ The changes that are required to achieve these effects are typically the followi
 
 - Copy `config/vX_Y` into `config/vX_(Y+1)_experimental`, and update the golang `package` statements
 - Update all `config/vX_Y` imports in `config/vX_(Y+1)_experimental` to `config/vX_(Y+1)_experimental`
-- Update `MaxVersion` in `config/vX_(Y+1)_experimental/types/config.go` to have the correct major/minor versions and `PreRelease` set to `"experimental"`
+- Update `config/vX_(Y+1)_experimental/types/config.go` to set `MaxVersion` to the correct major/minor versions with `PreRelease` set to `"experimental"`
+- Update `config/vX_(Y+1)_experimental/config.go` to point the `prev` import to the new stable `vX_Y` package
 - Update `config/vX_(Y+1)_experimental/config_test.go` to test that the new stable version is invalid and the new experimental version is valid
 - Update `config/vX_(Y+1)_experimental/translate/translate.go` to translate from the previous stable version.  Update the `old_types` import, delete all functions except `translateIgnition` and `Translate`, and ensure `translateIgnition` translates the entire `Ignition` struct.
 - Update `config/config.go` imports to point to the experimental version.
-- Update the `prev` import in `config/vX_(Y+1)_experimental/config.go` to point to the now stable `vX_Y` package.
 - Update `config/config_test.go` to add the new experimental version to `TestConfigStructure`.
 - Update `generate` to generate the new stable and experimental versions, and rerun `generate`.
 
@@ -171,6 +171,6 @@ Finally, update docs.
 
 ### External Tests
 
-If there are any external kola tests that were using the now stabilized experimental spec that are not part of the Ignition repo (e.x. tests in the [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config/tree/testing-devel/tests/kola) repo) then CI will fail for the spec stabilization PR. We have a commented-out workaround for this in `.cci.jenkinsfile`. Uncomment it.
+If there are any external kola tests that were using the now stabilized experimental spec that are not part of the Ignition repo (e.g. tests in the [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config/tree/testing-devel/tests/kola) repo), CI will fail for the spec stabilization PR. Uncomment the commented-out workaround for this in `.cci.jenkinsfile`.
 
 When bumping the Ignition package in fedora-coreos-config, you'll need to update the external test in that repo to make CI green. At that point, you must comment out the workaround.
