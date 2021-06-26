@@ -1,3 +1,31 @@
+25-Jun-2021 Ignition 2.11.0
+
+  Breaking Changes:
+
+    - Convert ClevisCustom.Config, ClevisCustom.Pin, LinkEmbedded1.Target,
+      and Raid.Level Go fields to pointers (3.3.0)
+
+  Features:
+
+    - Accept "none" in storage.filesystems.format (3.3.0)
+    - Add ParseCompatibleVersion() Go functions to parse any config up to
+      the selected version
+    - Add powervs platform
+
+  Changes:
+
+    - Mark the 3.3.0 config spec as stable
+    - No longer accept configs with version 3.3.0-experimental
+    - Create new 3.4.0-experimental config spec from 3.3.0
+    - Report specific reason an existing LUKS device cannot be reused
+    - Validate that storage.raid.devices is non-empty
+    - Don't sequence ignition-setup-user.service before multipathd.service
+
+  Bug Fixes:
+
+    - Fix misleading error message if spares are requested for a RAID level
+      that doesn't support them
+
 29-Apr-2021 Ignition 2.10.1
 
   Bug Fixes:
