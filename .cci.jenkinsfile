@@ -36,17 +36,11 @@ cosaPod {
     // This is a temporary hack we use during spec stabilization to work around
     // external tests which use experimental versions. It should be commented
     // out in normal times.
-    if (shwrapRc("grep -nr 3.3.0-experimental /srv/fcos/src/config/tests/kola") == 0) {
-        // Ideally here, we would simply sed the tests, like this:
-        //shwrap("find /srv/fcos/src/config/tests/kola -type f -exec sed -i 's/3.3.0-experimental/3.3.0/' {} \\;")
-
-        // But it doesn't work because kola still wants to parse the config. We
-        // should teach it to not do that. For now, just nuke the ones we know
-        // are problematic.
-        shwrap("rm -rf /srv/fcos/src/config/tests/kola/ignition/kargs")
-    } else {
-        throw new Exception("No 3.3.0-experimental external tests found; comment out this workaround.")
-    }
+    //if (shwrapRc("grep -nr 3.3.0-experimental /srv/fcos/src/config/tests/kola") == 0) {
+    //    shwrap("find /srv/fcos/src/config/tests/kola -type f -exec sed -i 's/3.3.0-experimental/3.3.0/' {} \\;")
+    //} else {
+    //    throw new Exception("No 3.3.0-experimental external tests found; comment out this workaround.")
+    //}
 
     // we run the blackbox tests separately instead of as part of the main kola
     // run since it's a distinct kind of test and we want to draw more
