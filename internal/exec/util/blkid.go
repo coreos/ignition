@@ -27,6 +27,7 @@ import "C"
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 	"unsafe"
@@ -89,42 +90,42 @@ func GetFilesystemInfo(device string, allowAmbivalent bool) (FilesystemInfo, err
 	return info, nil
 }
 
-// cResultToErr takes a result_t from the blkid c code and a device it was operating on
-// and returns a golang error describing the result code.
-func cResultToErr(res C.result_t, device string) error {
+// cResultToErr takes a result_t from the blkid c code and returns a golang
+// error describing the result code.
+func cResultToErr(res C.result_t) error {
 	switch res {
 	case C.RESULT_OK:
 		return nil
 	case C.RESULT_OPEN_FAILED:
-		return fmt.Errorf("failed to open %q", device)
+		return errors.New("failed to open")
 	case C.RESULT_PROBE_AMBIVALENT:
-		return fmt.Errorf("found multiple filesystem types on %q", device)
+		return errors.New("found multiple filesystem types")
 	case C.RESULT_PROBE_FAILED:
-		return fmt.Errorf("failed to probe %q", device)
+		return errors.New("failed to probe")
 	case C.RESULT_LOOKUP_FAILED:
-		return fmt.Errorf("failed to lookup attribute on %q", device)
+		return errors.New("failed to look up attribute")
 	case C.RESULT_NO_PARTITION_TABLE:
-		return fmt.Errorf("no partition table found on %q", device)
+		return errors.New("no partition table found")
 	case C.RESULT_BAD_INDEX:
-		return fmt.Errorf("bad partition index specified for device %q", device)
+		return errors.New("bad partition index specified")
 	case C.RESULT_GET_PARTLIST_FAILED:
-		return fmt.Errorf("failed to get list of partitions on %q", device)
+		return errors.New("failed to get list of partitions")
 	case C.RESULT_DISK_HAS_NO_TYPE:
-		return fmt.Errorf("%q has no type string, despite having a partition table", device)
+		return errors.New("disk has no type string, despite having a partition table")
 	case C.RESULT_DISK_NOT_GPT:
-		return fmt.Errorf("%q is not a gpt disk", device)
+		return errors.New("disk does not have a GPT")
 	case C.RESULT_BAD_PARAMS:
-		return fmt.Errorf("internal error. bad params passed while handling %q", device)
+		return errors.New("bad parameters passed")
 	case C.RESULT_OVERFLOW:
-		return fmt.Errorf("internal error. libblkid returned impossibly large value when handling %q", device)
+		return errors.New("return value doesn't fit in buffer")
 	case C.RESULT_NO_TOPO:
-		return fmt.Errorf("failed to get topology information for %q", device)
+		return errors.New("failed to get topology information")
 	case C.RESULT_NO_SECTOR_SIZE:
-		return fmt.Errorf("failed to get logical sector size for %q", device)
+		return errors.New("failed to get logical sector size")
 	case C.RESULT_BAD_SECTOR_SIZE:
-		return fmt.Errorf("logical sector size for %q was not a multiple of 512", device)
+		return errors.New("logical sector size is not a multiple of 512")
 	default:
-		return fmt.Errorf("Unknown error while handling %q. err code: %d", device, res)
+		return fmt.Errorf("unknown error: %d", res)
 	}
 }
 
@@ -147,19 +148,19 @@ func DumpDisk(device string) (DiskInfo, error) {
 	defer C.free(unsafe.Pointer(cDevice))
 
 	var sectorSize C.int
-	if err := cResultToErr(C.blkid_get_logical_sector_size(cDevice, &sectorSize), device); err != nil {
-		return DiskInfo{}, err
+	if err := cResultToErr(C.blkid_get_logical_sector_size(cDevice, &sectorSize)); err != nil {
+		return DiskInfo{}, fmt.Errorf("getting sector size of %q: %w", device, err)
 	}
 	output.LogicalSectorSize = int(sectorSize)
 
 	numParts := C.int(0)
-	if err := cResultToErr(C.blkid_get_num_partitions(cDevice, &numParts), device); err != nil {
-		return DiskInfo{}, err
+	if err := cResultToErr(C.blkid_get_num_partitions(cDevice, &numParts)); err != nil {
+		return DiskInfo{}, fmt.Errorf("getting partition count of %q: %w", device, err)
 	}
 
 	for i := 0; i < int(numParts); i++ {
-		if err := cResultToErr(C.blkid_get_partition(cDevice, C.int(i), &cInfo), device); err != nil {
-			return DiskInfo{}, err
+		if err := cResultToErr(C.blkid_get_partition(cDevice, C.int(i), &cInfo)); err != nil {
+			return DiskInfo{}, fmt.Errorf("querying partition %d of %q: %w", i, device, err)
 		}
 
 		current := PartitionInfo{
@@ -184,8 +185,8 @@ func filesystemLookup(device string, allowAmbivalent bool, fieldName string) (st
 	cFieldName := C.CString(fieldName)
 	defer C.free(unsafe.Pointer(cFieldName))
 
-	if err := cResultToErr(C.blkid_lookup(cDevice, C.bool(allowAmbivalent), cFieldName, (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf))), device); err != nil {
-		return "", err
+	if err := cResultToErr(C.blkid_lookup(cDevice, C.bool(allowAmbivalent), cFieldName, (*C.char)(unsafe.Pointer(&buf[0])), C.size_t(len(buf)))); err != nil {
+		return "", fmt.Errorf("querying filesystem field %q of %q: %w", fieldName, device, err)
 	}
 	return string(buf[:bytes.IndexByte(buf[:], 0)]), nil
 }
