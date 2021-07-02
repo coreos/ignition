@@ -4,16 +4,15 @@
 # XXX: figure out a way to just have it use GitHub team membership directly.
 
 approvers:
-  - arithx
-  - ashcrow
   - bgilbert
   - cgwalters
   - darkmuggle
   - dustymabe
   - jlebon
-  - LorbusChris
+  - kelvinfan001
   - lucab
   - miabbott
   - mike-nguyen
-  - yuqi-zhang
-  - zonggen
+  - saqibali-2k
+  - sohankunkerkar
+  - travier
