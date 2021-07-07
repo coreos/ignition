@@ -14,7 +14,6 @@ After=basic.target
 # Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
 # We run after the setup stage has run because it may copy in new/different
 # ignition configs for us to consume.
-After=ignition-setup-base.service
 After=ignition-setup-user.service
 Before=ignition-fetch.service
 
