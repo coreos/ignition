@@ -56,9 +56,6 @@ install() {
     # Required on system using SELinux
     inst_multiple -o setfiles
 
-    inst_script "$moddir/ignition-setup-user.sh" \
-        "/usr/sbin/ignition-setup-user"
-
     inst_script "$moddir/ignition-kargs-helper.sh" \
         "/usr/sbin/ignition-kargs-helper"
 
@@ -83,7 +80,6 @@ install() {
             "$systemdsystemunitdir/ignition-$x.target"
     done
 
-    install_ignition_unit ignition-setup-user.service
     install_ignition_unit ignition-fetch.service
     install_ignition_unit ignition-fetch-offline.service
     install_ignition_unit ignition-kargs.service

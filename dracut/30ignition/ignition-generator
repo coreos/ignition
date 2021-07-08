@@ -47,15 +47,6 @@ if $(cmdline_bool 'ignition.firstboot' 0); then
     # and therefore won't have a root disk.
     if ! command -v is-live-image >/dev/null || ! is-live-image; then
         add_requires ignition-diskful.target ignition-complete.target
-
-        # ignition-setup-user.service should depend on the boot device node
-        # only on diskful boots
-        mkdir -p "${UNIT_DIR}/ignition-setup-user.service.d"
-        cat > "${UNIT_DIR}/ignition-setup-user.service.d/diskful.conf" <<EOF
-[Unit]
-Requires=dev-disk-by\x2dlabel-boot.device
-After=dev-disk-by\x2dlabel-boot.device
-EOF
     fi
 else
     # If we're doing a non-Ignition (subsequent) boot, then
