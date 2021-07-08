@@ -1,0 +1,218 @@
+From d791aaed74b861fc40104e0c96c4427d667a8f7a Mon Sep 17 00:00:00 2001
+From: Benjamin Gilbert <bgilbert@redhat.com>
+Date: Thu, 8 Jul 2021 15:39:11 -0400
+Subject: [PATCH 3/3] dracut: drop ignition-setup-user.service
+
+It assumes that we can mount /dev/disk/by-label/boot and copy a file out
+of it, which may not be true on all distros.  We already have a clear
+external API for providing injected user configs to Ignition (put them
+in /usr/lib/ignition/user.ign), so leave this to the distro to handle as
+it wishes.
+---
+ dracut/30ignition/ignition-disks.service      |  2 +-
+ .../30ignition/ignition-fetch-offline.service |  5 +--
+ dracut/30ignition/ignition-fetch.service      |  2 +-
+ dracut/30ignition/ignition-files.service      |  2 +-
+ dracut/30ignition/ignition-generator          |  9 ------
+ dracut/30ignition/ignition-kargs.service      |  2 +-
+ dracut/30ignition/ignition-mount.service      |  2 +-
+ dracut/30ignition/ignition-setup-user.service | 23 -------------
+ dracut/30ignition/ignition-setup-user.sh      | 32 -------------------
+ dracut/30ignition/module-setup.sh             |  4 ---
+ 10 files changed, 6 insertions(+), 77 deletions(-)
+ delete mode 100644 dracut/30ignition/ignition-setup-user.service
+ delete mode 100755 dracut/30ignition/ignition-setup-user.sh
+
+diff --git a/dracut/30ignition/ignition-disks.service b/dracut/30ignition/ignition-disks.service
+index 66fa8838..92c8d242 100644
+--- a/dracut/30ignition/ignition-disks.service
++++ b/dracut/30ignition/ignition-disks.service
+@@ -5,7 +5,7 @@ ConditionPathExists=/etc/initrd-release
+ DefaultDependencies=false
+ Before=ignition-complete.target
+ 
+-# Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
++# Stage order: fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
+ After=ignition-fetch.service
+ Before=ignition-mount.service
+ 
+diff --git a/dracut/30ignition/ignition-fetch-offline.service b/dracut/30ignition/ignition-fetch-offline.service
+index 7c4b0289..b8ae7a7d 100644
+--- a/dracut/30ignition/ignition-fetch-offline.service
++++ b/dracut/30ignition/ignition-fetch-offline.service
+@@ -11,10 +11,7 @@ DefaultDependencies=false
+ Before=ignition-complete.target
+ After=basic.target
+ 
+-# Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
+-# We run after the setup stage has run because it may copy in new/different
+-# ignition configs for us to consume.
+-After=ignition-setup-user.service
++# Stage order: fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
+ Before=ignition-fetch.service
+ 
+ OnFailure=emergency.target
+diff --git a/dracut/30ignition/ignition-fetch.service b/dracut/30ignition/ignition-fetch.service
+index d629273d..d914362d 100644
+--- a/dracut/30ignition/ignition-fetch.service
++++ b/dracut/30ignition/ignition-fetch.service
+@@ -9,7 +9,7 @@ ConditionPathExists=/run/ignition/neednet
+ # Don't run if the `fetch-offline` stage successfully fetched a config
+ ConditionPathExists=!/run/ignition.json
+ 
+-# Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
++# Stage order: fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
+ # We run after the setup stage has run because it may copy in new/different
+ # ignition configs for us to consume.
+ After=ignition-fetch-offline.service
+diff --git a/dracut/30ignition/ignition-files.service b/dracut/30ignition/ignition-files.service
+index 90bda675..aa64fb68 100644
+--- a/dracut/30ignition/ignition-files.service
++++ b/dracut/30ignition/ignition-files.service
+@@ -8,7 +8,7 @@ Before=ignition-complete.target
+ OnFailure=emergency.target
+ OnFailureJobMode=isolate
+ 
+-# Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
++# Stage order: fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
+ After=ignition-mount.service
+ 
+ # Run before initrd-parse-etc so that we can drop files it then picks up.
+diff --git a/dracut/30ignition/ignition-generator b/dracut/30ignition/ignition-generator
+index a444395a..1dff7442 100755
+--- a/dracut/30ignition/ignition-generator
++++ b/dracut/30ignition/ignition-generator
+@@ -47,15 +47,6 @@ if $(cmdline_bool 'ignition.firstboot' 0); then
+     # and therefore won't have a root disk.
+     if ! command -v is-live-image >/dev/null || ! is-live-image; then
+         add_requires ignition-diskful.target ignition-complete.target
+-
+-        # ignition-setup-user.service should depend on the boot device node
+-        # only on diskful boots
+-        mkdir -p "${UNIT_DIR}/ignition-setup-user.service.d"
+-        cat > "${UNIT_DIR}/ignition-setup-user.service.d/diskful.conf" <<EOF
+-[Unit]
+-Requires=dev-disk-by\x2dlabel-boot.device
+-After=dev-disk-by\x2dlabel-boot.device
+-EOF
+     fi
+ else
+     # If we're doing a non-Ignition (subsequent) boot, then
+diff --git a/dracut/30ignition/ignition-kargs.service b/dracut/30ignition/ignition-kargs.service
+index 75cbb39a..6272ccff 100644
+--- a/dracut/30ignition/ignition-kargs.service
++++ b/dracut/30ignition/ignition-kargs.service
+@@ -5,7 +5,7 @@ ConditionPathExists=/etc/initrd-release
+ DefaultDependencies=false
+ Before=ignition-complete.target
+ 
+-# Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
++# Stage order: fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
+ After=ignition-fetch.service
+ Before=ignition-disks.service
+ 
+diff --git a/dracut/30ignition/ignition-mount.service b/dracut/30ignition/ignition-mount.service
+index b3af2fa8..0d25afab 100644
+--- a/dracut/30ignition/ignition-mount.service
++++ b/dracut/30ignition/ignition-mount.service
+@@ -5,7 +5,7 @@ ConditionPathExists=/etc/initrd-release
+ DefaultDependencies=false
+ Before=ignition-complete.target
+ 
+-# Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
++# Stage order: fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
+ # We need to make sure the partitions and filesystems are set up before
+ # mounting. This is also guaranteed through After=initrd-root-fs.target but
+ # just to be explicit.
+diff --git a/dracut/30ignition/ignition-setup-user.service b/dracut/30ignition/ignition-setup-user.service
+deleted file mode 100644
+index 40c53dd1..00000000
+--- a/dracut/30ignition/ignition-setup-user.service
++++ /dev/null
+@@ -1,23 +0,0 @@
+-[Unit]
+-Description=Ignition (setup user config)
+-Documentation=https://github.com/coreos/ignition
+-ConditionPathExists=/etc/initrd-release
+-DefaultDependencies=false
+-Before=ignition-complete.target
+-
+-OnFailure=emergency.target
+-OnFailureJobMode=isolate
+-
+-# Stage order: setup -> fetch-offline [-> fetch] [-> kargs] -> disks -> mount -> files.
+-Before=ignition-fetch-offline.service
+-
+-# On diskful boots, ignition-generator adds Requires/After on
+-# dev-disk-by\x2dlabel-boot.device
+-
+-[Service]
+-Type=oneshot
+-RemainAfterExit=yes
+-# The MountFlags=slave is so the umount of /boot is guaranteed to happen
+-# /boot will only be mounted for the lifetime of the unit.
+-MountFlags=slave
+-ExecStart=/usr/sbin/ignition-setup-user
+diff --git a/dracut/30ignition/ignition-setup-user.sh b/dracut/30ignition/ignition-setup-user.sh
+deleted file mode 100755
+index e0f3c4e2..00000000
+--- a/dracut/30ignition/ignition-setup-user.sh
++++ /dev/null
+@@ -1,32 +0,0 @@
+-#!/bin/bash
+-set -euo pipefail
+-
+-copy_file_if_exists() {
+-    src="${1}"; dst="${2}"
+-    if [ -f "${src}" ]; then
+-        echo "Copying ${src} to ${dst}"
+-        cp "${src}" "${dst}"
+-    else
+-        echo "File ${src} does not exist.. Skipping copy"
+-    fi
+-}
+-
+-destination=/usr/lib/ignition
+-mkdir -p $destination
+-
+-if command -v is-live-image >/dev/null && is-live-image; then
+-    # Live image. If the user has supplied a config.ign via an appended
+-    # initrd, put it in the right place.
+-    copy_file_if_exists "/config.ign" "${destination}/user.ign"
+-else
+-    # We will support a user embedded config in the boot partition
+-    # under $bootmnt/ignition/config.ign. Note that we mount /boot
+-    # but we don't unmount boot because we are run in a systemd unit
+-    # with MountFlags=slave so it is unmounted for us.
+-    bootmnt=/mnt/boot_partition
+-    mkdir -p $bootmnt
+-    # mount as read-only since we don't strictly need write access and we may be
+-    # running alongside other code that also has it mounted ro
+-    mount -o ro /dev/disk/by-label/boot $bootmnt
+-    copy_file_if_exists "${bootmnt}/ignition/config.ign" "${destination}/user.ign"
+-fi
+diff --git a/dracut/30ignition/module-setup.sh b/dracut/30ignition/module-setup.sh
+index e51112f8..8e7e3033 100755
+--- a/dracut/30ignition/module-setup.sh
++++ b/dracut/30ignition/module-setup.sh
+@@ -56,9 +56,6 @@ install() {
+     # Required on system using SELinux
+     inst_multiple -o setfiles
+ 
+-    inst_script "$moddir/ignition-setup-user.sh" \
+-        "/usr/sbin/ignition-setup-user"
+-
+     inst_script "$moddir/ignition-kargs-helper.sh" \
+         "/usr/sbin/ignition-kargs-helper"
+ 
+@@ -83,7 +80,6 @@ install() {
+             "$systemdsystemunitdir/ignition-$x.target"
+     done
+ 
+-    install_ignition_unit ignition-setup-user.service
+     install_ignition_unit ignition-fetch.service
+     install_ignition_unit ignition-fetch-offline.service
+     install_ignition_unit ignition-kargs.service
+-- 
+2.31.1
+

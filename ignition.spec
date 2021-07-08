@@ -62,12 +62,17 @@
 
 Name:           ignition
 Version:        2.11.0
-Release:        1.rhaos4.9%{?dist}
+Release:        2.rhaos4.9%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/v%{version}/%{repo}-%{version}.tar.gz
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
+# https://github.com/coreos/ignition/pull/1245
+Patch1:         drop-ignition-firstboot-complete-2.11.0.patch
+# https://github.com/coreos/ignition/pull/1248
+Patch2:         drop-ignition-setup-base-2.11.0.patch
+Patch3:         drop-ignition-setup-user-2.11.0.patch
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: %{go_arches}
@@ -454,9 +459,7 @@ echo "Building ignition-validate..."
 %install
 # dracut
 install -d -p %{buildroot}/%{dracutlibdir}/modules.d
-install -d -p %{buildroot}/%{_prefix}/lib/systemd/system
 cp -r dracut/* %{buildroot}/%{dracutlibdir}/modules.d/
-install -m 0644 -t %{buildroot}/%{_prefix}/lib/systemd/system/ systemd/*
 
 # ignition
 install -d -p %{buildroot}%{_bindir}
@@ -552,7 +555,6 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %license LICENSE
 %doc README.md docs/
 %{dracutlibdir}/modules.d/*
-%{_prefix}/lib/systemd/system/*.service
 
 %files validate
 %doc README.md
@@ -573,6 +575,10 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Thu Jul  8 2021 Benjamin Gilbert <bgilbert@redhat.com> - 2.11.0-2.rhaos4.9
+- Move ignition-firstboot-complete and ignition-setup-user services out of
+  package into distro glue
+
 * Fri Jun 25 2021 Benjamin Gilbert <bgilbert@redhat.com> - 2.11.0-1.rhaos4.9
 - New release
 
