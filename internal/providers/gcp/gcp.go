@@ -31,7 +31,7 @@ import (
 var (
 	userdataUrl = url.URL{
 		Scheme: "http",
-		Host:   "metadata.google.internal",
+		Host:   "169.254.169.254",
 		Path:   "computeMetadata/v1/instance/attributes/user-data",
 	}
 	metadataHeaderKey = "Metadata-Flavor"
