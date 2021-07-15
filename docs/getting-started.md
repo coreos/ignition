@@ -35,6 +35,13 @@ podman run --pull=always --rm -i quay.io/coreos/ignition-validate:release - < my
 
 ## Troubleshooting
 
+### Delete your disk every test
+
+Ignition will not retry many changes after it already has run once. E.g. it
+will not set the password or add an ssh key after a reboot when you change
+those in the config.ign. To not get frustrated delete the disk of your test
+system for every test.
+
 ### Gathering Logs
 
 The single most useful piece of information needed when troubleshooting is the log from Ignition. Ignition runs in multiple stages so it's easiest to filter by the syslog identifier: `ignition`. When using systemd, this can be accomplished with the following command:
