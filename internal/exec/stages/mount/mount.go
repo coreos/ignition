@@ -122,7 +122,7 @@ func (s stage) mountFs(fs types.Filesystem) error {
 	}
 
 	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
-		if err := os.MkdirAll(path, 0755); err != nil {
+		if err := util.NotateMkdirAll(path, 0755); err != nil {
 			return err
 		}
 	} else if err != nil {

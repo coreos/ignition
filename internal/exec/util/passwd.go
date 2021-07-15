@@ -16,6 +16,8 @@ package util
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
@@ -179,6 +181,57 @@ func writeAuthKeysFile(u *user.User, fp string, keys []byte) error {
 	if err := f.Close(); err != nil {
 		return err
 	}
+	return nil
+}
+
+// ModifyHomeAccessRights changes the access rights for the user's home
+// directory if it was created during the Ignition mount stage as a
+// result of a mountpoint.
+func (u Util) ModifyHomeAccessRights(c types.PasswdUser) error {
+	if util.IsTrue(c.NoCreateHome) {
+		return nil
+	}
+
+	homeDir, err := u.GetUserHomeDir(c)
+	if err != nil {
+		return err
+	}
+
+	if exists, err := PathExists(NotatePath); err != nil {
+		return fmt.Errorf("checking if file exists: %v", err)
+	} else if !exists {
+		// The file created to store the list of directories created by
+		// Ignition doesn't exist.
+		return nil
+	}
+
+	usr, err := u.userLookup(c.Name)
+	if err != nil {
+		return fmt.Errorf("unable to lookup user %q", c.Name)
+	}
+	uid, err := strconv.Atoi(usr.Uid)
+	if err != nil {
+		return fmt.Errorf("converting uid to int: %v", err)
+	}
+	gid, err := strconv.Atoi(usr.Gid)
+	if err != nil {
+		return fmt.Errorf("converting gid to int: %v", err)
+	}
+
+	content, err := ioutil.ReadFile(NotatePath)
+	if err != nil {
+		return fmt.Errorf("reading directories created by Ignition mount stage: %v", err)
+	}
+
+	for _, line := range content {
+		dir := filepath.Join(string(line))
+		if filepath.HasPrefix(dir, homeDir) {
+			if err := os.Chown(dir, uid, gid); err != nil {
+				return fmt.Errorf("changing access rights to %q: %v", line, err)
+			}
+		}
+	}
+
 	return nil
 }
 

@@ -22,6 +22,10 @@ import (
 	"github.com/coreos/ignition/v2/internal/resource"
 )
 
+var (
+	NotatePath = "/run/ignition-created-directories"
+)
+
 // Util encapsulates logging and destdir indirection for the util methods.
 type Util struct {
 	DestDir string // directory prefix to use in applying fs paths.
@@ -88,6 +92,36 @@ func (u Util) JoinPath(path ...string) (string, error) {
 	}
 
 	return filepath.Join(u.DestDir, realpath, last), nil
+}
+
+// NotateMkdirAll creates directories for the path and any parents that
+// don't exist storing the path to any directories created
+func NotateMkdirAll(path string, perm os.FileMode) error {
+	if exists, err := PathExists(filepath.Dir(path)); err != nil {
+		return err
+	} else if !exists {
+		if err := NotateMkdirAll(filepath.Dir(path), perm); err != nil {
+			return err
+		}
+	}
+
+	if exists, err := PathExists(path); err != nil {
+		return err
+	} else if !exists {
+		if err := os.Mkdir(path, perm); err != nil {
+			return err
+		}
+		f, err := os.OpenFile(NotatePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		if _, err := f.WriteString(path); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // PathExists checks if the path exists for a given config.
