@@ -1,0 +1,89 @@
+{
+  "ignition": {
+    "version": "3.0.0"
+  },
+  "storage": {
+    "disks": [
+      {
+        "device": "/dev/disk/by-id/virtio-disk1",
+        "partitions": [
+          {
+            "label": "foo"
+          }
+        ],
+        "wipeTable": true
+      },
+      {
+        "device": "/dev/disk/by-id/virtio-disk2",
+        "partitions": [
+          {
+            "label": "bar"
+          }
+        ],
+        "wipeTable": true
+      },
+      {
+        "device": "/dev/disk/by-id/virtio-disk3",
+        "partitions": [
+          {
+            "label": "baz"
+          }
+        ],
+        "wipeTable": true
+      },
+      {
+        "device": "/dev/disk/by-id/virtio-disk4",
+        "partitions": [
+          {
+            "label": "boo"
+          }
+        ],
+        "wipeTable": true
+      }
+    ],
+    "raid": [
+      {
+        "devices": [
+          "/dev/md/foobar",
+          "/dev/md/bazboo"
+        ],
+        "level": "raid0",
+        "name": "foobarbazboo"
+      },
+      {
+        "devices": [
+          "/dev/disk/by-partlabel/baz",
+          "/dev/disk/by-partlabel/boo"
+        ],
+        "level": "raid1",
+        "name": "bazboo"
+      },
+      {
+        "devices": [
+          "/dev/disk/by-partlabel/foo",
+          "/dev/disk/by-partlabel/bar"
+        ],
+        "level": "raid1",
+        "name": "foobar"
+      }
+    ],
+    "filesystems": [
+      {
+        "device": "/dev/md/foobarbazboo",
+        "path": "/var",
+        "format": "xfs",
+        "wipeFilesystem": true,
+        "label": "VAR"
+      }
+    ]
+  },
+  "systemd": {
+    "units": [
+      {
+        "contents": "[Unit]\nBefore=local-fs.target\nRequires=systemd-fsck@dev-disk-by\\x2dlabel-VAR.service\nAfter=systemd-fsck@dev-disk-by\\x2dlabel-VAR.service\n\n[Mount]\nWhere=/var\nWhat=/dev/disk/by-label/VAR\nType=xfs\n\n[Install]\nRequiredBy=local-fs.target",
+        "enabled": true,
+        "name": "var.mount"
+      }
+    ]
+  }
+}
