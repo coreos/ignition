@@ -40,6 +40,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/cmdline"
 	"github.com/coreos/ignition/v2/internal/providers/system"
 	"github.com/coreos/ignition/v2/internal/resource"
+	"github.com/coreos/ignition/v2/internal/state"
 	"github.com/coreos/ignition/v2/internal/util"
 
 	"github.com/coreos/vcontext/report"
@@ -69,6 +70,7 @@ type Engine struct {
 	Root           string
 	PlatformConfig platform.Config
 	Fetcher        *resource.Fetcher
+	State          *state.State
 	fetchedConfigs []fetchedConfig
 }
 
@@ -138,7 +140,7 @@ func (e Engine) Run(stageName string) error {
 	defer e.Logger.PopPrefix()
 
 	fullConfig := latest.Merge(baseConfig, latest.Merge(systemBaseConfig, cfg))
-	err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(fullConfig)
+	err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher, e.State).Run(fullConfig)
 	if err == resource.ErrNeedNet && stageName == "fetch-offline" {
 		err = e.signalNeedNet()
 		if err != nil {

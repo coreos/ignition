@@ -31,6 +31,7 @@ import (
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/umount"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/platform"
+	"github.com/coreos/ignition/v2/internal/state"
 	"github.com/coreos/ignition/v2/internal/version"
 )
 
@@ -43,6 +44,7 @@ func main() {
 		platform     platform.Name
 		root         string
 		stage        stages.Name
+		stateFile    string
 		version      bool
 		logToStdout  bool
 	}{}
@@ -54,6 +56,7 @@ func main() {
 	flag.Var(&flags.platform, "platform", fmt.Sprintf("current platform. %v", platform.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
+	flag.StringVar(&flags.stateFile, "state-file", "/run/ignition/state", "where to store internal state")
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
 	flag.BoolVar(&flags.logToStdout, "log-to-stdout", false, "log to stdout instead of the system log when set")
 
@@ -92,6 +95,11 @@ func main() {
 		logger.Crit("failed to generate fetcher: %s", err)
 		os.Exit(3)
 	}
+	state, err := state.Load(flags.stateFile)
+	if err != nil {
+		logger.Crit("reading state: %s", err)
+		os.Exit(3)
+	}
 	engine := exec.Engine{
 		Root:           flags.root,
 		FetchTimeout:   flags.fetchTimeout,
@@ -100,6 +108,7 @@ func main() {
 		ConfigCache:    flags.configCache,
 		PlatformConfig: platformConfig,
 		Fetcher:        &fetcher,
+		State:          &state,
 	}
 
 	err = engine.Run(flags.stage.String())
@@ -108,6 +117,10 @@ func main() {
 	}
 	if err != nil {
 		logger.Crit("Ignition failed: %v", err.Error())
+		os.Exit(1)
+	}
+	if err := engine.State.Save(flags.stateFile); err != nil {
+		logger.Crit("writing state: %v", err)
 		os.Exit(1)
 	}
 	logger.Info("Ignition finished successfully")

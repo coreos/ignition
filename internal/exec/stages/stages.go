@@ -19,6 +19,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/registry"
 	"github.com/coreos/ignition/v2/internal/resource"
+	"github.com/coreos/ignition/v2/internal/state"
 )
 
 // Stage is responsible for actually executing a stage of the configuration.
@@ -30,7 +31,7 @@ type Stage interface {
 // StageCreator is responsible for instantiating a particular stage given a
 // logger and root path under the root partition.
 type StageCreator interface {
-	Create(logger *log.Logger, root string, f resource.Fetcher) Stage
+	Create(logger *log.Logger, root string, f resource.Fetcher, state *state.State) Stage
 	Name() string
 }
 

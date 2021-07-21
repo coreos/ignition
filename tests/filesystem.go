@@ -155,7 +155,8 @@ func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, app
 	args := []string{"-platform", "file", "-stage", stage,
 		"-root", root, "-log-to-stdout",
 		"-config-cache", filepath.Join(cwd, "ignition.json"),
-		"-neednet", filepath.Join(cwd, "neednet")}
+		"-neednet", filepath.Join(cwd, "neednet"),
+		"-state-file", filepath.Join(cwd, "state")}
 	cmd := exec.CommandContext(ctx, "ignition", args...)
 	if cmd == nil {
 		return fmt.Errorf("exec.CommandContext() returned nil")

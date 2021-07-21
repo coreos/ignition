@@ -20,6 +20,7 @@ import (
 
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/resource"
+	"github.com/coreos/ignition/v2/internal/state"
 )
 
 // Util encapsulates logging and destdir indirection for the util methods.
@@ -27,6 +28,7 @@ type Util struct {
 	DestDir string // directory prefix to use in applying fs paths.
 	Fetcher resource.Fetcher
 	*log.Logger
+	State *state.State
 }
 
 // SplitPath splits /a/b/c/d into [a, b, c, d]
