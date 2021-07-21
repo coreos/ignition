@@ -15,12 +15,15 @@
 package files
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
@@ -128,6 +131,79 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 	// delete the persisted keyfiles from state so that the keyfiles are stored on
 	// only the root device which can be encrypted
 	s.State.LuksPersistKeyFiles = nil
+	return nil
+}
+
+// createResultFile creates a report recording some details about the
+// Ignition run.
+func (s *stage) createResultFile() error {
+	if distro.ResultFilePath() == "" {
+		return nil
+	}
+
+	s.Logger.PushPrefix("createResultFile")
+	defer s.Logger.PopPrefix()
+
+	bootIDBytes, err := ioutil.ReadFile(distro.BootIDPath())
+	if err != nil {
+		return fmt.Errorf("reading boot ID: %w", err)
+	}
+
+	result := struct {
+		ProvisioningBootID string `json:"provisioningBootID"`
+		ProvisioningDate   string `json:"provisioningDate"`
+		UserConfigProvided bool   `json:"userConfigProvided"`
+	}{
+		ProvisioningBootID: strings.TrimSpace(string(bootIDBytes)),
+		ProvisioningDate:   time.Now().Format(time.RFC3339),
+	}
+	for _, config := range s.State.FetchedConfigs {
+		if config.Kind == "user" {
+			result.UserConfigProvided = true
+			break
+		}
+	}
+
+	data, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshaling result file: %w", err)
+	}
+	data = append(data, '\n')
+
+	path, err := s.JoinPath(distro.ResultFilePath())
+	if err != nil {
+		return fmt.Errorf("building result file path: %w", err)
+	}
+	contentsUri := dataurl.EncodeBytes(data)
+	entries := []filesystemEntry{
+		// create containing directory with restrictive permissions
+		dirEntry{
+			types.Node{
+				Path: filepath.Dir(path),
+			},
+			types.DirectoryEmbedded1{
+				Mode: cutil.IntToPtr(0700),
+			},
+		},
+		fileEntry{
+			types.Node{
+				Path: path,
+				// Ignition is not designed to run twice,
+				// but don't introduce a hard failure if it
+				// does
+				Overwrite: cutil.BoolToPtr(true),
+			},
+			types.FileEmbedded1{
+				Contents: types.Resource{
+					Source: &contentsUri,
+				},
+				Mode: cutil.IntToPtr(0600),
+			},
+		},
+	}
+	if err := s.createEntries(entries); err != nil {
+		return fmt.Errorf("adding result file: %v", err)
+	}
 	return nil
 }
 

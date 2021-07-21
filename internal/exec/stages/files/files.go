@@ -87,6 +87,10 @@ func (s stage) Run(config types.Config) error {
 		return fmt.Errorf("creating crypttab entries: %v", err)
 	}
 
+	if err := s.createResultFile(); err != nil {
+		return fmt.Errorf("creating result file: %v", err)
+	}
+
 	if err := s.relabelFiles(); err != nil {
 		return fmt.Errorf("failed to handle relabeling: %v", err)
 	}

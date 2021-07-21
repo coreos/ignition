@@ -27,8 +27,9 @@ var (
 	diskByLabelDir    = "/dev/disk/by-label"
 	diskByPartUUIDDir = "/dev/disk/by-partuuid"
 
-	// File paths
+	// initrd file paths
 	kernelCmdlinePath = "/proc/cmdline"
+	bootIDPath        = "/proc/sys/kernel/random/boot_id"
 	// initramfs directory containing distro-provided base config
 	systemConfigDir = "/usr/lib/ignition"
 
@@ -74,7 +75,9 @@ var (
 	// ".ssh/authorized_keys" ("false").
 	writeAuthorizedKeysFragment = "true"
 
+	// Special file paths in the real root
 	luksRealRootKeyFilePath = "/etc/luks/"
+	resultFilePath          = "/var/lib/ignition/result.json"
 )
 
 func DiskByIDDir() string       { return diskByIDDir }
@@ -82,6 +85,7 @@ func DiskByLabelDir() string    { return diskByLabelDir }
 func DiskByPartUUIDDir() string { return diskByPartUUIDDir }
 
 func KernelCmdlinePath() string { return kernelCmdlinePath }
+func BootIDPath() string        { return bootIDPath }
 func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
 
 func GroupaddCmd() string { return groupaddCmd }
@@ -113,6 +117,7 @@ func CryptsetupCmd() string { return cryptsetupCmd }
 func KargsCmd() string { return kargsCmd }
 
 func LuksRealRootKeyFilePath() string { return luksRealRootKeyFilePath }
+func ResultFilePath() string          { return resultFilePath }
 
 func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !BlackboxTesting() }
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
