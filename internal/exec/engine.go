@@ -145,7 +145,7 @@ func (e Engine) Run(stageName string) error {
 		tmp, jsonerr := json.MarshalIndent(fullConfig, "", "  ")
 		if jsonerr != nil {
 			// Nothing else to do with this error
-			fmt.Fprintf(os.Stderr, "Could not marshal full config: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Could not marshal full config: %v\n", jsonerr)
 		} else {
 			fmt.Fprintf(os.Stderr, "Full config:\n%s", string(tmp))
 		}
