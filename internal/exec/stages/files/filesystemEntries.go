@@ -16,7 +16,6 @@ package files
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -70,12 +69,11 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 		if !luks.Clevis.IsPresent() {
 			keyfile = filepath.Join(distro.LuksRealRootKeyFilePath(), luks.Name)
 
-			// Copy keyfile from /run to sysroot
-			contents, err := ioutil.ReadFile(filepath.Join(distro.LuksInitramfsKeyFilePath(), luks.Name))
-			if err != nil {
-				return fmt.Errorf("reading keyfile for %s: %v", luks.Name, err)
+			// Write keyfile into sysroot
+			contentsUri, ok := s.State.LuksPersistKeyFiles[luks.Name]
+			if !ok {
+				return fmt.Errorf("missing persisted keyfile for %s", luks.Name)
 			}
-			contentsUri := dataurl.EncodeBytes(contents)
 			keyfilePath, err := s.JoinPath(keyfile)
 			if err != nil {
 				return fmt.Errorf("building keyfile path: %v", err)
@@ -127,11 +125,9 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 	if err := s.createEntries(extrafiles); err != nil {
 		return fmt.Errorf("adding luks related files: %v", err)
 	}
-	// delete the entire keyfiles folder in /run/ so that the keyfiles are stored on
+	// delete the persisted keyfiles from state so that the keyfiles are stored on
 	// only the root device which can be encrypted
-	if err := os.RemoveAll(distro.LuksInitramfsKeyFilePath()); err != nil {
-		return fmt.Errorf("removing initramfs keyfiles: %v", err)
-	}
+	s.State.LuksPersistKeyFiles = nil
 	return nil
 }
 

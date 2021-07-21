@@ -74,8 +74,7 @@ var (
 	// ".ssh/authorized_keys" ("false").
 	writeAuthorizedKeysFragment = "true"
 
-	luksInitramfsKeyFilePath = "/run/ignition/luks-keyfiles/"
-	luksRealRootKeyFilePath  = "/etc/luks/"
+	luksRealRootKeyFilePath = "/etc/luks/"
 )
 
 func DiskByIDDir() string       { return diskByIDDir }
@@ -113,8 +112,7 @@ func CryptsetupCmd() string { return cryptsetupCmd }
 
 func KargsCmd() string { return kargsCmd }
 
-func LuksInitramfsKeyFilePath() string { return luksInitramfsKeyFilePath }
-func LuksRealRootKeyFilePath() string  { return luksRealRootKeyFilePath }
+func LuksRealRootKeyFilePath() string { return luksRealRootKeyFilePath }
 
 func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !BlackboxTesting() }
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }

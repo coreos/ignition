@@ -23,6 +23,11 @@ import (
 )
 
 type State struct {
+	// Key files generated during LUKS setup in disks stage, which need
+	// to be written out during files stage.  files stage removes them
+	// from state afterward to avoid leaking the keys into the running
+	// system.
+	LuksPersistKeyFiles map[string]string `json:"luksPersistKeyFiles"`
 }
 
 func Load(path string) (State, error) {
