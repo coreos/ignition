@@ -44,7 +44,6 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 	s.Logger.PushPrefix("createCrypttabEntries")
 	defer s.Logger.PopPrefix()
 
-	mode := 0600
 	path, err := s.JoinPath("/etc/crypttab")
 	if err != nil {
 		return fmt.Errorf("building crypttab filepath: %v", err)
@@ -54,7 +53,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 			Path: path,
 		},
 		types.FileEmbedded1{
-			Mode: &mode,
+			Mode: cutil.IntToPtr(0600),
 		},
 	}
 	extrafiles := []filesystemEntry{}
@@ -89,7 +88,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 					Contents: types.Resource{
 						Source: &contentsUri,
 					},
-					Mode: &mode,
+					Mode: cutil.IntToPtr(0600),
 				},
 			})
 		}
@@ -102,7 +101,6 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 	// already exist) to be mode 0700 rather than auto-creating it at the default directory
 	// permission
 	if len(extrafiles) > 0 {
-		dirMode := 0700
 		realpath, err := s.JoinPath(distro.LuksRealRootKeyFilePath())
 		if err != nil {
 			return fmt.Errorf("building keyfile dir path: %v", err)
@@ -117,7 +115,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 							Path: realpath,
 						},
 						types.DirectoryEmbedded1{
-							Mode: &dirMode,
+							Mode: cutil.IntToPtr(0700),
 						},
 					},
 				}, extrafiles...)
