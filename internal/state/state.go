@@ -23,11 +23,20 @@ import (
 )
 
 type State struct {
+	// Information about configs fetched by the fetch stages.  Used
+	// when writing the result file in files stage.
+	FetchedConfigs []FetchedConfig `json:"fetchedConfigs"`
 	// Key files generated during LUKS setup in disks stage, which need
 	// to be written out during files stage.  files stage removes them
 	// from state afterward to avoid leaking the keys into the running
 	// system.
 	LuksPersistKeyFiles map[string]string `json:"luksPersistKeyFiles"`
+}
+
+type FetchedConfig struct {
+	Kind       string `json:"kind"`
+	Source     string `json:"source"`
+	Referenced bool   `json:"referenced"`
 }
 
 func Load(path string) (State, error) {

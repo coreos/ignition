@@ -71,13 +71,6 @@ type Engine struct {
 	PlatformConfig platform.Config
 	Fetcher        *resource.Fetcher
 	State          *state.State
-	fetchedConfigs []fetchedConfig
-}
-
-type fetchedConfig struct {
-	kind       string
-	source     string
-	referenced bool
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -95,10 +88,10 @@ func (e Engine) Run(stageName string) error {
 		e.Logger.Crit("failed to acquire system base config: %v", err)
 		return err
 	} else if err == nil {
-		e.fetchedConfigs = append(e.fetchedConfigs, fetchedConfig{
-			kind:       "base",
-			source:     "system",
-			referenced: false,
+		e.State.FetchedConfigs = append(e.State.FetchedConfigs, state.FetchedConfig{
+			Kind:       "base",
+			Source:     "system",
+			Referenced: false,
 		})
 	}
 
@@ -166,18 +159,18 @@ func (e Engine) Run(stageName string) error {
 
 // logStructuredJournalEntry logs information related to
 // a user/base config into the systemd journal log.
-func logStructuredJournalEntry(cfgInfo fetchedConfig) error {
+func logStructuredJournalEntry(cfgInfo state.FetchedConfig) error {
 	ignitionInfo := map[string]string{
-		"IGNITION_CONFIG_TYPE":       cfgInfo.kind,
-		"IGNITION_CONFIG_SRC":        cfgInfo.source,
-		"IGNITION_CONFIG_REFERENCED": strconv.FormatBool(cfgInfo.referenced),
+		"IGNITION_CONFIG_TYPE":       cfgInfo.Kind,
+		"IGNITION_CONFIG_SRC":        cfgInfo.Source,
+		"IGNITION_CONFIG_REFERENCED": strconv.FormatBool(cfgInfo.Referenced),
 		"MESSAGE_ID":                 ignitionFetchedConfigMsgId,
 	}
 	referenced := ""
-	if cfgInfo.referenced {
+	if cfgInfo.Referenced {
 		referenced = "referenced "
 	}
-	msg := fmt.Sprintf("fetched %s%s config from %q", referenced, cfgInfo.kind, cfgInfo.source)
+	msg := fmt.Sprintf("fetched %s%s config from %q", referenced, cfgInfo.Kind, cfgInfo.Source)
 	if err := journal.Send(msg, journal.PriInfo, ignitionInfo); err != nil {
 		return err
 	}
@@ -195,7 +188,7 @@ func (e *Engine) acquireConfig(stageName string) (cfg types.Config, err error) {
 
 		// if we've successfully fetched and cached the configs, log about them
 		if err == nil {
-			for _, cfgInfo := range e.fetchedConfigs {
+			for _, cfgInfo := range e.State.FetchedConfigs {
 				if logerr := logStructuredJournalEntry(cfgInfo); logerr != nil {
 					e.Logger.Info("failed to log systemd journal entry: %v", logerr)
 				}
@@ -326,10 +319,10 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 		return types.Config{}, err
 	}
 
-	e.fetchedConfigs = append(e.fetchedConfigs, fetchedConfig{
-		kind:       "user",
-		source:     providerKey,
-		referenced: false,
+	e.State.FetchedConfigs = append(e.State.FetchedConfigs, state.FetchedConfig{
+		Kind:       "user",
+		Source:     providerKey,
+		Referenced: false,
 	})
 
 	// Replace the HTTP client in the fetcher to be configured with the
@@ -431,10 +424,10 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, err
 		e.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))
 	}
 
-	e.fetchedConfigs = append(e.fetchedConfigs, fetchedConfig{
-		kind:       "user",
-		source:     u.Path,
-		referenced: true,
+	e.State.FetchedConfigs = append(e.State.FetchedConfigs, state.FetchedConfig{
+		Kind:       "user",
+		Source:     u.Path,
+		Referenced: true,
 	})
 
 	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
