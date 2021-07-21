@@ -15,8 +15,6 @@
 package files
 
 import (
-	"os"
-
 	"github.com/coreos/ignition/v2/tests/register"
 	"github.com/coreos/ignition/v2/tests/types"
 )
@@ -139,7 +137,7 @@ func DirCreationOverNonemptyDir() types.Test {
 				Directory: "foo",
 				Name:      "bar",
 			},
-			Mode: 0777 | int(os.ModeDir),
+			Mode: 0777,
 		},
 	})
 	configMinVersion := "3.0.0"
@@ -229,14 +227,14 @@ func CheckOrdering() types.Test {
 				Directory: "/",
 				Name:      "baz",
 			},
-			Mode: 0777 | int(os.ModeDir),
+			Mode: 0777,
 		},
 		{
 			Node: types.Node{
 				Directory: "baz",
 				Name:      "quux",
 			},
-			Mode: 0755 | int(os.ModeDir),
+			Mode: 0755,
 		},
 	})
 	configMinVersion := "3.0.0"
@@ -268,7 +266,7 @@ func ApplyDefaultDirectoryPermissions() types.Test {
 				Name:      "bar",
 				Directory: "foo",
 			},
-			Mode: 0755 | int(os.ModeDir),
+			Mode: 0755,
 		},
 	})
 	configMinVersion := "3.0.0"
