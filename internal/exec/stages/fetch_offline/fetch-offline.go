@@ -24,7 +24,6 @@ import (
 
 	cfgutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
-	"github.com/coreos/ignition/v2/internal/exec"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
 	executil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -67,7 +66,7 @@ func (s stage) Run(cfg types.Config) error {
 	if needsNet, err := configNeedsNet(&cfg); err != nil {
 		return err
 	} else if needsNet {
-		return exec.SignalNeedNet()
+		return resource.ErrNeedNet
 	}
 	return nil
 }
