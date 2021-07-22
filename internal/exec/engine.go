@@ -453,7 +453,7 @@ func SignalNeedNet() error {
 	return nil
 }
 
-func (e Engine) logReport(r report.Report) {
+func (e *Engine) logReport(r report.Report) {
 	for _, entry := range r.Entries {
 		switch entry.Kind {
 		case report.Error:
