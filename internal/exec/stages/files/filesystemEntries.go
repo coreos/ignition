@@ -15,6 +15,7 @@
 package files
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -22,6 +23,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
@@ -42,7 +44,6 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 	s.Logger.PushPrefix("createCrypttabEntries")
 	defer s.Logger.PopPrefix()
 
-	mode := 0600
 	path, err := s.JoinPath("/etc/crypttab")
 	if err != nil {
 		return fmt.Errorf("building crypttab filepath: %v", err)
@@ -52,7 +53,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 			Path: path,
 		},
 		types.FileEmbedded1{
-			Mode: &mode,
+			Mode: cutil.IntToPtr(0600),
 		},
 	}
 	extrafiles := []filesystemEntry{}
@@ -70,12 +71,11 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 		if !luks.Clevis.IsPresent() {
 			keyfile = filepath.Join(distro.LuksRealRootKeyFilePath(), luks.Name)
 
-			// Copy keyfile from /run to sysroot
-			contents, err := ioutil.ReadFile(filepath.Join(distro.LuksInitramfsKeyFilePath(), luks.Name))
-			if err != nil {
-				return fmt.Errorf("reading keyfile for %s: %v", luks.Name, err)
+			// Write keyfile into sysroot
+			contentsUri, ok := s.State.LuksPersistKeyFiles[luks.Name]
+			if !ok {
+				return fmt.Errorf("missing persisted keyfile for %s", luks.Name)
 			}
-			contentsUri := dataurl.EncodeBytes(contents)
 			keyfilePath, err := s.JoinPath(keyfile)
 			if err != nil {
 				return fmt.Errorf("building keyfile path: %v", err)
@@ -88,7 +88,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 					Contents: types.Resource{
 						Source: &contentsUri,
 					},
-					Mode: &mode,
+					Mode: cutil.IntToPtr(0600),
 				},
 			})
 		}
@@ -101,7 +101,6 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 	// already exist) to be mode 0700 rather than auto-creating it at the default directory
 	// permission
 	if len(extrafiles) > 0 {
-		dirMode := 0700
 		realpath, err := s.JoinPath(distro.LuksRealRootKeyFilePath())
 		if err != nil {
 			return fmt.Errorf("building keyfile dir path: %v", err)
@@ -116,7 +115,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 							Path: realpath,
 						},
 						types.DirectoryEmbedded1{
-							Mode: &dirMode,
+							Mode: cutil.IntToPtr(0700),
 						},
 					},
 				}, extrafiles...)
@@ -127,10 +126,81 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 	if err := s.createEntries(extrafiles); err != nil {
 		return fmt.Errorf("adding luks related files: %v", err)
 	}
-	// delete the entire keyfiles folder in /run/ so that the keyfiles are stored on
+	// delete the persisted keyfiles from state so that the keyfiles are stored on
 	// only the root device which can be encrypted
-	if err := os.RemoveAll(distro.LuksInitramfsKeyFilePath()); err != nil {
-		return fmt.Errorf("removing initramfs keyfiles: %v", err)
+	s.State.LuksPersistKeyFiles = nil
+	return nil
+}
+
+// createResultFile creates a report recording some details about the
+// Ignition run.
+func (s *stage) createResultFile() error {
+	if distro.ResultFilePath() == "" {
+		return nil
+	}
+
+	s.Logger.PushPrefix("createResultFile")
+	defer s.Logger.PopPrefix()
+
+	bootIDBytes, err := ioutil.ReadFile(distro.BootIDPath())
+	if err != nil {
+		return fmt.Errorf("reading boot ID: %w", err)
+	}
+
+	result := struct {
+		ProvisioningBootID string `json:"provisioningBootID"`
+		ProvisioningDate   string `json:"provisioningDate"`
+		UserConfigProvided bool   `json:"userConfigProvided"`
+	}{
+		ProvisioningBootID: strings.TrimSpace(string(bootIDBytes)),
+		ProvisioningDate:   time.Now().Format(time.RFC3339),
+	}
+	for _, config := range s.State.FetchedConfigs {
+		if config.Kind == "user" {
+			result.UserConfigProvided = true
+			break
+		}
+	}
+
+	data, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshaling result file: %w", err)
+	}
+	data = append(data, '\n')
+
+	path, err := s.JoinPath(distro.ResultFilePath())
+	if err != nil {
+		return fmt.Errorf("building result file path: %w", err)
+	}
+	contentsUri := dataurl.EncodeBytes(data)
+	entries := []filesystemEntry{
+		// create containing directory with restrictive permissions
+		dirEntry{
+			types.Node{
+				Path: filepath.Dir(path),
+			},
+			types.DirectoryEmbedded1{
+				Mode: cutil.IntToPtr(0700),
+			},
+		},
+		fileEntry{
+			types.Node{
+				Path: path,
+				// Ignition is not designed to run twice,
+				// but don't introduce a hard failure if it
+				// does
+				Overwrite: cutil.BoolToPtr(true),
+			},
+			types.FileEmbedded1{
+				Contents: types.Resource{
+					Source: &contentsUri,
+				},
+				Mode: cutil.IntToPtr(0600),
+			},
+		},
+	}
+	if err := s.createEntries(entries); err != nil {
+		return fmt.Errorf("adding result file: %v", err)
 	}
 	return nil
 }

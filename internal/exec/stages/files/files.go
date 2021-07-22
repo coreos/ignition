@@ -25,6 +25,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/resource"
+	"github.com/coreos/ignition/v2/internal/state"
 )
 
 const (
@@ -41,12 +42,13 @@ func init() {
 
 type creator struct{}
 
-func (creator) Create(logger *log.Logger, root string, f resource.Fetcher) stages.Stage {
+func (creator) Create(logger *log.Logger, root string, f resource.Fetcher, state *state.State) stages.Stage {
 	return &stage{
 		Util: util.Util{
 			DestDir: root,
 			Logger:  logger,
 			Fetcher: f,
+			State:   state,
 		},
 	}
 }
@@ -83,6 +85,10 @@ func (s stage) Run(config types.Config) error {
 
 	if err := s.createCrypttabEntries(config); err != nil {
 		return fmt.Errorf("creating crypttab entries: %v", err)
+	}
+
+	if err := s.createResultFile(); err != nil {
+		return fmt.Errorf("creating result file: %v", err)
 	}
 
 	if err := s.relabelFiles(); err != nil {

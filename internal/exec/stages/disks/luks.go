@@ -25,7 +25,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/util"
@@ -33,6 +32,8 @@ import (
 	"github.com/coreos/ignition/v2/internal/distro"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/resource"
+
+	"github.com/vincent-petithory/dataurl"
 )
 
 var (
@@ -104,6 +105,8 @@ func (s *stage) createLuks(config types.Config) error {
 		return err
 	}
 
+	s.State.LuksPersistKeyFiles = make(map[string]string)
+
 	for _, luks := range config.Storage.Luks {
 		// TODO: allow Ignition generated KeyFiles for
 		// non-clevis devices that can be persisted.
@@ -111,15 +114,17 @@ func (s *stage) createLuks(config types.Config) error {
 		// track whether Ignition creates the KeyFile
 		// so that it can be removed
 		var ignitionCreatedKeyFile bool
-		// create keyfile inside of tmpfs, it will be copied to the
-		// sysroot by the files stage
-		if err := os.MkdirAll(distro.LuksInitramfsKeyFilePath(), 0700); err != nil {
-			return fmt.Errorf("creating directory for keyfile: %v", err)
+		// create keyfile, remove on the way out
+		keyFile, err := ioutil.TempFile("", "ignition-luks-")
+		if err != nil {
+			return fmt.Errorf("creating keyfile: %w", err)
 		}
-		keyFilePath := filepath.Join(distro.LuksInitramfsKeyFilePath(), luks.Name)
+		keyFilePath := keyFile.Name()
+		keyFile.Close()
+		defer os.Remove(keyFilePath)
 		devAlias := execUtil.DeviceAlias(*luks.Device)
 		if util.NilOrEmpty(luks.KeyFile.Source) {
-			// create a keyfile
+			// generate keyfile contents
 			key, err := randHex(4096)
 			if err != nil {
 				return fmt.Errorf("generating keyfile: %v", err)
@@ -316,17 +321,21 @@ func (s *stage) createLuks(config types.Config) error {
 			}
 		}
 
-		// assume the user does not want a key file & remove it for clevis based devices
 		if ignitionCreatedKeyFile && luks.Clevis.IsPresent() {
+			// assume the user does not want the generated key & remove it
 			if _, err := s.Logger.LogCmd(
 				exec.Command(distro.CryptsetupCmd(), "luksRemoveKey", devAlias, keyFilePath),
 				"removing key file for %v", luks.Name,
 			); err != nil {
 				return fmt.Errorf("removing key file from luks device: %v", err)
 			}
-			if err := os.Remove(keyFilePath); err != nil {
-				return fmt.Errorf("removing key file: %v", err)
+		} else {
+			// store the key to be persisted into the real root
+			key, err := ioutil.ReadFile(keyFilePath)
+			if err != nil {
+				return fmt.Errorf("failed to read keyfile %q: %w", keyFilePath, err)
 			}
+			s.State.LuksPersistKeyFiles[luks.Name] = dataurl.EncodeBytes(key)
 		}
 	}
 
