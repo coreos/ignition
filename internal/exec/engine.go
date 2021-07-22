@@ -52,8 +52,6 @@ const (
 	// This variable will help to identify ignition journal messages
 	// related to the user/base config.
 	ignitionFetchedConfigMsgId = "57124006b5c94805b77ce473e92a8aeb"
-
-	needNetPath = "/run/ignition/neednet"
 )
 
 var (
@@ -67,6 +65,7 @@ type Engine struct {
 	ConfigCache    string
 	FetchTimeout   time.Duration
 	Logger         *log.Logger
+	NeedNet        string
 	Root           string
 	PlatformConfig platform.Config
 	Fetcher        *resource.Fetcher
@@ -112,7 +111,7 @@ func (e Engine) Run(stageName string) error {
 	// configuring the S3RegionHint when running on AWS.
 	err = e.PlatformConfig.InitFunc()(e.Fetcher)
 	if err == resource.ErrNeedNet && stageName == "fetch-offline" {
-		err = SignalNeedNet()
+		err = e.signalNeedNet()
 		if err != nil {
 			e.Logger.Crit("failed to signal neednet: %v", err)
 		}
@@ -123,7 +122,7 @@ func (e Engine) Run(stageName string) error {
 
 	cfg, err := e.acquireConfig(stageName)
 	if err == resource.ErrNeedNet && stageName == "fetch-offline" {
-		err = SignalNeedNet()
+		err = e.signalNeedNet()
 		if err != nil {
 			e.Logger.Crit("failed to signal neednet: %v", err)
 		}
@@ -139,13 +138,21 @@ func (e Engine) Run(stageName string) error {
 	defer e.Logger.PopPrefix()
 
 	fullConfig := latest.Merge(baseConfig, latest.Merge(systemBaseConfig, cfg))
-	if err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(fullConfig); err != nil {
+	err = stages.Get(stageName).Create(e.Logger, e.Root, *e.Fetcher).Run(fullConfig)
+	if err == resource.ErrNeedNet && stageName == "fetch-offline" {
+		err = e.signalNeedNet()
+		if err != nil {
+			e.Logger.Crit("failed to signal neednet: %v", err)
+		}
+		// fall through
+	}
+	if err != nil {
 		// e.Logger could be nil
 		fmt.Fprintf(os.Stderr, "%s failed\n", stageName)
 		tmp, jsonerr := json.MarshalIndent(fullConfig, "", "  ")
 		if jsonerr != nil {
 			// Nothing else to do with this error
-			fmt.Fprintf(os.Stderr, "Could not marshal full config: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Could not marshal full config: %v\n", jsonerr)
 		} else {
 			fmt.Fprintf(os.Stderr, "Full config:\n%s", string(tmp))
 		}
@@ -441,11 +448,11 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, err
 	return cfg, nil
 }
 
-func SignalNeedNet() error {
-	if err := executil.MkdirForFile(needNetPath); err != nil {
+func (e *Engine) signalNeedNet() error {
+	if err := executil.MkdirForFile(e.NeedNet); err != nil {
 		return err
 	}
-	if f, err := os.Create(needNetPath); err != nil {
+	if f, err := os.Create(e.NeedNet); err != nil {
 		return err
 	} else {
 		f.Close()
@@ -453,7 +460,7 @@ func SignalNeedNet() error {
 	return nil
 }
 
-func (e Engine) logReport(r report.Report) {
+func (e *Engine) logReport(r report.Report) {
 	for _, entry := range r.Entries {
 		switch entry.Kind {
 		case report.Error:

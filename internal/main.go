@@ -39,6 +39,7 @@ func main() {
 		clearCache   bool
 		configCache  string
 		fetchTimeout time.Duration
+		needNet      string
 		platform     platform.Name
 		root         string
 		stage        stages.Name
@@ -49,6 +50,7 @@ func main() {
 	flag.BoolVar(&flags.clearCache, "clear-cache", false, "clear any cached config")
 	flag.StringVar(&flags.configCache, "config-cache", "/run/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.fetchTimeout, "fetch-timeout", exec.DefaultFetchTimeout, "initial duration for which to wait for config")
+	flag.StringVar(&flags.needNet, "neednet", "/run/ignition/neednet", "flag file to write from fetch-offline if networking is needed")
 	flag.Var(&flags.platform, "platform", fmt.Sprintf("current platform. %v", platform.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
@@ -94,6 +96,7 @@ func main() {
 		Root:           flags.root,
 		FetchTimeout:   flags.fetchTimeout,
 		Logger:         &logger,
+		NeedNet:        flags.needNet,
 		ConfigCache:    flags.configCache,
 		PlatformConfig: platformConfig,
 		Fetcher:        &fetcher,
