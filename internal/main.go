@@ -36,7 +36,6 @@ import (
 
 func main() {
 	flags := struct {
-		clearCache   bool
 		configCache  string
 		fetchTimeout time.Duration
 		needNet      string
@@ -47,7 +46,6 @@ func main() {
 		logToStdout  bool
 	}{}
 
-	flag.BoolVar(&flags.clearCache, "clear-cache", false, "clear any cached config")
 	flag.StringVar(&flags.configCache, "config-cache", "/run/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.fetchTimeout, "fetch-timeout", exec.DefaultFetchTimeout, "initial duration for which to wait for config")
 	flag.StringVar(&flags.needNet, "neednet", "/run/ignition/neednet", "flag file to write from fetch-offline if networking is needed")
@@ -79,12 +77,6 @@ func main() {
 
 	logger.Info(version.String)
 	logger.Info("Stage: %v", flags.stage)
-
-	if flags.clearCache {
-		if err := os.Remove(flags.configCache); err != nil {
-			logger.Err("unable to clear cache: %v", err)
-		}
-	}
 
 	platformConfig := platform.MustGet(flags.platform.String())
 	fetcher, err := platformConfig.NewFetcherFunc()(&logger)
