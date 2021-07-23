@@ -150,8 +150,8 @@ func (s stage) mountFs(fs types.Filesystem) error {
 
 	if distro.SelinuxRelabel() {
 		// relabel the root of the disk if it's fresh
-		if isEmpty, err := util.DirIsEmpty(path); err != nil {
-			return fmt.Errorf("Checking if directory %s is empty: %v", path, err)
+		if isEmpty, err := util.FilesystemIsEmpty(path); err != nil {
+			return fmt.Errorf("Checking if mountpoint %s is empty: %v", path, err)
 		} else if isEmpty {
 			if err := s.RelabelFiles([]string{path}); err != nil {
 				return err
