@@ -92,6 +92,35 @@ func (u Util) JoinPath(path ...string) (string, error) {
 	return filepath.Join(u.DestDir, realpath, last), nil
 }
 
+// NotateMkdirAll creates directories relative to the u.DestDir root,
+// including any missing parents, and records the paths to any created
+// directories in the State for future use.
+func (u Util) NotateMkdirAll(path string, perm os.FileMode) error {
+	destPath, err := u.JoinPath(path)
+	if err != nil {
+		return err
+	}
+
+	if exists, err := PathExists(filepath.Dir(destPath)); err != nil {
+		return err
+	} else if !exists {
+		if err := u.NotateMkdirAll(filepath.Dir(path), perm); err != nil {
+			return err
+		}
+	}
+
+	if exists, err := PathExists(destPath); err != nil {
+		return err
+	} else if !exists {
+		if err := os.Mkdir(destPath, perm); err != nil {
+			return err
+		}
+		u.State.NotatedDirectories = append(u.State.NotatedDirectories, path)
+	}
+
+	return nil
+}
+
 // PathExists checks if the path exists for a given config.
 func PathExists(path string) (bool, error) {
 	if _, err := os.Stat(path); err != nil {

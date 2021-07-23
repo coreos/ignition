@@ -16,6 +16,7 @@ package util
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
@@ -179,6 +180,52 @@ func writeAuthKeysFile(u *user.User, fp string, keys []byte) error {
 	if err := f.Close(); err != nil {
 		return err
 	}
+	return nil
+}
+
+// ModifyHomeDirPermissions changes the permissions for the user's home
+// directory if it was created during the Ignition mount stage as a
+// result of a mountpoint.
+func (u Util) ModifyHomeDirPermissions(c types.PasswdUser) error {
+	if util.IsTrue(c.NoCreateHome) {
+		return nil
+	}
+
+	homeDir, err := u.GetUserHomeDir(c)
+	if err != nil {
+		return err
+	}
+
+	usr, err := u.userLookup(c.Name)
+	if err != nil {
+		return fmt.Errorf("unable to look up user %q: %w", c.Name, err)
+	}
+	uid, err := strconv.Atoi(usr.Uid)
+	if err != nil {
+		return fmt.Errorf("converting uid to int: %w", err)
+	}
+	gid, err := strconv.Atoi(usr.Gid)
+	if err != nil {
+		return fmt.Errorf("converting gid to int: %w", err)
+	}
+
+	for _, dir := range u.State.NotatedDirectories {
+		if dir == homeDir || strings.HasPrefix(dir, homeDir+"/") {
+			dir, err = u.JoinPath(dir)
+			if err != nil {
+				return fmt.Errorf("calculating path of %q: %w", dir, err)
+			}
+			if err := os.Chown(dir, uid, gid); err != nil {
+				return fmt.Errorf("changing ownership of %q: %w", dir, err)
+			}
+			// more restrictive than necessary for some subdirs,
+			// but default to secure
+			if err := os.Chmod(dir, 0700); err != nil {
+				return fmt.Errorf("changing file mode of %q: %w", dir, err)
+			}
+		}
+	}
+
 	return nil
 }
 
