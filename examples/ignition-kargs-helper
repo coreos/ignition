@@ -47,5 +47,5 @@ kernelopts="$(echo "$kernelopts" | sed -e 's,^[[:space:]]*,,' -e 's,[[:space:]]*
 if [[ "$kernelopts" != "$orig_kernelopts" ]]; then
     sed -i "s|^\(kernelopts=\).*|\1$kernelopts|" $grubcfg
 
-    systemctl reboot
+    systemctl reboot --force
 fi
