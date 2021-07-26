@@ -109,7 +109,8 @@ func (s stage) mountFs(fs types.Filesystem) error {
 
 	// mount paths shouldn't include symlinks or other non-directories so we can use filepath.Join()
 	// instead of s.JoinPath(). Check that the resulting path is composed of only directories.
-	path := filepath.Join(s.DestDir, *fs.Path)
+	relpath := *fs.Path
+	path := filepath.Join(s.DestDir, relpath)
 	if err := checkForNonDirectories(path); err != nil {
 		return err
 	}
@@ -124,7 +125,9 @@ func (s stage) mountFs(fs types.Filesystem) error {
 	}
 
 	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
-		if err := os.MkdirAll(path, 0755); err != nil {
+		// Record created directories for use by the files stage.
+		// NotateMkdirAll() is relative to the DestDir.
+		if err := s.NotateMkdirAll(relpath, 0755); err != nil {
 			return err
 		}
 	} else if err != nil {
@@ -147,8 +150,8 @@ func (s stage) mountFs(fs types.Filesystem) error {
 
 	if distro.SelinuxRelabel() {
 		// relabel the root of the disk if it's fresh
-		if isEmpty, err := util.DirIsEmpty(path); err != nil {
-			return fmt.Errorf("Checking if directory %s is empty: %v", path, err)
+		if isEmpty, err := util.FilesystemIsEmpty(path); err != nil {
+			return fmt.Errorf("Checking if mountpoint %s is empty: %v", path, err)
 		} else if isEmpty {
 			if err := s.RelabelFiles([]string{path}); err != nil {
 				return err

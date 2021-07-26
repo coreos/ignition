@@ -31,6 +31,11 @@ type State struct {
 	// from state afterward to avoid leaking the keys into the running
 	// system.
 	LuksPersistKeyFiles map[string]string `json:"luksPersistKeyFiles"`
+	// List of directories created by NotateMkdirAll(), relative to
+	// the configured root dir.  Currently used to record directories
+	// created by the mount stage so the files stage can chown them
+	// when creating users.
+	NotatedDirectories []string `json:"notatedDirectories"`
 }
 
 type FetchedConfig struct {

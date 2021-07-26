@@ -117,6 +117,11 @@ func (s stage) ensureUsers(config types.Config) error {
 			continue
 		}
 
+		if err := s.ModifyHomeDirPermissions(u); err != nil {
+			return fmt.Errorf("failed to modify home directory permissions for %q: %v",
+				u.Name, err)
+		}
+
 		if err := s.SetPasswordHash(u); err != nil {
 			return fmt.Errorf("failed to set password for %q: %v",
 				u.Name, err)
