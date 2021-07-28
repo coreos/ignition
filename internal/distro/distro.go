@@ -23,7 +23,6 @@ import (
 // -X github.com/coreos/ignition/v2/internal/distro.mdadmCmd=/opt/bin/mdadm
 var (
 	// Device node directories and paths
-	diskByIDDir       = "/dev/disk/by-id"
 	diskByLabelDir    = "/dev/disk/by-label"
 	diskByPartUUIDDir = "/dev/disk/by-partuuid"
 
@@ -80,7 +79,6 @@ var (
 	resultFilePath          = "/var/lib/ignition/result.json"
 )
 
-func DiskByIDDir() string       { return diskByIDDir }
 func DiskByLabelDir() string    { return diskByLabelDir }
 func DiskByPartUUIDDir() string { return diskByPartUUIDDir }
 

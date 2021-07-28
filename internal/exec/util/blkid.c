@@ -19,6 +19,12 @@
 static inline void _free_probe(blkid_probe *pr) { if (pr) blkid_free_probe(*pr); }
 #define _cleanup_probe_ __attribute__((cleanup(_free_probe)))
 
+static inline void _free_cache(blkid_cache *gcache) { blkid_put_cache(*gcache); }
+#define _cleanup_cache_ __attribute__((cleanup(_free_cache)))
+
+static inline void _free_iterator(blkid_dev_iterate *iter) { blkid_dev_iterate_end(*iter); }
+#define _cleanup_iterator_ __attribute__((cleanup(_free_iterator)))
+
 static result_t extract_part_info(blkid_partition part, struct partition_info *info, long sector_divisor);
 
 static result_t checked_copy(char *dest, const char *src, size_t len);
@@ -246,5 +252,40 @@ static result_t extract_part_info(blkid_partition part, struct partition_info *i
 		return RESULT_LOOKUP_FAILED;
 	info->size = itmp / sector_divisor;
 
+	return RESULT_OK;
+}
+
+// blkid_get_block_devices fetches block devices with the given FSTYPE
+result_t blkid_get_block_devices(const char *fstype, struct block_device_list *device) {
+	blkid_dev_iterate iter _cleanup_iterator_ = NULL;
+	blkid_dev dev;
+	blkid_cache cache _cleanup_cache_ = NULL;
+	int err, count = 0;
+	const char *ctmp;
+	
+	if (blkid_get_cache(&cache, "/dev/null") != 0)
+		return RESULT_GET_CACHE_FAILED;
+	
+	if (blkid_probe_all(cache) != 0)
+		return RESULT_PROBE_FAILED;
+
+	iter = blkid_dev_iterate_begin(cache);
+	
+	blkid_dev_set_search(iter, "TYPE", fstype);
+	
+	while (blkid_dev_next(iter, &dev) == 0) {
+		dev = blkid_verify(cache, dev);
+		if (!dev)
+			continue;
+		if (count >= MAX_BLOCK_DEVICES)
+			return RESULT_MAX_BLOCK_DEVICES;
+		ctmp = blkid_dev_devname(dev);
+		err = checked_copy(device->path[count], ctmp, MAX_BLOCK_DEVICE_PATH_LEN);
+		if (err)
+			return err;
+		count++;
+	}
+	
+	device->count = count;
 	return RESULT_OK;
 }
