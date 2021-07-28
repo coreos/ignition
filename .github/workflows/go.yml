@@ -6,8 +6,10 @@ on:
   pull_request:
     branches: [main]
 
-jobs:
+permissions:
+  contents: read
 
+jobs:
   test-build:
     name: test build
     strategy:
