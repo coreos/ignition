@@ -142,18 +142,43 @@ func (s *stage) createResultFile() error {
 	s.Logger.PushPrefix("createResultFile")
 	defer s.Logger.PopPrefix()
 
+	var prevReport interface{}
+	prevPath, err := s.JoinPath(distro.ResultFilePath())
+	if err != nil {
+		return fmt.Errorf("building previous result file path: %w", err)
+	}
+	prevData, err := ioutil.ReadFile(prevPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("reading previous report: %w", err)
+	}
+	if err == nil {
+		// To check if it's a live system
+		if err := exec.Command("is-live-image").Run(); err != nil {
+			if _, ok := err.(*exec.ExitError); !ok {
+				s.Logger.Notice("failed to run is-live-image hook: %v", err)
+			}
+			s.Logger.Warning("Ignition has already run on this system. Unexpected behavior may occur. Ignition is not designed to run more than once per system.")
+			err = json.Unmarshal(prevData, &prevReport)
+			if err != nil {
+				return fmt.Errorf("couldn't unmarshal previous report output: %v", err)
+			}
+		}
+	}
+
 	bootIDBytes, err := ioutil.ReadFile(distro.BootIDPath())
 	if err != nil {
 		return fmt.Errorf("reading boot ID: %w", err)
 	}
 
 	result := struct {
-		ProvisioningBootID string `json:"provisioningBootID"`
-		ProvisioningDate   string `json:"provisioningDate"`
-		UserConfigProvided bool   `json:"userConfigProvided"`
+		ProvisioningBootID string      `json:"provisioningBootID"`
+		ProvisioningDate   string      `json:"provisioningDate"`
+		UserConfigProvided bool        `json:"userConfigProvided"`
+		PreviousReport     interface{} `json:"previousReport,omitempty"`
 	}{
 		ProvisioningBootID: strings.TrimSpace(string(bootIDBytes)),
 		ProvisioningDate:   time.Now().Format(time.RFC3339),
+		PreviousReport:     prevReport,
 	}
 	for _, config := range s.State.FetchedConfigs {
 		if config.Kind == "user" {
