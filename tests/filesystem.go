@@ -169,7 +169,7 @@ func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, app
 	// nolint:staticcheck
 	cmd.Env = append(os.Environ(), appendEnv...)
 	out, err := cmd.CombinedOutput()
-	if cmd != nil && cmd.Process != nil {
+	if cmd.Process != nil {
 		t.Logf("PID: %d", cmd.Process.Pid)
 	}
 	t.Logf("Ignition output:\n%s", string(out))

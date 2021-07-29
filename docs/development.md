@@ -9,7 +9,7 @@ nav_order: 10
 1. TOC
 {:toc}
 
-A Go 1.13+ [environment](https://golang.org/doc/install) and the `blkid.h` headers are required.
+A Go 1.15+ [environment](https://golang.org/doc/install) and the `blkid.h` headers are required.
 
 ```sh
 # Debian/Ubuntu
