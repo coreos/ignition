@@ -62,7 +62,7 @@
 
 Name:           ignition
 Version:        2.11.0
-Release:        2.rhaos4.9%{?dist}
+Release:        3.rhaos4.9%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
@@ -575,6 +575,10 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Thu Jul 29 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.11.0-3.rhaos4.9
+- Rebuild to address minor CVE related to golang's crypto/tls package
+  https://bugzilla.redhat.com/show_bug.cgi?id=1986042
+
 * Thu Jul  8 2021 Benjamin Gilbert <bgilbert@redhat.com> - 2.11.0-2.rhaos4.9
 - Move ignition-firstboot-complete and ignition-setup-user services out of
   package into distro glue
