@@ -1,3 +1,32 @@
+05-Aug-2021 Ignition 2.12.0
+
+  Features:
+
+    - Support Azure generation 2 VMs
+    - Write info about Ignition’s execution to /var/lib/ignition/result.json
+
+  Changes:
+
+    - Access GCP metadata service by IP address to mitigate DNS poisoning
+      attacks
+    - Document storage.luks.clevis.threshold default
+    - Document minimum Ignition release for each spec version
+
+  Bug Fixes:
+
+    - Fix permissions of mountpoints inside user home directories
+    - Apply SELinux labels to newly-created ext4 filesystems
+
+  Internal Changes:
+
+    - Drop ignition-setup-user.service and ignition-firstboot-complete.service 
+      in favor of distro-provided code
+    - Persist some state between Ignition stages using a file in /run
+    - Add command-line flag specifying path to neednet flag file
+    - Drop -clear-cache command-line flag
+    - Fix reboot race in example kargs helper
+    - Drop support for Go 1.13 and 1.14
+
 25-Jun-2021 Ignition 2.11.0
 
   Breaking Changes:
