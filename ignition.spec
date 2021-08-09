@@ -61,18 +61,13 @@
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Version:        2.11.0
-Release:        3.rhaos4.9%{?dist}
+Version:        2.12.0
+Release:        1.rhaos4.9%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
 Source0:        https://%{provider_prefix}/archive/v%{version}/%{repo}-%{version}.tar.gz
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
-# https://github.com/coreos/ignition/pull/1245
-Patch1:         drop-ignition-firstboot-complete-2.11.0.patch
-# https://github.com/coreos/ignition/pull/1248
-Patch2:         drop-ignition-setup-base-2.11.0.patch
-Patch3:         drop-ignition-setup-user-2.11.0.patch
 
 %define gopath %{_datadir}/gocode
 ExclusiveArch: %{go_arches}
@@ -575,6 +570,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Mon Aug 9 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.12.0-1.rhaos4.9
+- New release
+
 * Thu Jul 29 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.11.0-3.rhaos4.9
 - Rebuild to address minor CVE related to golang's crypto/tls package
   https://bugzilla.redhat.com/show_bug.cgi?id=1986042
