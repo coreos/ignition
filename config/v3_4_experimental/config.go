@@ -58,8 +58,8 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	return config, rpt, nil
 }
 
-// ParseCompatibleVersion parses the raw config of version 3.3.0-experimental or
-// lesser into a 3.3-exp types.Config struct and generates a report of any errors,
+// ParseCompatibleVersion parses the raw config of version 3.4.0-experimental or
+// lesser into a 3.4-exp types.Config struct and generates a report of any errors,
 // warnings, info, and deprecations it encountered
 func ParseCompatibleVersion(raw []byte) (types.Config, report.Report, error) {
 	version, rpt, err := util.GetConfigVersion(raw)
