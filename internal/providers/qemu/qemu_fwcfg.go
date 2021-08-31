@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build !s390x && !ppc64le
 // +build !s390x,!ppc64le
 
 // The default QEMU provider fetches a local configuration from the firmware
