@@ -28,6 +28,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/exoscale"
 	"github.com/coreos/ignition/v2/internal/providers/file"
 	"github.com/coreos/ignition/v2/internal/providers/gcp"
+	"github.com/coreos/ignition/v2/internal/providers/hetzner"
 	"github.com/coreos/ignition/v2/internal/providers/ibmcloud"
 	"github.com/coreos/ignition/v2/internal/providers/noop"
 	"github.com/coreos/ignition/v2/internal/providers/openstack"
@@ -135,6 +136,10 @@ func init() {
 	configs.Register(Config{
 		name:  "gcp",
 		fetch: gcp.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "hetzner",
+		fetch: hetzner.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "ibmcloud",
