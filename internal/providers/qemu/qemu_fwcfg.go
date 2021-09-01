@@ -28,6 +28,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	"github.com/coreos/ignition/v2/internal/providers/util"
@@ -76,6 +77,8 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		return types.Config{}, report.Report{}, err
 	}
 	defer fh.Close()
+	lastReport := time.Now()
+	reporting := false
 	for len(data) < size {
 		// if size is correct, we will never call this at an offset
 		// where it would return io.EOF
@@ -85,6 +88,14 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 			return types.Config{}, report.Report{}, err
 		}
 		data = data[:len(data)+n]
+		if !reporting && time.Since(lastReport).Seconds() >= 10 {
+			f.Logger.Warning("Reading QEMU fw_cfg takes quadratic time. Consider moving large files or config fragments to a remote URL.")
+			reporting = true
+		}
+		if reporting && (time.Since(lastReport).Seconds() >= 5 || len(data) >= size) {
+			f.Logger.Info("Reading config from QEMU fw_cfg: %d/%d KB", len(data)/1024, size/1024)
+			lastReport = time.Now()
+		}
 	}
 	if len(data) > size {
 		// overflowed into guard byte
