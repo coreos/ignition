@@ -51,17 +51,12 @@ cosaPod {
         unstash name: 'blackbox'
         fcosKola(extraArgs: "ext.*.blackbox", skipUpgrade: true)
     }, testiso: {
-        try {
-            shwrap("""
-                cd /srv/fcos
-                cosa buildextend-metal
-                cosa buildextend-metal4k
-                cosa buildextend-live --fast
-                kola testiso -S --output-dir tmp/kola-testiso-metal
-            """)
-        } finally {
-            shwrap("cd /srv/fcos && tar -cf - tmp/kola-testiso-metal/ | xz -c9 > ${env.WORKSPACE}/kola-testiso-metal.tar.xz")
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'kola-testiso*.tar.xz'
-        }
+        shwrap("""
+            cd /srv/fcos
+            cosa buildextend-metal
+            cosa buildextend-metal4k
+            cosa buildextend-live --fast
+        """)
+        fcosKolaTestIso(cosaDir: "/srv/fcos")
     }
 }
