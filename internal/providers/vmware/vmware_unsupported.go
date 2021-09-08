@@ -15,6 +15,7 @@
 // The vmware provider fetches a configuration from the VMware Guest Info
 // interface.
 
+//go:build !amd64
 // +build !amd64
 
 package vmware
