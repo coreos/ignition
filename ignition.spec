@@ -62,7 +62,7 @@
 
 Name:           ignition
 Version:        2.12.0
-Release:        1.rhaos4.9%{?dist}
+Release:        1.rhaos4.10%{?dist}
 Summary:        First boot installer and configuration tool
 License:        ASL 2.0
 URL:            https://%{provider_prefix}
@@ -570,6 +570,9 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/vendor:%{gopath}
 %endif
 
 %changelog
+* Mon Sep 13 2021 Micah Abbott <miabbott@redhat.com> - 2.12.0-1.rhaos4.10
+- New build for 4.10
+
 * Mon Aug 9 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.12.0-1.rhaos4.9
 - New release
 
