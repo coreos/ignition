@@ -243,6 +243,9 @@ Ignition project's Github releases page.
 
 %build
 export LDFLAGS="-X github.com/coreos/ignition/v2/internal/version.Raw=%{version} -X github.com/coreos/ignition/v2/internal/distro.selinuxRelabel=true "
+%if 0%{?rhel} || 0%{?centos}
+LDFLAGS+=' -X github.com/coreos/ignition/v2/internal/distro.writeAuthorizedKeysFragment=false '
+%endif
 export GOFLAGS="-mod=vendor"
 
 echo "Building ignition..."
@@ -307,6 +310,7 @@ install -p -m 0755 ./ignition %{buildroot}/%{dracutlibdir}/modules.d/30ignition
 %changelog
 * Mon Sep 13 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.12.0-2.rhaos4.10
 - Redo packaging using go2rpm and conditionalize Fedora-specific configuration
+- Disable file fragment writing logic for SSH authorized_keys
 
 * Mon Sep 13 2021 Micah Abbott <miabbott@redhat.com> - 2.12.0-1.rhaos4.10
 - New build for 4.10
