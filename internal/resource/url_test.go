@@ -194,6 +194,20 @@ func TestFetchOffline(t *testing.T) {
 			},
 			out: out{err: ErrNeedNet},
 		},
+		// arn url specifying bucket
+		{
+			in: in{
+				url: "arn:aws:s3:::kola-fixtures/resources/anonymous",
+			},
+			out: out{err: ErrNeedNet},
+		},
+		// arn url specifying s3 access point
+		{
+			in: in{
+				url: "arn:aws:s3:us-west-2:123456789012:accesspoint/test/object",
+			},
+			out: out{err: ErrNeedNet},
+		},
 		// gs url
 		{
 			in: in{
@@ -223,6 +237,80 @@ func TestFetchOffline(t *testing.T) {
 		}
 		if test.out.err == nil && !reflect.DeepEqual(test.out.data, result) {
 			t.Errorf("#%d: expected output %+v, got %+v", i, test.out.data, result)
+			continue
+		}
+	}
+}
+
+func TestParseARN(t *testing.T) {
+	type in struct {
+		url string
+	}
+	type out struct {
+		bucket string
+		key    string
+		region string
+		err    error
+	}
+	tests := []struct {
+		in  in
+		out out
+	}{
+		{
+			in: in{
+				"arn:aws:iam:us-west-2:123456789012:resource",
+			},
+			out: out{
+				err: errors.ErrInvalidS3ARN,
+			},
+		},
+		{
+			in: in{
+				"arn:aws:s3:::kola-fixtures/resources/anonymous",
+			},
+			out: out{
+				bucket: "kola-fixtures", key: "resources/anonymous",
+			},
+		},
+		{
+			in: in{
+				"arn:aws:s3:us-west-2:123456789012:accesspoint/test/object",
+			},
+			out: out{
+				bucket: "arn:aws:s3:us-west-2:123456789012:accesspoint/test", key: "object", region: "us-west-2",
+			},
+		},
+		{
+			in: in{
+				"arn:aws:s3:us-west-2:123456789012:accesspoint/test/path/object",
+			},
+			out: out{
+				bucket: "arn:aws:s3:us-west-2:123456789012:accesspoint/test", key: "path/object", region: "us-west-2",
+			},
+		},
+	}
+
+	logger := log.New(true)
+	f := Fetcher{
+		Logger: &logger,
+	}
+
+	for i, test := range tests {
+		bucket, key, region, err := f.parseARN(test.in.url)
+		if !reflect.DeepEqual(test.out.err, err) {
+			t.Errorf("#%d: fetching URL: expected error %+v, got %+v", i, test.out.err, err)
+			continue
+		}
+		if test.out.err == nil && !reflect.DeepEqual(test.out.bucket, bucket) {
+			t.Errorf("#%d: expected output %+v, got %+v", i, test.out.bucket, bucket)
+			continue
+		}
+		if test.out.err == nil && !reflect.DeepEqual(test.out.key, key) {
+			t.Errorf("#%d: expected output %+v, got %+v", i, test.out.key, key)
+			continue
+		}
+		if test.out.err == nil && !reflect.DeepEqual(test.out.region, region) {
+			t.Errorf("#%d: expected output %+v, got %+v", i, test.out.region, region)
 			continue
 		}
 	}

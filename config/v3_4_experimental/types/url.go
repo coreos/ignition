@@ -16,7 +16,9 @@ package types
 
 import (
 	"net/url"
+	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/vincent-petithory/dataurl"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
@@ -33,6 +35,30 @@ func validateURL(s string) error {
 	case "http", "https", "tftp", "gs":
 		return nil
 	case "s3":
+		if v, ok := u.Query()["versionId"]; ok {
+			if len(v) == 0 || v[0] == "" {
+				return errors.ErrInvalidS3ObjectVersionId
+			}
+		}
+		return nil
+	case "arn":
+		fullURL := u.Scheme + ":" + u.Opaque
+		if !arn.IsARN(fullURL) {
+			return errors.ErrInvalidS3ARN
+		}
+		s3arn, err := arn.Parse(fullURL)
+		if err != nil {
+			return err
+		}
+		if s3arn.Service != "s3" {
+			return errors.ErrInvalidS3ARN
+		}
+		urlSplit := strings.Split(fullURL, "/")
+		if strings.HasPrefix(s3arn.Resource, "accesspoint/") && len(urlSplit) < 3 {
+			return errors.ErrInvalidS3ARN
+		} else if len(urlSplit) < 2 {
+			return errors.ErrInvalidS3ARN
+		}
 		if v, ok := u.Query()["versionId"]; ok {
 			if len(v) == 0 || v[0] == "" {
 				return errors.ErrInvalidS3ObjectVersionId
