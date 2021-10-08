@@ -242,9 +242,9 @@ func MkdirForFile(path string) error {
 	return os.MkdirAll(filepath.Dir(path), DefaultDirectoryPermissions)
 }
 
-// FindFirstMissingDirForFile returns the first component which was found to be
-// missing for the path.
-func FindFirstMissingDirForFile(path string) (string, error) {
+// FindFirstMissingPathComponent returns the path up to the first component
+// which was found to be missing, or the whole path if it already exists.
+func FindFirstMissingPathComponent(path string) (string, error) {
 	entry := path
 	dir := filepath.Dir(path)
 	for {

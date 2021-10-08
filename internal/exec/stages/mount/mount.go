@@ -118,7 +118,7 @@ func (s stage) mountFs(fs types.Filesystem) error {
 	var firstMissing string
 	if distro.SelinuxRelabel() {
 		var err error
-		firstMissing, err = util.FindFirstMissingDirForFile(path)
+		firstMissing, err = util.FindFirstMissingPathComponent(path)
 		if err != nil {
 			return err
 		}
