@@ -6,16 +6,16 @@ nav_order: 8
 
 Ignition is currently only supported for the following platforms:
 
-* Bare Metal - Use the `ignition.config.url` kernel parameter to provide a URL to the configuration. The URL can use the `http://`, `https://`, `tftp://`, `s3://`, or `gs://` schemes to specify a remote config.
-* [Amazon Web Services] - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
-* [Microsoft Azure] - Ignition will read its configuration from the custom data provided to the instance. Cloud SSH keys are handled separately.
-* [Microsoft Azure Stack] - Ignition will read its configuration from the custom data provided to the instance. Cloud SSH keys are handled separately.
-* [VMware] - Use the VMware Guestinfo variables `ignition.config.data` and `ignition.config.data.encoding` to provide the config and its encoding to the virtual machine. Valid encodings are "", "base64", and "gzip+base64". Guestinfo variables can be provided directly or via an OVF environment, with priority given to variables specified directly.
-* [Google Compute Platform] - Ignition will read its configuration from the instance metadata entry named "user-data". Cloud SSH keys are handled separately.
-* [Packet] - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
-* [QEMU] - Ignition will read its configuration from the 'opt/com.coreos/config' key on the QEMU Firmware Configuration Device (available in QEMU 2.4.0 and higher).
-* [DigitalOcean] - Ignition will read its configuration from the droplet userdata. Cloud SSH keys and network configuration are handled separately.
-* [zVM] - Ignition will read its configuration from the reader device directly. The vmur program is necessary, which requires the vmcp and vmur kernel module as prerequisite, and the corresponding z/VM virtual unit record devices (in most cases 000c as reader, 000d as punch) must be set online.
+* Bare Metal (`metal`) - Use the `ignition.config.url` kernel parameter to provide a URL to the configuration. The URL can use the `http://`, `https://`, `tftp://`, `s3://`, or `gs://` schemes to specify a remote config.
+* [Amazon Web Services] (`aws`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
+* [Microsoft Azure] (`azure`)- Ignition will read its configuration from the custom data provided to the instance. Cloud SSH keys are handled separately.
+* [Microsoft Azure Stack] (`azurestack`) - Ignition will read its configuration from the custom data provided to the instance. Cloud SSH keys are handled separately.
+* [VMware] (`vmware`) - Use the VMware Guestinfo variables `ignition.config.data` and `ignition.config.data.encoding` to provide the config and its encoding to the virtual machine. Valid encodings are "", "base64", and "gzip+base64". Guestinfo variables can be provided directly or via an OVF environment, with priority given to variables specified directly.
+* [Google Compute Platform] (`gcp`) - Ignition will read its configuration from the instance metadata entry named "user-data". Cloud SSH keys are handled separately.
+* [Packet] (`packet`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
+* [QEMU] (`qemu`) - Ignition will read its configuration from the 'opt/com.coreos/config' key on the QEMU Firmware Configuration Device (available in QEMU 2.4.0 and higher).
+* [DigitalOcean] (`digitalocean`) - Ignition will read its configuration from the droplet userdata. Cloud SSH keys and network configuration are handled separately.
+* [zVM] (`zvm`) - Ignition will read its configuration from the reader device directly. The vmur program is necessary, which requires the vmcp and vmur kernel module as prerequisite, and the corresponding z/VM virtual unit record devices (in most cases 000c as reader, 000d as punch) must be set online.
 
 Ignition is under active development, so this list may grow over time.
 
