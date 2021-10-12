@@ -47,4 +47,4 @@ For most cloud providers, cloud SSH keys and custom network configuration are ha
 [Vultr]: https://www.vultr.com/products/cloud-compute/
 [zVM]: http://www.vm.ibm.com/overview/
 
-[Afterburn]: https://github.com/coreos/afterburn
+[Afterburn]: https://coreos.github.io/afterburn/
