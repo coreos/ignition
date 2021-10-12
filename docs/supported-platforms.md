@@ -27,7 +27,7 @@ Ignition is currently only supported for the following platforms:
 
 Ignition is under active development, so this list may grow over time.
 
-For most cloud providers, cloud SSH keys and custom network configuration are handled by [Afterburn] or by platform-specific agents.
+For most cloud providers, cloud SSH keys and custom network configuration are handled by [Afterburn].
 
 [Alibaba Cloud]: https://www.alibabacloud.com/product/ecs
 [Amazon Web Services]: https://aws.amazon.com/ec2/
