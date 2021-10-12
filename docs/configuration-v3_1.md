@@ -1,5 +1,4 @@
 ---
-layout: default
 title: Config Spec v3.1.0
 parent: Configuration specifications
 nav_order: 48
