@@ -119,7 +119,7 @@ func (s *stage) createUnits(config types.Config) error {
 	}
 	// if we have presets then create the systemd preset file.
 	if len(presets) != 0 {
-		if err := s.relabelDirsForFile(filepath.Join(s.DestDir, util.PresetPath)); err != nil {
+		if err := s.relabelPath(filepath.Join(s.DestDir, util.PresetPath)); err != nil {
 			return err
 		}
 		if err := s.createSystemdPresetFile(presets); err != nil {
