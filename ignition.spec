@@ -27,6 +27,7 @@ License:        ASL 2.0
 URL:            %{gourl}
 Source0:        %{gosource}
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
+Patch1:         internal-change-the-location-of-Ignition-report.patch
 
 BuildRequires: libblkid-devel
 
@@ -312,6 +313,7 @@ install -p -m 0755 ./ignition %{buildroot}/%{dracutlibdir}/modules.d/30ignition
 * Wed Oct 13 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.12.0-3.rhaos4.10
 - Add vmw iopl patch reference which got dropped in the previous release
 - Avoid reapplying patches
+- Move Ignition report to /etc
 
 * Mon Sep 13 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.12.0-2.rhaos4.10
 - Redo packaging using go2rpm and conditionalize Fedora-specific configuration

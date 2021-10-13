@@ -1,0 +1,51 @@
+From 556bc9404cfff08ea63c2a865bd3586ece7e8e44 Mon Sep 17 00:00:00 2001
+From: Sohan Kunkerkar <sohank2602@gmail.com>
+Date: Wed, 6 Oct 2021 12:08:54 -0400
+Subject: [PATCH] internal/*: change the location of Ignition report
+
+Fixes https://github.com/coreos/fedora-coreos-tracker/issues/977
+
+This change helps to address the problem of displaying a warning
+about running Ignition twice while reprovisioning a bare metal
+CoreOS instance with a persistent /var partition.
+---
+ internal/distro/distro.go                       | 2 +-
+ internal/exec/stages/files/filesystemEntries.go | 9 ---------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/internal/distro/distro.go b/internal/distro/distro.go
+index 6438d338..aa51a608 100644
+--- a/internal/distro/distro.go
++++ b/internal/distro/distro.go
+@@ -76,7 +76,7 @@ var (
+ 
+ 	// Special file paths in the real root
+ 	luksRealRootKeyFilePath = "/etc/luks/"
+-	resultFilePath          = "/var/lib/ignition/result.json"
++	resultFilePath          = "/etc/.ignition-result.json"
+ )
+ 
+ func DiskByLabelDir() string    { return diskByLabelDir }
+diff --git a/internal/exec/stages/files/filesystemEntries.go b/internal/exec/stages/files/filesystemEntries.go
+index 79d628a1..dba163c7 100644
+--- a/internal/exec/stages/files/filesystemEntries.go
++++ b/internal/exec/stages/files/filesystemEntries.go
+@@ -199,15 +199,6 @@ func (s *stage) createResultFile() error {
+ 	}
+ 	contentsUri := dataurl.EncodeBytes(data)
+ 	entries := []filesystemEntry{
+-		// create containing directory with restrictive permissions
+-		dirEntry{
+-			types.Node{
+-				Path: filepath.Dir(path),
+-			},
+-			types.DirectoryEmbedded1{
+-				Mode: cutil.IntToPtr(0700),
+-			},
+-		},
+ 		fileEntry{
+ 			types.Node{
+ 				Path: path,
+-- 
+2.31.1
+
