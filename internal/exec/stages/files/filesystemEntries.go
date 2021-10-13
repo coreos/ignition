@@ -199,15 +199,6 @@ func (s *stage) createResultFile() error {
 	}
 	contentsUri := dataurl.EncodeBytes(data)
 	entries := []filesystemEntry{
-		// create containing directory with restrictive permissions
-		dirEntry{
-			types.Node{
-				Path: filepath.Dir(path),
-			},
-			types.DirectoryEmbedded1{
-				Mode: cutil.IntToPtr(0700),
-			},
-		},
 		fileEntry{
 			types.Node{
 				Path: path,

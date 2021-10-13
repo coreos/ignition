@@ -76,7 +76,7 @@ var (
 
 	// Special file paths in the real root
 	luksRealRootKeyFilePath = "/etc/luks/"
-	resultFilePath          = "/var/lib/ignition/result.json"
+	resultFilePath          = "/etc/.ignition-result.json"
 )
 
 func DiskByLabelDir() string    { return diskByLabelDir }
