@@ -456,18 +456,20 @@ func (s *stage) removePathOnOverwrite(e filesystemEntry) error {
 	return nil
 }
 
-func (s *stage) relabelDirsForFile(path string) error {
+// relabelPath schedules relabeling for the path. The first component which was
+// found to be missing is used, or the whole path if it already exists.
+func (s *stage) relabelPath(path string) error {
 	if !s.relabeling() {
 		return nil
 	}
 
-	missing_path, err := util.FindFirstMissingPathComponent(path)
+	missingPath, err := util.FindFirstMissingPathComponent(path)
 	if err != nil {
 		return err
 	}
 
 	// trim off prefix since this needs to be relative to the sysroot
-	s.relabel(missing_path[len(s.DestDir):])
+	s.relabel(missingPath[len(s.DestDir):])
 	return nil
 }
 
@@ -482,7 +484,7 @@ func (s *stage) createEntries(entries []filesystemEntry) error {
 			panic(fmt.Sprintf("Entry path %s isn't under prefix %s", path, s.DestDir))
 		}
 
-		if err := s.relabelDirsForFile(path); err != nil {
+		if err := s.relabelPath(path); err != nil {
 			return fmt.Errorf("error relabeling paths for %s: %v", path, err)
 		}
 		if err := s.removePathOnOverwrite(e); err != nil {
