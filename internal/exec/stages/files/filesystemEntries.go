@@ -461,13 +461,13 @@ func (s *stage) relabelDirsForFile(path string) error {
 		return nil
 	}
 
-	missing_path, err := util.FindFirstMissingPathComponent(path)
+	missingPath, err := util.FindFirstMissingPathComponent(path)
 	if err != nil {
 		return err
 	}
 
 	// trim off prefix since this needs to be relative to the sysroot
-	s.relabel(missing_path[len(s.DestDir):])
+	s.relabel(missingPath[len(s.DestDir):])
 	return nil
 }
 
