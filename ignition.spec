@@ -19,13 +19,14 @@ Version:                2.12.0
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Release:        2.rhaos4.10%{?dist}
+Release:        3.rhaos4.10%{?dist}
 Summary:        First boot installer and configuration tool
 
 # Upstream license specification: Apache-2.0
 License:        ASL 2.0
 URL:            %{gourl}
 Source0:        %{gosource}
+Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
 
 BuildRequires: libblkid-devel
 
@@ -239,7 +240,6 @@ Ignition project's Github releases page.
 %else
 %forgeautosetup -p1
 %endif
-%autopatch -p1
 
 %build
 export LDFLAGS="-X github.com/coreos/ignition/v2/internal/version.Raw=%{version} -X github.com/coreos/ignition/v2/internal/distro.selinuxRelabel=true "
@@ -309,6 +309,10 @@ install -p -m 0755 ./ignition %{buildroot}/%{dracutlibdir}/modules.d/30ignition
 %endif
 
 %changelog
+* Wed Oct 13 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.12.0-3.rhaos4.10
+- Add vmw iopl patch reference which got dropped in the previous release
+- Avoid reapplying patches
+
 * Mon Sep 13 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.12.0-2.rhaos4.10
 - Redo packaging using go2rpm and conditionalize Fedora-specific configuration
 - Disable file fragment writing logic for SSH authorized_keys
