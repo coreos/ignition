@@ -243,7 +243,7 @@ func makeZFSDisk() []types.Disk {
 // We don't support creating ZFS filesystems, and doing so with zfs-fuse
 // requires the zfs-fuse daemon to be running.  But ZFS also has an unusual
 // property: it has multiple disk labels distributed throughout the disk,
-// and none of mkfs.ext4, mkfs.xfs, or mkfs.vfat clobber them all.  If
+// and none of mkfs.ext4, mkfs.xfs, or mkfs.fat clobber them all.  If
 // blkid or lsblk discover labels of both ZFS and one of those other
 // filesystems, they won't report a filesystem type at all (and blkid will
 // ignore the entire partition), and mount(8) will refuse to mount the FS

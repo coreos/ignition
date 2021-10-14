@@ -28,7 +28,7 @@ install() {
         groupdel \
         mkfs.btrfs \
         mkfs.ext4 \
-        mkfs.vfat \
+        mkfs.fat \
         mkfs.xfs \
         mkswap \
         sgdisk \
