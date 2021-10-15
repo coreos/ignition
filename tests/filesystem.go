@@ -276,7 +276,7 @@ func formatPartition(ctx context.Context, partition *types.Partition) error {
 
 	switch partition.FilesystemType {
 	case "vfat":
-		mkfs = "mkfs.vfat"
+		mkfs = "mkfs.fat"
 		label = []string{"-n", partition.FilesystemLabel}
 		uuid = []string{"-i", partition.FilesystemUUID}
 	case "ext2", "ext4":

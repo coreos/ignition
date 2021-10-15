@@ -186,7 +186,7 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		}
 	case "vfat":
 		mkfs = distro.VfatMkfsCmd()
-		// There is no force flag for mkfs.vfat, it always destroys any data on
+		// There is no force flag for mkfs.fat, it always destroys any data on
 		// the device at which it is pointed.
 		if fs.UUID != nil {
 			args = append(args, "-i", canonicalizeFilesystemUUID(*fs.Format, *fs.UUID))

@@ -50,7 +50,7 @@ var (
 	btrfsMkfsCmd = "mkfs.btrfs"
 	ext4MkfsCmd  = "mkfs.ext4"
 	swapMkfsCmd  = "mkswap"
-	vfatMkfsCmd  = "mkfs.vfat"
+	vfatMkfsCmd  = "mkfs.fat"
 	xfsMkfsCmd   = "mkfs.xfs"
 
 	//zVM programs
