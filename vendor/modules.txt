@@ -58,7 +58,7 @@ github.com/aws/aws-sdk-go/service/s3/s3iface
 github.com/aws/aws-sdk-go/service/s3/s3manager
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
-# github.com/coreos/go-json v0.0.0-20170920214419-6a2fe990e083
+# github.com/coreos/go-json v0.0.0-20211020211907-c63f628265de
 github.com/coreos/go-json
 # github.com/coreos/go-semver v0.3.0
 ## explicit
@@ -68,7 +68,7 @@ github.com/coreos/go-semver/semver
 github.com/coreos/go-systemd/v22/dbus
 github.com/coreos/go-systemd/v22/journal
 github.com/coreos/go-systemd/v22/unit
-# github.com/coreos/vcontext v0.0.0-20210407161507-4ee6c745c8bd
+# github.com/coreos/vcontext v0.0.0-20211021162308-f1dbbca7bef4
 ## explicit
 github.com/coreos/vcontext/json
 github.com/coreos/vcontext/path
