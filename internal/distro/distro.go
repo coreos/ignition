@@ -29,6 +29,7 @@ var (
 	// initrd file paths
 	kernelCmdlinePath = "/proc/cmdline"
 	bootIDPath        = "/proc/sys/kernel/random/boot_id"
+	routeFilePath     = "/proc/net/route"
 	// initramfs directory containing distro-provided base config
 	systemConfigDir = "/usr/lib/ignition"
 
@@ -84,6 +85,7 @@ func DiskByPartUUIDDir() string { return diskByPartUUIDDir }
 
 func KernelCmdlinePath() string { return kernelCmdlinePath }
 func BootIDPath() string        { return bootIDPath }
+func RouteFilePath() string     { return routeFilePath }
 func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
 
 func GroupaddCmd() string { return groupaddCmd }

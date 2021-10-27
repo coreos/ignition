@@ -5,6 +5,7 @@ go 1.15
 require (
 	cloud.google.com/go v0.58.0
 	cloud.google.com/go/storage v1.9.0
+	github.com/Wifx/gonetworkmanager v0.3.0
 	github.com/aws/aws-sdk-go v1.30.28
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/go-systemd/v22 v22.0.0
