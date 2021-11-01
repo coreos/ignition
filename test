@@ -73,8 +73,7 @@ if [ -z "${platforms}" ]; then
 fi
 for id in ${platforms}; do
     case "${id}" in
-    file) ;;       # Undocumented platform ID for testing
-    virtualbox) ;; # Discouraged for now
+    file) ;;  # Undocumented platform ID for testing
     *)
         if ! grep -qF "\`${id}\`" docs/supported-platforms.md; then
             echo "Undocumented platform ID: $id" >&2

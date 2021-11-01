@@ -23,8 +23,7 @@ import (
 // -X github.com/coreos/ignition/v2/internal/distro.mdadmCmd=/opt/bin/mdadm
 var (
 	// Device node directories and paths
-	diskByLabelDir    = "/dev/disk/by-label"
-	diskByPartUUIDDir = "/dev/disk/by-partuuid"
+	diskByLabelDir = "/dev/disk/by-label"
 
 	// initrd file paths
 	kernelCmdlinePath = "/proc/cmdline"
@@ -79,8 +78,7 @@ var (
 	resultFilePath          = "/etc/.ignition-result.json"
 )
 
-func DiskByLabelDir() string    { return diskByLabelDir }
-func DiskByPartUUIDDir() string { return diskByPartUUIDDir }
+func DiskByLabelDir() string { return diskByLabelDir }
 
 func KernelCmdlinePath() string { return kernelCmdlinePath }
 func BootIDPath() string        { return bootIDPath }
