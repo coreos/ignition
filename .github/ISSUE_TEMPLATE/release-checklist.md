@@ -47,6 +47,3 @@ GitHub release:
 Quay release:
   - [ ] Visit the [Quay tags page](https://quay.io/repository/coreos/ignition-validate?tab=tags) and wait for a versioned tag to appear
   - [ ] Click the gear next to the tag, select "Add New Tag", enter `release`, and confirm
-
-Housekeeping:
- - [ ] Vendor the new Ignition version in [mantle](https://github.com/coreos/coreos-assembler/tree/main/mantle)
