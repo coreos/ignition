@@ -16,6 +16,7 @@ package systemd
 
 import (
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strconv"
 
@@ -32,7 +33,14 @@ func WaitOnDevices(devs []string, stage string) error {
 
 	results := map[string]chan string{}
 	for _, dev := range devs {
-		unitName := unit.UnitNamePathEscape(dev + ".device")
+		abspath := dev
+		if dev == "/dev/disk/coreos-root-disk" {
+			abspath, err = filepath.EvalSymlinks(dev)
+			if err != nil {
+				return fmt.Errorf("failed resolving symlink %s: %v", dev, err)
+			}
+		}
+		unitName := unit.UnitNamePathEscape(abspath + ".device")
 		results[unitName] = make(chan string, 1)
 
 		if _, err = conn.StartUnit(unitName, "replace", results[unitName]); err != nil {
