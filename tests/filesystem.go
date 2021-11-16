@@ -131,23 +131,26 @@ func umountPartition(p *types.Partition) error {
 		return fmt.Errorf("Invalid partition for unmounting %+v", p)
 	}
 
-	// sometimes umount returns exit status 32 when it succeeds. Retry in this
-	// specific case. See https://github.com/coreos/bootengine/commit/8bf46fe78ec59bcd5148ce9ab8ec5fb805600151
-	// for more context.
+	// Retry a few times on unmount failure, checking each time whether
+	// the umount actually succeeded but claimed otherwise.  See
+	// https://github.com/coreos/bootengine/commit/8bf46fe78ec5 for more
+	// context.
+	var unmountErr error
 	for i := 0; i < 3; i++ {
-		if err := unix.Unmount(p.MountPath, unix.MNT_FORCE); err != nil {
-			time.Sleep(time.Second)
-			continue
+		if unmountErr = unix.Unmount(p.MountPath, unix.MNT_FORCE); unmountErr == nil {
+			return nil
 		}
+
+		// wait a sec to see if things clear up
+		time.Sleep(time.Second)
+
 		if unmounted, _, err := runGetExit("mountpoint", "-q", p.MountPath); err != nil {
 			return fmt.Errorf("exec'ing `mountpoint -q %s` failed: %v", p.MountPath, err)
 		} else if unmounted == 1 {
 			return nil
 		}
-		// wait a sec to see if things clear up
-		time.Sleep(time.Second)
 	}
-	return fmt.Errorf("umount failed after 3 tries (exit status 32) for %s", p.MountPath)
+	return fmt.Errorf("umount failed after 3 tries for %s: %w", p.MountPath, unmountErr)
 }
 
 // returns true if no error, false if error
