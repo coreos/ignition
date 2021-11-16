@@ -21,6 +21,7 @@ import (
 
 func init() {
 	register.Register(register.PositiveTest, CreateFileOnRoot())
+	register.Register(register.PositiveTest, CreateFileOnRootFromBase64())
 	register.Register(register.PositiveTest, UserGroupByID())
 	register.Register(register.PositiveTest, ForceFileCreation())
 	register.Register(register.PositiveTest, AppendToAFile())
@@ -54,6 +55,40 @@ func CreateFileOnRoot() types.Test {
 			Contents: "example file\n",
 		},
 	})
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateFileOnRootFromBase64() types.Test {
+	name := "files.create.base64"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": { "source": "data:;base64,ZXhhbXBsZSBmaWxlCg==" }
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
 	configMinVersion := "3.0.0"
 
 	return types.Test{
