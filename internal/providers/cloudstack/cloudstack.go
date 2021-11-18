@@ -36,9 +36,9 @@ import (
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
+	ut "github.com/coreos/ignition/v2/internal/util"
 
 	"github.com/coreos/vcontext/report"
-	"golang.org/x/sys/unix"
 )
 
 const (
@@ -202,7 +202,9 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, label string
 	}
 	defer func() {
 		_ = logger.LogOp(
-			func() error { return unix.Unmount(mnt, 0) },
+			func() error {
+				return ut.UmountPath(mnt)
+			},
 			"unmounting %q at %q", path, mnt,
 		)
 	}()
