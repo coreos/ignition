@@ -103,7 +103,7 @@ func getRootPartition(partitions []*types.Partition) *types.Partition {
 
 func mountPartition(ctx context.Context, p *types.Partition) error {
 	if p.MountPath == "" || p.Device == "" {
-		return fmt.Errorf("Invalid partition for mounting %+v", p)
+		return fmt.Errorf("invalid partition for mounting %+v", p)
 	}
 	_, err := run(ctx, "mount", "-t", p.FilesystemType, p.Device, p.MountPath)
 	return err
@@ -128,7 +128,7 @@ func runGetExit(cmd string, args ...string) (int, string, error) {
 
 func umountPartition(p *types.Partition) error {
 	if p.MountPath == "" || p.Device == "" {
-		return fmt.Errorf("Invalid partition for unmounting %+v", p)
+		return fmt.Errorf("invalid partition for unmounting %+v", p)
 	}
 
 	// Retry a few times on unmount failure, checking each time whether
@@ -236,7 +236,7 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 
 	// Avoid race with kernel by waiting for loopDevice creation to complete
 	if _, err = run(ctx, "udevadm", "settle"); err != nil {
-		return fmt.Errorf("Settling devices: %v", err)
+		return fmt.Errorf("settling devices: %v", err)
 	}
 
 	if err = createPartitionTable(ctx, disk.Device, disk.Partitions); err != nil {
@@ -381,7 +381,7 @@ func createPartitionTable(ctx context.Context, imageFile string, partitions []*t
 	}
 	if len(hybrids) > 0 {
 		if len(hybrids) > 3 {
-			return fmt.Errorf("Can't have more than three hybrids")
+			return fmt.Errorf("can't have more than three hybrids")
 		} else {
 			opts = append(opts, fmt.Sprintf("-h=%s", intJoin(hybrids, ":")))
 		}
@@ -406,7 +406,7 @@ func updateTypeGUID(partition *types.Partition) error {
 
 	partition.TypeGUID = partitionTypes[partition.TypeCode]
 	if partition.TypeGUID == "" {
-		return fmt.Errorf("Unknown TypeCode: %s", partition.TypeCode)
+		return fmt.Errorf("unknown TypeCode: %s", partition.TypeCode)
 	}
 	return nil
 }
