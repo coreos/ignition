@@ -28,11 +28,9 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
+	ut "github.com/coreos/ignition/v2/internal/util"
 	"github.com/coreos/ignition/v2/tests/types"
-
-	"golang.org/x/sys/unix"
 )
 
 func run(ctx context.Context, command string, args ...string) ([]byte, error) {
@@ -109,48 +107,11 @@ func mountPartition(ctx context.Context, p *types.Partition) error {
 	return err
 }
 
-// runGetExit runs the command and returns the exit status. It only returns an error when execing
-// the command encounters an error. exec'd programs that exit with non-zero status will not return
-// errors.
-func runGetExit(cmd string, args ...string) (int, string, error) {
-	tmp, err := exec.Command(cmd, args...).CombinedOutput()
-	logs := string(tmp)
-	if err == nil {
-		return 0, logs, nil
-	}
-	exitErr, ok := err.(*exec.ExitError)
-	if !ok {
-		return -1, logs, err
-	}
-	status := exitErr.ExitCode()
-	return status, logs, nil
-}
-
 func umountPartition(p *types.Partition) error {
 	if p.MountPath == "" || p.Device == "" {
 		return fmt.Errorf("invalid partition for unmounting %+v", p)
 	}
-
-	// Retry a few times on unmount failure, checking each time whether
-	// the umount actually succeeded but claimed otherwise.  See
-	// https://github.com/coreos/bootengine/commit/8bf46fe78ec5 for more
-	// context.
-	var unmountErr error
-	for i := 0; i < 3; i++ {
-		if unmountErr = unix.Unmount(p.MountPath, unix.MNT_FORCE); unmountErr == nil {
-			return nil
-		}
-
-		// wait a sec to see if things clear up
-		time.Sleep(time.Second)
-
-		if unmounted, _, err := runGetExit("mountpoint", "-q", p.MountPath); err != nil {
-			return fmt.Errorf("exec'ing `mountpoint -q %s` failed: %v", p.MountPath, err)
-		} else if unmounted == 1 {
-			return nil
-		}
-	}
-	return fmt.Errorf("umount failed after 3 tries for %s: %w", p.MountPath, unmountErr)
+	return ut.UmountPath(p.MountPath)
 }
 
 // returns true if no error, false if error
