@@ -125,7 +125,7 @@
             "noProxy": {
               "type": "array",
               "items": {
-                "type": ["string", "null"]
+                "type": "string"
               }
             }
           }
@@ -141,7 +141,10 @@
             }
           }
         }
-      }
+      },
+      "required": [
+        "version"
+      ]
     },
     "storage": {
       "type": "object",
