@@ -83,7 +83,7 @@ type Ignition struct {
 	Proxy    Proxy          `json:"proxy,omitempty"`
 	Security Security       `json:"security,omitempty"`
 	Timeouts Timeouts       `json:"timeouts,omitempty"`
-	Version  string         `json:"version,omitempty"`
+	Version  string         `json:"version"`
 }
 
 type IgnitionConfig struct {

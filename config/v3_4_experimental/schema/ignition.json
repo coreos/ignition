@@ -141,7 +141,10 @@
             }
           }
         }
-      }
+      },
+      "required": [
+        "version"
+      ]
     },
     "storage": {
       "type": "object",
