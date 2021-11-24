@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc.
+// Copyright 2021 Red Hat.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The OpenStack provider fetches configurations from the userdata available in
-// both the config-drive as well as the network metadata service. Whichever
-// responds first is the config that is used.
-// NOTE: This provider is still EXPERIMENTAL.
+// The Nutanix AHV (https://www.nutanix.com/products/ahv) provider fetches
+// configuration from the userdata available in the config-drive. It is similar
+// to Openstack and uses the same APIs.
 
-package ibmcloud
+package nutanix
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -39,38 +37,13 @@ import (
 )
 
 const (
-	cidataPath  = "/user-data"
-	deviceLabel = "cidata"
+	configDriveUserdataPath = "/openstack/latest/user_data"
 )
 
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	var data []byte
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-
-	dispatch := func(name string, fn func() ([]byte, error)) {
-		raw, err := fn()
-		if err != nil {
-			switch err {
-			case context.Canceled:
-			case context.DeadlineExceeded:
-				f.Logger.Err("timed out while fetching config from %s", name)
-			default:
-				f.Logger.Err("failed to fetch config from %s: %v", name, err)
-			}
-			return
-		}
-
-		data = raw
-		cancel()
-	}
-
-	go dispatch("config drive (cidata)", func() ([]byte, error) {
-		return fetchConfigFromDevice(f.Logger, ctx, filepath.Join(distro.DiskByLabelDir(), deviceLabel))
-	})
-
-	<-ctx.Done()
-	if ctx.Err() == context.DeadlineExceeded {
-		f.Logger.Info("cidata drive was not available in time. Continuing without a config...")
+	data, err := fetchConfigFromDevice(f.Logger, filepath.Join(distro.DiskByLabelDir(), "config-2"))
+	if err != nil {
+		return types.Config{}, report.Report{}, err
 	}
 
 	return util.ParseConfig(f.Logger, data)
@@ -81,14 +54,11 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string) ([]byte, error) {
+func fetchConfigFromDevice(logger *log.Logger, path string) ([]byte, error) {
+	// The config drive is always attached, even if there's no user-data passed
 	for !fileExists(path) {
 		logger.Debug("config drive (%q) not found. Waiting...", path)
-		select {
-		case <-time.After(time.Second):
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		}
+		time.Sleep(time.Second)
 	}
 
 	logger.Debug("creating temporary mount point")
@@ -111,9 +81,10 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 		)
 	}()
 
-	if !fileExists(filepath.Join(mnt, cidataPath)) {
+	mntConfigDriveUserdataPath := filepath.Join(mnt, configDriveUserdataPath)
+	if !fileExists(mntConfigDriveUserdataPath) {
 		return nil, nil
 	}
 
-	return ioutil.ReadFile(filepath.Join(mnt, cidataPath))
+	return ioutil.ReadFile(mntConfigDriveUserdataPath)
 }

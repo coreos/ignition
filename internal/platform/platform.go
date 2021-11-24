@@ -30,6 +30,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/gcp"
 	"github.com/coreos/ignition/v2/internal/providers/ibmcloud"
 	"github.com/coreos/ignition/v2/internal/providers/noop"
+	"github.com/coreos/ignition/v2/internal/providers/nutanix"
 	"github.com/coreos/ignition/v2/internal/providers/openstack"
 	"github.com/coreos/ignition/v2/internal/providers/packet"
 	"github.com/coreos/ignition/v2/internal/providers/powervs"
@@ -143,6 +144,10 @@ func init() {
 	configs.Register(Config{
 		name:  "metal",
 		fetch: noop.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "nutanix",
+		fetch: nutanix.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "openstack",

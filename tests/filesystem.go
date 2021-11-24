@@ -28,11 +28,9 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
+	ut "github.com/coreos/ignition/v2/internal/util"
 	"github.com/coreos/ignition/v2/tests/types"
-
-	"golang.org/x/sys/unix"
 )
 
 func run(ctx context.Context, command string, args ...string) ([]byte, error) {
@@ -103,54 +101,17 @@ func getRootPartition(partitions []*types.Partition) *types.Partition {
 
 func mountPartition(ctx context.Context, p *types.Partition) error {
 	if p.MountPath == "" || p.Device == "" {
-		return fmt.Errorf("Invalid partition for mounting %+v", p)
+		return fmt.Errorf("invalid partition for mounting %+v", p)
 	}
 	_, err := run(ctx, "mount", "-t", p.FilesystemType, p.Device, p.MountPath)
 	return err
 }
 
-// runGetExit runs the command and returns the exit status. It only returns an error when execing
-// the command encounters an error. exec'd programs that exit with non-zero status will not return
-// errors.
-func runGetExit(cmd string, args ...string) (int, string, error) {
-	tmp, err := exec.Command(cmd, args...).CombinedOutput()
-	logs := string(tmp)
-	if err == nil {
-		return 0, logs, nil
-	}
-	exitErr, ok := err.(*exec.ExitError)
-	if !ok {
-		return -1, logs, err
-	}
-	status := exitErr.ExitCode()
-	return status, logs, nil
-}
-
 func umountPartition(p *types.Partition) error {
 	if p.MountPath == "" || p.Device == "" {
-		return fmt.Errorf("Invalid partition for unmounting %+v", p)
+		return fmt.Errorf("invalid partition for unmounting %+v", p)
 	}
-
-	// Retry a few times on unmount failure, checking each time whether
-	// the umount actually succeeded but claimed otherwise.  See
-	// https://github.com/coreos/bootengine/commit/8bf46fe78ec5 for more
-	// context.
-	var unmountErr error
-	for i := 0; i < 3; i++ {
-		if unmountErr = unix.Unmount(p.MountPath, unix.MNT_FORCE); unmountErr == nil {
-			return nil
-		}
-
-		// wait a sec to see if things clear up
-		time.Sleep(time.Second)
-
-		if unmounted, _, err := runGetExit("mountpoint", "-q", p.MountPath); err != nil {
-			return fmt.Errorf("exec'ing `mountpoint -q %s` failed: %v", p.MountPath, err)
-		} else if unmounted == 1 {
-			return nil
-		}
-	}
-	return fmt.Errorf("umount failed after 3 tries for %s: %w", p.MountPath, unmountErr)
+	return ut.UmountPath(p.MountPath)
 }
 
 // returns true if no error, false if error
@@ -236,7 +197,7 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 
 	// Avoid race with kernel by waiting for loopDevice creation to complete
 	if _, err = run(ctx, "udevadm", "settle"); err != nil {
-		return fmt.Errorf("Settling devices: %v", err)
+		return fmt.Errorf("settling devices: %v", err)
 	}
 
 	if err = createPartitionTable(ctx, disk.Device, disk.Partitions); err != nil {
@@ -381,7 +342,7 @@ func createPartitionTable(ctx context.Context, imageFile string, partitions []*t
 	}
 	if len(hybrids) > 0 {
 		if len(hybrids) > 3 {
-			return fmt.Errorf("Can't have more than three hybrids")
+			return fmt.Errorf("can't have more than three hybrids")
 		} else {
 			opts = append(opts, fmt.Sprintf("-h=%s", intJoin(hybrids, ":")))
 		}
@@ -406,7 +367,7 @@ func updateTypeGUID(partition *types.Partition) error {
 
 	partition.TypeGUID = partitionTypes[partition.TypeCode]
 	if partition.TypeGUID == "" {
-		return fmt.Errorf("Unknown TypeCode: %s", partition.TypeCode)
+		return fmt.Errorf("unknown TypeCode: %s", partition.TypeCode)
 	}
 	return nil
 }
