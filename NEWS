@@ -1,3 +1,24 @@
+30-Nov-2021 Ignition 2.13.0
+
+  Features:
+
+    - Add Nutanix provider
+    - Switch VirtualBox provider to read from /Ignition/Config guest property
+
+  Changes:
+
+    - Improve QEMU fw_cfg read performance
+    - Warn when QEMU fw_cfg config is too large for reasonable performance
+    - Move Ignition report to /etc/.ignition-result.json
+    - Improve resilience to filesystem unmount failures
+    - Run mkfs.fat instead of its alias mkfs.vfat
+    - Refresh supported platform documentation
+     
+  Bug Fixes:
+
+    - Make ignition.version required in JSON schema (3.4.0-exp)
+    - Disallow null noProxy array entries in JSON schema (3.4.0-exp)
+
 05-Aug-2021 Ignition 2.12.0
 
   Features:
