@@ -10,7 +10,7 @@
 # https://github.com/coreos/ignition
 %global goipath         github.com/coreos/ignition
 %global gomodulesmode   GO111MODULE=on
-Version:                2.12.0
+Version:                2.13.0
 
 %gometa
 
@@ -19,7 +19,7 @@ Version:                2.12.0
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Release:        3.rhaos4.10%{?dist}
+Release:        1.rhaos4.10%{?dist}
 Summary:        First boot installer and configuration tool
 
 # Upstream license specification: Apache-2.0
@@ -27,7 +27,6 @@ License:        ASL 2.0
 URL:            %{gourl}
 Source0:        %{gosource}
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
-Patch1:         internal-change-the-location-of-Ignition-report.patch
 
 BuildRequires: libblkid-devel
 
@@ -99,17 +98,17 @@ Provides: bundled(golang(github.com/coreos/go-semver/semver)) = 0.3.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/dbus)) = 22.0.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/journal)) = 22.0.0
 Provides: bundled(golang(github.com/coreos/go-systemd/v22/unit)) = 22.0.0
-Provides: bundled(golang(github.com/coreos/vcontext/json)) = 0.0.0-20210407161507.git4ee6c745c8bd
-Provides: bundled(golang(github.com/coreos/vcontext/path)) = 0.0.0-20210407161507.git4ee6c745c8bd
-Provides: bundled(golang(github.com/coreos/vcontext/report)) = 0.0.0-20210407161507.git4ee6c745c8bd
-Provides: bundled(golang(github.com/coreos/vcontext/tree)) = 0.0.0-20210407161507.git4ee6c745c8bd
-Provides: bundled(golang(github.com/coreos/vcontext/validate)) = 0.0.0-20210407161507.git4ee6c745c8bd
+Provides: bundled(golang(github.com/coreos/vcontext/json)) = 0.0.0-20211021162308.gitf1dbbca7bef4
+Provides: bundled(golang(github.com/coreos/vcontext/path)) = 0.0.0-20211021162308.gitf1dbbca7bef4
+Provides: bundled(golang(github.com/coreos/vcontext/report)) = 0.0.0-20211021162308.gitf1dbbca7bef4
+Provides: bundled(golang(github.com/coreos/vcontext/tree)) = 0.0.0-20211021162308.gitf1dbbca7bef4
+Provides: bundled(golang(github.com/coreos/vcontext/validate)) = 0.0.0-20211021162308.gitf1dbbca7bef4
 Provides: bundled(golang(github.com/google/renameio)) = 0.1.0
 Provides: bundled(golang(github.com/google/uuid)) = 1.1.1
 Provides: bundled(golang(github.com/pin/tftp)) = 2.1.0
 Provides: bundled(golang(github.com/pin/tftp/netascii)) = 2.1.0
 Provides: bundled(golang(github.com/stretchr/testify/assert)) = 1.5.1
-Provides: bundled(golang(github.com/vincent-petithory/dataurl)) = 0.0.0-20160330182126.git9a301d65acbb
+Provides: bundled(golang(github.com/vincent-petithory/dataurl)) = 1.0.0
 Provides: bundled(golang(github.com/vmware/vmw-guestinfo/bdoor)) = 0.0.0-20170707015358.git25eff159a728
 Provides: bundled(golang(github.com/vmware/vmw-guestinfo/message)) = 0.0.0-20170707015358.git25eff159a728
 Provides: bundled(golang(github.com/vmware/vmw-guestinfo/rpcout)) = 0.0.0-20170707015358.git25eff159a728
@@ -310,6 +309,9 @@ install -p -m 0755 ./ignition %{buildroot}/%{dracutlibdir}/modules.d/30ignition
 %endif
 
 %changelog
+* Tue Nov 30 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.13.0-1.rhaos4.10
+- New release
+
 * Wed Oct 13 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.12.0-3.rhaos4.10
 - Add vmw iopl patch reference which got dropped in the previous release
 - Avoid reapplying patches
