@@ -83,7 +83,7 @@ func (e Engine) Run(stageName string) error {
 	baseConfig := emptyConfig
 
 	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger, e.PlatformConfig.Name())
-	e.logReport(r)
+	e.Logger.LogReport(r)
 	if err != nil && err != providers.ErrNoProvider {
 		e.Logger.Crit("failed to acquire system base config: %v", err)
 		return err
@@ -262,7 +262,7 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 	}
 
 	rpt := validate.Validate(cfg, "json")
-	e.logReport(rpt)
+	e.Logger.LogReport(rpt)
 	if rpt.IsFatal() {
 		err = errors.ErrInvalid
 		e.Logger.Crit("merging configs resulted in an invalid config")
@@ -314,7 +314,7 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 		}
 	}
 
-	e.logReport(r)
+	e.Logger.LogReport(r)
 	if err != nil {
 		return types.Config{}, err
 	}
@@ -435,7 +435,7 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, err
 	}
 
 	cfg, r, err := config.Parse(rawCfg)
-	e.logReport(r)
+	e.Logger.LogReport(r)
 	if err != nil {
 		return types.Config{}, err
 	}
@@ -453,17 +453,4 @@ func (e *Engine) signalNeedNet() error {
 		f.Close()
 	}
 	return nil
-}
-
-func (e *Engine) logReport(r report.Report) {
-	for _, entry := range r.Entries {
-		switch entry.Kind {
-		case report.Error:
-			e.Logger.Crit("%v", entry)
-		case report.Warn:
-			e.Logger.Warning("%v", entry)
-		case report.Info:
-			e.Logger.Info("%v", entry)
-		}
-	}
 }

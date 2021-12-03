@@ -20,6 +20,8 @@ import (
 	"log/syslog"
 	"os/exec"
 	"strings"
+
+	"github.com/coreos/vcontext/report"
 )
 
 type LoggerOps interface {
@@ -171,6 +173,20 @@ func (l *Logger) LogOp(op func() error, format string, a ...interface{}) error {
 	}
 	l.logFinish(format, a...)
 	return nil
+}
+
+// LogReport logs entries from the report at appropriate levels.
+func (l Logger) LogReport(r report.Report) {
+	for _, entry := range r.Entries {
+		switch entry.Kind {
+		case report.Error:
+			l.Crit("%v", entry)
+		case report.Warn:
+			l.Warning("%v", entry)
+		case report.Info:
+			l.Info("%v", entry)
+		}
+	}
 }
 
 // logStart logs the start of a multi-step/substantial/time-consuming operation.
