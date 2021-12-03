@@ -40,7 +40,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	runIgnValidate(os.Args[1:])
+	runIgnValidate(flag.Args())
 }
 
 func stdout(format string, a ...interface{}) {
