@@ -15,6 +15,7 @@
 package kargs
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 
@@ -63,6 +64,13 @@ func (stage) Name() string {
 func isNoOp(config types.Config) bool {
 	return len(config.KernelArguments.ShouldExist) == 0 &&
 		len(config.KernelArguments.ShouldNotExist) == 0
+}
+
+func (s stage) Apply(config types.Config, ignoreUnsupported bool) error {
+	if isNoOp(config) || ignoreUnsupported {
+		return nil
+	}
+	return errors.New("cannot apply kargs modifications live")
 }
 
 func (s stage) Run(config types.Config) error {

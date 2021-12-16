@@ -64,6 +64,10 @@ func (stage) Name() string {
 	return name
 }
 
+func (s stage) Apply(_ types.Config, _ bool) error {
+	return nil
+}
+
 func (s stage) Run(cfg types.Config) error {
 	if needsNet, err := configNeedsNet(&cfg); err != nil {
 		return err

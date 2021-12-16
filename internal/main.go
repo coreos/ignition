@@ -17,9 +17,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/coreos/ignition/v2/config"
+	"github.com/coreos/ignition/v2/internal/apply"
 	"github.com/coreos/ignition/v2/internal/exec"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
 	_ "github.com/coreos/ignition/v2/internal/exec/stages/disks"
@@ -33,9 +37,19 @@ import (
 	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/state"
 	"github.com/coreos/ignition/v2/internal/version"
+	"github.com/spf13/pflag"
 )
 
 func main() {
+	if filepath.Base(os.Args[0]) == "ignition-apply" {
+		ignitionApplyMain()
+	} else {
+		// otherwise, assume regular Ignition
+		ignitionMain()
+	}
+}
+
+func ignitionMain() {
 	flags := struct {
 		configCache  string
 		fetchTimeout time.Duration
@@ -116,4 +130,60 @@ func main() {
 		os.Exit(1)
 	}
 	logger.Info("Ignition finished successfully")
+}
+
+func ignitionApplyMain() {
+	printVersion := false
+	flags := apply.Flags{}
+	pflag.BoolVar(&printVersion, "version", false, "print the version of ignition-apply")
+	pflag.StringVar(&flags.Root, "root", "/", "root of the filesystem")
+	pflag.BoolVar(&flags.IgnoreUnsupported, "ignore-unsupported", false, "ignore unsupported config sections")
+	pflag.BoolVar(&flags.Offline, "offline", false, "error out if config references remote resources")
+	pflag.Usage = func() {
+		fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options] config.ign\n", os.Args[0])
+		fmt.Fprintf(pflag.CommandLine.Output(), "Options:\n")
+		pflag.PrintDefaults()
+	}
+	pflag.Parse()
+
+	if printVersion {
+		fmt.Printf("%s\n", version.String)
+		return
+	}
+
+	if pflag.NArg() != 1 {
+		pflag.Usage()
+		os.Exit(1)
+	}
+	cfgArg := pflag.Arg(0)
+
+	logger := log.New(true)
+	defer logger.Close()
+
+	logger.Info(version.String)
+
+	var blob []byte
+	var err error
+	if cfgArg == "-" {
+		blob, err = ioutil.ReadAll(os.Stdin)
+	} else {
+		// XXX: could in the future support fetching directly from HTTP(S) + `-checksum|-insecure` ?
+		blob, err = ioutil.ReadFile(cfgArg)
+	}
+	if err != nil {
+		logger.Crit("couldn't read config: %v", err)
+		os.Exit(1)
+	}
+
+	cfg, rpt, err := config.Parse(blob)
+	logger.LogReport(rpt)
+	if rpt.IsFatal() || err != nil {
+		logger.Crit("couldn't parse config: %v", err)
+		os.Exit(1)
+	}
+
+	if err := apply.Run(cfg, flags, &logger); err != nil {
+		logger.Crit("failed to apply: %v", err)
+		os.Exit(1)
+	}
 }

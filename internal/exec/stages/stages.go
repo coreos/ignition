@@ -25,6 +25,7 @@ import (
 // Stage is responsible for actually executing a stage of the configuration.
 type Stage interface {
 	Run(config types.Config) error
+	Apply(config types.Config, ignoreUnsupported bool) error
 	Name() string
 }
 

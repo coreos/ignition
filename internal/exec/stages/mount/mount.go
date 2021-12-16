@@ -19,6 +19,7 @@
 package mount
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -66,6 +67,13 @@ type stage struct {
 
 func (stage) Name() string {
 	return name
+}
+
+func (s stage) Apply(config types.Config, ignoreUnsupported bool) error {
+	if len(config.Storage.Filesystems) == 0 || ignoreUnsupported {
+		return nil
+	}
+	return errors.New("cannot apply filesystems modifications live")
 }
 
 func (s stage) Run(config types.Config) error {
