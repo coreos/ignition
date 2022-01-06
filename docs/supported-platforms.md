@@ -41,6 +41,7 @@ For most cloud providers, cloud SSH keys and custom network configuration are ha
 [Exoscale]: https://www.exoscale.com/compute/
 [Google Cloud]: https://cloud.google.com/compute
 [IBM Cloud]: https://www.ibm.com/cloud/vpc
+[Nutanix]: https://www.nutanix.com/products/ahv
 [OpenStack]: https://www.openstack.org/
 [Equinix Metal]: https://metal.equinix.com/product/
 [IBM Power Systems Virtual Server]: https://www.ibm.com/products/power-virtual-server
