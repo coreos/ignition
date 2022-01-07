@@ -108,6 +108,15 @@ UUIDs may be required in the following fields of a Test object: In, Out, and Con
 
 Create a new [release checklist](https://github.com/coreos/ignition/issues/new?labels=kind/release&template=release-checklist.md) and follow the steps there.
 
+## The build process
+
+Note that the `build` script included in this repository is a convenience script only and not used for the actual release binaries. Those are built using an `ignition.spec` maintained in [Fedora rpms/ignition](https://src.fedoraproject.org/rpms/ignition). (The `ignition-validate` [container](https://quay.io/repository/coreos/ignition-validate) is built by the `build_for_container` script, which is not further described here.)
+This build process uses the [go-rpm-macros](https://pagure.io/go-rpm-macros) to set up the Go build environment and is subject to the [Golang Packaging Guidelines](https://docs.fedoraproject.org/en-US/packaging-guidelines/Golang/).
+
+Consult the [Package Maintenance Guide](https://docs.fedoraproject.org/en-US/package-maintainers/Package_Maintenance_Guide/) and the [Pull Requests Guide](https://docs.fedoraproject.org/en-US/ci/pull-requests/) if you want to contribute to the build process.
+
+In case you have trouble with the aforementioned standard Pull Request Guide, consult the Pagure documentation on the [Remote Git to Pagure pull request](https://docs.pagure.org/pagure/usage/pull_requests.html#remote-git-to-pagure-pull-request) workflow.
+
 ## Marking an experimental spec as stable
 
 When an experimental version of the Ignition config spec (e.g.: `3.1.0-experimental`) is to be declared stable (e.g. `3.1.0`), there are a handful of changes that must be made to the code base. These changes should have the following effects:
