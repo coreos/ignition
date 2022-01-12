@@ -22,7 +22,6 @@ import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
-	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/systemd"
 )
@@ -53,7 +52,7 @@ func (s *stage) warnOnOldSystemdVersion() error {
 func (s *stage) createUnits(config types.Config) error {
 	presets := make(map[string]*Preset)
 	for _, unit := range config.Systemd.Units {
-		if err := s.writeSystemdUnit(unit, false); err != nil {
+		if err := s.writeSystemdUnit(unit); err != nil {
 			return err
 		}
 		if unit.Enabled != nil {
@@ -191,35 +190,25 @@ func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
 // writeSystemdUnit creates the specified unit and any dropins for that unit.
 // If the contents of the unit or are empty, the unit is not created. The same
 // applies to the unit's dropins.
-func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
-	// use a different DestDir if it's runtime so it affects our /run (but not
-	// if we're running locally through blackbox tests)
-	u := s.Util
-	if runtime && !distro.BlackboxTesting() {
-		u.DestDir = "/"
-	}
-
+func (s *stage) writeSystemdUnit(unit types.Unit) error {
 	return s.Logger.LogOp(func() error {
 		relabeledDropinDir := false
 		for _, dropin := range unit.Dropins {
 			if dropin.Contents == nil {
 				continue
 			}
-			f, err := u.FileFromSystemdUnitDropin(unit, dropin, runtime)
+			f, err := s.FileFromSystemdUnitDropin(unit, dropin)
 			if err != nil {
 				s.Logger.Crit("error converting systemd dropin: %v", err)
 				return err
 			}
-			relabelPath := f.Node.Path
-			if !runtime {
-				// trim off prefix since this needs to be relative to the sysroot
-				if !strings.HasPrefix(f.Node.Path, s.DestDir) {
-					panic(fmt.Sprintf("Dropin path %s isn't under prefix %s", f.Node.Path, s.DestDir))
-				}
-				relabelPath = f.Node.Path[len(s.DestDir):]
+			// trim off prefix since this needs to be relative to the sysroot
+			if !strings.HasPrefix(f.Node.Path, s.DestDir) {
+				panic(fmt.Sprintf("Dropin path %s isn't under prefix %s", f.Node.Path, s.DestDir))
 			}
+			relabelPath := f.Node.Path[len(s.DestDir):]
 			if err := s.Logger.LogOp(
-				func() error { return u.PerformFetch(f) },
+				func() error { return s.PerformFetch(f) },
 				"writing systemd drop-in %q at %q", dropin.Name, f.Node.Path,
 			); err != nil {
 				return err
@@ -234,21 +223,18 @@ func (s *stage) writeSystemdUnit(unit types.Unit, runtime bool) error {
 			return nil
 		}
 
-		f, err := u.FileFromSystemdUnit(unit, runtime)
+		f, err := s.FileFromSystemdUnit(unit)
 		if err != nil {
 			s.Logger.Crit("error converting unit: %v", err)
 			return err
 		}
-		relabelPath := f.Node.Path
-		if !runtime {
-			// trim off prefix since this needs to be relative to the sysroot
-			if !strings.HasPrefix(f.Node.Path, s.DestDir) {
-				panic(fmt.Sprintf("Unit path %s isn't under prefix %s", f.Node.Path, s.DestDir))
-			}
-			relabelPath = f.Node.Path[len(s.DestDir):]
+		// trim off prefix since this needs to be relative to the sysroot
+		if !strings.HasPrefix(f.Node.Path, s.DestDir) {
+			panic(fmt.Sprintf("Unit path %s isn't under prefix %s", f.Node.Path, s.DestDir))
 		}
+		relabelPath := f.Node.Path[len(s.DestDir):]
 		if err := s.Logger.LogOp(
-			func() error { return u.PerformFetch(f) },
+			func() error { return s.PerformFetch(f) },
 			"writing unit %q at %q", unit.Name, f.Node.Path,
 		); err != nil {
 			return err

@@ -21,9 +21,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
-	"github.com/coreos/ignition/v2/internal/distro"
 
 	"github.com/vincent-petithory/dataurl"
 )
@@ -33,7 +31,7 @@ const (
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, error) {
+func (ut Util) FileFromSystemdUnit(unit types.Unit) (FetchOp, error) {
 	if unit.Contents == nil {
 		empty := ""
 		unit.Contents = &empty
@@ -43,14 +41,8 @@ func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, erro
 		return FetchOp{}, err
 	}
 
-	var path string
-	if runtime {
-		path = SystemdRuntimeUnitsPath()
-	} else {
-		path = SystemdUnitsPath()
-	}
-
-	if path, err = ut.JoinPath(path, unit.Name); err != nil {
+	path, err := ut.JoinPath(SystemdUnitsPath(), unit.Name)
+	if err != nil {
 		return FetchOp{}, err
 	}
 
@@ -62,7 +54,7 @@ func (ut Util) FileFromSystemdUnit(unit types.Unit, runtime bool) (FetchOp, erro
 	}, nil
 }
 
-func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, runtime bool) (FetchOp, error) {
+func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin) (FetchOp, error) {
 	if dropin.Contents == nil {
 		empty := ""
 		dropin.Contents = &empty
@@ -72,14 +64,8 @@ func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin, r
 		return FetchOp{}, err
 	}
 
-	var path string
-	if runtime {
-		path = SystemdRuntimeDropinsPath(string(unit.Name))
-	} else {
-		path = SystemdDropinsPath(string(unit.Name))
-	}
-
-	if path, err = ut.JoinPath(path, dropin.Name); err != nil {
+	path, err := ut.JoinPath(SystemdDropinsPath(string(unit.Name)), dropin.Name)
+	if err != nil {
 		return FetchOp{}, err
 	}
 
@@ -162,37 +148,6 @@ func (ut Util) IsUnitMasked(unit types.Unit) (bool, error) {
 
 func (ut Util) EnableUnit(enabledUnit string) error {
 	return ut.appendLineToPreset(fmt.Sprintf("enable %s", enabledUnit))
-}
-
-// presets link in /etc, which doesn't make sense for runtime units
-// Related: https://github.com/coreos/ignition/v2/issues/588
-func (ut Util) EnableRuntimeUnit(unit types.Unit, target string) error {
-	// unless we're running tests locally, we want to affect /run, which will
-	// be carried into the pivot, not a directory named /$DestDir/run
-	if !distro.BlackboxTesting() {
-		ut.DestDir = "/"
-	}
-
-	nodePath, err := ut.JoinPath(SystemdRuntimeUnitWantsPath(target), unit.Name)
-	if err != nil {
-		return err
-	}
-	targetPath, err := ut.JoinPath("/", SystemdRuntimeUnitsPath(), unit.Name)
-	if err != nil {
-		return err
-	}
-
-	link := types.Link{
-		Node: types.Node{
-			// XXX(jl): make Wants/Required a parameter
-			Path: nodePath,
-		},
-		LinkEmbedded1: types.LinkEmbedded1{
-			Target: cutil.StrToPtr(targetPath),
-		},
-	}
-
-	return ut.WriteLink(link)
 }
 
 func (ut Util) DisableUnit(disabledUnit string) error {
