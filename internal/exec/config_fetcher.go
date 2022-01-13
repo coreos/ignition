@@ -37,11 +37,11 @@ type ConfigFetcher struct {
 	State   *state.State
 }
 
-// RenderConfig evaluates "ignition.config.replace" and "ignition.config.append"
+// RenderConfig evaluates "ignition.config.replace" and "ignition.config.merge"
 // in the given config and returns the result. If "ignition.config.replace" is
 // set, the referenced and evaluted config will be returned. Otherwise, if
-// "ignition.config.append" is set, each of the referenced configs will be
-// evaluated and appended to the provided config. If neither option is set, the
+// "ignition.config.merge" is set, each of the referenced configs will be
+// evaluated and merged into the provided config. If neither option is set, the
 // provided config will be returned unmodified. An updated fetcher will be
 // returned with any new timeouts set.
 func (f *ConfigFetcher) RenderConfig(cfg types.Config) (types.Config, error) {
@@ -61,7 +61,7 @@ func (f *ConfigFetcher) RenderConfig(cfg types.Config) (types.Config, error) {
 		return f.RenderConfig(newCfg)
 	}
 
-	appendedCfg := cfg
+	mergedCfg := cfg
 	for _, cfgRef := range cfg.Ignition.Config.Merge {
 		newCfg, err := f.fetchReferencedConfig(cfgRef)
 		if err != nil {
@@ -71,7 +71,7 @@ func (f *ConfigFetcher) RenderConfig(cfg types.Config) (types.Config, error) {
 		// Merge the old config with the new config before the new config has
 		// been rendered, so we can use the new config's timeouts and CAs when
 		// fetching more configs.
-		cfgForFetcherSettings := latest.Merge(appendedCfg, newCfg)
+		cfgForFetcherSettings := latest.Merge(mergedCfg, newCfg)
 		err = f.Fetcher.UpdateHttpTimeoutsAndCAs(cfgForFetcherSettings.Ignition.Timeouts, cfgForFetcherSettings.Ignition.Security.TLS.CertificateAuthorities, cfgForFetcherSettings.Ignition.Proxy)
 		if err != nil {
 			return types.Config{}, err
@@ -82,9 +82,9 @@ func (f *ConfigFetcher) RenderConfig(cfg types.Config) (types.Config, error) {
 			return types.Config{}, err
 		}
 
-		appendedCfg = latest.Merge(appendedCfg, newCfg)
+		mergedCfg = latest.Merge(mergedCfg, newCfg)
 	}
-	return appendedCfg, nil
+	return mergedCfg, nil
 }
 
 // fetchReferencedConfig fetches and parses the requested config.
