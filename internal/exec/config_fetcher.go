@@ -126,12 +126,6 @@ func (f *ConfigFetcher) fetchReferencedConfig(cfgRef types.Resource) (types.Conf
 		f.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))
 	}
 
-	f.State.FetchedConfigs = append(f.State.FetchedConfigs, state.FetchedConfig{
-		Kind:       "user",
-		Source:     u.Path,
-		Referenced: true,
-	})
-
 	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
 		return types.Config{}, err
 	}
@@ -141,6 +135,12 @@ func (f *ConfigFetcher) fetchReferencedConfig(cfgRef types.Resource) (types.Conf
 	if err != nil {
 		return types.Config{}, err
 	}
+
+	f.State.FetchedConfigs = append(f.State.FetchedConfigs, state.FetchedConfig{
+		Kind:       "user",
+		Source:     u.Path,
+		Referenced: true,
+	})
 
 	return cfg, nil
 }
