@@ -15,20 +15,15 @@
 package exec
 
 import (
-	"crypto/sha512"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/coreos/go-systemd/v22/journal"
-	"github.com/coreos/ignition/v2/config"
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	latest "github.com/coreos/ignition/v2/config/v3_4_experimental"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
@@ -41,7 +36,6 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/system"
 	"github.com/coreos/ignition/v2/internal/resource"
 	"github.com/coreos/ignition/v2/internal/state"
-	"github.com/coreos/ignition/v2/internal/util"
 
 	"github.com/coreos/vcontext/report"
 	"github.com/coreos/vcontext/validate"
@@ -83,7 +77,7 @@ func (e Engine) Run(stageName string) error {
 	baseConfig := emptyConfig
 
 	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger, e.PlatformConfig.Name())
-	e.logReport(r)
+	e.Logger.LogReport(r)
 	if err != nil && err != providers.ErrNoProvider {
 		e.Logger.Crit("failed to acquire system base config: %v", err)
 		return err
@@ -262,7 +256,7 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 	}
 
 	rpt := validate.Validate(cfg, "json")
-	e.logReport(rpt)
+	e.Logger.LogReport(rpt)
 	if rpt.IsFatal() {
 		err = errors.ErrInvalid
 		e.Logger.Crit("merging configs resulted in an invalid config")
@@ -314,7 +308,7 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 		}
 	}
 
-	e.logReport(r)
+	e.Logger.LogReport(r)
 	if err != nil {
 		return types.Config{}, err
 	}
@@ -332,115 +326,13 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 		return types.Config{}, err
 	}
 
-	return e.renderConfig(cfg)
-}
-
-// renderConfig evaluates "ignition.config.replace" and "ignition.config.append"
-// in the given config and returns the result. If "ignition.config.replace" is
-// set, the referenced and evaluted config will be returned. Otherwise, if
-// "ignition.config.append" is set, each of the referenced configs will be
-// evaluated and appended to the provided config. If neither option is set, the
-// provided config will be returned unmodified. An updated fetcher will be
-// returned with any new timeouts set.
-func (e *Engine) renderConfig(cfg types.Config) (types.Config, error) {
-	if cfgRef := cfg.Ignition.Config.Replace; cfgRef.Source != nil {
-		newCfg, err := e.fetchReferencedConfig(cfgRef)
-		if err != nil {
-			return types.Config{}, err
-		}
-
-		// Replace the HTTP client in the fetcher to be configured with the
-		// timeouts of the new config
-		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(newCfg.Ignition.Timeouts, newCfg.Ignition.Security.TLS.CertificateAuthorities, newCfg.Ignition.Proxy)
-		if err != nil {
-			return types.Config{}, err
-		}
-
-		return e.renderConfig(newCfg)
+	configFetcher := ConfigFetcher{
+		Logger:  e.Logger,
+		Fetcher: e.Fetcher,
+		State:   e.State,
 	}
 
-	appendedCfg := cfg
-	for _, cfgRef := range cfg.Ignition.Config.Merge {
-		newCfg, err := e.fetchReferencedConfig(cfgRef)
-		if err != nil {
-			return types.Config{}, err
-		}
-
-		// Merge the old config with the new config before the new config has
-		// been rendered, so we can use the new config's timeouts and CAs when
-		// fetching more configs.
-		cfgForFetcherSettings := latest.Merge(appendedCfg, newCfg)
-		err = e.Fetcher.UpdateHttpTimeoutsAndCAs(cfgForFetcherSettings.Ignition.Timeouts, cfgForFetcherSettings.Ignition.Security.TLS.CertificateAuthorities, cfgForFetcherSettings.Ignition.Proxy)
-		if err != nil {
-			return types.Config{}, err
-		}
-
-		newCfg, err = e.renderConfig(newCfg)
-		if err != nil {
-			return types.Config{}, err
-		}
-
-		appendedCfg = latest.Merge(appendedCfg, newCfg)
-	}
-	return appendedCfg, nil
-}
-
-// fetchReferencedConfig fetches and parses the requested config.
-// cfgRef.Source must not be nil
-func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, error) {
-	// this is also already checked at validation time
-	if cfgRef.Source == nil {
-		e.Logger.Crit("invalid referenced config: %v", errors.ErrSourceRequired)
-		return types.Config{}, errors.ErrSourceRequired
-	}
-	u, err := url.Parse(*cfgRef.Source)
-	if err != nil {
-		return types.Config{}, err
-	}
-	var headers http.Header
-	if cfgRef.HTTPHeaders != nil && len(cfgRef.HTTPHeaders) > 0 {
-		headers, err = cfgRef.HTTPHeaders.Parse()
-		if err != nil {
-			return types.Config{}, err
-		}
-	}
-	compression := ""
-	if cfgRef.Compression != nil {
-		compression = *cfgRef.Compression
-	}
-	rawCfg, err := e.Fetcher.FetchToBuffer(*u, resource.FetchOptions{
-		Headers:     headers,
-		Compression: compression,
-	})
-	if err != nil {
-		return types.Config{}, err
-	}
-
-	hash := sha512.Sum512(rawCfg)
-	if u.Scheme != "data" {
-		e.Logger.Debug("fetched referenced config at %s with SHA512: %s", *cfgRef.Source, hex.EncodeToString(hash[:]))
-	} else {
-		// data url's might contain secrets
-		e.Logger.Debug("fetched referenced config from data url with SHA512: %s", hex.EncodeToString(hash[:]))
-	}
-
-	e.State.FetchedConfigs = append(e.State.FetchedConfigs, state.FetchedConfig{
-		Kind:       "user",
-		Source:     u.Path,
-		Referenced: true,
-	})
-
-	if err := util.AssertValid(cfgRef.Verification, rawCfg); err != nil {
-		return types.Config{}, err
-	}
-
-	cfg, r, err := config.Parse(rawCfg)
-	e.logReport(r)
-	if err != nil {
-		return types.Config{}, err
-	}
-
-	return cfg, nil
+	return configFetcher.RenderConfig(cfg)
 }
 
 func (e *Engine) signalNeedNet() error {
@@ -453,17 +345,4 @@ func (e *Engine) signalNeedNet() error {
 		f.Close()
 	}
 	return nil
-}
-
-func (e *Engine) logReport(r report.Report) {
-	for _, entry := range r.Entries {
-		switch entry.Kind {
-		case report.Error:
-			e.Logger.Crit("%v", entry)
-		case report.Warn:
-			e.Logger.Warning("%v", entry)
-		case report.Info:
-			e.Logger.Info("%v", entry)
-		}
-	}
 }

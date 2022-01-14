@@ -60,9 +60,13 @@ func (stage) Name() string {
 	return name
 }
 
+func isNoOp(config types.Config) bool {
+	return len(config.KernelArguments.ShouldExist) == 0 &&
+		len(config.KernelArguments.ShouldNotExist) == 0
+}
+
 func (s stage) Run(config types.Config) error {
-	if len(config.KernelArguments.ShouldExist) == 0 &&
-		len(config.KernelArguments.ShouldNotExist) == 0 {
+	if isNoOp(config) {
 		return nil
 	}
 

@@ -65,14 +65,18 @@ func (stage) Name() string {
 	return name
 }
 
+func isNoOp(config types.Config) bool {
+	return len(config.Storage.Disks) == 0 &&
+		len(config.Storage.Raid) == 0 &&
+		len(config.Storage.Filesystems) == 0 &&
+		len(config.Storage.Luks) == 0
+}
+
 func (s stage) Run(config types.Config) error {
 	// Interacting with disks/partitions/raids/filesystems in general can cause
 	// udev races. If we do not need to  do anything, we also do not need to
 	// do the udevadm settle and can just return here.
-	if len(config.Storage.Disks) == 0 &&
-		len(config.Storage.Raid) == 0 &&
-		len(config.Storage.Filesystems) == 0 &&
-		len(config.Storage.Luks) == 0 {
+	if isNoOp(config) {
 		return nil
 	}
 

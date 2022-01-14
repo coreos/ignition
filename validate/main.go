@@ -32,7 +32,7 @@ var (
 func init() {
 	flag.BoolVar(&flagVersion, "version", false, "print the version of ignition-validate")
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "Usage:\n  %s config.ign [flags]\n\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage:\n  %s [flags] config.ign\n\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 }
@@ -40,7 +40,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	runIgnValidate(os.Args[1:])
+	runIgnValidate(flag.Args())
 }
 
 func stdout(format string, a ...interface{}) {
