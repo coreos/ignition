@@ -143,7 +143,7 @@ func (e Engine) Run(stageName string) error {
 			// Nothing else to do with this error
 			fmt.Fprintf(os.Stderr, "Could not marshal full config: %v\n", jsonerr)
 		} else {
-			fmt.Fprintf(os.Stderr, "Full config:\n%s", string(tmp))
+			fmt.Fprintf(os.Stderr, "Full config:\n%s\n", string(tmp))
 		}
 		return err
 	}
