@@ -156,6 +156,13 @@ func (s *stage) createLuks(config types.Config) error {
 				}
 			}
 		}
+		// store the key to be persisted into the real root
+		// do this here so device reuse works correctly
+		key, err := ioutil.ReadFile(keyFilePath)
+		if err != nil {
+			return fmt.Errorf("failed to read keyfile %q: %w", keyFilePath, err)
+		}
+		s.State.LuksPersistKeyFiles[luks.Name] = dataurl.EncodeBytes(key)
 
 		if !util.IsTrue(luks.WipeVolume) {
 			// If the volume isn't forcefully being created, then we need
@@ -329,13 +336,7 @@ func (s *stage) createLuks(config types.Config) error {
 			); err != nil {
 				return fmt.Errorf("removing key file from luks device: %v", err)
 			}
-		} else {
-			// store the key to be persisted into the real root
-			key, err := ioutil.ReadFile(keyFilePath)
-			if err != nil {
-				return fmt.Errorf("failed to read keyfile %q: %w", keyFilePath, err)
-			}
-			s.State.LuksPersistKeyFiles[luks.Name] = dataurl.EncodeBytes(key)
+			delete(s.State.LuksPersistKeyFiles, luks.Name)
 		}
 	}
 
