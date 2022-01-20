@@ -19,7 +19,7 @@ Version:                2.13.0
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Release:        1.rhaos4.10%{?dist}
+Release:        2.rhaos4.10%{?dist}
 Summary:        First boot installer and configuration tool
 
 # Upstream license specification: Apache-2.0
@@ -27,6 +27,8 @@ License:        ASL 2.0
 URL:            %{gourl}
 Source0:        %{gosource}
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
+# https://github.com/coreos/ignition/pull/1307
+Patch1:         luks-volume-reuse.patch
 
 BuildRequires: libblkid-devel
 
@@ -309,6 +311,9 @@ install -p -m 0755 ./ignition %{buildroot}/%{dracutlibdir}/modules.d/30ignition
 %endif
 
 %changelog
+* Thu Jan 20 2022 Benjamin Gilbert <bgilbert@redhat.com> - 2.13.0-2.rhaos4.10
+- Fix LUKS volume reuse
+
 * Tue Nov 30 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.13.0-1.rhaos4.10
 - New release
 
