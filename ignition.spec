@@ -239,6 +239,7 @@ Ignition project's Github releases page.
 %prep
 %if 0%{?fedora}
 %goprep -k
+%autopatch -p1
 %else
 %forgeautosetup -p1
 %endif
@@ -313,6 +314,7 @@ install -p -m 0755 ./ignition %{buildroot}/%{dracutlibdir}/modules.d/30ignition
 %changelog
 * Thu Jan 20 2022 Benjamin Gilbert <bgilbert@redhat.com> - 2.13.0-2.rhaos4.10
 - Fix LUKS volume reuse
+- Fix patching on Fedora
 
 * Tue Nov 30 2021 Sohan Kunkerkar <skunkerk@redhat.com> - 2.13.0-1.rhaos4.10
 - New release
