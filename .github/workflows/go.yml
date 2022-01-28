@@ -27,8 +27,6 @@ jobs:
       run: sudo apt-get install libblkid-dev
     - name: Run tests
       run: ./test
-    - name: Validate container build
-      run: docker build -f Dockerfile.validate .
     - name: Run linter
       uses: golangci/golangci-lint-action@v2
       with:
