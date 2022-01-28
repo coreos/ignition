@@ -33,7 +33,8 @@ Packaging:
 GitHub release:
  - [ ] Wait until the Bodhi update shows "Signed :heavy_check_mark:" in the Metadata box.
  - [ ] [File a releng ticket](https://pagure.io/releng/new_issue) based on [prior signing tickets](https://pagure.io/releng/issue/10178).
-   - [ ] Update the script and test it locally by dropping the `sigul` lines.
+   - [ ] Use the updated script from https://github.com/coreos/ignition/issues/1311#issuecomment-1024662891, then PR this checklist to update the example ticket link.
+   - [ ] Update the script and test it locally by running it like `FAKESIGN=1 ./script`
      - [ ] If a new Fedora release has gone stable, update the signing key in the script to use the new Fedora signing key [found here](https://getfedora.org/security).
  - [ ] Ping `mboddu` in Libera.Chat `#fedora-coreos`, linking to the ticket
  - [ ] Wait for the ticket to be closed
