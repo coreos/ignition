@@ -1,0 +1,10 @@
+# Suppress hardcoded library path warning
+addFilter("hardcoded-library-path in %{_prefix}/lib/dracut")
+
+# Ignition sources have duplicate files because of how spec versioning is
+# implemented
+addFilter("ignition-debugsource.x86_64: W: files-duplicate")
+
+# This is documented as optional
+# https://fedoraproject.org/wiki/Upgrade_paths_%E2%80%94_renaming_or_splitting_packages#Do_I_need_to_Provide_my_old_package_names.3F
+addFilter("ignition.x86_64: W: obsolete-not-provided ignition-dracut")
