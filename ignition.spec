@@ -2,7 +2,7 @@
 %if 0%{?fedora}
 %bcond_without check
 %else
-# %gocheck isn't currently provided on CentOS/RHEL
+# %%gocheck isn't currently provided on CentOS/RHEL
 # https://bugzilla.redhat.com/show_bug.cgi?id=1982298
 %bcond_with check
 %endif
@@ -19,7 +19,7 @@ Version:                2.13.0
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Release:        2.rhaos4.11%{?dist}
+Release:        3.rhaos4.11%{?dist}
 Summary:        First boot installer and configuration tool
 
 # Upstream license specification: Apache-2.0
@@ -218,22 +218,26 @@ the configuration.
 
 This package contains a tool for validating Ignition configurations.
 
-############## validate-nonlinux subpackage ##############
+############## validate-redistributable subpackage ##############
 
 %if 0%{?fedora}
-%package validate-nonlinux
+%package validate-redistributable
 
-Summary:   Validation tool for Ignition configs for macOS and Windows
+Summary:   Statically linked validation tool for Ignition configs
 License:   ASL 2.0
 BuildArch: noarch
 
 Conflicts: ignition < 0.31.0-3
 
-%description validate-nonlinux
-This package contains macOS and Windows ignition-validate binaries built
-through cross-compilation. Do not install it. It is only used for
-building binaries to sign by Fedora release engineering and include on the
-Ignition project's Github releases page.
+# In case someone has this subpackage installed, obsolete the old name
+# Drop in Fedora 38
+Obsoletes:     ignition-validate-nonlinux < 2.13.0-4
+
+%description validate-redistributable
+This package contains statically linked Linux, macOS, and Windows
+ignition-validate binaries built through cross-compilation. Do not install it.
+It is only used for building release binaries to be signed by Fedora release
+engineering and uploaded to the Ignition GitHub releases page.
 %endif
 
 %prep
@@ -261,6 +265,12 @@ echo "Building ignition-validate..."
 %global gocrossbuild go build -ldflags "${LDFLAGS:-} -B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \\n')" -a -v -x
 
 %if 0%{?fedora}
+echo "Building statically-linked Linux ignition-validate..."
+CGO_ENABLED=0 GOARCH=arm64 GOOS=linux %gocrossbuild -o ./ignition-validate-aarch64-unknown-linux-gnu-static validate/main.go
+CGO_ENABLED=0 GOARCH=ppc64le GOOS=linux %gocrossbuild -o ./ignition-validate-ppc64le-unknown-linux-gnu-static validate/main.go
+CGO_ENABLED=0 GOARCH=s390x GOOS=linux %gocrossbuild -o ./ignition-validate-s390x-unknown-linux-gnu-static validate/main.go
+CGO_ENABLED=0 GOARCH=amd64 GOOS=linux %gocrossbuild -o ./ignition-validate-x86_64-unknown-linux-gnu-static validate/main.go
+
 echo "Building macOS ignition-validate..."
 GOARCH=amd64 GOOS=darwin %gocrossbuild -o ./ignition-validate-x86_64-apple-darwin validate/main.go
 
@@ -279,8 +289,12 @@ install -p -m 0755 ./ignition-validate %{buildroot}%{_bindir}
 
 %if 0%{?fedora}
 install -d -p %{buildroot}%{_datadir}/ignition
+install -p -m 0644 ./ignition-validate-aarch64-unknown-linux-gnu-static %{buildroot}%{_datadir}/ignition
+install -p -m 0644 ./ignition-validate-ppc64le-unknown-linux-gnu-static %{buildroot}%{_datadir}/ignition
+install -p -m 0644 ./ignition-validate-s390x-unknown-linux-gnu-static %{buildroot}%{_datadir}/ignition
 install -p -m 0644 ./ignition-validate-x86_64-apple-darwin %{buildroot}%{_datadir}/ignition
 install -p -m 0644 ./ignition-validate-x86_64-pc-windows-gnu.exe %{buildroot}%{_datadir}/ignition
+install -p -m 0644 ./ignition-validate-x86_64-unknown-linux-gnu-static %{buildroot}%{_datadir}/ignition
 %endif
 
 # The ignition binary is only for dracut, and is dangerous to run from
@@ -304,14 +318,23 @@ install -p -m 0755 ./ignition %{buildroot}/%{dracutlibdir}/modules.d/30ignition
 %{_bindir}/ignition-validate
 
 %if 0%{?fedora}
-%files validate-nonlinux
+%files validate-redistributable
 %license %{golicenses}
 %dir %{_datadir}/ignition
+%{_datadir}/ignition/ignition-validate-aarch64-unknown-linux-gnu-static
+%{_datadir}/ignition/ignition-validate-ppc64le-unknown-linux-gnu-static
+%{_datadir}/ignition/ignition-validate-s390x-unknown-linux-gnu-static
 %{_datadir}/ignition/ignition-validate-x86_64-apple-darwin
 %{_datadir}/ignition/ignition-validate-x86_64-pc-windows-gnu.exe
+%{_datadir}/ignition/ignition-validate-x86_64-unknown-linux-gnu-static
 %endif
 
 %changelog
+* Sat Jan 29 2022 Benjamin Gilbert <bgilbert@redhat.com> - 2.13.0-3.rhaos4.11
+- Rename Fedora -validate-nonlinux subpackage to -validate-redistributable
+- Add static Linux binaries to -redistributable
+- Fix macro invocation in comment
+
 * Tue Jan 25 2022 Michael Nguyen <mnguyen@redhat.com> - 2.13.0-2.rhaos4.11
 - New build for 4.11
 
