@@ -29,6 +29,16 @@ import (
 	"github.com/vmware/vmw-ovflib"
 )
 
+const (
+	GUESTINFO_OVF               = "ovfenv"
+	GUESTINFO_USERDATA          = "ignition.config.data"
+	GUESTINFO_USERDATA_ENCODING = "ignition.config.data.encoding"
+
+	OVF_PREFIX            = "guestinfo."
+	OVF_USERDATA          = OVF_PREFIX + GUESTINFO_USERDATA
+	OVF_USERDATA_ENCODING = OVF_PREFIX + GUESTINFO_USERDATA_ENCODING
+)
+
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	if isVM, err := vmcheck.IsVirtualWorld(true); err != nil {
 		return types.Config{}, report.Report{}, err
@@ -57,7 +67,7 @@ func fetchRawConfig(f *resource.Fetcher) (config, error) {
 	var ovfData string
 	var ovfEncoding string
 
-	ovfEnv, err := info.String("ovfenv", "")
+	ovfEnv, err := info.String(GUESTINFO_OVF, "")
 	if err != nil {
 		f.Logger.Warning("failed to fetch ovfenv: %v. Continuing...", err)
 	} else if ovfEnv != "" {
@@ -67,17 +77,17 @@ func fetchRawConfig(f *resource.Fetcher) (config, error) {
 			f.Logger.Warning("failed to parse OVF environment: %v. Continuing...", err)
 		}
 
-		ovfData = env.Properties["guestinfo.ignition.config.data"]
-		ovfEncoding = env.Properties["guestinfo.ignition.config.data.encoding"]
+		ovfData = env.Properties[OVF_USERDATA]
+		ovfEncoding = env.Properties[OVF_USERDATA_ENCODING]
 	}
 
-	data, err := info.String("ignition.config.data", ovfData)
+	data, err := info.String(GUESTINFO_USERDATA, ovfData)
 	if err != nil {
 		f.Logger.Debug("failed to fetch config: %v", err)
 		return config{}, err
 	}
 
-	encoding, err := info.String("ignition.config.data.encoding", ovfEncoding)
+	encoding, err := info.String(GUESTINFO_USERDATA_ENCODING, ovfEncoding)
 	if err != nil {
 		f.Logger.Debug("failed to fetch config encoding: %v", err)
 		return config{}, err
