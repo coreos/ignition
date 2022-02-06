@@ -17,7 +17,7 @@ package ovf
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 var data_vsphere = []byte(`<?xml version="1.0" encoding="UTF-8"?>
@@ -65,64 +65,51 @@ var data_vapprun = []byte(`<?xml version="1.0" encoding="UTF-8"?>
 </Environment>`)
 
 func TestOvfEnvProperties(t *testing.T) {
-
-	var testerFunc = func(env_str []byte) func() {
-		return func() {
-			env, err := ReadEnvironment(env_str)
-			So(err, ShouldBeNil)
-			props := env.Properties
-
-			var val string
-			var ok bool
-			Convey(`Property "foo"`, func() {
-				val, ok = props["foo"]
-				So(ok, ShouldBeTrue)
-				So(val, ShouldEqual, "42")
-			})
-
-			Convey(`Property "bar"`, func() {
-				val, ok = props["bar"]
-				So(ok, ShouldBeTrue)
-				So(val, ShouldEqual, "0")
-			})
-		}
-	}
-
-	Convey("With vAppRun environment", t, testerFunc(data_vapprun))
-	Convey("With vSphere environment", t, testerFunc(data_vsphere))
-}
-
-func TestOvfEnvPlatform(t *testing.T) {
-	Convey("With vSphere environment", t, func() {
-		env, err := ReadEnvironment(data_vsphere)
-		So(err, ShouldBeNil)
-		platform := env.Platform
-
-		So(platform.Kind, ShouldEqual, "VMware ESXi")
-		So(platform.Version, ShouldEqual, "5.5.0")
-		So(platform.Vendor, ShouldEqual, "VMware, Inc.")
-		So(platform.Locale, ShouldEqual, "en")
-	})
-}
-
-func TestVappRunUserDataUrl(t *testing.T) {
-	Convey("With vAppRun environment", t, func() {
-		env, err := ReadEnvironment(data_vapprun)
-		So(err, ShouldBeNil)
+	var testOne = func(env_str []byte) {
+		env, err := ReadEnvironment(env_str)
+		assert.Nil(t, err)
 		props := env.Properties
 
 		var val string
 		var ok bool
+		val, ok = props["foo"]
+		assert.True(t, ok)
+		assert.Equal(t, val, "42")
 
-		val, ok = props["guestinfo.user_data.url"]
-		So(ok, ShouldBeTrue)
-		So(val, ShouldEqual, "https://gist.githubusercontent.com/sigma/5a64aac1693da9ca70d2/raw/plop.yaml")
-	})
+		val, ok = props["bar"]
+		assert.True(t, ok)
+		assert.Equal(t, val, "0")
+	}
+
+	testOne(data_vapprun)
+	testOne(data_vsphere)
+}
+
+func TestOvfEnvPlatform(t *testing.T) {
+	env, err := ReadEnvironment(data_vsphere)
+	assert.Nil(t, err)
+	platform := env.Platform
+
+	assert.Equal(t, platform.Kind, "VMware ESXi")
+	assert.Equal(t, platform.Version, "5.5.0")
+	assert.Equal(t, platform.Vendor, "VMware, Inc.")
+	assert.Equal(t, platform.Locale, "en")
+}
+
+func TestVappRunUserDataUrl(t *testing.T) {
+	env, err := ReadEnvironment(data_vapprun)
+	assert.Nil(t, err)
+	props := env.Properties
+
+	var val string
+	var ok bool
+
+	val, ok = props["guestinfo.user_data.url"]
+	assert.True(t, ok)
+	assert.Equal(t, val, "https://gist.githubusercontent.com/sigma/5a64aac1693da9ca70d2/raw/plop.yaml")
 }
 
 func TestInvalidData(t *testing.T) {
-	Convey("With invalid data", t, func() {
-		_, err := ReadEnvironment(append(data_vsphere, []byte("garbage")...))
-		So(err, ShouldBeNil)
-	})
+	_, err := ReadEnvironment(append(data_vsphere, []byte("garbage")...))
+	assert.Nil(t, err)
 }
