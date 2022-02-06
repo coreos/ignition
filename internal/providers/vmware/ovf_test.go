@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ovf
+// Originally from https://github.com/vmware-archive/vmw-ovflib
+
+package vmware
 
 import (
 	"testing"
@@ -66,7 +68,7 @@ var data_vapprun = []byte(`<?xml version="1.0" encoding="UTF-8"?>
 
 func TestOvfEnvProperties(t *testing.T) {
 	var testOne = func(env_str []byte) {
-		env, err := ReadEnvironment(env_str)
+		env, err := ReadOvfEnvironment(env_str)
 		assert.Nil(t, err)
 		props := env.Properties
 
@@ -86,7 +88,7 @@ func TestOvfEnvProperties(t *testing.T) {
 }
 
 func TestOvfEnvPlatform(t *testing.T) {
-	env, err := ReadEnvironment(data_vsphere)
+	env, err := ReadOvfEnvironment(data_vsphere)
 	assert.Nil(t, err)
 	platform := env.Platform
 
@@ -97,7 +99,7 @@ func TestOvfEnvPlatform(t *testing.T) {
 }
 
 func TestVappRunUserDataUrl(t *testing.T) {
-	env, err := ReadEnvironment(data_vapprun)
+	env, err := ReadOvfEnvironment(data_vapprun)
 	assert.Nil(t, err)
 	props := env.Properties
 
@@ -110,6 +112,6 @@ func TestVappRunUserDataUrl(t *testing.T) {
 }
 
 func TestInvalidData(t *testing.T) {
-	_, err := ReadEnvironment(append(data_vsphere, []byte("garbage")...))
+	_, err := ReadOvfEnvironment(append(data_vsphere, []byte("garbage")...))
 	assert.Nil(t, err)
 }

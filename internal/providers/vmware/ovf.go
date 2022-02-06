@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ovf
+// Originally from https://github.com/vmware-archive/vmw-ovflib
+
+package vmware
 
 import (
 	"encoding/xml"
@@ -40,7 +42,7 @@ type OvfEnvironment struct {
 	Properties map[string]string
 }
 
-func ReadEnvironment(doc []byte) (OvfEnvironment, error) {
+func ReadOvfEnvironment(doc []byte) (OvfEnvironment, error) {
 	var env environment
 	if err := xml.Unmarshal(doc, &env); err != nil {
 		return OvfEnvironment{}, err

@@ -26,7 +26,6 @@ import (
 	"github.com/coreos/vcontext/report"
 	"github.com/vmware/vmw-guestinfo/rpcvmx"
 	"github.com/vmware/vmw-guestinfo/vmcheck"
-	"github.com/vmware/vmw-ovflib"
 )
 
 const (
@@ -72,7 +71,7 @@ func fetchRawConfig(f *resource.Fetcher) (config, error) {
 		f.Logger.Warning("failed to fetch ovfenv: %v. Continuing...", err)
 	} else if ovfEnv != "" {
 		f.Logger.Debug("using OVF environment from guestinfo")
-		env, err := ovf.ReadEnvironment([]byte(ovfEnv))
+		env, err := ReadOvfEnvironment([]byte(ovfEnv))
 		if err != nil {
 			f.Logger.Warning("failed to parse OVF environment: %v. Continuing...", err)
 		}

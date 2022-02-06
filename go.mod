@@ -12,12 +12,10 @@ require (
 	github.com/google/renameio v0.1.0
 	github.com/google/uuid v1.1.1
 	github.com/pin/tftp v2.1.0+incompatible
-	github.com/smartystreets/goconvey v0.0.0-20190222223459-a17d461953aa // indirect
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
 	github.com/stretchr/testify v1.7.0
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/vmware/vmw-guestinfo v0.0.0-20220317130741-510905f0efa3
-	github.com/vmware/vmw-ovflib v0.0.0-20170608004843-1f217b9dc714
 	go.opencensus.io v0.22.5 // indirect
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
