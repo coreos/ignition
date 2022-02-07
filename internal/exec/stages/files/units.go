@@ -118,9 +118,6 @@ func (s *stage) createUnits(config types.Config) error {
 	}
 	// if we have presets then create the systemd preset file.
 	if len(presets) != 0 {
-		if err := s.relabelPath(filepath.Join(s.DestDir, util.PresetPath)); err != nil {
-			return err
-		}
 		if err := s.createSystemdPresetFile(presets); err != nil {
 			return err
 		}
@@ -149,6 +146,9 @@ func parseInstanceUnit(unit types.Unit) (string, string, error) {
 // createSystemdPresetFile creates the presetfile for enabled/disabled
 // systemd units.
 func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
+	if err := s.relabelPath(filepath.Join(s.DestDir, util.PresetPath)); err != nil {
+		return err
+	}
 	hasInstanceUnit := false
 	for _, value := range presets {
 		unitString := value.unit
@@ -183,7 +183,6 @@ func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
 			return err
 		}
 	}
-	s.relabel(util.PresetPath)
 	return nil
 }
 
