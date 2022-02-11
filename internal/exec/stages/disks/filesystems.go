@@ -210,6 +210,29 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		return fmt.Errorf("mkfs failed: %v", err)
 	}
 
+	// udevd registers an IN_CLOSE_WRITE inotify watch on block device
+	// nodes, and synthesizes udev "change" events when the watch fires.
+	// mkfs.btrfs triggers multiple such events, the first of which
+	// occurs while there is no recognizable filesystem on the
+	// partition. Thus, if an existing partition is reformatted as
+	// btrfs while keeping the same filesystem label, there will be a
+	// synthesized uevent that deletes the /dev/disk/by-label symlink
+	// and a second one that restores it. If we didn't account for this,
+	// a systemd unit that depended on the by-label symlink (e.g.
+	// systemd-fsck-root.service) could have the symlink deleted out
+	// from under it.
+	// Trigger a tagged uevent and wait for it because a bare "udevadm
+	// settle" does not guarantee that all changes were processed
+	// because it's conceivable that only the deleting uevent has
+	// already been processed (or none!) while the restoring uevent
+	// is still sitting in the inotify queue. By triggering our own
+	// event and waiting for it we know that udev will have processed
+	// the device changes.
+	// Test case: boot failure in coreos.ignition.*.btrfsroot kola test.
+	if err := s.waitForUdev(devAlias); err != nil {
+		return fmt.Errorf("failed to wait for udev on %q after formatting: %v", devAlias, err)
+	}
+
 	return nil
 }
 

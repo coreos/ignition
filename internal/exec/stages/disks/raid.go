@@ -22,6 +22,7 @@ package disks
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
@@ -77,6 +78,17 @@ func (s stage) createRaids(config types.Config) error {
 			"creating %q", md.Name,
 		); err != nil {
 			return fmt.Errorf("mdadm failed: %v", err)
+		}
+
+		devName := md.Name
+		if !strings.HasPrefix(devName, "/dev") {
+			devName = "/dev/md/" + md.Name
+		}
+		// Wait for the created device node to show up, no udev
+		// race prevention required because this node did not
+		// exist before.
+		if err := s.waitOnDevices([]string{devName}, "raids"); err != nil {
+			return err
 		}
 	}
 

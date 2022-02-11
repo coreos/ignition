@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
@@ -106,35 +107,39 @@ func (s stage) Run(config types.Config) error {
 		return fmt.Errorf("failed to create filesystems: %v", err)
 	}
 
-	// udevd registers an IN_CLOSE_WRITE inotify watch on block device
-	// nodes, and synthesizes udev "change" events when the watch fires.
-	// mkfs.btrfs triggers multiple such events, the first of which
-	// occurs while there is no recognizable filesystem on the
-	// partition. Thus, if an existing partition is reformatted as
-	// btrfs while keeping the same filesystem label, there will be a
-	// synthesized uevent that deletes the /dev/disk/by-label symlink
-	// and a second one that restores it. If we didn't account for this,
-	// a systemd unit that depended on the by-label symlink (e.g.
-	// systemd-fsck-root.service) could have the symlink deleted out
-	// from under it.
-	//
-	// There's no way to fix this completely. We can't wait for the
-	// restoring uevent to propagate, since we can't determine which
-	// specific uevents were triggered by the mkfs. We can wait for
-	// udev to settle, though it's conceivable that the deleting uevent
-	// has already been processed and the restoring uevent is still
-	// sitting in the inotify queue. In practice the uevent queue will
-	// be the slow one, so this should be good enough.
-	//
-	// Test case: boot failure in coreos.ignition.*.btrfsroot kola test.
-	//
-	// Additionally, partitioning (and possibly creating raid) suffers
-	// the same problem. To be safe, always settle.
-	if _, err := s.Logger.LogCmd(
-		exec.Command(distro.UdevadmCmd(), "settle"),
-		"waiting for udev to settle",
-	); err != nil {
-		return fmt.Errorf("udevadm settle failed: %v", err)
+	return nil
+}
+
+// waitForUdev triggers a tagged event and waits for it to bubble up
+// again. This ensures that udev processed the device changes.
+// The requirement is that the used device path exists and itself is
+// not recreated by udev seeing the changes done. Thus, resolve a
+// /dev/disk/by-something/X symlink before performing the device
+// changes (i.e., pass /run/ignition/dev_aliases/X) and, e.g., don't
+// call it for a partition but the full disk if you modified the
+// partition table.
+func (s stage) waitForUdev(dev string) error {
+	// Resolve the original /dev/ABC entry because udevadm wants
+	// this as argument instead of a symlink like
+	// /run/ignition/dev_aliases/X.
+	devPath, err := filepath.EvalSymlinks(dev)
+	if err != nil {
+		return fmt.Errorf("failed to resolve device alias %q: %v", dev, err)
+	}
+	// By triggering our own event and waiting for it we know that udev
+	// will have processed the device changes, a bare "udevadm settle"
+	// is prone to races with the inotify queue. We expect the /dev/DISK
+	// entry to exist because this function is either called for the full
+	// disk and only the /dev/DISKpX partition entries will change, or the
+	// function is called for a partition where the contents changed and
+	// nothing causes the kernel/udev to reread the partition table and
+	// recreate the /dev/DISKpX entries. If that was the case best we could
+	// do here is to add a retry loop (and relax the function comment).
+	_, err = s.Logger.LogCmd(
+		exec.Command(distro.UdevadmCmd(), "trigger", "--settle",
+			devPath), "waiting for triggered uevent")
+	if err != nil {
+		return fmt.Errorf("udevadm trigger failed: %v", err)
 	}
 
 	return nil

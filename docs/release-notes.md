@@ -17,6 +17,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- Prevent races with udev after disk editing
 
 
 ## Ignition 2.16.2 (2023-07-12)
