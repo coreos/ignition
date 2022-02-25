@@ -13,6 +13,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/pin/tftp v2.1.0+incompatible
 	github.com/smartystreets/goconvey v0.0.0-20190222223459-a17d461953aa // indirect
+	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
 	github.com/stretchr/testify v1.7.0
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/vmware/vmw-guestinfo v0.0.0-20170707015358-25eff159a728

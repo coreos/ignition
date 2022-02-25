@@ -112,6 +112,9 @@ github.com/pin/tftp/netascii
 github.com/pmezard/go-difflib/difflib
 # github.com/smartystreets/goconvey v0.0.0-20190222223459-a17d461953aa
 ## explicit
+# github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
+## explicit
+github.com/spf13/pflag
 # github.com/stretchr/testify v1.7.0
 ## explicit
 github.com/stretchr/testify/assert
