@@ -66,13 +66,32 @@ func (stage) Name() string {
 	return name
 }
 
+func (s stage) Apply(config types.Config, ignoreUnsupported bool) error {
+	return s.runImpl(config, true, ignoreUnsupported)
+}
+
 func (s stage) Run(config types.Config) error {
-	if err := s.checkRelabeling(); err != nil {
-		return fmt.Errorf("failed to check if SELinux labeling required: %v", err)
+	return s.runImpl(config, false, false)
+}
+
+func (s stage) runImpl(config types.Config, isApply bool, applyIgnoreUnsupported bool) error {
+	if !isApply {
+		// !isApply: SELinux is handled differently in container flows
+		if err := s.checkRelabeling(); err != nil {
+			return fmt.Errorf("failed to check if SELinux labeling required: %v", err)
+		}
 	}
 
-	if err := s.createPasswd(config); err != nil {
-		return fmt.Errorf("failed to create users/groups: %v", err)
+	// theoretically could support this, but the main user (CoreOS layering)
+	// does not: https://github.com/coreos/rpm-ostree/issues/3435
+	if isApply {
+		if !applyIgnoreUnsupported && (len(config.Passwd.Users) > 0 || len(config.Passwd.Groups) > 0) {
+			return errors.New("cannot apply passwd live")
+		}
+	} else {
+		if err := s.createPasswd(config); err != nil {
+			return fmt.Errorf("failed to create users/groups: %v", err)
+		}
 	}
 
 	if err := s.createFilesystemsEntries(config); err != nil {
@@ -83,16 +102,21 @@ func (s stage) Run(config types.Config) error {
 		return fmt.Errorf("failed to create units: %v", err)
 	}
 
-	if err := s.createCrypttabEntries(config); err != nil {
-		return fmt.Errorf("creating crypttab entries: %v", err)
-	}
+	if !isApply {
+		// !isApply: we don't support LUKS, so this isn't necessary
+		if err := s.createCrypttabEntries(config); err != nil {
+			return fmt.Errorf("creating crypttab entries: %v", err)
+		}
 
-	if err := s.createResultFile(); err != nil {
-		return fmt.Errorf("creating result file: %v", err)
-	}
+		// !isApply: we support running Ignition multiple times
+		if err := s.createResultFile(); err != nil {
+			return fmt.Errorf("creating result file: %v", err)
+		}
 
-	if err := s.relabelFiles(); err != nil {
-		return fmt.Errorf("failed to handle relabeling: %v", err)
+		// !isApply: SELinux is handled differently in container flows
+		if err := s.relabelFiles(); err != nil {
+			return fmt.Errorf("failed to handle relabeling: %v", err)
+		}
 	}
 
 	return nil

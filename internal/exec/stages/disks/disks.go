@@ -19,6 +19,7 @@
 package disks
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 
@@ -70,6 +71,14 @@ func isNoOp(config types.Config) bool {
 		len(config.Storage.Raid) == 0 &&
 		len(config.Storage.Filesystems) == 0 &&
 		len(config.Storage.Luks) == 0
+}
+
+func (s stage) Apply(config types.Config, ignoreUnsupported bool) error {
+	// in theory, we could support this, but for now we don't need it
+	if isNoOp(config) || ignoreUnsupported {
+		return nil
+	}
+	return errors.New("cannot apply disk modifications live")
 }
 
 func (s stage) Run(config types.Config) error {

@@ -19,6 +19,7 @@
 package umount
 
 import (
+	"errors"
 	"sort"
 
 	cutil "github.com/coreos/ignition/v2/config/util"
@@ -62,6 +63,13 @@ type stage struct {
 
 func (stage) Name() string {
 	return name
+}
+
+func (s stage) Apply(config types.Config, ignoreUnsupported bool) error {
+	if len(config.Storage.Filesystems) == 0 || ignoreUnsupported {
+		return nil
+	}
+	return errors.New("cannot apply filesystems modifications live")
 }
 
 func (s stage) Run(config types.Config) error {
