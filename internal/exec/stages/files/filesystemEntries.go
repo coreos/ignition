@@ -275,6 +275,7 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 	case regular && f.Contents.Source == nil:
 		break
 	default:
+		// nolint:staticcheck
 		return fmt.Errorf("Ignition encountered an internal error processing %q and must die now. Please file a bug", f.Path)
 	}
 
@@ -315,7 +316,7 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 	case os.IsNotExist(err):
 		// use default perms, we'll fix it later
 		if err := os.MkdirAll(d.Path, util.DefaultDirectoryPermissions); err != nil {
-			return fmt.Errorf("Failed to create directory %s: %v", d.Path, err)
+			return fmt.Errorf("failed to create directory %s: %v", d.Path, err)
 		}
 	case err != nil:
 		return fmt.Errorf("stat() failed on %s: %v", d.Path, err)
@@ -398,7 +399,7 @@ func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, e
 			return nil, err
 		}
 		if existing, ok := paths[path]; ok {
-			return nil, fmt.Errorf("Directory at %s resolved to %s after symlink chasing, but another entry with path %s also resolves there",
+			return nil, fmt.Errorf("directory at %s resolved to %s after symlink chasing, but another entry with path %s also resolves there",
 				d.Path, path, existing)
 		}
 		paths[path] = d.Path
@@ -412,7 +413,7 @@ func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, e
 			return nil, err
 		}
 		if existing, ok := paths[path]; ok {
-			return nil, fmt.Errorf("File at %s resolved to %s after symlink chasing, but another entry with path %s also resolves there",
+			return nil, fmt.Errorf("file at %s resolved to %s after symlink chasing, but another entry with path %s also resolves there",
 				f.Path, path, existing)
 		}
 		paths[path] = f.Path
@@ -427,7 +428,7 @@ func (s stage) getOrderedCreationList(config types.Config) ([]filesystemEntry, e
 			return nil, err
 		}
 		if existing, ok := paths[path]; ok {
-			return nil, fmt.Errorf("Link at %s resolved to %s after symlink chasing, but another entry with path %s also resolves there",
+			return nil, fmt.Errorf("link at %s resolved to %s after symlink chasing, but another entry with path %s also resolves there",
 				l.Path, path, existing)
 		}
 		paths[path] = l.Path
