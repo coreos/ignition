@@ -59,7 +59,7 @@ func (creator) Name() string {
 
 type stage struct {
 	util.Util
-	toRelabel []string
+	toRelabel map[string]struct{}
 }
 
 func (stage) Name() string {
@@ -130,9 +130,9 @@ func (s *stage) checkRelabeling() error {
 		return nil
 	}
 
-	// initialize to non-nil (whereas a nil slice means not to append, even
+	// initialize to non-nil (whereas a nil map means not to append, even
 	// though they're functionally equivalent)
-	s.toRelabel = []string{}
+	s.toRelabel = make(map[string]struct{})
 	return nil
 }
 
@@ -145,7 +145,7 @@ func (s *stage) relabeling() bool {
 func (s *stage) relabel(paths ...string) {
 	if s.toRelabel != nil {
 		for _, path := range paths {
-			s.toRelabel = append(s.toRelabel, filepath.Join(s.DestDir, path))
+			s.toRelabel[filepath.Join(s.DestDir, path)] = struct{}{}
 		}
 	}
 }
@@ -163,5 +163,9 @@ func (s *stage) relabelFiles() error {
 	// loaded and hence no MAC enforced, and (2) we'd still need after-the-fact
 	// labeling for files created by processes we call out to, like `useradd`.
 
-	return s.RelabelFiles(s.toRelabel)
+	keys := make([]string, 0, len(s.toRelabel))
+	for key := range s.toRelabel {
+		keys = append(keys, key)
+	}
+	return s.RelabelFiles(keys)
 }
