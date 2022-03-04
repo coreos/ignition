@@ -61,6 +61,7 @@ type Engine struct {
 	FetchTimeout   time.Duration
 	Logger         *log.Logger
 	NeedNet        string
+	ConfigProvided string
 	Root           string
 	PlatformConfig platform.Config
 	Fetcher        *resource.Fetcher
@@ -239,6 +240,11 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 	} else if err != nil {
 		e.Logger.Warning("failed to fetch config: %s", err)
 		return
+	} else {
+		err = e.signalConfigProvided()
+		if err != nil {
+			e.Logger.Warning("failed to signal that a config was provided: %v", err)
+		}
 	}
 
 	// Update the http client to use the timeouts and CAs from the newly fetched
@@ -333,6 +339,18 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 	}
 
 	return configFetcher.RenderConfig(cfg)
+}
+
+func (e *Engine) signalConfigProvided() error {
+	if err := executil.MkdirForFile(e.ConfigProvided); err != nil {
+		return err
+	}
+	if f, err := os.Create(e.ConfigProvided); err != nil {
+		return err
+	} else {
+		f.Close()
+	}
+	return nil
 }
 
 func (e *Engine) signalNeedNet() error {

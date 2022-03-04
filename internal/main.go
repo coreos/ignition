@@ -51,20 +51,22 @@ func main() {
 
 func ignitionMain() {
 	flags := struct {
-		configCache  string
-		fetchTimeout time.Duration
-		needNet      string
-		platform     platform.Name
-		root         string
-		stage        stages.Name
-		stateFile    string
-		version      bool
-		logToStdout  bool
+		configCache    string
+		fetchTimeout   time.Duration
+		needNet        string
+		configProvided string
+		platform       platform.Name
+		root           string
+		stage          stages.Name
+		stateFile      string
+		version        bool
+		logToStdout    bool
 	}{}
 
 	flag.StringVar(&flags.configCache, "config-cache", "/run/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.fetchTimeout, "fetch-timeout", exec.DefaultFetchTimeout, "initial duration for which to wait for config")
 	flag.StringVar(&flags.needNet, "neednet", "/run/ignition/neednet", "flag file to write from fetch-offline if networking is needed")
+	flag.StringVar(&flags.configProvided, "config-provided-flag", "/run/ignition/config-provided", "flag file to write from fetch(-offline) if a config was fetched")
 	flag.Var(&flags.platform, "platform", fmt.Sprintf("current platform. %v", platform.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
@@ -111,6 +113,7 @@ func ignitionMain() {
 		FetchTimeout:   flags.fetchTimeout,
 		Logger:         &logger,
 		NeedNet:        flags.needNet,
+		ConfigProvided: flags.configProvided,
 		ConfigCache:    flags.configCache,
 		PlatformConfig: platformConfig,
 		Fetcher:        &fetcher,
