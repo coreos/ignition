@@ -240,6 +240,10 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 			resultField.Set(mergeStruct(parentField.Elem(), parentFieldPath, childField.Elem(), childFieldPath, resultFieldPath, transcript).Addr())
 			transcribeOne(parentFieldPath, resultFieldPath, transcript)
 			transcribeOne(childFieldPath, resultFieldPath, transcript)
+		case kind == reflect.Ptr && childField.IsNil() && fieldMeta.Name == "Compression":
+			// if a child's Compression field is nil, since it may have uncompressed
+			// Source that gets copied to result, Compression should not be set in
+			// result even if it's set in parent
 		case kind == reflect.Ptr && childField.IsNil():
 			resultField.Set(parentField)
 			transcribe(parentFieldPath, resultFieldPath, resultField, fieldMeta, transcript)

@@ -1338,6 +1338,71 @@ func TestMerge(t *testing.T) {
 				{path.New(TAG_CHILD, "kernelArguments"), path.New(TAG_RESULT, "kernelArguments")},
 			}},
 		},
+
+		// when compressed and un-compressed files are merged, out does not have Compression field
+		{
+			in1: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Path: "/a",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source:      util.StrToPtr("data:"),
+									Compression: util.StrToPtr("gzip"),
+								},
+							},
+						},
+					},
+				},
+			},
+			in2: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Path: "/a",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:hello world"),
+								},
+							},
+						},
+					},
+				},
+			},
+			out: types.Config{
+				Storage: types.Storage{
+					Files: []types.File{
+						{
+							Node: types.Node{
+								Path: "/a",
+							},
+							FileEmbedded1: types.FileEmbedded1{
+								Contents: types.Resource{
+									Source: util.StrToPtr("data:hello world"),
+								},
+							},
+						},
+					},
+				},
+			},
+			transcript: Transcript{[]Mapping{
+				{path.New(TAG_CHILD, "storage", "files", 0, "path"), path.New(TAG_RESULT, "storage", "files", 0, "path")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents", "source"), path.New(TAG_RESULT, "storage", "files", 0, "contents", "source")},
+				{path.New(TAG_PARENT, "storage", "files", 0, "contents"), path.New(TAG_RESULT, "storage", "files", 0, "contents")},
+				{path.New(TAG_CHILD, "storage", "files", 0, "contents"), path.New(TAG_RESULT, "storage", "files", 0, "contents")},
+				{path.New(TAG_PARENT, "storage", "files", 0), path.New(TAG_RESULT, "storage", "files", 0)},
+				{path.New(TAG_CHILD, "storage", "files", 0), path.New(TAG_RESULT, "storage", "files", 0)},
+				{path.New(TAG_PARENT, "storage", "files"), path.New(TAG_RESULT, "storage", "files")},
+				{path.New(TAG_CHILD, "storage", "files"), path.New(TAG_RESULT, "storage", "files")},
+				{path.New(TAG_PARENT, "storage"), path.New(TAG_RESULT, "storage")},
+				{path.New(TAG_CHILD, "storage"), path.New(TAG_RESULT, "storage")},
+			}},
+		},
 	}
 
 	for i, test := range tests {
