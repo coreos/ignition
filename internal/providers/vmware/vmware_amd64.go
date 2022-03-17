@@ -30,7 +30,7 @@ import (
 )
 
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	if isVM, err := vmcheck.IsVirtualWorld(); err != nil {
+	if isVM, err := vmcheck.IsVirtualWorld(true); err != nil {
 		return types.Config{}, report.Report{}, err
 	} else if !isVM {
 		return types.Config{}, report.Report{}, providers.ErrNoProvider

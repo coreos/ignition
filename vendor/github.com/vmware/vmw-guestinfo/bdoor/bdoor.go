@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:generate go run asm.go -out bdoor_amd64.s -arch amd64
+//go:generate go run asm.go -out bdoor_386.s -arch 386
+
 package bdoor
 
 const (

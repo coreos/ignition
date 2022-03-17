@@ -121,7 +121,7 @@ github.com/stretchr/testify/assert
 # github.com/vincent-petithory/dataurl v1.0.0
 ## explicit
 github.com/vincent-petithory/dataurl
-# github.com/vmware/vmw-guestinfo v0.0.0-20170707015358-25eff159a728
+# github.com/vmware/vmw-guestinfo v0.0.0-20220317130741-510905f0efa3
 ## explicit
 github.com/vmware/vmw-guestinfo/bdoor
 github.com/vmware/vmw-guestinfo/message
