@@ -58,6 +58,9 @@ github.com/aws/aws-sdk-go/service/s3/s3iface
 github.com/aws/aws-sdk-go/service/s3/s3manager
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
+# github.com/beevik/etree v1.1.1-0.20200718192613-4a2f8b9d084c
+## explicit
+github.com/beevik/etree
 # github.com/coreos/go-json v0.0.0-20211020211907-c63f628265de
 github.com/coreos/go-json
 # github.com/coreos/go-semver v0.3.0
