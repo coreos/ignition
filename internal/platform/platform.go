@@ -15,6 +15,7 @@
 package platform
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/coreos/ignition/v2/internal/log"
@@ -44,6 +45,10 @@ import (
 	"github.com/coreos/ignition/v2/internal/resource"
 )
 
+var (
+	ErrCannotDelete = errors.New("cannot delete config on this platform")
+)
+
 // Config represents a set of options that map to a particular platform.
 type Config struct {
 	name       string
@@ -51,6 +56,7 @@ type Config struct {
 	init       providers.FuncInit
 	newFetcher providers.FuncNewFetcher
 	status     providers.FuncPostStatus
+	delConfig  providers.FuncDelConfig
 }
 
 func (c Config) Name() string {
@@ -91,6 +97,14 @@ func (c Config) Status(stageName string, f resource.Fetcher, statusErr error) er
 		return c.status(stageName, f, statusErr)
 	}
 	return nil
+}
+
+func (c Config) DelConfig(f *resource.Fetcher) error {
+	if c.delConfig != nil {
+		return c.delConfig(f)
+	} else {
+		return ErrCannotDelete
+	}
 }
 
 var configs = registry.Create("platform configs")
