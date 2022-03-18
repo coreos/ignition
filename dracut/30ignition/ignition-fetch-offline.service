@@ -5,7 +5,7 @@
 
 [Unit]
 Description=Ignition (fetch-offline)
-Documentation=https://github.com/coreos/ignition
+Documentation=https://coreos.github.io/ignition/
 ConditionPathExists=/etc/initrd-release
 DefaultDependencies=false
 Before=ignition-complete.target
