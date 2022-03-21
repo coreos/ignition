@@ -162,7 +162,7 @@ static int disconnect(int fd, uint32_t client_id) {
 	return msg.hdr.rc;
 }
 
-int virtualbox_get_guest_property(char *name, void **value, size_t *size) {
+static int start_connection(uint32_t *client_id) {
 	// clear any previous garbage in errno for error returns
 	errno = 0;
 
@@ -179,11 +179,25 @@ int virtualbox_get_guest_property(char *name, void **value, size_t *size) {
 	}
 
 	// connect to property service
-	uint32_t client_id;
-	ret = connect(fd, &client_id);
+	ret = connect(fd, client_id);
 	if (ret != VINF_SUCCESS) {
 		return ret;
 	}
+
+	// return fd
+	ret = fd;
+	fd = -1;
+	return ret;
+}
+
+int virtualbox_get_guest_property(char *name, void **value, size_t *size) {
+	// connect
+	uint32_t client_id;
+	int ret = start_connection(&client_id);
+	if (ret < 0) {
+		return ret;
+	}
+	int _cleanup_close_ fd = ret;
 
 	// get property
 	ret = get_prop(fd, client_id, name, value, size);
