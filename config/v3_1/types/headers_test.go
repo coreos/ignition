@@ -15,7 +15,6 @@
 package types
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
@@ -133,7 +132,7 @@ func TestValidHeadersParse(t *testing.T) {
 	if err != nil {
 		t.Errorf("error during parsing valid headers: %v", err)
 	}
-	if !equal(parseHeaders[strings.Title("header1")], []string{"header1value"}) || !equal(parseHeaders[strings.Title("header2")], []string{"header2value"}) {
+	if !equal(parseHeaders["Header1"], []string{"header1value"}) || !equal(parseHeaders["Header2"], []string{"header2value"}) {
 		t.Errorf("parsed HTTP headers values are wrong")
 	}
 }
@@ -154,7 +153,7 @@ func TestDuplicateHeadersParse(t *testing.T) {
 	if err != nil {
 		t.Errorf("error during parsing valid headers: %v", err)
 	}
-	if !equal(parseHeaders[strings.Title("header1")], []string{"header1value", "header2value"}) {
+	if !equal(parseHeaders["Header1"], []string{"header1value", "header2value"}) {
 		t.Errorf("parsed HTTP headers values are wrong")
 	}
 }
