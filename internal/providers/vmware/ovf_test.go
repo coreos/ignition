@@ -17,6 +17,7 @@
 package vmware
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -64,6 +65,42 @@ var data_vapprun = []byte(`<?xml version="1.0" encoding="UTF-8"?>
       <Property oe:key="guestinfo.meta_data.url" oe:value=""/>
       <Property oe:key="guestinfo.meta_data.doc" oe:value=""/>
    </PropertySection>
+</Environment>`)
+
+var data_delete_prop_simple = []byte(`<?xml version="1.0" encoding="UTF-8"?>
+<Environment xmlns="http://schemas.dmtf.org/ovf/environment/1" xmlns:a="http://schemas.dmtf.org/ovf/environment/1">
+   <Invalid>
+     <InvalidKey>garbage!</InvalidKey>
+   </Invalid>
+   <PropertySection>
+      <!-- XML attributes don't default to the default namespace -->
+      <Property a:key="guestinfo.ignition.config.data" value="remove"/>
+      <Property a:key="guestinfo.ignition.config.data.encoding" value="remove"/>
+   </PropertySection>
+</Environment>`)
+
+var data_delete_prop_complex = []byte(`<?xml version="1.0" encoding="UTF-8"?>
+<Environment xmlns="http://schemas.dmtf.org/ovf/environment/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oe="http://schemas.dmtf.org/ovf/environment/1" xmlns:ex="http://example.com/xmlns" oe:id="ignition-vmw">
+   <PlatformSection>
+      <Kind>vapprun</Kind>
+      <Version>1.0</Version>
+      <Vendor>VMware, Inc.</Vendor>
+      <Locale>en_US</Locale>
+   </PlatformSection>
+   <Invalid>
+     <InvalidKey>garbage!</InvalidKey>
+   </Invalid>
+   <PropertySection>
+      <Property ex:key="guestinfo.ignition.config.data.encoding" oe:value="keep"/>
+      <ex:Property oe:key="guestinfo.ignition.config.data.encoding" oe:value="keep"/>
+      <Property oe:key="guestinfo.ignition.config.data" oe:value="remove"/>
+      <Property oe:key="guestinfo.ignition.config.data.encoding" oe:value="remove"/>
+      <Property oe:key="bar" oe:value="0"/>
+   </PropertySection>
+   <ex:PropertySection>
+      <Property oe:key="guestinfo.ignition.config.data" oe:value="keep"/>
+      <Property oe:key="guestinfo.ignition.config.data.encoding" oe:value="keep"/>
+   </ex:PropertySection>
 </Environment>`)
 
 func TestOvfEnvProperties(t *testing.T) {
@@ -114,4 +151,27 @@ func TestVappRunUserDataUrl(t *testing.T) {
 func TestInvalidData(t *testing.T) {
 	_, err := ReadOvfEnvironment(append(data_vsphere, []byte("garbage")...))
 	assert.Nil(t, err)
+}
+
+func TestDeleteProps(t *testing.T) {
+	for _, sample := range [][]byte{data_delete_prop_simple, data_delete_prop_complex, data_vapprun} {
+		var expectedLines []string
+		expectedDelete := false
+		for _, line := range strings.Split(string(sample), "\n") {
+			if strings.Contains(line, "remove") {
+				// drop XML element, leave indentation
+				startSkip := strings.IndexAny(line, "<>")
+				endSkip := strings.LastIndexAny(line, "<>")
+				line = line[:startSkip] + line[endSkip+1:]
+				expectedDelete = true
+			}
+			expectedLines = append(expectedLines, line)
+		}
+		expected := strings.Join(expectedLines, "\n")
+
+		result, deleted, err := DeleteOvfProperties(sample, []string{"guestinfo.ignition.config.data", "guestinfo.ignition.config.data.encoding"})
+		assert.Nil(t, err)
+		assert.Equal(t, expected, string(result))
+		assert.Equal(t, expectedDelete, deleted)
+	}
 }

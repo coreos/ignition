@@ -190,8 +190,9 @@ func init() {
 		fetch: virtualbox.FetchConfig,
 	})
 	configs.Register(Config{
-		name:  "vmware",
-		fetch: vmware.FetchConfig,
+		name:      "vmware",
+		fetch:     vmware.FetchConfig,
+		delConfig: vmware.DelConfig,
 	})
 	configs.Register(Config{
 		name:  "vultr",
