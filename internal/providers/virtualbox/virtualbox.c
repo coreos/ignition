@@ -26,6 +26,7 @@
 
 // From virtualbox/include/VBox/HostServices/GuestPropertySvc.h
 #define GUEST_PROP_FN_GET_PROP 1
+#define GUEST_PROP_FN_DEL_PROP 4
 
 static void _cleanup_close(int *fd) {
 	if (*fd != -1) {
@@ -153,6 +154,38 @@ static int get_prop(int fd, uint32_t client_id, const char *name, void **value, 
 	}
 }
 
+static int del_prop(int fd, uint32_t client_id, const char *name) {
+	// xref VbglR3GuestPropDelete() in
+	// virtualbox/src/VBox/Additions/common/VBoxGuest/lib/VBoxGuestR3LibGuestProp.cpp
+
+	// init header
+	size_t msg_size = sizeof(struct vbg_ioctl_hgcm_call) + sizeof(struct vmmdev_hgcm_function_parameter64);
+	struct vbg_ioctl_hgcm_call _cleanup_free_ *msg = calloc(1, msg_size);
+	// init_header re-adds the size of msg->hdr
+	init_header(&msg->hdr, msg_size - sizeof(msg->hdr), msg_size - sizeof(msg->hdr));
+	msg->client_id = client_id;
+	msg->function = GUEST_PROP_FN_DEL_PROP;
+	msg->timeout_ms = -1;  // inf
+	msg->interruptible = 1;
+	msg->parm_count = 1;
+
+	// init arguments
+	struct vmmdev_hgcm_function_parameter64 *params = (void *) (msg + 1);
+	// property name (in)
+	params[0].type = VMMDEV_HGCM_PARM_TYPE_LINADDR_IN;
+	params[0].u.pointer.size = strlen(name) + 1;
+	params[0].u.pointer.u.linear_addr = (uintptr_t) name;
+
+	// delete value
+	if (ioctl(fd, VBG_IOCTL_HGCM_CALL_64(msg_size), msg)) {
+		return VERR_GENERAL_FAILURE;
+	}
+	if (msg->hdr.rc != VINF_SUCCESS) {
+		return msg->hdr.rc;
+	}
+	return VINF_SUCCESS;
+}
+
 static int disconnect(int fd, uint32_t client_id) {
 	struct vbg_ioctl_hgcm_disconnect msg = {
 		.u = {
@@ -219,6 +252,35 @@ int virtualbox_get_guest_property(char *name, void **value, size_t *size) {
 		// are noticed
 		free(*value);
 		*value = NULL;
+		return ret;
+	}
+
+	// for clarity, ensure the Go error return is nil
+	errno = 0;
+	return 0;
+}
+
+int virtualbox_delete_guest_property(char *name) {
+	// connect
+	uint32_t client_id;
+	int ret = start_connection(&client_id);
+	if (ret < 0) {
+		return ret;
+	}
+	int _cleanup_close_ fd = ret;
+
+	// delete property
+	ret = del_prop(fd, client_id, name);
+	if (ret != VINF_SUCCESS) {
+		disconnect(fd, client_id);
+		return ret;
+	}
+
+	// disconnect
+	ret = disconnect(fd, client_id);
+	if (ret != VINF_SUCCESS) {
+		// we could ignore the failure, but better to make sure bugs
+		// are noticed
 		return ret;
 	}
 

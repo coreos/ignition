@@ -69,6 +69,19 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	return util.ParseConfig(f.Logger, config)
 }
 
+func DelConfig(f *resource.Fetcher) error {
+	f.Logger.Info("deleting Ignition config from VirtualBox guest property")
+	err := deleteProperty(configEncodingProperty)
+	if err != nil {
+		return err
+	}
+	err = deleteProperty(configProperty)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func fetchProperty(name string) ([]byte, error) {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
@@ -89,4 +102,22 @@ func fetchProperty(name string) ([]byte, error) {
 	}
 	// properties are double-NUL-terminated
 	return bytes.TrimRight(C.GoBytes(buf, C.int(size)), "\x00"), nil
+}
+
+func deleteProperty(name string) error {
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+
+	ret, errno := C.virtualbox_delete_guest_property(cName)
+	if ret != C.VINF_SUCCESS {
+		if ret == C.VERR_GENERAL_FAILURE && errno != nil {
+			return fmt.Errorf("deleting VirtualBox guest property %q: %w", name, errno)
+		}
+		if ret == C.VERR_PERMISSION_DENIED {
+			return fmt.Errorf("deleting VirtualBox guest property %q: permission denied; is the property read-only?", name)
+		}
+		// see <linux/vbox_err.h>
+		return fmt.Errorf("deleting VirtualBox guest property %q: error %d", name, ret)
+	}
+	return nil
 }

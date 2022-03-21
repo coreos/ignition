@@ -16,5 +16,6 @@
 #define IGNITION_VIRTUALBOX_H
 
 int virtualbox_get_guest_property(char *name, void **value, size_t *size);
+int virtualbox_delete_guest_property(char *name);
 
 #endif

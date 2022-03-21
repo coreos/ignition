@@ -186,8 +186,9 @@ func init() {
 		fetch: qemu.FetchConfig,
 	})
 	configs.Register(Config{
-		name:  "virtualbox",
-		fetch: virtualbox.FetchConfig,
+		name:      "virtualbox",
+		fetch:     virtualbox.FetchConfig,
+		delConfig: virtualbox.DelConfig,
 	})
 	configs.Register(Config{
 		name:      "vmware",
