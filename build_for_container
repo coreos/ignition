@@ -27,6 +27,5 @@ export GO11MODULE=on
 export CGO_ENABLED=0
 export GOFLAGS='-mod=vendor'
 export GOOS=linux
-export GOARCH=amd64
 
 go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/ignition-validate ${REPO_PATH}/validate

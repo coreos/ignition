@@ -3,11 +3,16 @@ name: Container
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
     branches: [main]
 
 permissions:
   contents: read
+
+# avoid races when pushing containers built from main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   build-container:
@@ -16,5 +21,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
-      - name: Build container image
-        run: podman build -f Dockerfile.validate .
+      - name: Build and push container
+        uses: coreos/actions-lib/build-container@main
+        with:
+          credentials: ${{ secrets.QUAY_AUTH }}
+          file: Dockerfile.validate
+          push: quay.io/coreos/ignition-validate
+          # Speed up PR CI by skipping arm64
+          pr-arches: amd64
