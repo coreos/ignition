@@ -19,7 +19,7 @@ Version:                2.13.0
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Release:        3.rhaos4.11%{?dist}
+Release:        4.rhaos4.11%{?dist}
 Summary:        First boot installer and configuration tool
 
 # Upstream license specification: Apache-2.0
@@ -29,6 +29,14 @@ Source0:        %{gosource}
 Patch0:         vendor-vmw-guestinfo-quickfix-to-skip-performing-iop.patch
 # https://github.com/coreos/ignition/pull/1307
 Patch1:         luks-volume-reuse.patch
+# Backport patches for ignition-apply entrypoint
+# https://github.com/coreos/ignition/pull/1285
+# https://github.com/coreos/ignition/pull/1292
+Patch2:         0001-internal-exec-move-report-logging-to-log-package.patch
+Patch3:         0002-internal-exec-factor-out-config-fetching.patch
+Patch4:         0003-internal-exec-stages-formalize-concept-of-no-op-conf.patch
+Patch5:         0004-Add-ignition-apply-entrypoint.patch
+Patch6:         0005-go.mod-revendor.patch
 
 BuildRequires: libblkid-devel
 
@@ -330,6 +338,11 @@ install -p -m 0755 ./ignition %{buildroot}/%{dracutlibdir}/modules.d/30ignition
 %endif
 
 %changelog
+* Wed Mar 23 2022 Sohan Kunkerkar <skunkerk@redhat.com> - 2.13.0-4.rhaos4.11
+- Backport patches for ignition-apply entrypoint
+  https://github.com/coreos/ignition/pull/1285
+  https://github.com/coreos/ignition/pull/1292
+
 * Sat Jan 29 2022 Benjamin Gilbert <bgilbert@redhat.com> - 2.13.0-3.rhaos4.11
 - Rename Fedora -validate-nonlinux subpackage to -validate-redistributable
 - Add static Linux binaries to -redistributable

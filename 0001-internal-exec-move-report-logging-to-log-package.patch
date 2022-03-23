@@ -1,0 +1,105 @@
+From 27f7eaaa0b7a46347ea24eff2bb9a06231c0b5f9 Mon Sep 17 00:00:00 2001
+From: Jonathan Lebon <jonathan@jlebon.com>
+Date: Fri, 3 Dec 2021 17:13:36 -0500
+Subject: [PATCH 4/8] internal/exec: move report logging to log package
+
+Prep for using it from another package.
+---
+ internal/exec/engine.go | 21 ++++-----------------
+ internal/log/log.go     | 16 ++++++++++++++++
+ 2 files changed, 20 insertions(+), 17 deletions(-)
+
+diff --git a/internal/exec/engine.go b/internal/exec/engine.go
+index 04e22f03..a02a30aa 100644
+--- a/internal/exec/engine.go
++++ b/internal/exec/engine.go
+@@ -83,7 +83,7 @@ func (e Engine) Run(stageName string) error {
+ 	baseConfig := emptyConfig
+ 
+ 	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger, e.PlatformConfig.Name())
+-	e.logReport(r)
++	e.Logger.LogReport(r)
+ 	if err != nil && err != providers.ErrNoProvider {
+ 		e.Logger.Crit("failed to acquire system base config: %v", err)
+ 		return err
+@@ -262,7 +262,7 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
+ 	}
+ 
+ 	rpt := validate.Validate(cfg, "json")
+-	e.logReport(rpt)
++	e.Logger.LogReport(rpt)
+ 	if rpt.IsFatal() {
+ 		err = errors.ErrInvalid
+ 		e.Logger.Crit("merging configs resulted in an invalid config")
+@@ -314,7 +314,7 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
+ 		}
+ 	}
+ 
+-	e.logReport(r)
++	e.Logger.LogReport(r)
+ 	if err != nil {
+ 		return types.Config{}, err
+ 	}
+@@ -435,7 +435,7 @@ func (e *Engine) fetchReferencedConfig(cfgRef types.Resource) (types.Config, err
+ 	}
+ 
+ 	cfg, r, err := config.Parse(rawCfg)
+-	e.logReport(r)
++	e.Logger.LogReport(r)
+ 	if err != nil {
+ 		return types.Config{}, err
+ 	}
+@@ -454,16 +454,3 @@ func (e *Engine) signalNeedNet() error {
+ 	}
+ 	return nil
+ }
+-
+-func (e *Engine) logReport(r report.Report) {
+-	for _, entry := range r.Entries {
+-		switch entry.Kind {
+-		case report.Error:
+-			e.Logger.Crit("%v", entry)
+-		case report.Warn:
+-			e.Logger.Warning("%v", entry)
+-		case report.Info:
+-			e.Logger.Info("%v", entry)
+-		}
+-	}
+-}
+diff --git a/internal/log/log.go b/internal/log/log.go
+index 42395198..ec5e2a9a 100644
+--- a/internal/log/log.go
++++ b/internal/log/log.go
+@@ -20,6 +20,8 @@ import (
+ 	"log/syslog"
+ 	"os/exec"
+ 	"strings"
++
++	"github.com/coreos/vcontext/report"
+ )
+ 
+ type LoggerOps interface {
+@@ -173,6 +175,20 @@ func (l *Logger) LogOp(op func() error, format string, a ...interface{}) error {
+ 	return nil
+ }
+ 
++// LogReport logs entries from the report at appropriate levels.
++func (l Logger) LogReport(r report.Report) {
++	for _, entry := range r.Entries {
++		switch entry.Kind {
++		case report.Error:
++			l.Crit("%v", entry)
++		case report.Warn:
++			l.Warning("%v", entry)
++		case report.Info:
++			l.Info("%v", entry)
++		}
++	}
++}
++
+ // logStart logs the start of a multi-step/substantial/time-consuming operation.
+ func (l Logger) logStart(format string, a ...interface{}) {
+ 	l.Info(fmt.Sprintf("[started]  %s", format), a...)
+-- 
+2.35.1
+
