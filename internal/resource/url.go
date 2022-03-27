@@ -464,7 +464,7 @@ func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest s3target, input
 		return err
 	}
 
-	awsConfig := aws.NewConfig().WithHTTPClient(httpClient)
+	awsConfig := aws.NewConfig().WithHTTPClient(httpClient).WithUseDualStack(true)
 	s3Client := s3.New(sess, awsConfig)
 	downloader := s3manager.NewDownloaderWithClient(s3Client)
 	if _, err := downloader.DownloadWithContext(ctx, dest, input); err != nil {
