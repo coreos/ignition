@@ -1,6 +1,6 @@
 srpm:
 	dnf install -y git
-	curl -LO https://src.fedoraproject.org/rpms/ignition/raw/rawhide/f/ignition.spec
+	curl -LOf https://src.fedoraproject.org/rpms/ignition/raw/rawhide/f/ignition.spec
 	version=$$(git describe --always --tags | sed -e 's,-,\.,g' -e 's,^v,,'); \
 	git archive --format=tar --prefix=ignition-$$version/ HEAD | gzip > ignition-$$version.tar.gz; \
 	sed -ie "s,^Version:.*,Version: $$version," ignition.spec
