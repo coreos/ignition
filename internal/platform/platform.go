@@ -29,6 +29,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/file"
 	"github.com/coreos/ignition/v2/internal/providers/gcp"
 	"github.com/coreos/ignition/v2/internal/providers/ibmcloud"
+	"github.com/coreos/ignition/v2/internal/providers/kubevirt"
 	"github.com/coreos/ignition/v2/internal/providers/noop"
 	"github.com/coreos/ignition/v2/internal/providers/nutanix"
 	"github.com/coreos/ignition/v2/internal/providers/openstack"
@@ -140,6 +141,10 @@ func init() {
 	configs.Register(Config{
 		name:  "ibmcloud",
 		fetch: ibmcloud.FetchConfig,
+	})
+	configs.Register(Config{
+		name:  "kubevirt",
+		fetch: kubevirt.FetchConfig,
 	})
 	configs.Register(Config{
 		name:  "metal",
