@@ -167,18 +167,18 @@ func translateV2_1PasswdUserGroupSliceToStringSlice(groups []types.Group) []stri
 // creating any directories in fp as needed.
 func writeAuthKeysFile(u *user.User, fp string, keys []byte) error {
 	if err := as_user.MkdirAll(u, filepath.Dir(fp), 0700); err != nil {
-		return err
+		return fmt.Errorf("creating parent dirs for %q: %w", fp, err)
 	}
 
 	f, err := as_user.OpenFile(u, fp, unix.O_WRONLY|unix.O_CREAT|unix.O_TRUNC, 0600)
 	if err != nil {
-		return err
+		return fmt.Errorf("opening file %q as user %s and group %s: %w", fp, u.Uid, u.Gid, err)
 	}
 	if _, err = f.Write(keys); err != nil {
-		return err
+		return fmt.Errorf("writing file %q: %w", fp, err)
 	}
 	if err := f.Close(); err != nil {
-		return err
+		return fmt.Errorf("closing file %q: %w", fp, err)
 	}
 	return nil
 }
