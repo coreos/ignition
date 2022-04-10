@@ -47,7 +47,7 @@ func evalSymlinks(path string) (res string, err error) {
 		}
 	}
 
-	return "", fmt.Errorf("Failed to evaluate symlink after %v: %v", retrySymlinkTimeout, err)
+	return "", fmt.Errorf("failed to evaluate symlink after %v: %v", retrySymlinkTimeout, err)
 }
 
 // CreateDeviceAlias creates a device alias for the supplied path.
