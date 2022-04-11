@@ -18,8 +18,12 @@
 package exoscale
 
 import (
+	"bytes"
+	"compress/gzip"
+	"io/ioutil"
 	"net/url"
 
+	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
@@ -35,11 +39,35 @@ var (
 	}
 )
 
-// FetchConfig fetch Exoscale ign user-data config
+// FetchConfig fetch Exoscale ign user-data config. The user-data
+// can be delivered compressed (gzip) or uncompressed based on if
+// the user used the exo CLI or the web UI. This means we must first
+// get the data back and check to see if it's gzip compressed or not.
+// https://github.com/coreos/fedora-coreos-tracker/issues/1160
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	data, err := f.FetchToBuffer(userdataURL, resource.FetchOptions{})
-	if err != nil && err != resource.ErrNotFound {
+	if err == resource.ErrNotFound {
+		f.Logger.Info("Metadata service returned 404; no config")
+		return types.Config{}, report.Report{}, errors.ErrEmpty
+	} else if err != nil {
 		return types.Config{}, report.Report{}, err
+	}
+	if len(data) == 0 {
+		f.Logger.Info("Metadata service returned empty user-data; assuming no config")
+		return types.Config{}, report.Report{}, errors.ErrEmpty
+	}
+	// Check for gzip file magic and decompress if found
+	if len(data) > 2 && bytes.Equal(data[0:2], []byte{0x1f, 0x8b}) {
+		f.Logger.Info("Detected gzip compression, attempting to decompress")
+		reader, err := gzip.NewReader(bytes.NewReader(data))
+		if err != nil {
+			return types.Config{}, report.Report{}, err
+		}
+		defer reader.Close()
+		data, err = ioutil.ReadAll(reader)
+		if err != nil {
+			return types.Config{}, report.Report{}, err
+		}
 	}
 
 	return util.ParseConfig(f.Logger, data)
