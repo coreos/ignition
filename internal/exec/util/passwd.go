@@ -165,14 +165,49 @@ func translateV2_1PasswdUserGroupSliceToStringSlice(groups []types.Group) []stri
 
 // writeAuthKeysFile writes the content in keys to the path fp for the user,
 // creating any directories in fp as needed.
-func writeAuthKeysFile(u *user.User, fp string, keys []byte) error {
-	if err := as_user.MkdirAll(u, filepath.Dir(fp), 0700); err != nil {
-		return err
-	}
-
-	f, err := as_user.OpenFile(u, fp, unix.O_WRONLY|unix.O_CREAT|unix.O_TRUNC, 0600)
+func (u Util) writeAuthKeysFile(usr *user.User, fp string, keys []byte) error {
+	uid, gid, err := as_user.GetIds(usr)
 	if err != nil {
-		return err
+		return fmt.Errorf("getting %s ids: %w", usr.Name, err)
+	}
+	// creating dirs
+	target := filepath.Dir(fp)
+	if err := as_user.MkdirAll(usr, target, 0700); err != nil {
+		u.Logger.Warning("creating parent dirs for %q as user %s and group %s: %v", fp, usr.Uid, usr.Gid, err)
+		if err := os.MkdirAll(target, 0700); err != nil {
+			return fmt.Errorf("creating parent dirs for %q as user %d and group %d: %w", fp, os.Getuid(), os.Getgid(), err)
+		}
+		path, err := u.JoinPath(usr.HomeDir)
+		if err != nil {
+			return fmt.Errorf("resolving realpath to %q: %w", usr.HomeDir, err)
+		}
+		subdirs := SplitPath(strings.TrimPrefix(target, path))
+		for _, dir := range subdirs {
+			path = filepath.Join(path, dir)
+			puid, pgid, pmode := GetFileOwnerAndMode(path)
+			if puid != int(uid) || pgid != int(gid) {
+				if err := os.Chown(path, int(uid), int(gid)); err != nil {
+					return fmt.Errorf("changing owner for %q: %w", path, err)
+				}
+			}
+			if pmode != 0700 {
+				if err := os.Chmod(path, 0700); err != nil {
+					return fmt.Errorf("changing mode for %q: %w", path, err)
+				}
+			}
+		}
+	}
+	// writing key
+	f, err := as_user.OpenFile(usr, fp, unix.O_WRONLY|unix.O_CREAT|unix.O_TRUNC, 0600)
+	if err != nil {
+		u.Logger.Warning("opening file %q as user %s and group %s: %v", fp, usr.Uid, usr.Gid, err)
+		f, err = os.OpenFile(fp, unix.O_WRONLY|unix.O_CREAT|unix.O_TRUNC, 0600)
+		if err != nil {
+			return fmt.Errorf("opening file %q as user %d and group %d: %w", fp, os.Getuid(), os.Getgid(), err)
+		}
+		if err := os.Chown(fp, int(uid), int(gid)); err != nil {
+			return fmt.Errorf("changing %q user and group to %s:%s: %w", fp, usr.Uid, usr.Gid, err)
+		}
 	}
 	if _, err = f.Write(keys); err != nil {
 		return err
@@ -180,6 +215,7 @@ func writeAuthKeysFile(u *user.User, fp string, keys []byte) error {
 	if err := f.Close(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -251,16 +287,17 @@ func (u Util) AuthorizeSSHKeys(c types.PasswdUser) error {
 		if !strings.HasSuffix(ks, "\n") {
 			ks = ks + "\n"
 		}
+
 		var path string
 		if distro.WriteAuthorizedKeysFragment() {
 			path, err = u.JoinPath(usr.HomeDir, ".ssh", "authorized_keys.d", "ignition")
 			if err == nil {
-				err = writeAuthKeysFile(usr, path, []byte(ks))
+				err = u.writeAuthKeysFile(usr, path, []byte(ks))
 			}
 		} else {
 			path, err = u.JoinPath(usr.HomeDir, ".ssh", "authorized_keys")
 			if err == nil {
-				err = writeAuthKeysFile(usr, path, []byte(ks))
+				err = u.writeAuthKeysFile(usr, path, []byte(ks))
 			}
 		}
 		if err != nil {

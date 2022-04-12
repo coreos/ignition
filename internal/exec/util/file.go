@@ -158,7 +158,7 @@ func (u Util) SetPermissions(mode *int, node types.Node) error {
 		}
 	}
 
-	defaultUid, defaultGid, _ := getFileOwnerAndMode(node.Path)
+	defaultUid, defaultGid, _ := GetFileOwnerAndMode(node.Path)
 	uid, gid, err := u.ResolveNodeUidAndGid(node, defaultUid, defaultGid)
 	if err != nil {
 		return fmt.Errorf("failed to determine correct uid and gid for %s: %v", node.Path, err)
@@ -314,7 +314,7 @@ func FilesystemIsEmpty(dirpath string) (bool, error) {
 // getFileOwner will return the uid and gid for the file at a given path. If the
 // file doesn't exist, or some other error is encountered when running stat on
 // the path, 0, 0, and 0 will be returned.
-func getFileOwnerAndMode(path string) (int, int, os.FileMode) {
+func GetFileOwnerAndMode(path string) (int, int, os.FileMode) {
 	info := unix.Stat_t{}
 	if err := unix.Stat(path, &info); err != nil {
 		return 0, 0, 0
