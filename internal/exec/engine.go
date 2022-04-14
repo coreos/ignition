@@ -236,6 +236,9 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 		// cache config for use by other stages.
 		cfg = emptyConfig
 		e.Logger.Info("%v: provider config was empty, continuing with empty cache config", err)
+	} else if err == resource.ErrNeedNet {
+		e.Logger.Info("failed to fetch config: %s", err)
+		return
 	} else if err != nil {
 		e.Logger.Warning("failed to fetch config: %s", err)
 		return
