@@ -24,6 +24,7 @@ func init() {
 	register.Register(register.PositiveTest, CreateEmptyDropinsUnit())
 	register.Register(register.PositiveTest, TestUnmaskUnit())
 	register.Register(register.PositiveTest, TestMaskUnit())
+	register.Register(register.PositiveTest, RemoveEnablementSymLinksforUnit())
 }
 
 func CreateInstantiatedService() types.Test {
@@ -250,6 +251,66 @@ func TestMaskUnit() types.Test {
 			Hard:   false,
 		},
 	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// RemoveEnablementSymLinksforUnit checks if Ignition
+// removes the enablement symlink for a given systemd
+// unit marked as disabled. Also, verifies that the code
+// doesn't error out when a non-existent unit marked as
+// disabled.
+func RemoveEnablementSymLinksforUnit() types.Test {
+	name := "unit.remove.symlinks"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+		"ignition": { "version": "$version" },
+		"systemd": {
+			"units": [
+				{
+					"enabled": false,
+					"name": "foo.service"
+				},
+				{
+					"enabled": false,
+					"name": "enoent.service"
+				}	
+			]
+        }
+		}`
+	in[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "/etc/systemd/system/multi-user.target.wants",
+				Name:      "foo.service",
+			},
+			Target: "/usr/lib/systemd/system/foo.service",
+			Hard:   false,
+		},
+	})
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "foo.service",
+				Directory: "usr/lib/systemd/system",
+			},
+			Contents: "[Unit]\nDescription=f\n[Service]\nType=oneshot\nExecStart=/usr/bin/true\n[Install]\nWantedBy=multi-user.target\n",
+		},
+	})
+	out[0].Partitions.AddRemovedNodes("ROOT", []types.Node{
+		{
+			Directory: "/etc/systemd/system/multi-user.target.wants",
+			Name:      "foo.service",
+		},
+	})
+	configMinVersion := "3.0.0"
 
 	return types.Test{
 		Name:             name,
