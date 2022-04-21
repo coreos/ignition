@@ -17,12 +17,16 @@
 package azure
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -56,9 +60,73 @@ const (
 	CDS_FSTYPE_UDF = "udf"
 )
 
-// FetchConfig wraps FetchOvfDevice to implement the platform.NewFetcher interface.
+var (
+	imdsUserdataURL = url.URL{
+		Scheme:   "http",
+		Host:     "169.254.169.254",
+		Path:     "metadata/instance/compute/userData",
+		RawQuery: "api-version=2021-01-01&format=text",
+	}
+)
+
+// FetchConfig wraps fetchFromAzureMetadata to implement the platform.NewFetcher interface.
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+	return fetchFromAzureMetadata(f)
+}
+
+// fetchFromAzureMetadata first tries to fetch userData from IMDS then fallback on customData in case
+// of empty config.
+func fetchFromAzureMetadata(f *resource.Fetcher) (types.Config, report.Report, error) {
+	// fetch-offline is not supported since we first try to get config from Azure IMDS.
+	// this config fetching can only happen during fetch stage.
+	if f.Offline {
+		return types.Config{}, report.Report{}, resource.ErrNeedNet
+	}
+
+	logger := f.Logger
+
+	// we first try to fetch config from IMDS, in case of failure we fallback on the custom data.
+	userData, err := fetchFromIMDS(f)
+	if err == nil {
+		logger.Info("config has been read from IMDS userdata")
+		return util.ParseConfig(logger, userData)
+	}
+
+	if err != errors.ErrEmpty {
+		return types.Config{}, report.Report{}, err
+	}
+
+	logger.Debug("failed to retrieve userdata from IMDS, falling back to custom data: %v", err)
 	return FetchFromOvfDevice(f, []string{CDS_FSTYPE_UDF})
+}
+
+// fetchFromIMDS requests the Azure IMDS to fetch userdata and decode it.
+func fetchFromIMDS(f *resource.Fetcher) ([]byte, error) {
+	headers := make(http.Header)
+	headers.Set("Metadata", "true")
+
+	data, err := f.FetchToBuffer(imdsUserdataURL, resource.FetchOptions{Headers: headers})
+	if err != nil {
+		return nil, fmt.Errorf("fetching to buffer: %w", err)
+	}
+
+	n := len(data)
+
+	if n == 0 {
+		return nil, errors.ErrEmpty
+	}
+
+	// data is base64 encoded by the IMDS
+	userData := make([]byte, base64.StdEncoding.DecodedLen(n))
+
+	// we keep the number of bytes written to return [:l] only.
+	// otherwise last byte will be 0x00 which makes fail the JSON's unmarshalling.
+	l, err := base64.StdEncoding.Decode(userData, data)
+	if err != nil {
+		return nil, fmt.Errorf("decoding userdata: %w", err)
+	}
+
+	return userData[:l], nil
 }
 
 // FetchFromOvfDevice has the return signature of platform.NewFetcher. It is
@@ -82,6 +150,7 @@ func FetchFromOvfDevice(f *resource.Fetcher, ovfFsTypes []string) (types.Config,
 					if err != nil {
 						logger.Debug("failed to retrieve config from device %q: %v", dev, err)
 					} else {
+						logger.Info("config has been read from custom data")
 						return util.ParseConfig(logger, rawConfig)
 					}
 				}
