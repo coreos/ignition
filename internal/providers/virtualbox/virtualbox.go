@@ -87,6 +87,12 @@ func fetchProperty(name string) ([]byte, error) {
 	if buf == nil {
 		return nil, nil
 	}
-	// properties are double-NUL-terminated
-	return bytes.TrimRight(C.GoBytes(buf, C.int(size)), "\x00"), nil
+	// property format: <data> NUL <flags> NUL
+	// return only the data; ignore the flags
+	s := C.GoBytes(buf, C.int(size))
+	len := bytes.IndexByte(s, 0)
+	if len == -1 {
+		return nil, fmt.Errorf("VirtualBox guest property %q is not NUL-terminated", name)
+	}
+	return s[0:len], nil
 }
