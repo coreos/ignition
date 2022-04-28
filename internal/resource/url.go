@@ -567,7 +567,6 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, error) {
 	urlSplit := strings.Split(arnURL, "/")
 
 	// Determine if the ARN is for an access point or a bucket.
-	var bucket, key string
 	if strings.HasPrefix(s3arn.Resource, "accesspoint/") {
 		// urlSplit must consist of arn, name of accesspoint, and key
 		if len(urlSplit) < 3 {
@@ -578,8 +577,8 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, error) {
 		// you provide the access point ARN in place of the bucket name.
 		// For more information about access point ARNs, see Using access points
 		// https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-access-points.html
-		bucket = strings.Join(urlSplit[:2], "/")
-		key = strings.Join(urlSplit[2:], "/")
+		bucket := strings.Join(urlSplit[:2], "/")
+		key := strings.Join(urlSplit[2:], "/")
 		return bucket, key, s3arn.Region, nil
 	}
 	// urlSplit must consist of name of bucket and key
@@ -591,7 +590,7 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, error) {
 	// If specified, the key is part of the Relative ID which has the format "bucket-name/object-key" according to
 	// https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-arn-format.html
 	bucketUrlSplit := strings.Split(urlSplit[0], ":")
-	bucket = bucketUrlSplit[len(bucketUrlSplit)-1]
-	key = strings.Join(urlSplit[1:], "/")
+	bucket := bucketUrlSplit[len(bucketUrlSplit)-1]
+	key := strings.Join(urlSplit[1:], "/")
 	return bucket, key, "", nil
 }

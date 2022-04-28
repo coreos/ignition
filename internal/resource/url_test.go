@@ -298,7 +298,7 @@ func TestParseARN(t *testing.T) {
 	for i, test := range tests {
 		bucket, key, region, err := f.parseARN(test.in.url)
 		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: fetching URL: expected error %+v, got %+v", i, test.out.err, err)
+			t.Errorf("#%d: expected error %+v, got %+v", i, test.out.err, err)
 			continue
 		}
 		if test.out.err == nil && !reflect.DeepEqual(test.out.bucket, bucket) {
