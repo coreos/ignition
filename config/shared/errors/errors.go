@@ -100,6 +100,7 @@ var (
 	ErrEngineConfiguration             = errors.New("engine incorrectly configured")
 
 	// AWS S3 specific errors
+	ErrInvalidS3ARN             = errors.New("invalid S3 ARN format")
 	ErrInvalidS3ObjectVersionId = errors.New("invalid S3 object VersionId")
 
 	// Obsolete errors, left here for ABI compatibility

@@ -39,6 +39,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -135,7 +136,7 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 		err = f.fetchFromTFTP(u, dest, opts)
 	case "data":
 		err = f.fetchFromDataURL(u, dest, opts)
-	case "s3":
+	case "s3", "arn":
 		buf := &s3buf{
 			WriteAtBuffer: aws.NewWriteAtBuffer([]byte{}),
 		}
@@ -196,7 +197,7 @@ func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
 		return f.fetchFromTFTP(u, dest, opts)
 	case "data":
 		return f.fetchFromDataURL(u, dest, opts)
-	case "s3":
+	case "s3", "arn":
 		return f.fetchFromS3(u, dest, opts)
 	case "gs":
 		return f.fetchFromGCS(u, dest, opts)
@@ -407,17 +408,39 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 	}
 	sess := f.AWSSession.Copy()
 
-	// Determine the partition and region this bucket is in
-	regionHint := "us-east-1"
-	if f.S3RegionHint != "" {
-		regionHint = f.S3RegionHint
-	}
-	region, err := s3manager.GetBucketRegion(ctx, sess, u.Host, regionHint)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
-			return fmt.Errorf("couldn't determine the region for bucket %q: %v", u.Host, err)
+	// Determine the bucket and key based on the URL scheme
+	var bucket, key, region string
+	var err error
+	switch u.Scheme {
+	case "s3":
+		bucket = u.Host
+		key = u.Path
+	case "arn":
+		fullURL := u.Scheme + ":" + u.Opaque
+		// Parse the bucket and key from the ARN Resource.
+		// Also set the region for accesspoints.
+		// S3 bucket ARNs don't include the region field.
+		bucket, key, region, err = f.parseARN(fullURL)
+		if err != nil {
+			return err
 		}
-		return err
+	default:
+		return ErrSchemeUnsupported
+	}
+
+	// Determine the partition and region this bucket is in
+	if region == "" {
+		regionHint := "us-east-1"
+		if f.S3RegionHint != "" {
+			regionHint = f.S3RegionHint
+		}
+		region, err = s3manager.GetBucketRegion(ctx, sess, bucket, regionHint)
+		if err != nil {
+			if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
+				return fmt.Errorf("couldn't determine the region for bucket %q: %v", u.Host, err)
+			}
+			return err
+		}
 	}
 
 	sess.Config.Region = aws.String(region)
@@ -428,8 +451,8 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 	}
 
 	input := &s3.GetObjectInput{
-		Bucket:    &u.Host,
-		Key:       &u.Path,
+		Bucket:    &bucket,
+		Key:       &key,
 		VersionId: versionId,
 	}
 	err = f.fetchFromS3WithCreds(ctx, dest, input, sess)
@@ -521,4 +544,54 @@ func (f *Fetcher) decompressCopyHashAndVerify(dest io.Writer, src io.Reader, opt
 		f.Logger.Debug("file matches expected sum of: %s", hex.EncodeToString(opts.ExpectedSum))
 	}
 	return nil
+}
+
+// parseARN is a custom wrapper around arn.Parse(); it takes arnURL, a full ARN URL,
+// and returns a bucket, a key, a potentially empty region, or an error if the ARN
+// is invalid or not for an S3 object.
+// If the given arnURL is an accesspoint ARN, the region is set.
+// The region is empty for S3 bucket ARNs because they don't include the region field.
+func (f *Fetcher) parseARN(arnURL string) (string, string, string, error) {
+	if !arn.IsARN(arnURL) {
+		return "", "", "", configErrors.ErrInvalidS3ARN
+	}
+	s3arn, err := arn.Parse(arnURL)
+	if err != nil {
+		return "", "", "", err
+	}
+	if s3arn.Service != "s3" {
+		return "", "", "", configErrors.ErrInvalidS3ARN
+	}
+	// Split the ARN bucket (or accesspoint) and key by separating on slashes.
+	// See https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#arns-paths for more info.
+	urlSplit := strings.Split(arnURL, "/")
+
+	// Determine if the ARN is for an access point or a bucket.
+	var bucket, key string
+	if strings.HasPrefix(s3arn.Resource, "accesspoint/") {
+		// urlSplit must consist of arn, name of accesspoint, and key
+		if len(urlSplit) < 3 {
+			return "", "", "", configErrors.ErrInvalidS3ARN
+		}
+
+		// When using GetObjectInput with an access point,
+		// you provide the access point ARN in place of the bucket name.
+		// For more information about access point ARNs, see Using access points
+		// https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-access-points.html
+		bucket = strings.Join(urlSplit[:2], "/")
+		key = strings.Join(urlSplit[2:], "/")
+		return bucket, key, s3arn.Region, nil
+	}
+	// urlSplit must consist of name of bucket and key
+	if len(urlSplit) < 2 {
+		return "", "", "", configErrors.ErrInvalidS3ARN
+	}
+
+	// Parse out the bucket name in order to find the region with s3manager.GetBucketRegion.
+	// If specified, the key is part of the Relative ID which has the format "bucket-name/object-key" according to
+	// https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-arn-format.html
+	bucketUrlSplit := strings.Split(urlSplit[0], ":")
+	bucket = bucketUrlSplit[len(bucketUrlSplit)-1]
+	key = strings.Join(urlSplit[1:], "/")
+	return bucket, key, "", nil
 }

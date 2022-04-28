@@ -67,6 +67,62 @@ func TestURLValidate(t *testing.T) {
 			nil,
 		},
 		{
+			util.StrToPtr("Arn:"),
+			errors.ErrInvalidS3ARN,
+		},
+		{
+			util.StrToPtr("arn:aws:iam:us-west-2:123456789012:resource"),
+			errors.ErrInvalidS3ARN,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:::bucket-name-but-no-key"),
+			errors.ErrInvalidS3ARN,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:us-west-2:123456789012:accesspoint"),
+			errors.ErrInvalidS3ARN,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:us-west-2:123456789012:accesspoint/"),
+			errors.ErrInvalidS3ARN,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:us-west-2:123456789012:accesspoint/accesspoint-name-but-no-bucket"),
+			errors.ErrInvalidS3ARN,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:us-west-2:123456789012:bucket-name/object-key"),
+			nil,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:us-west-2:123456789012:bucket-name/object-key?versionId=aVersionHash"),
+			nil,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:us-west-2:123456789012:accesspoint/accesspoint-name/object"),
+			nil,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:us-west-2:123456789012:accesspoint/accesspoint-name/some/nested/object"),
+			nil,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:us-west-2:123456789012:accesspoint/accesspoint-name/object?versionId=aVersionHash"),
+			nil,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:::bucket-name/object-key"),
+			nil,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:::bucket-name/some/nested/object"),
+			nil,
+		},
+		{
+			util.StrToPtr("arn:aws:s3:::bucket-name/object-key?versionId=aVersionHash"),
+			nil,
+		},
+		{
 			util.StrToPtr("gs://bucket/object"),
 			nil,
 		},
