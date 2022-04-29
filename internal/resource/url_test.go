@@ -246,32 +246,73 @@ func TestFetchOffline(t *testing.T) {
 
 func TestParseARN(t *testing.T) {
 	tests := []struct {
-		url    string
-		bucket string
-		key    string
-		region string
-		err    error
+		url        string
+		bucket     string
+		key        string
+		region     string
+		regionHint string
+		err        error
 	}{
 		{
 			url: "arn:aws:iam:us-west-2:123456789012:resource",
 			err: errors.ErrInvalidS3ARN,
 		},
 		{
-			url:    "arn:aws:s3:::kola-fixtures/resources/anonymous",
+			url:        "arn:aws:s3:::kola-fixtures/resources/anonymous",
+			bucket:     "kola-fixtures",
+			key:        "resources/anonymous",
+			regionHint: "us-east-1",
+		},
+		{
+			url:        "arn:aws-cn:s3:::kola-fixtures/resources/anonymous",
+			bucket:     "kola-fixtures",
+			key:        "resources/anonymous",
+			regionHint: "cn-north-1",
+		},
+		{
+			url:        "arn:aws-us-gov:s3:::kola-fixtures/resources/anonymous",
+			bucket:     "kola-fixtures",
+			key:        "resources/anonymous",
+			regionHint: "us-gov-west-1",
+		},
+		{
+			url:    "arn:invalid:s3:::kola-fixtures/resources/anonymous",
 			bucket: "kola-fixtures",
 			key:    "resources/anonymous",
 		},
 		{
-			url:    "arn:aws:s3:us-west-2:123456789012:accesspoint/test/object",
-			bucket: "arn:aws:s3:us-west-2:123456789012:accesspoint/test",
+			url:        "arn:aws:s3:us-west-2:123456789012:accesspoint/test/object",
+			bucket:     "arn:aws:s3:us-west-2:123456789012:accesspoint/test",
+			key:        "object",
+			region:     "us-west-2",
+			regionHint: "us-east-1",
+		},
+		{
+			url:        "arn:aws-cn:s3:cn-northwest-1:123456789012:accesspoint/test/object",
+			bucket:     "arn:aws-cn:s3:cn-northwest-1:123456789012:accesspoint/test",
+			key:        "object",
+			region:     "cn-northwest-1",
+			regionHint: "cn-north-1",
+		},
+		{
+			url:        "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint/test/object",
+			bucket:     "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint/test",
+			key:        "object",
+			region:     "us-gov-east-1",
+			regionHint: "us-gov-west-1",
+		},
+		{
+			url:    "arn:invalid:s3:us-west-2:123456789012:accesspoint/test/object",
+			bucket: "arn:invalid:s3:us-west-2:123456789012:accesspoint/test",
 			key:    "object",
 			region: "us-west-2",
 		},
 		{
-			url:    "arn:aws:s3:us-west-2:123456789012:accesspoint/test/path/object",
-			bucket: "arn:aws:s3:us-west-2:123456789012:accesspoint/test",
-			key:    "path/object",
-			region: "us-west-2",
+			url:        "arn:aws:s3:us-west-2:123456789012:accesspoint/test/path/object",
+			bucket:     "arn:aws:s3:us-west-2:123456789012:accesspoint/test",
+			key:        "path/object",
+			region:     "us-west-2",
+			regionHint: "us-east-1",
 		},
 	}
 
@@ -281,10 +322,11 @@ func TestParseARN(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		bucket, key, region, err := f.parseARN(test.url)
+		bucket, key, region, regionHint, err := f.parseARN(test.url)
 		assert.Equal(t, test.err, err, "#%d: bad err", i)
 		assert.Equal(t, test.bucket, bucket, "#%d: bad bucket", i)
 		assert.Equal(t, test.key, key, "#%d: bad key", i)
 		assert.Equal(t, test.region, region, "#%d: bad region", i)
+		assert.Equal(t, test.regionHint, regionHint, "#%d: bad region hint", i)
 	}
 }

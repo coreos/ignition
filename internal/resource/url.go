@@ -63,6 +63,15 @@ var (
 		"Accept-Encoding": []string{"identity"},
 		"Accept":          []string{"application/vnd.coreos.ignition+json;version=3.3.0, */*;q=0.1"},
 	}
+
+	// We could derive this info from aws-sdk-go/aws/endpoints/defaults.go,
+	// but hardcoding it allows us to unit-test that specific regions
+	// are used for hinting
+	awsPartitionRegionHints = map[string]string{
+		"aws":        "us-east-1",
+		"aws-cn":     "cn-north-1",
+		"aws-us-gov": "us-gov-west-1",
+	}
 )
 
 // Fetcher holds settings for fetching resources from URLs
@@ -409,7 +418,7 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 	sess := f.AWSSession.Copy()
 
 	// Determine the bucket and key based on the URL scheme
-	var bucket, key, region string
+	var bucket, key, region, regionHint string
 	var err error
 	switch u.Scheme {
 	case "s3":
@@ -420,7 +429,7 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 		// Parse the bucket and key from the ARN Resource.
 		// Also set the region for accesspoints.
 		// S3 bucket ARNs don't include the region field.
-		bucket, key, region, err = f.parseARN(fullURL)
+		bucket, key, region, regionHint, err = f.parseARN(fullURL)
 		if err != nil {
 			return err
 		}
@@ -430,10 +439,21 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 
 	// Determine the partition and region this bucket is in
 	if region == "" {
-		regionHint := "us-east-1"
-		if f.S3RegionHint != "" {
+		// We didn't get an accesspoint ARN, so we don't know the
+		// region directly.  Maybe we computed a region hint from
+		// the ARN partition field?
+		if regionHint == "" {
+			// Nope; we got an unknown ARN partition value or an
+			// s3:// URL.  Maybe we're running in AWS and can
+			// assume the same partition we're running in?
 			regionHint = f.S3RegionHint
 		}
+		if regionHint == "" {
+			// Nope; assume aws partition.
+			regionHint = "us-east-1"
+		}
+		// Use the region hint to ask the correct partition for the
+		// bucket's region.
 		region, err = s3manager.GetBucketRegion(ctx, sess, bucket, regionHint)
 		if err != nil {
 			if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
@@ -547,21 +567,24 @@ func (f *Fetcher) decompressCopyHashAndVerify(dest io.Writer, src io.Reader, opt
 }
 
 // parseARN is a custom wrapper around arn.Parse(); it takes arnURL, a full ARN URL,
-// and returns a bucket, a key, a potentially empty region, or an error if the ARN
-// is invalid or not for an S3 object.
+// and returns a bucket, a key, a potentially empty region, and a
+// potentially empty region hint for use in region detection; or an error if
+// the ARN is invalid or not for an S3 object.
 // If the given arnURL is an accesspoint ARN, the region is set.
 // The region is empty for S3 bucket ARNs because they don't include the region field.
-func (f *Fetcher) parseARN(arnURL string) (string, string, string, error) {
+func (f *Fetcher) parseARN(arnURL string) (string, string, string, string, error) {
 	if !arn.IsARN(arnURL) {
-		return "", "", "", configErrors.ErrInvalidS3ARN
+		return "", "", "", "", configErrors.ErrInvalidS3ARN
 	}
 	s3arn, err := arn.Parse(arnURL)
 	if err != nil {
-		return "", "", "", err
+		return "", "", "", "", err
 	}
 	if s3arn.Service != "s3" {
-		return "", "", "", configErrors.ErrInvalidS3ARN
+		return "", "", "", "", configErrors.ErrInvalidS3ARN
 	}
+	// empty if unrecognized partition
+	regionHint := awsPartitionRegionHints[s3arn.Partition]
 	// Split the ARN bucket (or accesspoint) and key by separating on slashes.
 	// See https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#arns-paths for more info.
 	urlSplit := strings.Split(arnURL, "/")
@@ -570,7 +593,7 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, error) {
 	if strings.HasPrefix(s3arn.Resource, "accesspoint/") {
 		// urlSplit must consist of arn, name of accesspoint, and key
 		if len(urlSplit) < 3 {
-			return "", "", "", configErrors.ErrInvalidS3ARN
+			return "", "", "", "", configErrors.ErrInvalidS3ARN
 		}
 
 		// When using GetObjectInput with an access point,
@@ -579,11 +602,11 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, error) {
 		// https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-access-points.html
 		bucket := strings.Join(urlSplit[:2], "/")
 		key := strings.Join(urlSplit[2:], "/")
-		return bucket, key, s3arn.Region, nil
+		return bucket, key, s3arn.Region, regionHint, nil
 	}
 	// urlSplit must consist of name of bucket and key
 	if len(urlSplit) < 2 {
-		return "", "", "", configErrors.ErrInvalidS3ARN
+		return "", "", "", "", configErrors.ErrInvalidS3ARN
 	}
 
 	// Parse out the bucket name in order to find the region with s3manager.GetBucketRegion.
@@ -592,5 +615,5 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, error) {
 	bucketUrlSplit := strings.Split(urlSplit[0], ":")
 	bucket := bucketUrlSplit[len(bucketUrlSplit)-1]
 	key := strings.Join(urlSplit[1:], "/")
-	return bucket, key, "", nil
+	return bucket, key, "", regionHint, nil
 }
