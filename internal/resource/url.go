@@ -457,7 +457,7 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 		region, err = s3manager.GetBucketRegion(ctx, sess, bucket, regionHint)
 		if err != nil {
 			if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
-				return fmt.Errorf("couldn't determine the region for bucket %q: %v", u.Host, err)
+				return fmt.Errorf("couldn't determine the region for bucket %q: %v", bucket, err)
 			}
 			return err
 		}
