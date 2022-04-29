@@ -21,6 +21,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/util"
@@ -243,50 +245,33 @@ func TestFetchOffline(t *testing.T) {
 }
 
 func TestParseARN(t *testing.T) {
-	type in struct {
-		url string
-	}
-	type out struct {
+	tests := []struct {
+		url    string
 		bucket string
 		key    string
 		region string
 		err    error
-	}
-	tests := []struct {
-		in  in
-		out out
 	}{
 		{
-			in: in{
-				"arn:aws:iam:us-west-2:123456789012:resource",
-			},
-			out: out{
-				err: errors.ErrInvalidS3ARN,
-			},
+			url: "arn:aws:iam:us-west-2:123456789012:resource",
+			err: errors.ErrInvalidS3ARN,
 		},
 		{
-			in: in{
-				"arn:aws:s3:::kola-fixtures/resources/anonymous",
-			},
-			out: out{
-				bucket: "kola-fixtures", key: "resources/anonymous",
-			},
+			url:    "arn:aws:s3:::kola-fixtures/resources/anonymous",
+			bucket: "kola-fixtures",
+			key:    "resources/anonymous",
 		},
 		{
-			in: in{
-				"arn:aws:s3:us-west-2:123456789012:accesspoint/test/object",
-			},
-			out: out{
-				bucket: "arn:aws:s3:us-west-2:123456789012:accesspoint/test", key: "object", region: "us-west-2",
-			},
+			url:    "arn:aws:s3:us-west-2:123456789012:accesspoint/test/object",
+			bucket: "arn:aws:s3:us-west-2:123456789012:accesspoint/test",
+			key:    "object",
+			region: "us-west-2",
 		},
 		{
-			in: in{
-				"arn:aws:s3:us-west-2:123456789012:accesspoint/test/path/object",
-			},
-			out: out{
-				bucket: "arn:aws:s3:us-west-2:123456789012:accesspoint/test", key: "path/object", region: "us-west-2",
-			},
+			url:    "arn:aws:s3:us-west-2:123456789012:accesspoint/test/path/object",
+			bucket: "arn:aws:s3:us-west-2:123456789012:accesspoint/test",
+			key:    "path/object",
+			region: "us-west-2",
 		},
 	}
 
@@ -296,22 +281,10 @@ func TestParseARN(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		bucket, key, region, err := f.parseARN(test.in.url)
-		if !reflect.DeepEqual(test.out.err, err) {
-			t.Errorf("#%d: expected error %+v, got %+v", i, test.out.err, err)
-			continue
-		}
-		if test.out.err == nil && !reflect.DeepEqual(test.out.bucket, bucket) {
-			t.Errorf("#%d: expected output %+v, got %+v", i, test.out.bucket, bucket)
-			continue
-		}
-		if test.out.err == nil && !reflect.DeepEqual(test.out.key, key) {
-			t.Errorf("#%d: expected output %+v, got %+v", i, test.out.key, key)
-			continue
-		}
-		if test.out.err == nil && !reflect.DeepEqual(test.out.region, region) {
-			t.Errorf("#%d: expected output %+v, got %+v", i, test.out.region, region)
-			continue
-		}
+		bucket, key, region, err := f.parseARN(test.url)
+		assert.Equal(t, test.err, err, "#%d: bad err", i)
+		assert.Equal(t, test.bucket, bucket, "#%d: bad bucket", i)
+		assert.Equal(t, test.key, key, "#%d: bad key", i)
+		assert.Equal(t, test.region, region, "#%d: bad region", i)
 	}
 }
