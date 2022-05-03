@@ -89,6 +89,9 @@ static int connect(int fd, uint32_t *client_id) {
 }
 
 static int get_prop(int fd, uint32_t client_id, const char *name, void **value, size_t *size) {
+	// xref VbglR3GuestPropRead() in
+	// virtualbox/src/VBox/Additions/common/VBoxGuest/lib/VBoxGuestR3LibGuestProp.cpp
+
 	// init header
 	size_t msg_size = sizeof(struct vbg_ioctl_hgcm_call) + 4 * sizeof(struct vmmdev_hgcm_function_parameter64);
 	struct vbg_ioctl_hgcm_call _cleanup_free_ *msg = calloc(1, msg_size);
