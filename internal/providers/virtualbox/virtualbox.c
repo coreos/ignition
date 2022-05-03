@@ -24,6 +24,9 @@
 #include <errno.h>
 #include "virtualbox.h"
 
+// From virtualbox/include/VBox/HostServices/GuestPropertySvc.h
+#define GUEST_PROP_FN_GET_PROP 1
+
 static void _cleanup_close(int *fd) {
 	if (*fd != -1) {
 		close(*fd);
@@ -92,7 +95,7 @@ static int get_prop(int fd, uint32_t client_id, const char *name, void **value, 
 	// init_header re-adds the size of msg->hdr
 	init_header(&msg->hdr, msg_size - sizeof(msg->hdr), msg_size - sizeof(msg->hdr));
 	msg->client_id = client_id;
-	msg->function = 1;     // GUEST_PROP_FN_GET_PROP
+	msg->function = GUEST_PROP_FN_GET_PROP;
 	msg->timeout_ms = -1;  // inf
 	msg->interruptible = 1;
 	msg->parm_count = 4;
