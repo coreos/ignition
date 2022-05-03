@@ -1,0 +1,25 @@
+[Unit]
+Description=Ignition (delete config)
+Documentation=https://coreos.github.io/ignition/
+
+ConditionFirstBoot=true
+ConditionPathExists=/run/ignition.env
+ConditionKernelCommandLine=|ignition.platform.id=virtualbox
+ConditionKernelCommandLine=|ignition.platform.id=vmware
+
+DefaultDependencies=no
+# Run before any user services to prevent potential config leaks
+Before=sysinit.target
+
+OnFailure=emergency.target
+OnFailureJobMode=isolate
+
+[Service]
+Type=oneshot
+EnvironmentFile=/run/ignition.env
+ExecStart=/usr/libexec/ignition-rmcfg --platform=${PLATFORM_ID}
+RemainAfterExit=yes
+
+[Install]
+# Not RequiredBy, since we want to allow the unit to be masked
+WantedBy=sysinit.target

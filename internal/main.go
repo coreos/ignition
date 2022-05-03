@@ -41,10 +41,13 @@ import (
 )
 
 func main() {
-	if filepath.Base(os.Args[0]) == "ignition-apply" {
+	switch filepath.Base(os.Args[0]) {
+	case "ignition-apply":
 		ignitionApplyMain()
-	} else {
-		// otherwise, assume regular Ignition
+	case "ignition-rmcfg":
+		ignitionRmCfgMain()
+	default:
+		// assume regular Ignition
 		ignitionMain()
 	}
 }
@@ -186,4 +189,55 @@ func ignitionApplyMain() {
 		logger.Crit("failed to apply: %v", err)
 		os.Exit(1)
 	}
+}
+
+func ignitionRmCfgMain() {
+	flags := struct {
+		logToStdout bool
+		platform    string
+		version     bool
+	}{}
+	pflag.StringVar(&flags.platform, "platform", "", fmt.Sprintf("current platform. %v", platform.Names()))
+	pflag.BoolVar(&flags.logToStdout, "log-to-stdout", false, "log to stdout instead of the system log")
+	pflag.BoolVar(&flags.version, "version", false, "print the version and exit")
+	pflag.Usage = func() {
+		fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options]\n", os.Args[0])
+		fmt.Fprintf(pflag.CommandLine.Output(), "Options:\n")
+		pflag.PrintDefaults()
+	}
+	pflag.Parse()
+
+	if flags.version {
+		fmt.Printf("%s\n", version.String)
+		return
+	}
+
+	if pflag.NArg() != 0 {
+		pflag.Usage()
+		os.Exit(2)
+	}
+
+	if flags.platform == "" {
+		fmt.Fprint(os.Stderr, "'--platform' must be provided\n")
+		os.Exit(2)
+	}
+
+	logger := log.New(flags.logToStdout)
+	defer logger.Close()
+
+	logger.Info(version.String)
+
+	platformConfig := platform.MustGet(flags.platform)
+	fetcher, err := platformConfig.NewFetcherFunc()(&logger)
+	if err != nil {
+		logger.Crit("failed to generate fetcher: %s", err)
+		os.Exit(3)
+	}
+
+	if err := platformConfig.DelConfig(&fetcher); err != nil {
+		logger.Crit("couldn't delete config: %s", err)
+		os.Exit(1)
+	}
+
+	logger.Info("Successfully deleted config")
 }
