@@ -18,9 +18,17 @@ Any HTTP response code less than 500 results in the request being completed, and
 
 Ignition will initially wait 100 milliseconds between failed attempts, and the amount of time to wait doubles for each failed attempt until it reaches 5 seconds.
 
-## AWS and IAM roles
+## AWS S3 access
 
-Ignition has support for fetching files over the S3 protocol. When Ignition is running in Amazon EC2, it supports using the IAM role given to the EC2 instance to fetch protected assets from S3. If IAM credentials are not successfully fetched, Ignition will attempt to fetch the file with no credentials.
+Ignition has built-in support for fetching resources from the Amazon Simple Storage Service (AWS S3). Several URL formats are supported:
+
+| URL format | Supported specs | Semantics | Ignition behavior in Amazon EC2 instance | Ignition behavior outside EC2 |
+| - | - | - | - | - |
+| `s3://<bucket>/<object-path>` | 3.0.0+ | Fetch the object. | Fetch from the same AWS [partition](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#arns-syntax) as the instance. Authenticate using the instance's IAM role, or fetch anonymously if no role is available. | Fetch anonymously from the `aws` (public AWS) partition. |
+| `arn:<partition>:s3:::<bucket>/<object-path>` | 3.4.0+ | Fetch the object from the specified partition. | Authenticate using the instance's IAM role, or fetch anonymously if no role is available. | Fetch anonymously. |
+| `arn:<partition>:s3:<region>:<account>:accesspoint/<access-point>/object/<object-path>` | 3.4.0+ | Fetch the object from the specified access point. Multi-region access points are not supported. | Authenticate using the instance's IAM role, or fail if no role is available. | Fail. Access points don't support anonymous access. |
+
+Append `?versionId=<version>` to any of the URL formats to fetch the specified object version.
 
 ## HTTP headers
 
