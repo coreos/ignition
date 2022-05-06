@@ -206,7 +206,7 @@ func TestFetchOffline(t *testing.T) {
 		// arn url specifying s3 access point
 		{
 			in: in{
-				url: "arn:aws:s3:us-west-2:123456789012:accesspoint/test/object",
+				url: "arn:aws:s3:us-west-2:123456789012:accesspoint/test/object/name",
 			},
 			out: out{err: ErrNeedNet},
 		},
@@ -258,6 +258,14 @@ func TestParseARN(t *testing.T) {
 			err: errors.ErrInvalidS3ARN,
 		},
 		{
+			url: "arn:aws:s3:us-east-1:123456789012:accesspoint/test/object",
+			err: errors.ErrInvalidS3ARN,
+		},
+		{
+			url: "arn:aws:s3:us-east-1:123456789012:accesspoint/test/name",
+			err: errors.ErrInvalidS3ARN,
+		},
+		{
 			url:        "arn:aws:s3:::kola-fixtures/resources/anonymous",
 			bucket:     "kola-fixtures",
 			key:        "resources/anonymous",
@@ -281,34 +289,34 @@ func TestParseARN(t *testing.T) {
 			key:    "resources/anonymous",
 		},
 		{
-			url:        "arn:aws:s3:us-west-2:123456789012:accesspoint/test/object",
+			url:        "arn:aws:s3:us-west-2:123456789012:accesspoint/test/object/name",
 			bucket:     "arn:aws:s3:us-west-2:123456789012:accesspoint/test",
-			key:        "object",
+			key:        "name",
 			region:     "us-west-2",
 			regionHint: "us-east-1",
 		},
 		{
-			url:        "arn:aws-cn:s3:cn-northwest-1:123456789012:accesspoint/test/object",
+			url:        "arn:aws-cn:s3:cn-northwest-1:123456789012:accesspoint/test/object/name",
 			bucket:     "arn:aws-cn:s3:cn-northwest-1:123456789012:accesspoint/test",
-			key:        "object",
+			key:        "name",
 			region:     "cn-northwest-1",
 			regionHint: "cn-north-1",
 		},
 		{
-			url:        "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint/test/object",
+			url:        "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint/test/object/name",
 			bucket:     "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint/test",
-			key:        "object",
+			key:        "name",
 			region:     "us-gov-east-1",
 			regionHint: "us-gov-west-1",
 		},
 		{
-			url:    "arn:invalid:s3:us-west-2:123456789012:accesspoint/test/object",
+			url:    "arn:invalid:s3:us-west-2:123456789012:accesspoint/test/object/name",
 			bucket: "arn:invalid:s3:us-west-2:123456789012:accesspoint/test",
-			key:    "object",
+			key:    "name",
 			region: "us-west-2",
 		},
 		{
-			url:        "arn:aws:s3:us-west-2:123456789012:accesspoint/test/path/object",
+			url:        "arn:aws:s3:us-west-2:123456789012:accesspoint/test/object/path/object",
 			bucket:     "arn:aws:s3:us-west-2:123456789012:accesspoint/test",
 			key:        "path/object",
 			region:     "us-west-2",
