@@ -591,8 +591,9 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, string, error
 
 	// Determine if the ARN is for an access point or a bucket.
 	if strings.HasPrefix(s3arn.Resource, "accesspoint/") {
-		// urlSplit must consist of arn, name of accesspoint, and key
-		if len(urlSplit) < 3 {
+		// urlSplit must consist of arn, name of accesspoint, "object",
+		// and key
+		if len(urlSplit) < 4 || urlSplit[2] != "object" {
 			return "", "", "", "", configErrors.ErrInvalidS3ARN
 		}
 
@@ -601,7 +602,7 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, string, error
 		// For more information about access point ARNs, see Using access points
 		// https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-access-points.html
 		bucket := strings.Join(urlSplit[:2], "/")
-		key := strings.Join(urlSplit[2:], "/")
+		key := strings.Join(urlSplit[3:], "/")
 		return bucket, key, s3arn.Region, regionHint, nil
 	}
 	// urlSplit must consist of name of bucket and key
