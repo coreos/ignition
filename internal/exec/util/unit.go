@@ -18,10 +18,12 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"syscall"
 
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
+	"github.com/coreos/ignition/v2/internal/distro"
 
 	"github.com/vincent-petithory/dataurl"
 )
@@ -151,6 +153,23 @@ func (ut Util) EnableUnit(enabledUnit string) error {
 }
 
 func (ut Util) DisableUnit(disabledUnit string) error {
+	// We need to delete any enablement symlinks for a unit before sending it to a
+	// preset directive. This will help to disable that unit completely.
+	// For more information: https://github.com/coreos/fedora-coreos-tracker/issues/392
+	// This is a short-term solution until the upstream systemd PR
+	// (https://github.com/systemd/systemd/pull/15205) gets accepted.
+	if err := ut.Logger.LogOp(
+		func() error {
+			args := []string{"--root", ut.DestDir, "disable", disabledUnit}
+			if output, err := exec.Command(distro.SystemctlCmd(), args...).CombinedOutput(); err != nil {
+				return fmt.Errorf("cannot remove symlink(s) for %s: %v: %q", disabledUnit, err, string(output))
+			}
+			return nil
+		},
+		"removing enablement symlink(s) for %q", disabledUnit,
+	); err != nil {
+		return err
+	}
 	return ut.appendLineToPreset(fmt.Sprintf("disable %s", disabledUnit))
 }
 

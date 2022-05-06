@@ -32,18 +32,19 @@ var (
 	systemConfigDir = "/usr/lib/ignition"
 
 	// Helper programs
-	groupaddCmd = "groupadd"
-	groupdelCmd = "groupdel"
-	mdadmCmd    = "mdadm"
-	mountCmd    = "mount"
-	sgdiskCmd   = "sgdisk"
-	modprobeCmd = "modprobe"
-	udevadmCmd  = "udevadm"
-	usermodCmd  = "usermod"
-	useraddCmd  = "useradd"
-	userdelCmd  = "userdel"
-	setfilesCmd = "setfiles"
-	wipefsCmd   = "wipefs"
+	groupaddCmd  = "groupadd"
+	groupdelCmd  = "groupdel"
+	mdadmCmd     = "mdadm"
+	mountCmd     = "mount"
+	sgdiskCmd    = "sgdisk"
+	modprobeCmd  = "modprobe"
+	udevadmCmd   = "udevadm"
+	usermodCmd   = "usermod"
+	useraddCmd   = "useradd"
+	userdelCmd   = "userdel"
+	setfilesCmd  = "setfiles"
+	wipefsCmd    = "wipefs"
+	systemctlCmd = "systemctl"
 
 	// Filesystem tools
 	btrfsMkfsCmd = "mkfs.btrfs"
@@ -84,18 +85,19 @@ func KernelCmdlinePath() string { return kernelCmdlinePath }
 func BootIDPath() string        { return bootIDPath }
 func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
 
-func GroupaddCmd() string { return groupaddCmd }
-func GroupdelCmd() string { return groupdelCmd }
-func MdadmCmd() string    { return mdadmCmd }
-func MountCmd() string    { return mountCmd }
-func SgdiskCmd() string   { return sgdiskCmd }
-func ModprobeCmd() string { return modprobeCmd }
-func UdevadmCmd() string  { return udevadmCmd }
-func UsermodCmd() string  { return usermodCmd }
-func UseraddCmd() string  { return useraddCmd }
-func UserdelCmd() string  { return userdelCmd }
-func SetfilesCmd() string { return setfilesCmd }
-func WipefsCmd() string   { return wipefsCmd }
+func GroupaddCmd() string  { return groupaddCmd }
+func GroupdelCmd() string  { return groupdelCmd }
+func MdadmCmd() string     { return mdadmCmd }
+func MountCmd() string     { return mountCmd }
+func SgdiskCmd() string    { return sgdiskCmd }
+func ModprobeCmd() string  { return modprobeCmd }
+func UdevadmCmd() string   { return udevadmCmd }
+func UsermodCmd() string   { return usermodCmd }
+func UseraddCmd() string   { return useraddCmd }
+func UserdelCmd() string   { return userdelCmd }
+func SetfilesCmd() string  { return setfilesCmd }
+func WipefsCmd() string    { return wipefsCmd }
+func SystemctlCmd() string { return systemctlCmd }
 
 func BtrfsMkfsCmd() string { return btrfsMkfsCmd }
 func Ext4MkfsCmd() string  { return ext4MkfsCmd }
