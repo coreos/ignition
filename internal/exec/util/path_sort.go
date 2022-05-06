@@ -20,7 +20,7 @@ import (
 
 func Depth(path string) uint {
 	var count uint = 0
-	for p := filepath.Clean(path); p != "/"; count++ {
+	for p := filepath.Clean(path); p != "/" && p != "."; count++ {
 		p = filepath.Dir(p)
 	}
 	return count
