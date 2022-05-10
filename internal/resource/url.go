@@ -354,18 +354,23 @@ func (f *Fetcher) fetchFromDataURL(u url.URL, dest io.Writer, opts FetchOptions)
 // credentials to fetch the object content.
 func (f *Fetcher) fetchFromGCS(u url.URL, dest io.Writer, opts FetchOptions) error {
 	ctx := context.Background()
-	var clientOption option.ClientOption
 	if f.GCSSession == nil {
+		clientOption := option.WithoutAuthentication()
 		if metadata.OnGCE() {
-			id, _ := metadata.ProjectID()
-			creds := &google.Credentials{
-				ProjectID:   id,
-				TokenSource: google.ComputeTokenSource("", storage.ScopeReadOnly),
+			// check whether the VM is associated with a service
+			// account
+			if _, err := metadata.Scopes(""); err == nil {
+				id, _ := metadata.ProjectID()
+				creds := &google.Credentials{
+					ProjectID:   id,
+					TokenSource: google.ComputeTokenSource("", storage.ScopeReadOnly),
+				}
+				clientOption = option.WithCredentials(creds)
+			} else {
+				f.Logger.Debug("falling back to unauthenticated GCS access: %v", err)
 			}
-			clientOption = option.WithCredentials(creds)
 		} else {
-			f.Logger.Debug("falling back to unauthenticated GCS access")
-			clientOption = option.WithoutAuthentication()
+			f.Logger.Debug("falling back to unauthenticated GCS access: not running in GCE")
 		}
 
 		var err error
