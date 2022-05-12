@@ -1,3 +1,32 @@
+12-May-2022 Ignition 2.14.0
+
+  Features:
+
+    - Support KubeVirt platform
+    - Support AWS arn: URLs for S3 objects and access points (3.4.0-exp)
+    - Support reading configs from Azure IMDS "user data"
+    - Support S3 fetch via IPv6
+    - Add ignition-apply entrypoint to apply an Ignition config in a container
+
+  Changes:
+
+    - Delete userdata after provisioning on VirtualBox and VMware by default
+      (see operator notes for details)
+    - Support setting setuid/setgid/sticky mode bits (3.4.0-exp)
+    - Warn if setuid/setgid/sticky mode bits specified (3.0.0 - 3.3.0)
+    - Support UEFI Secure Boot on VMware
+    - Add arm64 support to ignition-validate container
+    - Document S3 fetch semantics in operator notes
+    - Document considerations for handling secrets in operator notes
+
+  Bug Fixes:
+
+    - Fix disabling systemd units with pre-existing enablement symlinks
+    - Fix reuse of statically keyed LUKS volumes (2.12.0 regression)
+    - Fix gs:// fetch in GCE instances configured without a service account
+    - Fix error reading VirtualBox guest properties that have flags
+    - Fix infinite loop if -root command-line argument is a relative path
+
 30-Nov-2021 Ignition 2.13.0
 
   Features:
