@@ -145,3 +145,34 @@ Ignition generates entries in `/etc/crypttab` for each device and expects that t
 ### Clevis Based Devices
 
 When creating clevis based devices to utilize Tang or TPM2 Ignition will use an [SSS Pin](https://github.com/latchset/clevis#pin-shamir-secret-sharing) and will create the relevant configuration JSON from the provided attributes.
+
+## Secrets
+
+We do not recommend storing secrets in Ignition configs. Many platforms allow unprivileged software in a VM (including software running in a container) to retrieve the Ignition config from a networked metadata service or local API. To avoid any possibility of leaking sensitive information, it's best to store secrets in a dedicated service such as [Hashicorp Vault](https://www.vaultproject.io/).
+
+If you must store secrets in an Ignition config, strongly consider applying mitigations.  For example:
+
+- Put secrets in a child Ignition config stored in a location under your control. Configure firewall rules to prevent unprivileged software from accessing this location. Merge the child config into your root config via an `ignition.config.merge` directive.
+- On platforms with a networked instance metadata service (IMDS), configure firewall rules to prevent unprivileged software from contacting the metadata service.  Some software uses the instance metadata service for other purposes (such as determining network addresses), so this may not be practical without a transparent proxy.
+
+### Automatic config deletion
+
+On some platforms, Ignition 2.14.0 and later automatically deletes the Ignition config from VM metadata after provisioning succeeds.  This helps limit access by unprivileged software to sensitive information in the Ignition config.  This functionality is currently supported in VirtualBox and VMware VMs, and other platforms may be added in the future.
+
+If you have external tools that require the Ignition config to remain available in VM metadata after provisioning, you can prevent automatic deletion by masking `ignition-delete-config.service`.  For example:
+
+```json
+{
+  "ignition": {
+    "version": "3.0.0"
+  },
+  "systemd": {
+    "units": [
+      {
+        "name": "ignition-delete-config.service",
+        "mask": true
+      }
+    ]
+  }
+}
+```
