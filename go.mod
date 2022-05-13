@@ -10,7 +10,7 @@ require (
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/go-systemd/v22 v22.0.0
 	github.com/coreos/vcontext v0.0.0-20211021162308-f1dbbca7bef4
-	github.com/google/renameio v0.1.0
+	github.com/google/renameio v1.0.1
 	github.com/google/uuid v1.3.0
 	github.com/pin/tftp v2.1.0+incompatible
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
