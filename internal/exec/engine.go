@@ -39,7 +39,7 @@ import (
 
 	"github.com/coreos/vcontext/report"
 	"github.com/coreos/vcontext/validate"
-	"github.com/google/renameio"
+	"github.com/google/renameio/v2"
 )
 
 const (
