@@ -15,6 +15,7 @@
 package systemd
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -24,8 +25,8 @@ import (
 )
 
 // WaitOnDevices waits for the devices named in devs to be plugged before returning.
-func WaitOnDevices(devs []string, stage string) error {
-	conn, err := dbus.NewSystemdConnection()
+func WaitOnDevices(ctx context.Context, devs []string, stage string) error {
+	conn, err := dbus.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		return err
 	}
@@ -35,7 +36,7 @@ func WaitOnDevices(devs []string, stage string) error {
 		unitName := unit.UnitNamePathEscape(dev + ".device")
 		results[unitName] = make(chan string, 1)
 
-		if _, err = conn.StartUnit(unitName, "replace", results[unitName]); err != nil {
+		if _, err = conn.StartUnitContext(ctx, unitName, "replace", results[unitName]); err != nil {
 			return fmt.Errorf("failed starting device unit %s: %v", unitName, err)
 		}
 	}
@@ -53,8 +54,8 @@ func WaitOnDevices(devs []string, stage string) error {
 
 // GetSystemdVersion fetches the version of Systemd
 // in a given system.
-func GetSystemdVersion() (uint, error) {
-	conn, err := dbus.NewSystemdConnection()
+func GetSystemdVersion(ctx context.Context) (uint, error) {
+	conn, err := dbus.NewSystemdConnectionContext(ctx)
 	if err != nil {
 		return 0, err
 	}

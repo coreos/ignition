@@ -15,6 +15,7 @@
 package files
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -38,7 +39,7 @@ type Preset struct {
 // warnOnOldSystemdVersion checks the version of Systemd
 // in a given system and prints a warning if older than 240.
 func (s *stage) warnOnOldSystemdVersion() error {
-	systemdVersion, err := systemd.GetSystemdVersion()
+	systemdVersion, err := systemd.GetSystemdVersion(context.Background())
 	if err != nil {
 		return err
 	}
