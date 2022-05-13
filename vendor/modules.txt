@@ -100,9 +100,9 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/renameio v0.1.0
+# github.com/google/renameio/v2 v2.0.0
 ## explicit
-github.com/google/renameio
+github.com/google/renameio/v2
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
