@@ -13,7 +13,8 @@
 // limitations under the License.
 
 // The CloudStack provider fetches configurations from the userdata available in
-// the config-drive.
+// both the config-drive as well as the network metadata service. Whichever
+// responds first is the config that is used.
 // NOTE: This provider is still EXPERIMENTAL.
 
 package cloudstack
@@ -21,6 +22,7 @@ package cloudstack
 import (
 	"bufio"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -34,6 +36,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/networkmanager"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 	ut "github.com/coreos/ignition/v2/internal/util"
@@ -43,7 +46,8 @@ import (
 
 const (
 	configDriveUserdataPath = "/cloudstack/userdata/user_data.txt"
-	LeaseRetryInterval      = 500 * time.Millisecond
+	retryInterval           = 500 * time.Millisecond
+	dataServerDNSName       = "data-server"
 )
 
 func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
@@ -87,7 +91,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	})
 
 	dispatch("metadata service", func() ([]byte, error) {
-		return fetchConfigFromMetadataService(f)
+		return fetchConfigFromMetadataService(ctx, f)
 	})
 
 Loop:
@@ -133,21 +137,90 @@ func findLease() (*os.File, error) {
 		return nil, fmt.Errorf("could not list interfaces: %v", err)
 	}
 
+	for _, iface := range ifaces {
+		lease, err := os.Open(fmt.Sprintf("/run/systemd/netif/leases/%d", iface.Index))
+		if os.IsNotExist(err) {
+			continue
+		} else if err != nil {
+			return nil, err
+		} else {
+			return lease, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no leases found")
+}
+
+func getVirtualRouterAddress(ctx context.Context, logger *log.Logger) (string, error) {
 	for {
-		for _, iface := range ifaces {
-			lease, err := os.Open(fmt.Sprintf("/run/systemd/netif/leases/%d", iface.Index))
-			if os.IsNotExist(err) {
-				continue
-			} else if err != nil {
-				return nil, err
-			} else {
-				return lease, nil
-			}
+		// Try "data-server" DNS entry first
+		if addr, err := getDataServerByDNS(); err != nil {
+			logger.Info("Could not find virtual router using DNS: %s", err.Error())
+			// continue with NetworkManager
+		} else {
+			logger.Info("Virtual router address found using DNS: %s", addr)
+			return addr, nil
 		}
 
-		fmt.Printf("No leases found. Waiting...")
-		time.Sleep(LeaseRetryInterval)
+		// Then use NetworkManager to get the server option via DHCP
+		if addr, err := getNetworkManagerDHCPServerOption(); err != nil {
+			logger.Info("Could not find virtual router using NetworkManager DHCP server option: %s", err.Error())
+			// continue with networkd
+		} else {
+			logger.Info("Virtual router address found using NetworkManager DHCP server option: %s", addr)
+			return addr, nil
+		}
+
+		// Then try networkd
+		if addr, err := getDHCPServerAddress(); err != nil {
+			logger.Info("Could not find server address in DHCP networkd leases: %s", err.Error())
+			// continue with default gateway
+		} else {
+			logger.Info("Virtual router address found using DHCP networkd leases: %s", addr)
+			return addr, nil
+		}
+
+		// Fallback on default gateway
+		if addr, err := getDefaultGateway(); err != nil {
+			logger.Info("Could not find default gateway: %s", err.Error())
+		} else {
+			logger.Info("Fallback on default gateway: %s", addr)
+			return addr, nil
+		}
+
+		select {
+		case <-time.After(retryInterval):
+		case <-ctx.Done():
+			return "", ctx.Err()
+		}
 	}
+}
+
+func getDataServerByDNS() (string, error) {
+	addrs, err := net.LookupHost(dataServerDNSName)
+	if err != nil {
+		return "", fmt.Errorf("could not execute DNS lookup: %v", err)
+	}
+
+	for _, addr := range addrs {
+		return addr, nil
+	}
+	return "", fmt.Errorf("DNS Entry %s not found", dataServerDNSName)
+}
+
+func getNetworkManagerDHCPServerOption() (string, error) {
+	options, err := networkmanager.GetDHCPOptions()
+	if err != nil {
+		return "", err
+	}
+	for _, netIface := range options {
+		for k, v := range netIface {
+			if k == "dhcp_server_identifier" {
+				return v, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("no DHCP option dhcp_server_identifier in NetworkManager")
 }
 
 func getDHCPServerAddress() (string, error) {
@@ -172,6 +245,59 @@ func getDHCPServerAddress() (string, error) {
 	}
 
 	return address, nil
+}
+
+func getDefaultGateway() (string, error) {
+	file, err := os.Open(distro.RouteFilePath())
+	if err != nil {
+		return "", fmt.Errorf("cannot read routes: %v", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// Ignore headers
+		if strings.HasPrefix(line, "Iface") {
+			continue
+		}
+
+		fields := strings.Fields(line)
+		if len(fields) < 3 {
+			return "", fmt.Errorf("cannot parse route files")
+		}
+		if fields[1] == "00000000" {
+			// destination is "0.0.0.0", so the gateway is the default gateway
+			gw, err := parseIP(fields[2])
+			if err != nil {
+				return "", fmt.Errorf("cannot parse route files: %v", err)
+			}
+			return gw, nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("cannot parse route files: %v", err)
+	}
+
+	return "", fmt.Errorf("default gateway not found")
+}
+
+// parseIP takes the reverse hex IP address string from rooute
+// file and converts it to dotted decimal IPv4 format.
+func parseIP(str string) (string, error) {
+	if str == "" {
+		return "", fmt.Errorf("input is empty")
+	}
+	bytes, err := hex.DecodeString(str)
+	if err != nil {
+		return "", err
+	}
+	if len(bytes) != 4 {
+		return "", fmt.Errorf("invalid IPv4 address %s", str)
+	}
+	return net.IPv4(bytes[3], bytes[2], bytes[1], bytes[0]).String(), nil
 }
 
 func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, label string) ([]byte, error) {
@@ -216,19 +342,19 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, label string
 	return ioutil.ReadFile(filepath.Join(mnt, configDriveUserdataPath))
 }
 
-func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
-	addr, err := getDHCPServerAddress()
+func fetchConfigFromMetadataService(ctx context.Context, f *resource.Fetcher) ([]byte, error) {
+	addr, err := getVirtualRouterAddress(ctx, f.Logger)
 	if err != nil {
 		return nil, err
 	}
 
-	metadataServiceUrl := url.URL{
+	metadataServiceURL := url.URL{
 		Scheme: "http",
 		Host:   addr,
 		Path:   "/latest/user-data",
 	}
 
-	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{})
+	res, err := f.FetchToBuffer(metadataServiceURL, resource.FetchOptions{})
 
 	// the metadata server exists but doesn't contain any actual metadata,
 	// assume that there is no config specified

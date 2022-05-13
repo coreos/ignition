@@ -12,6 +12,9 @@ cloud.google.com/go/internal/version
 cloud.google.com/go/storage
 # github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
+# github.com/Wifx/gonetworkmanager v0.3.0
+## explicit
+github.com/Wifx/gonetworkmanager
 # github.com/aws/aws-sdk-go v1.30.28
 ## explicit
 github.com/aws/aws-sdk-go/aws
