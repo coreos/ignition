@@ -20,19 +20,19 @@ Fedora packaging:
  - [ ] Run `kinit your_fas_account@FEDORAPROJECT.ORG`
  - [ ] Run `fedpkg new-sources tarball-name`
  - [ ] PR the changes in [Fedora](https://src.fedoraproject.org/rpms/ignition)
- - [ ] Once the PR merges to rawhide, merge rawhide into the other relevant branches (e.g. f35) then push those, for example:
+ - [ ] Once the PR merges to rawhide, merge rawhide into the other relevant branches (e.g. f36) then push those, for example:
    ```bash
    git checkout rawhide
    git pull --ff-only
-   git checkout f35
+   git checkout f36
    git merge --ff-only rawhide
-   git push origin f35
+   git push origin f36
    ```
- - [ ] On each of those branches run `fedpkg build`
+ - [ ] On each of those branches run `fedpkg build` including rawhide.
  - [ ] Once the builds have finished, submit them to [bodhi](https://bodhi.fedoraproject.org/updates/new), filling in:
    - `ignition` for `Packages`
    - Selecting the build(s) that just completed, except for the rawhide one (which gets submitted automatically)
-   - Writing brief release notes like "New upstream release; see release notes at `link to GitHub release`"
+   - Writing brief release notes like "New upstream release; see release notes at `link to docs/release-notes.md on GH tag`"
    - Leave `Update name` blank
    - `Type`, `Severity` and `Suggestion` can be left as `unspecified` unless it is a security release. In that case select `security` with the appropriate severity.
    - `Stable karma` and `Unstable` karma can be set to `2` and `-1`, respectively.
@@ -41,11 +41,9 @@ Fedora packaging:
 
 GitHub release:
  - [ ] Wait until the Bodhi update shows "Signed :heavy_check_mark:" in the Metadata box.
- - [ ] [File a releng ticket](https://pagure.io/releng/new_issue) based on [prior signing tickets](https://pagure.io/releng/issue/10178).
-   - [ ] Use the updated script from https://github.com/coreos/ignition/issues/1311#issuecomment-1024662891, then PR this checklist to update the example ticket link.
+ - [ ] [File a releng ticket](https://pagure.io/releng/new_issue) based on [prior signing tickets](https://pagure.io/releng/issue/10799).
    - [ ] Update the script and test it locally by running it like `FAKESIGN=1 ./script`
      - [ ] If a new Fedora release has gone stable, update the signing key in the script to use the new Fedora signing key [found here](https://getfedora.org/security).
- - [ ] Ping `mboddu` in Libera.Chat `#fedora-coreos`, linking to the ticket
  - [ ] Wait for the ticket to be closed
  - [ ] Download the artifacts and signatures
  - [ ] Verify the signatures
