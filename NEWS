@@ -11,7 +11,7 @@
   Changes:
 
     - Delete userdata after provisioning on VirtualBox and VMware by default
-      (see operator notes for details)
+      (see operator notes for details) (GHSA-hj57-j5cw-2mwp, CVE-2022-1706)
     - Support setting setuid/setgid/sticky mode bits (3.4.0-exp)
     - Warn if setuid/setgid/sticky mode bits specified (3.0.0 - 3.3.0)
     - Support UEFI Secure Boot on VMware
