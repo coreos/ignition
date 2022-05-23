@@ -19,6 +19,7 @@
 package disks
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os/exec"
@@ -143,7 +144,7 @@ func (s stage) Run(config types.Config) error {
 // using ctxt for the logging and systemd unit identity.
 func (s stage) waitOnDevices(devs []string, ctxt string) error {
 	if err := s.LogOp(
-		func() error { return systemd.WaitOnDevices(devs, ctxt) },
+		func() error { return systemd.WaitOnDevices(context.Background(), devs, ctxt) },
 		"waiting for devices %v", devs,
 	); err != nil {
 		return fmt.Errorf("failed to wait on %s devs: %v", ctxt, err)
