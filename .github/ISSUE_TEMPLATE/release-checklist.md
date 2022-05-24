@@ -1,8 +1,8 @@
 Release checklist:
 
 Tagging:
- - [ ] Write release notes in NEWS. Get them reviewed and merged
-     - [ ] If doing a branched release, also include a PR to merge the NEWS changes into main
+ - [ ] Write release notes in `docs/release-notes.md`. Get them reviewed and merged
+     - [ ] If doing a branched release, also include a PR to merge the `docs/release-notes.md` changes into main
  - [ ] Ensure your local copy is up to date with the upstream main branch (`git@github.com:coreos/ignition.git`)
  - [ ] Ensure your working directory is clean (`git clean -fdx`)
  - [ ] Ensure you can sign commits and any yubikeys/smartcards are plugged in
@@ -50,7 +50,7 @@ GitHub release:
  - [ ] Download the artifacts and signatures
  - [ ] Verify the signatures
  - [ ] Find the new tag in the [GitHub tag list](https://github.com/coreos/ignition/tags) and click the triple dots menu, and create a draft release for it.
- - [ ] Upload all the release artifacts and their signatures. Copy and paste the release notes from NEWS here as well.
+ - [ ] Upload all the release artifacts and their signatures. Copy and paste the release notes from `docs/release-notes.md` here as well.
    - [ ] If the signing key has changed, note the change in the GitHub release notes as done [here](https://github.com/coreos/ignition/releases/tag/v2.10.1).
  - [ ] Publish the release
 
