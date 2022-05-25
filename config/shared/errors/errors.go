@@ -113,3 +113,9 @@ var (
 func NewNoInstallSectionError(name string) error {
 	return fmt.Errorf("unit %q is enabled, but has no install section so enable does nothing", name)
 }
+
+// NewNoInstallSectionForInstantiableUnitError produces an error indicating the
+// given instantiable unit for an instance unit is missing an Install section.
+func NewNoInstallSectionForInstantiableUnitError(instantiable, instance string) error {
+	return fmt.Errorf("template unit %q for %q doesn't have Install section", instantiable, instance)
+}
