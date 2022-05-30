@@ -1,4 +1,4 @@
-// Copyright 2016, Google Inc.
+// Copyright 2022, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Package gax contains a set of modules which aid the development of APIs
-// for clients and servers based on gRPC and Google API conventions.
-//
-// Application code will rarely need to use this library directly.
-// However, code generated automatically from API definition files can use it
-// to simplify code generation and to provide more convenient and idiomatic API surfaces.
-package gax
+package internal
 
-import "github.com/googleapis/gax-go/v2/internal"
-
-// Version specifies the gax-go version being used.
-const Version = internal.Version
+// Version is the current tagged release of the library.
+const Version = "2.4.0"
