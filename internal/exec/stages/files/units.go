@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
@@ -151,7 +152,17 @@ func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
 		return err
 	}
 	hasInstanceUnit := false
-	for _, value := range presets {
+
+	// sort the units before writing to the systemd presets file to ensure
+	// the file is written in a consistent order across multiple runs
+	unitNames := make([]string, 0, len(presets))
+	for unit := range presets {
+		unitNames = append(unitNames, unit)
+	}
+	sort.Strings(unitNames)
+
+	for _, name := range unitNames {
+		value := presets[name]
 		unitString := value.unit
 		if value.instantiatable {
 			hasInstanceUnit = true
