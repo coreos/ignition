@@ -9,7 +9,7 @@ require (
 	github.com/beevik/etree v1.1.1-0.20200718192613-4a2f8b9d084c
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/go-systemd/v22 v22.3.2
-	github.com/coreos/vcontext v0.0.0-20211021162308-f1dbbca7bef4
+	github.com/coreos/vcontext v0.0.0-20220603180515-2076d8d16945
 	github.com/google/renameio/v2 v2.0.0
 	github.com/google/uuid v1.3.0
 	github.com/pin/tftp v2.1.0+incompatible
