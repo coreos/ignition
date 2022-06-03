@@ -25,6 +25,7 @@ func init() {
 	register.Register(register.PositiveTest, TestUnmaskUnit())
 	register.Register(register.PositiveTest, TestMaskUnit())
 	register.Register(register.PositiveTest, RemoveEnablementSymLinksforUnit())
+	register.Register(register.PositiveTest, TestPresetsFileInAlphabeticalOrder())
 }
 
 func CreateInstantiatedService() types.Test {
@@ -308,6 +309,60 @@ func RemoveEnablementSymLinksforUnit() types.Test {
 		{
 			Directory: "/etc/systemd/system/multi-user.target.wants",
 			Name:      "foo.service",
+		},
+	})
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// TestPresetsFileinAlphabeticalOrder checks if Ignition
+// writes the systemd presets in alphabetical order by
+// unit name into the 20-ignition.preset file.
+func TestPresetsFileInAlphabeticalOrder() types.Test {
+	name := "unit.presets.sorted"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+		"ignition": { "version": "$version" },
+		"systemd": {
+			"units": [
+				{
+					"enabled": true,
+					"name": "foo.service"
+				},
+				{
+					"enabled": true,
+					"name": "bar.service"
+				},
+				{
+					"enabled": true,
+					"name": "qux.service"
+				},
+				{
+					"enabled": true,
+					"name": "baz.service"
+				},
+				{
+					"enabled": true,
+					"name": "garply.service"
+				}
+			]
+        }
+		}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "20-ignition.preset",
+				Directory: "etc/systemd/system-preset",
+			},
+			Contents: "enable bar.service\nenable baz.service\nenable foo.service\nenable garply.service\nenable qux.service\n",
 		},
 	})
 	configMinVersion := "3.0.0"
