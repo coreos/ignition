@@ -161,7 +161,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
+# golang.org/x/net v0.0.0-20220526153639-5463443f8c37
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -172,7 +172,7 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
+# golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
 ## explicit
 golang.org/x/oauth2
 golang.org/x/oauth2/authhandler
@@ -193,7 +193,7 @@ golang.org/x/text/unicode/norm
 # golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.81.0
+# google.golang.org/api v0.82.0
 ## explicit
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
@@ -225,7 +225,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd
+# google.golang.org/genproto v0.0.0-20220527130721-00d5c0f3be58
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
 google.golang.org/genproto/googleapis/rpc/code
