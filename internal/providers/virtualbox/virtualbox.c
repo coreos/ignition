@@ -96,6 +96,9 @@ static int get_prop(int fd, uint32_t client_id, const char *name, void **value, 
 	// init header
 	size_t msg_size = sizeof(struct vbg_ioctl_hgcm_call) + 4 * sizeof(struct vmmdev_hgcm_function_parameter64);
 	struct vbg_ioctl_hgcm_call _cleanup_free_ *msg = calloc(1, msg_size);
+	if (msg == NULL) {
+		return VERR_NO_MEMORY;
+	}
 	// init_header re-adds the size of msg->hdr
 	init_header(&msg->hdr, msg_size - sizeof(msg->hdr), msg_size - sizeof(msg->hdr));
 	msg->client_id = client_id;
@@ -131,6 +134,9 @@ static int get_prop(int fd, uint32_t client_id, const char *name, void **value, 
 		; // labels can't point to declarations
 		size_t buf_size = params[3].u.value32;
 		void _cleanup_free_ *buf = malloc(buf_size);
+		if (buf == NULL) {
+			return VERR_NO_MEMORY;
+		}
 		params[1].u.pointer.size = buf_size;
 		params[1].u.pointer.u.linear_addr = (uintptr_t) buf;
 
@@ -161,6 +167,9 @@ static int del_prop(int fd, uint32_t client_id, const char *name) {
 	// init header
 	size_t msg_size = sizeof(struct vbg_ioctl_hgcm_call) + sizeof(struct vmmdev_hgcm_function_parameter64);
 	struct vbg_ioctl_hgcm_call _cleanup_free_ *msg = calloc(1, msg_size);
+	if (msg == NULL) {
+		return VERR_NO_MEMORY;
+	}
 	// init_header re-adds the size of msg->hdr
 	init_header(&msg->hdr, msg_size - sizeof(msg->hdr), msg_size - sizeof(msg->hdr));
 	msg->client_id = client_id;
