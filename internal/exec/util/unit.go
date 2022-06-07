@@ -19,9 +19,9 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"syscall"
 
+	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 
@@ -29,92 +29,133 @@ import (
 )
 
 const (
-	PresetPath               string      = "/etc/systemd/system-preset/20-ignition.preset"
 	DefaultPresetPermissions os.FileMode = 0644
 )
 
-func (ut Util) FileFromSystemdUnit(unit types.Unit) (FetchOp, error) {
+type UnitScope string
+
+const (
+	SystemUnit UnitScope = "system"
+	UserUnit   UnitScope = "user"
+	GlobalUnit UnitScope = "global"
+)
+
+func GetUnitScope(unit types.Unit) UnitScope {
+	if util.NilOrEmpty(unit.Scope) {
+		return SystemUnit
+	}
+
+	switch *unit.Scope {
+	case "user", "system", "global":
+		return UnitScope(*unit.Scope)
+	default:
+		panic("Error: Invalid scope defined")
+	}
+}
+
+func (ut Util) FilesFromSystemdUnit(unit types.Unit) ([]FetchOp, error) {
+	var fetchops []FetchOp
+
 	if unit.Contents == nil {
 		empty := ""
 		unit.Contents = &empty
 	}
 	u, err := url.Parse(dataurl.EncodeBytes([]byte(*unit.Contents)))
 	if err != nil {
-		return FetchOp{}, err
+		return []FetchOp{}, err
 	}
 
-	path, err := ut.JoinPath(SystemdUnitsPath(), unit.Name)
+	UnitPaths, err := ut.SystemdUnitPaths(unit)
 	if err != nil {
-		return FetchOp{}, err
+		return []FetchOp{}, err
+	}
+	for _, path := range UnitPaths {
+		fpath, err := ut.JoinPath(path, unit.Name)
+		if err != nil {
+			return []FetchOp{}, err
+		}
+
+		fetchops = append(fetchops, FetchOp{Node: types.Node{Path: fpath}, Url: *u})
 	}
 
-	return FetchOp{
-		Node: types.Node{
-			Path: path,
-		},
-		Url: *u,
-	}, nil
+	return fetchops, nil
 }
 
-func (ut Util) FileFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin) (FetchOp, error) {
+func (ut Util) FilesFromSystemdUnitDropin(unit types.Unit, dropin types.Dropin) ([]FetchOp, error) {
+	var fetchops []FetchOp
+
 	if dropin.Contents == nil {
 		empty := ""
 		dropin.Contents = &empty
 	}
+
 	u, err := url.Parse(dataurl.EncodeBytes([]byte(*dropin.Contents)))
 	if err != nil {
-		return FetchOp{}, err
+		return []FetchOp{}, err
 	}
 
-	path, err := ut.JoinPath(SystemdDropinsPath(string(unit.Name)), dropin.Name)
+	DropinsPaths, err := ut.SystemdDropinsPaths(unit)
 	if err != nil {
-		return FetchOp{}, err
+		return []FetchOp{}, err
+	}
+	for _, path := range DropinsPaths {
+		fpath, err := ut.JoinPath(path, dropin.Name)
+		if err != nil {
+			return []FetchOp{}, err
+		}
+		fetchops = append(fetchops, FetchOp{Node: types.Node{Path: fpath}, Url: *u})
 	}
 
-	return FetchOp{
-		Node: types.Node{
-			Path: path,
-		},
-		Url: *u,
-	}, nil
+	return fetchops, nil
 }
 
-// MaskUnit writes a symlink to /dev/null to mask the specified unit and returns the path of that unit
-// without the sysroot prefix
-func (ut Util) MaskUnit(unit types.Unit) (string, error) {
-	path, err := ut.JoinPath(SystemdUnitsPath(), unit.Name)
+// MaskUnit writes a symlink to /dev/null to mask the specified unit
+func (ut Util) MaskUnit(unit types.Unit) error {
+	UnitPaths, err := ut.SystemdUnitPaths(unit)
 	if err != nil {
-		return "", err
+		return err
 	}
+	for _, path := range UnitPaths {
+		unitpath, err := ut.JoinPath(path, unit.Name)
+		if err != nil {
+			return err
+		}
 
-	if err := MkdirForFile(path); err != nil {
-		return "", err
+		if err := MkdirForFile(unitpath); err != nil {
+			return err
+		}
+		if err := os.RemoveAll(unitpath); err != nil {
+			return err
+		}
+		if err := os.Symlink("/dev/null", unitpath); err != nil {
+			return err
+		}
 	}
-	if err := os.RemoveAll(path); err != nil {
-		return "", err
-	}
-	if err := os.Symlink("/dev/null", path); err != nil {
-		return "", err
-	}
-	// not the same as the path above, since this lacks the sysroot prefix
-	return filepath.Join("/", SystemdUnitsPath(), unit.Name), nil
+	return nil
 }
 
 // UnmaskUnit deletes the symlink to /dev/null for a masked unit
 func (ut Util) UnmaskUnit(unit types.Unit) error {
-	path, err := ut.JoinPath(SystemdUnitsPath(), unit.Name)
+	UnitPaths, err := ut.SystemdUnitPaths(unit)
 	if err != nil {
 		return err
 	}
-	// Make a final check to make sure the unit is masked
-	masked, err := ut.IsUnitMasked(unit)
-	if err != nil {
-		return err
-	}
-	// If masked, remove the symlink
-	if masked {
-		if err = os.Remove(path); err != nil {
+
+	for _, path := range UnitPaths {
+		unitpath, err := ut.JoinPath(path, unit.Name)
+		if err != nil {
 			return err
+		}
+		// Make a final check to make sure the unit is masked
+		masked, err := ut.IsUnitMasked(unit)
+		if err != nil {
+			return err
+		}
+		// If masked, remove the symlink
+		if masked {
+			if err = os.Remove(unitpath); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -122,37 +163,42 @@ func (ut Util) UnmaskUnit(unit types.Unit) error {
 
 // IsUnitMasked returns true/false if a systemd unit is masked
 func (ut Util) IsUnitMasked(unit types.Unit) (bool, error) {
-	path, err := ut.JoinPath(SystemdUnitsPath(), unit.Name)
+	UnitPaths, err := ut.SystemdUnitPaths(unit)
 	if err != nil {
 		return false, err
 	}
-
-	target, err := os.Readlink(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// The path doesn't exist, hence the unit isn't masked
-			return false, nil
-		} else if e, ok := err.(*os.PathError); ok && e.Err == syscall.EINVAL {
-			// The path isn't a symlink, hence the unit isn't masked
-			return false, nil
-		} else {
+	for _, path := range UnitPaths {
+		unitpath, err := ut.JoinPath(path, unit.Name)
+		if err != nil {
 			return false, err
 		}
-	}
 
-	if target != "/dev/null" {
-		// The symlink doesn't point to /dev/null, hence the unit isn't masked
-		return false, nil
-	}
+		target, err := os.Readlink(unitpath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// The path doesn't exist, hence the unit isn't masked
+				return false, nil
+			} else if e, ok := err.(*os.PathError); ok && e.Err == syscall.EINVAL {
+				// The path isn't a symlink, hence the unit isn't masked
+				return false, nil
+			} else {
+				return false, err
+			}
+		}
 
+		if target != "/dev/null" {
+			// The symlink doesn't point to /dev/null, hence the unit isn't masked
+			return false, nil
+		}
+	}
 	return true, nil
 }
 
-func (ut Util) EnableUnit(enabledUnit string) error {
-	return ut.appendLineToPreset(fmt.Sprintf("enable %s", enabledUnit))
+func (ut Util) EnableUnit(enabledUnit string, scope UnitScope) error {
+	return ut.appendLineToPreset(fmt.Sprintf("enable %s", enabledUnit), ut.SystemdPresetPath(scope))
 }
 
-func (ut Util) DisableUnit(disabledUnit string) error {
+func (ut Util) DisableUnit(disabledUnit string, scope UnitScope) error {
 	// We need to delete any enablement symlinks for a unit before sending it to a
 	// preset directive. This will help to disable that unit completely.
 	// For more information: https://github.com/coreos/fedora-coreos-tracker/issues/392
@@ -170,11 +216,11 @@ func (ut Util) DisableUnit(disabledUnit string) error {
 	); err != nil {
 		return err
 	}
-	return ut.appendLineToPreset(fmt.Sprintf("disable %s", disabledUnit))
+	return ut.appendLineToPreset(fmt.Sprintf("disable %s", disabledUnit), ut.SystemdPresetPath(scope))
 }
 
-func (ut Util) appendLineToPreset(data string) error {
-	path, err := ut.JoinPath(PresetPath)
+func (ut Util) appendLineToPreset(data string, presetpath string) error {
+	path, err := ut.JoinPath(presetpath)
 	if err != nil {
 		return err
 	}

@@ -156,6 +156,8 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_dropins_** (list of objects): the list of drop-ins for the unit. Every drop-in must have a unique `name`.
       * **name** (string): the name of the drop-in. This must be suffixed with ".conf".
       * **_contents_** (string): the contents of the drop-in.
+    * **_scope_** (string): `system` for a system unit, `global` for a user unit applied to all users, or `user` for a user unit applied to users specified by **_users_**.  Default is `system`.
+    * **_users_**  (list of strings): usernames of users to be affected by a user unit.
 * **_passwd_** (object): describes the desired additions to the passwd database.
   * **_users_** (list of objects): the list of accounts that shall exist. All users must have a unique `name`.
     * **name** (string): the username for the account.

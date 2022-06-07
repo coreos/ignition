@@ -242,12 +242,16 @@ type Timeouts struct {
 }
 
 type Unit struct {
-	Contents *string  `json:"contents,omitempty"`
-	Dropins  []Dropin `json:"dropins,omitempty"`
-	Enabled  *bool    `json:"enabled,omitempty"`
-	Mask     *bool    `json:"mask,omitempty"`
-	Name     string   `json:"name"`
+	Contents *string    `json:"contents,omitempty"`
+	Dropins  []Dropin   `json:"dropins,omitempty"`
+	Enabled  *bool      `json:"enabled,omitempty"`
+	Mask     *bool      `json:"mask,omitempty"`
+	Name     string     `json:"name"`
+	Scope    *string    `json:"scope,omitempty"`
+	Users    []UnitUser `json:"users,omitempty"`
 }
+
+type UnitUser string
 
 type Verification struct {
 	Hash *string `json:"hash,omitempty"`

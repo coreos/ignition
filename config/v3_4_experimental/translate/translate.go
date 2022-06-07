@@ -53,11 +53,22 @@ func translateDirectoryEmbedded1(old old_types.DirectoryEmbedded1) (ret types.Di
 	return
 }
 
+func translateUnit(old old_types.Unit) (ret types.Unit) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Contents, &ret.Contents)
+	tr.Translate(&old.Dropins, &ret.Dropins)
+	tr.Translate(&old.Enabled, &ret.Enabled)
+	tr.Translate(&old.Mask, &ret.Mask)
+	tr.Translate(&old.Name, &ret.Name)
+	return
+}
+
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
 	tr.AddCustomTranslator(translateDirectoryEmbedded1)
 	tr.AddCustomTranslator(translateFileEmbedded1)
+	tr.AddCustomTranslator(translateUnit)
 	tr.Translate(&old, &ret)
 	return
 }
