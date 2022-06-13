@@ -161,7 +161,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# golang.org/x/net v0.0.0-20220526153639-5463443f8c37
+# golang.org/x/net v0.0.0-20220607020251-c690dde0001d
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -193,7 +193,7 @@ golang.org/x/text/unicode/norm
 # golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.82.0
+# google.golang.org/api v0.83.0
 ## explicit
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
@@ -225,7 +225,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220527130721-00d5c0f3be58
+# google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
 google.golang.org/genproto/googleapis/rpc/code
@@ -239,7 +239,7 @@ google.golang.org/genproto/googleapis/type/decimal
 google.golang.org/genproto/googleapis/type/expr
 google.golang.org/genproto/googleapis/type/fraction
 google.golang.org/genproto/googleapis/type/month
-# google.golang.org/grpc v1.46.2
+# google.golang.org/grpc v1.47.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
