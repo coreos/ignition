@@ -19,7 +19,7 @@ Version:                2.14.0
 %global dracutlibdir %{_prefix}/lib/dracut
 
 Name:           ignition
-Release:        1.rhaos4.11%{?dist}
+Release:        2.rhaos4.11%{?dist}
 Summary:        First boot installer and configuration tool
 
 # Upstream license specification: Apache-2.0
@@ -336,6 +336,9 @@ install -p -m 0755 ./ignition %{buildroot}/%{dracutlibdir}/modules.d/30ignition
 %endif
 
 %changelog
+* Tue Jun 14 2022 Benjamin Gilbert <bgilbert@redhat.com> - 2.14.0-2.rhaos4.11
+- Rebuild with newer Go
+
 * Wed May 25 2022 Benjamin Gilbert <bgilbert@redhat.com> - 2.14.0-1.rhaos4.11
 - New release
 - Add ignition-apply symlink
