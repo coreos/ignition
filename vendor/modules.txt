@@ -1,4 +1,4 @@
-# cloud.google.com/go v0.102.0
+# cloud.google.com/go v0.102.1
 cloud.google.com/go
 cloud.google.com/go/internal
 cloud.google.com/go/internal/optional
@@ -9,7 +9,7 @@ cloud.google.com/go/internal/version
 cloud.google.com/go/compute/metadata
 # cloud.google.com/go/iam v0.3.0
 cloud.google.com/go/iam
-# cloud.google.com/go/storage v1.22.1
+# cloud.google.com/go/storage v1.23.0
 ## explicit
 cloud.google.com/go/storage
 cloud.google.com/go/storage/internal
@@ -112,7 +112,7 @@ github.com/google/renameio/v2
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
-# github.com/googleapis/enterprise-certificate-proxy v0.0.0-20220520183353-fd19c99a87aa
+# github.com/googleapis/enterprise-certificate-proxy v0.1.0
 github.com/googleapis/enterprise-certificate-proxy/client
 github.com/googleapis/enterprise-certificate-proxy/client/util
 # github.com/googleapis/gax-go/v2 v2.4.0
@@ -164,7 +164,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# golang.org/x/net v0.0.0-20220607020251-c690dde0001d
+# golang.org/x/net v0.0.0-20220617184016-355a448f1bc9
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -184,7 +184,7 @@ golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20220610221304-9f5ed59c137d
+# golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c
 ## explicit
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
@@ -196,7 +196,7 @@ golang.org/x/text/unicode/norm
 # golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.84.0
+# google.golang.org/api v0.85.0
 ## explicit
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
@@ -228,7 +228,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220616135557-88e70c0c3a90
+# google.golang.org/genproto v0.0.0-20220617124728-180714bec0ad
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
 google.golang.org/genproto/googleapis/rpc/code
