@@ -4,6 +4,27 @@ nav_order: 9
 
 # Release Notes
 
+## Upcoming Ignition 2.15.0 (unreleased)
+
+### Breaking changes
+
+
+### Features
+
+- Ship aarch64 macOS ignition-validate binary in GitHub release artifacts
+
+### Changes
+
+- Warn if template for enabled systemd instance unit has no `Install` section
+- Install ignition-apply in `/usr/libexec`
+- Convert `NEWS` to Markdown and move to docs site
+
+### Bug fixes
+
+- Fix reproducibility of systemd preset file in ignition-apply output
+
+
+
 ## Ignition 2.14.0 (12-May-2022)
 
 Starting with this release, ignition-validate binaries are signed with the
