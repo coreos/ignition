@@ -6,6 +6,9 @@ nav_order: 9
 
 ## Ignition 2.14.0 (12-May-2022)
 
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 36 key](https://getfedora.org/security/).
+
 ### Features
 
 - Support KubeVirt platform
@@ -35,6 +38,9 @@ nav_order: 9
 
 
 ## Ignition 2.13.0 (30-Nov-2021)
+
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 35 key](https://getfedora.org/security/).
 
 ### Features
 
@@ -124,6 +130,9 @@ nav_order: 9
 
 ## Ignition 2.10.0 (29-Apr-2021)
 
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 34 key](https://getfedora.org/security/).
+
 ### Breaking changes
 
 - Rename `Custom` struct to `ClevisCustom` _(3.3.0-exp)_
@@ -167,6 +176,9 @@ nav_order: 9
 
 
 ## Ignition 2.8.0 (25-Nov-2020)
+
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 33 key](https://getfedora.org/security/).
 
 ### Features
 
@@ -270,6 +282,9 @@ nav_order: 9
 
 
 ## Ignition 2.3.0 (05-May-2020)
+
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 32 key](https://getfedora.org/security/).
 
 ### Features
 
