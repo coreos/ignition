@@ -45,15 +45,14 @@ Fedora packaging:
 
 GitHub release:
  - [ ] Wait until the Bodhi update shows "Signed :heavy_check_mark:" in the Metadata box.
- - [ ] [File a releng ticket](https://pagure.io/releng/new_issue) based on [prior signing tickets](https://pagure.io/releng/issue/10799).
-   - [ ] Update the script and test it locally by running it like `FAKESIGN=1 ./script`
-     - [ ] If a new Fedora release has gone stable, update the signing key in the script to use the new Fedora signing key [found here](https://getfedora.org/security).
+ - [ ] Verify that the signing script can fetch the release binaries by running `bash signing-ticket.sh test <x.y.z-r> <output-dir>`, where `r` is the Release of the Fedora package without the dist tag (probably `1`)
+ - [ ] Run `bash signing-ticket.sh ticket <x.y.z-r>` and paste the output into a [releng ticket](https://pagure.io/releng/new_issue).
  - [ ] Wait for the ticket to be closed
  - [ ] Download the artifacts and signatures
  - [ ] Verify the signatures
  - [ ] Find the new tag in the [GitHub tag list](https://github.com/coreos/ignition/tags) and click the triple dots menu, and create a draft release for it.
  - [ ] Upload all the release artifacts and their signatures. Copy and paste the release notes from `docs/release-notes.md` here as well.
-   - [ ] If the signing key has changed, note the change in the GitHub release notes as done [here](https://github.com/coreos/ignition/releases/tag/v2.10.1).
+   - [ ] If the signing key has changed because a new Fedora release has gone stable, note the change in the GitHub release notes as done [here](https://github.com/coreos/ignition/releases/tag/v2.10.1).
  - [ ] Publish the release
 
 Quay release:
@@ -75,4 +74,4 @@ RHCOS packaging for the current RHCOS development release:
  - [ ] Update your local repo and run `rhpkg build`
 
 CentOS Stream 9 packaging:
-  - [ ] To be written
+  - [ ] Create a `rebase-c9s-ignition` issue in the internal team-operations repo and follow the steps there
