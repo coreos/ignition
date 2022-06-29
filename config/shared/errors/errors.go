@@ -71,6 +71,8 @@ var (
 	ErrNoPath                    = errors.New("path not specified")
 	ErrPathRelative              = errors.New("path not absolute")
 	ErrDirtyPath                 = errors.New("path is not fully simplified")
+	ErrPartitionsOverwritten     = errors.New("filesystem overwrites partitioned device")
+	ErrFilesystemImplicitWipe    = errors.New("device matches disk with wipeTable enabled; filesystem will be wiped")
 	ErrRaidLevelRequired         = errors.New("raid level is required")
 	ErrSparesUnsupportedForLevel = errors.New("spares unsupported for linear and raid0 arrays")
 	ErrUnrecognizedRaidLevel     = errors.New("unrecognized raid level")

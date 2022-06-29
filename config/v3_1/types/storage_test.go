@@ -25,16 +25,18 @@ import (
 	"github.com/coreos/vcontext/report"
 )
 
-func TestStorageValidate(t *testing.T) {
+func TestStorageValidateErrors(t *testing.T) {
 	tests := []struct {
 		in   Storage
 		at   path.ContextPath
 		err  error
 		warn error
 	}{
+		// test empty storage config returns nil
 		{
 			in: Storage{},
 		},
+		// test a storage config with no conflicting paths returns nil
 		{
 			in: Storage{
 				Links: []Link{
@@ -57,6 +59,7 @@ func TestStorageValidate(t *testing.T) {
 				},
 			},
 		},
+		// test when a file uses a configured symlink path returns ErrFileUsedSymlink
 		{
 			in: Storage{
 				Links: []Link{
@@ -73,6 +76,7 @@ func TestStorageValidate(t *testing.T) {
 			err: errors.ErrFileUsedSymlink,
 			at:  path.New("", "files", 0),
 		},
+		// test when a directory uses a configured symlink path returns ErrDirectoryUsedSymlink
 		{
 			in: Storage{
 				Links: []Link{
@@ -89,6 +93,7 @@ func TestStorageValidate(t *testing.T) {
 			err: errors.ErrDirectoryUsedSymlink,
 			at:  path.New("", "directories", 0),
 		},
+		// test the same path listed for two separate symlinks returns ErrLinkUsedSymlink
 		{
 			in: Storage{
 				Links: []Link{
@@ -103,6 +108,7 @@ func TestStorageValidate(t *testing.T) {
 			err: errors.ErrLinkUsedSymlink,
 			at:  path.New("", "links", 1),
 		},
+		// test that two symlinks can be configured at a time
 		{
 			in: Storage{
 				Links: []Link{
@@ -115,6 +121,7 @@ func TestStorageValidate(t *testing.T) {
 				},
 			},
 		},
+		// test when a directory uses a configured symlink with the 'Hard:= true' returns ErrHardLinkToDirectory
 		{
 			in: Storage{
 				Links: []Link{
@@ -222,6 +229,95 @@ func TestStorageValidate(t *testing.T) {
 		expected := report.Report{}
 		expected.AddOnError(test.at, test.err)
 		expected.AddOnWarn(test.at, test.warn)
+		if !reflect.DeepEqual(expected, r) {
+			t.Errorf("#%d: bad report: want %v, got %v", i, expected, r)
+		}
+	}
+}
+
+func TestStorageValidateWarnings(t *testing.T) {
+	tests := []struct {
+		in  Storage
+		at  path.ContextPath
+		out error
+	}{
+		// test a disk with partitions with the same 'device' as a filesystem returns ErrPartitionsOverwritten
+		{
+			in: Storage{
+				Disks: []Disk{
+					{
+						Device: "/dev/sda",
+						Partitions: []Partition{
+							{}, {},
+						},
+					},
+				},
+				Filesystems: []Filesystem{
+					{
+						Device: "/dev/sda",
+					},
+				},
+			},
+			out: errors.ErrPartitionsOverwritten,
+			at:  path.New("", "filesystems", 0, "device"),
+		},
+		// test a disk with the same 'device' and 'WipeTable:=true' as a configured filesystem returns ErrFilesystemImplicitWipe
+		{
+			in: Storage{
+				Disks: []Disk{
+					{
+						Device:    "/dev/sda",
+						WipeTable: util.BoolToPtr(true),
+					},
+				},
+				Filesystems: []Filesystem{
+					{
+						Device: "/dev/sda",
+					},
+				},
+			},
+			out: errors.ErrFilesystemImplicitWipe,
+			at:  path.New("", "filesystems", 0, "device"),
+		},
+		// test a disk with the same 'device' and 'WipeTable:=false' as a configured filesystem returns nil
+		{
+			in: Storage{
+				Disks: []Disk{
+					{
+						Device:    "/dev/sda",
+						WipeTable: util.BoolToPtr(false),
+					},
+				},
+				Filesystems: []Filesystem{
+					{
+						Device: "/dev/sda",
+					},
+				},
+			},
+			out: nil,
+		},
+		// test a disk with no partitions with the same 'device' as a filesystem returns nil
+		{
+			in: Storage{
+				Disks: []Disk{
+					{
+						Device: "/dev/sdb",
+					},
+				},
+				Filesystems: []Filesystem{
+					{
+						Device: "/dev/sdb",
+					},
+				},
+			},
+			out: nil,
+		},
+	}
+
+	for i, test := range tests {
+		r := test.in.Validate(path.ContextPath{})
+		expected := report.Report{}
+		expected.AddOnWarn(test.at, test.out)
 		if !reflect.DeepEqual(expected, r) {
 			t.Errorf("#%d: bad report: want %v, got %v", i, expected, r)
 		}

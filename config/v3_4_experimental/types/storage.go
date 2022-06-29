@@ -80,5 +80,20 @@ func (s Storage) Validate(c vpath.ContextPath) (r report.Report) {
 		ownerCheck(l1.Group.ID == nil, c.Append("links", i, "group", "id"))
 		ownerCheck(l1.Group.Name == nil, c.Append("links", i, "group", "name"))
 	}
+	disks := make(map[string]Disk)
+	for _, d := range s.Disks {
+		disks[d.Device] = d
+	}
+
+	for i, f := range s.Filesystems {
+		disk, exist := disks[f.Device]
+		if exist {
+			if len(disk.Partitions) > 0 {
+				r.AddOnWarn(c.Append("filesystems", i, "device"), errors.ErrPartitionsOverwritten)
+			} else if !util.IsTrue(f.WipeFilesystem) && util.IsTrue(disk.WipeTable) {
+				r.AddOnWarn(c.Append("filesystems", i, "device"), errors.ErrFilesystemImplicitWipe)
+			}
+		}
+	}
 	return
 }
