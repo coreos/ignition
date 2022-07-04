@@ -17,8 +17,8 @@ require (
 	github.com/stretchr/testify v1.7.5
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/vmware/vmw-guestinfo v0.0.0-20220317130741-510905f0efa3
-	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9
-	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb
-	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c
-	google.golang.org/api v0.85.0
+	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e
+	golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2
+	golang.org/x/sys v0.0.0-20220624220833-87e55d714810
+	google.golang.org/api v0.86.0
 )
