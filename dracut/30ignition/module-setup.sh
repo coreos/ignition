@@ -11,8 +11,9 @@ install_ignition_unit() {
     local target="${1:-ignition-complete.target}"; shift
     local instantiated="${1:-$unit}"; shift
     inst_simple "$moddir/$unit" "$systemdsystemunitdir/$unit"
-    mkdir -p "$initdir/$systemdsystemunitdir/$target.requires"
-    ln_r "../$unit" "$systemdsystemunitdir/$target.requires/$instantiated"
+    # note we `|| exit 1` here so we error out if e.g. the units are missing
+    # see https://github.com/coreos/fedora-coreos-config/issues/799
+    $SYSTEMCTL -q --root="$initdir" add-requires "$target" "$instantiated" || exit 1
 }
 
 install() {
