@@ -23,7 +23,7 @@ Fedora packaging:
    - Update changelog
  - [ ] Run `spectool -g -S ignition.spec`
  - [ ] Run `kinit your_fas_account@FEDORAPROJECT.ORG`
- - [ ] Run `fedpkg new-sources tarball-name`
+ - [ ] Run `fedpkg new-sources $(spectool -S ignition.spec | sed 's:.*/::')`
  - [ ] PR the changes in [Fedora](https://src.fedoraproject.org/rpms/ignition)
  - [ ] Once the PR merges to rawhide, merge rawhide into the other relevant branches (e.g. f36) then push those, for example:
    ```bash
@@ -68,7 +68,7 @@ RHCOS packaging for the current RHCOS development release:
    - Update changelog
  - [ ] Run `spectool -g -S ignition.spec`
  - [ ] Run `kinit your_account@REDHAT.COM`
- - [ ] Run `rhpkg new-sources tarball-name`
+ - [ ] Run `rhpkg new-sources $(spectool -S ignition.spec | sed 's:.*/::')`
  - [ ] PR the changes
  - [ ] Get the PR reviewed and merge it
  - [ ] Update your local repo and run `rhpkg build`
