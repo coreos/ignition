@@ -48,7 +48,8 @@ install() {
         clevis-luks-common-functions \
         clevis-luks-unlock \
         pwmake \
-        tpm2_create
+        tpm2_create \
+        tpm2_createpolicy
 
     # Required by s390x's z/VM installation.
     # Supporting https://github.com/coreos/ignition/pull/865
