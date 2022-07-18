@@ -32,4 +32,4 @@ After=systemd-udevd.service
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=/run/ignition.env
-ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=disks
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=disks ${IGNITION_ARGS}

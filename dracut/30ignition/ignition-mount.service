@@ -29,5 +29,5 @@ After=ignition-remount-sysroot.service
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=/run/ignition.env
-ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=mount
-ExecStop=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=umount
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=mount ${IGNITION_ARGS}
+ExecStop=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=umount ${IGNITION_ARGS}

@@ -21,4 +21,4 @@ OnFailureJobMode=isolate
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=/run/ignition.env
-ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=fetch-offline
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=fetch-offline ${IGNITION_ARGS}
