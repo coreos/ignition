@@ -196,7 +196,7 @@ golang.org/x/text/unicode/norm
 # golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.86.0
+# google.golang.org/api v0.87.0
 ## explicit
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
