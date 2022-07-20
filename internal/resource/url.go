@@ -282,11 +282,7 @@ func (f *Fetcher) fetchFromTFTP(u url.URL, dest io.Writer, opts FetchOptions) er
 // FetchFromHTTP fetches a resource from u via HTTP(S) into dest, returning an
 // error if one is encountered.
 func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) error {
-	// for the case when "config is not valid"
-	// this if necessary if not spawned through kola (e.g. Packet Dashboard)
 	if f.client == nil {
-		logger := log.New(true)
-		f.Logger = &logger
 		if err := f.newHttpClient(); err != nil {
 			return err
 		}

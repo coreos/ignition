@@ -16,7 +16,7 @@ OnFailureJobMode=isolate
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=/run/ignition.env
-ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=kargs
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=kargs ${IGNITION_ARGS}
 # MountFlags=slave is so the umount of /boot is guaranteed to happen.
 # /boot will only be mounted for the lifetime of the unit.
 MountFlags=slave
