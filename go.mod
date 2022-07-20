@@ -1,6 +1,6 @@
 module github.com/coreos/ignition/v2
 
-go 1.15
+go 1.17
 
 require (
 	cloud.google.com/go/compute v1.7.0
