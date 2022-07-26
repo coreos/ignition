@@ -31,8 +31,8 @@ podman run --pull=always --rm -i quay.io/coreos/ignition-validate:release - < my
 ## Branches
 
 There are two branches:
-- `main`: the actively maintained version of Ignition, supporting config spec 3.x. Used by Fedora CoreOS and by Red Hat CoreOS starting with version 46.82.
-- `spec2x`: the legacy branch of Ignition, supporting config spec 1 and 2.x. Used by older versions of RHEL CoreOS, alongside the `spec2x` branch of ignition-dracut, and by Flatcar Container Linux. This branch is no longer maintained.
+- `main`: the actively maintained version of Ignition, supporting config spec 3.x. Used by Fedora CoreOS, by Red Hat CoreOS starting with version 46.82 and by Flatcar Container Linux.
+- `spec2x`: the legacy branch of Ignition, supporting config spec 1 and 2.x. Used by older versions of RHEL CoreOS, alongside the `spec2x` branch of ignition-dracut. This branch is no longer maintained.
 
 ### Legacy ignition-dracut
 
