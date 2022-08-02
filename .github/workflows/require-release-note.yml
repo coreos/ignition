@@ -1,0 +1,23 @@
+# Maintained in https://github.com/coreos/repo-templates
+# Do not edit downstream.
+
+name: Release notes
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  require-notes:
+    name: Require release note
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require release-notes.md update
+        uses: coreos/actions-lib/require-file-change@main
+        with:
+          path: docs/release-notes.md
+          override-label: skip-notes
