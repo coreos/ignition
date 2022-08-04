@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-note-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   require-notes:
     name: Require release note
