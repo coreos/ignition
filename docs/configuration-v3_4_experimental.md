@@ -114,10 +114,10 @@ The Ignition configuration is a JSON document conforming to the following specif
   * **_links_** (list of objects): the list of links to be created. Every file, directory, and link must have a unique `path`.
     * **path** (string): the absolute path to the link
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. If overwrite is false and a matching link exists at the path, Ignition will only set the owner and group. Defaults to false.
-    * **_user_** (object): specifies the symbolic link's owner.
+    * **_user_** (object): specifies the owner for a symbolic link. Ignored for hard links.
       * **_id_** (integer): the user ID of the owner.
       * **_name_** (string): the user name of the owner.
-    * **_group_** (object): specifies the symbolic link's group.
+    * **_group_** (object): specifies the group for a symbolic link. Ignored for hard links.
       * **_id_** (integer): the group ID of the group.
       * **_name_** (string): the group name of the group.
     * **target** (string): the target path of the link
