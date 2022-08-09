@@ -23,7 +23,6 @@ package qemu
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
@@ -50,7 +49,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	}
 
 	// get size of firmware blob, if it exists
-	sizeBytes, err := ioutil.ReadFile(firmwareConfigSizePath)
+	sizeBytes, err := os.ReadFile(firmwareConfigSizePath)
 	if os.IsNotExist(err) {
 		f.Logger.Info("QEMU firmware config was not found. Ignoring...")
 		return util.ParseConfig(f.Logger, []byte{})
@@ -66,7 +65,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 
 	// Read firmware blob.  We need to make as few, large read() calls as
 	// possible, since the qemu_fw_cfg kernel module takes O(offset)
-	// time for each read syscall.  ioutil.ReadFile() would eventually
+	// time for each read syscall.  os.ReadFile() would eventually
 	// converge on the correct read size (one page) but we can do
 	// better, and without reallocating.
 	// Leave an extra guard byte to check for EOF

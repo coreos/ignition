@@ -15,7 +15,6 @@
 package file
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
@@ -38,7 +37,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	}
 	f.Logger.Info("using config file at %q", filename)
 
-	rawConfig, err := ioutil.ReadFile(filename)
+	rawConfig, err := os.ReadFile(filename)
 	if err != nil {
 		f.Logger.Err("couldn't read config %q: %v", filename, err)
 		return types.Config{}, report.Report{}, err

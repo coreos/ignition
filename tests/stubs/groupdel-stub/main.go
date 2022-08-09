@@ -17,7 +17,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -39,7 +38,7 @@ func main() {
 
 	groupname := flag.Args()[0]
 
-	groupContents, err := ioutil.ReadFile(path.Join(flagRoot, "/etc/group"))
+	groupContents, err := os.ReadFile(path.Join(flagRoot, "/etc/group"))
 	if err != nil {
 		fmt.Printf("couldn't open /etc/group: %v\n", err)
 		os.Exit(1)
@@ -60,7 +59,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	gshadowContents, err := ioutil.ReadFile(path.Join(flagRoot, "/etc/gshadow"))
+	gshadowContents, err := os.ReadFile(path.Join(flagRoot, "/etc/gshadow"))
 	if err != nil {
 		fmt.Printf("couldn't open /etc/gshadow: %v\n", err)
 		os.Exit(1)

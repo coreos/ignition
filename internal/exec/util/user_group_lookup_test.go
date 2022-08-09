@@ -15,7 +15,6 @@
 package util
 
 import (
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -26,7 +25,7 @@ import (
 
 // tempBase() slaps together a minimal /etc/{passwd,group} for the lookup test.
 func tempBase() (string, error) {
-	td, err := ioutil.TempDir("", "ign-usr-lookup-test")
+	td, err := os.MkdirTemp("", "ign-usr-lookup-test")
 	if err != nil {
 		return "", err
 	}
@@ -36,19 +35,19 @@ func tempBase() (string, error) {
 	}
 
 	gp := filepath.Join(td, "etc/group")
-	err = ioutil.WriteFile(gp, []byte("foo:x:4242:\n"), 0644)
+	err = os.WriteFile(gp, []byte("foo:x:4242:\n"), 0644)
 	if err != nil {
 		return "", err
 	}
 
 	pp := filepath.Join(td, "etc/passwd")
-	err = ioutil.WriteFile(pp, []byte("foo:x:44:4242::/home/foo:/bin/false"), 0644)
+	err = os.WriteFile(pp, []byte("foo:x:44:4242::/home/foo:/bin/false"), 0644)
 	if err != nil {
 		return "", err
 	}
 
 	nsp := filepath.Join(td, "etc/nsswitch.conf")
-	err = ioutil.WriteFile(nsp, []byte("passwd: files\ngroup: files\nshadow: files\ngshadow: files\n"), 0644)
+	err = os.WriteFile(nsp, []byte("passwd: files\ngroup: files\nshadow: files\ngshadow: files\n"), 0644)
 	if err != nil {
 		return "", err
 	}

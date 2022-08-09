@@ -17,7 +17,6 @@ package blackbox
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -223,7 +222,7 @@ func validateFile(t *testing.T, partition *types.Partition, file types.File) {
 		return
 	}
 	if file.Contents != "" {
-		dat, err := ioutil.ReadFile(path)
+		dat, err := os.ReadFile(path)
 		if err != nil {
 			t.Error("Error when reading file", path)
 			return

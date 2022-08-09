@@ -22,7 +22,6 @@ package ibmcloud
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -92,7 +91,7 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 	}
 
 	logger.Debug("creating temporary mount point")
-	mnt, err := ioutil.TempDir("", "ignition-configdrive")
+	mnt, err := os.MkdirTemp("", "ignition-configdrive")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
@@ -115,5 +114,5 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 		return nil, nil
 	}
 
-	return ioutil.ReadFile(filepath.Join(mnt, cidataPath))
+	return os.ReadFile(filepath.Join(mnt, cidataPath))
 }

@@ -17,7 +17,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strconv"
@@ -58,7 +57,7 @@ func main() {
 
 	username := flag.Args()[0]
 
-	passwdContents, err := ioutil.ReadFile(path.Join(flagRoot, "/etc/passwd"))
+	passwdContents, err := os.ReadFile(path.Join(flagRoot, "/etc/passwd"))
 	if err != nil {
 		fmt.Printf("couldn't open /etc/passwd: %v\n", err)
 		os.Exit(1)

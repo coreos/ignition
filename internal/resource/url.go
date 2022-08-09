@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -528,7 +527,7 @@ func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest s3target, input
 func (f *Fetcher) uncompress(r io.Reader, opts FetchOptions) (io.ReadCloser, error) {
 	switch opts.Compression {
 	case "":
-		return ioutil.NopCloser(r), nil
+		return io.NopCloser(r), nil
 	case "gzip":
 		return gzip.NewReader(r)
 	default:

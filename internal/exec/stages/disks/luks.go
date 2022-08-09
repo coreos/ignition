@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"os/exec"
@@ -115,7 +114,7 @@ func (s *stage) createLuks(config types.Config) error {
 		// so that it can be removed
 		var ignitionCreatedKeyFile bool
 		// create keyfile, remove on the way out
-		keyFile, err := ioutil.TempFile("", "ignition-luks-")
+		keyFile, err := os.CreateTemp("", "ignition-luks-")
 		if err != nil {
 			return fmt.Errorf("creating keyfile: %w", err)
 		}
@@ -129,7 +128,7 @@ func (s *stage) createLuks(config types.Config) error {
 			if err != nil {
 				return fmt.Errorf("generating keyfile: %v", err)
 			}
-			if err := ioutil.WriteFile(keyFilePath, []byte(key), 0400); err != nil {
+			if err := os.WriteFile(keyFilePath, []byte(key), 0400); err != nil {
 				return fmt.Errorf("creating keyfile: %v", err)
 			}
 			ignitionCreatedKeyFile = true
@@ -158,7 +157,7 @@ func (s *stage) createLuks(config types.Config) error {
 		}
 		// store the key to be persisted into the real root
 		// do this here so device reuse works correctly
-		key, err := ioutil.ReadFile(keyFilePath)
+		key, err := os.ReadFile(keyFilePath)
 		if err != nil {
 			return fmt.Errorf("failed to read keyfile %q: %w", keyFilePath, err)
 		}

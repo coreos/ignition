@@ -20,7 +20,6 @@ package kubevirt
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -63,7 +62,7 @@ func fetchConfigFromDevice(logger *log.Logger, path string) ([]byte, error) {
 	}
 
 	logger.Debug("creating temporary mount point")
-	mnt, err := ioutil.TempDir("", "ignition-configdrive")
+	mnt, err := os.MkdirTemp("", "ignition-configdrive")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
@@ -87,5 +86,5 @@ func fetchConfigFromDevice(logger *log.Logger, path string) ([]byte, error) {
 		return nil, nil
 	}
 
-	return ioutil.ReadFile(mntConfigDriveUserdataPath)
+	return os.ReadFile(mntConfigDriveUserdataPath)
 }

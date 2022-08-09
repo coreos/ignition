@@ -17,7 +17,6 @@ package state
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -45,7 +44,7 @@ type FetchedConfig struct {
 }
 
 func Load(path string) (State, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
 		// valid; return empty struct
 		return State{}, nil
@@ -68,7 +67,7 @@ func (s *State) Save(path string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return fmt.Errorf("creating directory for state file: %w", err)
 	}
-	if err := ioutil.WriteFile(path, data, 0600); err != nil {
+	if err := os.WriteFile(path, data, 0600); err != nil {
 		return fmt.Errorf("writing state file: %w", err)
 	}
 	return nil

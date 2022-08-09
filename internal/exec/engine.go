@@ -17,7 +17,6 @@ package exec
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -198,7 +197,7 @@ func (e *Engine) acquireConfig(stageName string) (cfg types.Config, err error) {
 // available
 func (e *Engine) acquireCachedConfig() (cfg types.Config, err error) {
 	var b []byte
-	b, err = ioutil.ReadFile(e.ConfigCache)
+	b, err = os.ReadFile(e.ConfigCache)
 	if err != nil {
 		return
 	}

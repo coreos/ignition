@@ -16,7 +16,7 @@ package sgdisk
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os/exec"
 
 	"github.com/coreos/ignition/v2/config/util"
@@ -93,12 +93,12 @@ func (op *Operation) Pretend() (string, error) {
 	if err := cmd.Start(); err != nil {
 		return "", err
 	}
-	output, err := ioutil.ReadAll(stdout)
+	output, err := io.ReadAll(stdout)
 	if err != nil {
 		return "", err
 	}
 
-	errors, err := ioutil.ReadAll(stderr)
+	errors, err := io.ReadAll(stderr)
 	if err != nil {
 		return "", err
 	}

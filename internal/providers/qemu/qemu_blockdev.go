@@ -23,7 +23,7 @@ package qemu
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/exec"
 	"time"
@@ -64,7 +64,7 @@ func fetchConfigFromBlockDevice(logger *log.Logger) ([]byte, error) {
 	go func() {
 		var err error
 		for {
-			if data, err = ioutil.ReadFile(ignitionBlockDevicePath); err != nil {
+			if data, err = os.ReadFile(ignitionBlockDevicePath); err != nil {
 				if !os.IsNotExist(err) {
 					break
 				}
