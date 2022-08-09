@@ -73,8 +73,8 @@ func (op *Operation) WipeTable(wipe bool) {
 // on stdout for parsing.
 //
 // Note: because sgdisk does not do any escaping on its output, callers should ensure
-//       the partitions' labels do not have any nasty characters that will interfere
-//       with parsing (e.g. \n)
+// the partitions' labels do not have any nasty characters that will interfere
+// with parsing (e.g. \n)
 func (op *Operation) Pretend() (string, error) {
 	opts := []string{"--pretend"}
 	opts = append(opts, op.buildOptions()...)
