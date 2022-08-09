@@ -39,6 +39,7 @@ var (
 	ErrLinkUsedSymlink           = errors.New("link path includes link in config")
 	ErrLinkTargetRequired        = errors.New("link target is required")
 	ErrHardLinkToDirectory       = errors.New("hard link target is a directory")
+	ErrHardLinkSpecifiesOwner    = errors.New("user/group ignored for hard link")
 	ErrDiskDeviceRequired        = errors.New("disk device is required")
 	ErrPartitionNumbersCollide   = errors.New("partition numbers collide")
 	ErrPartitionsOverlap         = errors.New("partitions overlap")

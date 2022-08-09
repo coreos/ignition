@@ -70,6 +70,15 @@ func (s Storage) Validate(c vpath.ContextPath) (r report.Report) {
 				r.AddOnError(c.Append("links", i), errors.ErrHardLinkToDirectory)
 			}
 		}
+		ownerCheck := func(ok bool, path vpath.ContextPath) {
+			if !ok {
+				r.AddOnWarn(path, errors.ErrHardLinkSpecifiesOwner)
+			}
+		}
+		ownerCheck(l1.User.ID == nil, c.Append("links", i, "user", "id"))
+		ownerCheck(l1.User.Name == nil, c.Append("links", i, "user", "name"))
+		ownerCheck(l1.Group.ID == nil, c.Append("links", i, "group", "id"))
+		ownerCheck(l1.Group.Name == nil, c.Append("links", i, "group", "name"))
 	}
 	return
 }

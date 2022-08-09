@@ -16,6 +16,7 @@ nav_order: 9
 ### Changes
 
 - Warn if template for enabled systemd instance unit has no `Install` section
+- Warn if `user`/`group` specified for hard link
 - Install ignition-apply in `/usr/libexec`
 - Convert `NEWS` to Markdown and move to docs site
 
