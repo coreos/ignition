@@ -17,7 +17,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -168,10 +168,10 @@ func ignitionApplyMain() {
 	var blob []byte
 	var err error
 	if cfgArg == "-" {
-		blob, err = ioutil.ReadAll(os.Stdin)
+		blob, err = io.ReadAll(os.Stdin)
 	} else {
 		// XXX: could in the future support fetching directly from HTTP(S) + `-checksum|-insecure` ?
-		blob, err = ioutil.ReadFile(cfgArg)
+		blob, err = os.ReadFile(cfgArg)
 	}
 	if err != nil {
 		logger.Crit("couldn't read config: %v", err)

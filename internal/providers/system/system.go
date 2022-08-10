@@ -15,7 +15,6 @@
 package system
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -60,7 +59,7 @@ func fetchConfig(logger *log.Logger, filename string) (types.Config, report.Repo
 	path := filepath.Join(distro.SystemConfigDir(), filename)
 	logger.Info("reading system config file %q", path)
 
-	rawConfig, err := ioutil.ReadFile(path)
+	rawConfig, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
 		logger.Info("no config at %q", path)
 		return types.Config{}, report.Report{}, providers.ErrNoProvider
@@ -76,7 +75,7 @@ func fetchBaseDirectoryConfig(logger *log.Logger, dir string) (types.Config, rep
 	var baseConfig types.Config
 	var report report.Report
 	path := filepath.Join(distro.SystemConfigDir(), dir)
-	configs, err := ioutil.ReadDir(path)
+	configs, err := os.ReadDir(path)
 	if os.IsNotExist(err) {
 		logger.Info("no config dir at %q", path)
 		return types.Config{}, report, nil

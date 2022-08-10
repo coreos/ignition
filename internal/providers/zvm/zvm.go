@@ -20,7 +20,7 @@ package zvm
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -75,7 +75,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 				return types.Config{}, report.Report{}, err
 			}
 			f.Logger.Info("using config file at %q", file)
-			rawConfig, err := ioutil.ReadFile(file)
+			rawConfig, err := os.ReadFile(file)
 			if err != nil {
 				f.Logger.Err("Couldn't read config from configFile %q: %v", file, err)
 				break

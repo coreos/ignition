@@ -17,7 +17,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 
@@ -69,9 +69,9 @@ func runIgnValidate(args []string) {
 	var blob []byte
 	var err error
 	if args[0] == "-" {
-		blob, err = ioutil.ReadAll(os.Stdin)
+		blob, err = io.ReadAll(os.Stdin)
 	} else {
-		blob, err = ioutil.ReadFile(args[0])
+		blob, err = os.ReadFile(args[0])
 	}
 	if err != nil {
 		die("couldn't read config: %v", err)

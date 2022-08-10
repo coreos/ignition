@@ -17,7 +17,7 @@ package security
 import (
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -34,7 +34,7 @@ func init() {
 	}
 	config := &tls.Config{Certificates: []tls.Certificate{cer}}
 	customCAServer.TLS = config
-	customCAServer.Config.ErrorLog = log.New(ioutil.Discard, "", 0)
+	customCAServer.Config.ErrorLog = log.New(io.Discard, "", 0)
 	customCAServer.StartTLS()
 
 	cer2, err := tls.X509KeyPair(fixtures.PublicKey2, fixtures.PrivateKey2)
@@ -43,7 +43,7 @@ func init() {
 	}
 	config2 := &tls.Config{Certificates: []tls.Certificate{cer2}}
 	customCAServer2.TLS = config2
-	customCAServer2.Config.ErrorLog = log.New(ioutil.Discard, "", 0)
+	customCAServer2.Config.ErrorLog = log.New(io.Discard, "", 0)
 	customCAServer2.StartTLS()
 
 	register.Register(register.NegativeTest, AppendConfigCustomCert())

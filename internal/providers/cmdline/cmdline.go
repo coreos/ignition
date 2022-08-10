@@ -18,8 +18,8 @@
 package cmdline
 
 import (
-	"io/ioutil"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
@@ -55,7 +55,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 }
 
 func readCmdline(logger *log.Logger) (*url.URL, error) {
-	args, err := ioutil.ReadFile(distro.KernelCmdlinePath())
+	args, err := os.ReadFile(distro.KernelCmdlinePath())
 	if err != nil {
 		logger.Err("couldn't read cmdline: %v", err)
 		return nil, err

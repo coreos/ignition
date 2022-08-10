@@ -19,7 +19,6 @@ package azure
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -166,7 +165,7 @@ func FetchFromOvfDevice(f *resource.Fetcher, ovfFsTypes []string) (types.Config,
 // getRawConfig returns the config by mounting the given block device
 func getRawConfig(f *resource.Fetcher, devicePath string, fstype string) ([]byte, error) {
 	logger := f.Logger
-	mnt, err := ioutil.TempDir("", "ignition-azure")
+	mnt, err := os.MkdirTemp("", "ignition-azure")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
@@ -193,7 +192,7 @@ func getRawConfig(f *resource.Fetcher, devicePath string, fstype string) ([]byte
 	}
 
 	logger.Debug("reading config")
-	rawConfig, err := ioutil.ReadFile(filepath.Join(mnt, configPath))
+	rawConfig, err := os.ReadFile(filepath.Join(mnt, configPath))
 	if err != nil && !os.IsNotExist(err) {
 		return nil, fmt.Errorf("failed to read config from device %q: %v", devicePath, err)
 	}

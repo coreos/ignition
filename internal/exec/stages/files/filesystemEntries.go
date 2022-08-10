@@ -17,7 +17,6 @@ package files
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -147,7 +146,7 @@ func (s *stage) createResultFile() error {
 	if err != nil {
 		return fmt.Errorf("building previous result file path: %w", err)
 	}
-	prevData, err := ioutil.ReadFile(prevPath)
+	prevData, err := os.ReadFile(prevPath)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("reading previous report: %w", err)
 	}
@@ -165,7 +164,7 @@ func (s *stage) createResultFile() error {
 		}
 	}
 
-	bootIDBytes, err := ioutil.ReadFile(distro.BootIDPath())
+	bootIDBytes, err := os.ReadFile(distro.BootIDPath())
 	if err != nil {
 		return fmt.Errorf("reading boot ID: %w", err)
 	}

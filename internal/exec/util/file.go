@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -196,13 +195,13 @@ func (u Util) PerformFetch(f FetchOp) error {
 	}
 
 	// Create a temporary file in the same directory to ensure it's on the same filesystem
-	tmp, err := ioutil.TempFile(filepath.Dir(path), "tmp")
+	tmp, err := os.CreateTemp(filepath.Dir(path), "tmp")
 	if err != nil {
 		return err
 	}
 	defer tmp.Close()
 
-	// ioutil.TempFile defaults to 0600
+	// os.CreateTemp defaults to 0600
 	if err := tmp.Chmod(DefaultFilePermissions); err != nil {
 		return err
 	}

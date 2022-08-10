@@ -20,7 +20,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -70,7 +69,7 @@ func main() {
 			return nil
 		}
 
-		fileContents, err := ioutil.ReadFile(path)
+		fileContents, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}

@@ -18,7 +18,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -128,7 +127,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	ctx, cancelFunc := context.WithDeadline(killContext, time.Now().Add(testTimeout))
 	defer cancelFunc()
 
-	tmpDirectory, err := ioutil.TempDir("/var/tmp", "ignition-blackbox-")
+	tmpDirectory, err := os.MkdirTemp("/var/tmp", "ignition-blackbox-")
 	if err != nil {
 		return fmt.Errorf("failed to create a temp dir: %v", err)
 	}
@@ -270,7 +269,7 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	}
 
 	// Ignition config
-	if err := ioutil.WriteFile(filepath.Join(tmpDirectory, "config.ign"), []byte(test.Config), 0666); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDirectory, "config.ign"), []byte(test.Config), 0666); err != nil {
 		return fmt.Errorf("error writing config: %v", err)
 	}
 

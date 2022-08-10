@@ -17,7 +17,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strconv"
@@ -164,7 +163,7 @@ func main() {
 func getNextUidAndGid() (int, error) {
 	idMap := make(map[int]struct{})
 
-	passwdContents, err := ioutil.ReadFile(path.Join(flagRoot, "/etc/passwd"))
+	passwdContents, err := os.ReadFile(path.Join(flagRoot, "/etc/passwd"))
 	if err != nil {
 		return -1, err
 	}
@@ -188,7 +187,7 @@ func getNextUidAndGid() (int, error) {
 		idMap[int(gid)] = struct{}{}
 	}
 
-	groupContents, err := ioutil.ReadFile(path.Join(flagRoot, "/etc/group"))
+	groupContents, err := os.ReadFile(path.Join(flagRoot, "/etc/group"))
 	if err != nil {
 		return -1, err
 	}
