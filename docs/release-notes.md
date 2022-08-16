@@ -16,13 +16,15 @@ nav_order: 9
 ### Changes
 
 - Warn if template for enabled systemd instance unit has no `Install` section
+- Warn if `user`/`group` specified for hard link
 - Install ignition-apply in `/usr/libexec`
 - Convert `NEWS` to Markdown and move to docs site
 
 ### Bug fixes
 
 - Fix reproducibility of systemd preset file in ignition-apply output
-
+- Clarify spec docs for `files`/`directories`/`links` `group` fields
+- Document that `user`/`group` fields aren't applied to hard links
 
 
 ## Ignition 2.14.0 (12-May-2022)

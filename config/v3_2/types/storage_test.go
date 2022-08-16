@@ -27,13 +27,13 @@ import (
 
 func TestStorageValidate(t *testing.T) {
 	tests := []struct {
-		in  Storage
-		at  path.ContextPath
-		out error
+		in   Storage
+		at   path.ContextPath
+		err  error
+		warn error
 	}{
 		{
-			in:  Storage{},
-			out: nil,
+			in: Storage{},
 		},
 		{
 			in: Storage{
@@ -56,7 +56,6 @@ func TestStorageValidate(t *testing.T) {
 					},
 				},
 			},
-			out: nil,
 		},
 		{
 			in: Storage{
@@ -71,7 +70,7 @@ func TestStorageValidate(t *testing.T) {
 					},
 				},
 			},
-			out: errors.ErrFileUsedSymlink,
+			err: errors.ErrFileUsedSymlink,
 			at:  path.New("", "files", 0),
 		},
 		{
@@ -87,7 +86,7 @@ func TestStorageValidate(t *testing.T) {
 					},
 				},
 			},
-			out: errors.ErrDirectoryUsedSymlink,
+			err: errors.ErrDirectoryUsedSymlink,
 			at:  path.New("", "directories", 0),
 		},
 		{
@@ -101,7 +100,7 @@ func TestStorageValidate(t *testing.T) {
 					},
 				},
 			},
-			out: errors.ErrLinkUsedSymlink,
+			err: errors.ErrLinkUsedSymlink,
 			at:  path.New("", "links", 1),
 		},
 		{
@@ -115,7 +114,6 @@ func TestStorageValidate(t *testing.T) {
 					},
 				},
 			},
-			out: nil,
 		},
 		{
 			in: Storage{
@@ -134,15 +132,96 @@ func TestStorageValidate(t *testing.T) {
 					},
 				},
 			},
-			out: errors.ErrHardLinkToDirectory,
+			err: errors.ErrHardLinkToDirectory,
 			at:  path.New("", "links", 0),
+		},
+		{
+			in: Storage{
+				Links: []Link{
+					{
+						Node: Node{
+							Path: "/quux",
+							User: NodeUser{
+								ID: util.IntToPtr(10),
+							},
+						},
+						LinkEmbedded1: LinkEmbedded1{
+							Target: "/foo/bar",
+							Hard:   util.BoolToPtr(true),
+						},
+					},
+				},
+			},
+			warn: errors.ErrHardLinkSpecifiesOwner,
+			at:   path.New("", "links", 0, "user", "id"),
+		},
+		{
+			in: Storage{
+				Links: []Link{
+					{
+						Node: Node{
+							Path: "/quux",
+							User: NodeUser{
+								Name: util.StrToPtr("bovik"),
+							},
+						},
+						LinkEmbedded1: LinkEmbedded1{
+							Target: "/foo/bar",
+							Hard:   util.BoolToPtr(true),
+						},
+					},
+				},
+			},
+			warn: errors.ErrHardLinkSpecifiesOwner,
+			at:   path.New("", "links", 0, "user", "name"),
+		},
+		{
+			in: Storage{
+				Links: []Link{
+					{
+						Node: Node{
+							Path: "/quux",
+							Group: NodeGroup{
+								ID: util.IntToPtr(10),
+							},
+						},
+						LinkEmbedded1: LinkEmbedded1{
+							Target: "/foo/bar",
+							Hard:   util.BoolToPtr(true),
+						},
+					},
+				},
+			},
+			warn: errors.ErrHardLinkSpecifiesOwner,
+			at:   path.New("", "links", 0, "group", "id"),
+		},
+		{
+			in: Storage{
+				Links: []Link{
+					{
+						Node: Node{
+							Path: "/quux",
+							Group: NodeGroup{
+								Name: util.StrToPtr("bovik"),
+							},
+						},
+						LinkEmbedded1: LinkEmbedded1{
+							Target: "/foo/bar",
+							Hard:   util.BoolToPtr(true),
+						},
+					},
+				},
+			},
+			warn: errors.ErrHardLinkSpecifiesOwner,
+			at:   path.New("", "links", 0, "group", "name"),
 		},
 	}
 
 	for i, test := range tests {
 		r := test.in.Validate(path.ContextPath{})
 		expected := report.Report{}
-		expected.AddOnError(test.at, test.out)
+		expected.AddOnError(test.at, test.err)
+		expected.AddOnWarn(test.at, test.warn)
 		if !reflect.DeepEqual(expected, r) {
 			t.Errorf("#%d: bad report: want %v, got %v", i, expected, r)
 		}
