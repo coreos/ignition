@@ -46,8 +46,8 @@ Fedora packaging:
 
 GitHub release:
  - [ ] Wait until the Bodhi update shows "Signed :heavy_check_mark:" in the Metadata box.
- - [ ] Verify that the signing script can fetch the release binaries by running `bash signing-ticket.sh test <x.y.z-r> <output-dir>`, where `r` is the Release of the Fedora package without the dist tag (probably `1`)
- - [ ] Run `bash signing-ticket.sh ticket <x.y.z-r>` and paste the output into a [releng ticket](https://pagure.io/releng/new_issue).
+ - [ ] Verify that the signing script can fetch the release binaries by running `./signing-ticket.sh test <x.y.z-r> <output-dir>`, where `r` is the Release of the Fedora package without the dist tag (probably `1`)
+ - [ ] Run `./signing-ticket.sh ticket <x.y.z-r>` and paste the output into a [releng ticket](https://pagure.io/releng/new_issue).
  - [ ] Wait for the ticket to be closed
  - [ ] Download the artifacts and signatures
  - [ ] Verify the signatures
