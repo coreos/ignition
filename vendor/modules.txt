@@ -1,5 +1,5 @@
-# cloud.google.com/go v0.102.1
-## explicit; go 1.15
+# cloud.google.com/go v0.104.0
+## explicit; go 1.17
 cloud.google.com/go
 cloud.google.com/go/internal
 cloud.google.com/go/internal/optional
@@ -11,7 +11,7 @@ cloud.google.com/go/compute/metadata
 # cloud.google.com/go/iam v0.3.0
 ## explicit; go 1.15
 cloud.google.com/go/iam
-# cloud.google.com/go/storage v1.26.0
+# cloud.google.com/go/storage v1.27.0
 ## explicit; go 1.17
 cloud.google.com/go/storage
 cloud.google.com/go/storage/internal
@@ -126,8 +126,8 @@ github.com/google/uuid
 ## explicit; go 1.18
 github.com/googleapis/enterprise-certificate-proxy/client
 github.com/googleapis/enterprise-certificate-proxy/client/util
-# github.com/googleapis/gax-go/v2 v2.4.0
-## explicit; go 1.15
+# github.com/googleapis/gax-go/v2 v2.5.1
+## explicit; go 1.18
 github.com/googleapis/gax-go/v2
 github.com/googleapis/gax-go/v2/apierror
 github.com/googleapis/gax-go/v2/apierror/internal/proto
@@ -211,7 +211,7 @@ golang.org/x/text/unicode/norm
 ## explicit; go 1.17
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.96.0
+# google.golang.org/api v0.97.0
 ## explicit; go 1.15
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
@@ -244,7 +244,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220915135415-7fd63a7952de
+# google.golang.org/genproto v0.0.0-20220920201722-2b89144ce006
 ## explicit; go 1.19
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
@@ -254,8 +254,8 @@ google.golang.org/genproto/googleapis/rpc/status
 google.golang.org/genproto/googleapis/type/date
 google.golang.org/genproto/googleapis/type/expr
 google.golang.org/genproto/protobuf/field_mask
-# google.golang.org/grpc v1.48.0
-## explicit; go 1.14
+# google.golang.org/grpc v1.49.0
+## explicit; go 1.17
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
