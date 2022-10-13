@@ -31,13 +31,13 @@ cosaPod {
     checkout scm
 
     unstash name: 'build'
-    fcosBuild(skipKola: true, overlays: ["install"])
+    cosaBuild(skipKola: true, overlays: ["install"])
 
     // This is a temporary hack we use during spec stabilization to work around
     // external tests which use experimental versions. It should be commented
     // out in normal times.
-    //if (shwrapRc("grep -nr 3.3.0-experimental /srv/fcos/src/config/tests/kola") == 0) {
-    //    shwrap("find /srv/fcos/src/config/tests/kola -type f -exec sed -i 's/3.3.0-experimental/3.3.0/' {} \\;")
+    //if (shwrapRc("grep -nr 3.3.0-experimental /srv/coreos/src/config/tests/kola") == 0) {
+    //    shwrap("find /srv/coreos/src/config/tests/kola -type f -exec sed -i 's/3.3.0-experimental/3.3.0/' {} \\;")
     //} else {
     //    throw new Exception("No 3.3.0-experimental external tests found; comment out this workaround.")
     //}
@@ -45,18 +45,18 @@ cosaPod {
     // we run the blackbox tests separately instead of as part of the main kola
     // run since it's a distinct kind of test and we want to draw more
     // attention to it in the Jenkins UI
-    fcosKola(extraArgs: "--denylist-test ext.*.blackbox")
+    kola(extraArgs: "--denylist-test ext.*.blackbox")
 
     parallel blackbox: {
         unstash name: 'blackbox'
-        fcosKola(extraArgs: "ext.*.blackbox", skipUpgrade: true)
+        kola(extraArgs: "ext.*.blackbox", skipUpgrade: true)
     }, testiso: {
         shwrap("""
-            cd /srv/fcos
+            cd /srv/coreos
             cosa buildextend-metal
             cosa buildextend-metal4k
             cosa buildextend-live --fast
         """)
-        fcosKolaTestIso(cosaDir: "/srv/fcos")
+        kolaTestIso()
     }
 }
