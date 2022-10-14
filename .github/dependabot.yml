@@ -6,5 +6,5 @@ updates:
     interval: weekly
   open-pull-requests-limit: 10
   labels:
-  - dependency
   - skip-notes
+  - dependency
