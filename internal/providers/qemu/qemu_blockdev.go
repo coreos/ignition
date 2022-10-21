@@ -23,7 +23,6 @@ package qemu
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"time"
