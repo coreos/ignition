@@ -3,7 +3,7 @@ module github.com/coreos/ignition/v2
 go 1.17
 
 require (
-	cloud.google.com/go/compute v1.10.0
+	cloud.google.com/go/compute/metadata v0.1.0
 	cloud.google.com/go/storage v1.27.0
 	github.com/aws/aws-sdk-go v1.44.126
 	github.com/beevik/etree v1.1.1-0.20200718192613-4a2f8b9d084c
@@ -25,6 +25,7 @@ require (
 
 require (
 	cloud.google.com/go v0.104.0 // indirect
+	cloud.google.com/go/compute v1.12.1 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
 	github.com/coreos/go-json v0.0.0-20220810161552-7cce03887f34 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -40,7 +41,7 @@ require (
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20221018160656-63c7b68cfc55 // indirect
+	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e // indirect
 	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
