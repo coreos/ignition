@@ -1,14 +1,17 @@
 # Maintained in https://github.com/coreos/repo-templates
 # Do not edit downstream.
 
-name: Container
+name: Rebuild release container
 
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      git-tag:
+        description: Existing Git tag
+        default: vX.Y.Z
+      docker-tag:
+        description: New Docker versioned tag
+        default: vX.Y.Z-1
 
 permissions:
   contents: read
@@ -25,6 +28,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
         with:
+          ref: ${{ github.event.inputs.git-tag }}
           # fetch tags so the compiled-in version number is useful
           fetch-depth: 0
       - name: Build and push container
@@ -34,5 +38,4 @@ jobs:
           file: Dockerfile.validate
           push: quay.io/coreos/ignition-validate
           arches: amd64 arm64
-          # Speed up PR CI by skipping non-amd64
-          pr-arches: amd64
+          tags: ${{ github.event.inputs.docker-tag }} release
