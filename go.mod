@@ -5,7 +5,7 @@ go 1.17
 require (
 	cloud.google.com/go/compute/metadata v0.1.0
 	cloud.google.com/go/storage v1.27.0
-	github.com/aws/aws-sdk-go v1.44.126
+	github.com/aws/aws-sdk-go v1.44.131
 	github.com/beevik/etree v1.1.1-0.20200718192613-4a2f8b9d084c
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/go-systemd/v22 v22.4.0
@@ -17,9 +17,9 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/vmware/vmw-guestinfo v0.0.0-20220317130741-510905f0efa3
-	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b
+	golang.org/x/net v0.1.0
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
-	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10
+	golang.org/x/sys v0.1.0
 	google.golang.org/api v0.101.0
 )
 
