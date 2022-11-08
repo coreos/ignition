@@ -27,6 +27,7 @@ nav_order: 9
 - Fix reproducibility of systemd preset file in ignition-apply output
 - Clarify spec docs for `files`/`directories`/`links` `group` fields
 - Document that `user`/`group` fields aren't applied to hard links
+- Fix version string in ignition-validate release container
 
 
 ## Ignition 2.14.0 (12-May-2022)
