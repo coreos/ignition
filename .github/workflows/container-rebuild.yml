@@ -31,6 +31,12 @@ jobs:
           ref: ${{ github.event.inputs.git-tag }}
           # fetch tags so the compiled-in version number is useful
           fetch-depth: 0
+      # If we're running on a signed tag, actions/checkout rewrites it into
+      # a lightweight tag (!!!) which "git describe" then ignores.  Rewrite
+      # it back.
+      # https://github.com/actions/checkout/issues/290
+      - name: Fix actions/checkout synthetic tag
+        run: git fetch --tags --force
       - name: Build and push container
         uses: coreos/actions-lib/build-container@main
         with:
