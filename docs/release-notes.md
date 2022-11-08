@@ -21,6 +21,7 @@ nav_order: 9
 - Warn if `user`/`group` specified for hard link
 - Install ignition-apply in `/usr/libexec`
 - Convert `NEWS` to Markdown and move to docs site
+- Fail if files/links/dirs conflict with systemd units or dropins
 
 ### Bug fixes
 
