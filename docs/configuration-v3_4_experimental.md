@@ -111,6 +111,15 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_group_** (object): specifies the directory's group.
       * **_id_** (integer): the group ID of the group.
       * **_name_** (string): the group name of the group.
+    * **_contents_** (object): options related to the contents of the directory. If specified, `overwrite` must be `true`. Directories populated from an archive own all files under it. This means that specifying files, directories, and links under the path of this directory always result in a conflict error during config validation.
+      * **archive** (string): format of the archive to extract into the directory. Must be `tar`. If `tar` is specified, the source must be a USTAR, PAX, or GNU tarball. Only regular files, directories, and links (both hard links and symlinks) are extracted, other file types are ignored and emit a warning. Note that for `tar` archives, sparse files are not supported and processing an archive with one will result in an error.
+      * **_compression_** (string): the type of compression used on the archive (null or gzip). Compression cannot be used with S3.
+      * **_source_** (string): the URL of the archive to extract. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a directory already exists at the path, Ignition will do nothing. If source is omitted and no directory exists, an empty directory will be created.
+      * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
+        * **name** (string): the header name.
+        * **_value_** (string): the header contents.
+      * **_verification_** (object): options related to the verification of the archive file.
+        * **_hash_** (string): the hash of the archive file, in the form `<type>-<value>` where type is either `sha512` or `sha256`.
   * **_links_** (list of objects): the list of links to be created. Every file, directory, and link must have a unique `path`.
     * **path** (string): the absolute path to the link
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. If overwrite is false and a matching link exists at the path, Ignition will only set the owner and group. Defaults to false.

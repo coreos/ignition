@@ -40,6 +40,21 @@
         }
       }
     },
+    "archiveResource": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/resource"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "archive": {
+              "type": ["string", "null"]
+            }
+          }
+        }
+      ]
+    },
     "verification": {
       "type": "object",
       "properties": {
@@ -394,6 +409,9 @@
               "properties": {
                 "mode": {
                   "type": ["integer", "null"]
+                },
+                "contents": {
+                  "$ref": "#/definitions/archiveResource"
                 }
               }
             }

@@ -84,6 +84,9 @@ var (
 	ErrInvalidProxy              = errors.New("proxies must be http(s)")
 	ErrInsecureProxy             = errors.New("insecure plaintext HTTP proxy specified for HTTPS resources")
 	ErrPathConflictsSystemd      = errors.New("path conflicts with systemd unit or dropin")
+	ErrUnsupportedArchiveType    = errors.New("unsupported archive type")
+	ErrArchiveTypeRequired       = errors.New("archive type is required")
+	ErrOverwriteMustBeTrue       = errors.New("overwrite must be true when specifying directory contents")
 
 	// Systemd section errors
 	ErrInvalidSystemdExt       = errors.New("invalid systemd unit extension")

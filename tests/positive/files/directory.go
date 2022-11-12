@@ -15,6 +15,19 @@
 package files
 
 import (
+	"archive/tar"
+	"compress/gzip"
+	"encoding/base64"
+	"fmt"
+	"io"
+	"os"
+	"os/user"
+	"path/filepath"
+	"strconv"
+	"strings"
+
+	"golang.org/x/sys/unix"
+
 	"github.com/coreos/ignition/v2/tests/register"
 	"github.com/coreos/ignition/v2/tests/types"
 )
@@ -26,6 +39,7 @@ func init() {
 	register.Register(register.PositiveTest, DirCreationOverNonemptyDir())
 	register.Register(register.PositiveTest, CheckOrdering())
 	register.Register(register.PositiveTest, ApplyDefaultDirectoryPermissions())
+	register.Register(register.PositiveTest, CreateDirectoryFromTAR())
 }
 
 func CreateDirectoryOnRoot() types.Test {
@@ -270,6 +284,213 @@ func ApplyDefaultDirectoryPermissions() types.Test {
 		},
 	})
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateDirectoryFromTAR() types.Test {
+	name := "directories.tar"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+
+	handleErr := func(err error) {
+		if err != nil {
+			panic(fmt.Sprintf("error generating test archive: %v", err))
+		}
+	}
+
+	type filespec struct {
+		tar.Header
+		Contents string
+	}
+
+	usr, err := user.Lookup("bin")
+	handleErr(err)
+	binUID, err := strconv.Atoi(usr.Uid)
+	handleErr(err)
+
+	grp, err := user.Lookup("daemon")
+	handleErr(err)
+	daemonGID, err := strconv.Atoi(grp.Gid)
+	handleErr(err)
+
+	files := []filespec{
+		{
+			Header: tar.Header{
+				Typeflag: tar.TypeReg,
+				Name:     "reg",
+			},
+			Contents: "Hello, world\n",
+		},
+		{
+			Header: tar.Header{
+				Typeflag: tar.TypeDir,
+				Name:     "dir",
+			},
+		},
+		{
+			Header: tar.Header{
+				Typeflag: tar.TypeSymlink,
+				Name:     "symlink",
+				Linkname: "reg",
+			},
+		},
+		{
+			Header: tar.Header{
+				Typeflag: tar.TypeSymlink,
+				Name:     "dir/symlink",
+				Linkname: "../reg",
+			},
+		},
+		{
+			Header: tar.Header{
+				Typeflag: tar.TypeLink,
+				Name:     "link",
+				Linkname: "/reg",
+			},
+		},
+		{
+			// Verify that hard link resolution is done relative to target
+			Header: tar.Header{
+				Typeflag: tar.TypeLink,
+				Name:     "dir/link",
+				Linkname: "../reg",
+			},
+		},
+		{
+			Header: tar.Header{
+				Typeflag: tar.TypeReg,
+				Name:     "xattrs",
+				Xattrs: map[string]string{
+					"security.capability": "\x00\x00\x00\x02\xc2\x10\x2c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", // some permitted-only capabilities
+					"user.foo":            "bar",
+				},
+			},
+		},
+		{
+			Header: tar.Header{
+				Typeflag: tar.TypeReg,
+				Name:     "uidgid",
+				Uid:      1,
+				Gid:      2,
+			},
+		},
+		{
+			Header: tar.Header{
+				Typeflag: tar.TypeReg,
+				Name:     "usergroup",
+				Uname:    "bin",
+				Gname:    "daemon",
+				Uid:      binUID,
+				Gid:      daemonGID,
+			},
+		},
+		{
+			Header: tar.Header{
+				Typeflag: tar.TypeReg,
+				Name:     "mode",
+				Mode:     01234,
+			},
+		},
+	}
+
+	var archive strings.Builder
+
+	enc := base64.NewEncoder(base64.StdEncoding, &archive)
+	gz := gzip.NewWriter(enc)
+	ar := tar.NewWriter(gz)
+
+	for _, file := range files {
+		node := types.Node{
+			Name:      filepath.Base(file.Name),
+			Directory: filepath.Join("dir", filepath.Dir(file.Name)),
+			User:      file.Uid,
+			Group:     file.Gid,
+		}
+
+		switch file.Typeflag {
+		case tar.TypeReg:
+			if file.Size == 0 {
+				file.Size = int64(len(file.Contents))
+			}
+
+			// types.File.Mode is actually an os.FileMode more than a file mode
+			// as defined by stat, so we have to convert between the upper bits
+			// and the portable Go definitions of setuid/setgid/sticky.
+			mode := os.FileMode(file.Mode & 0777)
+			if file.Mode&unix.S_ISUID != 0 {
+				mode |= os.ModeSetuid
+			}
+			if file.Mode&unix.S_ISGID != 0 {
+				mode |= os.ModeSetgid
+			}
+			if file.Mode&unix.S_ISVTX != 0 {
+				mode |= os.ModeSticky
+			}
+
+			out[0].Partitions.AddFiles("ROOT", []types.File{{
+				Node:     node,
+				Contents: file.Contents,
+				Mode:     int(mode),
+			}})
+		case tar.TypeDir:
+			out[0].Partitions.AddDirectories("ROOT", []types.Directory{{
+				Node: node,
+			}})
+		case tar.TypeLink:
+			target := file.Linkname
+			if filepath.IsAbs(target) {
+				target = filepath.Join("dir", target)
+			} else {
+				target = filepath.Join(node.Directory, file.Linkname)
+			}
+			out[0].Partitions.AddLinks("ROOT", []types.Link{{
+				Node:   node,
+				Target: target,
+				Hard:   true,
+			}})
+		case tar.TypeSymlink:
+			out[0].Partitions.AddLinks("ROOT", []types.Link{{
+				Node:   node,
+				Target: file.Linkname,
+			}})
+		}
+
+		handleErr(ar.WriteHeader(&file.Header))
+		if file.Typeflag == tar.TypeReg {
+			_, err := io.WriteString(ar, file.Contents)
+			handleErr(err)
+		}
+	}
+
+	handleErr(ar.Close())
+	handleErr(gz.Close())
+	handleErr(enc.Close())
+
+	config := fmt.Sprintf(`{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "directories": [
+	      {
+	        "path": "/dir",
+	        "overwrite": true,
+	        "contents": {
+	          "archive": "tar",
+	          "source": "data:;base64,%v",
+	          "compression": "gzip"
+	        }
+	      }
+	    ]
+	  }
+	}`, archive.String())
+
+	configMinVersion := "3.4.0-experimental"
 
 	return types.Test{
 		Name:             name,

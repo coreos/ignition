@@ -40,15 +40,30 @@ const (
 	DefaultFilePermissions      os.FileMode = 0644
 )
 
+type FetchMode int
+
+const (
+	FetchReplace FetchMode = iota
+	FetchAppend
+	FetchExtract
+)
+
+type ArchiveType string
+
+const (
+	ArchiveTAR ArchiveType = "tar"
+)
+
 type FetchOp struct {
 	Hash         hash.Hash
 	Url          url.URL
 	FetchOptions resource.FetchOptions
-	Append       bool
+	Mode         FetchMode
+	ArchiveType  ArchiveType
 	Node         types.Node
 }
 
-func newFetchOp(l *log.Logger, node types.Node, contents types.Resource) (FetchOp, error) {
+func MakeFetchOp(l *log.Logger, node types.Node, contents types.Resource) (FetchOp, error) {
 	var expectedSum []byte
 
 	uri, err := url.Parse(*contents.Source)
@@ -106,7 +121,7 @@ func (u Util) PrepareFetches(l *log.Logger, f types.File) ([]FetchOp, error) {
 	ops := []FetchOp{}
 
 	if f.Contents.Source != nil {
-		if base, err := newFetchOp(l, f.Node, f.Contents); err != nil {
+		if base, err := MakeFetchOp(l, f.Node, f.Contents); err != nil {
 			return nil, err
 		} else {
 			ops = append(ops, base)
@@ -114,10 +129,10 @@ func (u Util) PrepareFetches(l *log.Logger, f types.File) ([]FetchOp, error) {
 	}
 
 	for _, appendee := range f.Append {
-		if op, err := newFetchOp(l, f.Node, appendee); err != nil {
+		if op, err := MakeFetchOp(l, f.Node, appendee); err != nil {
 			return nil, err
 		} else {
-			op.Append = true
+			op.Mode = FetchAppend
 			ops = append(ops, op)
 		}
 	}
@@ -216,7 +231,8 @@ func (u Util) PerformFetch(f FetchOp) error {
 		return err
 	}
 
-	if f.Append {
+	switch f.Mode {
+	case FetchAppend:
 		// Make sure that we're appending to a file
 		finfo, err := os.Lstat(path)
 		switch {
@@ -244,8 +260,19 @@ func (u Util) PerformFetch(f FetchOp) error {
 		if _, err = io.Copy(targetFile, tmp); err != nil {
 			return err
 		}
-	} else {
+	case FetchReplace:
 		if err = os.Rename(tmp.Name(), path); err != nil {
+			return err
+		}
+	case FetchExtract:
+		var walker archiveWalker
+		switch f.ArchiveType {
+		case ArchiveTAR:
+			walker = tarWalker{}
+		default:
+			return fmt.Errorf("unsupported archive type %s", string(f.ArchiveType))
+		}
+		if err := u.extract(walker, tmp.Name(), path); err != nil {
 			return err
 		}
 	}

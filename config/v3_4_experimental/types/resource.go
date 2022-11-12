@@ -89,3 +89,24 @@ func (res Resource) validateRequiredSource() error {
 	}
 	return validateURL(*res.Source)
 }
+
+func (res ArchiveResource) Validate(c path.ContextPath) (r report.Report) {
+	r.Merge(res.Resource.Validate(c))
+	r.AddOnError(c.Append("archive"), res.validateArchive())
+	return
+}
+
+func (res ArchiveResource) validateArchive() error {
+	if util.NilOrEmpty(res.Source) {
+		// archive can be omitted iff the contents are omitted
+		return nil
+	}
+	if util.NilOrEmpty(res.Archive) {
+		return errors.ErrArchiveTypeRequired
+	}
+	switch *res.Archive {
+	case "tar":
+		return nil
+	}
+	return errors.ErrUnsupportedArchiveType
+}
