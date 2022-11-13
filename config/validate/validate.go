@@ -17,6 +17,7 @@ package validate
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
@@ -33,6 +34,12 @@ func ValidateDups(v reflect.Value, c path.ContextPath) (r report.Report) {
 		return
 	}
 	dupsLists := map[string]map[string]struct{}{}
+
+	// This should probably be a collection of prefix trees, but this would
+	// either require implementing one or adding a new dependency for what
+	// amounts to a minute amount of gain in performance, given that we do
+	// not have thousands of key prefixes to manage.
+	prefixLists := map[string][]string{}
 	ignoreDups := map[string]struct{}{}
 	if i, ok := v.Interface().(util.IgnoresDups); ok {
 		ignoreDups = i.IgnoreDuplicates()
@@ -59,13 +66,23 @@ func ValidateDups(v reflect.Value, c path.ContextPath) (r report.Report) {
 			dupsLists[dupListName] = make(map[string]struct{}, field.Value.Len())
 			dupList = dupsLists[dupListName]
 		}
+		prefixList := prefixLists[dupListName]
 		for i := 0; i < field.Value.Len(); i++ {
 			key := util.CallKey(field.Value.Index(i))
 			if _, isDup := dupList[key]; isDup {
 				r.AddOnError(c.Append(validate.FieldName(field, c.Tag), i), errors.ErrDuplicate)
 			}
+			for _, prefix := range prefixList {
+				if strings.HasPrefix(key, prefix) {
+					r.AddOnError(c.Append(validate.FieldName(field, c.Tag), i), errors.ErrDuplicate)
+				}
+			}
+			if prefix := util.CallKeyPrefix(field.Value.Index(i)); prefix != "" {
+				prefixList = append(prefixList, prefix)
+			}
 			dupList[key] = struct{}{}
 		}
+		prefixLists[dupListName] = prefixList
 	}
 	return
 }
