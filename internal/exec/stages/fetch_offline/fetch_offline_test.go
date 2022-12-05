@@ -29,62 +29,75 @@ func checkNeedsNet(t *testing.T, cfg *types.Config) bool {
 	return needsNet
 }
 
-func assertNeedsNet(t *testing.T, cfg *types.Config) {
-	assert.Equal(t, checkNeedsNet(t, cfg), true, "unexpected config doesn't need net: %v", *cfg)
-}
+func TestConfigNotNeedsNet(t *testing.T) {
+	tests := []types.Config{
+		// Source with no URL
+		{
+			Ignition: types.Ignition{
+				Version: "3.3.0",
+				Config: types.IgnitionConfig{
+					Replace: types.Resource{
+						Source: util.StrToPtr(""),
+					},
+				},
+			},
+		},
+		// Source with Nil
+		{
+			Ignition: types.Ignition{
+				Version: "3.3.0",
+				Config: types.IgnitionConfig{
+					Replace: types.Resource{
+						Source: nil,
+					},
+				},
+			},
+		},
+		// Empty Config
+		{},
+	}
 
-func assertNotNeedsNet(t *testing.T, cfg *types.Config) {
-	assert.Equal(t, checkNeedsNet(t, cfg), false, "unexpected config needs net: %v", *cfg)
+	for i, test := range tests {
+		assert.Equal(t, checkNeedsNet(t, &test), false, "#%d: unexpected config needs net: %v", i, test)
+	}
 }
 
 func TestConfigNeedsNet(t *testing.T) {
-	cfg := types.Config{
-		Ignition: types.Ignition{
-			Version: "3.3.0",
-			Config: types.IgnitionConfig{
-				Replace: types.Resource{
-					Source: util.StrToPtr("http://example.com/config.ign"),
-				},
-			},
-		},
-	}
-	assertNeedsNet(t, &cfg)
-	cfg.Ignition.Config.Replace.Source = nil
-	assertNotNeedsNet(t, &cfg)
-	cfg.Storage.Files = []types.File{
+	tests := []types.Config{
+		// Tang
 		{
-			Node: types.Node{
-				Path: "/etc/foobar.conf",
-			},
-			FileEmbedded1: types.FileEmbedded1{
-				Contents: types.Resource{
-					Source: util.StrToPtr("data:,hello"),
-				},
-			},
-		},
-	}
-	assertNotNeedsNet(t, &cfg)
-	cfg.Storage.Files[0].Contents.Source = util.StrToPtr("")
-	assertNotNeedsNet(t, &cfg)
-	cfg.Storage.Files[0].Contents.Source = nil
-	assertNotNeedsNet(t, &cfg)
-	cfg.Storage.Files[0].Contents.Source = util.StrToPtr("http://example.com/payload")
-	assertNeedsNet(t, &cfg)
-	cfg.Storage.Files[0].Contents.Source = nil
-	assertNotNeedsNet(t, &cfg)
-	cfg.Storage.Luks = []types.Luks{
-		{
-			Name:   "foobar",
-			Device: util.StrToPtr("bazboo"),
-			Clevis: types.Clevis{
-				Tang: []types.Tang{
+			Storage: types.Storage{
+				Luks: []types.Luks{
 					{
-						Thumbprint: util.StrToPtr("mythumbprint"),
-						URL:        "http://tang.example.com",
+						Name:   "foobar",
+						Device: util.StrToPtr("bazboo"),
+						Clevis: types.Clevis{
+							Tang: []types.Tang{
+								{
+									Thumbprint: util.StrToPtr("mythumbprint"),
+									URL:        "http://tang.example.com",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// Source with URL needs Net
+		{
+			Ignition: types.Ignition{
+				Version: "3.3.0",
+				Config: types.IgnitionConfig{
+					Replace: types.Resource{
+						Source: util.StrToPtr("http://example.com/config.ign"),
 					},
 				},
 			},
 		},
 	}
-	assertNeedsNet(t, &cfg)
+
+	for i, test := range tests {
+		assert.Equal(t, checkNeedsNet(t, &test), true, "#%d: unexpected config doesn't need net: %v", i, test)
+	}
+
 }
