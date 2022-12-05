@@ -31,6 +31,22 @@ func checkNeedsNet(t *testing.T, cfg *types.Config) bool {
 
 func TestConfigNotNeedsNet(t *testing.T) {
 	tests := []types.Config{
+		// Test ClevisCustom NeedsNetwork set to false
+		{
+			Storage: types.Storage{
+				Luks: []types.Luks{
+					{
+						Name:   "foobar",
+						Device: util.StrToPtr("foo"),
+						Clevis: types.Clevis{
+							Custom: types.ClevisCustom{
+								NeedsNetwork: util.BoolToPtr(false),
+							},
+						},
+					},
+				},
+			},
+		},
 		// Source with no URL
 		{
 			Ignition: types.Ignition{
@@ -90,6 +106,22 @@ func TestConfigNeedsNet(t *testing.T) {
 				Config: types.IgnitionConfig{
 					Replace: types.Resource{
 						Source: util.StrToPtr("http://example.com/config.ign"),
+					},
+				},
+			},
+		},
+		// CustomClevis with NeedsNetwork set to true
+		{
+			Storage: types.Storage{
+				Luks: []types.Luks{
+					{
+						Name:   "foobar",
+						Device: util.StrToPtr("foo"),
+						Clevis: types.Clevis{
+							Custom: types.ClevisCustom{
+								NeedsNetwork: util.BoolToPtr(true),
+							},
+						},
 					},
 				},
 			},
