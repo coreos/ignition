@@ -29,6 +29,7 @@ nav_order: 9
 - Clarify spec docs for `files`/`directories`/`links` `group` fields
 - Document that `user`/`group` fields aren't applied to hard links
 - Fix version string in ignition-validate release container
+- Request network when custom Clevis config has `needsNetwork` set
 
 
 ## Ignition 2.14.0 (12-May-2022)
