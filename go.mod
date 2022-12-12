@@ -5,7 +5,7 @@ go 1.17
 require (
 	cloud.google.com/go/compute/metadata v0.2.2
 	cloud.google.com/go/storage v1.28.1
-	github.com/aws/aws-sdk-go v1.44.152
+	github.com/aws/aws-sdk-go v1.44.157
 	github.com/beevik/etree v1.1.1-0.20200718192613-4a2f8b9d084c
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
