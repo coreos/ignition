@@ -28,16 +28,6 @@ Example:
 podman run --pull=always --rm -i quay.io/coreos/ignition-validate:release - < myconfig.ign
 ```
 
-## Branches
-
-There are two branches:
-- `main`: the actively maintained version of Ignition, supporting config spec 3.x. Used by Fedora CoreOS, RHEL CoreOS, and Flatcar Container Linux.
-- `spec2x`: the legacy branch of Ignition, supporting config spec 1 and 2.x. This branch is no longer maintained.
-
-### Legacy ignition-dracut
-
-In Ignition 2.5.0, the old [ignition-dracut](https://github.com/coreos/ignition-dracut) repository, containing scripts and systemd units for boot-time execution, was merged into Ignition itself. CoreOS-specific Dracut modules have moved to the [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config) repository.
-
 [getting started]: docs/getting-started.md
 [issues]: https://github.com/coreos/ignition/issues/new/choose
 [releases]: https://github.com/coreos/ignition/releases
