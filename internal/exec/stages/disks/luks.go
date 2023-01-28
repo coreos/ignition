@@ -250,7 +250,7 @@ func (s *stage) createLuks(config types.Config) error {
 
 		// open the device
 		if _, err := s.Logger.LogCmd(
-			exec.Command(distro.CryptsetupCmd(), "luksOpen", devAlias, luks.Name, "--key-file", keyFilePath),
+			exec.Command(distro.CryptsetupCmd(), luksOpenArgs(luks, keyFilePath)...),
 			"opening luks device %v", luks.Name,
 		); err != nil {
 			return fmt.Errorf("opening luks device: %v", err)
@@ -393,10 +393,21 @@ func (s *stage) reuseLuksDevice(luks types.Luks, keyFilePath string) error {
 
 	// open the device to make sure the keyfile is valid
 	if _, err := s.Logger.LogCmd(
-		exec.Command(distro.CryptsetupCmd(), "luksOpen", devAlias, luks.Name, "--key-file", keyFilePath),
+		exec.Command(distro.CryptsetupCmd(), luksOpenArgs(luks, keyFilePath)...),
 		"opening luks device %v", luks.Name,
 	); err != nil {
 		return fmt.Errorf("failed to open device using specified keyfile")
 	}
 	return nil
+}
+
+func luksOpenArgs(luks types.Luks, keyFilePath string) []string {
+	ret := []string{
+		"luksOpen",
+		execUtil.DeviceAlias(*luks.Device),
+		luks.Name,
+		"--key-file",
+		keyFilePath,
+	}
+	return ret
 }
