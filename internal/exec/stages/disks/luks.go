@@ -416,7 +416,7 @@ func luksOpenArgs(luks types.Luks, keyFilePath string) []string {
 		luks.Name,
 		"--key-file",
 		keyFilePath,
-		// store presence/absence of --allow-discards
+		// store presence/absence of --allow-discards and open options
 		"--persistent",
 	}
 	if util.IsTrue(luks.Discard) {
@@ -427,6 +427,10 @@ func luksOpenArgs(luks types.Luks, keyFilePath string) []string {
 		// really coming from).
 		// https://github.com/latchset/clevis/issues/286
 		ret = append(ret, "--allow-discards")
+	}
+	for _, opt := range luks.OpenOptions {
+		// support persisting other options too
+		ret = append(ret, string(opt))
 	}
 	return ret
 }

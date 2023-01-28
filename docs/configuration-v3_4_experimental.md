@@ -135,8 +135,9 @@ The Ignition configuration is a JSON document conforming to the following specif
         * **_hash_** (string): the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`.
     * **_label_** (string): the label of the luks device.
     * **_uuid_** (string): the uuid of the luks device.
-    * **_options_** (list of strings): any additional options to be passed to the cryptsetup utility.
+    * **_options_** (list of strings): any additional options to be passed to `cryptsetup luksFormat`.
     * **_discard_** (boolean): whether to issue discard commands to the underlying block device when blocks are freed. Enabling this improves performance and device longevity on SSDs and space utilization on thinly provisioned SAN devices, but leaks information about which disk blocks contain data. If omitted, it defaults to false.
+    * **_openOptions_** (list of strings): any additional options to be passed to `cryptsetup luksOpen`. Supported options will be persistently written to the luks volume.
     * **_wipeVolume_** (boolean): whether or not to wipe the device before volume creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information.
     * **_clevis_** (object): describes the clevis configuration for the luks device.
       * **_tang_** (list of objects): describes a tang server. Every server must have a unique `url`.
