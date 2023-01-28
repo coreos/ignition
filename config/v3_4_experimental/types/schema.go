@@ -111,6 +111,7 @@ type LinkEmbedded1 struct {
 type Luks struct {
 	Clevis     Clevis       `json:"clevis,omitempty"`
 	Device     *string      `json:"device,omitempty"`
+	Discard    *bool        `json:"discard,omitempty"`
 	KeyFile    Resource     `json:"keyFile,omitempty"`
 	Label      *string      `json:"label,omitempty"`
 	Name       string       `json:"name"`

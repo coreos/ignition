@@ -391,6 +391,14 @@ func (s *stage) reuseLuksDevice(luks types.Luks, keyFilePath string) error {
 		}
 	}
 
+	dump, err := newLuksDump(devAlias)
+	if err != nil {
+		return err
+	}
+	if dump.hasFlag("allow-discards") != util.IsTrue(luks.Discard) {
+		return fmt.Errorf("volume allow-discards flag %v doesn't match expected value %v", dump.hasFlag("allow-discards"), util.IsTrue(luks.Discard))
+	}
+
 	// open the device to make sure the keyfile is valid
 	if _, err := s.Logger.LogCmd(
 		exec.Command(distro.CryptsetupCmd(), luksOpenArgs(luks, keyFilePath)...),
@@ -408,6 +416,44 @@ func luksOpenArgs(luks types.Luks, keyFilePath string) []string {
 		luks.Name,
 		"--key-file",
 		keyFilePath,
+		// store presence/absence of --allow-discards
+		"--persistent",
+	}
+	if util.IsTrue(luks.Discard) {
+		// clevis luks unlock doesn't have an option to enable
+		// discard, so we persist the setting to the LUKS superblock
+		// with --persistent, then omit it from the crypttab (since
+		// crypttab would be misleading about where the setting is
+		// really coming from).
+		// https://github.com/latchset/clevis/issues/286
+		ret = append(ret, "--allow-discards")
 	}
 	return ret
+}
+
+type LuksDump struct {
+	Config struct {
+		Flags []string `json:"flags"`
+	} `json:"config"`
+}
+
+func newLuksDump(devAlias string) (LuksDump, error) {
+	dump, err := exec.Command(distro.CryptsetupCmd(), "luksDump", "--dump-json-metadata", devAlias).CombinedOutput()
+	if err != nil {
+		return LuksDump{}, err
+	}
+	var ret LuksDump
+	if err := json.Unmarshal(dump, &ret); err != nil {
+		return LuksDump{}, fmt.Errorf("parsing luks metadata: %w", err)
+	}
+	return ret, nil
+}
+
+func (d LuksDump) hasFlag(flag string) bool {
+	for _, v := range d.Config.Flags {
+		if v == flag {
+			return true
+		}
+	}
+	return false
 }

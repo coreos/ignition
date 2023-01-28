@@ -12,6 +12,7 @@ nav_order: 9
 ### Features
 
 - Ship aarch64 macOS ignition-validate binary in GitHub release artifacts
+- Allow enabling discard passthrough on LUKS devices _(3.4.0-exp)_
 
 ### Changes
 

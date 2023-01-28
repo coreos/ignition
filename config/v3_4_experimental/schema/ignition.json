@@ -271,6 +271,9 @@
               "items": {
                 "type": "string"
               }
+            },
+            "discard": {
+              "type": ["boolean", "null"]
             }
           },
           "required": [
