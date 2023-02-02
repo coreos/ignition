@@ -12,6 +12,7 @@ nav_order: 9
 ### Features
 
 - Ship aarch64 macOS ignition-validate binary in GitHub release artifacts
+- Add the ability to populate directory from tar archives.
 
 ### Changes
 

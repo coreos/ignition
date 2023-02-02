@@ -15,6 +15,9 @@
 package types
 
 import (
+	"github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/util"
+
 	"github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
 )
@@ -22,5 +25,17 @@ import (
 func (d Directory) Validate(c path.ContextPath) (r report.Report) {
 	r.Merge(d.Node.Validate(c))
 	r.AddOnError(c.Append("mode"), validateMode(d.Mode))
+	if !util.NilOrEmpty(d.Contents.Archive) && (d.Overwrite == nil || !*d.Overwrite) {
+		r.AddOnError(c.Append("overwrite"), errors.ErrOverwriteMustBeTrue)
+	}
 	return
+}
+
+func (d Directory) KeyPrefix() string {
+	if util.NilOrEmpty(d.Contents.Archive) {
+		return ""
+	}
+	// If a directory is populated by an archive, all other file/directory entries
+	// in the config must conflict with any files under said directory.
+	return d.Path
 }

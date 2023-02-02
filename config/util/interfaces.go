@@ -30,10 +30,22 @@ type Keyed interface {
 	Key() string
 }
 
+type KeyPrefixed interface {
+	KeyPrefix() string
+}
+
 // CallKey is a helper to call the Key() function since this needs to happen a lot
 func CallKey(v reflect.Value) string {
 	if v.Kind() == reflect.String {
 		return v.Convert(reflect.TypeOf("")).Interface().(string)
 	}
 	return v.Interface().(Keyed).Key()
+}
+
+// CallKeyPrefix is a helper to call the KeyPrefix() method.
+func CallKeyPrefix(v reflect.Value) string {
+	if prefixable, ok := v.Interface().(KeyPrefixed); ok {
+		return prefixable.KeyPrefix()
+	}
+	return ""
 }

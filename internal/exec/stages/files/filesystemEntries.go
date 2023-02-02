@@ -17,6 +17,7 @@ package files
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -285,7 +286,7 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 
 	for _, op := range fetchOps {
 		msg := "writing file %q"
-		if op.Append {
+		if op.Mode == util.FetchAppend {
 			msg = "appending to file %q"
 		}
 		if err := l.LogOp(
@@ -321,6 +322,33 @@ func (tmp dirEntry) create(l *log.Logger, u util.Util) error {
 		return fmt.Errorf("stat() failed on %s: %v", d.Path, err)
 	case !st.Mode().IsDir():
 		return fmt.Errorf("error creating directory %s: A non-directory already exists and overwrite is false", d.Path)
+	}
+
+	if d.Contents.Archive != nil {
+		dirf, err := os.Open(d.Path)
+		if err != nil {
+			return fmt.Errorf("open() failed on %s: %v", d.Path, err)
+		}
+		switch _, err := dirf.Readdirnames(1); {
+		case err == nil:
+			return fmt.Errorf("refusing to populate directory %s: directory is not empty and overwrite is false", d.Path)
+		case err != io.EOF:
+			return fmt.Errorf("readdirnames() failed on %s: %v", d.Path, err)
+		}
+
+		fetch, err := util.MakeFetchOp(l, d.Node, d.Contents.Resource)
+		if err != nil {
+			return fmt.Errorf("failed to resolve directory %q: %v", d.Path, err)
+		}
+		fetch.Mode = util.FetchExtract
+		fetch.ArchiveType = util.ArchiveType(*d.Contents.Archive)
+
+		op := func() error {
+			return u.PerformFetch(fetch)
+		}
+		if err := l.LogOp(op, "populating directory %q", d.Path); err != nil {
+			return fmt.Errorf("failed to populate directory %q: %v", d.Path, err)
+		}
 	}
 
 	if err := u.SetPermissions(d.Mode, d.Node); err != nil {
