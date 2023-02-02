@@ -27,7 +27,11 @@ import (
 )
 
 func (u Unit) Key() string {
-	return u.Name
+	if u.Scope != nil {
+		return *u.Scope + "." + u.Name
+	} else {
+		return "system." + u.Name
+	}
 }
 
 func (d Dropin) Key() string {
@@ -41,8 +45,37 @@ func (u Unit) Validate(c cpath.ContextPath) (r report.Report) {
 	r.AddOnError(c, err)
 
 	r.AddOnWarn(c, validations.ValidateInstallSection(u.Name, util.IsTrue(u.Enabled), util.NilOrEmpty(u.Contents), opts))
+	r.AddOnError(c.Append("scope"), validateScope(u.Scope))
+
+	err = validateUsers(u)
+	if err != nil && err == errors.ErrUnitUsersDefined {
+		r.AddOnWarn(c.Append("users"), err)
+	} else {
+		r.AddOnError(c.Append("users"), err)
+	}
 
 	return
+}
+
+func validateScope(scope *string) error {
+	if scope == nil {
+		return nil
+	}
+	switch *scope {
+	case "system", "user", "global":
+		return nil
+	default:
+		return errors.ErrInvalidUnitScope
+	}
+}
+
+func validateUsers(u Unit) error {
+	if u.Scope != nil && *u.Scope == "user" && len(u.Users) == 0 {
+		return errors.ErrUnitNoUsersDefined
+	} else if len(u.Users) > 0 && *u.Scope != "user" {
+		return errors.ErrUnitUsersDefined
+	}
+	return nil
 }
 
 func validateName(name string) error {

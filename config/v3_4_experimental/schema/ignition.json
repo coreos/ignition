@@ -507,6 +507,15 @@
             "enabled": {
               "type": ["boolean", "null"]
             },
+            "scope": {
+              "type": ["string", "null"]
+            },
+            "users": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
             "mask": {
               "type": ["boolean", "null"]
             },

@@ -35,6 +35,7 @@ type Preset struct {
 	enabled        bool
 	instantiatable bool
 	instances      []string
+	scope          util.UnitScope
 }
 
 // warnOnOldSystemdVersion checks the version of Systemd
@@ -71,16 +72,16 @@ func (s *stage) createUnits(config types.Config) error {
 				if err != nil {
 					return err
 				}
-				key := fmt.Sprintf("%s-%s", unitName, identifier)
+				key := fmt.Sprintf("%s.%s-%s", util.GetUnitScope(unit), unitName, identifier)
 				if _, ok := presets[key]; ok {
 					presets[key].instances = append(presets[key].instances, instance)
 				} else {
-					presets[key] = &Preset{unitName, *unit.Enabled, true, []string{instance}}
+					presets[key] = &Preset{unitName, *unit.Enabled, true, []string{instance}, util.GetUnitScope(unit)}
 				}
 			} else {
-				key := fmt.Sprintf("%s-%s", unit.Name, identifier)
-				if _, ok := presets[unit.Name]; !ok {
-					presets[key] = &Preset{unit.Name, *unit.Enabled, false, []string{}}
+				key := fmt.Sprintf("%s-%s", unit.Key(), identifier)
+				if _, ok := presets[key]; !ok {
+					presets[key] = &Preset{unit.Name, *unit.Enabled, false, []string{}, util.GetUnitScope(unit)}
 				} else {
 					return fmt.Errorf("%q key is already present in the presets map", key)
 				}
@@ -88,18 +89,16 @@ func (s *stage) createUnits(config types.Config) error {
 		}
 		if unit.Mask != nil {
 			if *unit.Mask { // mask: true
-				relabelpath := ""
 				if err := s.Logger.LogOp(
 					func() error {
-						var err error
-						relabelpath, err = s.MaskUnit(unit)
+						var err error = s.MaskUnit(unit)
 						return err
 					},
-					"masking unit %q", unit.Name,
+					"masking unit %q for scope %q", unit.Name, string(util.GetUnitScope(unit)),
 				); err != nil {
 					return err
 				}
-				s.relabel(relabelpath)
+
 			} else { // mask: false
 				masked, err := s.IsUnitMasked(unit)
 				if err != nil {
@@ -110,7 +109,7 @@ func (s *stage) createUnits(config types.Config) error {
 						func() error {
 							return s.UnmaskUnit(unit)
 						},
-						"unmasking unit %q", unit.Name,
+						"unmasking unit %q for scope %q", unit.Name, string(util.GetUnitScope(unit)),
 					); err != nil {
 						return err
 					}
@@ -120,7 +119,7 @@ func (s *stage) createUnits(config types.Config) error {
 	}
 	// if we have presets then create the systemd preset file.
 	if len(presets) != 0 {
-		if err := s.createSystemdPresetFile(presets); err != nil {
+		if err := s.createSystemdPresetFiles(presets); err != nil {
 			return err
 		}
 	}
@@ -147,12 +146,8 @@ func parseInstanceUnit(unit types.Unit) (string, string, error) {
 
 // createSystemdPresetFile creates the presetfile for enabled/disabled
 // systemd units.
-func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
-	if err := s.relabelPath(filepath.Join(s.DestDir, util.PresetPath)); err != nil {
-		return err
-	}
+func (s *stage) createSystemdPresetFiles(presets map[string]*Preset) error {
 	hasInstanceUnit := false
-
 	// sort the units before writing to the systemd presets file to ensure
 	// the file is written in a consistent order across multiple runs
 	unitNames := make([]string, 0, len(presets))
@@ -164,6 +159,9 @@ func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
 	for _, name := range unitNames {
 		value := presets[name]
 		unitString := value.unit
+		if err := s.relabelPath(filepath.Join(s.DestDir, s.SystemdPresetPath(value.scope))); err != nil {
+			return err
+		}
 		if value.instantiatable {
 			hasInstanceUnit = true
 			// Let's say we have two instantiated enabled units listed under
@@ -173,15 +171,15 @@ func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
 		}
 		if value.enabled {
 			if err := s.Logger.LogOp(
-				func() error { return s.EnableUnit(unitString) },
-				"setting preset to enabled for %q", unitString,
+				func() error { return s.EnableUnit(unitString, value.scope) },
+				"setting %q preset to enabled for %q", value.scope, unitString,
 			); err != nil {
 				return err
 			}
 		} else {
 			if err := s.Logger.LogOp(
-				func() error { return s.DisableUnit(unitString) },
-				"setting preset to disabled for %q", unitString,
+				func() error { return s.DisableUnit(unitString, value.scope) },
+				"setting %q preset to disabled for %q", value.scope, unitString,
 			); err != nil {
 				return err
 			}
@@ -203,30 +201,32 @@ func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
 // applies to the unit's dropins.
 func (s *stage) writeSystemdUnit(unit types.Unit) error {
 	return s.Logger.LogOp(func() error {
-		relabeledDropinDir := false
 		for _, dropin := range unit.Dropins {
 			if dropin.Contents == nil {
 				continue
 			}
-			f, err := s.FileFromSystemdUnitDropin(unit, dropin)
+			fetchops, err := s.FilesFromSystemdUnitDropin(unit, dropin)
 			if err != nil {
 				s.Logger.Crit("error converting systemd dropin: %v", err)
 				return err
 			}
-			// trim off prefix since this needs to be relative to the sysroot
-			if !strings.HasPrefix(f.Node.Path, s.DestDir) {
-				panic(fmt.Sprintf("Dropin path %s isn't under prefix %s", f.Node.Path, s.DestDir))
-			}
-			relabelPath := f.Node.Path[len(s.DestDir):]
-			if err := s.Logger.LogOp(
-				func() error { return s.PerformFetch(f) },
-				"writing systemd drop-in %q at %q", dropin.Name, f.Node.Path,
-			); err != nil {
-				return err
-			}
-			if !relabeledDropinDir {
-				s.relabel(filepath.Dir(relabelPath))
-				relabeledDropinDir = true
+			for _, f := range fetchops {
+				relabeledDropinDir := false
+				// trim off prefix since this needs to be relative to the sysroot
+				if !strings.HasPrefix(f.Node.Path, s.DestDir) {
+					panic(fmt.Sprintf("Dropin path %s isn't under prefix %s", f.Node.Path, s.DestDir))
+				}
+				relabelPath := f.Node.Path[len(s.DestDir):]
+				if err := s.Logger.LogOp(
+					func() error { return s.PerformFetch(f) },
+					"writing systemd drop-in %q at %q", dropin.Name, f.Node.Path,
+				); err != nil {
+					return err
+				}
+				if !relabeledDropinDir {
+					s.relabel(filepath.Dir(relabelPath))
+					relabeledDropinDir = true
+				}
 			}
 		}
 
@@ -234,24 +234,28 @@ func (s *stage) writeSystemdUnit(unit types.Unit) error {
 			return nil
 		}
 
-		f, err := s.FileFromSystemdUnit(unit)
+		fetchops, err := s.FilesFromSystemdUnit(unit)
 		if err != nil {
 			s.Logger.Crit("error converting unit: %v", err)
 			return err
 		}
-		// trim off prefix since this needs to be relative to the sysroot
-		if !strings.HasPrefix(f.Node.Path, s.DestDir) {
-			panic(fmt.Sprintf("Unit path %s isn't under prefix %s", f.Node.Path, s.DestDir))
+
+		for _, f := range fetchops {
+			// trim off prefix since this needs to be relative to the sysroot
+			if !strings.HasPrefix(f.Node.Path, s.DestDir) {
+				panic(fmt.Sprintf("Unit path %s isn't under prefix %s", f.Node.Path, s.DestDir))
+			}
+			relabelPath := f.Node.Path[len(s.DestDir):]
+			if err := s.Logger.LogOp(
+				func() error { return s.PerformFetch(f) },
+				"writing unit %q at %q", unit.Name, f.Node.Path,
+			); err != nil {
+				return err
+			}
+
+			s.relabel(relabelPath)
 		}
-		relabelPath := f.Node.Path[len(s.DestDir):]
-		if err := s.Logger.LogOp(
-			func() error { return s.PerformFetch(f) },
-			"writing unit %q at %q", unit.Name, f.Node.Path,
-		); err != nil {
-			return err
-		}
-		s.relabel(relabelPath)
 
 		return nil
-	}, "processing unit %q", unit.Name)
+	}, "processing unit %q for scope %q", unit.Name, string(util.GetUnitScope(unit)))
 }

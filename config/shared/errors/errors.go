@@ -90,6 +90,9 @@ var (
 	ErrInvalidSystemdDropinExt = errors.New("invalid systemd drop-in extension")
 	ErrNoSystemdExt            = errors.New("no systemd unit extension")
 	ErrInvalidInstantiatedUnit = errors.New("invalid systemd instantiated unit")
+	ErrInvalidUnitScope        = errors.New("unit scope must be system, user or global")
+	ErrUnitNoUsersDefined      = errors.New("when 'user' scope is used you must set at least one user")
+	ErrUnitUsersDefined        = errors.New("'users' should be specified only if scope is 'user'")
 
 	// Misc errors
 	ErrSourceRequired                  = errors.New("source is required")
