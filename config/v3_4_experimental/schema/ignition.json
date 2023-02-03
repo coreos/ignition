@@ -271,6 +271,15 @@
               "items": {
                 "type": "string"
               }
+            },
+            "discard": {
+              "type": ["boolean", "null"]
+            },
+            "openOptions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           "required": [

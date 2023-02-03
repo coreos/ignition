@@ -138,7 +138,7 @@ If a child header has no value, the parent header with the same name will be rem
 
 Ignition has support for creating both purely key-file based LUKS2 devices as well as Tang/TPM2 backed (via clevis) devices.
 
-If a key-file is not specified one will be generated for the device. Key-files will be stored at `/etc/luks/<deviceName>` (this path can be overriden via build flags).
+If a key-file is not specified one will be generated for the device. Key-files will be stored at `/etc/luks/<deviceName>` (this path can be overridden via build flags).
 
 Ignition generates entries in `/etc/crypttab` for each device and expects that the operating system has hooks to be able to unlock the device (e.x.: `systemd-cryptsetup-generator`).
 

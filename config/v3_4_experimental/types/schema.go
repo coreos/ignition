@@ -109,14 +109,16 @@ type LinkEmbedded1 struct {
 }
 
 type Luks struct {
-	Clevis     Clevis       `json:"clevis,omitempty"`
-	Device     *string      `json:"device,omitempty"`
-	KeyFile    Resource     `json:"keyFile,omitempty"`
-	Label      *string      `json:"label,omitempty"`
-	Name       string       `json:"name"`
-	Options    []LuksOption `json:"options,omitempty"`
-	UUID       *string      `json:"uuid,omitempty"`
-	WipeVolume *bool        `json:"wipeVolume,omitempty"`
+	Clevis      Clevis       `json:"clevis,omitempty"`
+	Device      *string      `json:"device,omitempty"`
+	Discard     *bool        `json:"discard,omitempty"`
+	KeyFile     Resource     `json:"keyFile,omitempty"`
+	Label       *string      `json:"label,omitempty"`
+	Name        string       `json:"name"`
+	OpenOptions []OpenOption `json:"openOptions,omitempty"`
+	Options     []LuksOption `json:"options,omitempty"`
+	UUID        *string      `json:"uuid,omitempty"`
+	WipeVolume  *bool        `json:"wipeVolume,omitempty"`
 }
 
 type LuksOption string
@@ -141,6 +143,8 @@ type NodeUser struct {
 	ID   *int    `json:"id,omitempty"`
 	Name *string `json:"name,omitempty"`
 }
+
+type OpenOption string
 
 type Partition struct {
 	GUID               *string `json:"guid,omitempty"`
