@@ -28,6 +28,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- Avoid logging spurious error when a LUKS volume wasn't previously formatted
 - Fix reproducibility of systemd preset file in ignition-apply output
 - Clarify spec docs for `files`/`directories`/`links` `group` fields
 - Document that `user`/`group` fields aren't applied to hard links

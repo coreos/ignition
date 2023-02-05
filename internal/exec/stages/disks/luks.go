@@ -30,6 +30,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
+	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/resource"
 
 	"github.com/vincent-petithory/dataurl"
@@ -167,7 +168,11 @@ func (s *stage) createLuks(config types.Config) error {
 			// If the volume isn't forcefully being created, then we need
 			// to check if it is of the correct type or that no volume exists.
 
-			if s.isLuksDevice(*luks.Device) {
+			isLuks, err := s.isLuksDevice(*luks.Device)
+			if err != nil {
+				return err
+			}
+			if isLuks {
 				// try to reuse the LUKS device; device will be opened
 				// if successful.
 				if err := s.reuseLuksDevice(luks, keyFilePath); err != nil {
@@ -181,7 +186,7 @@ func (s *stage) createLuks(config types.Config) error {
 			}
 
 			var info execUtil.FilesystemInfo
-			err := s.Logger.LogOp(
+			err = s.Logger.LogOp(
 				func() error {
 					var err error
 					info, err = execUtil.GetFilesystemInfo(devAlias, false)
@@ -342,16 +347,24 @@ func (s *stage) createLuks(config types.Config) error {
 	return nil
 }
 
-func (s *stage) isLuksDevice(device string) bool {
-	devAlias := execUtil.DeviceAlias(device)
-	if _, err := s.Logger.LogCmd(
-		exec.Command(distro.CryptsetupCmd(), "isLuks", "--type", "luks2", devAlias),
-		"checking if %v is a luks device", device,
-	); err != nil {
-		// isLuks returns exit status 1 if the device is not LUKS
-		return false
-	}
-	return true
+func (s *stage) isLuksDevice(device string) (bool, error) {
+	isLuks := true
+	err := s.LogOp(func() error {
+		devAlias := execUtil.DeviceAlias(device)
+		cmd := exec.Command(distro.CryptsetupCmd(), "isLuks", "--type", "luks2", devAlias)
+		cmdLine := log.QuotedCmd(cmd)
+		s.Debug("executing: %s", cmdLine)
+
+		if err := cmd.Run(); err != nil {
+			if _, ok := err.(*exec.ExitError); ok {
+				isLuks = false
+			} else {
+				return fmt.Errorf("%w: Cmd: %s", err, cmdLine)
+			}
+		}
+		return nil
+	}, "checking if %v is a luks device", device)
+	return isLuks, err
 }
 
 // Check LUKS device against config and open it.
