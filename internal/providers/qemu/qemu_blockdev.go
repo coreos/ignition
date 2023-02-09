@@ -83,7 +83,8 @@ func fetchConfigFromBlockDevice(logger *log.Logger) ([]byte, error) {
 			return nil, err
 		}
 	case <-time.After(blockDeviceTimeout):
-		return nil, fmt.Errorf("timed out after %v waiting for block device %q to appear", blockDeviceTimeout, ignitionBlockDevicePath)
+		logger.Info("timed out after %v waiting for block device %q to appear. Ignoring...", blockDeviceTimeout, ignitionBlockDevicePath)
+		return util.ParseConfig(logger, []byte{})
 	}
 
 	return bytes.TrimRight(data, "\x00"), nil

@@ -24,6 +24,7 @@ nav_order: 9
 - Install ignition-apply in `/usr/libexec`
 - Convert `NEWS` to Markdown and move to docs site
 - Fail if files/links/dirs conflict with systemd units or dropins
+- Continue with empty config if QEMU blockdev is missing
 - Require Go 1.18+
 
 ### Bug fixes
