@@ -17,9 +17,9 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/vmware/vmw-guestinfo v0.0.0-20220317130741-510905f0efa3
-	golang.org/x/net v0.5.0
+	golang.org/x/net v0.6.0
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
-	golang.org/x/sys v0.4.0
+	golang.org/x/sys v0.5.0
 	google.golang.org/api v0.109.0
 )
 
@@ -38,7 +38,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
