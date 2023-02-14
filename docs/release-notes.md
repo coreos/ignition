@@ -28,6 +28,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- Don't overwrite LUKS1 volume when `storage.luks.wipeVolume` is false
 - Avoid logging spurious error when a LUKS volume wasn't previously formatted
 - Fix reproducibility of systemd preset file in ignition-apply output
 - Clarify spec docs for `files`/`directories`/`links` `group` fields

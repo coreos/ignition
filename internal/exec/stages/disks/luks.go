@@ -348,23 +348,46 @@ func (s *stage) createLuks(config types.Config) error {
 }
 
 func (s *stage) isLuksDevice(device string) (bool, error) {
-	isLuks := true
-	err := s.LogOp(func() error {
-		devAlias := execUtil.DeviceAlias(device)
-		cmd := exec.Command(distro.CryptsetupCmd(), "isLuks", "--type", "luks2", devAlias)
-		cmdLine := log.QuotedCmd(cmd)
-		s.Debug("executing: %s", cmdLine)
-
-		if err := cmd.Run(); err != nil {
-			if _, ok := err.(*exec.ExitError); ok {
-				isLuks = false
-			} else {
-				return fmt.Errorf("%w: Cmd: %s", err, cmdLine)
-			}
+	checkLuks := func(luks2 bool) (bool, error) {
+		ret := true
+		desc := "luks"
+		if luks2 {
+			desc = "luks2"
 		}
-		return nil
-	}, "checking if %v is a luks device", device)
-	return isLuks, err
+		err := s.LogOp(func() error {
+			devAlias := execUtil.DeviceAlias(device)
+			cmd := exec.Command(distro.CryptsetupCmd(), "isLuks", devAlias)
+			if luks2 {
+				cmd.Args = append(cmd.Args, "--type", "luks2")
+			}
+			cmdLine := log.QuotedCmd(cmd)
+			s.Debug("executing: %s", cmdLine)
+
+			if err := cmd.Run(); err != nil {
+				if _, ok := err.(*exec.ExitError); ok {
+					ret = false
+				} else {
+					return fmt.Errorf("%w: Cmd: %s", err, cmdLine)
+				}
+			}
+			return nil
+		}, "checking if %v is a %v device", device, desc)
+		return ret, err
+	}
+
+	// check for luks2
+	isLuks, err := checkLuks(true)
+	if isLuks || err != nil {
+		return isLuks, err
+	}
+	// not luks2; check for luks1
+	isLuks, err = checkLuks(false)
+	if isLuks && err == nil {
+		// we can't reuse the volume but it is LUKS.
+		// fail to avoid data loss.
+		return false, fmt.Errorf("%v is a luks device but not luks2; Ignition cannot reuse it", device)
+	}
+	return false, err
 }
 
 // Check LUKS device against config and open it.
