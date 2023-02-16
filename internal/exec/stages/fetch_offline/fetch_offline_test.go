@@ -71,6 +71,26 @@ func TestConfigNotNeedsNet(t *testing.T) {
 		},
 		// Empty Config
 		{},
+		// Tang with adv set does not need networking on first boot.
+		{
+			Storage: types.Storage{
+				Luks: []types.Luks{
+					{
+						Name:   "foobar",
+						Device: util.StrToPtr("foo"),
+						Clevis: types.Clevis{
+							Tang: []types.Tang{
+								{
+									Thumbprint:    util.StrToPtr("mythumbprint"),
+									URL:           "http://mytang.example.com",
+									Advertisement: util.StrToPtr(" {\"payload\": \"...\",\"protected\":\"...\",\"signature\":\"...\"}"),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for i, test := range tests {
@@ -80,7 +100,7 @@ func TestConfigNotNeedsNet(t *testing.T) {
 
 func TestConfigNeedsNet(t *testing.T) {
 	tests := []types.Config{
-		// Tang
+		// Tang with no adv set needs networking on first boot.
 		{
 			Storage: types.Storage{
 				Luks: []types.Luks{
@@ -120,6 +140,76 @@ func TestConfigNeedsNet(t *testing.T) {
 						Clevis: types.Clevis{
 							Custom: types.ClevisCustom{
 								NeedsNetwork: util.BoolToPtr(true),
+							},
+						},
+					},
+				},
+			},
+		},
+		// Tang with adv explicitly set to nil needs networking on first boot.
+		{
+			Storage: types.Storage{
+				Luks: []types.Luks{
+					{
+						Name:   "foobar",
+						Device: util.StrToPtr("foo"),
+						Clevis: types.Clevis{
+							Tang: []types.Tang{
+								{
+									Thumbprint:    util.StrToPtr("mythumbprint"),
+									URL:           "http://mytang.example.com",
+									Advertisement: nil,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// Multiple Tangs; one with adv set, one without needs networking on first boot.
+		{
+			Storage: types.Storage{
+				Luks: []types.Luks{
+					{
+						Name:   "foobar",
+						Device: util.StrToPtr("foo"),
+						Clevis: types.Clevis{
+							Tang: []types.Tang{
+								{
+									Thumbprint:    util.StrToPtr("mythumbprint"),
+									URL:           "http://mytang.example.com",
+									Advertisement: util.StrToPtr(" {\"payload\": \"...\",\"protected\":\"...\",\"signature\":\"...\"}"),
+								},
+								{
+									Thumbprint:    util.StrToPtr("mythumbprint"),
+									URL:           "http://mytang.example.com",
+									Advertisement: nil,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		// Multiple Tangs with no adv set needs networking on first boot.
+		{
+			Storage: types.Storage{
+				Luks: []types.Luks{
+					{
+						Name:   "foobar",
+						Device: util.StrToPtr("foo"),
+						Clevis: types.Clevis{
+							Tang: []types.Tang{
+								{
+									Thumbprint:    util.StrToPtr("mythumbprint"),
+									URL:           "http://mytang.example.com",
+									Advertisement: util.StrToPtr(""),
+								},
+								{
+									Thumbprint:    util.StrToPtr("mythumbprint"),
+									URL:           "http://mytang.example.com",
+									Advertisement: nil,
+								},
 							},
 						},
 					},

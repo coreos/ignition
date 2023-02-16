@@ -55,6 +55,7 @@ func translateDirectoryEmbedded1(old old_types.DirectoryEmbedded1) (ret types.Di
 
 func translateLuks(old old_types.Luks) (ret types.Luks) {
 	tr := translate.NewTranslator()
+	tr.AddCustomTranslator(translateTang)
 	tr.Translate(&old.Clevis, &ret.Clevis)
 	tr.Translate(&old.Device, &ret.Device)
 	tr.Translate(&old.KeyFile, &ret.KeyFile)
@@ -63,6 +64,13 @@ func translateLuks(old old_types.Luks) (ret types.Luks) {
 	tr.Translate(&old.Options, &ret.Options)
 	tr.Translate(&old.UUID, &ret.UUID)
 	tr.Translate(&old.WipeVolume, &ret.WipeVolume)
+	return
+}
+
+func translateTang(old old_types.Tang) (ret types.Tang) {
+	tr := translate.NewTranslator()
+	tr.Translate(&old.Thumbprint, &ret.Thumbprint)
+	tr.Translate(&old.URL, &ret.URL)
 	return
 }
 

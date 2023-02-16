@@ -91,6 +91,10 @@ func configNeedsNetRecurse(v reflect.Value) (bool, error) {
 	case t == reflect.TypeOf(types.Resource{}):
 		return sourceNeedsNet(v.Interface().(types.Resource))
 	case t == reflect.TypeOf(types.Tang{}):
+		tang := v.Interface().(types.Tang)
+		if !cfgutil.NilOrEmpty(tang.Advertisement) {
+			return false, nil
+		}
 		return true, nil
 	case t == reflect.TypeOf(types.ClevisCustom{}):
 		cc := v.Interface().(types.ClevisCustom)

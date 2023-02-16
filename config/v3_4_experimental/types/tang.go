@@ -15,6 +15,7 @@
 package types
 
 import (
+	"encoding/json"
 	"net/url"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
@@ -33,6 +34,7 @@ func (t Tang) Validate(c path.ContextPath) (r report.Report) {
 	if util.NilOrEmpty(t.Thumbprint) {
 		r.AddOnError(c.Append("thumbprint"), errors.ErrTangThumbprintRequired)
 	}
+	r.AddOnError(c.Append("advertisement"), validateTangAdvertisement(t.Advertisement))
 	return
 }
 
@@ -48,4 +50,16 @@ func validateTangURL(s string) error {
 	default:
 		return errors.ErrInvalidScheme
 	}
+}
+
+func validateTangAdvertisement(s *string) error {
+	if util.NotEmpty(s) {
+		var adv any
+		err := json.Unmarshal([]byte(*s), &adv)
+		if err != nil {
+			return errors.ErrInvalidTangAdvertisement
+		}
+	}
+
+	return nil
 }
