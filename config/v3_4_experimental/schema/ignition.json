@@ -328,6 +328,9 @@
             },
             "thumbprint": {
               "type": ["string", "null"]
+            },
+            "advertisement": {
+              "type": ["string", "null"]
             }
           }
         },

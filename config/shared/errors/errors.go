@@ -62,6 +62,7 @@ var (
 	ErrClevisConfigRequired      = errors.New("missing required custom clevis config")
 	ErrClevisCustomWithOthers    = errors.New("cannot use custom clevis config with tpm2, tang, or threshold")
 	ErrTangThumbprintRequired    = errors.New("thumbprint is required")
+	ErrInvalidTangAdvertisement  = errors.New("advertisement is not valid JSON")
 	ErrFileIllegalMode           = errors.New("illegal file mode")
 	ErrModeSpecialBits           = errors.New("setuid/setgid/sticky bits are not supported in spec versions older than 3.4.0")
 	ErrBothIDAndNameSet          = errors.New("cannot set both id and name")

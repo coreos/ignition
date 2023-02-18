@@ -143,6 +143,7 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_tang_** (list of objects): describes a tang server. Every server must have a unique `url`.
         * **url** (string): url of the tang server.
         * **thumbprint** (string): thumbprint of a trusted signing key.
+        * **advertisement** (string): the advertisement JSON. If not specified, the advertisement is fetched from the tang server during provisioning. 
       * **_tpm2_** (bool): whether or not to use a tpm2 device.
       * **_threshold_** (int): sets the minimum number of pieces required to decrypt the device. Default is 1.
       * **_custom_** (object): overrides the clevis configuration. The `pin` & `config` will be passed directly to `clevis luks bind`. If specified, all other clevis options must be omitted.

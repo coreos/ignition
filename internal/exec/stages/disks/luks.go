@@ -42,8 +42,9 @@ var (
 
 // https://github.com/latchset/clevis/blob/master/src/pins/tang/clevis-encrypt-tang.1.adoc#config
 type Tang struct {
-	URL        string `json:"url"`
-	Thumbprint string `json:"thp,omitempty"`
+	URL           string `json:"url"`
+	Thumbprint    string `json:"thp,omitempty"`
+	Advertisement any    `json:"adv,omitempty"`
 }
 
 // https://github.com/latchset/clevis/blob/master/README.md#pin-shamir-secret-sharing
@@ -278,9 +279,17 @@ func (s *stage) createLuks(config types.Config) error {
 					c.Threshold = *luks.Clevis.Threshold
 				}
 				for _, tang := range luks.Clevis.Tang {
+					var adv any
+					if tang.Advertisement != nil {
+						err := json.Unmarshal([]byte(*tang.Advertisement), &adv)
+						if err != nil {
+							return fmt.Errorf("unmarshalling advertisement: %v", err)
+						}
+					}
 					c.Pins.Tang = append(c.Pins.Tang, Tang{
-						URL:        tang.URL,
-						Thumbprint: *tang.Thumbprint,
+						URL:           tang.URL,
+						Thumbprint:    *tang.Thumbprint,
+						Advertisement: adv,
 					})
 				}
 				if luks.Clevis.Tpm2 != nil {
@@ -299,36 +308,53 @@ func (s *stage) createLuks(config types.Config) error {
 			// pass the device to clevis. We have to loop each device as
 			// the devices could be on different NICs that haven't come
 			// up yet.
+
+			// A running count of tang servers without an advertisement
+			tangServersWithoutAdv := 0
 			for _, tang := range luks.Clevis.Tang {
 				u, err := url.Parse(tang.URL)
 				if err != nil {
 					return fmt.Errorf("parsing tang URL: %v", err)
 				}
-				u.Path = path.Join(u.Path, "adv")
-				_, err = s.Fetcher.FetchToBuffer(*u, resource.FetchOptions{})
-				if err != nil {
-					return fmt.Errorf("fetching tang advertisement: %v", err)
+				if util.NilOrEmpty(tang.Advertisement) {
+					tangServersWithoutAdv++
+					u.Path = path.Join(u.Path, "adv")
+					_, err = s.Fetcher.FetchToBuffer(*u, resource.FetchOptions{})
+					if err != nil {
+						return fmt.Errorf("fetching tang advertisement: %v", err)
+					}
 				}
 			}
 
+			// lets bind our device
 			if _, err := s.Logger.LogCmd(
 				exec.Command(distro.ClevisCmd(), "luks", "bind", "-f", "-k", keyFilePath, "-d", devAlias, pin, config), "Clevis bind",
 			); err != nil {
 				return fmt.Errorf("binding clevis device: %v", err)
 			}
-
-			// close & re-open Clevis devices to make sure that we can unlock them
-			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.CryptsetupCmd(), "luksClose", luks.Name),
-				"closing clevis luks device %v", luks.Name,
-			); err != nil {
-				return fmt.Errorf("closing luks device: %v", err)
+			intTpm2 := 0
+			if util.IsTrue(luks.Clevis.Tpm2) {
+				intTpm2 = 1
 			}
-			if _, err := s.Logger.LogCmd(
-				exec.Command(distro.ClevisCmd(), "luks", "unlock", "-d", devAlias, "-n", luks.Name),
-				"reopening clevis luks device %s", luks.Name,
-			); err != nil {
-				return fmt.Errorf("reopening luks device %s: %v", luks.Name, err)
+			threshold := 1
+			if luks.Clevis.Threshold != nil {
+				threshold = *luks.Clevis.Threshold
+			}
+			// Check if we can safely close and re-open the device
+			if tangServersWithoutAdv+intTpm2 >= threshold {
+				// close & re-open Clevis devices to make sure that we can unlock them
+				if _, err := s.Logger.LogCmd(
+					exec.Command(distro.CryptsetupCmd(), "luksClose", luks.Name),
+					"closing clevis luks device %v", luks.Name,
+				); err != nil {
+					return fmt.Errorf("closing luks device: %v", err)
+				}
+				if _, err := s.Logger.LogCmd(
+					exec.Command(distro.ClevisCmd(), "luks", "unlock", "-d", devAlias, "-n", luks.Name),
+					"reopening clevis luks device %s", luks.Name,
+				); err != nil {
+					return fmt.Errorf("reopening luks device %s: %v", luks.Name, err)
+				}
 			}
 		}
 

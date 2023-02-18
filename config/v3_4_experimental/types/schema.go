@@ -236,8 +236,9 @@ type TLS struct {
 }
 
 type Tang struct {
-	Thumbprint *string `json:"thumbprint,omitempty"`
-	URL        string  `json:"url,omitempty"`
+	Thumbprint    *string `json:"thumbprint,omitempty"`
+	URL           string  `json:"url,omitempty"`
+	Advertisement *string `json:"advertisement,omitempty"`
 }
 
 type Timeouts struct {
