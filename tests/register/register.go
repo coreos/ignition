@@ -20,7 +20,8 @@ import (
 	types31 "github.com/coreos/ignition/v2/config/v3_1/types"
 	types32 "github.com/coreos/ignition/v2/config/v3_2/types"
 	types33 "github.com/coreos/ignition/v2/config/v3_3/types"
-	types_exp "github.com/coreos/ignition/v2/config/v3_4_experimental/types"
+	types34 "github.com/coreos/ignition/v2/config/v3_4/types"
+	types_exp "github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/tests/types"
 )
 
@@ -49,7 +50,7 @@ func Register(tType TestType, t types.Test) {
 		{semver.Version{}}, // place holder 0
 		{semver.Version{}}, // place holder 1
 		{semver.Version{}}, // place holder 2
-		{types30.MaxVersion, types31.MaxVersion, types32.MaxVersion, types33.MaxVersion, types_exp.MaxVersion},
+		{types30.MaxVersion, types31.MaxVersion, types32.MaxVersion, types33.MaxVersion, types34.MaxVersion, types_exp.MaxVersion},
 	}
 
 	test := types.DeepCopy(t)
