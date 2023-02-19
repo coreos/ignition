@@ -134,6 +134,7 @@ The changes that are required to achieve these effects are typically the followi
 - Rename `config/vX_Y_experimental` to `config/vX_Y`, and update the golang `package` statements
 - Drop `_experimental` from all imports in `config/vX_Y`
 - Update `MaxVersion` in `config/vX_Y/types/config.go` to delete the `PreRelease` field
+- Update `config/vX_Y/config.go` to update the comment block on `ParseCompatibleVersion`
 - Update `config/vX_Y/config_test.go` to test that the new stable version is valid and the old experimental version is invalid
 - Update the `Accept` header in `internal/resource/url.go` to specify the new spec version.
 
@@ -142,9 +143,10 @@ The changes that are required to achieve these effects are typically the followi
 - Copy `config/vX_Y` into `config/vX_(Y+1)_experimental`, and update the golang `package` statements
 - Update all `config/vX_Y` imports in `config/vX_(Y+1)_experimental` to `config/vX_(Y+1)_experimental`
 - Update `config/vX_(Y+1)_experimental/types/config.go` to set `MaxVersion` to the correct major/minor versions with `PreRelease` set to `"experimental"`
-- Update `config/vX_(Y+1)_experimental/config.go` to point the `prev` import to the new stable `vX_Y` package
+- Update `config/vX_(Y+1)_experimental/config.go` to point the `prev` import to the new stable `vX_Y` package and update the comment block on `ParseCompatibleVersion`
 - Update `config/vX_(Y+1)_experimental/config_test.go` to test that the new stable version is invalid and the new experimental version is valid
 - Update `config/vX_(Y+1)_experimental/translate/translate.go` to translate from the previous stable version.  Update the `old_types` import, delete all functions except `translateIgnition` and `Translate`, and ensure `translateIgnition` translates the entire `Ignition` struct.
+- Update `config/vX_(Y+1)_experimental/translate/translate_test.go` to point the `old` import to the new stable `vX_Y/types` package
 - Update `config/config.go` imports to point to the experimental version.
 - Update `config/config_test.go` to add the new experimental version to `TestConfigStructure`.
 - Update `generate` to generate the new stable and experimental versions, and rerun `generate`.
@@ -155,9 +157,9 @@ Next, all places that imported `config/vX_Y_experimental` should be updated to `
 
 Update `tests/register/register.go` in the following ways:
 
-- Add import `config/vX_Y`
-- Update import `config/vX_Y_experimental` to `config/vX_(Y+1)_experimental`
-- Add `config/vX_Y`'s identifier to `configVersions` in `Register()`
+- Add import `config/vX_Y/types`
+- Update import `config/vX_Y_experimental/types` to `config/vX_(Y+1)_experimental/types`
+- Add `config/vX_Y/types`'s identifier to `configVersions` in `Register()`
 
 ### Update the blackbox tests
 
@@ -165,7 +167,7 @@ Update the blackbox tests.
 
 - Bump the invalid `-experimental` version in the relevant `VersionOnlyConfig` test in `tests/negative/general/config.go`.
 - Find all tests using `X.Y.0-experimental` and alter them to use `X.Y.0`.
-- Update the `Accept` header checks in `tests/servers.go` to specify the new spec version.
+- Update the `Accept` header checks in `tests/servers/servers.go` to specify the new spec version.
 
 ### Update docs
 
@@ -176,6 +178,7 @@ Finally, update docs.
 - In `docs/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
 - Add a section to `docs/migrating-configs.md`.
 - In `docs/specs.md`, update the list of stable and experimental spec versions (listing the latest stable release first) and update the table listing the Ignition release where a spec has been marked as stable.
+- Note the stabilization in `docs/release-notes.md`, following the format of previous stabilizations. Drop the `-exp` version suffix from any notes for the upcoming release.
 
 ### External Tests
 
