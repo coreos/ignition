@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v3_4_experimental
+package v3_4
 
 import (
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
-	"github.com/coreos/ignition/v2/config/v3_4_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_4/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -80,6 +80,10 @@ func TestParse(t *testing.T) {
 			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.4.0"}}`)},
+			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+		},
+		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0-experimental"}}`)},
 			out: out{err: errors.ErrUnknownVersion},
 		},
@@ -121,7 +125,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "3.4.0-experimental"}}`)},
-			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "2.0.0"},}`)},
@@ -140,7 +144,7 @@ func TestParse(t *testing.T) {
 			out: out{err: errors.ErrEmpty},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "3.4.0-experimental"}, "storage": {"filesystems": [{"format": "ext4", "label": "zzzzzzzzzzzzzzzzzzzzzzzzzzz"}]}}`)},
+			in:  in{config: []byte(`{"ignition": {"version": "3.4.0"}, "storage": {"filesystems": [{"format": "ext4", "label": "zzzzzzzzzzzzzzzzzzzzzzzzzzz"}]}}`)},
 			out: out{err: errors.ErrInvalid},
 		},
 	}
@@ -166,8 +170,12 @@ func TestParse(t *testing.T) {
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "3.4.0-experimental"}}`)},
+			in:  in{config: []byte(`{"ignition": {"version": "3.4.0"}}`)},
 			out: out{config: types.Config{Ignition: types.Ignition{Version: types.MaxVersion.String()}}},
+		},
+		{
+			in:  in{config: []byte(`{"ignition": {"version": "3.4.0-experimental"}}`)},
+			out: out{err: errors.ErrUnknownVersion},
 		},
 		{
 			in:  in{config: []byte(`{"ignition": {"version": "3.5.0"}}`)},
@@ -182,7 +190,7 @@ func TestParse(t *testing.T) {
 			out: out{err: errors.ErrInvalid},
 		},
 		{
-			in:  in{config: []byte(`{"ignition": {"version": "3.4.0-experimental"}, "storage": {"filesystems": [{"format": "ext4", "label": "zzzzzzzzzzzzzzzzzzzzzzzzzzz"}]}}`)},
+			in:  in{config: []byte(`{"ignition": {"version": "3.4.0"}, "storage": {"filesystems": [{"format": "ext4", "label": "zzzzzzzzzzzzzzzzzzzzzzzzzzz"}]}}`)},
 			out: out{err: errors.ErrInvalid},
 		},
 	}
