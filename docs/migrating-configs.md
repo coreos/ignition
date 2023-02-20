@@ -10,6 +10,124 @@ Occasionally, there are changes made to Ignition's configuration that break back
 1. TOC
 {:toc}
 
+## From Version 3.3.0 to 3.4.0
+
+There are not any breaking changes between versions 3.3.0 and 3.4.0 of the configuration specification. Any valid 3.3.0 configuration can be updated to a 3.4.0 configuration by simply changing the version string in the config.
+
+The following is a list of notable new features, deprecations, and changes.
+
+### Offline Tang provisioning
+
+The `tang` section gained a new `advertisement` field. If specified, Ignition will use it to provision the Tang server binding rather than fetching the advertisement from the server at runtime. This allows the server to be unavailable at provisioning time. The advertisement can be obtained from the server with `curl http://tang.example.com/adv`.
+
+<!-- ignition -->
+```json
+{
+  "ignition": { "version": "3.4.0" },
+  "storage": {
+    "luks": [{
+      "name": "luks-tang",
+      "device": "/dev/sdb",
+      "clevis": {
+        "tang": [{
+          "url": "https://tang.example.com",
+          "thumbprint": "REPLACE-THIS-WITH-YOUR-TANG-THUMBPRINT",
+          "advertisement": "{\"payload\": \"...\", \"protected\": \"...\", \"signature\": \"...\"}"
+        }]
+      }
+    }]
+  }
+}
+```
+
+### LUKS discard
+
+The `luks` section gained a new `discard` field. If specified and true, the LUKS volume will issue discard commands to the underlying block device when blocks are freed. This improves performance and device longevity on SSDs and space utilization on thinly provisioned SAN devices, but leaks information about which disk blocks contain data.
+
+<!-- ignition -->
+```json
+{
+  "ignition": { "version": "3.4.0" },
+  "storage": {
+    "luks": [{
+      "name": "luks-tpm",
+      "device": "/dev/sdb",
+      "discard": true,
+      "clevis": {
+        "tpm2": true
+      }
+    }]
+  }
+}
+```
+
+### LUKS open options
+
+The `luks` section gained a new `openOptions` field. It is a list of options Ignition should pass to `cryptsetup luksOpen` when unlocking the volume. Ignition also passes `--persistent`, so any options that support persistence will be saved to the volume and automatically used for future unlocks. Any options that do not support persistence will only be applied to Ignition's initial unlock of the volume.
+
+<!-- ignition -->
+```json
+{
+  "ignition": { "version": "3.4.0" },
+  "storage": {
+    "luks": [{
+      "name": "luks-tpm",
+      "device": "/dev/sdb",
+      "openOptions": ["--perf-no_read_workqueue", "--perf-no_write_workqueue"],
+      "clevis": {
+        "tpm2": true
+      }
+    }]
+  }
+}
+```
+
+### Special mode bits supported
+
+The `mode` field of the `files` and `directories` sections now respects the setuid, setgid, and sticky bits. Previous spec versions ignore these bits, but will generate a warning on Ignition ≥ 2.14.0.
+
+<!-- ignition -->
+```json
+{
+  "ignition": {
+    "version": "3.4.0"
+  },
+  "storage": {
+    "files": [{
+      "path": "/usr/local/bin/setuid",
+      "contents": {
+        "source": "https://rootkit.example.com/setuid"
+      },
+      "mode": 2541
+    }],
+    "directories": [{
+      "path": "/var/local/tmp",
+      "mode": 1023
+    }]
+  }
+}
+```
+
+### AWS S3 access point ARN support
+
+The sections which allow fetching a remote URL now accept AWS S3 access point ARNs (`arn:aws:s3:<region>:<account>:accesspoint/<accesspoint>/object/<path>`) in the `source` field.
+
+<!-- ignition -->
+```json
+{
+  "ignition": { "version": "3.4.0" },
+  "storage": {
+    "files": [{
+      "path": "/etc/example",
+      "mode": 420,
+      "contents": {
+        "source": "arn:aws:s3:us-west-1:123456789012:accesspoint/test/object/some/path"
+      }
+    }]
+  }
+}
+```
+
 ## From Version 3.2.0 to 3.3.0
 
 There are not any breaking changes between versions 3.2.0 and 3.3.0 of the configuration specification. Any valid 3.2.0 configuration can be updated to a 3.3.0 configuration by simply changing the version string in the config.

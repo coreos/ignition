@@ -60,7 +60,7 @@ var (
 	// config is being fetched
 	configHeaders = http.Header{
 		"Accept-Encoding": []string{"identity"},
-		"Accept":          []string{"application/vnd.coreos.ignition+json;version=3.3.0, */*;q=0.1"},
+		"Accept":          []string{"application/vnd.coreos.ignition+json;version=3.4.0, */*;q=0.1"},
 	}
 
 	// We could derive this info from aws-sdk-go/aws/endpoints/defaults.go,

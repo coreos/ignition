@@ -12,12 +12,15 @@ nav_order: 9
 ### Features
 
 - Ship aarch64 macOS ignition-validate binary in GitHub release artifacts
-- Allow enabling discard passthrough on LUKS devices _(3.4.0-exp)_
-- Allow specifying arbitrary LUKS open options _(3.4.0-exp)_
-- Support offline Tang provisioning via pre-shared advertisement _(3.4.0-exp)_
+- Allow enabling discard passthrough on LUKS devices _(3.4.0)_
+- Allow specifying arbitrary LUKS open options _(3.4.0)_
+- Support offline Tang provisioning via pre-shared advertisement _(3.4.0)_
 
 ### Changes
 
+- Mark the 3.4.0 config spec as stable
+- No longer accept configs with version 3.4.0-experimental
+- Create new 3.5.0-experimental config spec from 3.4.0
 - Warn if template for enabled systemd instance unit has no `Install` section
 - Warn if filesystem overwrites partitioned disk
 - Warn if `wipeTable` overwrites a filesystem that would otherwise be reused
