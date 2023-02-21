@@ -4,41 +4,58 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.15.0 (unreleased)
+## Upcoming Ignition 2.16.0 (unreleased)
 
 ### Breaking changes
 
 
 ### Features
 
-- Ship aarch64 macOS ignition-validate binary in GitHub release artifacts
+
+### Changes
+
+
+### Bug fixes
+
+
+
+## Ignition 2.15.0 (2023-02-21)
+
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 37 key](https://getfedora.org/security/).
+
+### Features
+
+- Support offline Tang provisioning via pre-shared advertisement _(3.4.0)_
 - Allow enabling discard passthrough on LUKS devices _(3.4.0)_
 - Allow specifying arbitrary LUKS open options _(3.4.0)_
-- Support offline Tang provisioning via pre-shared advertisement _(3.4.0)_
+- Ship aarch64 macOS ignition-validate binary in GitHub release artifacts
 
 ### Changes
 
 - Mark the 3.4.0 config spec as stable
 - No longer accept configs with version 3.4.0-experimental
 - Create new 3.5.0-experimental config spec from 3.4.0
+- Fail if files/links/dirs conflict with systemd units or dropins
 - Warn if template for enabled systemd instance unit has no `Install` section
 - Warn if filesystem overwrites partitioned disk
 - Warn if `wipeTable` overwrites a filesystem that would otherwise be reused
 - Warn if `user`/`group` specified for hard link
 - Install ignition-apply in `/usr/libexec`
+- Allow distros to add Ignition command-line arguments from a unit drop-in
 - Convert `NEWS` to Markdown and move to docs site
-- Fail if files/links/dirs conflict with systemd units or dropins
 - Require Go 1.18+
 
 ### Bug fixes
 
 - Don't overwrite LUKS1 volume when `storage.luks.wipeVolume` is false
-- Avoid logging spurious error when a LUKS volume wasn't previously formatted
-- Fix reproducibility of systemd preset file in ignition-apply output
-- Clarify spec docs for `files`/`directories`/`links` `group` fields
-- Document that `user`/`group` fields aren't applied to hard links
-- Fix version string in ignition-validate release container
 - Request network when custom Clevis config has `needsNetwork` set
+- Fix creating LUKS volume with custom Clevis config that uses TPM2
+- Avoid logging spurious error when a LUKS volume wasn't previously formatted
+- Fix version string in ignition-validate release container
+- Fix reproducibility of systemd preset file in ignition-apply output
+- Document that `user`/`group` fields aren't applied to hard links
+- Clarify spec docs for `files`/`directories`/`links` `group` fields
 
 
 ## Ignition 2.14.0 (12-May-2022)
