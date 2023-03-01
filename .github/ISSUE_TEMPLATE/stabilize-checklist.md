@@ -59,9 +59,17 @@ The changes that are required to achieve these effects are typically the followi
 
 If there are any external kola tests that were using the now stabilized experimental spec that are not part of the Ignition repo (e.g. tests in the [fedora-coreos-config](https://github.com/coreos/fedora-coreos-config/tree/testing-devel/tests/kola) repo), CI will fail for the spec stabilization PR.
 
+For tests using experimental Ignition configs:
+
 - [ ] Uncomment the commented-out workaround for this in `.cci.jenkinsfile`.
 - [ ] When bumping the Ignition package in fedora-coreos-config, you'll need to update the external test in that repo to make CI green.
 - [ ] Comment out the workaround.
+
+For tests using experimental Butane configs:
+
+- [ ] Snooze the affected tests in [`kola-denylist.yaml`](https://github.com/coreos/fedora-coreos-config/blob/testing-devel/kola-denylist.yaml).
+- [ ] Stabilize the Butane spec and revendor into coreos-assembler.
+- [ ] Drop the snoozes.
 
 ## Other packages
 
