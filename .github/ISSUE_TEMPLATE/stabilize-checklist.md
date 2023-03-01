@@ -62,3 +62,16 @@ If there are any external kola tests that were using the now stabilized experime
 - [ ] Uncomment the commented-out workaround for this in `.cci.jenkinsfile`.
 - [ ] When bumping the Ignition package in fedora-coreos-config, you'll need to update the external test in that repo to make CI green.
 - [ ] Comment out the workaround.
+
+## Other packages
+
+- [ ] Add a stable spec to [ignition-config-rs](https://github.com/coreos/ignition-config-rs) and [regenerate schema](https://github.com/coreos/ignition-config-rs/blob/main/docs/development.md#regenerating-schemars).
+  - [ ] Put out a new release.
+- [ ] Bump ignition-config-rs in coreos-installer to support the new spec in `iso customize` and `pxe customize`. Update release notes.
+  - [ ] Put out a new coreos-installer release.
+- [ ] Add a new downgrade translation to [ign-converter](https://github.com/coreos/ign-converter/).
+- [ ] [Stabilize Butane specs](https://coreos.github.io/butane/development/#bumping-spec-versions).
+  - [ ] Put out a new release.
+- [ ] Drop `-experimental` from configs in [FCOS docs](https://github.com/coreos/fedora-coreos-docs/) and remove colocated experimental-config warnings
+- [ ] Revendor Ignition and Butane into coreos-assembler and update `mantle/platform/conf/conf.go` and `conf_test.go`.
+- [ ] Ask the [Machine Config Operator](https://github.com/openshift/machine-config-operator/) to support the new spec.
