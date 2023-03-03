@@ -17,6 +17,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- Document that `hash` fields describe decompressed data
 
 
 ## Ignition 2.15.0 (2023-02-21)
