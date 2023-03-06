@@ -58,9 +58,9 @@ go vet $PKG_VET
 
 echo "Running tests..."
 if [ "$GOARCH" == amd64 ]; then
-	go test -timeout 60s -cover $@ ${PKG} --race
+	go test -timeout 60s -cover "${@}" ${PKG} --race
 else
-	go test -timeout 60s -cover $@ ${PKG}
+	go test -timeout 60s -cover "${@}" ${PKG}
 fi
 
 echo "Checking docs..."
