@@ -76,6 +76,9 @@ func ReformatToXFS() types.Test {
 			Substitution: "$DEVICE",
 		},
 	}
+	// mkfs.xfs >= 5.19 requires --unsupported to create filesystems
+	// smaller than 300 MB
+	// https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git/commit/?id=6e0ed3d19c54603f0f7d628ea04b550151d8a262
 	config := `{
 	  "ignition": { "version": "$version" },
 	  "storage": {
@@ -85,7 +88,8 @@ func ReformatToXFS() types.Test {
 	      "format": "xfs",
 	      "label": "OEM",
 	      "uuid": "$uuid0",
-	      "wipeFilesystem": true
+	      "wipeFilesystem": true,
+	      "options": ["--unsupported"]
 	    }]
 	  }
 	}`
@@ -317,6 +321,9 @@ func TestXFSClobberZFS() types.Test {
 			Substitution: "$DEVICE",
 		},
 	}
+	// mkfs.xfs >= 5.19 requires --unsupported to create filesystems
+	// smaller than 300 MB
+	// https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git/commit/?id=6e0ed3d19c54603f0f7d628ea04b550151d8a262
 	config := `{
 	  "ignition": { "version": "$version" },
 	  "storage": {
@@ -324,7 +331,7 @@ func TestXFSClobberZFS() types.Test {
 	      "path": "/tmp0",
 	      "device": "$DEVICE",
 	      "format": "xfs",
-	      "options": ["-K"],
+	      "options": ["-K", "--unsupported"],
 	      "wipeFilesystem": true
 	    }]
 	  }

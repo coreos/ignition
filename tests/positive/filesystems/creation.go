@@ -190,7 +190,7 @@ func FilesystemCreationOnMultipleDisks() types.Test {
 					Label:          label,
 					Number:         1,
 					Length:         65536,
-					FilesystemType: "xfs",
+					FilesystemType: "ext4",
 				},
 			},
 		})
@@ -208,25 +208,25 @@ func FilesystemCreationOnMultipleDisks() types.Test {
 				{
 					"path": "/tmp-0",
 					"device": "$dev0",
-					"format": "xfs",
+					"format": "ext4",
 					"label": "data-0"
 				},
 				{
 					"path": "/tmp-1",
 					"device": "$dev1",
-					"format": "xfs",
+					"format": "ext4",
 					"label": "data-1"
 				},
 				{
 					"path": "/tmp-2",
 					"device": "$dev2",
-					"format": "xfs",
+					"format": "ext4",
 					"label": "data-2"
 				},
 				{
 					"path": "/tmp-3",
 					"device": "$dev3",
-					"format": "xfs",
+					"format": "ext4",
 					"label": "data-3"
 				}
 			]
