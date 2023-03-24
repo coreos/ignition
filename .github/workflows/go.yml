@@ -56,3 +56,32 @@ jobs:
       run: |
         go test -timeout 60s -cover \
             $(go list ./config/... ./validate/...) --race
+  regenerate:
+    name: regenerate
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.20.x
+    - name: Install schematyper
+      run: |
+        # "go install github.com/idubinskiy/schematyper:latest" fails with
+        # current Go.  Use fix from fork.  We can't "go install" directly from
+        # the fork; it complains about mismatched package paths.
+        # https://github.com/idubinskiy/schematyper/pull/22
+        git clone -b gomod https://github.com/bgilbert/schematyper
+        cd schematyper
+        go install .
+    - name: Regenerate schema
+      run: ./generate
+    - name: Check whether schema is current
+      run: |
+        if [ -n "$(git status --porcelain config)" ]; then
+          echo "Found local changes after regenerating schema:"
+          git --no-pager diff --color=always config
+          echo "Rerun './generate'."
+          exit 1
+        fi
