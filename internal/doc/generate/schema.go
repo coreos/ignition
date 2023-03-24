@@ -17,6 +17,7 @@ package generate
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/coreos/go-semver/semver"
 )
@@ -39,7 +40,7 @@ type Transform struct {
 }
 
 func (doc *FieldDoc) RenderDescription(ver *semver.Version) (string, error) {
-	desc := doc.Description
+	desc := strings.ReplaceAll(doc.Description, "%VERSION%", ver.String())
 	for _, xfrm := range doc.Transforms {
 		if xfrm.MinVer != nil {
 			min, err := semver.NewVersion(*xfrm.MinVer)

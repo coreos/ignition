@@ -4,7 +4,7 @@
   required: true
   children:
     - name: version
-      desc: the semantic version number of the spec. The spec version must be compatible with the latest version (`3.5.0-experimental`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
+      desc: the semantic version number of the spec. The spec version must be compatible with the latest version (`%VERSION%`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
     - name: config
       desc: options related to the configuration.
       children:
