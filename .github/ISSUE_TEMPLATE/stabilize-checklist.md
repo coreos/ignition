@@ -30,7 +30,7 @@ The changes that are required to achieve these effects are typically the followi
 - [ ] Update `config/vX_(Y+1)_experimental/translate/translate_test.go` to point the `old` import to the new stable `vX_Y/types` package
 - [ ] Update `config/config.go` imports to point to the experimental version.
 - [ ] Update `config/config_test.go` to add the new experimental version to `TestConfigStructure`.
-- [ ] Update `generate` to generate the new stable and experimental versions, and rerun `generate`.
+- [ ] Update `generate` to generate the new stable and experimental versions.
 
 ## Update all relevant places to use the new experimental package
 
@@ -48,9 +48,9 @@ The changes that are required to achieve these effects are typically the followi
 
 ## Update docs
 
-- [ ] Rename `docs/configuration-vX_Y-experimental.md` to `docs/configuration-vX_Y.md` and make a copy as `docs/configuration-vX_(Y+1)_experimental.md`.
-- [ ] In `docs/configuration-vX_Y.md`, drop `-experimental` from the version number in the heading and the `ignition.version` field, and drop the prerelease warning. Update the `nav_order` field in the Jekyll front matter to be one less than the `nav_order` of the previous stable spec.
-- [ ] In `docs/configuration-vX_(Y+1)_experimental.md`, update the version of the experimental spec in the heading and the `ignition.version` field.
+- [ ] Update `internal/doc/main.go` to add the new stable spec and reference the new experimental spec in `generate()`.
+- [ ] Remove `docs/configuration-vX_Y-experimental.md`.
+- [ ] Run `generate` to regenerate Go schemas and spec docs.
 - [ ] Add a section to `docs/migrating-configs.md`.
 - [ ] In `docs/specs.md`, update the list of stable and experimental spec versions (listing the latest stable release first) and update the table listing the Ignition release where a spec has been marked as stable.
 - [ ] Note the stabilization in `docs/release-notes.md`, following the format of previous stabilizations. Drop the `-exp` version suffix from any notes for the upcoming release.
