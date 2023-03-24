@@ -22,6 +22,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/coreos/go-semver/semver"
 	"gopkg.in/yaml.v3"
 
 	"github.com/coreos/ignition/v2/config/util"
@@ -30,20 +31,20 @@ import (
 //go:embed ignition.yaml
 var ignitionDocs []byte
 
-func Generate(config any, w io.Writer) error {
+func Generate(ver *semver.Version, config any, w io.Writer) error {
 	decoder := yaml.NewDecoder(bytes.NewBuffer(ignitionDocs))
 	decoder.KnownFields(true)
 	var docs FieldDocs
 	if err := decoder.Decode(&docs); err != nil {
 		return fmt.Errorf("unmarshaling documentation: %w", err)
 	}
-	if err := descendStruct(docs, reflect.TypeOf(config), 0, w); err != nil {
+	if err := descendStruct(ver, docs, reflect.TypeOf(config), 0, w); err != nil {
 		return err
 	}
 	return nil
 }
 
-func descendStruct(docs FieldDocs, typ reflect.Type, level int, w io.Writer) error {
+func descendStruct(ver *semver.Version, docs FieldDocs, typ reflect.Type, level int, w io.Writer) error {
 	if typ.Kind() != reflect.Struct {
 		return fmt.Errorf("not a struct: %v (%v)", typ.Name(), typ.Kind())
 	}
@@ -63,11 +64,15 @@ func descendStruct(docs FieldDocs, typ reflect.Type, level int, w io.Writer) err
 			optional = "_"
 		}
 		// write the entry
-		if _, err := fmt.Fprintf(w, "%s* **%s%s%s** (%s): %s\n", strings.Repeat("  ", level), optional, doc.Name, optional, typeName(field.Type), doc.Description); err != nil {
+		desc, err := doc.RenderDescription(ver)
+		if err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, "%s* **%s%s%s** (%s): %s\n", strings.Repeat("  ", level), optional, doc.Name, optional, typeName(field.Type), desc); err != nil {
 			return err
 		}
 		// recurse
-		if err := descend(&doc, field.Type, level+1, w); err != nil {
+		if err := descend(ver, &doc, field.Type, level+1, w); err != nil {
 			return err
 		}
 		// delete from map to keep track of fields we've seen
@@ -80,15 +85,15 @@ func descendStruct(docs FieldDocs, typ reflect.Type, level int, w io.Writer) err
 	return nil
 }
 
-func descend(doc *FieldDoc, typ reflect.Type, level int, w io.Writer) error {
+func descend(ver *semver.Version, doc *FieldDoc, typ reflect.Type, level int, w io.Writer) error {
 	kind := typ.Kind()
 	switch {
 	case util.IsPrimitive(kind):
 		return nil
 	case kind == reflect.Struct:
-		return descendStruct(doc.Children, typ, level, w)
+		return descendStruct(ver, doc.Children, typ, level, w)
 	case kind == reflect.Slice, kind == reflect.Ptr:
-		return descend(doc, typ.Elem(), level, w)
+		return descend(ver, doc, typ.Elem(), level, w)
 	default:
 		return fmt.Errorf("%v has kind %v", typ.Name(), kind)
 	}

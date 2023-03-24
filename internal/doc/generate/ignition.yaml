@@ -15,6 +15,13 @@
               desc: "the URL of the config. Supported schemes are `http`, `https`, `s3`, `arn`, `gs`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
               # source is sometimes optional, but required here by validation
               required: true
+              transforms:
+                - regex: "`gs`, "
+                  replacement: ""
+                  max: 3.1.0
+                - regex: "`arn`, "
+                  replacement: ""
+                  max: 3.3.0
             - name: compression
               desc: the type of compression used on the config (null or gzip). Compression cannot be used with S3.
             - name: httpHeaders
@@ -29,6 +36,14 @@
               children:
                 - name: hash
                   desc: the hash of the config, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed config.
+                  transforms:
+                    - regex: "either `sha512` or `sha256`"
+                      replacement: '`sha512`'
+                      max: 3.0.0
+                    # No compression field in 3.0.0
+                    - regex: " If `compression` .* config."
+                      replacement: ""
+                      max: 3.0.0
         - name: replace
           desc: the config that will replace the current.
           children:
@@ -36,6 +51,13 @@
               desc: "the URL of the config. Supported schemes are `http`, `https`, `s3`, `arn`, `gs`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
               # source is sometimes optional, but required here by validation
               required: true
+              transforms:
+                - regex: "`gs`, "
+                  replacement: ""
+                  max: 3.1.0
+                - regex: "`arn`, "
+                  replacement: ""
+                  max: 3.3.0
             - name: compression
               desc: the type of compression used on the config (null or gzip). Compression cannot be used with S3.
             - name: httpHeaders
@@ -50,6 +72,14 @@
               children:
                 - name: hash
                   desc: the hash of the config, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed config.
+                  transforms:
+                    - regex: "either `sha512` or `sha256`"
+                      replacement: '`sha512`'
+                      max: 3.0.0
+                    # No compression field in 3.0.0
+                    - regex: " If `compression` .* config."
+                      replacement: ""
+                      max: 3.0.0
     - name: timeouts
       desc: options relating to `http` timeouts when fetching files over `http` or `https`.
       children:
@@ -71,6 +101,13 @@
                   # source is sometimes optional, but required here by
                   # validation
                   required: true
+                  transforms:
+                    - regex: "`gs`, "
+                      replacement: ""
+                      max: 3.1.0
+                    - regex: "`arn`, "
+                      replacement: ""
+                      max: 3.3.0
                 - name: compression
                   desc: the type of compression used on the certificate (null or gzip). Compression cannot be used with S3.
                 - name: httpHeaders
@@ -85,6 +122,14 @@
                   children:
                     - name: hash
                       desc: the hash of the certificate, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed certificate.
+                      transforms:
+                        - regex: "either `sha512` or `sha256`"
+                          replacement: '`sha512`'
+                          max: 3.0.0
+                        # No compression field in 3.0.0
+                        - regex: " If `compression` .* certificate."
+                          replacement: ""
+                          max: 3.0.0
     - name: proxy
       desc: options relating to setting an `HTTP(S)` proxy when fetching resources.
       children:
@@ -153,6 +198,10 @@
           desc: the filesystem format (ext4, btrfs, xfs, vfat, swap, or none).
           # not part of the primary key, but required by validation
           required: true
+          transforms:
+            - regex: "swap, or none"
+              replacement: "or swap"
+              max: 3.2.0
         - name: path
           desc: the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
         - name: wipeFilesystem
@@ -179,6 +228,13 @@
               desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
             - name: source
               desc: "the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created."
+              transforms:
+                - regex: "`gs`, "
+                  replacement: ""
+                  max: 3.1.0
+                - regex: "`arn`, "
+                  replacement: ""
+                  max: 3.3.0
             - name: httpHeaders
               desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
               children:
@@ -191,6 +247,10 @@
               children:
                 - name: hash
                   desc: the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed contents.
+                  transforms:
+                    - regex: "either `sha512` or `sha256`"
+                      replacement: '`sha512`'
+                      max: 3.0.0
         - name: append
           desc: list of contents to be appended to the file. Follows the same stucture as `contents`
           children:
@@ -198,6 +258,13 @@
               desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
             - name: source
               desc: "the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+              transforms:
+                - regex: "`gs`, "
+                  replacement: ""
+                  max: 3.1.0
+                - regex: "`arn`, "
+                  replacement: ""
+                  max: 3.3.0
             - name: httpHeaders
               desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
               children:
@@ -210,8 +277,16 @@
               children:
                 - name: hash
                   desc: the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed contents.
+                  transforms:
+                    - regex: "either `sha512` or `sha256`"
+                      replacement: '`sha512`'
+                      max: 3.0.0
         - name: mode
           desc: the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents.source` is unspecified, and a file already exists at the path.
+          transforms:
+            - regex: are supported
+              replacement: are not supported
+              max: 3.3.0
         - name: user
           desc: "specifies the file's owner."
           children:
@@ -235,6 +310,10 @@
           desc: whether to delete preexisting nodes at the path. If false and a directory already exists at the path, Ignition will only set its permissions. If false and a non-directory exists at that path, Ignition will fail. Defaults to false.
         - name: mode
           desc: "the directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0755 -> 493). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for directories defaults to 0755 or the mode of an existing directory if `overwrite` is false and a directory already exists at the path."
+          transforms:
+            - regex: are supported
+              replacement: are not supported
+              max: 3.3.0
         - name: user
           desc: "specifies the directory's owner."
           children:
@@ -292,6 +371,13 @@
               desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
             - name: source
               desc: "the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+              transforms:
+                - regex: "`gs`, "
+                  replacement: ""
+                  max: 3.1.0
+                - regex: "`arn`, "
+                  replacement: ""
+                  max: 3.3.0
             - name: httpHeaders
               desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
               children:
@@ -304,6 +390,14 @@
               children:
                 - name: hash
                   desc: the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed contents.
+                  transforms:
+                    - regex: "either `sha512` or `sha256`"
+                      replacement: "`sha512`"
+                      max: 3.0.0
+                    # No compression field in 3.0.0
+                    - regex: " If `compression` .* contents."
+                      replacement: ""
+                      max: 3.0.0
         - name: label
           desc: the label of the luks device.
         - name: uuid

@@ -84,7 +84,7 @@ func generate(dir string) error {
 		}
 
 		// write docs
-		err = doc.Generate(c.config, f)
+		err = doc.Generate(ver, c.config, f)
 		if err != nil {
 			return fmt.Errorf("generating doc for %s: %w", c.version, err)
 		}
