@@ -15,9 +15,11 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"github.com/coreos/go-semver/semver"
 
@@ -30,24 +32,31 @@ import (
 	doc "github.com/coreos/ignition/v2/internal/doc/generate"
 )
 
+var (
+	//go:embed header.md
+	headerRaw string
+	header    = template.Must(template.New("header").Parse(headerRaw))
+)
+
 func generate(dir string) error {
 	configs := []struct {
 		version string
 		config  any
 	}{
+		// generate in inverse order of website navbar
+		{"3.5.0-experimental", v35.Config{}},
 		{"3.0.0", v30.Config{}},
 		{"3.1.0", v31.Config{}},
 		{"3.2.0", v32.Config{}},
 		{"3.3.0", v33.Config{}},
 		{"3.4.0", v34.Config{}},
-		{"3.5.0-experimental", v35.Config{}},
 	}
 
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
 
-	for _, c := range configs {
+	for i, c := range configs {
 		ver := semver.New(c.version)
 
 		// open file
@@ -61,6 +70,18 @@ func generate(dir string) error {
 			return err
 		}
 		defer f.Close()
+
+		// write header
+		args := struct {
+			Version  *semver.Version
+			NavOrder int
+		}{
+			Version:  ver,
+			NavOrder: 50 - i,
+		}
+		if err := header.Execute(f, args); err != nil {
+			return fmt.Errorf("writing header for %s: %w", c.version, err)
+		}
 
 		// write docs
 		err = doc.Generate(c.config, f)
