@@ -16,7 +16,9 @@ package main
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -59,12 +61,23 @@ func generate(dir string) error {
 	for i, c := range configs {
 		ver := semver.New(c.version)
 
-		// open file
-		prerelease := ""
-		if ver.PreRelease != "" {
-			prerelease = "_" + string(ver.PreRelease)
+		// clean up any previous experimental spec doc, for use
+		// during spec stabilization
+		experimentalPath := filepath.Join(dir, fmt.Sprintf("configuration-v%d_%d_experimental.md", ver.Major, ver.Minor))
+		if err := os.Remove(experimentalPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			return err
 		}
-		path := filepath.Join(dir, fmt.Sprintf("configuration-v%d_%d%s.md", ver.Major, ver.Minor, prerelease))
+
+		// open file
+		var path string
+		switch ver.PreRelease {
+		case "":
+			path = filepath.Join(dir, fmt.Sprintf("configuration-v%d_%d.md", ver.Major, ver.Minor))
+		case "experimental":
+			path = experimentalPath
+		default:
+			panic(fmt.Errorf("unexpected prerelease: %v", ver.PreRelease))
+		}
 		f, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 		if err != nil {
 			return err

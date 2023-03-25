@@ -49,7 +49,6 @@ The changes that are required to achieve these effects are typically the followi
 ## Update docs
 
 - [ ] Update `internal/doc/main.go` to add the new stable spec and reference the new experimental spec in `generate()`.
-- [ ] Remove `docs/configuration-vX_Y-experimental.md`.
 - [ ] Run `generate` to regenerate Go schemas and spec docs.
 - [ ] Add a section to `docs/migrating-configs.md`.
 - [ ] In `docs/specs.md`, update the list of stable and experimental spec versions (listing the latest stable release first) and update the table listing the Ignition release where a spec has been marked as stable.
