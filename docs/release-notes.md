@@ -19,6 +19,10 @@ nav_order: 9
 
 - Document that `hash` fields describe decompressed data
 
+### Test changes
+
+- Support and require xfsprogs ≥ 5.19 in blackbox tests
+
 
 ## Ignition 2.15.0 (2023-02-21)
 
