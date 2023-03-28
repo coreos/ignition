@@ -19,6 +19,7 @@ package azurestack
 
 import (
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/azure"
 	"github.com/coreos/ignition/v2/internal/resource"
 	"github.com/coreos/vcontext/report"
@@ -32,7 +33,14 @@ const (
 	CDS_FSTYPE_ISO9660 = "iso9660"
 )
 
-// FetchConfig implements the platform.NewFetcher interface.
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:  "azurestack",
+		Fetch: fetchConfig,
+	})
+}
+
+// fetchConfig implements the fetcher interface.
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	return azure.FetchFromOvfDevice(f, []string{CDS_FSTYPE_UDF, CDS_FSTYPE_ISO9660})
 }

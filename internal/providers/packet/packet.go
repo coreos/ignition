@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -52,7 +53,15 @@ var (
 	}
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:   "packet",
+		Fetch:  fetchConfig,
+		Status: postStatus,
+	})
+}
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	// Packet's metadata service returns "Not Acceptable" when queried
 	// with the default Accept header.
 	headers := make(http.Header)
@@ -68,7 +77,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 }
 
 // PostStatus posts a message that will show on the Packet Instance Timeline
-func PostStatus(stageName string, f resource.Fetcher, errMsg error) error {
+func postStatus(stageName string, f resource.Fetcher, errMsg error) error {
 	f.Logger.Info("POST message to Packet Timeline")
 	// fetch JSON from https://metadata.packet.net/metadata
 	headers := make(http.Header)

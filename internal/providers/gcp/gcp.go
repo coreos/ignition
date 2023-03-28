@@ -22,6 +22,7 @@ import (
 	"net/url"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -38,7 +39,14 @@ var (
 	metadataHeaderVal = "Google"
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:  "gcp",
+		Fetch: fetchConfig,
+	})
+}
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	headers := make(http.Header)
 	headers.Set(metadataHeaderKey, metadataHeaderVal)
 	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{

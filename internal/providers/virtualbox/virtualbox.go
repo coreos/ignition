@@ -33,6 +33,7 @@ import (
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -44,7 +45,15 @@ const (
 	configEncodingProperty = "/Ignition/Config/Encoding"
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:      "virtualbox",
+		Fetch:     fetchConfig,
+		DelConfig: delConfig,
+	})
+}
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	f.Logger.Debug("reading Ignition config from VirtualBox guest property")
 
 	// for forward compatibility, check an encoding property analogous
@@ -69,7 +78,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	return util.ParseConfig(f.Logger, config)
 }
 
-func DelConfig(f *resource.Fetcher) error {
+func delConfig(f *resource.Fetcher) error {
 	f.Logger.Info("deleting Ignition config from VirtualBox guest property")
 	err := deleteProperty(configEncodingProperty)
 	if err != nil {

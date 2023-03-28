@@ -28,6 +28,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 	"github.com/coreos/vcontext/report"
@@ -35,7 +36,14 @@ import (
 
 const readerDevice string = "000c"
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:  "zvm",
+		Fetch: fetchConfig,
+	})
+}
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	// Fetch config files directly from reader device.
 	_, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "vmur"), "Loading zVM control program module")
 	if err != nil {

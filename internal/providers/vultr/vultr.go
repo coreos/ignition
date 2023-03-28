@@ -22,6 +22,7 @@ import (
 	"net/url"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -36,7 +37,14 @@ var (
 	}
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:  "vultr",
+		Fetch: fetchConfig,
+	})
+}
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	data, err := f.FetchToBuffer(userdataUrl, resource.FetchOptions{})
 	if err != nil && err != resource.ErrNotFound {
 		return types.Config{}, report.Report{}, err
