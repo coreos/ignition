@@ -67,28 +67,24 @@ func (c Config) FetchFunc() providers.FuncFetchConfig {
 	return c.fetch
 }
 
-func (c Config) NewFetcherFunc() providers.FuncNewFetcher {
+func (c Config) NewFetcher(l *log.Logger) (resource.Fetcher, error) {
 	if c.newFetcher != nil {
-		return c.newFetcher
-	}
-	return func(l *log.Logger) (resource.Fetcher, error) {
+		return c.newFetcher(l)
+	} else {
 		return resource.Fetcher{
 			Logger: l,
 		}, nil
 	}
 }
 
-// InitFunc returns a function that performs additional fetcher
-// configuration post-config fetch. This ensures that networking
-// is already available if a platform needs to reach out to the
-// metadata service to fetch additional options / data.
-func (c Config) InitFunc() providers.FuncInit {
+// Init performs additional fetcher configuration post-config fetch.  This
+// ensures that networking is already available if a platform needs to reach
+// out to the metadata service to fetch additional options / data.
+func (c Config) Init(f *resource.Fetcher) error {
 	if c.init != nil {
-		return c.init
+		return c.init(f)
 	}
-	return func(f *resource.Fetcher) error {
-		return nil
-	}
+	return nil
 }
 
 // Status takes a Fetcher and the error from Run (from engine)

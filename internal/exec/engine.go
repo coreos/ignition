@@ -97,7 +97,7 @@ func (e Engine) Run(stageName string) error {
 	// Run the platform config's Init function pre-config fetch
 	// to perform any additional fetcher configuration  e.x.
 	// configuring the S3RegionHint when running on AWS.
-	err = e.PlatformConfig.InitFunc()(e.Fetcher)
+	err = e.PlatformConfig.Init(e.Fetcher)
 	if err == resource.ErrNeedNet && stageName == "fetch-offline" {
 		err = e.signalNeedNet()
 		if err != nil {

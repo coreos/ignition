@@ -99,7 +99,7 @@ func ignitionMain() {
 	logger.Info("Stage: %v", flags.stage)
 
 	platformConfig := platform.MustGet(flags.platform.String())
-	fetcher, err := platformConfig.NewFetcherFunc()(&logger)
+	fetcher, err := platformConfig.NewFetcher(&logger)
 	if err != nil {
 		logger.Crit("failed to generate fetcher: %s", err)
 		os.Exit(3)
@@ -228,7 +228,7 @@ func ignitionRmCfgMain() {
 	logger.Info(version.String)
 
 	platformConfig := platform.MustGet(flags.platform)
-	fetcher, err := platformConfig.NewFetcherFunc()(&logger)
+	fetcher, err := platformConfig.NewFetcher(&logger)
 	if err != nil {
 		logger.Crit("failed to generate fetcher: %s", err)
 		os.Exit(3)
