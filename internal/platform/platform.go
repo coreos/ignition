@@ -38,14 +38,12 @@ type Config struct {
 	p Provider
 }
 
-type FuncFetchConfig func(f *resource.Fetcher) (types.Config, report.Report, error)
-
 // Provider is the struct that platform implementations use to define their
 // capabilities for use by this package.
 type Provider struct {
 	Name       string
 	NewFetcher func(logger *log.Logger) (resource.Fetcher, error)
-	Fetch      FuncFetchConfig
+	Fetch      func(f *resource.Fetcher) (types.Config, report.Report, error)
 	Init       func(f *resource.Fetcher) error
 	Status     func(stageName string, f resource.Fetcher, e error) error
 	DelConfig  func(f *resource.Fetcher) error
@@ -55,8 +53,8 @@ func (c Config) Name() string {
 	return c.p.Name
 }
 
-func (c Config) FetchFunc() FuncFetchConfig {
-	return c.p.Fetch
+func (c Config) Fetch(f *resource.Fetcher) (types.Config, report.Report, error) {
+	return c.p.Fetch(f)
 }
 
 func (c Config) NewFetcher(l *log.Logger) (resource.Fetcher, error) {

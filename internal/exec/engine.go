@@ -296,7 +296,7 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 	var err error
 	var providerKey string
 	for _, platformConfig := range platformConfigs {
-		cfg, r, err = platformConfig.FetchFunc()(e.Fetcher)
+		cfg, r, err = platformConfig.Fetch(e.Fetcher)
 		if err != platform.ErrNoProvider {
 			// successful, or failed on another error
 			providerKey = platformConfig.Name()
