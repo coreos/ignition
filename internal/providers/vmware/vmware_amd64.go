@@ -22,7 +22,6 @@ import (
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/platform"
-	"github.com/coreos/ignition/v2/internal/providers"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -56,7 +55,7 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	if isVM, err := vmcheck.IsVirtualWorld(true); err != nil {
 		return types.Config{}, report.Report{}, err
 	} else if !isVM {
-		return types.Config{}, report.Report{}, providers.ErrNoProvider
+		return types.Config{}, report.Report{}, platform.ErrNoProvider
 	}
 
 	config, err := fetchRawConfig(f)

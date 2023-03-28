@@ -18,14 +18,17 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/log"
-	"github.com/coreos/ignition/v2/internal/providers"
 	"github.com/coreos/ignition/v2/internal/registry"
 	"github.com/coreos/ignition/v2/internal/resource"
+
+	"github.com/coreos/vcontext/report"
 )
 
 var (
 	ErrCannotDelete = errors.New("cannot delete config on this platform")
+	ErrNoProvider   = errors.New("config provider was not online")
 )
 
 // Config defines the capabilities of a particular platform, for use by the
@@ -35,22 +38,24 @@ type Config struct {
 	p Provider
 }
 
+type FuncFetchConfig func(f *resource.Fetcher) (types.Config, report.Report, error)
+
 // Provider is the struct that platform implementations use to define their
 // capabilities for use by this package.
 type Provider struct {
 	Name       string
-	NewFetcher providers.FuncNewFetcher
-	Fetch      providers.FuncFetchConfig
-	Init       providers.FuncInit
-	Status     providers.FuncPostStatus
-	DelConfig  providers.FuncDelConfig
+	NewFetcher func(logger *log.Logger) (resource.Fetcher, error)
+	Fetch      FuncFetchConfig
+	Init       func(f *resource.Fetcher) error
+	Status     func(stageName string, f resource.Fetcher, e error) error
+	DelConfig  func(f *resource.Fetcher) error
 }
 
 func (c Config) Name() string {
 	return c.p.Name
 }
 
-func (c Config) FetchFunc() providers.FuncFetchConfig {
+func (c Config) FetchFunc() FuncFetchConfig {
 	return c.p.Fetch
 }
 

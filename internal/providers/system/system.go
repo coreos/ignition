@@ -22,7 +22,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/log"
-	"github.com/coreos/ignition/v2/internal/providers"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -62,7 +62,7 @@ func fetchConfig(logger *log.Logger, filename string) (types.Config, report.Repo
 	rawConfig, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
 		logger.Info("no config at %q", path)
-		return types.Config{}, report.Report{}, providers.ErrNoProvider
+		return types.Config{}, report.Report{}, platform.ErrNoProvider
 	} else if err != nil {
 		logger.Err("couldn't read config %q: %v", path, err)
 		return types.Config{}, report.Report{}, err

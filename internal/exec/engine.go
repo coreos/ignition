@@ -30,7 +30,6 @@ import (
 	executil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/platform"
-	"github.com/coreos/ignition/v2/internal/providers"
 	"github.com/coreos/ignition/v2/internal/providers/cmdline"
 	"github.com/coreos/ignition/v2/internal/providers/system"
 	"github.com/coreos/ignition/v2/internal/resource"
@@ -77,7 +76,7 @@ func (e Engine) Run(stageName string) error {
 
 	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger, e.PlatformConfig.Name())
 	e.Logger.LogReport(r)
-	if err != nil && err != providers.ErrNoProvider {
+	if err != nil && err != platform.ErrNoProvider {
 		e.Logger.Crit("failed to acquire system base config: %v", err)
 		return err
 	} else if err == nil {
@@ -291,7 +290,7 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 	// block just above
 	fetchers := []struct {
 		name      string
-		fetchFunc providers.FuncFetchConfig
+		fetchFunc platform.FuncFetchConfig
 	}{
 		{"cmdline", cmdline.FetchConfig},
 		{"system", system.FetchConfig},
@@ -303,7 +302,7 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 	var providerKey string
 	for _, fetcher := range fetchers {
 		cfg, r, err = fetcher.fetchFunc(e.Fetcher)
-		if err != providers.ErrNoProvider {
+		if err != platform.ErrNoProvider {
 			// successful, or failed on another error
 			providerKey = fetcher.name
 			break

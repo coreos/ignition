@@ -25,7 +25,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/log"
-	"github.com/coreos/ignition/v2/internal/providers"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -43,7 +43,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	}
 
 	if url == nil {
-		return types.Config{}, report.Report{}, providers.ErrNoProvider
+		return types.Config{}, report.Report{}, platform.ErrNoProvider
 	}
 
 	data, err := f.FetchToBuffer(*url, resource.FetchOptions{})

@@ -13,23 +13,3 @@
 // limitations under the License.
 
 package providers
-
-import (
-	"errors"
-
-	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
-	"github.com/coreos/ignition/v2/internal/log"
-	"github.com/coreos/ignition/v2/internal/resource"
-
-	"github.com/coreos/vcontext/report"
-)
-
-var (
-	ErrNoProvider = errors.New("config provider was not online")
-)
-
-type FuncFetchConfig func(f *resource.Fetcher) (types.Config, report.Report, error)
-type FuncInit func(f *resource.Fetcher) error
-type FuncNewFetcher func(logger *log.Logger) (resource.Fetcher, error)
-type FuncPostStatus func(stageName string, f resource.Fetcher, e error) error
-type FuncDelConfig func(f *resource.Fetcher) error
