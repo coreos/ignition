@@ -33,6 +33,15 @@ const (
 	userFilename = "user.ign"
 )
 
+var (
+	// we are a special-cased system provider; don't register ourselves
+	// for lookup by name
+	Config = platform.NewConfig(platform.Provider{
+		Name:  "system",
+		Fetch: fetchConfig,
+	})
+)
+
 // FetchBaseConfig fetches base config fragments from the `base.d` and platform config fragments from
 // the `base.platform.d/platform`(if available), and merge them in the right order.
 func FetchBaseConfig(logger *log.Logger, platformName string) (types.Config, report.Report, error) {
@@ -51,11 +60,11 @@ func FetchBaseConfig(logger *log.Logger, platformName string) (types.Config, rep
 	return fullBaseConfig, fullReport, nil
 }
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	return fetchConfig(f.Logger, userFilename)
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+	return doFetchConfig(f.Logger, userFilename)
 }
 
-func fetchConfig(logger *log.Logger, filename string) (types.Config, report.Report, error) {
+func doFetchConfig(logger *log.Logger, filename string) (types.Config, report.Report, error) {
 	path := filepath.Join(distro.SystemConfigDir(), filename)
 	logger.Info("reading system config file %q", path)
 
@@ -88,7 +97,7 @@ func fetchBaseDirectoryConfig(logger *log.Logger, dir string) (types.Config, rep
 		return types.Config{}, report, nil
 	}
 	for _, config := range configs {
-		intermediateConfig, intermediateReport, err := fetchConfig(logger, filepath.Join(dir, config.Name()))
+		intermediateConfig, intermediateReport, err := doFetchConfig(logger, filepath.Join(dir, config.Name()))
 		if err != nil {
 			return types.Config{}, intermediateReport, err
 		}

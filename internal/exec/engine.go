@@ -286,25 +286,20 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 // is unavailable. This will also render the config (see renderConfig) before
 // returning.
 func (e *Engine) fetchProviderConfig() (types.Config, error) {
-	// note this is an array because iteration order is important; see comment
-	// block just above
-	fetchers := []struct {
-		name      string
-		fetchFunc platform.FuncFetchConfig
-	}{
-		{"cmdline", cmdline.FetchConfig},
-		{"system", system.FetchConfig},
-		{e.PlatformConfig.Name(), e.PlatformConfig.FetchFunc()},
+	platformConfigs := []platform.Config{
+		cmdline.Config,
+		system.Config,
+		e.PlatformConfig,
 	}
 	var cfg types.Config
 	var r report.Report
 	var err error
 	var providerKey string
-	for _, fetcher := range fetchers {
-		cfg, r, err = fetcher.fetchFunc(e.Fetcher)
+	for _, platformConfig := range platformConfigs {
+		cfg, r, err = platformConfig.FetchFunc()(e.Fetcher)
 		if err != platform.ErrNoProvider {
 			// successful, or failed on another error
-			providerKey = fetcher.name
+			providerKey = platformConfig.Name()
 			break
 		}
 	}

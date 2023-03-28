@@ -36,7 +36,16 @@ const (
 	cmdlineUrlFlag = "ignition.config.url"
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+var (
+	// we are a special-cased system provider; don't register ourselves
+	// for lookup by name
+	Config = platform.NewConfig(platform.Provider{
+		Name:  "cmdline",
+		Fetch: fetchConfig,
+	})
+)
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	url, err := readCmdline(f.Logger)
 	if err != nil {
 		return types.Config{}, report.Report{}, err

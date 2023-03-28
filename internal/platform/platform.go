@@ -98,9 +98,15 @@ func (c Config) DelConfig(f *resource.Fetcher) error {
 var configs = registry.Create("platform configs")
 
 func Register(provider Provider) {
-	configs.Register(Config{
+	configs.Register(NewConfig(provider))
+}
+
+// Helper function for wrapping a Provider, for use by specialized providers
+// that don't want to add themselves to the registry.
+func NewConfig(provider Provider) Config {
+	return Config{
 		p: provider,
-	})
+	}
 }
 
 func Get(name string) (config Config, ok bool) {
