@@ -67,9 +67,9 @@ For tests using experimental Ignition configs:
 
 For tests using experimental Butane configs:
 
-- [ ] Snooze the affected tests in [`kola-denylist.yaml`](https://github.com/coreos/fedora-coreos-config/blob/testing-devel/kola-denylist.yaml).
+- [ ] Disable the affected tests in [`kola-denylist.yaml`](https://github.com/coreos/fedora-coreos-config/blob/testing-devel/kola-denylist.yaml) by making their test scripts non-executable.
 - [ ] Stabilize the Butane spec and revendor into coreos-assembler.
-- [ ] Drop the snoozes.
+- [ ] Re-enable the tests.
 
 ## Other packages
 
