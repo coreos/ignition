@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The noop provider does nothing, for use by unimplemented platforms.
+// The metal provider does nothing.
 
-package noop
+package metal
 
 import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
@@ -33,6 +33,6 @@ func init() {
 }
 
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	f.Logger.Debug("noop provider fetching empty config")
+	f.Logger.Debug("metal provider fetching empty config")
 	return types.Config{}, report.Report{}, errors.ErrEmpty
 }

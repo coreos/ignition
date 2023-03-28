@@ -26,7 +26,7 @@ import (
 	_ "github.com/coreos/ignition/v2/internal/providers/gcp"
 	_ "github.com/coreos/ignition/v2/internal/providers/ibmcloud"
 	_ "github.com/coreos/ignition/v2/internal/providers/kubevirt"
-	_ "github.com/coreos/ignition/v2/internal/providers/noop"
+	_ "github.com/coreos/ignition/v2/internal/providers/metal"
 	_ "github.com/coreos/ignition/v2/internal/providers/nutanix"
 	_ "github.com/coreos/ignition/v2/internal/providers/openstack"
 	_ "github.com/coreos/ignition/v2/internal/providers/packet"
