@@ -131,6 +131,22 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 	return nil
 }
 
+// createProviderOutputFiles writes out any files saved in state by
+// provider fetch.
+func (s *stage) createProviderOutputFiles() error {
+	var entries []filesystemEntry
+	for _, file := range s.State.ProviderOutputFiles {
+		path, err := s.JoinPath(file.Path)
+		if err != nil {
+			return fmt.Errorf("calculating path for %q: %w", file.Path, err)
+		}
+		entry := fileEntry(file)
+		entry.Path = path
+		entries = append(entries, entry)
+	}
+	return s.createEntries(entries)
+}
+
 // createResultFile creates a report recording some details about the
 // Ignition run.
 func (s *stage) createResultFile() error {

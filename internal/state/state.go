@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 )
 
 type State struct {
@@ -35,6 +37,10 @@ type State struct {
 	// created by the mount stage so the files stage can chown them
 	// when creating users.
 	NotatedDirectories []string `json:"notatedDirectories"`
+	// Files generated during provider config fetch, to be written to
+	// the filesystem during files stage.  This is for special
+	// circumstances only.
+	ProviderOutputFiles []types.File `json:"providerOutputFiles"`
 }
 
 type FetchedConfig struct {
