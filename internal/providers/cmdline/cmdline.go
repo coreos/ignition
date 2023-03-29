@@ -25,7 +25,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/log"
-	"github.com/coreos/ignition/v2/internal/providers"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -36,14 +36,23 @@ const (
 	cmdlineUrlFlag = "ignition.config.url"
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+var (
+	// we are a special-cased system provider; don't register ourselves
+	// for lookup by name
+	Config = platform.NewConfig(platform.Provider{
+		Name:  "cmdline",
+		Fetch: fetchConfig,
+	})
+)
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	url, err := readCmdline(f.Logger)
 	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}
 
 	if url == nil {
-		return types.Config{}, report.Report{}, providers.ErrNoProvider
+		return types.Config{}, report.Report{}, platform.ErrNoProvider
 	}
 
 	data, err := f.FetchToBuffer(*url, resource.FetchOptions{})

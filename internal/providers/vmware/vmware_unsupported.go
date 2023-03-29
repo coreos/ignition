@@ -24,15 +24,24 @@ import (
 	"errors"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/resource"
 
 	"github.com/coreos/vcontext/report"
 )
 
-func FetchConfig(_ *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:      "vmware",
+		Fetch:     fetchConfig,
+		DelConfig: delConfig,
+	})
+}
+
+func fetchConfig(_ *resource.Fetcher) (types.Config, report.Report, error) {
 	return types.Config{}, report.Report{}, errors.New("vmware provider is not supported on this architecture")
 }
 
-func DelConfig(_ *resource.Fetcher) error {
+func delConfig(_ *resource.Fetcher) error {
 	return errors.New("vmware provider is not supported on this architecture")
 }

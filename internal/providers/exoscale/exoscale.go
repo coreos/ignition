@@ -21,6 +21,7 @@ import (
 	"net/url"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -35,8 +36,15 @@ var (
 	}
 )
 
-// FetchConfig fetch Exoscale ign user-data config
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:  "exoscale",
+		Fetch: fetchConfig,
+	})
+}
+
+// fetchConfig fetch Exoscale ign user-data config
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	data, err := f.FetchToBuffer(userdataURL, resource.FetchOptions{})
 	if err != nil && err != resource.ErrNotFound {
 		return types.Config{}, report.Report{}, err

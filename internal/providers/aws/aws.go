@@ -24,6 +24,7 @@ import (
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -48,7 +49,16 @@ var (
 	errIMDSV2 = errors.New("failed to fetch IMDSv2 session token")
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:       "aws",
+		NewFetcher: newFetcher,
+		Fetch:      fetchConfig,
+		Init:       doInit,
+	})
+}
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	data, err := fetchFromAWSMetadata(userdataURL, resource.FetchOptions{}, f)
 	if err != nil && err != resource.ErrNotFound {
 		return types.Config{}, report.Report{}, err
@@ -57,7 +67,7 @@ func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	return util.ParseConfig(f.Logger, data)
 }
 
-func NewFetcher(l *log.Logger) (resource.Fetcher, error) {
+func newFetcher(l *log.Logger) (resource.Fetcher, error) {
 	sess, err := session.NewSession(&aws.Config{})
 	if err != nil {
 		return resource.Fetcher{}, err
@@ -70,8 +80,8 @@ func NewFetcher(l *log.Logger) (resource.Fetcher, error) {
 	}, nil
 }
 
-// Init prepares the fetcher for this platform
-func Init(f *resource.Fetcher) error {
+// doInit prepares the fetcher for this platform
+func doInit(f *resource.Fetcher) error {
 	// During the fetch stage we might be running before the networking
 	// is fully ready. Perform an HTTP fetch against the IMDS token URL
 	// to ensure that networking is up before we attempt to fetch the

@@ -66,7 +66,7 @@ fi
 echo "Checking docs..."
 go run internal/util/tools/docs/docs.go
 # Ensure every platform is listed in supported-platforms.md
-platforms=$(grep -A 1 configs.Register internal/platform/platform.go | grep name: | cut -f2 -d\")
+platforms=$(grep -A 1 -h platform.Register internal/providers/*/* | grep Name: | cut -f2 -d\")
 if [ -z "${platforms}" ]; then
     echo "Found no platform IDs; update $0" >&2
     exit 1

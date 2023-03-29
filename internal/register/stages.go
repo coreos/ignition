@@ -1,4 +1,4 @@
-// Copyright 2015 CoreOS, Inc.
+// Copyright 2023 Red Hat, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,4 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package providers
+package register
+
+import (
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/disks"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/fetch"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/fetch_offline"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/files"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/kargs"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/mount"
+	_ "github.com/coreos/ignition/v2/internal/exec/stages/umount"
+)

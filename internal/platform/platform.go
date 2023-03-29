@@ -18,90 +18,76 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/log"
-	"github.com/coreos/ignition/v2/internal/providers"
-	"github.com/coreos/ignition/v2/internal/providers/aliyun"
-	"github.com/coreos/ignition/v2/internal/providers/aws"
-	"github.com/coreos/ignition/v2/internal/providers/azure"
-	"github.com/coreos/ignition/v2/internal/providers/azurestack"
-	"github.com/coreos/ignition/v2/internal/providers/cloudstack"
-	"github.com/coreos/ignition/v2/internal/providers/digitalocean"
-	"github.com/coreos/ignition/v2/internal/providers/exoscale"
-	"github.com/coreos/ignition/v2/internal/providers/file"
-	"github.com/coreos/ignition/v2/internal/providers/gcp"
-	"github.com/coreos/ignition/v2/internal/providers/ibmcloud"
-	"github.com/coreos/ignition/v2/internal/providers/kubevirt"
-	"github.com/coreos/ignition/v2/internal/providers/noop"
-	"github.com/coreos/ignition/v2/internal/providers/nutanix"
-	"github.com/coreos/ignition/v2/internal/providers/openstack"
-	"github.com/coreos/ignition/v2/internal/providers/packet"
-	"github.com/coreos/ignition/v2/internal/providers/powervs"
-	"github.com/coreos/ignition/v2/internal/providers/qemu"
-	"github.com/coreos/ignition/v2/internal/providers/virtualbox"
-	"github.com/coreos/ignition/v2/internal/providers/vmware"
-	"github.com/coreos/ignition/v2/internal/providers/vultr"
-	"github.com/coreos/ignition/v2/internal/providers/zvm"
 	"github.com/coreos/ignition/v2/internal/registry"
 	"github.com/coreos/ignition/v2/internal/resource"
+
+	"github.com/coreos/vcontext/report"
 )
 
 var (
 	ErrCannotDelete = errors.New("cannot delete config on this platform")
+	ErrNoProvider   = errors.New("config provider was not online")
 )
 
-// Config represents a set of options that map to a particular platform.
+// Config defines the capabilities of a particular platform, for use by the
+// rest of Ignition.
 type Config struct {
-	name       string
-	fetch      providers.FuncFetchConfig
-	init       providers.FuncInit
-	newFetcher providers.FuncNewFetcher
-	status     providers.FuncPostStatus
-	delConfig  providers.FuncDelConfig
+	// don't allow direct access to fields
+	p Provider
+}
+
+// Provider is the struct that platform implementations use to define their
+// capabilities for use by this package.
+type Provider struct {
+	Name       string
+	NewFetcher func(logger *log.Logger) (resource.Fetcher, error)
+	Fetch      func(f *resource.Fetcher) (types.Config, report.Report, error)
+	Init       func(f *resource.Fetcher) error
+	Status     func(stageName string, f resource.Fetcher, e error) error
+	DelConfig  func(f *resource.Fetcher) error
 }
 
 func (c Config) Name() string {
-	return c.name
+	return c.p.Name
 }
 
-func (c Config) FetchFunc() providers.FuncFetchConfig {
-	return c.fetch
+func (c Config) Fetch(f *resource.Fetcher) (types.Config, report.Report, error) {
+	return c.p.Fetch(f)
 }
 
-func (c Config) NewFetcherFunc() providers.FuncNewFetcher {
-	if c.newFetcher != nil {
-		return c.newFetcher
-	}
-	return func(l *log.Logger) (resource.Fetcher, error) {
+func (c Config) NewFetcher(l *log.Logger) (resource.Fetcher, error) {
+	if c.p.NewFetcher != nil {
+		return c.p.NewFetcher(l)
+	} else {
 		return resource.Fetcher{
 			Logger: l,
 		}, nil
 	}
 }
 
-// InitFunc returns a function that performs additional fetcher
-// configuration post-config fetch. This ensures that networking
-// is already available if a platform needs to reach out to the
-// metadata service to fetch additional options / data.
-func (c Config) InitFunc() providers.FuncInit {
-	if c.init != nil {
-		return c.init
+// Init performs additional fetcher configuration post-config fetch.  This
+// ensures that networking is already available if a platform needs to reach
+// out to the metadata service to fetch additional options / data.
+func (c Config) Init(f *resource.Fetcher) error {
+	if c.p.Init != nil {
+		return c.p.Init(f)
 	}
-	return func(f *resource.Fetcher) error {
-		return nil
-	}
+	return nil
 }
 
 // Status takes a Fetcher and the error from Run (from engine)
 func (c Config) Status(stageName string, f resource.Fetcher, statusErr error) error {
-	if c.status != nil {
-		return c.status(stageName, f, statusErr)
+	if c.p.Status != nil {
+		return c.p.Status(stageName, f, statusErr)
 	}
 	return nil
 }
 
 func (c Config) DelConfig(f *resource.Fetcher) error {
-	if c.delConfig != nil {
-		return c.delConfig(f)
+	if c.p.DelConfig != nil {
+		return c.p.DelConfig(f)
 	} else {
 		return ErrCannotDelete
 	}
@@ -109,100 +95,16 @@ func (c Config) DelConfig(f *resource.Fetcher) error {
 
 var configs = registry.Create("platform configs")
 
-func init() {
-	configs.Register(Config{
-		name:  "aliyun",
-		fetch: aliyun.FetchConfig,
-	})
-	configs.Register(Config{
-		name:       "aws",
-		fetch:      aws.FetchConfig,
-		init:       aws.Init,
-		newFetcher: aws.NewFetcher,
-	})
-	configs.Register(Config{
-		name:  "azure",
-		fetch: azure.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "azurestack",
-		fetch: azurestack.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "brightbox",
-		fetch: openstack.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "cloudstack",
-		fetch: cloudstack.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "digitalocean",
-		fetch: digitalocean.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "exoscale",
-		fetch: exoscale.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "file",
-		fetch: file.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "gcp",
-		fetch: gcp.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "ibmcloud",
-		fetch: ibmcloud.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "kubevirt",
-		fetch: kubevirt.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "metal",
-		fetch: noop.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "nutanix",
-		fetch: nutanix.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "openstack",
-		fetch: openstack.FetchConfig,
-	})
-	configs.Register(Config{
-		name:   "packet",
-		fetch:  packet.FetchConfig,
-		status: packet.PostStatus,
-	})
-	configs.Register(Config{
-		name:  "powervs",
-		fetch: powervs.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "qemu",
-		fetch: qemu.FetchConfig,
-	})
-	configs.Register(Config{
-		name:      "virtualbox",
-		fetch:     virtualbox.FetchConfig,
-		delConfig: virtualbox.DelConfig,
-	})
-	configs.Register(Config{
-		name:      "vmware",
-		fetch:     vmware.FetchConfig,
-		delConfig: vmware.DelConfig,
-	})
-	configs.Register(Config{
-		name:  "vultr",
-		fetch: vultr.FetchConfig,
-	})
-	configs.Register(Config{
-		name:  "zvm",
-		fetch: zvm.FetchConfig,
-	})
+func Register(provider Provider) {
+	configs.Register(NewConfig(provider))
+}
+
+// Helper function for wrapping a Provider, for use by specialized providers
+// that don't want to add themselves to the registry.
+func NewConfig(provider Provider) Config {
+	return Config{
+		p: provider,
+	}
 }
 
 func Get(name string) (config Config, ok bool) {

@@ -29,6 +29,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -68,8 +69,15 @@ var (
 	}
 )
 
-// FetchConfig wraps fetchFromAzureMetadata to implement the platform.NewFetcher interface.
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:  "azure",
+		Fetch: fetchConfig,
+	})
+}
+
+// fetchConfig wraps fetchFromAzureMetadata to implement the provider fetch interface.
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	return fetchFromAzureMetadata(f)
 }
 
@@ -128,7 +136,7 @@ func fetchFromIMDS(f *resource.Fetcher) ([]byte, error) {
 	return userData[:l], nil
 }
 
-// FetchFromOvfDevice has the return signature of platform.NewFetcher. It is
+// FetchFromOvfDevice has the NewFetcher return signature. It is
 // wrapped by this and AzureStack packages.
 func FetchFromOvfDevice(f *resource.Fetcher, ovfFsTypes []string) (types.Config, report.Report, error) {
 	logger := f.Logger

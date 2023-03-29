@@ -30,7 +30,6 @@ import (
 	executil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/platform"
-	"github.com/coreos/ignition/v2/internal/providers"
 	"github.com/coreos/ignition/v2/internal/providers/cmdline"
 	"github.com/coreos/ignition/v2/internal/providers/system"
 	"github.com/coreos/ignition/v2/internal/resource"
@@ -77,7 +76,7 @@ func (e Engine) Run(stageName string) error {
 
 	systemBaseConfig, r, err := system.FetchBaseConfig(e.Logger, e.PlatformConfig.Name())
 	e.Logger.LogReport(r)
-	if err != nil && err != providers.ErrNoProvider {
+	if err != nil && err != platform.ErrNoProvider {
 		e.Logger.Crit("failed to acquire system base config: %v", err)
 		return err
 	} else if err == nil {
@@ -97,7 +96,7 @@ func (e Engine) Run(stageName string) error {
 	// Run the platform config's Init function pre-config fetch
 	// to perform any additional fetcher configuration  e.x.
 	// configuring the S3RegionHint when running on AWS.
-	err = e.PlatformConfig.InitFunc()(e.Fetcher)
+	err = e.PlatformConfig.Init(e.Fetcher)
 	if err == resource.ErrNeedNet && stageName == "fetch-offline" {
 		err = e.signalNeedNet()
 		if err != nil {
@@ -287,25 +286,20 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 // is unavailable. This will also render the config (see renderConfig) before
 // returning.
 func (e *Engine) fetchProviderConfig() (types.Config, error) {
-	// note this is an array because iteration order is important; see comment
-	// block just above
-	fetchers := []struct {
-		name      string
-		fetchFunc providers.FuncFetchConfig
-	}{
-		{"cmdline", cmdline.FetchConfig},
-		{"system", system.FetchConfig},
-		{e.PlatformConfig.Name(), e.PlatformConfig.FetchFunc()},
+	platformConfigs := []platform.Config{
+		cmdline.Config,
+		system.Config,
+		e.PlatformConfig,
 	}
 	var cfg types.Config
 	var r report.Report
 	var err error
 	var providerKey string
-	for _, fetcher := range fetchers {
-		cfg, r, err = fetcher.fetchFunc(e.Fetcher)
-		if err != providers.ErrNoProvider {
+	for _, platformConfig := range platformConfigs {
+		cfg, r, err = platformConfig.Fetch(e.Fetcher)
+		if err != platform.ErrNoProvider {
 			// successful, or failed on another error
-			providerKey = fetcher.name
+			providerKey = platformConfig.Name()
 			break
 		}
 	}

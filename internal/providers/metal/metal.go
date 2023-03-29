@@ -12,19 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The noop provider does nothing, for use by unimplemented platforms.
+// The metal provider does nothing.
 
-package noop
+package metal
 
 import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/resource"
 
 	"github.com/coreos/vcontext/report"
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	f.Logger.Debug("noop provider fetching empty config")
+func init() {
+	platform.Register(platform.Provider{
+		Name:  "metal",
+		Fetch: fetchConfig,
+	})
+}
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+	f.Logger.Debug("metal provider fetching empty config")
 	return types.Config{}, report.Report{}, errors.ErrEmpty
 }

@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
-	"github.com/coreos/ignition/v2/internal/providers"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
@@ -43,11 +43,19 @@ const (
 	OVF_USERDATA_ENCODING = OVF_PREFIX + GUESTINFO_USERDATA_ENCODING
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:      "vmware",
+		Fetch:     fetchConfig,
+		DelConfig: delConfig,
+	})
+}
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	if isVM, err := vmcheck.IsVirtualWorld(true); err != nil {
 		return types.Config{}, report.Report{}, err
 	} else if !isVM {
-		return types.Config{}, report.Report{}, providers.ErrNoProvider
+		return types.Config{}, report.Report{}, platform.ErrNoProvider
 	}
 
 	config, err := fetchRawConfig(f)
@@ -103,7 +111,7 @@ func fetchRawConfig(f *resource.Fetcher) (config, error) {
 	}, nil
 }
 
-func DelConfig(f *resource.Fetcher) error {
+func delConfig(f *resource.Fetcher) error {
 	info := rpcvmx.NewConfig()
 
 	// delete userdata if set and not already a deletion marker
@@ -133,7 +141,7 @@ func DelConfig(f *resource.Fetcher) error {
 
 	ovfEnv, err := info.String(GUESTINFO_OVF, "")
 	if err != nil {
-		// unlike FetchConfig, don't ignore errors, since that could
+		// unlike fetchConfig, don't ignore errors, since that could
 		// have security implications
 		return fmt.Errorf("reading OVF environment: %w", err)
 	}

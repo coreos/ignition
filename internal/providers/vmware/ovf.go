@@ -27,30 +27,30 @@ const (
 	XMLNS = "http://schemas.dmtf.org/ovf/environment/1"
 )
 
-type environment struct {
-	Platform   platform   `xml:"PlatformSection"`
-	Properties []property `xml:"PropertySection>Property"`
+type ovfEnvironment struct {
+	Platform   ovfPlatform   `xml:"PlatformSection"`
+	Properties []ovfProperty `xml:"PropertySection>Property"`
 }
 
-type platform struct {
+type ovfPlatform struct {
 	Kind    string `xml:"Kind"`
 	Version string `xml:"Version"`
 	Vendor  string `xml:"Vendor"`
 	Locale  string `xml:"Locale"`
 }
 
-type property struct {
+type ovfProperty struct {
 	Key   string `xml:"key,attr"`
 	Value string `xml:"value,attr"`
 }
 
 type OvfEnvironment struct {
-	Platform   platform
+	Platform   ovfPlatform
 	Properties map[string]string
 }
 
 func ReadOvfEnvironment(doc []byte) (OvfEnvironment, error) {
-	var env environment
+	var env ovfEnvironment
 	if err := xml.Unmarshal(doc, &env); err != nil {
 		return OvfEnvironment{}, err
 	}

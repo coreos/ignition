@@ -33,6 +33,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 	ut "github.com/coreos/ignition/v2/internal/util"
@@ -45,7 +46,14 @@ const (
 	LeaseRetryInterval      = 500 * time.Millisecond
 )
 
-func FetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func init() {
+	platform.Register(platform.Provider{
+		Name:  "cloudstack",
+		Fetch: fetchConfig,
+	})
+}
+
+func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	// The fetch-offline approach doesn't work well here because of the "split
 	// personality" of this provider. See:
 	// https://github.com/coreos/ignition/issues/1081

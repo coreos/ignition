@@ -26,15 +26,9 @@ import (
 	"github.com/coreos/ignition/v2/internal/apply"
 	"github.com/coreos/ignition/v2/internal/exec"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
-	_ "github.com/coreos/ignition/v2/internal/exec/stages/disks"
-	_ "github.com/coreos/ignition/v2/internal/exec/stages/fetch"
-	_ "github.com/coreos/ignition/v2/internal/exec/stages/fetch_offline"
-	_ "github.com/coreos/ignition/v2/internal/exec/stages/files"
-	_ "github.com/coreos/ignition/v2/internal/exec/stages/kargs"
-	_ "github.com/coreos/ignition/v2/internal/exec/stages/mount"
-	_ "github.com/coreos/ignition/v2/internal/exec/stages/umount"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/platform"
+	_ "github.com/coreos/ignition/v2/internal/register"
 	"github.com/coreos/ignition/v2/internal/state"
 	"github.com/coreos/ignition/v2/internal/version"
 	"github.com/spf13/pflag"
@@ -99,7 +93,7 @@ func ignitionMain() {
 	logger.Info("Stage: %v", flags.stage)
 
 	platformConfig := platform.MustGet(flags.platform.String())
-	fetcher, err := platformConfig.NewFetcherFunc()(&logger)
+	fetcher, err := platformConfig.NewFetcher(&logger)
 	if err != nil {
 		logger.Crit("failed to generate fetcher: %s", err)
 		os.Exit(3)
@@ -228,7 +222,7 @@ func ignitionRmCfgMain() {
 	logger.Info(version.String)
 
 	platformConfig := platform.MustGet(flags.platform)
-	fetcher, err := platformConfig.NewFetcherFunc()(&logger)
+	fetcher, err := platformConfig.NewFetcher(&logger)
 	if err != nil {
 		logger.Crit("failed to generate fetcher: %s", err)
 		os.Exit(3)
