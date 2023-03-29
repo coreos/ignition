@@ -10,9 +10,9 @@ The Ignition configuration is a JSON document conforming to the following specif
 
 * **ignition** (object): metadata about the configuration itself.
   * **version** (string): the semantic version number of the spec. The spec version must be compatible with the latest version (`3.1.0`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
-  * **_config_** (objects): options related to the configuration.
+  * **_config_** (object): options related to the configuration.
     * **_merge_** (list of objects): a list of the configs to be merged to the current config.
-      * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_compression_** (string): the type of compression used on the config (null or gzip). Compression cannot be used with S3.
       * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
         * **name** (string): the header name.
@@ -20,7 +20,7 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed config.
     * **_replace_** (object): the config that will replace the current.
-      * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_compression_** (string): the type of compression used on the config (null or gzip). Compression cannot be used with S3.
       * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
         * **name** (string): the header name.
@@ -28,12 +28,12 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed config.
   * **_timeouts_** (object): options relating to `http` timeouts when fetching files over `http` or `https`.
-    * **_httpResponseHeaders_** (integer) the time to wait (in seconds) for the server's response headers (but not the body) after making a request. 0 indicates no timeout. Default is 10 seconds.
-    * **_httpTotal_** (integer) the time limit (in seconds) for the operation (connection, request, and response), including retries. 0 indicates no timeout. Default is 0.
+    * **_httpResponseHeaders_** (integer): the time to wait (in seconds) for the server's response headers (but not the body) after making a request. 0 indicates no timeout. Default is 10 seconds.
+    * **_httpTotal_** (integer): the time limit (in seconds) for the operation (connection, request, and response), including retries. 0 indicates no timeout. Default is 0.
   * **_security_** (object): options relating to network security.
     * **_tls_** (object): options relating to TLS when fetching resources over `https`.
       * **_certificateAuthorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`. All certificate authorities must have a unique `source`.
-        * **source** (string): the URL of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`][rfc2397]. Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+        * **source** (string): the URL of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Supported schemes are `http`, `https`, `s3`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
         * **_compression_** (string): the type of compression used on the certificate (null or gzip). Compression cannot be used with S3.
         * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
           * **name** (string): the header name.
@@ -53,10 +53,10 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_number_** (integer): the partition number, which dictates its position in the partition table (one-indexed). If zero, use the next available partition slot.
       * **_sizeMiB_** (integer): the size of the partition (in mebibytes). If zero, the partition will be made as large as possible.
       * **_startMiB_** (integer): the start of the partition (in mebibytes). If zero, the partition will be positioned at the start of the largest block available.
-      * **_typeGuid_** (string): the GPT [partition type GUID][part-types]. If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
+      * **_typeGuid_** (string): the GPT [partition type GUID](http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs). If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
       * **_guid_** (string): the GPT unique partition GUID.
-      * **_wipePartitionEntry_** (boolean) if true, Ignition will clobber an existing partition if it does not match the config. If false (default), Ignition will fail instead.
-      * **_shouldExist_** (boolean) whether or not the partition with the specified `number` should exist. If omitted, it defaults to true. If false Ignition will either delete the specified partition or fail, depending on `wipePartitionEntry`. If false `number` must be specified and non-zero and `label`, `start`, `size`, `guid`, and `typeGuid` must all be omitted.
+      * **_wipePartitionEntry_** (boolean): if true, Ignition will clobber an existing partition if it does not match the config. If false (default), Ignition will fail instead.
+      * **_shouldExist_** (boolean): whether or not the partition with the specified `number` should exist. If omitted, it defaults to true. If false Ignition will either delete the specified partition or fail, depending on `wipePartitionEntry`. If false `number` must be specified and non-zero and `label`, `start`, `size`, `guid`, and `typeGuid` must all be omitted.
   * **_raid_** (list of objects): the list of RAID arrays to be configured. Every RAID array must have a unique `name`.
     * **name** (string): the name to use for the resulting md device.
     * **level** (string): the redundancy level of the array (e.g. linear, raid1, raid5, etc.).
@@ -77,7 +77,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. `contents.source` must be specified if `overwrite` is true. Defaults to false.
     * **_contents_** (object): options related to the contents of the file.
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
-      * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created.
+      * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created.
       * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
         * **name** (string): the header name.
         * **_value_** (string): the header contents.
@@ -85,7 +85,7 @@ The Ignition configuration is a JSON document conforming to the following specif
         * **_hash_** (string): the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed contents.
     * **_append_** (list of objects): list of contents to be appended to the file. Follows the same stucture as `contents`
       * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
-      * **_source_** (string): the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`][rfc2397]. When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_source_** (string): the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
       * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
         * **name** (string): the header name.
         * **_value_** (string): the header contents.
@@ -142,12 +142,9 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_noUserGroup_** (boolean): whether or not to create a group with the same name as the user. This only has an effect if the account doesn't exist yet.
     * **_noLogInit_** (boolean): whether or not to add the user to the lastlog and faillog databases. This only has an effect if the account doesn't exist yet.
     * **_shell_** (string): the login shell of the new account.
-    * **_system_** (bool): whether or not this account should be a system account. This only has an effect if the account doesn't exist yet.
+    * **_system_** (boolean): whether or not this account should be a system account. This only has an effect if the account doesn't exist yet.
   * **_groups_** (list of objects): the list of groups to be added. All groups must have a unique `name`.
     * **name** (string): the name of the group.
     * **_gid_** (integer): the group ID of the new group.
     * **_passwordHash_** (string): the encrypted password of the new group.
-    * **_system_** (bool): whether or not the group should be a system group. This only has an effect if the group doesn't exist yet.
-
-[part-types]: http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
-[rfc2397]: https://tools.ietf.org/html/rfc2397
+    * **_system_** (boolean): whether or not the group should be a system group. This only has an effect if the group doesn't exist yet.

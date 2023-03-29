@@ -75,13 +75,13 @@ jobs:
         git clone -b gomod https://github.com/bgilbert/schematyper
         cd schematyper
         go install .
-    - name: Regenerate schema
+    - name: Regenerate schema and spec docs
       run: ./generate
-    - name: Check whether schema is current
+    - name: Check whether schema and spec docs are current
       run: |
-        if [ -n "$(git status --porcelain config)" ]; then
-          echo "Found local changes after regenerating schema:"
-          git --no-pager diff --color=always config
+        if [ -n "$(git status --porcelain config docs)" ]; then
+          echo "Found local changes after regenerating:"
+          git --no-pager diff --color=always config docs
           echo "Rerun './generate'."
           exit 1
         fi
