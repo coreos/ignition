@@ -27,6 +27,7 @@ Ignition is currently only supported for the following platforms:
 * [VMware] (`vmware`) - Use the VMware Guestinfo variables `ignition.config.data` and `ignition.config.data.encoding` to provide the config and its encoding to the virtual machine. Valid encodings are "", "base64", and "gzip+base64". Guestinfo variables can be provided directly or via an OVF environment, with priority given to variables specified directly.
 * [Vultr] (`vultr`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [zVM] (`zvm`) - Ignition will read its configuration from the reader device directly. The vmur program is necessary, which requires the vmcp and vmur kernel module as prerequisite, and the corresponding z/VM virtual unit record devices (in most cases 000c as reader, 000d as punch) must be set online.
+* [OVH Baremetal] (`ovh-baremetal`) - Ignition will read its configuration from the instance userdata via either metadata service or config drive. Cloud SSH keys are handled separately.
 
 Ignition is under active development, so this list may grow over time.
 
@@ -52,5 +53,6 @@ For most cloud providers, cloud SSH keys and custom network configuration are ha
 [VMware]: https://www.vmware.com/
 [Vultr]: https://www.vultr.com/products/cloud-compute/
 [zVM]: http://www.vm.ibm.com/overview/
+[OVH Baremetal]: https://www.ovhcloud.com/en-ie/bare-metal/
 
 [Afterburn]: https://coreos.github.io/afterburn/
