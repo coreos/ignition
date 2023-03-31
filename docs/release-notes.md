@@ -12,6 +12,7 @@ nav_order: 9
 ### Features
 
 - Add OVH Baremetal provider
+- Add OVH provider
 
 ### Changes
 

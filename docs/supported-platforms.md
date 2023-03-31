@@ -28,6 +28,7 @@ Ignition is currently only supported for the following platforms:
 * [Vultr] (`vultr`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [zVM] (`zvm`) - Ignition will read its configuration from the reader device directly. The vmur program is necessary, which requires the vmcp and vmur kernel module as prerequisite, and the corresponding z/VM virtual unit record devices (in most cases 000c as reader, 000d as punch) must be set online.
 * [OVH Baremetal] (`ovh-baremetal`) - Ignition will read its configuration from the instance userdata via either metadata service or config drive. Cloud SSH keys are handled separately.
+* [OVH] (`ovh`) - Ignition will read its configuration from the instance userdata via either metadata service or config drive. Cloud SSH keys are handled separately.
 
 Ignition is under active development, so this list may grow over time.
 
@@ -54,5 +55,6 @@ For most cloud providers, cloud SSH keys and custom network configuration are ha
 [Vultr]: https://www.vultr.com/products/cloud-compute/
 [zVM]: http://www.vm.ibm.com/overview/
 [OVH Baremetal]: https://www.ovhcloud.com/en-ie/bare-metal/
+[OVH]: https://www.ovhcloud.com/en-ie/public-cloud/
 
 [Afterburn]: https://coreos.github.io/afterburn/

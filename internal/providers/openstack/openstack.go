@@ -61,6 +61,11 @@ func init() {
 		Name:  "brightbox",
 		Fetch: fetchConfig,
 	})
+	// the ovh platform ID just uses the OpenStack provider code
+	platform.Register(platform.Provider{
+		Name:  "ovh",
+		Fetch: fetchConfig,
+	})
 	// the ovh-baremetal platform ID just uses the OpenStack provider code
 	platform.Register(platform.Provider{
 		Name:  "ovh-baremetal",
