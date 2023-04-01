@@ -12,3 +12,5 @@ _NOTE_: This pre-release version of the specification is experimental and is sub
 {{ end -}}
 The Ignition configuration is a JSON document conforming to the following specification, with **_italicized_** entries being optional:
 
+<div id="spec-docs"></div>
+
