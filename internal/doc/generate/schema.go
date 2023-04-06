@@ -32,6 +32,8 @@ type DocNode struct {
 	Required    *bool       `yaml:"required"`
 	Transforms  []Transform `yaml:"transforms"`
 	Children    []DocNode   `yaml:"children"`
+
+	Parent *DocNode
 }
 
 type Transform struct {
@@ -39,6 +41,7 @@ type Transform struct {
 	Replacement string  `yaml:"replacement"`
 	MinVer      *string `yaml:"min"`
 	MaxVer      *string `yaml:"max"`
+	Descendants bool    `yaml:"descendants"`
 }
 
 func (comps Components) Resolve() (DocNode, error) {
@@ -46,12 +49,21 @@ func (comps Components) Resolve() (DocNode, error) {
 	if !ok {
 		return DocNode{}, fmt.Errorf("missing component %q", ROOT_COMPONENT)
 	}
+	root.setParentLinks()
 	return root, nil
+}
+
+func (node *DocNode) setParentLinks() {
+	for i := range node.Children {
+		child := &node.Children[i]
+		child.Parent = node
+		child.setParentLinks()
+	}
 }
 
 func (node *DocNode) RenderDescription(ver *semver.Version) (string, error) {
 	desc := strings.ReplaceAll(node.Description, "%VERSION%", ver.String())
-	for _, xfrm := range node.Transforms {
+	for _, xfrm := range node.transforms() {
 		if xfrm.MinVer != nil {
 			min, err := semver.NewVersion(*xfrm.MinVer)
 			if err != nil {
@@ -75,10 +87,28 @@ func (node *DocNode) RenderDescription(ver *semver.Version) (string, error) {
 			return "", fmt.Errorf("field %q: compiling %q: %w", node.Name, xfrm.Regex, err)
 		}
 		new := re.ReplaceAllString(desc, xfrm.Replacement)
-		if new == desc {
+		if !xfrm.Descendants && new == desc {
 			return "", fmt.Errorf("field %q: applying %q: transform didn't change anything", node.Name, xfrm.Regex)
 		}
 		desc = new
 	}
 	return desc, nil
+}
+
+func (node *DocNode) transforms() []Transform {
+	var ret []Transform
+	var descend func(node *DocNode, inheritedOnly bool)
+	descend = func(node *DocNode, inheritedOnly bool) {
+		for _, xfrm := range node.Transforms {
+			if inheritedOnly && !xfrm.Descendants {
+				continue
+			}
+			ret = append(ret, xfrm)
+		}
+		if node.Parent != nil {
+			descend(node.Parent, true)
+		}
+	}
+	descend(node, false)
+	return ret
 }
