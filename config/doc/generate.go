@@ -94,7 +94,10 @@ func structFieldsByTag(typ reflect.Type) (map[string]reflect.StructField, error)
 				ret[k] = v
 			}
 		} else {
-			tag, ok := field.Tag.Lookup("json")
+			tag, ok := field.Tag.Lookup("yaml")
+			if !ok {
+				tag, ok = field.Tag.Lookup("json")
+			}
 			if !ok {
 				return nil, fmt.Errorf("no field tag: %v.%v", typ.Name(), field.Name)
 			}
