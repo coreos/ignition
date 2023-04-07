@@ -38,12 +38,12 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_tls_** (object): options relating to TLS when fetching resources over `https`.
       * **_certificateAuthorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`. All certificate authorities must have a unique `source`.
         * **source** (string): the URL of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
-        * **_compression_** (string): the type of compression used on the certificate (null or gzip). Compression cannot be used with S3.
+        * **_compression_** (string): the type of compression used on the certificate bundle (null or gzip). Compression cannot be used with S3.
         * **_httpHeaders_** (list of objects): a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
           * **name** (string): the header name.
           * **_value_** (string): the header contents.
-        * **_verification_** (object): options related to the verification of the certificate.
-          * **_hash_** (string): the hash of the certificate, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed certificate.
+        * **_verification_** (object): options related to the verification of the certificate bundle.
+          * **_hash_** (string): the hash of the certificate bundle, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed certificate bundle.
   * **_proxy_** (object): options relating to setting an `HTTP(S)` proxy when fetching resources.
     * **_httpProxy_** (string): will be used as the proxy URL for HTTP requests and HTTPS requests unless overridden by `httpsProxy` or `noProxy`.
     * **_httpsProxy_** (string): will be used as the proxy URL for HTTPS requests unless overridden by `noProxy`.

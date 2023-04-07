@@ -111,7 +111,7 @@ root:
                           replacement: ""
                           max: 3.3.0
                     - name: compression
-                      desc: the type of compression used on the certificate (null or gzip). Compression cannot be used with S3.
+                      desc: the type of compression used on the certificate bundle (null or gzip). Compression cannot be used with S3.
                     - name: httpHeaders
                       desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
                       children:
@@ -120,16 +120,16 @@ root:
                         - name: value
                           desc: the header contents.
                     - name: verification
-                      desc: options related to the verification of the certificate.
+                      desc: options related to the verification of the certificate bundle.
                       children:
                         - name: hash
-                          desc: the hash of the certificate, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed certificate.
+                          desc: the hash of the certificate bundle, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed certificate bundle.
                           transforms:
                             - regex: "either `sha512` or `sha256`"
                               replacement: '`sha512`'
                               max: 3.0.0
                             # No compression field in 3.0.0
-                            - regex: " If `compression` .* certificate."
+                            - regex: " If `compression` .* certificate bundle."
                               replacement: ""
                               max: 3.0.0
         - name: proxy
