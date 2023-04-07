@@ -14,7 +14,7 @@ root:
               desc: a list of the configs to be merged to the current config.
               children:
                 - name: source
-                  desc: "the URL of the config. Supported schemes are `http`, `https`, `s3`, `arn`, `gs`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+                  desc: "the URL of the config. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
                   # source is sometimes optional, but required here by validation
                   required: true
                   transforms:
@@ -50,7 +50,7 @@ root:
               desc: the config that will replace the current.
               children:
                 - name: source
-                  desc: "the URL of the config. Supported schemes are `http`, `https`, `s3`, `arn`, `gs`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+                  desc: "the URL of the config. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
                   # source is sometimes optional, but required here by validation
                   required: true
                   transforms:
@@ -99,7 +99,7 @@ root:
                   desc: the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`. All certificate authorities must have a unique `source`.
                   children:
                     - name: source
-                      desc: "the URL of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Supported schemes are `http`, `https`, `s3`, `arn`, `gs`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+                      desc: "the URL of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
                       # source is sometimes optional, but required here by
                       # validation
                       required: true
