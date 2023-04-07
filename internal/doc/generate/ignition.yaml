@@ -226,8 +226,6 @@ root:
             - name: contents
               desc: options related to the contents of the file.
               children:
-                - name: compression
-                  desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
                 - name: source
                   desc: "the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created."
                   transforms:
@@ -237,6 +235,8 @@ root:
                     - regex: "`arn`, "
                       replacement: ""
                       max: 3.3.0
+                - name: compression
+                  desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
                 - name: httpHeaders
                   desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
                   children:
@@ -256,8 +256,6 @@ root:
             - name: append
               desc: list of contents to be appended to the file. Follows the same stucture as `contents`
               children:
-                - name: compression
-                  desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
                 - name: source
                   desc: "the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
                   transforms:
@@ -267,6 +265,8 @@ root:
                     - regex: "`arn`, "
                       replacement: ""
                       max: 3.3.0
+                - name: compression
+                  desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
                 - name: httpHeaders
                   desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
                   children:
@@ -369,8 +369,6 @@ root:
             - name: keyFile
               desc: options related to the contents of the key file.
               children:
-                - name: compression
-                  desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
                 - name: source
                   desc: "the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
                   transforms:
@@ -380,6 +378,8 @@ root:
                     - regex: "`arn`, "
                       replacement: ""
                       max: 3.3.0
+                - name: compression
+                  desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
                 - name: httpHeaders
                   desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
                   children:

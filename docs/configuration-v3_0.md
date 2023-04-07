@@ -61,13 +61,13 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **path** (string): the absolute path to the file.
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. `contents.source` must be specified if `overwrite` is true. Defaults to false.
     * **_contents_** (object): options related to the contents of the file.
-      * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
       * **_source_** (string): the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created.
+      * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
       * **_verification_** (object): options related to the verification of the file contents.
         * **_hash_** (string): the hash of the contents, in the form `<type>-<value>` where type is `sha512`. If `compression` is specified, the hash describes the decompressed contents.
     * **_append_** (list of objects): list of contents to be appended to the file. Follows the same stucture as `contents`
-      * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
       * **_source_** (string): the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **_compression_** (string): the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
       * **_verification_** (object): options related to the verification of the appended contents.
         * **_hash_** (string): the hash of the contents, in the form `<type>-<value>` where type is `sha512`. If `compression` is specified, the hash describes the decompressed contents.
     * **_mode_** (integer): the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). Setuid/setgid/sticky bits are not supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents.source` is unspecified, and a file already exists at the path.
