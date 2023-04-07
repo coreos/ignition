@@ -8,6 +8,8 @@ nav_order: 45
 
 The Ignition configuration is a JSON document conforming to the following specification, with **_italicized_** entries being optional:
 
+<div id="spec-docs"></div>
+
 * **ignition** (object): metadata about the configuration itself.
   * **version** (string): the semantic version number of the spec. The spec version must be compatible with the latest version (`3.4.0`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
   * **_config_** (object): options related to the configuration.

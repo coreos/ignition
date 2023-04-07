@@ -14,6 +14,7 @@ nav_order: 9
 
 ### Changes
 
+- Improve rendering of spec docs on docs site
 
 ### Bug fixes
 
