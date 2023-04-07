@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/coreos/go-semver/semver"
+	"github.com/mitchellh/copystructure"
 )
 
 const ROOT_COMPONENT = "root"
@@ -33,6 +34,9 @@ type DocNode struct {
 	Transforms  []Transform `yaml:"transforms"`
 	Children    []DocNode   `yaml:"children"`
 
+	Component string `yaml:"use"`
+
+	// populated after component resolution
 	Parent *DocNode
 }
 
@@ -49,8 +53,38 @@ func (comps Components) Resolve() (DocNode, error) {
 	if !ok {
 		return DocNode{}, fmt.Errorf("missing component %q", ROOT_COMPONENT)
 	}
+	root = copystructure.Must(copystructure.Copy(root)).(DocNode)
+	if err := comps.resolveComponents(&root); err != nil {
+		return DocNode{}, err
+	}
 	root.setParentLinks()
 	return root, nil
+}
+
+func (comps Components) resolveComponents(node *DocNode) error {
+	// recursively insert the subtree of any component reference
+	if node.Component != "" {
+		comp, ok := comps[node.Component]
+		if !ok {
+			return fmt.Errorf("field %q: no such component %q", node.Name, node.Component)
+		}
+		if comp.Component != "" {
+			return fmt.Errorf("component %q cannot itself refer to a component", node.Component)
+		}
+		comp = copystructure.Must(copystructure.Copy(comp)).(DocNode)
+		if err := comp.merge(*node); err != nil {
+			return err
+		}
+		comp.Component = ""
+		*node = comp
+	}
+	// descend children
+	for i := range node.Children {
+		if err := comps.resolveComponents(&node.Children[i]); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (node *DocNode) setParentLinks() {
@@ -111,4 +145,43 @@ func (node *DocNode) transforms() []Transform {
 	}
 	descend(node, false)
 	return ret
+}
+
+func (node *DocNode) merge(override DocNode) error {
+	// merge fields
+	if override.Name != "" {
+		node.Name = override.Name
+	}
+	if override.Description != "" {
+		node.Description = override.Description
+	}
+	if override.Required != nil {
+		node.Required = override.Required
+	}
+	node.Transforms = append(node.Transforms, override.Transforms...)
+	if override.Component != "" {
+		node.Component = override.Component
+	}
+
+	// merge overrides for children
+	overrideChildren := make(map[string]DocNode)
+	for _, child := range override.Children {
+		overrideChildren[child.Name] = child
+	}
+	for i := range node.Children {
+		child := &node.Children[i]
+		if override, ok := overrideChildren[child.Name]; ok {
+			if err := child.merge(override); err != nil {
+				return err
+			}
+			delete(overrideChildren, child.Name)
+		}
+	}
+
+	// find unused overrides
+	for _, child := range overrideChildren {
+		return fmt.Errorf("field %q: override %q not found in component", node.Name, child.Name)
+	}
+
+	return nil
 }
