@@ -25,13 +25,13 @@ import (
 
 	"github.com/coreos/go-semver/semver"
 
+	"github.com/coreos/ignition/v2/config/doc"
 	v30 "github.com/coreos/ignition/v2/config/v3_0/types"
 	v31 "github.com/coreos/ignition/v2/config/v3_1/types"
 	v32 "github.com/coreos/ignition/v2/config/v3_2/types"
 	v33 "github.com/coreos/ignition/v2/config/v3_3/types"
 	v34 "github.com/coreos/ignition/v2/config/v3_4/types"
 	v35 "github.com/coreos/ignition/v2/config/v3_5_experimental/types"
-	doc "github.com/coreos/ignition/v2/internal/doc/generate"
 )
 
 var (
