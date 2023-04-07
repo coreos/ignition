@@ -370,7 +370,7 @@ root:
               desc: options related to the contents of the key file.
               children:
                 - name: source
-                  desc: "the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+                  desc: "the URL of the key file. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
                   transforms:
                     - regex: "`gs`, "
                       replacement: ""
@@ -379,7 +379,7 @@ root:
                       replacement: ""
                       max: 3.3.0
                 - name: compression
-                  desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
+                  desc: the type of compression used on the key file (null or gzip). Compression cannot be used with S3.
                 - name: httpHeaders
                   desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
                   children:
@@ -391,7 +391,7 @@ root:
                   desc: options related to the verification of the key file.
                   children:
                     - name: hash
-                      desc: the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed contents.
+                      desc: the hash of the key file, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed key file.
                       transforms:
                         - regex: "either `sha512` or `sha256`"
                           replacement: "`sha512`"
