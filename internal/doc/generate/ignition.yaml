@@ -227,7 +227,7 @@ root:
               desc: options related to the contents of the file.
               children:
                 - name: source
-                  desc: "the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created."
+                  desc: "the URL of the file. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created."
                   transforms:
                     - regex: "`gs`, "
                       replacement: ""
@@ -236,7 +236,7 @@ root:
                       replacement: ""
                       max: 3.3.0
                 - name: compression
-                  desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
+                  desc: the type of compression used on the file (null or gzip). Compression cannot be used with S3.
                 - name: httpHeaders
                   desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
                   children:
@@ -245,19 +245,19 @@ root:
                     - name: value
                       desc: the header contents.
                 - name: verification
-                  desc: options related to the verification of the file contents.
+                  desc: options related to the verification of the file.
                   children:
                     - name: hash
-                      desc: the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed contents.
+                      desc: the hash of the file, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed file.
                       transforms:
                         - regex: "either `sha512` or `sha256`"
                           replacement: '`sha512`'
                           max: 3.0.0
             - name: append
-              desc: list of contents to be appended to the file. Follows the same stucture as `contents`
+              desc: list of fragments to be appended to the file. Follows the same structure as `contents`.
               children:
                 - name: source
-                  desc: "the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+                  desc: "the URL of the fragment. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
                   transforms:
                     - regex: "`gs`, "
                       replacement: ""
@@ -266,7 +266,7 @@ root:
                       replacement: ""
                       max: 3.3.0
                 - name: compression
-                  desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
+                  desc: the type of compression used on the fragment (null or gzip). Compression cannot be used with S3.
                 - name: httpHeaders
                   desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
                   children:
@@ -275,10 +275,10 @@ root:
                     - name: value
                       desc: the header contents.
                 - name: verification
-                  desc: options related to the verification of the appended contents.
+                  desc: options related to the verification of the fragment.
                   children:
                     - name: hash
-                      desc: the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed contents.
+                      desc: the hash of the fragment, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed fragment.
                       transforms:
                         - regex: "either `sha512` or `sha256`"
                           replacement: '`sha512`'
