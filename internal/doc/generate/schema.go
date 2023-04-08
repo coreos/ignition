@@ -22,14 +22,14 @@ import (
 	"github.com/coreos/go-semver/semver"
 )
 
-type FieldDocs []FieldDoc
+type DocNodes []DocNode
 
-type FieldDoc struct {
+type DocNode struct {
 	Name        string      `yaml:"name"`
 	Description string      `yaml:"desc"`
 	Required    *bool       `yaml:"required"`
 	Transforms  []Transform `yaml:"transforms"`
-	Children    FieldDocs   `yaml:"children"`
+	Children    DocNodes    `yaml:"children"`
 }
 
 type Transform struct {
@@ -39,13 +39,13 @@ type Transform struct {
 	MaxVer      *string `yaml:"max"`
 }
 
-func (doc *FieldDoc) RenderDescription(ver *semver.Version) (string, error) {
-	desc := strings.ReplaceAll(doc.Description, "%VERSION%", ver.String())
-	for _, xfrm := range doc.Transforms {
+func (node *DocNode) RenderDescription(ver *semver.Version) (string, error) {
+	desc := strings.ReplaceAll(node.Description, "%VERSION%", ver.String())
+	for _, xfrm := range node.Transforms {
 		if xfrm.MinVer != nil {
 			min, err := semver.NewVersion(*xfrm.MinVer)
 			if err != nil {
-				return "", fmt.Errorf("field %q: parsing min %q: %w", doc.Name, *xfrm.MinVer, err)
+				return "", fmt.Errorf("field %q: parsing min %q: %w", node.Name, *xfrm.MinVer, err)
 			}
 			if ver.LessThan(*min) {
 				continue
@@ -54,7 +54,7 @@ func (doc *FieldDoc) RenderDescription(ver *semver.Version) (string, error) {
 		if xfrm.MaxVer != nil {
 			max, err := semver.NewVersion(*xfrm.MaxVer)
 			if err != nil {
-				return "", fmt.Errorf("field %q: parsing max %q: %w", doc.Name, *xfrm.MaxVer, err)
+				return "", fmt.Errorf("field %q: parsing max %q: %w", node.Name, *xfrm.MaxVer, err)
 			}
 			if max.LessThan(*ver) {
 				continue
@@ -62,11 +62,11 @@ func (doc *FieldDoc) RenderDescription(ver *semver.Version) (string, error) {
 		}
 		re, err := regexp.Compile(xfrm.Regex)
 		if err != nil {
-			return "", fmt.Errorf("field %q: compiling %q: %w", doc.Name, xfrm.Regex, err)
+			return "", fmt.Errorf("field %q: compiling %q: %w", node.Name, xfrm.Regex, err)
 		}
 		new := re.ReplaceAllString(desc, xfrm.Replacement)
 		if new == desc {
-			return "", fmt.Errorf("field %q: applying %q: transform didn't change anything", doc.Name, xfrm.Regex)
+			return "", fmt.Errorf("field %q: applying %q: transform didn't change anything", node.Name, xfrm.Regex)
 		}
 		desc = new
 	}
