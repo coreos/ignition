@@ -34,17 +34,21 @@ var ignitionDocs []byte
 func Generate(ver *semver.Version, config any, w io.Writer) error {
 	decoder := yaml.NewDecoder(bytes.NewBuffer(ignitionDocs))
 	decoder.KnownFields(true)
-	var nodes DocNodes
-	if err := decoder.Decode(&nodes); err != nil {
+	var comps Components
+	if err := decoder.Decode(&comps); err != nil {
 		return fmt.Errorf("unmarshaling documentation: %w", err)
 	}
-	if err := descendNodes(ver, nodes, reflect.TypeOf(config), 0, w); err != nil {
+	root, err := comps.Resolve()
+	if err != nil {
+		return err
+	}
+	if err := descendNode(ver, root, reflect.TypeOf(config), 0, w); err != nil {
 		return err
 	}
 	return nil
 }
 
-func descendNodes(ver *semver.Version, nodes DocNodes, typ reflect.Type, level int, w io.Writer) error {
+func descendNode(ver *semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
 	if typ.Kind() != reflect.Struct {
 		return fmt.Errorf("not a struct: %v (%v)", typ.Name(), typ.Kind())
 	}
@@ -53,30 +57,30 @@ func descendNodes(ver *semver.Version, nodes DocNodes, typ reflect.Type, level i
 		return err
 	}
 	// iterate in order of docs YAML
-	for _, node := range nodes {
-		field, ok := fieldsByTag[node.Name]
+	for _, child := range node.Children {
+		field, ok := fieldsByTag[child.Name]
 		if !ok {
 			// have documentation but no struct field
 			continue
 		}
 		var optional string
-		if !util.IsTrue(node.Required) && (util.IsFalse(node.Required) || !util.IsPrimitive(field.Type.Kind())) {
+		if !util.IsTrue(child.Required) && (util.IsFalse(child.Required) || !util.IsPrimitive(field.Type.Kind())) {
 			optional = "_"
 		}
 		// write the entry
-		desc, err := node.RenderDescription(ver)
+		desc, err := child.RenderDescription(ver)
 		if err != nil {
 			return err
 		}
-		if _, err := fmt.Fprintf(w, "%s* **%s%s%s** (%s): %s\n", strings.Repeat("  ", level), optional, node.Name, optional, typeName(field.Type), desc); err != nil {
+		if _, err := fmt.Fprintf(w, "%s* **%s%s%s** (%s): %s\n", strings.Repeat("  ", level), optional, child.Name, optional, typeName(field.Type), desc); err != nil {
 			return err
 		}
 		// recurse
-		if err := descend(ver, &node, field.Type, level+1, w); err != nil {
+		if err := descend(ver, child, field.Type, level+1, w); err != nil {
 			return err
 		}
 		// delete from map to keep track of fields we've seen
-		delete(fieldsByTag, node.Name)
+		delete(fieldsByTag, child.Name)
 	}
 	// check for undocumented fields
 	for _, field := range fieldsByTag {
@@ -85,13 +89,13 @@ func descendNodes(ver *semver.Version, nodes DocNodes, typ reflect.Type, level i
 	return nil
 }
 
-func descend(ver *semver.Version, node *DocNode, typ reflect.Type, level int, w io.Writer) error {
+func descend(ver *semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
 	kind := typ.Kind()
 	switch {
 	case util.IsPrimitive(kind):
 		return nil
 	case kind == reflect.Struct:
-		return descendNodes(ver, node.Children, typ, level, w)
+		return descendNode(ver, node, typ, level, w)
 	case kind == reflect.Slice, kind == reflect.Ptr:
 		return descend(ver, node, typ.Elem(), level, w)
 	default:

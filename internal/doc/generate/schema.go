@@ -22,14 +22,16 @@ import (
 	"github.com/coreos/go-semver/semver"
 )
 
-type DocNodes []DocNode
+const ROOT_COMPONENT = "root"
+
+type Components map[string]DocNode
 
 type DocNode struct {
 	Name        string      `yaml:"name"`
 	Description string      `yaml:"desc"`
 	Required    *bool       `yaml:"required"`
 	Transforms  []Transform `yaml:"transforms"`
-	Children    DocNodes    `yaml:"children"`
+	Children    []DocNode   `yaml:"children"`
 }
 
 type Transform struct {
@@ -37,6 +39,14 @@ type Transform struct {
 	Replacement string  `yaml:"replacement"`
 	MinVer      *string `yaml:"min"`
 	MaxVer      *string `yaml:"max"`
+}
+
+func (comps Components) Resolve() (DocNode, error) {
+	root, ok := comps[ROOT_COMPONENT]
+	if !ok {
+		return DocNode{}, fmt.Errorf("missing component %q", ROOT_COMPONENT)
+	}
+	return root, nil
 }
 
 func (node *DocNode) RenderDescription(ver *semver.Version) (string, error) {
