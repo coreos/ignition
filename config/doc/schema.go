@@ -117,6 +117,30 @@ func (comps Components) resolveComponents(node *DocNode) error {
 	return nil
 }
 
+func (comps Components) Merge(override Components) error {
+	for name, comp := range comps {
+		overrideComp, ok := override[name]
+		if !ok {
+			// no override
+			continue
+		}
+		// present in both
+		if err := comp.merge(overrideComp); err != nil {
+			return fmt.Errorf("merging component %q: %w", name, err)
+		}
+		comps[name] = comp
+	}
+	for name, comp := range override {
+		if _, ok := comps[name]; ok {
+			// present in both
+			continue
+		}
+		// only present in override; add to current
+		comps[name] = comp
+	}
+	return nil
+}
+
 func (node *DocNode) setParentLinks() {
 	for i := range node.Children {
 		child := &node.Children[i]
@@ -210,7 +234,7 @@ func (node *DocNode) merge(override DocNode) error {
 
 	// find unused overrides
 	for _, child := range overrideChildren {
-		return fmt.Errorf("field %q: override %q not found in component", node.Name, child.Name)
+		return fmt.Errorf("field %q: override %q not found", node.Name, child.Name)
 	}
 
 	return nil
