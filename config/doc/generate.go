@@ -15,38 +15,15 @@
 package doc
 
 import (
-	"bytes"
-	_ "embed"
 	"fmt"
 	"io"
 	"reflect"
 	"strings"
 
 	"github.com/coreos/go-semver/semver"
-	"gopkg.in/yaml.v3"
 
 	"github.com/coreos/ignition/v2/config/util"
 )
-
-//go:embed ignition.yaml
-var ignitionDocs []byte
-
-func Generate(ver *semver.Version, config any, w io.Writer) error {
-	decoder := yaml.NewDecoder(bytes.NewBuffer(ignitionDocs))
-	decoder.KnownFields(true)
-	var comps Components
-	if err := decoder.Decode(&comps); err != nil {
-		return fmt.Errorf("unmarshaling documentation: %w", err)
-	}
-	root, err := comps.resolve()
-	if err != nil {
-		return err
-	}
-	if err := descendNode(ver, root, reflect.TypeOf(config), 0, w); err != nil {
-		return err
-	}
-	return nil
-}
 
 func descendNode(ver *semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
 	if typ.Kind() != reflect.Struct {

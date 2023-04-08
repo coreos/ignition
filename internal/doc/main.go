@@ -58,6 +58,12 @@ func generate(dir string) error {
 		return err
 	}
 
+	// parse input config
+	comps, err := doc.IgnitionComponents()
+	if err != nil {
+		return err
+	}
+
 	for i, c := range configs {
 		ver := semver.New(c.version)
 
@@ -97,8 +103,7 @@ func generate(dir string) error {
 		}
 
 		// write docs
-		err = doc.Generate(ver, c.config, f)
-		if err != nil {
+		if err := comps.Generate(ver, c.config, f); err != nil {
 			return fmt.Errorf("generating doc for %s: %w", c.version, err)
 		}
 	}

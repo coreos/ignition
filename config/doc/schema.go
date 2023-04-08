@@ -15,13 +15,21 @@
 package doc
 
 import (
+	"bytes"
+	_ "embed"
 	"fmt"
+	"io"
+	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/coreos/go-semver/semver"
 	"github.com/mitchellh/copystructure"
+	"gopkg.in/yaml.v3"
 )
+
+//go:embed ignition.yaml
+var ignitionDocs []byte
 
 const ROOT_COMPONENT = "root"
 
@@ -46,6 +54,28 @@ type Transform struct {
 	MinVer      *string `yaml:"min"`
 	MaxVer      *string `yaml:"max"`
 	Descendants bool    `yaml:"descendants"`
+}
+
+func IgnitionComponents() (Components, error) {
+	return ParseComponents(bytes.NewBuffer(ignitionDocs))
+}
+
+func ParseComponents(r io.Reader) (Components, error) {
+	decoder := yaml.NewDecoder(r)
+	decoder.KnownFields(true)
+	var comps Components
+	if err := decoder.Decode(&comps); err != nil {
+		return comps, fmt.Errorf("parsing components: %w", err)
+	}
+	return comps, nil
+}
+
+func (comps Components) Generate(ver *semver.Version, config any, w io.Writer) error {
+	root, err := comps.resolve()
+	if err != nil {
+		return err
+	}
+	return descendNode(ver, root, reflect.TypeOf(config), 0, w)
 }
 
 func (comps Components) resolve() (DocNode, error) {
