@@ -20,12 +20,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/coreos/go-semver/semver"
-
 	"github.com/coreos/ignition/v2/config/util"
 )
 
-func descendNode(ver semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
+func descendNode(vers VariantVersions, node DocNode, typ reflect.Type, level int, w io.Writer) error {
 	if typ.Kind() != reflect.Struct {
 		return fmt.Errorf("not a struct: %v (%v)", typ.Name(), typ.Kind())
 	}
@@ -45,7 +43,7 @@ func descendNode(ver semver.Version, node DocNode, typ reflect.Type, level int, 
 			optional = "_"
 		}
 		// write the entry
-		desc, err := child.renderDescription(ver)
+		desc, err := child.renderDescription(vers)
 		if err != nil {
 			return err
 		}
@@ -53,7 +51,7 @@ func descendNode(ver semver.Version, node DocNode, typ reflect.Type, level int, 
 			return err
 		}
 		// recurse
-		if err := descend(ver, child, field.Type, level+1, w); err != nil {
+		if err := descend(vers, child, field.Type, level+1, w); err != nil {
 			return err
 		}
 		// delete from map to keep track of fields we've seen
@@ -66,20 +64,20 @@ func descendNode(ver semver.Version, node DocNode, typ reflect.Type, level int, 
 	return nil
 }
 
-func descend(ver semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
+func descend(vers VariantVersions, node DocNode, typ reflect.Type, level int, w io.Writer) error {
 	kind := typ.Kind()
 	switch {
 	case util.IsPrimitive(kind):
 		return nil
 	case kind == reflect.Struct:
-		return descendNode(ver, node, typ, level, w)
+		return descendNode(vers, node, typ, level, w)
 	case kind == reflect.Slice, kind == reflect.Ptr:
-		return descend(ver, node, typ.Elem(), level, w)
+		return descend(vers, node, typ.Elem(), level, w)
 	case kind == reflect.Map:
 		if !util.IsPrimitive(typ.Key().Kind()) {
 			return fmt.Errorf("%v is map with non-primitive key type %v", typ.Name(), typ.Key())
 		}
-		return descend(ver, node, typ.Elem(), level, w)
+		return descend(vers, node, typ.Elem(), level, w)
 	default:
 		return fmt.Errorf("%v has kind %v", typ.Name(), kind)
 	}

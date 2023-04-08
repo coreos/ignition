@@ -23,6 +23,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/coreos/ignition/v2/config/util"
+
 	"github.com/coreos/go-semver/semver"
 	"github.com/mitchellh/copystructure"
 	"gopkg.in/yaml.v3"
@@ -31,6 +33,7 @@ import (
 //go:embed ignition.yaml
 var ignitionDocs []byte
 
+const IGNITION_VARIANT = "ignition"
 const ROOT_COMPONENT = "root"
 
 type Components map[string]DocNode
@@ -50,12 +53,21 @@ type DocNode struct {
 }
 
 type Transform struct {
-	Regex       string  `yaml:"regex"`
-	Replacement string  `yaml:"replacement"`
-	MinVer      *string `yaml:"min"`
-	MaxVer      *string `yaml:"max"`
-	Descendants bool    `yaml:"descendants"`
+	Regex       string      `yaml:"regex"`
+	Replacement string      `yaml:"replacement"`
+	Constraints Constraints `yaml:"if"`
+	Descendants bool        `yaml:"descendants"`
 }
+
+type Constraints []Constraint
+
+type Constraint struct {
+	Variant string  `yaml:"variant"`
+	MinVer  *string `yaml:"min"`
+	MaxVer  *string `yaml:"max"`
+}
+
+type VariantVersions map[string]semver.Version
 
 func IgnitionComponents() (Components, error) {
 	return ParseComponents(bytes.NewBuffer(ignitionDocs))
@@ -71,12 +83,12 @@ func ParseComponents(r io.Reader) (Components, error) {
 	return comps, nil
 }
 
-func (comps Components) Generate(ver semver.Version, config any, w io.Writer) error {
+func (comps Components) Generate(vers VariantVersions, config any, w io.Writer) error {
 	root, err := comps.resolve()
 	if err != nil {
 		return err
 	}
-	return descendNode(ver, root, reflect.TypeOf(config), 0, w)
+	return descendNode(vers, root, reflect.TypeOf(config), 0, w)
 }
 
 func (comps Components) resolve() (DocNode, error) {
@@ -155,26 +167,15 @@ func (node *DocNode) setParentLinks() {
 	}
 }
 
-func (node *DocNode) renderDescription(ver semver.Version) (string, error) {
-	desc := strings.ReplaceAll(node.Description, "%VERSION%", ver.String())
+func (node *DocNode) renderDescription(vers VariantVersions) (string, error) {
+	desc := node.Description
 	for _, xfrm := range node.transforms() {
-		if xfrm.MinVer != nil {
-			min, err := semver.NewVersion(*xfrm.MinVer)
-			if err != nil {
-				return "", fmt.Errorf("field %q: parsing min %q: %w", node.Name, *xfrm.MinVer, err)
-			}
-			if ver.LessThan(*min) {
-				continue
-			}
+		matches, err := xfrm.Constraints.matches(vers)
+		if err != nil {
+			return "", fmt.Errorf("field %q: %w", node.Name, err)
 		}
-		if xfrm.MaxVer != nil {
-			max, err := semver.NewVersion(*xfrm.MaxVer)
-			if err != nil {
-				return "", fmt.Errorf("field %q: parsing max %q: %w", node.Name, *xfrm.MaxVer, err)
-			}
-			if max.LessThan(ver) {
-				continue
-			}
+		if util.IsFalse(matches) {
+			continue
 		}
 		re, err := regexp.Compile(xfrm.Regex)
 		if err != nil {
@@ -185,6 +186,10 @@ func (node *DocNode) renderDescription(ver semver.Version) (string, error) {
 			return "", fmt.Errorf("field %q: applying %q: transform didn't change anything", node.Name, xfrm.Regex)
 		}
 		desc = new
+	}
+	// substitute version variables last, so transforms can add them
+	for variant, ver := range vers {
+		desc = strings.ReplaceAll(desc, fmt.Sprintf("%%%s_version%%", variant), ver.String())
 	}
 	return desc, nil
 }
@@ -272,4 +277,45 @@ func (node *DocNode) merge(override DocNode) error {
 	}
 
 	return nil
+}
+
+func (cons Constraints) matches(vers VariantVersions) (*bool, error) {
+	if len(cons) == 0 {
+		// no constraints
+		return nil, nil
+	}
+	for _, con := range cons {
+		if con.Variant == "" {
+			return nil, fmt.Errorf("missing `variant` in constraint")
+		}
+		ver, ok := vers[con.Variant]
+		if !ok {
+			// constraint isn't relevant to us
+			continue
+		}
+		if con.MinVer != nil {
+			min, err := semver.NewVersion(*con.MinVer)
+			if err != nil {
+				return nil, fmt.Errorf("parsing min %q: %w", *con.MinVer, err)
+			}
+			if ver.LessThan(*min) {
+				// constraint failed; try others
+				continue
+			}
+		}
+		if con.MaxVer != nil {
+			max, err := semver.NewVersion(*con.MaxVer)
+			if err != nil {
+				return nil, fmt.Errorf("parsing max %q: %w", *con.MaxVer, err)
+			}
+			if max.LessThan(ver) {
+				// constraint failed; try others
+				continue
+			}
+		}
+		// one constraint matched; accept
+		return util.BoolToPtr(true), nil
+	}
+	// no constraints matched; reject
+	return util.BoolToPtr(false), nil
 }

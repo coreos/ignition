@@ -103,7 +103,10 @@ func generate(dir string) error {
 		}
 
 		// write docs
-		if err := comps.Generate(ver, c.config, f); err != nil {
+		vers := doc.VariantVersions{
+			doc.IGNITION_VARIANT: ver,
+		}
+		if err := comps.Generate(vers, c.config, f); err != nil {
 			return fmt.Errorf("generating doc for %s: %w", c.version, err)
 		}
 	}
