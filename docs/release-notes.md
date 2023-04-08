@@ -20,6 +20,7 @@ nav_order: 9
 ### Bug fixes
 
 - Document that `hash` fields describe decompressed data
+- Clarify documentation of `passwordHash` fields
 - Correctly document Tang `advertisement` field as optional
 
 ### Test changes

@@ -387,7 +387,7 @@ root:
             - name: name
               desc: the username for the account.
             - name: passwordHash
-              desc: the encrypted password for the account.
+              desc: the hashed password for the account.
             - name: sshAuthorizedKeys
               desc: "a list of SSH keys to be added as an SSH key fragment at `.ssh/authorized_keys.d/ignition` in the user's home directory. All SSH keys must be unique."
             - name: uid
@@ -420,7 +420,7 @@ root:
             - name: gid
               desc: the group ID of the new group.
             - name: passwordHash
-              desc: the encrypted password of the new group.
+              desc: the hashed password of the new group.
             - name: shouldExist
               desc: whether or not the group with the specified `name` should exist. If omitted, it defaults to true. If false, then Ignition will delete the specified group.
             - name: system
