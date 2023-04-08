@@ -75,6 +75,11 @@ func descend(ver *semver.Version, node DocNode, typ reflect.Type, level int, w i
 		return descendNode(ver, node, typ, level, w)
 	case kind == reflect.Slice, kind == reflect.Ptr:
 		return descend(ver, node, typ.Elem(), level, w)
+	case kind == reflect.Map:
+		if !util.IsPrimitive(typ.Key().Kind()) {
+			return fmt.Errorf("%v is map with non-primitive key type %v", typ.Name(), typ.Key())
+		}
+		return descend(ver, node, typ.Elem(), level, w)
 	default:
 		return fmt.Errorf("%v has kind %v", typ.Name(), kind)
 	}
@@ -115,6 +120,8 @@ func typeName(typ reflect.Type) string {
 		return "boolean"
 	case reflect.Int:
 		return "integer"
+	case reflect.Map:
+		return "object"
 	case reflect.Pointer:
 		return typeName(typ.Elem())
 	case reflect.Slice:
