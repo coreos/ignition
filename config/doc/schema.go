@@ -43,6 +43,7 @@ type DocNode struct {
 	Children    []DocNode   `yaml:"children"`
 
 	Component string `yaml:"use"`
+	After     string `yaml:"after"`
 
 	// populated after component resolution
 	Parent *DocNode
@@ -107,6 +108,11 @@ func (comps Components) resolveComponents(node *DocNode) error {
 		}
 		comp.Component = ""
 		*node = comp
+	}
+	// now that all merging has happened, any remaining After field is
+	// incorrect
+	if node.After != "" {
+		return fmt.Errorf("field %q: stray `after` parameter %q", node.Name, node.After)
 	}
 	// descend children
 	for i := range node.Children {
@@ -216,25 +222,53 @@ func (node *DocNode) merge(override DocNode) error {
 	if override.Component != "" {
 		node.Component = override.Component
 	}
-
-	// merge overrides for children
-	overrideChildren := make(map[string]DocNode)
-	for _, child := range override.Children {
-		overrideChildren[child.Name] = child
+	if override.After != "" {
+		node.After = override.After
 	}
-	for i := range node.Children {
-		child := &node.Children[i]
-		if override, ok := overrideChildren[child.Name]; ok {
+
+	// insertions and overrides for children
+	unseenOverrides := make(map[string]DocNode)
+	overrideByName := make(map[string]DocNode)
+	insertionsByPredecessor := make(map[string][]DocNode)
+	for _, child := range override.Children {
+		unseenOverrides[child.Name] = child
+		overrideByName[child.Name] = child
+		if child.After != "" {
+			insertionsByPredecessor[child.After] = append(insertionsByPredecessor[child.After], child)
+		}
+	}
+	var children []DocNode
+	insert := func(predecessor string) {
+		for _, child := range insertionsByPredecessor[predecessor] {
+			child.After = ""
+			children = append(children, child)
+			delete(unseenOverrides, child.Name)
+		}
+	}
+	insert("^")
+	for _, child := range node.Children {
+		if override, ok := overrideByName[child.Name]; ok {
+			if override.After != "" {
+				return fmt.Errorf("field %q: override %q sets `after` and also matches existing field", node.Name, child.Name)
+			}
 			if err := child.merge(override); err != nil {
 				return err
 			}
-			delete(overrideChildren, child.Name)
+			delete(unseenOverrides, child.Name)
 		}
+		children = append(children, child)
+		insert(child.Name)
 	}
+	insert("$")
+	node.Children = children
 
 	// find unused overrides
-	for _, child := range overrideChildren {
-		return fmt.Errorf("field %q: override %q not found", node.Name, child.Name)
+	for _, child := range unseenOverrides {
+		if child.After != "" {
+			return fmt.Errorf("field %q: child %q: `after` field %q not found", node.Name, child.Name, child.After)
+		} else {
+			return fmt.Errorf("field %q: override %q not found; did you mean to set `after`?", node.Name, child.Name)
+		}
 	}
 
 	return nil
