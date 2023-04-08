@@ -48,7 +48,7 @@ type Transform struct {
 	Descendants bool    `yaml:"descendants"`
 }
 
-func (comps Components) Resolve() (DocNode, error) {
+func (comps Components) resolve() (DocNode, error) {
 	root, ok := comps[ROOT_COMPONENT]
 	if !ok {
 		return DocNode{}, fmt.Errorf("missing component %q", ROOT_COMPONENT)
@@ -95,7 +95,7 @@ func (node *DocNode) setParentLinks() {
 	}
 }
 
-func (node *DocNode) RenderDescription(ver *semver.Version) (string, error) {
+func (node *DocNode) renderDescription(ver *semver.Version) (string, error) {
 	desc := strings.ReplaceAll(node.Description, "%VERSION%", ver.String())
 	for _, xfrm := range node.transforms() {
 		if xfrm.MinVer != nil {

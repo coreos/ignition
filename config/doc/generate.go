@@ -38,7 +38,7 @@ func Generate(ver *semver.Version, config any, w io.Writer) error {
 	if err := decoder.Decode(&comps); err != nil {
 		return fmt.Errorf("unmarshaling documentation: %w", err)
 	}
-	root, err := comps.Resolve()
+	root, err := comps.resolve()
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func descendNode(ver *semver.Version, node DocNode, typ reflect.Type, level int,
 			optional = "_"
 		}
 		// write the entry
-		desc, err := child.RenderDescription(ver)
+		desc, err := child.renderDescription(ver)
 		if err != nil {
 			return err
 		}
