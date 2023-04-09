@@ -38,11 +38,20 @@ func descendNode(vers VariantVersions, node DocNode, typ reflect.Type, level int
 			// have documentation but no struct field
 			continue
 		}
+		// possibly skip
+		skip, err := child.Skip.matches(vers)
+		if err != nil {
+			return err
+		}
+		if util.IsTrue(skip) {
+			delete(fieldsByTag, child.Name)
+			continue
+		}
+		// write the entry
 		var optional string
 		if !util.IsTrue(child.Required) && (util.IsFalse(child.Required) || !util.IsPrimitive(field.Type.Kind())) {
 			optional = "_"
 		}
-		// write the entry
 		desc, err := child.renderDescription(vers)
 		if err != nil {
 			return err
