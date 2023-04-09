@@ -162,7 +162,7 @@ root:
             - name: path
               desc: the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
             - name: wipeFilesystem
-              desc: whether or not to wipe the device before filesystem creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information. Defaults to false.
+              desc: "whether or not to wipe the device before filesystem creation, see [Ignition's documentation on filesystems](https://coreos.github.io/ignition/operator-notes/#filesystem-reuse-semantics) for more information. Defaults to false."
             - name: label
               desc: the label of the filesystem.
             - name: uuid
@@ -325,7 +325,7 @@ root:
             - name: openOptions
               desc: any additional options to be passed to `cryptsetup luksOpen`. Supported options will be persistently written to the luks volume.
             - name: wipeVolume
-              desc: whether or not to wipe the device before volume creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information.
+              desc: "whether or not to wipe the device before volume creation, see [Ignition's documentation on filesystems](https://coreos.github.io/ignition/operator-notes/#filesystem-reuse-semantics) for more information."
             - name: clevis
               desc: describes the clevis configuration for the luks device.
               children:
