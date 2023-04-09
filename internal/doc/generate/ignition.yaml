@@ -177,7 +177,7 @@ root:
             - name: path
               desc: the absolute path to the file.
             - name: overwrite
-              desc: whether to delete preexisting nodes at the path. `contents.source` must be specified if `overwrite` is true. Defaults to false.
+              desc: whether to delete preexisting nodes at the path. `contents` must be specified if `overwrite` is true. Defaults to false.
             - name: contents
               use: resource
               desc: options related to the contents of the file.
@@ -221,7 +221,7 @@ root:
                         replacement: " If `compression` is specified, the hash describes the decompressed fragment."
                         max: 3.0.0
             - name: mode
-              desc: the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents.source` is unspecified, and a file already exists at the path.
+              desc: the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents` is unspecified, and a file already exists at the path.
               transforms:
                 - regex: are supported
                   replacement: are not supported
