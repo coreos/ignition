@@ -39,7 +39,7 @@ The Ignition configuration is a JSON document conforming to the following specif
       * **_number_** (integer): the partition number, which dictates its position in the partition table (one-indexed). If zero, use the next available partition slot.
       * **_sizeMiB_** (integer): the size of the partition (in mebibytes). If zero, the partition will be made as large as possible.
       * **_startMiB_** (integer): the start of the partition (in mebibytes). If zero, the partition will be positioned at the start of the largest block available.
-      * **_typeGuid_** (string): the GPT [partition type GUID](http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs). If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
+      * **_typeGuid_** (string): the GPT [partition type GUID](https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs). If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
       * **_guid_** (string): the GPT unique partition GUID.
       * **_wipePartitionEntry_** (boolean): if true, Ignition will clobber an existing partition if it does not match the config. If false (default), Ignition will fail instead.
       * **_shouldExist_** (boolean): whether or not the partition with the specified `number` should exist. If omitted, it defaults to true. If false Ignition will either delete the specified partition or fail, depending on `wipePartitionEntry`. If false `number` must be specified and non-zero and `label`, `start`, `size`, `guid`, and `typeGuid` must all be omitted.
