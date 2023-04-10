@@ -44,6 +44,20 @@ resource:
                 - variant: ignition
                   max: 3.0.0
 
+# Separate component as a convenience to Butane
+tang:
+  name: tang
+  desc: describes a tang server. Every server must have a unique `url`.
+  children:
+    - name: url
+      desc: url of the tang server.
+    - name: thumbprint
+      desc: thumbprint of a trusted signing key.
+      # required by validation
+      required: true
+    - name: advertisement
+      desc: the advertisement JSON. If not specified, the advertisement is fetched from the tang server during provisioning.
+
 root:
   children:
     - name: ignition
@@ -348,16 +362,7 @@ root:
               desc: describes the clevis configuration for the luks device.
               children:
                 - name: tang
-                  desc: describes a tang server. Every server must have a unique `url`.
-                  children:
-                    - name: url
-                      desc: url of the tang server.
-                    - name: thumbprint
-                      desc: thumbprint of a trusted signing key.
-                      # required by validation
-                      required: true
-                    - name: advertisement
-                      desc: the advertisement JSON. If not specified, the advertisement is fetched from the tang server during provisioning.
+                  use: tang
                 - name: tpm2
                   desc: whether or not to use a tpm2 device.
                 - name: threshold
