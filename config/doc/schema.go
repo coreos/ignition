@@ -42,6 +42,7 @@ type DocNode struct {
 	Name        string      `yaml:"name"`
 	Description string      `yaml:"desc"`
 	Required    *bool       `yaml:"required"`
+	RequiredIf  Constraints `yaml:"required-if"`
 	Skip        Constraints `yaml:"unless"`
 	Transforms  []Transform `yaml:"transforms"`
 	Children    []DocNode   `yaml:"children"`
@@ -195,6 +196,17 @@ func (node *DocNode) renderDescription(vers VariantVersions) (string, error) {
 	return desc, nil
 }
 
+func (node *DocNode) required(vers VariantVersions) (*bool, error) {
+	conditional, err := node.RequiredIf.matches(vers)
+	if err != nil {
+		return nil, err
+	}
+	if conditional != nil {
+		return conditional, nil
+	}
+	return node.Required, nil
+}
+
 func (node *DocNode) transforms() []Transform {
 	var ret []Transform
 	var descend func(node *DocNode, inheritedOnly bool)
@@ -223,6 +235,11 @@ func (node *DocNode) merge(override DocNode) error {
 	}
 	if override.Required != nil {
 		node.Required = override.Required
+		node.RequiredIf = nil
+	}
+	if len(override.RequiredIf) > 0 {
+		node.Required = nil
+		node.RequiredIf = append(node.RequiredIf, override.RequiredIf...)
 	}
 	node.Skip = append(node.Skip, override.Skip...)
 	node.Transforms = append(node.Transforms, override.Transforms...)

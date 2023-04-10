@@ -47,9 +47,17 @@ func descendNode(vers VariantVersions, node DocNode, typ reflect.Type, level int
 			delete(fieldsByTag, child.Name)
 			continue
 		}
+		// check if the field is required
+		required, err := child.required(vers)
+		if err != nil {
+			return nil
+		}
+		if required == nil {
+			required = util.BoolToPtr(util.IsPrimitive(field.Type.Kind()))
+		}
 		// write the entry
 		var optional string
-		if !util.IsTrue(child.Required) && (util.IsFalse(child.Required) || !util.IsPrimitive(field.Type.Kind())) {
+		if !*required {
 			optional = "_"
 		}
 		desc, err := child.renderDescription(vers)
