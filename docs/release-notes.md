@@ -26,6 +26,7 @@ Starting with this release, ignition-validate binaries are signed with the
 - Clarify documentation of `passwordHash` fields
 - Correctly document Tang `advertisement` field as optional
 - Fix failure disabling nonexistent unit with systemd ≥ 252
+- Don't relabel a mount point that already exists
 
 ### Test changes
 

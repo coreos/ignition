@@ -123,29 +123,25 @@ func (s stage) mountFs(fs types.Filesystem) error {
 		return err
 	}
 
-	var firstMissing string
-	if distro.SelinuxRelabel() {
-		var err error
-		firstMissing, err = util.FindFirstMissingPathComponent(path)
+	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
+		firstMissing, err := util.FindFirstMissingPathComponent(path)
 		if err != nil {
 			return err
 		}
-	}
 
-	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
 		// Record created directories for use by the files stage.
 		// NotateMkdirAll() is relative to the DestDir.
 		if err := s.NotateMkdirAll(relpath, 0755); err != nil {
 			return err
 		}
+
+		if distro.SelinuxRelabel() {
+			if err := s.RelabelFiles([]string{firstMissing}); err != nil {
+				return err
+			}
+		}
 	} else if err != nil {
 		return err
-	}
-
-	if distro.SelinuxRelabel() {
-		if err := s.RelabelFiles([]string{firstMissing}); err != nil {
-			return err
-		}
 	}
 
 	args := translateOptionSliceToString(fs.MountOptions, ",")
