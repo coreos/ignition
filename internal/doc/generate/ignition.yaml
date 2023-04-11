@@ -1,518 +1,434 @@
-- name: ignition
-  desc: metadata about the configuration itself.
-  # required because ignition.version is
-  required: true
+resource:
   children:
-    - name: version
-      desc: the semantic version number of the spec. The spec version must be compatible with the latest version (`%VERSION%`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
-    - name: config
-      desc: options related to the configuration.
+    - name: source
+      desc: "the URL of the %TYPE%. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+      # source is typically required by validation, but some inclusion sites
+      # will override this
+      required: true
+      transforms:
+        - regex: "`gs`, "
+          replacement: ""
+          max: 3.1.0
+        - regex: "`arn`, "
+          replacement: ""
+          max: 3.3.0
+    - name: compression
+      desc: "the type of compression used on the %TYPE% (null or gzip). Compression cannot be used with S3."
+    - name: httpHeaders
+      desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
       children:
-        - name: merge
-          desc: a list of the configs to be merged to the current config.
+        - name: name
+          desc: the header name.
+        - name: value
+          desc: the header contents.
+    - name: verification
+      desc: "options related to the verification of the %TYPE%."
+      children:
+        - name: hash
+          desc: "the hash of the %TYPE%, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed %TYPE%."
+          transforms:
+            - regex: "either `sha512` or `sha256`"
+              replacement: '`sha512`'
+              max: 3.0.0
+            # Most inclusion sites don't have a compression field in 3.0.0.
+            # The others re-add this line explicitly.
+            - regex: " If `compression` .* %TYPE%."
+              replacement: ""
+              max: 3.0.0
+
+root:
+  children:
+    - name: ignition
+      desc: metadata about the configuration itself.
+      # required because ignition.version is
+      required: true
+      children:
+        - name: version
+          desc: the semantic version number of the spec. The spec version must be compatible with the latest version (`%VERSION%`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
+        - name: config
+          desc: options related to the configuration.
           children:
-            - name: source
-              desc: "the URL of the config. Supported schemes are `http`, `https`, `s3`, `arn`, `gs`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
-              # source is sometimes optional, but required here by validation
+            - name: merge
+              use: resource
+              desc: a list of the configs to be merged to the current config.
+              transforms:
+                - regex: "%TYPE%"
+                  replacement: config
+                  descendants: true
+            - name: replace
+              use: resource
+              desc: the config that will replace the current.
+              transforms:
+                - regex: "%TYPE%"
+                  replacement: config
+                  descendants: true
+        - name: timeouts
+          desc: options relating to `http` timeouts when fetching files over `http` or `https`.
+          children:
+            - name: httpResponseHeaders
+              desc: "the time to wait (in seconds) for the server's response headers (but not the body) after making a request. 0 indicates no timeout. Default is 10 seconds."
+            - name: httpTotal
+              desc: "the time limit (in seconds) for the operation (connection, request, and response), including retries. 0 indicates no timeout. Default is 0."
+        - name: security
+          desc: options relating to network security.
+          children:
+            - name: tls
+              desc: "options relating to TLS when fetching resources over `https`."
+              children:
+                - name: certificateAuthorities
+                  use: resource
+                  desc: the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`. All certificate authorities must have a unique `source`.
+                  transforms:
+                    - regex: "%TYPE%"
+                      replacement: certificate bundle
+                      descendants: true
+                  children:
+                    - name: source
+                      transforms:
+                        - regex: "%TYPE%"
+                          replacement: "certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates"
+        - name: proxy
+          desc: options relating to setting an `HTTP(S)` proxy when fetching resources.
+          children:
+            - name: httpProxy
+              desc: will be used as the proxy URL for HTTP requests and HTTPS requests unless overridden by `httpsProxy` or `noProxy`.
+            - name: httpsProxy
+              desc: will be used as the proxy URL for HTTPS requests unless overridden by `noProxy`.
+            - name: noProxy
+              desc: specifies a list of strings to hosts that should be excluded from proxying. Each value is represented by an `IP address prefix (1.2.3.4)`, `an IP address prefix in CIDR notation (1.2.3.4/8)`, `a domain name`, or `a special DNS label (*)`. An IP address prefix and domain name can also include a literal port number `(1.2.3.4:80)`. A domain name matches that name and all subdomains. A domain name with a leading `.` matches subdomains only. For example `foo.com` matches `foo.com` and `bar.foo.com`; `.y.com` matches `x.y.com` but not `y.com`. A single asterisk `(*)` indicates that no proxying should be done.
+    - name: storage
+      desc: "describes the desired state of the system's storage devices."
+      children:
+        - name: disks
+          desc: the list of disks to be configured and their options. Every entry must have a unique `device`.
+          children:
+            - name: device
+              desc: the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
+            - name: wipeTable
+              desc: whether or not the partition tables shall be wiped. When true, the partition tables are erased before any further manipulation. Otherwise, the existing entries are left intact.
+            - name: partitions
+              desc: the list of partitions and their configuration for this particular disk. Every partition must have a unique `number`, or if 0 is specified, a unique `label`.
+              children:
+                - name: label
+                  desc: the PARTLABEL for the partition.
+                - name: number
+                  desc: the partition number, which dictates its position in the partition table (one-indexed). If zero, use the next available partition slot.
+                  # non-pointer field, but can default to zero
+                  required: false
+                - name: sizeMiB
+                  desc: the size of the partition (in mebibytes). If zero, the partition will be made as large as possible.
+                - name: startMiB
+                  desc: the start of the partition (in mebibytes). If zero, the partition will be positioned at the start of the largest block available.
+                - name: typeGuid
+                  desc: the GPT [partition type GUID](http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs). If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
+                - name: guid
+                  desc: the GPT unique partition GUID.
+                - name: wipePartitionEntry
+                  desc: if true, Ignition will clobber an existing partition if it does not match the config. If false (default), Ignition will fail instead.
+                - name: shouldExist
+                  desc: whether or not the partition with the specified `number` should exist. If omitted, it defaults to true. If false Ignition will either delete the specified partition or fail, depending on `wipePartitionEntry`. If false `number` must be specified and non-zero and `label`, `start`, `size`, `guid`, and `typeGuid` must all be omitted.
+                - name: resize
+                  desc: whether or not the existing partition should be resized. If omitted, it defaults to false. If true, Ignition will resize an existing partition if it matches the config in all respects except the partition size.
+        - name: raid
+          desc: the list of RAID arrays to be configured. Every RAID array must have a unique `name`.
+          children:
+            - name: name
+              desc: the name to use for the resulting md device.
+            - name: level
+              desc: the redundancy level of the array (e.g. linear, raid1, raid5, etc.).
+              # not part of the primary key, but required by validation
+              required: true
+            - name: devices
+              desc: the list of devices (referenced by their absolute path) in the array.
+              # required by validation
+              required: true
+            - name: spares
+              desc: the number of spares (if applicable) in the array.
+            - name: options
+              desc: any additional options to be passed to mdadm.
+        - name: filesystems
+          desc: the list of filesystems to be configured. `device` and `format` need to be specified. Every filesystem must have a unique `device`.
+          children:
+            - name: device
+              desc: the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
+            - name: format
+              desc: the filesystem format (ext4, btrfs, xfs, vfat, swap, or none).
+              # not part of the primary key, but required by validation
               required: true
               transforms:
-                - regex: "`gs`, "
-                  replacement: ""
-                  max: 3.1.0
-                - regex: "`arn`, "
-                  replacement: ""
-                  max: 3.3.0
-            - name: compression
-              desc: the type of compression used on the config (null or gzip). Compression cannot be used with S3.
-            - name: httpHeaders
-              desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
-              children:
-                - name: name
-                  desc: the header name.
-                - name: value
-                  desc: the header contents.
-            - name: verification
-              desc: options related to the verification of the config.
-              children:
-                - name: hash
-                  desc: the hash of the config, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed config.
-                  transforms:
-                    - regex: "either `sha512` or `sha256`"
-                      replacement: '`sha512`'
-                      max: 3.0.0
-                    # No compression field in 3.0.0
-                    - regex: " If `compression` .* config."
-                      replacement: ""
-                      max: 3.0.0
-        - name: replace
-          desc: the config that will replace the current.
+                - regex: "swap, or none"
+                  replacement: "or swap"
+                  max: 3.2.0
+            - name: path
+              desc: the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
+            - name: wipeFilesystem
+              desc: whether or not to wipe the device before filesystem creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information. Defaults to false.
+            - name: label
+              desc: the label of the filesystem.
+            - name: uuid
+              desc: the uuid of the filesystem.
+            - name: options
+              desc: any additional options to be passed to the format-specific mkfs utility.
+            - name: mountOptions
+              desc: any special options to be passed to the mount command.
+        - name: files
+          desc: the list of files to be written. Every file, directory and link must have a unique `path`.
           children:
-            - name: source
-              desc: "the URL of the config. Supported schemes are `http`, `https`, `s3`, `arn`, `gs`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
-              # source is sometimes optional, but required here by validation
-              required: true
+            - name: path
+              desc: the absolute path to the file.
+            - name: overwrite
+              desc: whether to delete preexisting nodes at the path. `contents.source` must be specified if `overwrite` is true. Defaults to false.
+            - name: contents
+              use: resource
+              desc: options related to the contents of the file.
               transforms:
-                - regex: "`gs`, "
-                  replacement: ""
-                  max: 3.1.0
-                - regex: "`arn`, "
-                  replacement: ""
-                  max: 3.3.0
-            - name: compression
-              desc: the type of compression used on the config (null or gzip). Compression cannot be used with S3.
-            - name: httpHeaders
-              desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
-              children:
-                - name: name
-                  desc: the header name.
-                - name: value
-                  desc: the header contents.
-            - name: verification
-              desc: options related to the verification of the config.
-              children:
-                - name: hash
-                  desc: the hash of the config, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed config.
-                  transforms:
-                    - regex: "either `sha512` or `sha256`"
-                      replacement: '`sha512`'
-                      max: 3.0.0
-                    # No compression field in 3.0.0
-                    - regex: " If `compression` .* config."
-                      replacement: ""
-                      max: 3.0.0
-    - name: timeouts
-      desc: options relating to `http` timeouts when fetching files over `http` or `https`.
-      children:
-        - name: httpResponseHeaders
-          desc: "the time to wait (in seconds) for the server's response headers (but not the body) after making a request. 0 indicates no timeout. Default is 10 seconds."
-        - name: httpTotal
-          desc: "the time limit (in seconds) for the operation (connection, request, and response), including retries. 0 indicates no timeout. Default is 0."
-    - name: security
-      desc: options relating to network security.
-      children:
-        - name: tls
-          desc: "options relating to TLS when fetching resources over `https`."
-          children:
-            - name: certificateAuthorities
-              desc: the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`. All certificate authorities must have a unique `source`.
+                - regex: "%TYPE%"
+                  replacement: file
+                  descendants: true
               children:
                 - name: source
-                  desc: "the URL of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Supported schemes are `http`, `https`, `s3`, `arn`, `gs`, `tftp`, and [`data`](https://tools.ietf.org/html/rfc2397). Note: When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
-                  # source is sometimes optional, but required here by
-                  # validation
-                  required: true
+                  # empty file if source not specified
+                  required: false
                   transforms:
-                    - regex: "`gs`, "
-                      replacement: ""
-                      max: 3.1.0
-                    - regex: "`arn`, "
-                      replacement: ""
-                      max: 3.3.0
-                - name: compression
-                  desc: the type of compression used on the certificate (null or gzip). Compression cannot be used with S3.
-                - name: httpHeaders
-                  desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
-                  children:
-                    - name: name
-                      desc: the header name.
-                    - name: value
-                      desc: the header contents.
+                    - regex: "haven't been modified."
+                      replacement: "$0 If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created."
                 - name: verification
-                  desc: options related to the verification of the certificate.
                   children:
                     - name: hash
-                      desc: the hash of the certificate, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed certificate.
                       transforms:
-                        - regex: "either `sha512` or `sha256`"
-                          replacement: '`sha512`'
-                          max: 3.0.0
-                        # No compression field in 3.0.0
-                        - regex: " If `compression` .* certificate."
-                          replacement: ""
-                          max: 3.0.0
-    - name: proxy
-      desc: options relating to setting an `HTTP(S)` proxy when fetching resources.
-      children:
-        - name: httpProxy
-          desc: will be used as the proxy URL for HTTP requests and HTTPS requests unless overridden by `httpsProxy` or `noProxy`.
-        - name: httpsProxy
-          desc: will be used as the proxy URL for HTTPS requests unless overridden by `noProxy`.
-        - name: noProxy
-          desc: specifies a list of strings to hosts that should be excluded from proxying. Each value is represented by an `IP address prefix (1.2.3.4)`, `an IP address prefix in CIDR notation (1.2.3.4/8)`, `a domain name`, or `a special DNS label (*)`. An IP address prefix and domain name can also include a literal port number `(1.2.3.4:80)`. A domain name matches that name and all subdomains. A domain name with a leading `.` matches subdomains only. For example `foo.com` matches `foo.com` and `bar.foo.com`; `.y.com` matches `x.y.com` but not `y.com`. A single asterisk `(*)` indicates that no proxying should be done.
-- name: storage
-  desc: "describes the desired state of the system's storage devices."
-  children:
-    - name: disks
-      desc: the list of disks to be configured and their options. Every entry must have a unique `device`.
-      children:
-        - name: device
-          desc: the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-        - name: wipeTable
-          desc: whether or not the partition tables shall be wiped. When true, the partition tables are erased before any further manipulation. Otherwise, the existing entries are left intact.
-        - name: partitions
-          desc: the list of partitions and their configuration for this particular disk. Every partition must have a unique `number`, or if 0 is specified, a unique `label`.
+                      # There is a compression field in 3.0 so re-add the
+                      # compression caveat
+                      - regex: $
+                        replacement: " If `compression` is specified, the hash describes the decompressed file."
+                        max: 3.0.0
+            - name: append
+              use: resource
+              desc: list of fragments to be appended to the file. Follows the same structure as `contents`.
+              transforms:
+                - regex: "%TYPE%"
+                  replacement: fragment
+                  descendants: true
+              children:
+                - name: source
+                  required: false
+                - name: verification
+                  children:
+                    - name: hash
+                      transforms:
+                      # There is a compression field in 3.0 so re-add the
+                      # compression caveat
+                      - regex: $
+                        replacement: " If `compression` is specified, the hash describes the decompressed fragment."
+                        max: 3.0.0
+            - name: mode
+              desc: the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents.source` is unspecified, and a file already exists at the path.
+              transforms:
+                - regex: are supported
+                  replacement: are not supported
+                  max: 3.3.0
+            - name: user
+              desc: "specifies the file's owner."
+              children:
+                - name: id
+                  desc: the user ID of the owner.
+                - name: name
+                  desc: the user name of the owner.
+            - name: group
+              desc: "specifies the file's group."
+              children:
+                - name: id
+                  desc: the group ID of the group.
+                - name: name
+                  desc: the group name of the group.
+        - name: directories
+          desc: the list of directories to be created. Every file, directory, and link must have a unique `path`.
           children:
+            - name: path
+              desc: the absolute path to the directory.
+            - name: overwrite
+              desc: whether to delete preexisting nodes at the path. If false and a directory already exists at the path, Ignition will only set its permissions. If false and a non-directory exists at that path, Ignition will fail. Defaults to false.
+            - name: mode
+              desc: "the directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0755 -> 493). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for directories defaults to 0755 or the mode of an existing directory if `overwrite` is false and a directory already exists at the path."
+              transforms:
+                - regex: are supported
+                  replacement: are not supported
+                  max: 3.3.0
+            - name: user
+              desc: "specifies the directory's owner."
+              children:
+                - name: id
+                  desc: the user ID of the owner.
+                - name: name
+                  desc: the user name of the owner.
+            - name: group
+              desc: "specifies the directory's group."
+              children:
+                - name: id
+                  desc: the group ID of the group.
+                - name: name
+                  desc: the group name of the group.
+        - name: links
+          desc: the list of links to be created. Every file, directory, and link must have a unique `path`.
+          children:
+            - name: path
+              desc: the absolute path to the link
+            - name: overwrite
+              desc: whether to delete preexisting nodes at the path. If overwrite is false and a matching link exists at the path, Ignition will only set the owner and group. Defaults to false.
+            - name: user
+              desc: specifies the owner for a symbolic link. Ignored for hard links.
+              children:
+                - name: id
+                  desc: the user ID of the owner.
+                - name: name
+                  desc: the user name of the owner.
+            - name: group
+              desc: specifies the group for a symbolic link. Ignored for hard links.
+              children:
+                - name: id
+                  desc: the group ID of the group.
+                - name: name
+                  desc: the group name of the group.
+            - name: target
+              desc: the target path of the link
+              # not part of the primary key, but required by validation
+              required: true
+            - name: hard
+              desc: a symbolic link is created if this is false, a hard one if this is true.
+        - name: luks
+          desc: the list of luks devices to be created. Every device must have a unique `name`.
+          children:
+            - name: name
+              desc: the name of the luks device.
+            - name: device
+              desc: the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
+              # not part of the primary key, but required by validation
+              required: true
+            - name: keyFile
+              use: resource
+              desc: options related to the contents of the key file.
+              transforms:
+                - regex: "%TYPE%"
+                  replacement: key file
+                  descendants: true
+              children:
+                - name: source
+                  # key file autogenerated if source not specified
+                  required: false
             - name: label
-              desc: the PARTLABEL for the partition.
-            - name: number
-              desc: the partition number, which dictates its position in the partition table (one-indexed). If zero, use the next available partition slot.
-              # non-pointer field, but can default to zero
-              required: false
-            - name: sizeMiB
-              desc: the size of the partition (in mebibytes). If zero, the partition will be made as large as possible.
-            - name: startMiB
-              desc: the start of the partition (in mebibytes). If zero, the partition will be positioned at the start of the largest block available.
-            - name: typeGuid
-              desc: the GPT [partition type GUID](http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs). If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
-            - name: guid
-              desc: the GPT unique partition GUID.
-            - name: wipePartitionEntry
-              desc: if true, Ignition will clobber an existing partition if it does not match the config. If false (default), Ignition will fail instead.
-            - name: shouldExist
-              desc: whether or not the partition with the specified `number` should exist. If omitted, it defaults to true. If false Ignition will either delete the specified partition or fail, depending on `wipePartitionEntry`. If false `number` must be specified and non-zero and `label`, `start`, `size`, `guid`, and `typeGuid` must all be omitted.
-            - name: resize
-              desc: whether or not the existing partition should be resized. If omitted, it defaults to false. If true, Ignition will resize an existing partition if it matches the config in all respects except the partition size.
-    - name: raid
-      desc: the list of RAID arrays to be configured. Every RAID array must have a unique `name`.
+              desc: the label of the luks device.
+            - name: uuid
+              desc: the uuid of the luks device.
+            - name: options
+              desc: any additional options to be passed to `cryptsetup luksFormat`.
+            - name: discard
+              desc: whether to issue discard commands to the underlying block device when blocks are freed. Enabling this improves performance and device longevity on SSDs and space utilization on thinly provisioned SAN devices, but leaks information about which disk blocks contain data. If omitted, it defaults to false.
+            - name: openOptions
+              desc: any additional options to be passed to `cryptsetup luksOpen`. Supported options will be persistently written to the luks volume.
+            - name: wipeVolume
+              desc: whether or not to wipe the device before volume creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information.
+            - name: clevis
+              desc: describes the clevis configuration for the luks device.
+              children:
+                - name: tang
+                  desc: describes a tang server. Every server must have a unique `url`.
+                  children:
+                    - name: url
+                      desc: url of the tang server.
+                    - name: thumbprint
+                      desc: thumbprint of a trusted signing key.
+                      # required by validation
+                      required: true
+                    - name: advertisement
+                      desc: the advertisement JSON. If not specified, the advertisement is fetched from the tang server during provisioning.
+                - name: tpm2
+                  desc: whether or not to use a tpm2 device.
+                - name: threshold
+                  desc: sets the minimum number of pieces required to decrypt the device. Default is 1.
+                - name: custom
+                  desc: overrides the clevis configuration. The `pin` & `config` will be passed directly to `clevis luks bind`. If specified, all other clevis options must be omitted.
+                  children:
+                    - name: pin
+                      desc: the clevis pin.
+                      # required by validation
+                      required: true
+                    - name: config
+                      desc: the clevis configuration JSON.
+                      # required by validation
+                      required: true
+                    - name: needsNetwork
+                      desc: whether or not the device requires networking.
+    - name: systemd
+      desc: describes the desired state of the systemd units.
       children:
-        - name: name
-          desc: the name to use for the resulting md device.
-        - name: level
-          desc: the redundancy level of the array (e.g. linear, raid1, raid5, etc.).
-          # not part of the primary key, but required by validation
-          required: true
-        - name: devices
-          desc: the list of devices (referenced by their absolute path) in the array.
-          # required by validation
-          required: true
-        - name: spares
-          desc: the number of spares (if applicable) in the array.
-        - name: options
-          desc: any additional options to be passed to mdadm.
-    - name: filesystems
-      desc: the list of filesystems to be configured. `device` and `format` need to be specified. Every filesystem must have a unique `device`.
-      children:
-        - name: device
-          desc: the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-        - name: format
-          desc: the filesystem format (ext4, btrfs, xfs, vfat, swap, or none).
-          # not part of the primary key, but required by validation
-          required: true
-          transforms:
-            - regex: "swap, or none"
-              replacement: "or swap"
-              max: 3.2.0
-        - name: path
-          desc: the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
-        - name: wipeFilesystem
-          desc: whether or not to wipe the device before filesystem creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information. Defaults to false.
-        - name: label
-          desc: the label of the filesystem.
-        - name: uuid
-          desc: the uuid of the filesystem.
-        - name: options
-          desc: any additional options to be passed to the format-specific mkfs utility.
-        - name: mountOptions
-          desc: any special options to be passed to the mount command.
-    - name: files
-      desc: the list of files to be written. Every file, directory and link must have a unique `path`.
-      children:
-        - name: path
-          desc: the absolute path to the file.
-        - name: overwrite
-          desc: whether to delete preexisting nodes at the path. `contents.source` must be specified if `overwrite` is true. Defaults to false.
-        - name: contents
-          desc: options related to the contents of the file.
-          children:
-            - name: compression
-              desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
-            - name: source
-              desc: "the URL of the file contents. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created."
-              transforms:
-                - regex: "`gs`, "
-                  replacement: ""
-                  max: 3.1.0
-                - regex: "`arn`, "
-                  replacement: ""
-                  max: 3.3.0
-            - name: httpHeaders
-              desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
-              children:
-                - name: name
-                  desc: the header name.
-                - name: value
-                  desc: the header contents.
-            - name: verification
-              desc: options related to the verification of the file contents.
-              children:
-                - name: hash
-                  desc: the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed contents.
-                  transforms:
-                    - regex: "either `sha512` or `sha256`"
-                      replacement: '`sha512`'
-                      max: 3.0.0
-        - name: append
-          desc: list of contents to be appended to the file. Follows the same stucture as `contents`
-          children:
-            - name: compression
-              desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
-            - name: source
-              desc: "the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
-              transforms:
-                - regex: "`gs`, "
-                  replacement: ""
-                  max: 3.1.0
-                - regex: "`arn`, "
-                  replacement: ""
-                  max: 3.3.0
-            - name: httpHeaders
-              desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
-              children:
-                - name: name
-                  desc: the header name.
-                - name: value
-                  desc: the header contents.
-            - name: verification
-              desc: options related to the verification of the appended contents.
-              children:
-                - name: hash
-                  desc: the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed contents.
-                  transforms:
-                    - regex: "either `sha512` or `sha256`"
-                      replacement: '`sha512`'
-                      max: 3.0.0
-        - name: mode
-          desc: the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents.source` is unspecified, and a file already exists at the path.
-          transforms:
-            - regex: are supported
-              replacement: are not supported
-              max: 3.3.0
-        - name: user
-          desc: "specifies the file's owner."
-          children:
-            - name: id
-              desc: the user ID of the owner.
-            - name: name
-              desc: the user name of the owner.
-        - name: group
-          desc: "specifies the file's group."
-          children:
-            - name: id
-              desc: the group ID of the group.
-            - name: name
-              desc: the group name of the group.
-    - name: directories
-      desc: the list of directories to be created. Every file, directory, and link must have a unique `path`.
-      children:
-        - name: path
-          desc: the absolute path to the directory.
-        - name: overwrite
-          desc: whether to delete preexisting nodes at the path. If false and a directory already exists at the path, Ignition will only set its permissions. If false and a non-directory exists at that path, Ignition will fail. Defaults to false.
-        - name: mode
-          desc: "the directory's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0755 -> 493). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for directories defaults to 0755 or the mode of an existing directory if `overwrite` is false and a directory already exists at the path."
-          transforms:
-            - regex: are supported
-              replacement: are not supported
-              max: 3.3.0
-        - name: user
-          desc: "specifies the directory's owner."
-          children:
-            - name: id
-              desc: the user ID of the owner.
-            - name: name
-              desc: the user name of the owner.
-        - name: group
-          desc: "specifies the directory's group."
-          children:
-            - name: id
-              desc: the group ID of the group.
-            - name: name
-              desc: the group name of the group.
-    - name: links
-      desc: the list of links to be created. Every file, directory, and link must have a unique `path`.
-      children:
-        - name: path
-          desc: the absolute path to the link
-        - name: overwrite
-          desc: whether to delete preexisting nodes at the path. If overwrite is false and a matching link exists at the path, Ignition will only set the owner and group. Defaults to false.
-        - name: user
-          desc: specifies the owner for a symbolic link. Ignored for hard links.
-          children:
-            - name: id
-              desc: the user ID of the owner.
-            - name: name
-              desc: the user name of the owner.
-        - name: group
-          desc: specifies the group for a symbolic link. Ignored for hard links.
-          children:
-            - name: id
-              desc: the group ID of the group.
-            - name: name
-              desc: the group name of the group.
-        - name: target
-          desc: the target path of the link
-          # not part of the primary key, but required by validation
-          required: true
-        - name: hard
-          desc: a symbolic link is created if this is false, a hard one if this is true.
-    - name: luks
-      desc: the list of luks devices to be created. Every device must have a unique `name`.
-      children:
-        - name: name
-          desc: the name of the luks device.
-        - name: device
-          desc: the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-          # not part of the primary key, but required by validation
-          required: true
-        - name: keyFile
-          desc: options related to the contents of the key file.
-          children:
-            - name: compression
-              desc: the type of compression used on the contents (null or gzip). Compression cannot be used with S3.
-            - name: source
-              desc: "the URL of the contents to append. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
-              transforms:
-                - regex: "`gs`, "
-                  replacement: ""
-                  max: 3.1.0
-                - regex: "`arn`, "
-                  replacement: ""
-                  max: 3.3.0
-            - name: httpHeaders
-              desc: a list of HTTP headers to be added to the request. Available for `http` and `https` source schemes only.
-              children:
-                - name: name
-                  desc: the header name.
-                - name: value
-                  desc: the header contents.
-            - name: verification
-              desc: options related to the verification of the key file.
-              children:
-                - name: hash
-                  desc: the hash of the contents, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed contents.
-                  transforms:
-                    - regex: "either `sha512` or `sha256`"
-                      replacement: "`sha512`"
-                      max: 3.0.0
-                    # No compression field in 3.0.0
-                    - regex: " If `compression` .* contents."
-                      replacement: ""
-                      max: 3.0.0
-        - name: label
-          desc: the label of the luks device.
-        - name: uuid
-          desc: the uuid of the luks device.
-        - name: options
-          desc: any additional options to be passed to `cryptsetup luksFormat`.
-        - name: discard
-          desc: whether to issue discard commands to the underlying block device when blocks are freed. Enabling this improves performance and device longevity on SSDs and space utilization on thinly provisioned SAN devices, but leaks information about which disk blocks contain data. If omitted, it defaults to false.
-        - name: openOptions
-          desc: any additional options to be passed to `cryptsetup luksOpen`. Supported options will be persistently written to the luks volume.
-        - name: wipeVolume
-          desc: whether or not to wipe the device before volume creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information.
-        - name: clevis
-          desc: describes the clevis configuration for the luks device.
-          children:
-            - name: tang
-              desc: describes a tang server. Every server must have a unique `url`.
-              children:
-                - name: url
-                  desc: url of the tang server.
-                - name: thumbprint
-                  desc: thumbprint of a trusted signing key.
-                  # required by validation
-                  required: true
-                - name: advertisement
-                  desc: the advertisement JSON. If not specified, the advertisement is fetched from the tang server during provisioning.
-            - name: tpm2
-              desc: whether or not to use a tpm2 device.
-            - name: threshold
-              desc: sets the minimum number of pieces required to decrypt the device. Default is 1.
-            - name: custom
-              desc: overrides the clevis configuration. The `pin` & `config` will be passed directly to `clevis luks bind`. If specified, all other clevis options must be omitted.
-              children:
-                - name: pin
-                  desc: the clevis pin.
-                  # required by validation
-                  required: true
-                - name: config
-                  desc: the clevis configuration JSON.
-                  # required by validation
-                  required: true
-                - name: needsNetwork
-                  desc: whether or not the device requires networking.
-- name: systemd
-  desc: describes the desired state of the systemd units.
-  children:
-    - name: units
-      desc: the list of systemd units. Every unit must have a unique `name`.
-      children:
-        - name: name
-          desc: the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service").
-        - name: enabled
-          desc: whether or not the service shall be enabled. When true, the service is enabled. When false, the service is disabled. When omitted, the service is unmodified. In order for this to have any effect, the unit must have an install section.
-        - name: mask
-          desc: whether or not the service shall be masked. When true, the service is masked by symlinking it to `/dev/null`. When false, the service is unmasked by deleting the symlink to `/dev/null` if it exists.
-        - name: contents
-          desc: the contents of the unit.
-        - name: dropins
-          desc: the list of drop-ins for the unit. Every drop-in must have a unique `name`.
+        - name: units
+          desc: the list of systemd units. Every unit must have a unique `name`.
           children:
             - name: name
-              desc: the name of the drop-in. This must be suffixed with ".conf".
+              desc: the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service").
+            - name: enabled
+              desc: whether or not the service shall be enabled. When true, the service is enabled. When false, the service is disabled. When omitted, the service is unmodified. In order for this to have any effect, the unit must have an install section.
+            - name: mask
+              desc: whether or not the service shall be masked. When true, the service is masked by symlinking it to `/dev/null`. When false, the service is unmasked by deleting the symlink to `/dev/null` if it exists.
             - name: contents
-              desc: the contents of the drop-in.
-- name: passwd
-  desc: describes the desired additions to the passwd database.
-  children:
-    - name: users
-      desc: the list of accounts that shall exist. All users must have a unique `name`.
+              desc: the contents of the unit.
+            - name: dropins
+              desc: the list of drop-ins for the unit. Every drop-in must have a unique `name`.
+              children:
+                - name: name
+                  desc: the name of the drop-in. This must be suffixed with ".conf".
+                - name: contents
+                  desc: the contents of the drop-in.
+    - name: passwd
+      desc: describes the desired additions to the passwd database.
       children:
-        - name: name
-          desc: the username for the account.
-        - name: passwordHash
-          desc: the encrypted password for the account.
-        - name: sshAuthorizedKeys
-          desc: "a list of SSH keys to be added as an SSH key fragment at `.ssh/authorized_keys.d/ignition` in the user's home directory. All SSH keys must be unique."
-        - name: uid
-          desc: the user ID of the account.
-        - name: gecos
-          desc: the GECOS field of the account.
-        - name: homeDir
-          desc: the home directory of the account.
-        - name: noCreateHome
-          desc: whether or not to create the user's home directory. This only has an effect if the account doesn't exist yet.
-        - name: primaryGroup
-          desc: the name of the primary group of the account.
+        - name: users
+          desc: the list of accounts that shall exist. All users must have a unique `name`.
+          children:
+            - name: name
+              desc: the username for the account.
+            - name: passwordHash
+              desc: the encrypted password for the account.
+            - name: sshAuthorizedKeys
+              desc: "a list of SSH keys to be added as an SSH key fragment at `.ssh/authorized_keys.d/ignition` in the user's home directory. All SSH keys must be unique."
+            - name: uid
+              desc: the user ID of the account.
+            - name: gecos
+              desc: the GECOS field of the account.
+            - name: homeDir
+              desc: the home directory of the account.
+            - name: noCreateHome
+              desc: whether or not to create the user's home directory. This only has an effect if the account doesn't exist yet.
+            - name: primaryGroup
+              desc: the name of the primary group of the account.
+            - name: groups
+              desc: the list of supplementary groups of the account.
+            - name: noUserGroup
+              desc: "whether or not to create a group with the same name as the user. This only has an effect if the account doesn't exist yet."
+            - name: noLogInit
+              desc: "whether or not to add the user to the lastlog and faillog databases. This only has an effect if the account doesn't exist yet."
+            - name: shell
+              desc: the login shell of the new account.
+            - name: shouldExist
+              desc: whether or not the user with the specified `name` should exist. If omitted, it defaults to true. If false, then Ignition will delete the specified user.
+            - name: system
+              desc: "whether or not this account should be a system account. This only has an effect if the account doesn't exist yet."
         - name: groups
-          desc: the list of supplementary groups of the account.
-        - name: noUserGroup
-          desc: "whether or not to create a group with the same name as the user. This only has an effect if the account doesn't exist yet."
-        - name: noLogInit
-          desc: "whether or not to add the user to the lastlog and faillog databases. This only has an effect if the account doesn't exist yet."
-        - name: shell
-          desc: the login shell of the new account.
-        - name: shouldExist
-          desc: whether or not the user with the specified `name` should exist. If omitted, it defaults to true. If false, then Ignition will delete the specified user.
-        - name: system
-          desc: "whether or not this account should be a system account. This only has an effect if the account doesn't exist yet."
-    - name: groups
-      desc: the list of groups to be added. All groups must have a unique `name`.
+          desc: the list of groups to be added. All groups must have a unique `name`.
+          children:
+            - name: name
+              desc: the name of the group.
+            - name: gid
+              desc: the group ID of the new group.
+            - name: passwordHash
+              desc: the encrypted password of the new group.
+            - name: shouldExist
+              desc: whether or not the group with the specified `name` should exist. If omitted, it defaults to true. If false, then Ignition will delete the specified group.
+            - name: system
+              desc: "whether or not the group should be a system group. This only has an effect if the group doesn't exist yet."
+    - name: kernelArguments
+      desc: describes the desired kernel arguments.
       children:
-        - name: name
-          desc: the name of the group.
-        - name: gid
-          desc: the group ID of the new group.
-        - name: passwordHash
-          desc: the encrypted password of the new group.
         - name: shouldExist
-          desc: whether or not the group with the specified `name` should exist. If omitted, it defaults to true. If false, then Ignition will delete the specified group.
-        - name: system
-          desc: "whether or not the group should be a system group. This only has an effect if the group doesn't exist yet."
-- name: kernelArguments
-  desc: describes the desired kernel arguments.
-  children:
-    - name: shouldExist
-      desc: the list of kernel arguments that should exist.
-    - name: shouldNotExist
-      desc: the list of kernel arguments that should not exist.
+          desc: the list of kernel arguments that should exist.
+        - name: shouldNotExist
+          desc: the list of kernel arguments that should not exist.

@@ -14,6 +14,7 @@ nav_order: 9
 
 ### Changes
 
+- Clarify spec terminology for contents of CA bundles, files, and key files
 - Improve rendering of spec docs on docs site
 
 ### Bug fixes

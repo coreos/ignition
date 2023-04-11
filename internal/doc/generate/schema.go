@@ -20,16 +20,24 @@ import (
 	"strings"
 
 	"github.com/coreos/go-semver/semver"
+	"github.com/mitchellh/copystructure"
 )
 
-type FieldDocs []FieldDoc
+const ROOT_COMPONENT = "root"
 
-type FieldDoc struct {
+type Components map[string]DocNode
+
+type DocNode struct {
 	Name        string      `yaml:"name"`
 	Description string      `yaml:"desc"`
 	Required    *bool       `yaml:"required"`
 	Transforms  []Transform `yaml:"transforms"`
-	Children    FieldDocs   `yaml:"children"`
+	Children    []DocNode   `yaml:"children"`
+
+	Component string `yaml:"use"`
+
+	// populated after component resolution
+	Parent *DocNode
 }
 
 type Transform struct {
@@ -37,15 +45,63 @@ type Transform struct {
 	Replacement string  `yaml:"replacement"`
 	MinVer      *string `yaml:"min"`
 	MaxVer      *string `yaml:"max"`
+	Descendants bool    `yaml:"descendants"`
 }
 
-func (doc *FieldDoc) RenderDescription(ver *semver.Version) (string, error) {
-	desc := strings.ReplaceAll(doc.Description, "%VERSION%", ver.String())
-	for _, xfrm := range doc.Transforms {
+func (comps Components) Resolve() (DocNode, error) {
+	root, ok := comps[ROOT_COMPONENT]
+	if !ok {
+		return DocNode{}, fmt.Errorf("missing component %q", ROOT_COMPONENT)
+	}
+	root = copystructure.Must(copystructure.Copy(root)).(DocNode)
+	if err := comps.resolveComponents(&root); err != nil {
+		return DocNode{}, err
+	}
+	root.setParentLinks()
+	return root, nil
+}
+
+func (comps Components) resolveComponents(node *DocNode) error {
+	// recursively insert the subtree of any component reference
+	if node.Component != "" {
+		comp, ok := comps[node.Component]
+		if !ok {
+			return fmt.Errorf("field %q: no such component %q", node.Name, node.Component)
+		}
+		if comp.Component != "" {
+			return fmt.Errorf("component %q cannot itself refer to a component", node.Component)
+		}
+		comp = copystructure.Must(copystructure.Copy(comp)).(DocNode)
+		if err := comp.merge(*node); err != nil {
+			return err
+		}
+		comp.Component = ""
+		*node = comp
+	}
+	// descend children
+	for i := range node.Children {
+		if err := comps.resolveComponents(&node.Children[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (node *DocNode) setParentLinks() {
+	for i := range node.Children {
+		child := &node.Children[i]
+		child.Parent = node
+		child.setParentLinks()
+	}
+}
+
+func (node *DocNode) RenderDescription(ver *semver.Version) (string, error) {
+	desc := strings.ReplaceAll(node.Description, "%VERSION%", ver.String())
+	for _, xfrm := range node.transforms() {
 		if xfrm.MinVer != nil {
 			min, err := semver.NewVersion(*xfrm.MinVer)
 			if err != nil {
-				return "", fmt.Errorf("field %q: parsing min %q: %w", doc.Name, *xfrm.MinVer, err)
+				return "", fmt.Errorf("field %q: parsing min %q: %w", node.Name, *xfrm.MinVer, err)
 			}
 			if ver.LessThan(*min) {
 				continue
@@ -54,7 +110,7 @@ func (doc *FieldDoc) RenderDescription(ver *semver.Version) (string, error) {
 		if xfrm.MaxVer != nil {
 			max, err := semver.NewVersion(*xfrm.MaxVer)
 			if err != nil {
-				return "", fmt.Errorf("field %q: parsing max %q: %w", doc.Name, *xfrm.MaxVer, err)
+				return "", fmt.Errorf("field %q: parsing max %q: %w", node.Name, *xfrm.MaxVer, err)
 			}
 			if max.LessThan(*ver) {
 				continue
@@ -62,13 +118,70 @@ func (doc *FieldDoc) RenderDescription(ver *semver.Version) (string, error) {
 		}
 		re, err := regexp.Compile(xfrm.Regex)
 		if err != nil {
-			return "", fmt.Errorf("field %q: compiling %q: %w", doc.Name, xfrm.Regex, err)
+			return "", fmt.Errorf("field %q: compiling %q: %w", node.Name, xfrm.Regex, err)
 		}
 		new := re.ReplaceAllString(desc, xfrm.Replacement)
-		if new == desc {
-			return "", fmt.Errorf("field %q: applying %q: transform didn't change anything", doc.Name, xfrm.Regex)
+		if !xfrm.Descendants && new == desc {
+			return "", fmt.Errorf("field %q: applying %q: transform didn't change anything", node.Name, xfrm.Regex)
 		}
 		desc = new
 	}
 	return desc, nil
+}
+
+func (node *DocNode) transforms() []Transform {
+	var ret []Transform
+	var descend func(node *DocNode, inheritedOnly bool)
+	descend = func(node *DocNode, inheritedOnly bool) {
+		for _, xfrm := range node.Transforms {
+			if inheritedOnly && !xfrm.Descendants {
+				continue
+			}
+			ret = append(ret, xfrm)
+		}
+		if node.Parent != nil {
+			descend(node.Parent, true)
+		}
+	}
+	descend(node, false)
+	return ret
+}
+
+func (node *DocNode) merge(override DocNode) error {
+	// merge fields
+	if override.Name != "" {
+		node.Name = override.Name
+	}
+	if override.Description != "" {
+		node.Description = override.Description
+	}
+	if override.Required != nil {
+		node.Required = override.Required
+	}
+	node.Transforms = append(node.Transforms, override.Transforms...)
+	if override.Component != "" {
+		node.Component = override.Component
+	}
+
+	// merge overrides for children
+	overrideChildren := make(map[string]DocNode)
+	for _, child := range override.Children {
+		overrideChildren[child.Name] = child
+	}
+	for i := range node.Children {
+		child := &node.Children[i]
+		if override, ok := overrideChildren[child.Name]; ok {
+			if err := child.merge(override); err != nil {
+				return err
+			}
+			delete(overrideChildren, child.Name)
+		}
+	}
+
+	// find unused overrides
+	for _, child := range overrideChildren {
+		return fmt.Errorf("field %q: override %q not found in component", node.Name, child.Name)
+	}
+
+	return nil
 }
