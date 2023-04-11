@@ -41,6 +41,17 @@ cosaPod {
     //} else {
     //    throw new Exception("No 3.3.0-experimental external tests found; comment out this workaround.")
     //}
+    // Similarly, external tests might use Butane experimental specs which
+    // transpile to Ignition experimental specs. Uncomment this to work
+    // around the problem, and re-comment it afterward. If kola sees a
+    // non-experimental spec it doesn't recognize, it'll automatically add
+    // -experimental and then strip -experimental from the resulting
+    // Ignition config.
+    //if (shwrapRc("grep -nr 1.6.0-experimental /srv/coreos/src/config/tests/kola") == 0) {
+    //    shwrap("find /srv/coreos/src/config/tests/kola -type f -exec sed -i 's/1.6.0-experimental/1.6.0/' {} \\;")
+    //} else {
+    //    throw new Exception("No 1.6.0-experimental external tests found; comment out this workaround.")
+    //}
 
     // we run the blackbox tests separately instead of as part of the main kola
     // run since it's a distinct kind of test and we want to draw more
