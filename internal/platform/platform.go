@@ -22,6 +22,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/registry"
 	"github.com/coreos/ignition/v2/internal/resource"
+	"github.com/coreos/ignition/v2/internal/state"
 
 	"github.com/coreos/vcontext/report"
 )
@@ -47,14 +48,24 @@ type Provider struct {
 	Init       func(f *resource.Fetcher) error
 	Status     func(stageName string, f resource.Fetcher, e error) error
 	DelConfig  func(f *resource.Fetcher) error
+
+	// Fetch, and also save output files to be written during files stage.
+	// Avoid, unless you're certain you need it.
+	FetchWithFiles func(f *resource.Fetcher) ([]types.File, types.Config, report.Report, error)
 }
 
 func (c Config) Name() string {
 	return c.p.Name
 }
 
-func (c Config) Fetch(f *resource.Fetcher) (types.Config, report.Report, error) {
-	return c.p.Fetch(f)
+func (c Config) Fetch(f *resource.Fetcher, state *state.State) (types.Config, report.Report, error) {
+	if c.p.FetchWithFiles != nil {
+		files, config, report, err := c.p.FetchWithFiles(f)
+		state.ProviderOutputFiles = files
+		return config, report, err
+	} else {
+		return c.p.Fetch(f)
+	}
 }
 
 func (c Config) NewFetcher(l *log.Logger) (resource.Fetcher, error) {

@@ -108,6 +108,11 @@ func (s stage) runImpl(config types.Config, isApply bool, applyIgnoreUnsupported
 			return fmt.Errorf("creating crypttab entries: %v", err)
 		}
 
+		// !isApply: we don't support arbitrary providers
+		if err := s.createProviderOutputFiles(); err != nil {
+			return fmt.Errorf("creating provider state files: %v", err)
+		}
+
 		// !isApply: we support running Ignition multiple times
 		if err := s.createResultFile(); err != nil {
 			return fmt.Errorf("creating result file: %v", err)
