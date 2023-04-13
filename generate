@@ -22,11 +22,8 @@ done
 
 echo "Generating docs..."
 eval $(go env)
-NAME="ignition"
-ORG_PATH="github.com/coreos"
-REPO_PATH="${ORG_PATH}/${NAME}/v2"
 if [ -z ${BIN_PATH+a} ]; then
 	export BIN_PATH=${PWD}/bin/${GOARCH}
 fi
-go build -o ${BIN_PATH}/doc ${REPO_PATH}/internal/doc
+go build -o ${BIN_PATH}/doc internal/doc/main.go
 ${BIN_PATH}/doc ${PWD}/docs

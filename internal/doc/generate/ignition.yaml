@@ -120,7 +120,7 @@ root:
                 - name: startMiB
                   desc: the start of the partition (in mebibytes). If zero, the partition will be positioned at the start of the largest block available.
                 - name: typeGuid
-                  desc: the GPT [partition type GUID](http://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs). If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
+                  desc: the GPT [partition type GUID](https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs). If omitted, the default will be 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem data).
                 - name: guid
                   desc: the GPT unique partition GUID.
                 - name: wipePartitionEntry
@@ -162,7 +162,7 @@ root:
             - name: path
               desc: the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
             - name: wipeFilesystem
-              desc: whether or not to wipe the device before filesystem creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information. Defaults to false.
+              desc: "whether or not to wipe the device before filesystem creation, see [Ignition's documentation on filesystems](https://coreos.github.io/ignition/operator-notes/#filesystem-reuse-semantics) for more information. Defaults to false."
             - name: label
               desc: the label of the filesystem.
             - name: uuid
@@ -177,7 +177,7 @@ root:
             - name: path
               desc: the absolute path to the file.
             - name: overwrite
-              desc: whether to delete preexisting nodes at the path. `contents.source` must be specified if `overwrite` is true. Defaults to false.
+              desc: whether to delete preexisting nodes at the path. `contents` must be specified if `overwrite` is true. Defaults to false.
             - name: contents
               use: resource
               desc: options related to the contents of the file.
@@ -221,7 +221,7 @@ root:
                         replacement: " If `compression` is specified, the hash describes the decompressed fragment."
                         max: 3.0.0
             - name: mode
-              desc: the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents.source` is unspecified, and a file already exists at the path.
+              desc: the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents` is unspecified, and a file already exists at the path.
               transforms:
                 - regex: are supported
                   replacement: are not supported
@@ -325,7 +325,7 @@ root:
             - name: openOptions
               desc: any additional options to be passed to `cryptsetup luksOpen`. Supported options will be persistently written to the luks volume.
             - name: wipeVolume
-              desc: whether or not to wipe the device before volume creation, see [the documentation on filesystems](operator-notes.md#filesystem-reuse-semantics) for more information.
+              desc: "whether or not to wipe the device before volume creation, see [Ignition's documentation on filesystems](https://coreos.github.io/ignition/operator-notes/#filesystem-reuse-semantics) for more information."
             - name: clevis
               desc: describes the clevis configuration for the luks device.
               children:
@@ -387,7 +387,7 @@ root:
             - name: name
               desc: the username for the account.
             - name: passwordHash
-              desc: the encrypted password for the account.
+              desc: the hashed password for the account.
             - name: sshAuthorizedKeys
               desc: "a list of SSH keys to be added as an SSH key fragment at `.ssh/authorized_keys.d/ignition` in the user's home directory. All SSH keys must be unique."
             - name: uid
@@ -420,7 +420,7 @@ root:
             - name: gid
               desc: the group ID of the new group.
             - name: passwordHash
-              desc: the encrypted password of the new group.
+              desc: the hashed password of the new group.
             - name: shouldExist
               desc: whether or not the group with the specified `name` should exist. If omitted, it defaults to true. If false, then Ignition will delete the specified group.
             - name: system
