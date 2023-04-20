@@ -71,7 +71,7 @@ func ParseComponents(r io.Reader) (Components, error) {
 	return comps, nil
 }
 
-func (comps Components) Generate(ver *semver.Version, config any, w io.Writer) error {
+func (comps Components) Generate(ver semver.Version, config any, w io.Writer) error {
 	root, err := comps.resolve()
 	if err != nil {
 		return err
@@ -155,7 +155,7 @@ func (node *DocNode) setParentLinks() {
 	}
 }
 
-func (node *DocNode) renderDescription(ver *semver.Version) (string, error) {
+func (node *DocNode) renderDescription(ver semver.Version) (string, error) {
 	desc := strings.ReplaceAll(node.Description, "%VERSION%", ver.String())
 	for _, xfrm := range node.transforms() {
 		if xfrm.MinVer != nil {
@@ -172,7 +172,7 @@ func (node *DocNode) renderDescription(ver *semver.Version) (string, error) {
 			if err != nil {
 				return "", fmt.Errorf("field %q: parsing max %q: %w", node.Name, *xfrm.MaxVer, err)
 			}
-			if max.LessThan(*ver) {
+			if max.LessThan(ver) {
 				continue
 			}
 		}

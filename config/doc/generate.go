@@ -25,7 +25,7 @@ import (
 	"github.com/coreos/ignition/v2/config/util"
 )
 
-func descendNode(ver *semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
+func descendNode(ver semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
 	if typ.Kind() != reflect.Struct {
 		return fmt.Errorf("not a struct: %v (%v)", typ.Name(), typ.Kind())
 	}
@@ -66,7 +66,7 @@ func descendNode(ver *semver.Version, node DocNode, typ reflect.Type, level int,
 	return nil
 }
 
-func descend(ver *semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
+func descend(ver semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
 	kind := typ.Kind()
 	switch {
 	case util.IsPrimitive(kind):

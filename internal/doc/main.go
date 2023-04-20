@@ -65,7 +65,7 @@ func generate(dir string) error {
 	}
 
 	for i, c := range configs {
-		ver := semver.New(c.version)
+		ver := *semver.New(c.version)
 
 		// clean up any previous experimental spec doc, for use
 		// during spec stabilization
@@ -92,7 +92,7 @@ func generate(dir string) error {
 
 		// write header
 		args := struct {
-			Version  *semver.Version
+			Version  semver.Version
 			NavOrder int
 		}{
 			Version:  ver,
