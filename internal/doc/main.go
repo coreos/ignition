@@ -25,13 +25,13 @@ import (
 
 	"github.com/coreos/go-semver/semver"
 
+	"github.com/coreos/ignition/v2/config/doc"
 	v30 "github.com/coreos/ignition/v2/config/v3_0/types"
 	v31 "github.com/coreos/ignition/v2/config/v3_1/types"
 	v32 "github.com/coreos/ignition/v2/config/v3_2/types"
 	v33 "github.com/coreos/ignition/v2/config/v3_3/types"
 	v34 "github.com/coreos/ignition/v2/config/v3_4/types"
 	v35 "github.com/coreos/ignition/v2/config/v3_5_experimental/types"
-	doc "github.com/coreos/ignition/v2/internal/doc/generate"
 )
 
 var (
@@ -58,8 +58,14 @@ func generate(dir string) error {
 		return err
 	}
 
+	// parse input config
+	comps, err := doc.IgnitionComponents()
+	if err != nil {
+		return err
+	}
+
 	for i, c := range configs {
-		ver := semver.New(c.version)
+		ver := *semver.New(c.version)
 
 		// clean up any previous experimental spec doc, for use
 		// during spec stabilization
@@ -86,7 +92,7 @@ func generate(dir string) error {
 
 		// write header
 		args := struct {
-			Version  *semver.Version
+			Version  semver.Version
 			NavOrder int
 		}{
 			Version:  ver,
@@ -97,8 +103,10 @@ func generate(dir string) error {
 		}
 
 		// write docs
-		err = doc.Generate(ver, c.config, f)
-		if err != nil {
+		vers := doc.VariantVersions{
+			doc.IGNITION_VARIANT: ver,
+		}
+		if err := comps.Generate(vers, c.config, f); err != nil {
 			return fmt.Errorf("generating doc for %s: %w", c.version, err)
 		}
 	}

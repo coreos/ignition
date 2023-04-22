@@ -8,10 +8,14 @@ resource:
       transforms:
         - regex: "`gs`, "
           replacement: ""
-          max: 3.1.0
+          if:
+            - variant: ignition
+              max: 3.1.0
         - regex: "`arn`, "
           replacement: ""
-          max: 3.3.0
+          if:
+            - variant: ignition
+              max: 3.3.0
     - name: compression
       desc: "the type of compression used on the %TYPE% (null or gzip). Compression cannot be used with S3."
     - name: httpHeaders
@@ -29,12 +33,30 @@ resource:
           transforms:
             - regex: "either `sha512` or `sha256`"
               replacement: '`sha512`'
-              max: 3.0.0
+              if:
+                - variant: ignition
+                  max: 3.0.0
             # Most inclusion sites don't have a compression field in 3.0.0.
             # The others re-add this line explicitly.
             - regex: " If `compression` .* %TYPE%."
               replacement: ""
-              max: 3.0.0
+              if:
+                - variant: ignition
+                  max: 3.0.0
+
+# Separate component as a convenience to Butane
+tang:
+  name: tang
+  desc: describes a tang server. Every server must have a unique `url`.
+  children:
+    - name: url
+      desc: url of the tang server.
+    - name: thumbprint
+      desc: thumbprint of a trusted signing key.
+      # required by validation
+      required: true
+    - name: advertisement
+      desc: the advertisement JSON. If not specified, the advertisement is fetched from the tang server during provisioning.
 
 root:
   children:
@@ -44,7 +66,7 @@ root:
       required: true
       children:
         - name: version
-          desc: the semantic version number of the spec. The spec version must be compatible with the latest version (`%VERSION%`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted.
+          desc: "the semantic version number of the spec. The spec version must be compatible with the latest version (`%ignition_version%`). Compatibility requires the major versions to match and the spec version be less than or equal to the latest version. `-experimental` versions compare less than the final version with the same number, and previous experimental versions are not accepted."
         - name: config
           desc: options related to the configuration.
           children:
@@ -158,7 +180,9 @@ root:
               transforms:
                 - regex: "swap, or none"
                   replacement: "or swap"
-                  max: 3.2.0
+                  if:
+                    - variant: ignition
+                      max: 3.2.0
             - name: path
               desc: the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
             - name: wipeFilesystem
@@ -200,7 +224,9 @@ root:
                       # compression caveat
                       - regex: $
                         replacement: " If `compression` is specified, the hash describes the decompressed file."
-                        max: 3.0.0
+                        if:
+                          - variant: ignition
+                            max: 3.0.0
             - name: append
               use: resource
               desc: list of fragments to be appended to the file. Follows the same structure as `contents`.
@@ -219,13 +245,17 @@ root:
                       # compression caveat
                       - regex: $
                         replacement: " If `compression` is specified, the hash describes the decompressed fragment."
-                        max: 3.0.0
+                        if:
+                          - variant: ignition
+                            max: 3.0.0
             - name: mode
               desc: the file's permission mode. Note that the mode must be properly specified as a **decimal** value (i.e. 0644 -> 420). Setuid/setgid/sticky bits are supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents` is unspecified, and a file already exists at the path.
               transforms:
                 - regex: are supported
                   replacement: are not supported
-                  max: 3.3.0
+                  if:
+                    - variant: ignition
+                      max: 3.3.0
             - name: user
               desc: "specifies the file's owner."
               children:
@@ -252,7 +282,9 @@ root:
               transforms:
                 - regex: are supported
                   replacement: are not supported
-                  max: 3.3.0
+                  if:
+                    - variant: ignition
+                      max: 3.3.0
             - name: user
               desc: "specifies the directory's owner."
               children:
@@ -330,16 +362,7 @@ root:
               desc: describes the clevis configuration for the luks device.
               children:
                 - name: tang
-                  desc: describes a tang server. Every server must have a unique `url`.
-                  children:
-                    - name: url
-                      desc: url of the tang server.
-                    - name: thumbprint
-                      desc: thumbprint of a trusted signing key.
-                      # required by validation
-                      required: true
-                    - name: advertisement
-                      desc: the advertisement JSON. If not specified, the advertisement is fetched from the tang server during provisioning.
+                  use: tang
                 - name: tpm2
                   desc: whether or not to use a tpm2 device.
                 - name: threshold

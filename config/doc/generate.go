@@ -12,43 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package generate
+package doc
 
 import (
-	"bytes"
-	_ "embed"
 	"fmt"
 	"io"
 	"reflect"
 	"strings"
 
-	"github.com/coreos/go-semver/semver"
-	"gopkg.in/yaml.v3"
-
 	"github.com/coreos/ignition/v2/config/util"
 )
 
-//go:embed ignition.yaml
-var ignitionDocs []byte
-
-func Generate(ver *semver.Version, config any, w io.Writer) error {
-	decoder := yaml.NewDecoder(bytes.NewBuffer(ignitionDocs))
-	decoder.KnownFields(true)
-	var comps Components
-	if err := decoder.Decode(&comps); err != nil {
-		return fmt.Errorf("unmarshaling documentation: %w", err)
-	}
-	root, err := comps.Resolve()
-	if err != nil {
-		return err
-	}
-	if err := descendNode(ver, root, reflect.TypeOf(config), 0, w); err != nil {
-		return err
-	}
-	return nil
-}
-
-func descendNode(ver *semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
+func descendNode(vers VariantVersions, node DocNode, typ reflect.Type, level int, w io.Writer) error {
 	if typ.Kind() != reflect.Struct {
 		return fmt.Errorf("not a struct: %v (%v)", typ.Name(), typ.Kind())
 	}
@@ -63,12 +38,29 @@ func descendNode(ver *semver.Version, node DocNode, typ reflect.Type, level int,
 			// have documentation but no struct field
 			continue
 		}
-		var optional string
-		if !util.IsTrue(child.Required) && (util.IsFalse(child.Required) || !util.IsPrimitive(field.Type.Kind())) {
-			optional = "_"
+		// possibly skip
+		skip, err := child.Skip.matches(vers)
+		if err != nil {
+			return err
+		}
+		if util.IsTrue(skip) {
+			delete(fieldsByTag, child.Name)
+			continue
+		}
+		// check if the field is required
+		required, err := child.required(vers)
+		if err != nil {
+			return nil
+		}
+		if required == nil {
+			required = util.BoolToPtr(util.IsPrimitive(field.Type.Kind()))
 		}
 		// write the entry
-		desc, err := child.RenderDescription(ver)
+		var optional string
+		if !*required {
+			optional = "_"
+		}
+		desc, err := child.renderDescription(vers)
 		if err != nil {
 			return err
 		}
@@ -76,7 +68,7 @@ func descendNode(ver *semver.Version, node DocNode, typ reflect.Type, level int,
 			return err
 		}
 		// recurse
-		if err := descend(ver, child, field.Type, level+1, w); err != nil {
+		if err := descend(vers, child, field.Type, level+1, w); err != nil {
 			return err
 		}
 		// delete from map to keep track of fields we've seen
@@ -89,15 +81,20 @@ func descendNode(ver *semver.Version, node DocNode, typ reflect.Type, level int,
 	return nil
 }
 
-func descend(ver *semver.Version, node DocNode, typ reflect.Type, level int, w io.Writer) error {
+func descend(vers VariantVersions, node DocNode, typ reflect.Type, level int, w io.Writer) error {
 	kind := typ.Kind()
 	switch {
 	case util.IsPrimitive(kind):
 		return nil
 	case kind == reflect.Struct:
-		return descendNode(ver, node, typ, level, w)
+		return descendNode(vers, node, typ, level, w)
 	case kind == reflect.Slice, kind == reflect.Ptr:
-		return descend(ver, node, typ.Elem(), level, w)
+		return descend(vers, node, typ.Elem(), level, w)
+	case kind == reflect.Map:
+		if !util.IsPrimitive(typ.Key().Kind()) {
+			return fmt.Errorf("%v is map with non-primitive key type %v", typ.Name(), typ.Key())
+		}
+		return descend(vers, node, typ.Elem(), level, w)
 	default:
 		return fmt.Errorf("%v has kind %v", typ.Name(), kind)
 	}
@@ -117,7 +114,10 @@ func structFieldsByTag(typ reflect.Type) (map[string]reflect.StructField, error)
 				ret[k] = v
 			}
 		} else {
-			tag, ok := field.Tag.Lookup("json")
+			tag, ok := field.Tag.Lookup("yaml")
+			if !ok {
+				tag, ok = field.Tag.Lookup("json")
+			}
 			if !ok {
 				return nil, fmt.Errorf("no field tag: %v.%v", typ.Name(), field.Name)
 			}
@@ -135,6 +135,8 @@ func typeName(typ reflect.Type) string {
 		return "boolean"
 	case reflect.Int:
 		return "integer"
+	case reflect.Map:
+		return "object"
 	case reflect.Pointer:
 		return typeName(typ.Elem())
 	case reflect.Slice:
