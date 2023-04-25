@@ -6,3 +6,6 @@ bazel-*
 //internal/v2/fakes2av2_server/fakes2av2_server
 
 .idea/
+
+*BUILD.bazel
+WORKSPACE
