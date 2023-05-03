@@ -25,13 +25,13 @@ Fedora packaging:
  - [ ] Run `kinit your_fas_account@FEDORAPROJECT.ORG`
  - [ ] Run `fedpkg new-sources $(spectool -S ignition.spec | sed 's:.*/::')`
  - [ ] PR the changes in [Fedora](https://src.fedoraproject.org/rpms/ignition)
- - [ ] Once the PR merges to rawhide, merge rawhide into the other relevant branches (e.g. f37) then push those, for example:
+ - [ ] Once the PR merges to rawhide, merge rawhide into the other relevant branches (e.g. f38) then push those, for example:
    ```bash
    git checkout rawhide
    git pull --ff-only
-   git checkout f37
+   git checkout f38
    git merge --ff-only rawhide
-   git push origin f37
+   git push origin f38
    ```
  - [ ] On each of those branches run `fedpkg build` including rawhide.
  - [ ] Once the builds have finished, submit them to [bodhi](https://bodhi.fedoraproject.org/updates/new), filling in:
