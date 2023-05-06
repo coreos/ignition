@@ -45,14 +45,6 @@ func (gen generator) descendNode(node DocNode, typ reflect.Type, path []string) 
 			continue
 		}
 		// possibly skip
-		skip, err := child.Skip.matches(gen.vers)
-		if err != nil {
-			return err
-		}
-		if util.IsTrue(skip) {
-			delete(fieldsByTag, child.Name)
-			continue
-		}
 		if gen.ignore != nil && gen.ignore(append(path, child.Name)) {
 			delete(fieldsByTag, child.Name)
 			continue

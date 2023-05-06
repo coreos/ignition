@@ -43,7 +43,6 @@ type DocNode struct {
 	Description string      `yaml:"desc"`
 	Required    *bool       `yaml:"required"`
 	RequiredIf  Constraints `yaml:"required-if"`
-	Skip        Constraints `yaml:"unless"`
 	Transforms  []Transform `yaml:"transforms"`
 	Children    []DocNode   `yaml:"children"`
 
@@ -249,7 +248,6 @@ func (node *DocNode) merge(override DocNode) error {
 		node.Required = nil
 		node.RequiredIf = append(node.RequiredIf, override.RequiredIf...)
 	}
-	node.Skip = append(node.Skip, override.Skip...)
 	node.Transforms = append(node.Transforms, override.Transforms...)
 	if override.Component != "" {
 		node.Component = override.Component
