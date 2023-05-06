@@ -24,8 +24,9 @@ import (
 )
 
 type generator struct {
-	vers VariantVersions
-	w    io.Writer
+	vers   VariantVersions
+	ignore IgnoreFunc
+	w      io.Writer
 }
 
 func (gen generator) descendNode(node DocNode, typ reflect.Type, path []string) error {
@@ -49,6 +50,10 @@ func (gen generator) descendNode(node DocNode, typ reflect.Type, path []string) 
 			return err
 		}
 		if util.IsTrue(skip) {
+			delete(fieldsByTag, child.Name)
+			continue
+		}
+		if gen.ignore != nil && gen.ignore(append(path, child.Name)) {
 			delete(fieldsByTag, child.Name)
 			continue
 		}
