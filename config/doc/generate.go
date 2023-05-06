@@ -23,7 +23,12 @@ import (
 	"github.com/coreos/ignition/v2/config/util"
 )
 
-func descendNode(vers VariantVersions, node DocNode, typ reflect.Type, level int, w io.Writer) error {
+type generator struct {
+	vers VariantVersions
+	w    io.Writer
+}
+
+func (gen generator) descendNode(node DocNode, typ reflect.Type, level int) error {
 	if typ.Kind() != reflect.Struct {
 		return fmt.Errorf("not a struct: %v (%v)", typ.Name(), typ.Kind())
 	}
@@ -39,7 +44,7 @@ func descendNode(vers VariantVersions, node DocNode, typ reflect.Type, level int
 			continue
 		}
 		// possibly skip
-		skip, err := child.Skip.matches(vers)
+		skip, err := child.Skip.matches(gen.vers)
 		if err != nil {
 			return err
 		}
@@ -48,7 +53,7 @@ func descendNode(vers VariantVersions, node DocNode, typ reflect.Type, level int
 			continue
 		}
 		// check if the field is required
-		required, err := child.required(vers)
+		required, err := child.required(gen.vers)
 		if err != nil {
 			return nil
 		}
@@ -60,15 +65,15 @@ func descendNode(vers VariantVersions, node DocNode, typ reflect.Type, level int
 		if !*required {
 			optional = "_"
 		}
-		desc, err := child.renderDescription(vers)
+		desc, err := child.renderDescription(gen.vers)
 		if err != nil {
 			return err
 		}
-		if _, err := fmt.Fprintf(w, "%s* **%s%s%s** (%s): %s\n", strings.Repeat("  ", level), optional, child.Name, optional, typeName(field.Type), desc); err != nil {
+		if _, err := fmt.Fprintf(gen.w, "%s* **%s%s%s** (%s): %s\n", strings.Repeat("  ", level), optional, child.Name, optional, typeName(field.Type), desc); err != nil {
 			return err
 		}
 		// recurse
-		if err := descend(vers, child, field.Type, level+1, w); err != nil {
+		if err := gen.descend(child, field.Type, level+1); err != nil {
 			return err
 		}
 		// delete from map to keep track of fields we've seen
@@ -81,20 +86,20 @@ func descendNode(vers VariantVersions, node DocNode, typ reflect.Type, level int
 	return nil
 }
 
-func descend(vers VariantVersions, node DocNode, typ reflect.Type, level int, w io.Writer) error {
+func (gen generator) descend(node DocNode, typ reflect.Type, level int) error {
 	kind := typ.Kind()
 	switch {
 	case util.IsPrimitive(kind):
 		return nil
 	case kind == reflect.Struct:
-		return descendNode(vers, node, typ, level, w)
+		return gen.descendNode(node, typ, level)
 	case kind == reflect.Slice, kind == reflect.Ptr:
-		return descend(vers, node, typ.Elem(), level, w)
+		return gen.descend(node, typ.Elem(), level)
 	case kind == reflect.Map:
 		if !util.IsPrimitive(typ.Key().Kind()) {
 			return fmt.Errorf("%v is map with non-primitive key type %v", typ.Name(), typ.Key())
 		}
-		return descend(vers, node, typ.Elem(), level, w)
+		return gen.descend(node, typ.Elem(), level)
 	default:
 		return fmt.Errorf("%v has kind %v", typ.Name(), kind)
 	}

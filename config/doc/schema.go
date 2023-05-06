@@ -90,7 +90,11 @@ func (comps Components) Generate(vers VariantVersions, config any, w io.Writer) 
 	if err != nil {
 		return err
 	}
-	return descendNode(vers, root, reflect.TypeOf(config), 0, w)
+	gen := generator{
+		vers: vers,
+		w:    w,
+	}
+	return gen.descendNode(root, reflect.TypeOf(config), 0)
 }
 
 func (comps Components) resolve() (DocNode, error) {
