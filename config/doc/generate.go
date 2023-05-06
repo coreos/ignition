@@ -28,7 +28,7 @@ type generator struct {
 	w    io.Writer
 }
 
-func (gen generator) descendNode(node DocNode, typ reflect.Type, level int) error {
+func (gen generator) descendNode(node DocNode, typ reflect.Type, path []string) error {
 	if typ.Kind() != reflect.Struct {
 		return fmt.Errorf("not a struct: %v (%v)", typ.Name(), typ.Kind())
 	}
@@ -69,11 +69,11 @@ func (gen generator) descendNode(node DocNode, typ reflect.Type, level int) erro
 		if err != nil {
 			return err
 		}
-		if _, err := fmt.Fprintf(gen.w, "%s* **%s%s%s** (%s): %s\n", strings.Repeat("  ", level), optional, child.Name, optional, typeName(field.Type), desc); err != nil {
+		if _, err := fmt.Fprintf(gen.w, "%s* **%s%s%s** (%s): %s\n", strings.Repeat("  ", len(path)), optional, child.Name, optional, typeName(field.Type), desc); err != nil {
 			return err
 		}
 		// recurse
-		if err := gen.descend(child, field.Type, level+1); err != nil {
+		if err := gen.descend(child, field.Type, append(path, child.Name)); err != nil {
 			return err
 		}
 		// delete from map to keep track of fields we've seen
@@ -86,20 +86,20 @@ func (gen generator) descendNode(node DocNode, typ reflect.Type, level int) erro
 	return nil
 }
 
-func (gen generator) descend(node DocNode, typ reflect.Type, level int) error {
+func (gen generator) descend(node DocNode, typ reflect.Type, path []string) error {
 	kind := typ.Kind()
 	switch {
 	case util.IsPrimitive(kind):
 		return nil
 	case kind == reflect.Struct:
-		return gen.descendNode(node, typ, level)
+		return gen.descendNode(node, typ, path)
 	case kind == reflect.Slice, kind == reflect.Ptr:
-		return gen.descend(node, typ.Elem(), level)
+		return gen.descend(node, typ.Elem(), path)
 	case kind == reflect.Map:
 		if !util.IsPrimitive(typ.Key().Kind()) {
 			return fmt.Errorf("%v is map with non-primitive key type %v", typ.Name(), typ.Key())
 		}
-		return gen.descend(node, typ.Elem(), level)
+		return gen.descend(node, typ.Elem(), path)
 	default:
 		return fmt.Errorf("%v has kind %v", typ.Name(), kind)
 	}

@@ -94,7 +94,7 @@ func (comps Components) Generate(vers VariantVersions, config any, w io.Writer) 
 		vers: vers,
 		w:    w,
 	}
-	return gen.descendNode(root, reflect.TypeOf(config), 0)
+	return gen.descendNode(root, reflect.TypeOf(config), nil)
 }
 
 func (comps Components) resolve() (DocNode, error) {
