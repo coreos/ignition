@@ -25,6 +25,7 @@ Starting with this release, ignition-validate binaries are signed with the
 - Document that `hash` fields describe decompressed data
 - Clarify documentation of `passwordHash` fields
 - Correctly document Tang `advertisement` field as optional
+- Fix failure disabling nonexistent unit with systemd ≥ 252
 
 ### Test changes
 

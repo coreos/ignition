@@ -153,6 +153,12 @@ func (ut Util) EnableUnit(enabledUnit string) error {
 }
 
 func (ut Util) DisableUnit(disabledUnit string) error {
+	// check if the unit is currently enabled to see if we need to disable it
+	// if it's not enabled or does not exist, we don't need to do anything
+	args := []string{"--root", ut.DestDir, "is-enabled", disabledUnit}
+	if err := exec.Command(distro.SystemctlCmd(), args...).Run(); err != nil {
+		return nil
+	}
 	// We need to delete any enablement symlinks for a unit before sending it to a
 	// preset directive. This will help to disable that unit completely.
 	// For more information: https://github.com/coreos/fedora-coreos-tracker/issues/392
