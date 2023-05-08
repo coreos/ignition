@@ -1,3 +1,21 @@
+Release v1.1.3
+==============
+
+* XML reads now preserve CDATA sections instead of converting them to
+  standard character data.
+
+Release v1.1.2
+==============
+
+* Fixed a path parsing bug.
+* The `Element.Text` function now handles comments embedded between
+  character data spans.
+
+Release v1.1.1
+==============
+
+* Updated go version in `go.mod` to 1.20
+
 Release v1.1.0
 ==============
 

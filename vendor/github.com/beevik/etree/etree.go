@@ -99,7 +99,7 @@ func newWriteSettings() WriteSettings {
 	}
 }
 
-// dup creates a dulicate of the WriteSettings object.
+// dup creates a duplicate of the WriteSettings object.
 func (s *WriteSettings) dup() WriteSettings {
 	return *s
 }
@@ -288,12 +288,12 @@ func (d *Document) ReadFromString(s string) error {
 // WriteTo serializes the document out to the writer 'w'. The function returns
 // the number of bytes written and any error encountered.
 func (d *Document) WriteTo(w io.Writer) (n int64, err error) {
-	cw := newCountWriter(w)
-	b := bufio.NewWriter(cw)
+	xw := newXmlWriter(w)
+	b := bufio.NewWriter(xw)
 	for _, c := range d.Child {
 		c.writeTo(b, &d.WriteSettings)
 	}
-	err, n = b.Flush(), cw.bytes
+	err, n = b.Flush(), xw.bytes
 	return
 }
 
@@ -466,6 +466,8 @@ func (e *Element) Text() string {
 			} else {
 				text += cd.Data
 			}
+		} else if _, ok := ch.(*Comment); ok {
+			// ignore
 		} else {
 			break
 		}
@@ -686,25 +688,26 @@ func (e *Element) RemoveChildAt(index int) Token {
 // ReadFrom reads XML from the reader 'ri' and stores the result as a new
 // child of this element.
 func (e *Element) readFrom(ri io.Reader, settings ReadSettings) (n int64, err error) {
-	r := newCountReader(ri)
-	dec := xml.NewDecoder(r)
+	xr := newXmlReader(ri)
+	dec := xml.NewDecoder(xr)
 	dec.CharsetReader = settings.CharsetReader
 	dec.Strict = !settings.Permissive
 	dec.Entity = settings.Entity
 	var stack stack
 	stack.push(e)
 	for {
+		xr.ResetPeek(dec.InputOffset())
 		t, err := dec.RawToken()
 		switch {
 		case err == io.EOF:
 			if len(stack.data) != 1 {
-				return r.bytes, ErrXML
+				return xr.bytes, ErrXML
 			}
-			return r.bytes, nil
+			return xr.bytes, nil
 		case err != nil:
-			return r.bytes, err
+			return xr.bytes, err
 		case stack.empty():
-			return r.bytes, ErrXML
+			return xr.bytes, ErrXML
 		}
 
 		top := stack.peek().(*Element)
@@ -718,14 +721,17 @@ func (e *Element) readFrom(ri io.Reader, settings ReadSettings) (n int64, err er
 			stack.push(e)
 		case xml.EndElement:
 			if top.Tag != t.Name.Local || top.Space != t.Name.Space {
-				return r.bytes, ErrXML
+				return xr.bytes, ErrXML
 			}
 			stack.pop()
 		case xml.CharData:
 			data := string(t)
 			var flags charDataFlags
 			if isWhitespace(data) {
-				flags = whitespaceFlag
+				flags |= whitespaceFlag
+			}
+			if xr.PeekContainsCdata() {
+				flags |= cdataFlag
 			}
 			newCharData(data, flags, top)
 		case xml.Comment:
@@ -1459,7 +1465,7 @@ func newProcInst(target, inst string, parent *Element) *ProcInst {
 }
 
 // CreateProcInst creates an XML processing instruction token with the
-// sepcified 'target' and instruction 'inst'. It is then added as the last
+// specified 'target' and instruction 'inst'. It is then added as the last
 // child token of this element.
 func (e *Element) CreateProcInst(target, inst string) *ProcInst {
 	return newProcInst(target, inst, e)
