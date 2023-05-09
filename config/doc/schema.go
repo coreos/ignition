@@ -43,7 +43,6 @@ type DocNode struct {
 	Description string      `yaml:"desc"`
 	Required    *bool       `yaml:"required"`
 	RequiredIf  Constraints `yaml:"required-if"`
-	Skip        Constraints `yaml:"unless"`
 	Transforms  []Transform `yaml:"transforms"`
 	Children    []DocNode   `yaml:"children"`
 
@@ -71,6 +70,9 @@ type Constraint struct {
 
 type VariantVersions map[string]semver.Version
 
+// takes a slice of path elements, returns whether to ignore the subtree
+type IgnoreFunc func([]string) bool
+
 func IgnitionComponents() (Components, error) {
 	return ParseComponents(bytes.NewBuffer(ignitionDocs))
 }
@@ -85,12 +87,17 @@ func ParseComponents(r io.Reader) (Components, error) {
 	return comps, nil
 }
 
-func (comps Components) Generate(vers VariantVersions, config any, w io.Writer) error {
+func (comps Components) Generate(vers VariantVersions, config any, ignore IgnoreFunc, w io.Writer) error {
 	root, err := comps.resolve()
 	if err != nil {
 		return err
 	}
-	return descendNode(vers, root, reflect.TypeOf(config), 0, w)
+	gen := generator{
+		vers:   vers,
+		ignore: ignore,
+		w:      w,
+	}
+	return gen.descendNode(root, reflect.TypeOf(config), nil)
 }
 
 func (comps Components) resolve() (DocNode, error) {
@@ -241,7 +248,6 @@ func (node *DocNode) merge(override DocNode) error {
 		node.Required = nil
 		node.RequiredIf = append(node.RequiredIf, override.RequiredIf...)
 	}
-	node.Skip = append(node.Skip, override.Skip...)
 	node.Transforms = append(node.Transforms, override.Transforms...)
 	if override.Component != "" {
 		node.Component = override.Component
