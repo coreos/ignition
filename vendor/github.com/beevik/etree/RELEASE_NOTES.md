@@ -1,3 +1,36 @@
+Release v1.1.4
+==============
+
+**New Features**
+
+* Add the ability to preserve whitespace in leaf elements during indent.
+* Add the ability to suppress a document-trailing newline during indent.
+* Add choice of XML attribute quoting style (single-quote or double-quote).
+
+**Removed Features**
+
+* Removed the CDATA preservation change introduced in v1.1.3. It was
+  implemented in a way that broke the ability to process XML documents
+  encoded using non-UTF8 character sets.
+
+Release v1.1.3
+==============
+
+* XML reads now preserve CDATA sections instead of converting them to
+  standard character data.
+
+Release v1.1.2
+==============
+
+* Fixed a path parsing bug.
+* The `Element.Text` function now handles comments embedded between
+  character data spans.
+
+Release v1.1.1
+==============
+
+* Updated go version in `go.mod` to 1.20
+
 Release v1.1.0
 ==============
 
