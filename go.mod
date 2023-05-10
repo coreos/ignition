@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3
 	cloud.google.com/go/storage v1.30.1
 	github.com/aws/aws-sdk-go v1.44.260
-	github.com/beevik/etree v1.1.1-0.20200718192613-4a2f8b9d084c
+	github.com/beevik/etree v1.1.4
 	github.com/coreos/go-semver v0.3.1
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/coreos/vcontext v0.0.0-20230201181013-d72178a18687

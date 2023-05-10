@@ -83,38 +83,41 @@ func (f *fifo) grow() {
 	f.data, f.head, f.tail = buf, 0, count
 }
 
-// countReader implements a proxy reader that counts the number of
-// bytes read from its encapsulated reader.
-type countReader struct {
+// xmlReader implements a proxy reader that counts the number of
+// bytes read from its encapsulated reader and detects when a CDATA
+// prefix has been parsed.
+type xmlReader struct {
 	r     io.Reader
 	bytes int64
 }
 
-func newCountReader(r io.Reader) *countReader {
-	return &countReader{r: r}
+var cdataPrefix = []byte("<![CDATA[")
+
+func newXmlReader(r io.Reader) *xmlReader {
+	return &xmlReader{r, 0}
 }
 
-func (cr *countReader) Read(p []byte) (n int, err error) {
-	b, err := cr.r.Read(p)
-	cr.bytes += int64(b)
-	return b, err
+func (xr *xmlReader) Read(p []byte) (n int, err error) {
+	n, err = xr.r.Read(p)
+	xr.bytes += int64(n)
+	return n, err
 }
 
-// countWriter implements a proxy writer that counts the number of
+// xmlWriter implements a proxy writer that counts the number of
 // bytes written by its encapsulated writer.
-type countWriter struct {
+type xmlWriter struct {
 	w     io.Writer
 	bytes int64
 }
 
-func newCountWriter(w io.Writer) *countWriter {
-	return &countWriter{w: w}
+func newXmlWriter(w io.Writer) *xmlWriter {
+	return &xmlWriter{w: w}
 }
 
-func (cw *countWriter) Write(p []byte) (n int, err error) {
-	b, err := cw.w.Write(p)
-	cw.bytes += int64(b)
-	return b, err
+func (xw *xmlWriter) Write(p []byte) (n int, err error) {
+	n, err = xw.w.Write(p)
+	xw.bytes += int64(n)
+	return n, err
 }
 
 // isWhitespace returns true if the byte slice contains only
