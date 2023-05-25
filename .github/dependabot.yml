@@ -1,10 +1,10 @@
 version: 2
 updates:
 - package-ecosystem: gomod
-  directory: "/"
+  directory: /
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
   labels:
-  - skip-notes
   - dependency
+  - skip-notes
