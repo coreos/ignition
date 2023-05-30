@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
+# Maintained in https://github.com/coreos/repo-templates
+# Do not edit downstream.
 
 set -e
 
-[ $# == 2 ] || { echo "usage: $0 version commit" && exit 1; }
+[ $# == 2 ] || { echo "usage: $0 <version> <commit>" && exit 1; }
 
 VER=$1
 COMMIT=$2
@@ -17,8 +19,11 @@ COMMIT=$2
 	exit 3
 }
 
-source ./build
+if [ -f Makefile ]; then
+	make
+else
+	./build
+fi
 
 git tag --sign --message "Ignition ${VER}" "${VER}" "${COMMIT}"
-
 git verify-tag --verbose "${VER}"

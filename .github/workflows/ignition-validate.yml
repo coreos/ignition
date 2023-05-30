@@ -1,0 +1,40 @@
+# Maintained in https://github.com/coreos/repo-templates
+# Do not edit downstream.
+
+name: Go
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+
+# don't waste job slots on superseded code
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-validate:
+    name: Test ignition-validate
+    strategy:
+      matrix:
+        go-version: [1.20.x]
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Check out repository
+      uses: actions/checkout@v3
+    - name: Build ignition-validate
+      shell: bash
+      run: go build -o ignition-validate github.com/coreos/ignition/v2/validate
+    - name: Test ignition-validate
+      shell: bash
+      run: |
+        go test -timeout 60s -cover \
+            $(go list ./config/... ./validate/...) --race

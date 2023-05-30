@@ -52,7 +52,8 @@ GitHub release:
  - [ ] Download the artifacts and signatures
  - [ ] Verify the signatures
  - [ ] Find the new tag in the [GitHub tag list](https://github.com/coreos/ignition/tags) and click the triple dots menu, and create a draft release for it.
- - [ ] Upload all the release artifacts and their signatures. Copy and paste the release notes from `docs/release-notes.md` here as well.
+ - [ ] Copy and paste the release notes from `docs/release-notes.md`
+ - [ ] Upload all the release artifacts and their signatures
  - [ ] Publish the release
 
 Quay release:

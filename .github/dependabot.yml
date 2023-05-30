@@ -1,10 +1,13 @@
+# Maintained in https://github.com/coreos/repo-templates
+# Do not edit downstream.
+
 version: 2
 updates:
-- package-ecosystem: gomod
-  directory: /
-  schedule:
-    interval: weekly
-  open-pull-requests-limit: 10
-  labels:
-  - dependency
-  - skip-notes
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels:
+      - dependency
+      - skip-notes
