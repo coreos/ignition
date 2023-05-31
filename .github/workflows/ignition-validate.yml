@@ -1,7 +1,7 @@
 # Maintained in https://github.com/coreos/repo-templates
 # Do not edit downstream.
 
-name: Go
+name: ignition-validate
 on:
   push:
     branches: [main]
