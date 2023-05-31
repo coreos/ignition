@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     container: quay.io/coreos-assembler/fcos-buildroot:testing-devel
     steps:
-      - name: Checkout repository
+      - name: Check out repository
         uses: actions/checkout@v3
       # https://github.com/actions/checkout/issues/760
       - name: Mark git checkout as safe

@@ -1,17 +1,23 @@
-name: Go
+# Maintained in https://github.com/coreos/repo-templates
+# Do not edit downstream.
 
+name: Go
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
 permissions:
   contents: read
 
+# don't waste job slots on superseded code
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test-build:
-    name: test build
+  test:
+    name: Test
     strategy:
       matrix:
         go-version: [1.18.x, 1.19.x, 1.20.x]
@@ -21,43 +27,26 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: ${{ matrix.go-version }}
-    - name: Checkout Repository
+    - name: Check out repository
       uses: actions/checkout@v3
-    - name: Install libblkid-dev
+    - name: Install Linux dependencies
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install libblkid-dev
-    - name: Run tests
+    - name: Check modules
+      run: go mod verify
+    - name: Build
+      run: ./build
+    - name: Test
       run: ./test
     - name: Run linter
       uses: golangci/golangci-lint-action@v3
       with:
-        version: v1.51.1
+        version: v1.52.2
         args: -E=gofmt --timeout=30m0s
-  test-validate:
-    name: test ignition-validate
-    strategy:
-      matrix:
-        go-version: [1.20.x]
-        os: [macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ matrix.go-version }}
-    - name: Check out repository
-      uses: actions/checkout@v3
-    - name: Build ignition-validate
-      shell: bash
-      run: go build -o ignition-validate github.com/coreos/ignition/v2/validate
-    - name: Test ignition-validate
-      shell: bash
-      run: |
-        go test -timeout 60s -cover \
-            $(go list ./config/... ./validate/...) --race
   regenerate:
-    name: regenerate
+    name: Regenerate
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository
@@ -75,9 +64,9 @@ jobs:
         git clone -b gomod https://github.com/bgilbert/schematyper
         cd schematyper
         go install .
-    - name: Regenerate schema and spec docs
+    - name: Regenerate
       run: ./generate
-    - name: Check whether schema and spec docs are current
+    - name: Check whether generated output is current
       run: |
         if [ -n "$(git status --porcelain config docs)" ]; then
           echo "Found local changes after regenerating:"
