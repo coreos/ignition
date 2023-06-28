@@ -27,6 +27,7 @@ Starting with this release, ignition-validate binaries are signed with the
 - Correctly document Tang `advertisement` field as optional
 - Fix failure disabling nonexistent unit with systemd ≥ 252
 - Don't relabel a mount point that already exists
+- qemu: Use distro-specific `modprobe` path when loading kernel modules
 
 ### Test changes
 
