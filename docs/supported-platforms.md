@@ -15,6 +15,7 @@ Ignition is currently only supported for the following platforms:
 * [DigitalOcean] (`digitalocean`) - Ignition will read its configuration from the droplet userdata. Cloud SSH keys and network configuration are handled separately.
 * [Exoscale] (`exoscale`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [Google Cloud] (`gcp`) - Ignition will read its configuration from the instance metadata entry named "user-data". Cloud SSH keys are handled separately.
+* [Microsoft Hyper-V] (`hyperv`) - Ignition will read its configuration from the `ignition.config` key in pool 0 of the Hyper-V Data Exchange Service (KVP). Values are limited to approximately 1 KiB of text, so Ignition can also read and concatenate multiple keys named `ignition.config.0`, `ignition.config.1`, and so on.
 * [IBM Cloud] (`ibmcloud`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [KubeVirt] (`kubevirt`) - Ignition will read its configuration from the instance userdata via config drive. Cloud SSH keys are handled separately.
 * Bare Metal (`metal`) - Use the `ignition.config.url` kernel parameter to provide a URL to the configuration. The URL can use the `http://`, `https://`, `tftp://`, `s3://`, `arn:`, or `gs://` schemes to specify a remote config.
@@ -41,6 +42,7 @@ For most cloud providers, cloud SSH keys and custom network configuration are ha
 [DigitalOcean]: https://www.digitalocean.com/products/droplets/
 [Exoscale]: https://www.exoscale.com/compute/
 [Google Cloud]: https://cloud.google.com/compute
+[Microsoft Hyper-V]: https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/
 [IBM Cloud]: https://www.ibm.com/cloud/vpc
 [KubeVirt]: https://kubevirt.io
 [Nutanix]: https://www.nutanix.com/products/ahv

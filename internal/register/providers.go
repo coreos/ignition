@@ -24,6 +24,7 @@ import (
 	_ "github.com/coreos/ignition/v2/internal/providers/exoscale"
 	_ "github.com/coreos/ignition/v2/internal/providers/file"
 	_ "github.com/coreos/ignition/v2/internal/providers/gcp"
+	_ "github.com/coreos/ignition/v2/internal/providers/hyperv"
 	_ "github.com/coreos/ignition/v2/internal/providers/ibmcloud"
 	_ "github.com/coreos/ignition/v2/internal/providers/kubevirt"
 	_ "github.com/coreos/ignition/v2/internal/providers/metal"
