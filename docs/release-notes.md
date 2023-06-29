@@ -4,17 +4,30 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.16.0 (unreleased)
-
-Starting with this release, ignition-validate binaries are signed with the
-[Fedora 38 key](https://getfedora.org/security/).
+## Upcoming Ignition 2.17.0 (unreleased)
 
 ### Breaking changes
 
 
 ### Features
 
+
+### Changes
+
+
+### Bug fixes
+
+
+
+## Ignition 2.16.0 (2023-06-29)
+
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 38 key](https://getfedora.org/security/).
+
+### Features
+
 - Support Hyper-V platform
+- Automatically generate spec docs
 
 ### Changes
 
@@ -23,12 +36,11 @@ Starting with this release, ignition-validate binaries are signed with the
 
 ### Bug fixes
 
+- Fix failure disabling nonexistent unit with systemd ≥ 252
+- Don't relabel a mount point that already exists
 - Document that `hash` fields describe decompressed data
 - Clarify documentation of `passwordHash` fields
 - Correctly document Tang `advertisement` field as optional
-- Fix failure disabling nonexistent unit with systemd ≥ 252
-- Don't relabel a mount point that already exists
-- qemu: Use distro-specific `modprobe` path when loading kernel modules
 
 ### Test changes
 
