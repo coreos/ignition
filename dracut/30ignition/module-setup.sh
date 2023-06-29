@@ -96,3 +96,8 @@ install() {
     # needed for openstack config drive support
     inst_rules 60-cdrom_id.rules
 }
+
+installkernel() {
+     # required by hyperv platform to read kvp from the kernel
+     instmods -c hv_utils
+}

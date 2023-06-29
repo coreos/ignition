@@ -14,6 +14,7 @@ Starting with this release, ignition-validate binaries are signed with the
 
 ### Features
 
+- Support Hyper-V platform
 
 ### Changes
 
