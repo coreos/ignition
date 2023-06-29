@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
@@ -51,7 +52,7 @@ func init() {
 
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	// load qemu_fw_cfg module
-	_, err := f.Logger.LogCmd(exec.Command("modprobe", "qemu_fw_cfg"), "loading QEMU firmware config module")
+	_, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "qemu_fw_cfg"), "loading QEMU firmware config module")
 	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}

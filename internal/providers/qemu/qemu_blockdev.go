@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
@@ -52,7 +53,7 @@ func init() {
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	f.Logger.Warning("Fetching the Ignition config via the Virtio block driver is currently experimental and subject to change.")
 
-	_, err := f.Logger.LogCmd(exec.Command("modprobe", "virtio_blk"), "loading Virtio block driver module")
+	_, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "virtio_blk"), "loading Virtio block driver module")
 	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}
