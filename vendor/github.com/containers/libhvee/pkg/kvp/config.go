@@ -66,7 +66,10 @@ type hvKvpMsg struct {
 }
 
 type hvKvpMsgRet struct {
-	error  int
+	// on 64-bit Linux, C int is 32 bits but Go int is 64 bits.  use
+	// unsigned because error values are hex constants outside signed
+	// integer range.
+	error  uint32
 	kvpSet hvKvpMsgSet
 	// unused is needed to get to the same struct size as the C version.
 	unused [4856]byte
