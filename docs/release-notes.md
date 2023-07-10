@@ -19,6 +19,13 @@ nav_order: 9
 
 
 
+## Ignition 2.16.1 (2023-07-10)
+
+### Bug fixes
+
+- Fix build on 32-bit systems
+
+
 ## Ignition 2.16.0 (2023-06-29)
 
 Starting with this release, ignition-validate binaries are signed with the
