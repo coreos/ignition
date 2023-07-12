@@ -19,6 +19,13 @@ nav_order: 9
 
 
 
+## Ignition 2.16.2 (2023-07-12)
+
+### Bug fixes
+
+- Fix Dracut module installation on arches other than x86 and aarch64
+
+
 ## Ignition 2.16.1 (2023-07-10)
 
 ### Bug fixes

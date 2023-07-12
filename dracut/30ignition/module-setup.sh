@@ -99,5 +99,5 @@ install() {
 
 installkernel() {
      # required by hyperv platform to read kvp from the kernel
-     instmods -c hv_utils
+     instmods hv_utils
 }
