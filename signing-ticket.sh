@@ -95,10 +95,10 @@ ignition-validate-s390x-linux
 ignition-validate-s390x-linux.asc
 ignition-validate-x86_64-apple-darwin
 ignition-validate-x86_64-apple-darwin.asc
-ignition-validate-x86_64-pc-windows-gnu.exe
-ignition-validate-x86_64-pc-windows-gnu.exe.asc
 ignition-validate-x86_64-linux
 ignition-validate-x86_64-linux.asc
+ignition-validate-x86_64-pc-windows-gnu.exe
+ignition-validate-x86_64-pc-windows-gnu.exe.asc
 ```
 EOF
 }
