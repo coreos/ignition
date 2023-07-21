@@ -25,8 +25,8 @@ github.com/cncf/udpa/go v0.0.0-20210930031921-04548b0d99d4/go.mod h1:6pvJx4me5XP
 github.com/cncf/xds/go v0.0.0-20210805033703-aa0b78936158/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cncf/xds/go v0.0.0-20210922020428-25de7278fc84/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cncf/xds/go v0.0.0-20211011173535-cb28da3451f1/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
-github.com/containers/libhvee v0.3.0 h1:rNLryfM13vzYBVsnSPDIclNDTSKawgKmb84fn4FTE68=
-github.com/containers/libhvee v0.3.0/go.mod h1:Zr2Qhnl5THW/HQjF1o8HmxXWjvHfJb8fvd0ThTzHMys=
+github.com/containers/libhvee v0.4.0 h1:HGHIIExgP2PjwjHKKoQM3B+3qakNIZcmmkiAO4luAZE=
+github.com/containers/libhvee v0.4.0/go.mod h1:fyWDxNQccveTdE3Oe+QRuLbwF/iyV0hDxXqRX5Svlic=
 github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb h1:rmqyI19j3Z/74bIRhuC59RB442rXUazKNueVpfJPxg4=
 github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb/go.mod h1:rcFZM3uxVvdyNmsAV2jopgPD1cs5SPWJWU5dOz2LUnw=
 github.com/coreos/go-semver v0.3.1 h1:yi21YpKnrx1gt5R+la8n5WgS0kCrsPp33dmEyHReZr4=

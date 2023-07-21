@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/storage v1.31.0
 	github.com/aws/aws-sdk-go v1.44.305
 	github.com/beevik/etree v1.2.0
-	github.com/containers/libhvee v0.3.0
+	github.com/containers/libhvee v0.4.0
 	github.com/coreos/go-semver v0.3.1
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/coreos/vcontext v0.0.0-20230201181013-d72178a18687
