@@ -45,6 +45,7 @@ var (
 	setfilesCmd  = "setfiles"
 	wipefsCmd    = "wipefs"
 	systemctlCmd = "systemctl"
+	chrootCmd    = "chroot"
 
 	// Filesystem tools
 	btrfsMkfsCmd = "mkfs.btrfs"
@@ -73,6 +74,9 @@ var (
 	// ".ssh/authorized_keys.d/ignition" ("true"), or to
 	// ".ssh/authorized_keys" ("false").
 	writeAuthorizedKeysFragment = "true"
+	// lookup for users/groups using go's os/user/lookup parsing /etc/passwd and /etc/groups
+	// or C's calling getpwnam_r() and getgrnam_r()
+	userGroupLookupUsingGo = "false"
 
 	// Special file paths in the real root
 	luksRealRootKeyFilePath = "/etc/luks/"
@@ -98,6 +102,7 @@ func UserdelCmd() string   { return userdelCmd }
 func SetfilesCmd() string  { return setfilesCmd }
 func WipefsCmd() string    { return wipefsCmd }
 func SystemctlCmd() string { return systemctlCmd }
+func ChrootCmd() string    { return chrootCmd }
 
 func BtrfsMkfsCmd() string { return btrfsMkfsCmd }
 func Ext4MkfsCmd() string  { return ext4MkfsCmd }
@@ -117,8 +122,9 @@ func KargsCmd() string { return kargsCmd }
 func LuksRealRootKeyFilePath() string { return luksRealRootKeyFilePath }
 func ResultFilePath() string          { return resultFilePath }
 
-func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !BlackboxTesting() }
-func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
+func UserGroupLookupUsingGo() bool { return bakedStringToBool(userGroupLookupUsingGo) }
+func SelinuxRelabel() bool         { return bakedStringToBool(selinuxRelabel) && !BlackboxTesting() }
+func BlackboxTesting() bool        { return bakedStringToBool(blackboxTesting) }
 func WriteAuthorizedKeysFragment() bool {
 	return bakedStringToBool(fromEnv("WRITE_AUTHORIZED_KEYS_FRAGMENT", writeAuthorizedKeysFragment))
 }

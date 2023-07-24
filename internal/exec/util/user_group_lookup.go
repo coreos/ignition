@@ -25,11 +25,15 @@ import "C"
 
 import (
 	"fmt"
+	"github.com/coreos/ignition/v2/internal/distro"
 	"os/user"
 )
 
 // userLookup looks up the user in u.DestDir.
 func (u Util) userLookup(name string) (*user.User, error) {
+	if distro.UserGroupLookupUsingGo() {
+		return lookupUser(name, u.DestDir)
+	}
 	res := &C.lookup_res_t{}
 
 	if ret, err := C.user_lookup(C.CString(u.DestDir),
@@ -55,6 +59,9 @@ func (u Util) userLookup(name string) (*user.User, error) {
 
 // groupLookup looks up the group in u.DestDir.
 func (u Util) groupLookup(name string) (*user.Group, error) {
+	if distro.UserGroupLookupUsingGo() {
+		return lookupGroup(name, u.DestDir)
+	}
 	res := &C.lookup_res_t{}
 
 	if ret, err := C.group_lookup(C.CString(u.DestDir),

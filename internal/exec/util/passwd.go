@@ -63,8 +63,8 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 	}
 	if !shouldExist {
 		if exists {
-			args := []string{"--remove", "--root", u.DestDir, c.Name}
-			_, err := u.LogCmd(exec.Command(distro.UserdelCmd(), args...),
+			args := []string{u.DestDir, distro.UserdelCmd(), "--remove", c.Name}
+			_, err := u.LogCmd(exec.Command(distro.ChrootCmd(), args...),
 				"deleting user %q", c.Name)
 			if err != nil {
 				return fmt.Errorf("failed to delete user %q: %v",
@@ -74,17 +74,16 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 		return nil
 	}
 
-	args := []string{"--root", u.DestDir}
+	args := []string{u.DestDir}
 
-	var cmd string
 	if exists {
-		cmd = distro.UsermodCmd()
+		args = append(args, distro.UsermodCmd())
 
 		if util.NotEmpty(c.HomeDir) {
 			args = append(args, "--home", *c.HomeDir, "--move-home")
 		}
 	} else {
-		cmd = distro.UseraddCmd()
+		args = append(args, distro.UseraddCmd())
 
 		args = appendIfStringSet(args, "--home-dir", c.HomeDir)
 
@@ -127,7 +126,7 @@ func (u Util) EnsureUser(c types.PasswdUser) error {
 
 	args = append(args, c.Name)
 
-	_, err = u.LogCmd(exec.Command(cmd, args...),
+	_, err = u.LogCmd(exec.Command(distro.ChrootCmd(), args...),
 		"creating or modifying user %q", c.Name)
 	return err
 }
@@ -297,13 +296,14 @@ func (u Util) SetPasswordHash(c types.PasswdUser) error {
 	}
 
 	args := []string{
-		"--root", u.DestDir,
+		u.DestDir,
+		distro.UsermodCmd(),
 		"--password", pwhash,
 	}
 
 	args = append(args, c.Name)
 
-	_, err := u.LogCmd(exec.Command(distro.UsermodCmd(), args...),
+	_, err := u.LogCmd(exec.Command(distro.ChrootCmd(), args...),
 		"setting password for %q", c.Name)
 	return err
 }
@@ -330,7 +330,7 @@ func (u Util) EnsureGroup(g types.PasswdGroup) error {
 		return nil
 	}
 
-	args := []string{"--root", u.DestDir}
+	args := []string{u.DestDir, distro.GroupaddCmd()}
 
 	if g.Gid != nil {
 		args = append(args, "--gid",
@@ -347,7 +347,7 @@ func (u Util) EnsureGroup(g types.PasswdGroup) error {
 
 	args = append(args, g.Name)
 
-	_, err = u.LogCmd(exec.Command(distro.GroupaddCmd(), args...),
+	_, err = u.LogCmd(exec.Command(distro.ChrootCmd(), args...),
 		"adding group %q", g.Name)
 	return err
 }
