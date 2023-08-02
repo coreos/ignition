@@ -27,6 +27,7 @@ import (
 	_ "github.com/coreos/ignition/v2/tests/positive/files"
 	_ "github.com/coreos/ignition/v2/tests/positive/filesystems"
 	_ "github.com/coreos/ignition/v2/tests/positive/general"
+	_ "github.com/coreos/ignition/v2/tests/positive/luks"
 	_ "github.com/coreos/ignition/v2/tests/positive/partitions"
 	_ "github.com/coreos/ignition/v2/tests/positive/passwd"
 	_ "github.com/coreos/ignition/v2/tests/positive/proxy"
