@@ -18,6 +18,80 @@ sudo apt-get install libblkid-dev
 sudo dnf install libblkid-devel
 ```
 
+## Development notes
+
+See also the [Ignition rationale](rationale.md).
+
+### Code structure
+
+The [frontend](https://github.com/coreos/ignition/tree/main/config) handles config parsing and validation which need not run on the target system.  The [backend](https://github.com/coreos/ignition/tree/main/internal) performs the configuration of the target system.  The frontend is a stable library API that is used by other programs, so existing frontend API cannot be changed without bumping the Ignition major version.
+
+### Adding functionality
+
+New config directives should only be added if the desired behavior cannot reasonably be achieved with existing directives.  User-friendly wrappers for existing syntax ("sugar") should be handled by [Butane](https://github.com/coreos/butane).
+
+New behavior should only be added in the current experimental spec.  If new functionality is backported to older specs, and a config using an older spec comes to depend on that functionality, then it won't be obvious that the config will not work on all Ignition versions supporting that spec.  It's not always possible to follow this restriction, since the backend doesn't know what config version the user specified.  Where possible, use config validation to prevent the backend from seeing config directives that a spec version doesn't support (for example, values of the filesystem `format` field).
+
+New functionality added to a config spec must be declarative: it must describe what should exist, not what Ignition should do.  In particular, field names should not include verbs.  When adding functionality, carefully think through the interactions between features, which can be non-trivial.  Features should be orthogonal, minimal, and low-level; making them user-friendly is the responsibility of Butane sugar.
+
+When reprovisioning an existing node, the config may want to reuse existing disks and filesystems without reformatting them.  Config directives should support detecting and reusing an existing object (RAID volume, filesystem, etc.) if its properties match those specified in the config.
+
+Ignition specs should not include distro-specific functionality such as package management.  Features may require support from the distro (for example, setting kernel arguments), but such features should be broadly applicable.  Distro-specific options such as support for SELinux, or paths to external binaries, can be configured at build time in the [`distro`](https://github.com/coreos/ignition/blob/main/internal/distro/distro.go) package.  Distro-specific glue (e.g. support for reformatting the root filesystem) should be implemented outside the Ignition codebase, in Dracut modules that run between Ignition stages (see below).
+
+Ideally, functionality should not be added to an experimental spec in the same Ignition release that the spec is stabilized.  Doing so prevents users from trying out the functionality before we commit to maintaining it.
+
+### Modifying existing functionality
+
+Bugfixes can be backported to older specs if working configs will not be affected and the current behavior is unintended.  New config validations can (and should) be backported if the prohibited behavior always would have failed anyway.
+
+Existing config semantics can only be changed (without adding a flag field) if the spec major version is bumped.  This might be appropriate e.g. to clean up some awkward syntax or change some default behavior.  However, altogether removing functionality is very costly.  The spec 2.x to 3.x transition was difficult because some 2.x configs cannot be represented in spec 3.x, so users were required to manually update their configs.  If a major version bump only rearranges functionality but doesn't remove any, Ignition can automatically translate the previous major version to the current one, and no [flag day](https://en.wikipedia.org/wiki/Flag_day_(computing)) will be required.
+
+### Validation and failures
+
+Ignition is a low-level tool and does not attempt to prevent configs from doing unreasonable things.
+
+- Config validation should fail when it's clear from inspection that Ignition will be unable to perform the requested provisioning.  This must occur when the config is contradictory (e.g. specifies the same filesystem object as both a file and a directory) and thus would break the declarativeness of the spec, and may occur where the problem will produce a routine error at runtime (e.g. invalid arguments to `mkfs`).
+- Ignition must fail at runtime when it is dynamically unable to perform the requested provisioning.
+- If a config is implementable but will render the system non-functional, Ignition should execute the config anyway.  Any user-friendly detection of unreasonable configs should happen in Butane.
+
+### Platforms
+
+Platform providers should continue retrying config fetch until it's clear whether the user has provided an Ignition config.  If Ignition eventually timed out when fetching a config, then a slow network device or block device (on a very large machine or a heavily-loaded VM host) could cause Ignition to prematurely fail, or to continue booting without applying the specified config.
+
+Platform providers must allow the user not to provide a config, e.g. to boot an exploratory OS instance and use Afterburn to inject SSH keys.
+
+Ignition must never read from config providers that aren't under the control of the platform, since this could allow config injection from unintended sources.  For example, `169.254.169.254` is a link-local address and could easily be spoofed on platforms that don't specially handle that address.  As a corollary, the platform ID must always be explicitly set by the OS image, never guessed.
+
+### Network access
+
+All config fields that cause network accesses, directly or indirectly, should be added to the `fetch-offline` needs-net detector.
+
+Any network accesses performed by subprocesses should be mimicked by Ignition before starting the subprocess.  This ensures that Ignition's retry logic is used, so Ignition doesn't improperly fail if the network is still coming up.
+
+### Execution stages
+
+Ignition execution is divided into stages to allow other OS functionality to run in the middle of provisioning:
+
+1. `fetch-offline` stage
+1. OS enables networking if required
+1. `fetch` stage
+1. OS examines fetched config and e.g. copies root filesystem contents to RAM
+1. `disks` stage
+1. OS mounts root filesystem
+1. `mount` stage
+1. OS does any preprocessing of configured filesystems, including copying root filesystem contents back
+1. `files` stage
+1. OS does any postprocessing of provisioned system
+1. `umount` stage
+
+New stages should only be created when OS hooks would otherwise need to run in the middle of a stage.  Note that various external projects hardcode the list of Ignition stages.
+
+### Security
+
+Ignition must always provide secure defaults, and does not provide config directives that support or encourage unsafe behavior.  For example, Ignition does not support disabling HTTPS certificate checks, nor seeding the system entropy pool from potentially deterministic sources.  Similarly, the LUKS `discard` option exists because users may legitimately want to trade off some security for hardware longevity, but Ignition defaults to the secure option.
+
+Users might put secrets in Ignition configs.  On many platforms, userdata is accessible to unprivileged programs at runtime, potentially leaking those secrets.  When the userdata is accessible via a network service, users can configure firewall rules to prevent such access, but this may not be possible for hypervisors that expose userdata through a kernel interface.  Where possible, platform providers should provide a `DelConfig` method allowing Ignition to delete the userdata from the platform after provisioning is complete.
+
 ## Modifying the config spec
 
 Install [schematyper](https://github.com/idubinskiy/schematyper) to generate Go structs from JSON schema definitions.
