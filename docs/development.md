@@ -49,7 +49,15 @@ After modifying `go.mod` run `make vendor` to update the vendor directory.
 
 Group changes to `go.mod`, `go.sum` and `vendor/` in their own commit; do not make code changes and vendoring changes in the same commit.
 
-## Running Blackbox Tests
+## Testing
+
+Ignition uses three different test frameworks:
+
+- Unit tests (`./test`) validate functionality that only affects internal program state.
+- Blackbox tests validate config directives that affect the target disk.
+- Fedora CoreOS [kola tests](https://coreos.github.io/coreos-assembler/kola/) validate functionality that interacts with platforms (e.g. config fetching) or the rest of the OS.  kola tests may be [internal](https://github.com/coreos/coreos-assembler/tree/main/mantle/kola/tests/ignition) or [external](https://github.com/coreos/fedora-coreos-config/tree/testing-devel/tests/kola/ignition).
+
+### Running blackbox tests
 
 ```sh
 ./build_blackbox_tests
@@ -68,9 +76,9 @@ You can get a list of available tests to run by passing the `-list` option, like
 sudo sh -c 'PATH=$PWD/bin/amd64:$PATH ./tests.test -list'
 ```
 
-## Test Host System Dependencies
+### Blackbox test host system dependencies
 
-The following packages are required by the Blackbox Test:
+The following packages are required by the blackbox tests:
 
 * `util-linux`
 * `dosfstools`
@@ -82,7 +90,7 @@ The following packages are required by the Blackbox Test:
 * `mdadm`
 * `libblkid-devel`
 
-## Writing Blackbox Tests
+### Writing blackbox tests
 
 To add a blackbox test create a function which yields a `Test` object. A `Test` object consists of the following fields:
 
