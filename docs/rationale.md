@@ -28,8 +28,14 @@ Ignition configs describe the state of a system. Ignition configs do _not_ list 
 
 Ignition configs do not allow users to provide arbitrary logic (including scripts for Ignition to run). Users describe which filesystems must exist, which files must be created, which users must exist, and etc. Any further customization must use systemd services, created by Ignition.
 
+Ignition does not guess how the system should be configured.  For example, it does not automatically select a disk to hold any requested partitions.  Users must specify the configuration explicitly.
+
 ## Ignition configs should not be written by hand
 
-Ignition configs were designed to be human readable, but difficult to write, to discourage users from attempting to write configs by hand.
+Ignition configs were designed to be human readable, but difficult to write, to discourage users from attempting to write configs by hand.  Ignition configs support basic primitives such as files, directories, filesystems, and partitions, but do not provide higher-level functionality for configuring specific system services.
 
 Use [Butane](https://coreos.github.io/butane/), or a similar tool, to generate Ignition configs. Butane reads [Butane configs](https://coreos.github.io/butane/specs/), which are YAML files containing distribution-independent Ignition directives and optional distribution-specific directives that provide an easier way to perform certain configuration tasks. Butane validates a Butane config for common errors and produces an Ignition config ready to be passed to a machine.
+
+## Ignition is distro-independent
+
+Ignition provides functionality that is broadly applicable to image-based Linux distributions.  It does not provide distro-specific functionality such as package management.
