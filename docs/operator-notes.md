@@ -64,9 +64,13 @@ When resolving paths, Ignition follows symlinks on all but the last element of a
 
 ## Paths That Should Not Be Used
 
-Do not configure Ignition to create files, directories, or symlinks under the paths `/proc`, `/dev`, `/sys`, and `/run`, as these files, directories, or symlinks will be unreachable through the filesystem after the machine finishes booting.
+Do not configure Ignition to create files, directories, or symlinks under the paths `/proc`, `/dev`, `/sys`, `/run`, and `/tmp`, as these files, directories, or symlinks become inaccessible when the machine finishes booting.
 
-Ignition writes all user-defined files to `/sysroot`. When Ignition is done, the [switch_root](https://www.mankier.com/8/switch_root) operation pivots to `/sysroot` as the machine's root filesystem (`/`), and then moves the already mounted `/proc`, `/dev`, `/sys`, and `/run` filesystems to the root filesystem, effectively hiding any existing files, directories, or symlinks under these paths.
+Ignition writes all user-defined files to `/sysroot`. When Ignition is done, the [switch_root](https://www.mankier.com/8/switch_root) operation pivots to `/sysroot` as the machine's root filesystem (`/`), and then moves the already mounted `/proc`, `/dev`, `/sys`, and `/run` filesystems to the root filesystem, effectively hiding any existing files, directories, or symlinks under these paths. The `/tmp` directory is also mounted at this time.
+
+To make changes under the `/proc`, `/sys`, and `/dev` paths, use [sysctl](https://www.mankier.com/8/sysctl) and [udev](https://www.mankier.com/7/udev).
+
+To make changes under the `/tmp` and `/run` paths, use [tmpfiles.d](https://www.mankier.com/5/tmpfiles.d).
 
 ## SELinux
 
