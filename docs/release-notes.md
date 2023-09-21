@@ -11,6 +11,7 @@ nav_order: 9
 
 ### Features
 
+- Support Hetzner Cloud
 
 ### Changes
 
