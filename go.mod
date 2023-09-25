@@ -5,7 +5,7 @@ go 1.18
 require (
 	cloud.google.com/go/compute/metadata v0.2.3
 	cloud.google.com/go/storage v1.33.0
-	github.com/aws/aws-sdk-go v1.45.11
+	github.com/aws/aws-sdk-go v1.45.15
 	github.com/beevik/etree v1.2.0
 	github.com/containers/libhvee v0.4.0
 	github.com/coreos/go-semver v0.3.1
