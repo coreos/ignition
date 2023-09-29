@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -31,6 +32,7 @@ import (
 
 	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/sgdisk"
 	iutil "github.com/coreos/ignition/v2/internal/util"
@@ -472,6 +474,10 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		return err
 	}
 
+	var partxAdd []uint64
+	var partxDelete []uint64
+	var partxUpdate []uint64
+
 	for _, part := range resolvedPartitions {
 		shouldExist := partitionShouldExist(part)
 		info, exists := diskInfo.GetPartition(part.Number)
@@ -492,11 +498,13 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		case !exists && shouldExist:
 			op.CreatePartition(part)
 			modification = true
+			partxAdd = append(partxAdd, uint64(part.Number))
 		case exists && !shouldExist && !wipeEntry:
 			return fmt.Errorf("partition %d exists but is specified as nonexistant and wipePartitionEntry is false", part.Number)
 		case exists && !shouldExist && wipeEntry:
 			op.DeletePartition(part.Number)
 			modification = true
+			partxDelete = append(partxDelete, uint64(part.Number))
 		case exists && shouldExist && matches:
 			s.Logger.Info("partition %d found with correct specifications", part.Number)
 		case exists && shouldExist && !wipeEntry && !matches:
@@ -510,6 +518,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 				part.StartSector = &info.StartSector
 				op.CreatePartition(part)
 				modification = true
+				partxUpdate = append(partxUpdate, uint64(part.Number))
 			} else {
 				return fmt.Errorf("Partition %d didn't match: %v", part.Number, matchErr)
 			}
@@ -518,6 +527,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 			op.DeletePartition(part.Number)
 			op.CreatePartition(part)
 			modification = true
+			partxUpdate = append(partxUpdate, uint64(part.Number))
 		default:
 			// unfortunatey, golang doesn't check that all cases are handled exhaustively
 			return fmt.Errorf("Unreachable code reached when processing partition %d. golang--", part.Number)
@@ -530,6 +540,30 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 
 	if err := op.Commit(); err != nil {
 		return fmt.Errorf("commit failure: %v", err)
+	}
+
+	// In contrast to similar tools, sgdisk does not trigger the update of the
+	// kernel partition table with BLKPG but only uses BLKRRPART which fails
+	// as soon as one partition of the disk is mounted
+	if len(activeParts) > 0 {
+		runPartxCommand := func(op string, partitions []uint64) error {
+			for _, partNr := range partitions {
+				cmd := exec.Command(distro.PartxCmd(), "--"+op, "--nr", strconv.FormatUint(partNr, 10), blockDevResolved)
+				if _, err := s.Logger.LogCmd(cmd, "triggering partition %d %s on %q", partNr, op, devAlias); err != nil {
+					return fmt.Errorf("partition %s failed: %v", op, err)
+				}
+			}
+			return nil
+		}
+		if err := runPartxCommand("delete", partxDelete); err != nil {
+			return err
+		}
+		if err := runPartxCommand("update", partxUpdate); err != nil {
+			return err
+		}
+		if err := runPartxCommand("add", partxAdd); err != nil {
+			return err
+		}
 	}
 
 	// It's best to wait here for the /dev/ABC entries to be
