@@ -368,6 +368,14 @@ func (s *stage) createLuks(config types.Config) error {
 			}
 			delete(s.State.LuksPersistKeyFiles, luks.Name)
 		}
+
+		// It's best to wait here for the /dev/disk/by-*/X entries to be
+		// (re)created, not only for other parts of the initramfs but
+		// also because s.waitOnDevices() can still race with udev's
+		// disk entry recreation.
+		if err := s.waitForUdev(devAlias); err != nil {
+			return fmt.Errorf("failed to wait for udev on %q after LUKS: %v", devAlias, err)
+		}
 	}
 
 	return nil

@@ -394,5 +394,14 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 	if err := op.Commit(); err != nil {
 		return fmt.Errorf("commit failure: %v", err)
 	}
+
+	// It's best to wait here for the /dev/ABC entries to be
+	// (re)created, not only for other parts of the initramfs but
+	// also because s.waitOnDevices() can still race with udev's
+	// partition entry recreation.
+	if err := s.waitForUdev(devAlias); err != nil {
+		return fmt.Errorf("failed to wait for udev on %q after partitioning: %v", devAlias, err)
+	}
+
 	return nil
 }
