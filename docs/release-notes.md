@@ -12,6 +12,8 @@ nav_order: 9
 ### Features
 
 - Support Hetzner Cloud
+- A GRUB configuration suitable for use with https://github.com/coreos/bootupd
+  can now be installed; use `make install-grub-for-bootupd` to install it
 
 ### Changes
 
