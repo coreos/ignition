@@ -116,7 +116,7 @@ func umountPartition(p *types.Partition) error {
 }
 
 // returns true if no error, false if error
-func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, appendEnv []string) error {
+func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, appendEnv []string, skipCriticalCheck bool) error {
 	args := []string{"-platform", "file", "-stage", stage,
 		"-root", root, "-log-to-stdout",
 		"-config-cache", filepath.Join(cwd, "ignition.json"),
@@ -141,7 +141,7 @@ func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, app
 	if strings.Contains(string(out), "panic") {
 		return fmt.Errorf("ignition panicked")
 	}
-	if strings.Contains(string(out), "CRITICAL") {
+	if !skipCriticalCheck && strings.Contains(string(out), "CRITICAL") {
 		return fmt.Errorf("found critical ignition log")
 	}
 	return err

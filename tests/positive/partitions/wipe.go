@@ -59,5 +59,7 @@ func WipeBadTable() types.Test {
 		Out:              out,
 		Config:           config,
 		ConfigMinVersion: configMinVersion,
+		// the first `sgdisk --zap-all` is expected to fail
+		SkipCriticalCheck: true,
 	}
 }

@@ -278,11 +278,11 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	appendEnv = append(appendEnv, "IGNITION_SYSTEM_CONFIG_DIR="+systemConfigDir)
 
 	if !negativeTests {
-		if err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv); err != nil {
+		if err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return err
 		}
 
-		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv); err != nil {
+		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return err
 		}
 
@@ -290,12 +290,12 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 			return err
 		}
 
-		if err := runIgnition(t, ctx, "mount", rootPartition.MountPath, tmpDirectory, appendEnv); err != nil {
+		if err := runIgnition(t, ctx, "mount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return err
 		}
 
-		filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv)
-		if err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv); err != nil {
+		filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck)
+		if err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return err
 		}
 		if err := umountPartition(rootPartition); err != nil {
@@ -318,11 +318,11 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		}
 		return nil
 	} else {
-		if err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv); err != nil {
+		if err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return nil // error is expected
 		}
 
-		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv); err != nil {
+		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return nil // error is expected
 		}
 
@@ -330,12 +330,12 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 			return err
 		}
 
-		if err := runIgnition(t, ctx, "mount", rootPartition.MountPath, tmpDirectory, appendEnv); err != nil {
+		if err := runIgnition(t, ctx, "mount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return nil // error is expected
 		}
 
-		filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv)
-		if err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv); err != nil {
+		filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck)
+		if err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return nil
 		}
 		if err := umountPartition(rootPartition); err != nil {

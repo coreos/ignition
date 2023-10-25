@@ -104,6 +104,7 @@ type Test struct {
 	ConfigMinVersion  string
 	ConfigVersion     string
 	ConfigShouldBeBad bool // Set to true to skip config validation step
+	SkipCriticalCheck bool // Set to true to skip critical logging check
 }
 
 func (ps Partitions) GetPartition(label string) *Partition {
