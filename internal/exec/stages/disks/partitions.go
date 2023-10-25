@@ -324,7 +324,12 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		s.Logger.Info("wiping partition table requested on %q", devAlias)
 		op.WipeTable(true)
 		if err := op.Commit(); err != nil {
-			return err
+			// `sgdisk --zap-all` will exit code 2 if the table was corrupted; retry it
+			// https://github.com/coreos/fedora-coreos-tracker/issues/1596
+			s.Logger.Info("potential error encountered while wiping table... retrying")
+			if err := op.Commit(); err != nil {
+				return err
+			}
 		}
 	}
 

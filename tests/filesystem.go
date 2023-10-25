@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"compress/bzip2"
 	"context"
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -226,6 +227,22 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 			return err
 		}
 	}
+
+	if disk.CorruptTable {
+		bytes := make([]byte, 1536)
+		if _, err := rand.Read(bytes); err != nil {
+			return err
+		}
+		f, err := os.OpenFile(disk.ImageFile, os.O_WRONLY, 0666)
+		if err != nil {
+			return err
+		}
+		if _, err := f.Write(bytes); err != nil {
+			return err
+		}
+		defer f.Close()
+	}
+
 	return nil
 }
 

@@ -57,10 +57,11 @@ type Node struct {
 }
 
 type Disk struct {
-	ImageFile  string
-	Device     string
-	Alignment  int
-	Partitions Partitions
+	ImageFile    string
+	Device       string
+	Alignment    int
+	Partitions   Partitions
+	CorruptTable bool // set to true to corrupt the partition table
 }
 
 type Partitions []*Partition

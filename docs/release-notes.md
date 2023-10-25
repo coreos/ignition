@@ -21,6 +21,7 @@ nav_order: 9
 ### Bug fixes
 
 - Prevent races with udev after disk editing
+- Don't fail to wipe partition table if it's corrupted
 
 
 ## Ignition 2.16.2 (2023-07-12)
