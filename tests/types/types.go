@@ -57,10 +57,11 @@ type Node struct {
 }
 
 type Disk struct {
-	ImageFile  string
-	Device     string
-	Alignment  int
-	Partitions Partitions
+	ImageFile    string
+	Device       string
+	Alignment    int
+	Partitions   Partitions
+	CorruptTable bool // set to true to corrupt the partition table
 }
 
 type Partitions []*Partition
@@ -103,6 +104,7 @@ type Test struct {
 	ConfigMinVersion  string
 	ConfigVersion     string
 	ConfigShouldBeBad bool // Set to true to skip config validation step
+	SkipCriticalCheck bool // Set to true to skip critical logging check
 }
 
 func (ps Partitions) GetPartition(label string) *Partition {

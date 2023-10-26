@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"compress/bzip2"
 	"context"
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -115,7 +116,7 @@ func umountPartition(p *types.Partition) error {
 }
 
 // returns true if no error, false if error
-func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, appendEnv []string) error {
+func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, appendEnv []string, skipCriticalCheck bool) error {
 	args := []string{"-platform", "file", "-stage", stage,
 		"-root", root, "-log-to-stdout",
 		"-config-cache", filepath.Join(cwd, "ignition.json"),
@@ -140,7 +141,7 @@ func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, app
 	if strings.Contains(string(out), "panic") {
 		return fmt.Errorf("ignition panicked")
 	}
-	if strings.Contains(string(out), "CRITICAL") {
+	if !skipCriticalCheck && strings.Contains(string(out), "CRITICAL") {
 		return fmt.Errorf("found critical ignition log")
 	}
 	return err
@@ -226,6 +227,22 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 			return err
 		}
 	}
+
+	if disk.CorruptTable {
+		bytes := make([]byte, 1536)
+		if _, err := rand.Read(bytes); err != nil {
+			return err
+		}
+		f, err := os.OpenFile(disk.ImageFile, os.O_WRONLY, 0666)
+		if err != nil {
+			return err
+		}
+		if _, err := f.Write(bytes); err != nil {
+			return err
+		}
+		defer f.Close()
+	}
+
 	return nil
 }
 
