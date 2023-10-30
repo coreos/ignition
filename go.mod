@@ -12,7 +12,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/coreos/vcontext v0.0.0-20230201181013-d72178a18687
 	github.com/google/renameio/v2 v2.0.0
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/pin/tftp v2.1.0+incompatible
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
