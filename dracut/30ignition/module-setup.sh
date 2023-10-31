@@ -100,4 +100,8 @@ install() {
 installkernel() {
      # required by hyperv platform to read kvp from the kernel
      instmods hv_utils
+
+     # required by applehv platform to read ignition file through vsock
+     instmods -c vsock
 }
+
