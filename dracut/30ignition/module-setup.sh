@@ -103,5 +103,7 @@ installkernel() {
 
      # required by applehv platform to read ignition file through vsock
      instmods -c vsock
+     instmods -c vmw_vsock_virtio_transport_common
+     instmods -c vmw_vsock_virtio_transport
 }
 
