@@ -18,6 +18,7 @@ nav_order: 9
 
 ### Changes
 
+- Require Go 1.19+
 
 ### Bug fixes
 
