@@ -19,8 +19,11 @@
 package disks
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -30,6 +33,7 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/sgdisk"
+	iutil "github.com/coreos/ignition/v2/internal/util"
 )
 
 var (
@@ -317,11 +321,126 @@ func (p PartitionList) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
+// Expects a /dev/xyz path
+func blockDevHeld(blockDevResolved string) (bool, error) {
+	_, blockDevNode := filepath.Split(blockDevResolved)
+
+	holdersDir := fmt.Sprintf("/sys/class/block/%s/holders/", blockDevNode)
+	entries, err := os.ReadDir(holdersDir)
+	if err != nil {
+		return false, fmt.Errorf("failed to retrieve holders of %q: %v", blockDevResolved, err)
+	}
+	return len(entries) > 0, nil
+}
+
+// Expects a /dev/xyz path
+func blockDevMounted(blockDevResolved string) (bool, error) {
+	mounts, err := os.Open("/proc/mounts")
+	if err != nil {
+		return false, fmt.Errorf("failed to open /proc/mounts: %v", err)
+	}
+	scanner := bufio.NewScanner(mounts)
+	for scanner.Scan() {
+		mountSource := strings.Split(scanner.Text(), " ")[0]
+		if strings.HasPrefix(mountSource, "/") {
+			mountSourceResolved, err := filepath.EvalSymlinks(mountSource)
+			if err != nil {
+				return false, fmt.Errorf("failed to resolve %q: %v", mountSource, err)
+			}
+			if mountSourceResolved == blockDevResolved {
+				return true, nil
+			}
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return false, fmt.Errorf("failed to check mounts for %q: %v", blockDevResolved, err)
+	}
+	return false, nil
+}
+
+// Expects a /dev/xyz path
+func blockDevPartitions(blockDevResolved string) ([]string, error) {
+	_, blockDevNode := filepath.Split(blockDevResolved)
+
+	// This also works for extended MBR partitions
+	sysDir := fmt.Sprintf("/sys/class/block/%s/", blockDevNode)
+	entries, err := os.ReadDir(sysDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve sysfs entries of %q: %v", blockDevResolved, err)
+	}
+	var partitions []string
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), blockDevNode) {
+			partitions = append(partitions, "/dev/"+entry.Name())
+		}
+	}
+
+	return partitions, nil
+}
+
+// Expects a /dev/xyz path
+func blockDevInUse(blockDevResolved string, skipPartitionCheck bool) (bool, []string, error) {
+	// Note: This ignores swap and LVM usage
+	inUse := false
+	held, err := blockDevHeld(blockDevResolved)
+	if err != nil {
+		return false, nil, fmt.Errorf("failed to check if %q is held: %v", blockDevResolved, err)
+	}
+	mounted, err := blockDevMounted(blockDevResolved)
+	if err != nil {
+		return false, nil, fmt.Errorf("failed to check if %q is mounted: %v", blockDevResolved, err)
+	}
+	inUse = held || mounted
+	if skipPartitionCheck {
+		return inUse, nil, nil
+	}
+	partitions, err := blockDevPartitions(blockDevResolved)
+	if err != nil {
+		return false, nil, fmt.Errorf("failed to retrieve partitions of %q: %v", blockDevResolved, err)
+	}
+	var activePartitions []string
+	for _, partition := range partitions {
+		partInUse, _, err := blockDevInUse(partition, true)
+		if err != nil {
+			return false, nil, fmt.Errorf("failed to check if partition %q is in use: %v", partition, err)
+		}
+		if partInUse {
+			activePartitions = append(activePartitions, partition)
+			inUse = true
+		}
+	}
+	return inUse, activePartitions, nil
+}
+
+// Expects a /dev/xyz path
+func partitionNumberPrefix(blockDevResolved string) string {
+	lastChar := blockDevResolved[len(blockDevResolved)-1]
+	if '0' <= lastChar && lastChar <= '9' {
+		return "p"
+	}
+	return ""
+}
+
 // partitionDisk partitions devAlias according to the spec given by dev
 func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
+	blockDevResolved, err := filepath.EvalSymlinks(devAlias)
+	if err != nil {
+		return fmt.Errorf("failed to resolve %q: %v", devAlias, err)
+	}
+
+	inUse, activeParts, err := blockDevInUse(blockDevResolved, false)
+	if err != nil {
+		return fmt.Errorf("failed usage check on %q: %v", devAlias, err)
+	}
+	if inUse && len(activeParts) == 0 {
+		return fmt.Errorf("refusing to operate on directly active disk %q", devAlias)
+	}
 	if cutil.IsTrue(dev.WipeTable) {
 		op := sgdisk.Begin(s.Logger, devAlias)
 		s.Logger.Info("wiping partition table requested on %q", devAlias)
+		if len(activeParts) > 0 {
+			return fmt.Errorf("refusing to wipe active disk %q", devAlias)
+		}
 		op.WipeTable(true)
 		if err := op.Commit(); err != nil {
 			// `sgdisk --zap-all` will exit code 2 if the table was corrupted; retry it
@@ -343,6 +462,8 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		return err
 	}
 
+	prefix := partitionNumberPrefix(blockDevResolved)
+
 	// get a list of parititions that have size and start 0 replaced with the real sizes
 	// that would be used if all specified partitions were to be created anew.
 	// Also calculate sectors for all of the start/size values.
@@ -360,6 +481,9 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		}
 		matches := exists && matchErr == nil
 		wipeEntry := cutil.IsTrue(part.WipePartitionEntry)
+		partInUse := iutil.StrSliceContains(activeParts, fmt.Sprintf("%s%s%d", blockDevResolved, prefix, part.Number))
+
+		var modification bool
 
 		// This is a translation of the matrix in the operator notes.
 		switch {
@@ -367,10 +491,12 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 			s.Logger.Info("partition %d specified as nonexistant and no partition was found. Success.", part.Number)
 		case !exists && shouldExist:
 			op.CreatePartition(part)
+			modification = true
 		case exists && !shouldExist && !wipeEntry:
 			return fmt.Errorf("partition %d exists but is specified as nonexistant and wipePartitionEntry is false", part.Number)
 		case exists && !shouldExist && wipeEntry:
 			op.DeletePartition(part.Number)
+			modification = true
 		case exists && shouldExist && matches:
 			s.Logger.Info("partition %d found with correct specifications", part.Number)
 		case exists && shouldExist && !wipeEntry && !matches:
@@ -383,6 +509,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 				part.Label = &info.Label
 				part.StartSector = &info.StartSector
 				op.CreatePartition(part)
+				modification = true
 			} else {
 				return fmt.Errorf("Partition %d didn't match: %v", part.Number, matchErr)
 			}
@@ -390,9 +517,14 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 			s.Logger.Info("partition %d did not meet specifications, wiping partition entry and recreating", part.Number)
 			op.DeletePartition(part.Number)
 			op.CreatePartition(part)
+			modification = true
 		default:
 			// unfortunatey, golang doesn't check that all cases are handled exhaustively
 			return fmt.Errorf("Unreachable code reached when processing partition %d. golang--", part.Number)
+		}
+
+		if partInUse && modification {
+			return fmt.Errorf("refusing to modify active partition %d on %q", part.Number, devAlias)
 		}
 	}
 
