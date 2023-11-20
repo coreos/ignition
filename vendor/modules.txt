@@ -78,7 +78,7 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/beevik/etree v1.2.0
 ## explicit; go 1.13
 github.com/beevik/etree
-# github.com/containers/libhvee v0.4.0
+# github.com/containers/libhvee v0.5.0
 ## explicit; go 1.18
 github.com/containers/libhvee/pkg/kvp
 # github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb
