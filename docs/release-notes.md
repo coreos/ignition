@@ -4,10 +4,20 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.17.0 (unreleased)
+## Upcoming Ignition 2.18.0 (unreleased)
 
 ### Breaking changes
 
+### Features
+
+### Changes
+
+### Bug fixes
+
+## Ignition 2.17.0 (2023-11-20)
+
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 39 key](https://getfedora.org/security/).
 
 ### Features
 
