@@ -2,6 +2,13 @@
 # -*- mode: shell-script; indent-tabs-mode: nil; sh-basic-offset: 4; -*-
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
+check() {
+    # Only include this if another module requests it.
+    # In our case it'll be the distro provided module with integration and customizations
+    # (coreos-ignition/ignition-microos/...).
+    return 255
+}
+
 depends() {
     echo qemu systemd url-lib network
 }
