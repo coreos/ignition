@@ -15,6 +15,8 @@ nav_order: 9
 
 ### Changes
 
+- Require Go 1.20+
+
 ### Bug fixes
 
 ## Ignition 2.17.0 (2023-11-20)
