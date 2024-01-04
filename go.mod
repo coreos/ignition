@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.3
-	cloud.google.com/go/storage v1.35.1
+	cloud.google.com/go/storage v1.36.0
 	github.com/aws/aws-sdk-go v1.48.16
 	github.com/beevik/etree v1.3.0
 	github.com/containers/libhvee v0.5.0
