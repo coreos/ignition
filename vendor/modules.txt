@@ -75,7 +75,7 @@ github.com/aws/aws-sdk-go/service/sso/ssoiface
 github.com/aws/aws-sdk-go/service/ssooidc
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
-# github.com/beevik/etree v1.2.0
+# github.com/beevik/etree v1.3.0
 ## explicit; go 1.13
 github.com/beevik/etree
 # github.com/containers/libhvee v0.5.0
