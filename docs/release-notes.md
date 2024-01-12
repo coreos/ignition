@@ -16,8 +16,11 @@ nav_order: 9
 ### Changes
 
 - Require Go 1.20+
+- The Dracut module now installs partx
 
 ### Bug fixes
+
+- Force partition table update after repartitioning, even if one partition is already mounted
 
 ## Ignition 2.17.0 (2023-11-20)
 
