@@ -8,8 +8,8 @@ nav_order: 9
 
 ### Breaking changes
 
-- The dracut module is not automatically included in initramfs images anymore,
-  see distributor notes for details.
+- Only include dracut module in initramfs if requested (see distributor notes
+  for details)
 
 ### Features
 
