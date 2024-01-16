@@ -8,16 +8,21 @@ nav_order: 9
 
 ### Breaking changes
 
-- The dracut module is not automatically included in initramfs images anymore,
-  see distributor notes for details.
+- Only include dracut module in initramfs if requested (see distributor notes
+  for details)
 
 ### Features
+
+
 
 ### Changes
 
 - Require Go 1.20+
 
 ### Bug fixes
+
+- Fix failure when config only disables units already disabled
+
 
 ## Ignition 2.17.0 (2023-11-20)
 

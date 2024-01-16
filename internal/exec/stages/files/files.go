@@ -17,6 +17,7 @@ package files
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
@@ -170,7 +171,18 @@ func (s *stage) relabelFiles() error {
 
 	keys := make([]string, 0, len(s.toRelabel))
 	for key := range s.toRelabel {
-		keys = append(keys, key)
+		// Filter out non-existent entries; some of the code that mark files for
+		// relabeling may not actually end up creating those files in the end.
+		if _, err := os.Stat(key); err == nil {
+			keys = append(keys, key)
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
 	}
+
+	if len(keys) == 0 {
+		return nil
+	}
+
 	return s.RelabelFiles(keys)
 }
