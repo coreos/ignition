@@ -13,11 +13,16 @@ nav_order: 9
 
 ### Features
 
+
+
 ### Changes
 
 - Require Go 1.20+
 
 ### Bug fixes
+
+- Fix failure when config only disables units already disabled
+
 
 ## Ignition 2.17.0 (2023-11-20)
 
