@@ -144,7 +144,7 @@ func findGroupName(name string, r io.Reader) (*user.Group, error) {
 	} else if v != nil {
 		return v.(*user.Group), nil
 	}
-	return nil, user.UnknownGroupIdError(name)
+	return nil, user.UnknownGroupError(name)
 }
 
 // returns a *User for a row if that row's has the given value at the

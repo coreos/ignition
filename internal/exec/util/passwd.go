@@ -319,8 +319,8 @@ func (u Util) EnsureGroup(g types.PasswdGroup) error {
 	}
 	if !shouldExist {
 		if exists {
-			args := []string{"--root", u.DestDir, g.Name}
-			_, err := u.LogCmd(exec.Command(distro.GroupdelCmd(), args...),
+			args := []string{u.DestDir, distro.GroupdelCmd(), "--root", u.DestDir, g.Name}
+			_, err := u.LogCmd(exec.Command(distro.ChrootCmd(), args...),
 				"deleting group %q", g.Name)
 			if err != nil {
 				return fmt.Errorf("failed to delete group %q: %v",
