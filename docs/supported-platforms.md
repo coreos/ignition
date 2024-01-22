@@ -26,6 +26,7 @@ Ignition is currently only supported for the following platforms:
 * [Equinix Metal] (`packet`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [IBM Power Systems Virtual Server] (`powervs`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [QEMU] (`qemu`) - Ignition will read its configuration from the 'opt/com.coreos/config' key on the QEMU Firmware Configuration Device (available in QEMU 2.4.0 and higher).
+* [Scaleway] (`scaleway`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [VirtualBox] (`virtualbox`) - Use the VirtualBox guest property `/Ignition/Config` to provide the config to the virtual machine.
 * [VMware] (`vmware`) - Use the VMware Guestinfo variables `ignition.config.data` and `ignition.config.data.encoding` to provide the config and its encoding to the virtual machine. Valid encodings are "", "base64", and "gzip+base64". Guestinfo variables can be provided directly or via an OVF environment, with priority given to variables specified directly.
 * [Vultr] (`vultr`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.

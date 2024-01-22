@@ -13,6 +13,7 @@ nav_order: 9
 
 ### Features
 
+- Support Scaleway
 
 
 ### Changes
