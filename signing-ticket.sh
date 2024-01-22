@@ -15,11 +15,11 @@ make_script() {
 #!/bin/bash
 set -eux -o pipefail
 
-# Use the Fedora 38 key for the detached signatures
-KEYTOSIGNWITH='fedora-38'
+# Use the Fedora 39 key for the detached signatures
+KEYTOSIGNWITH='fedora-39'
 
-VR='@@VERSION@@-@@RELEASE@@.fc38'
-RPMKEY='eb10b464' # Fedora 38 key
+VR='@@VERSION@@-@@RELEASE@@.fc39'
+RPMKEY='18b8e74c' # Fedora 39 key
 
 do_sign() {
     # Sign with sigul unless FAKESIGN=1
