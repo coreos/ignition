@@ -55,6 +55,7 @@ For most cloud providers, cloud SSH keys and custom network configuration are ha
 [Equinix Metal]: https://metal.equinix.com/product/
 [IBM Power Systems Virtual Server]: https://www.ibm.com/products/power-virtual-server
 [QEMU]: https://www.qemu.org/
+[Scaleway]: https://www.scaleway.com
 [VirtualBox]: https://www.virtualbox.org/
 [VMware]: https://www.vmware.com/
 [Vultr]: https://www.vultr.com/products/cloud-compute/
