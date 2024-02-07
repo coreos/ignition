@@ -23,10 +23,12 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 
 	"cloud.google.com/go/compute/metadata"
@@ -125,6 +127,10 @@ type FetchOptions struct {
 	// HTTPVerb is an HTTP request method to indicate the desired action to
 	// be performed for a given resource.
 	HTTPVerb string
+
+	// LocalPort is a function returning a local port used to establish the TCP connection.
+	// Most of the time, letting the Kernel choose a random port is enough.
+	LocalPort func() int
 }
 
 // FetchToBuffer will fetch the given url into a temporary file, and then read
@@ -285,6 +291,28 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 		if err := f.newHttpClient(); err != nil {
 			return err
 		}
+	}
+
+	if opts.LocalPort != nil {
+		var (
+			d net.Dialer
+			p int
+		)
+
+		// Assert that the port is not already used.
+		for {
+			p = opts.LocalPort()
+			l, err := net.Listen("tcp4", fmt.Sprintf(":%d", p))
+			if err != nil && errors.Is(err, syscall.EADDRINUSE) {
+				continue
+			} else if err == nil {
+				l.Close()
+				break
+			}
+		}
+		d.LocalAddr = &net.TCPAddr{Port: p}
+
+		f.client.transport.DialContext = d.DialContext
 	}
 
 	// We do not want to redirect HTTP headers
