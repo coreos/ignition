@@ -23,6 +23,7 @@ nav_order: 9
 ### Bug fixes
 
 - Fix failure when config only disables units already disabled
+- Retry HTTP requests on Azure on status codes 404, 410, and 429
 
 
 ## Ignition 2.17.0 (2023-11-20)

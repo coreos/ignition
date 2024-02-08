@@ -263,6 +263,21 @@ func (f *Fetcher) newHttpClient() error {
 	return nil
 }
 
+func shouldRetryHttp(statusCode int, opts FetchOptions) bool {
+	// we always retry 500+
+	if statusCode >= 500 {
+		return true
+	}
+
+	for _, retryCode := range opts.RetryCodes {
+		if statusCode == retryCode {
+			return true
+		}
+	}
+
+	return false
+}
+
 // httpReaderWithHeader performs an HTTP request on the provided URL with the
 // provided request header & method and returns the response body Reader, HTTP
 // status code, a cancel function for the result's context, and error (if any).
@@ -298,7 +313,7 @@ func (c HttpClient) httpReaderWithHeader(opts FetchOptions, url string) (io.Read
 
 		if err == nil {
 			c.logger.Info("%s result: %s", opts.HTTPVerb, http.StatusText(resp.StatusCode))
-			if resp.StatusCode < 500 {
+			if !shouldRetryHttp(resp.StatusCode, opts) {
 				return resp.Body, resp.StatusCode, cancelFn, nil
 			}
 			resp.Body.Close()

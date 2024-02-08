@@ -131,6 +131,10 @@ type FetchOptions struct {
 	// LocalPort is a function returning a local port used to establish the TCP connection.
 	// Most of the time, letting the Kernel choose a random port is enough.
 	LocalPort func() int
+
+	// List of HTTP codes to retry that usually would be considered as complete.
+	// Status codes >= 500 are always retried.
+	RetryCodes []int
 }
 
 // FetchToBuffer will fetch the given url into a temporary file, and then read
