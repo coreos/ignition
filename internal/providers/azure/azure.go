@@ -112,7 +112,16 @@ func fetchFromIMDS(f *resource.Fetcher) ([]byte, error) {
 	headers := make(http.Header)
 	headers.Set("Metadata", "true")
 
-	data, err := f.FetchToBuffer(imdsUserdataURL, resource.FetchOptions{Headers: headers})
+	// Azure IMDS expects some codes <500 to still be retried...
+	// Here, we match the cloud-init set.
+	// https://github.com/canonical/cloud-init/commit/c1a2047cf291
+	// https://github.com/coreos/ignition/issues/1806
+	retryCodes := []int{
+		404, // not found
+		410, // gone
+		429, // rate-limited
+	}
+	data, err := f.FetchToBuffer(imdsUserdataURL, resource.FetchOptions{Headers: headers, RetryCodes: retryCodes})
 	if err != nil {
 		return nil, fmt.Errorf("fetching to buffer: %w", err)
 	}
