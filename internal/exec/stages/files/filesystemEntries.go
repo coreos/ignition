@@ -512,3 +512,48 @@ func (s *stage) createEntries(entries []filesystemEntry) error {
 	}
 	return nil
 }
+
+// save the cex Volume keys
+func (s *stage) createCexVolumeKeys(config types.Config) error {
+	if len(config.Storage.Luks) == 0 {
+		return nil
+	}
+	s.Logger.PushPrefix("createCexVolumeKeys")
+	defer s.Logger.PopPrefix()
+	for _, luks := range config.Storage.Luks {
+		if !luks.Cex.IsPresent() {
+			continue
+		}
+		// zkey generates, validates and reencipher secure key. The information file
+		// which contains the description about keys for key management.
+		entries := []filesystemEntry{}
+		fileExt := util.ZkeySecureKeyRepoFiles(luks.Name)
+		for _, zfile := range fileExt {
+			zkeyFile := filepath.Join(distro.LuksRealVolumeKeyFilePath(), zfile)
+			// Write zkeyfiles into sysroot
+			contentsUri, ok := s.State.LuksPersistSecureKeyRepoFiles[zfile]
+			if !ok {
+				return fmt.Errorf("missing persisted zkeyfile for %s", zkeyFile)
+			}
+			zkeyFilepath, err := s.JoinPath(zkeyFile)
+			if err != nil {
+				return fmt.Errorf("building zkeyfile path: %v", err)
+			}
+			entries = append(entries, fileEntry{
+				types.Node{
+					Path: zkeyFilepath,
+				},
+				types.FileEmbedded1{
+					Contents: types.Resource{
+						Source: &contentsUri,
+					},
+					Mode: cutil.IntToPtr(0600),
+				},
+			})
+		}
+		if err := s.createEntries(entries); err != nil {
+			return fmt.Errorf("adding luks volume related files: %v", err)
+		}
+	}
+	return nil
+}

@@ -1,0 +1,15 @@
+Intention of this file.
+1.  This is a dummy "keyfile" specific to IBM Crypto Card based LUKs encryption.
+2.  A key used to encrypt and decrypt the user data on a volume formatted in luks2 format.
+3.  A key slot in luks2 header stores a wrapped copy of this volume key,where the wrapping
+    key is derived from the users passphrase or "keyfile".
+4.  In the infrastructure for protected volume encryption, the luks2 volume key is secure key.
+5.  The effective volume is twofold protected: it is encrypted by an AES master key
+    from a CCA or EP11 coProcessor and by a wrapping key or KEK derived from a passphrase or "keyfile".
+6.  Therefore to unlock a luks2 volume a passphrase - provided interactively or from this "keyfile"
+    is required to decrypt the outer wrapping.
+7.  The security provided by the passphrase or "keyfile" is typically much lower than that provided by the wrapping AES master key.
+8.  Therefore the password or "keyfile" may be exposed without any loss of security.
+9.  When a secure key for the PAES cipher is provide to dm-crypt inorder to open a volume,
+    it automatically transforms this secure key into a protected key that can be interpreted by the CPACF.
+10. The actual effective key of the luks2 volume key is never exposed to the operating system.

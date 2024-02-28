@@ -24,6 +24,9 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/coreos/ignition/v2/config/util"
@@ -38,6 +41,7 @@ import (
 
 var (
 	ErrBadVolume = errors.New("volume is not of the correct type")
+	cexRegx      = regexp.MustCompile(`[0-9a-f]{2}\.[0-9a-f]{4}`)
 )
 
 // https://github.com/latchset/clevis/blob/master/src/pins/tang/clevis-encrypt-tang.1.adoc#config
@@ -107,6 +111,7 @@ func (s *stage) createLuks(config types.Config) error {
 	}
 
 	s.State.LuksPersistKeyFiles = make(map[string]string)
+	s.State.LuksPersistSecureKeyRepoFiles = make(map[string]string)
 
 	for _, luks := range config.Storage.Luks {
 		// TODO: allow Ignition generated KeyFiles for
@@ -115,6 +120,8 @@ func (s *stage) createLuks(config types.Config) error {
 		// track whether Ignition creates the KeyFile
 		// so that it can be removed
 		var ignitionCreatedKeyFile bool
+		devAlias := execUtil.DeviceAlias(*luks.Device)
+
 		// create keyfile, remove on the way out
 		keyFile, err := os.CreateTemp("", "ignition-luks-")
 		if err != nil {
@@ -123,8 +130,11 @@ func (s *stage) createLuks(config types.Config) error {
 		keyFilePath := keyFile.Name()
 		keyFile.Close()
 		defer os.Remove(keyFilePath)
-		devAlias := execUtil.DeviceAlias(*luks.Device)
-		if util.NilOrEmpty(luks.KeyFile.Source) {
+
+		if luks.Cex.IsPresent() {
+			// each LUKS device has associated keyfiles
+			keyFilePath = "/etc/luks/cex.key"
+		} else if util.NilOrEmpty(luks.KeyFile.Source) {
 			// generate keyfile contents
 			key, err := randHex(4096)
 			if err != nil {
@@ -247,11 +257,35 @@ func (s *stage) createLuks(config types.Config) error {
 
 		args = append(args, devAlias)
 
+		// append the zkey specific luksFormat arguments
+		if luks.Cex.IsPresent() {
+			err := s.zkeySecKeyGen(luks)
+			if err != nil {
+				return fmt.Errorf("generating secure key: %w", err)
+			}
+			// Append the zkey cryptsetup specific parameter for luksFormat
+			cex_args, err := s.zkeySecCryptGenArgs(luks)
+			if err != nil {
+				return fmt.Errorf("generating luksFormat args: %w", err)
+			}
+			args = append(args, cex_args...)
+		}
+
 		if _, err := s.Logger.LogCmd(
 			exec.Command(distro.CryptsetupCmd(), args...),
 			"creating %q", luks.Name,
 		); err != nil {
 			return fmt.Errorf("cryptsetup failed: %v", err)
+		}
+
+		if luks.Cex.IsPresent() {
+			err := s.zkeyCryptSetvp(luks, keyFilePath)
+			if err != nil {
+				return err
+			}
+			if err := s.zkeySaveVolKeys(luks); err != nil {
+				return fmt.Errorf("saving volume keys: %w ", err)
+			}
 		}
 
 		// open the device
@@ -530,4 +564,155 @@ func (d LuksDump) hasFlag(flag string) bool {
 		}
 	}
 	return false
+}
+
+// collect the cex card domains xx.xxxx
+func getAllCexOnlineAPQNs() (string, error) {
+	apDir := "/sys/bus/ap/devices/"
+	var ret []string
+	// cards details are in form of link file points to card directory.
+	event, _ := os.ReadDir(apDir)
+	if len(event) == 0 {
+		return "", fmt.Errorf("adjunct processor not found")
+	}
+	// match the regexp for pattern xx.xxxx
+	for _, dir := range event {
+		if dir.IsDir() {
+			continue
+		}
+		// if a match is found, read the uevent from that APQN directory
+		// to verify whether it corresponds to a CCA controller. This is
+		// intended for potential future use with an EP11 controller.
+		if !cexRegx.MatchString(dir.Name()) {
+			continue
+		}
+		filePath := filepath.Join(apDir, dir.Name(), "uevent")
+		ctrl, err := getCryptoController(filePath)
+		if err != nil {
+			return "", fmt.Errorf("failed to parse uevent file: %w", err)
+		}
+		for key := range ctrl {
+			if ctrl[key] == "cca" {
+				ret = append(ret, dir.Name())
+			}
+		}
+	}
+	if len(ret) == 0 {
+		return "", fmt.Errorf("cannot find the cca ap controller")
+	}
+	return strings.Join(ret, ","), nil
+}
+
+// Find the AP (Adjunct Processor) mode from uevent.
+// It may have CCA or EP11 CEX Controllers.
+func getCryptoController(filePath string) (map[string]string, error) {
+	apPairs := make(map[string]string)
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("reading uevent file %q: %w", filePath, err)
+	}
+	content := string(data)
+	for _, line := range strings.Split(content, "\n") {
+		apParts := strings.SplitN(line, "=", 2)
+		if len(apParts) == 2 {
+			key := strings.TrimSpace(apParts[0])
+			value := strings.TrimSpace(apParts[1])
+			apPairs[key] = value
+		}
+	}
+	return apPairs, nil
+}
+
+// Arguments specific to zkey generation
+func (s *stage) zkeySecGenArgs(luks types.Luks) []string {
+	ret := []string{
+		"generate",
+		"--name",
+		"ignition-luks-" + luks.Name,
+		"--key-type",
+		"CCA-AESCIPHER",
+		"--xts",
+		"--description",
+		"Secure Key for " + luks.Name + " Volume",
+	}
+	return ret
+}
+
+// The secure key generated in the repository.
+func (s *stage) zkeySecKeyGen(luks types.Luks) error {
+	err := os.MkdirAll(distro.LuksRealVolumeKeyFilePath(), 0700)
+	if err != nil {
+		return fmt.Errorf("creating %q: %w", distro.LuksRealVolumeKeyFilePath(), err)
+	}
+	args := s.zkeySecGenArgs(luks)
+	dom, err := getAllCexOnlineAPQNs()
+	if err != nil {
+		return fmt.Errorf("querying APQNs: %w", err)
+	}
+	args = append(args, "--apqns", dom)
+	if _, err = s.Logger.LogCmd(
+		exec.Command(distro.ZkeyCmd(), args...),
+		"generating cex secure keys"); err != nil {
+		return fmt.Errorf("generating secure key: %w", err)
+	}
+	return nil
+}
+
+// collect the Secure Key size
+func (s *stage) zkeySecKeySize(f string) (string, error) {
+	fileinfo, err := os.Stat(f)
+	if err != nil {
+		return "", fmt.Errorf("accessing file info %w", err)
+	}
+	// cryptsetup requires key size in bits.
+	// to convert bytes to bits multiply the file size with 8.
+	filesize := strconv.FormatInt(fileinfo.Size()*8, 10)
+
+	return filesize, nil
+}
+
+// zkey Cryptsetup args generate pbkdf algo as argon2i.
+// fips does not support argon2i. hence adding the
+// args manually by verifying the keysize and keytype.
+func (s *stage) zkeySecCryptGenArgs(luks types.Luks) ([]string, error) {
+	zkeyfile := execUtil.ZkeySecureKeyRepoFiles(luks.Name)
+	volKeyfile := path.Join(distro.LuksRealVolumeKeyFilePath(), zkeyfile[".skey"])
+	ret := []string{
+		"--volume-key-file",
+		volKeyfile,
+		"--cipher",
+		"paes-xts-plain64",
+	}
+	keysize, err := s.zkeySecKeySize(volKeyfile)
+	if err != nil {
+		return ret, fmt.Errorf("Error getting the key size %w", err)
+	}
+	ret = append(ret, "--key-size", keysize)
+
+	return ret, nil
+}
+
+// Setting Verification pattern for keyslot after the luksFormat the device.
+func (s *stage) zkeyCryptSetvp(luks types.Luks, key string) error {
+	if _, err := s.Logger.LogCmd(exec.Command(distro.ZkeyCryptCmd(), "setvp",
+		execUtil.DeviceAlias(*luks.Device),
+		"--key-file", key),
+		"Setting verification pattern for device: %q", execUtil.DeviceAlias(*luks.Device)); err != nil {
+		return fmt.Errorf("zkey Verification pattern failed: %w", err)
+	}
+	return nil
+}
+
+// Save the LUKS volume key and info file into the root
+func (s *stage) zkeySaveVolKeys(luks types.Luks) error {
+	zkeyfile := execUtil.ZkeySecureKeyRepoFiles(luks.Name)
+	zfilePath := distro.LuksRealVolumeKeyFilePath()
+	for _, zfile := range zkeyfile {
+		key, err := os.ReadFile(path.Join(zfilePath + zfile))
+		if err != nil {
+			return fmt.Errorf("failed to read volume key file %q: %w", zfile, err)
+		}
+		s.State.LuksPersistSecureKeyRepoFiles[zfile] = dataurl.EncodeBytes(key)
+	}
+	return nil
 }

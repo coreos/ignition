@@ -131,3 +131,13 @@ func PathExists(path string) (bool, error) {
 	}
 	return true, nil
 }
+
+// Helper function to concatenate the key files.
+func ZkeySecureKeyRepoFiles(l string) map[string]string {
+	ret := make(map[string]string)
+	zfprefix := "ignition-luks-" + l
+	for _, zext := range []string{".info", ".skey"} {
+		ret[zext] = zfprefix + zext
+	}
+	return ret
+}
