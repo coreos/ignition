@@ -60,7 +60,9 @@ install() {
 
     # Required by s390x's z/VM installation.
     # Supporting https://github.com/coreos/ignition/pull/865
-    inst_multiple -o chccwdev vmur
+    inst_multiple -o chccwdev vmur pkey zcrypt zkey zkey-cryptsetup
+
+    inst "$moddir/ignition/ignition-cex" "/etc/luks/cex.key"
 
     # Required on system using SELinux
     inst_multiple -o setfiles
