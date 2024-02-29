@@ -62,15 +62,13 @@ If `wipeFilesystem` is set to false, Ignition will then attempt to reuse the exi
 
 When resolving paths, Ignition follows symlinks on all but the last element of a path. This ensures existing symlinks on a filesystem can be overwritten while still following symlinks as expected. When writing files, links, or directories, Ignition does not allow following symlinks outside the specified filesystem. When writing files, links, or directories on the `root` filesystem, Ignition follows symlinks as if it were executing in that root; a symlink to `/etc` is followed to `/etc` on the `root` filesystem. When writing files, links, or directories to any other filesystem, Ignition fails if it tries to follow a symlink outside that filesystem.
 
-## Paths That Should Not Be Used
+## Making changes to `/proc`, `/sys`, `/dev`, `/tmp` or `/run`
 
-Do not configure Ignition to create files, directories, or symlinks under the paths `/proc`, `/dev`, `/sys`, `/run`, and `/tmp`, as these files, directories, or symlinks become inaccessible when the machine finishes booting.
+To create files, directories or symlinks in `/proc`, `/sys` or `/dev`, you should use [sysctl.d config files](https://www.mankier.com/5/sysctl.d) or [udev rules](https://www.mankier.com/7/udev).
 
-Ignition writes all user-defined files to `/sysroot`. When Ignition is done, the [switch_root](https://www.mankier.com/8/switch_root) operation pivots to `/sysroot` as the machine's root filesystem (`/`), and then moves the already mounted `/proc`, `/dev`, `/sys`, and `/run` filesystems to the root filesystem, effectively hiding any existing files, directories, or symlinks under these paths. The `/tmp` directory is also mounted at this time.
+Similarly, to makes changes under the `/tmp` or `/run` paths, you should use [tmpfiles.d config files](https://www.mankier.com/5/tmpfiles.d).
 
-To make changes under the `/proc`, `/sys`, and `/dev` paths, use [sysctl](https://www.mankier.com/8/sysctl) and [udev](https://www.mankier.com/7/udev).
-
-To make changes under the `/tmp` and `/run` paths, use [tmpfiles.d](https://www.mankier.com/5/tmpfiles.d).
+...
 
 ## SELinux
 
