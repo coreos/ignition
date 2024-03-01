@@ -4,7 +4,17 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.18.0 (unreleased)
+## Upcoming Ignition 2.19.0 (unreleased)
+
+### Breaking changes
+
+### Features
+
+### Changes
+
+### Bug fixes
+
+## Ignition 2.18.0 (2024-03-01)
 
 ### Breaking changes
 
