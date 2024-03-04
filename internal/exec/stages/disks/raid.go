@@ -24,6 +24,7 @@ import (
 	"os/exec"
 	"strings"
 
+	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
@@ -48,6 +49,36 @@ func (s stage) createRaids(config types.Config) error {
 	}
 
 	for _, md := range config.Storage.Raid {
+		devName := md.Name
+		if !strings.HasPrefix(devName, "/dev") {
+			devName = "/dev/md/" + md.Name
+		}
+		if cutil.IsTrue(md.Assemble) {
+			args := []string{
+				"--assemble",
+				"--run",
+				"--homehost", "any",
+				devName,
+			}
+
+			for _, dev := range md.Devices {
+				args = append(args, util.DeviceAlias(string(dev)))
+			}
+
+			if _, err := s.Logger.LogCmd(
+				exec.Command(distro.MdadmCmd(), args...),
+				"assembling %q", md.Name,
+			); err != nil {
+				s.Logger.Info("mdadm assemble failed: %v", err)
+			} else {
+				if err := s.waitOnDevices([]string{devName}, "raids"); err != nil {
+					s.Logger.Info("mdadm assemble failed: %v", err)
+				} else {
+					return nil
+				}
+			}
+		}
+
 		if md.Spares == nil {
 			zero := 0
 			md.Spares = &zero
@@ -80,10 +111,6 @@ func (s stage) createRaids(config types.Config) error {
 			return fmt.Errorf("mdadm failed: %v", err)
 		}
 
-		devName := md.Name
-		if !strings.HasPrefix(devName, "/dev") {
-			devName = "/dev/md/" + md.Name
-		}
 		// Wait for the created device node to show up, no udev
 		// race prevention required because this node did not
 		// exist before.

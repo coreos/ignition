@@ -168,6 +168,8 @@ root:
               desc: the number of spares (if applicable) in the array.
             - name: options
               desc: any additional options to be passed to mdadm.
+            - name: assemble
+              desc: try to assemble raid array from the list of devices before creating it. Defaults to false.
         - name: filesystems
           desc: the list of filesystems to be configured. `device` and `format` need to be specified. Every filesystem must have a unique `device`.
           children:

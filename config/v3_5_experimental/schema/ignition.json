@@ -236,6 +236,9 @@
               "items": {
                 "type": "string"
               }
+            },
+            "assemble": {
+              "type": ["boolean", "null"]
             }
           },
           "required": [

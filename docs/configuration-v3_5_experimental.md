@@ -70,6 +70,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **devices** (list of strings): the list of devices (referenced by their absolute path) in the array.
     * **_spares_** (integer): the number of spares (if applicable) in the array.
     * **_options_** (list of strings): any additional options to be passed to mdadm.
+    * **_assemble_** (boolean): try to assemble raid array from the list of devices before creating it. Defaults to false.
   * **_filesystems_** (list of objects): the list of filesystems to be configured. `device` and `format` need to be specified. Every filesystem must have a unique `device`.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
     * **format** (string): the filesystem format (ext4, btrfs, xfs, vfat, swap, or none).
