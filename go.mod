@@ -17,7 +17,7 @@ require (
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/pin/tftp v2.1.0+incompatible
 	github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/vmware/vmw-guestinfo v0.0.0-20220317130741-510905f0efa3
 	golang.org/x/net v0.21.0
