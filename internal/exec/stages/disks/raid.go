@@ -74,6 +74,9 @@ func (s stage) createRaids(config types.Config) error {
 				if err := s.waitOnDevices([]string{devName}, "raids"); err != nil {
 					s.Logger.Info("mdadm assemble failed: %v", err)
 				} else {
+					if err := s.waitOnDevices([]string{devName}, "raids"); err != nil {
+						return err
+					}
 					return nil
 				}
 			}
