@@ -17,8 +17,8 @@ github.com/beevik/etree v1.3.0/go.mod h1:aiPf89g/1k3AShMVAzriilpcE4R/Vuor90y83zV
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
-github.com/containers/libhvee v0.6.0 h1:tUzwSz8R0GjR6IctgDnkTMjdtCk5Mxhpai4Vyv6UeF4=
-github.com/containers/libhvee v0.6.0/go.mod h1:f/q1wCdQqOLiK3IZqqBfOD7exMZYBU5pDYsrMa/pSFg=
+github.com/containers/libhvee v0.7.0 h1:TDfidZOduYk0ZW0tigzqpJOl+CeynvHxIZCuH/ak7YM=
+github.com/containers/libhvee v0.7.0/go.mod h1:fRKB3AyIqHMvq6xaeYhTpckM2cdoq0oecolyoiuLP7M=
 github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb h1:rmqyI19j3Z/74bIRhuC59RB442rXUazKNueVpfJPxg4=
 github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb/go.mod h1:rcFZM3uxVvdyNmsAV2jopgPD1cs5SPWJWU5dOz2LUnw=
 github.com/coreos/go-semver v0.3.1 h1:yi21YpKnrx1gt5R+la8n5WgS0kCrsPp33dmEyHReZr4=
