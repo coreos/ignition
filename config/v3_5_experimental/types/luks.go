@@ -53,6 +53,17 @@ func (l Luks) Validate(c path.ContextPath) (r report.Report) {
 	if err := validateURLNilOK(l.KeyFile.Source); err != nil {
 		r.AddOnError(c.Append("keys"), errors.ErrInvalidLuksKeyFile)
 	}
+
+	// fail if Cex use with Clevis
+	if l.Clevis.IsPresent() && l.Cex.IsPresent() {
+		r.AddOnError(c.Append("cex"), errors.ErrCexWithClevis)
+	}
+
+	// fail if key file is provided along with Cex
+	if l.Cex.IsPresent() && util.NotEmpty(l.KeyFile.Source) {
+		r.AddOnError(c.Append("cex"), errors.ErrCexWithKeyFile)
+	}
+
 	return
 }
 

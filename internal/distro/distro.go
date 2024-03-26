@@ -53,10 +53,12 @@ var (
 	vfatMkfsCmd  = "mkfs.fat"
 	xfsMkfsCmd   = "mkfs.xfs"
 
-	//zVM programs
-	vmurCmd      = "vmur"
-	chccwdevCmd  = "chccwdev"
-	cioIgnoreCmd = "cio_ignore"
+	// zVM programs
+	vmurCmd           = "vmur"
+	chccwdevCmd       = "chccwdev"
+	cioIgnoreCmd      = "cio_ignore"
+	zkeycryptsetupCmd = "zkey-cryptsetup"
+	zkeyCmd           = "zkey"
 
 	// LUKS programs
 	clevisCmd     = "clevis"
@@ -108,6 +110,8 @@ func XfsMkfsCmd() string   { return xfsMkfsCmd }
 func VmurCmd() string      { return vmurCmd }
 func ChccwdevCmd() string  { return chccwdevCmd }
 func CioIgnoreCmd() string { return cioIgnoreCmd }
+func ZkeyCryptCmd() string { return zkeycryptsetupCmd }
+func ZkeyCmd() string      { return zkeyCmd }
 
 func ClevisCmd() string     { return clevisCmd }
 func CryptsetupCmd() string { return cryptsetupCmd }

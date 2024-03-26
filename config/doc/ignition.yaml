@@ -380,6 +380,13 @@ root:
                       required: true
                     - name: needsNetwork
                       desc: whether or not the device requires networking.
+            - name: cex
+              desc: describes the IBM Crypto Express card configuration for the luks device.
+              children:
+                - name: enabled 
+                  desc: whether or not to use a CEX secure key to encrypt luks device.
+                - name: keyType 
+                  desc: the type of the secure key (CCA-AESDATA or CCA-AESCIPHER). Defaults to CCA-AESCIPHER.
     - name: systemd
       desc: describes the desired state of the systemd units.
       children:
