@@ -15,6 +15,7 @@
 package register
 
 import (
+	_ "github.com/coreos/ignition/v2/internal/providers/akamai"
 	_ "github.com/coreos/ignition/v2/internal/providers/aliyun"
 	_ "github.com/coreos/ignition/v2/internal/providers/applehv"
 	_ "github.com/coreos/ignition/v2/internal/providers/aws"

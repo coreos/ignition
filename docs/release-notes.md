@@ -10,6 +10,8 @@ nav_order: 9
 
 ### Features
 
+- Support Akamai Connected Cloud (Linode)
+
 ### Changes
 
 ### Bug fixes
