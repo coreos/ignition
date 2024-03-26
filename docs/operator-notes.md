@@ -62,6 +62,14 @@ If `wipeFilesystem` is set to false, Ignition will then attempt to reuse the exi
 
 When resolving paths, Ignition follows symlinks on all but the last element of a path. This ensures existing symlinks on a filesystem can be overwritten while still following symlinks as expected. When writing files, links, or directories, Ignition does not allow following symlinks outside the specified filesystem. When writing files, links, or directories on the `root` filesystem, Ignition follows symlinks as if it were executing in that root; a symlink to `/etc` is followed to `/etc` on the `root` filesystem. When writing files, links, or directories to any other filesystem, Ignition fails if it tries to follow a symlink outside that filesystem.
 
+## Making changes to `/proc`, `/sys`, `/dev`, `/tmp` or `/run`
+
+To create files, directories or symlinks in `/proc`, `/sys` or `/dev`, you should use [sysctl.d config files](https://www.mankier.com/5/sysctl.d) or [udev rules](https://www.mankier.com/7/udev).
+
+Similarly, to makes changes under the `/tmp` or `/run` paths, you should use [tmpfiles.d config files](https://www.mankier.com/5/tmpfiles.d).
+
+...
+
 ## SELinux
 
 Ignition fully supports distributions which have [SELinux][selinux] enabled. It requires that the distribution ships the [`setfiles`][setfiles] utility. The kernel must be at least v5.5 or alternatively have [this patch](https://lore.kernel.org/selinux/20190912133007.27545-1-jlebon@redhat.com/T/#u) backported.
