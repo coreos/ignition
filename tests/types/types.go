@@ -276,6 +276,12 @@ func (t *Test) ReplaceAllVersionVars(version string) {
 	t.Name += " " + version
 }
 
+// Does a string Replace on `$UUID` to allow it to be unique per version of the test.
+func (t *Test) ReplaceUUIDKeyword() {
+	uuid := uuid.New()
+	t.Config = strings.Replace(t.Config, "$UUID", uuid.String(), -1)
+}
+
 // Deep copy Test struct fields In, Out, MntDevices, SystemDirFiles
 // so each BB test with identical Test structs have their own independent Test copies
 func DeepCopy(t Test) Test {
