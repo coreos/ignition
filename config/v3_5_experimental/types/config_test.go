@@ -183,7 +183,55 @@ func TestConfigValidation(t *testing.T) {
 			out: errors.ErrPathConflictsSystemd,
 			at:  path.New("json", "storage", "links", 0, "path"),
 		},
-		// test 6: non-conflicting scenarios
+
+		// test 6: file path conflicts with another file path, should error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar"}},
+						{Node: Node{Path: "/foo/bar/baz"}},
+					},
+				},
+			},
+			out: errors.ErrPathConflictsParentDir,
+			at:  path.New("json", "storage", "files", 1, "path"),
+		},
+
+		// test 7: file path conflicts with link path, should error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar"}},
+					},
+					Links: []Link{
+						{Node: Node{Path: "/foo/bar/baz"}},
+					},
+				},
+			},
+			out: errors.ErrPathConflictsParentDir,
+			at:  path.New("json", "storage", "links", 0, "path"),
+		},
+
+		// test 8: file path conflicts with directory path, should error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar"}},
+						{Node: Node{Path: "/foo/bar"}},
+					},
+					Directories: []Directory{
+						{Node: Node{Path: "/foo/bar/baz"}},
+					},
+				},
+			},
+			out: errors.ErrPathConflictsParentDir,
+			at:  path.New("json", "storage", "directories", 0, "path"),
+		},
+
+		// test 9: non-conflicting scenarios with systemd unit and systemd dropin file, should not error
 		{
 			in: Config{
 				Storage: Storage{
@@ -248,7 +296,36 @@ func TestConfigValidation(t *testing.T) {
 				},
 			},
 		},
+
+		// test 10: non-conflicting scenarios with same parent directory, should not error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar"}},
+						{Node: Node{Path: "/foo/bar/baz"}},
+					},
+					Directories: []Directory{
+						{Node: Node{Path: "/foo/bar"}},
+					},
+				},
+			},
+		},
+		// test 11: non-conflicting scenarios with a link, should not error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar"}},
+					},
+					Links: []Link{
+						{Node: Node{Path: "/baz/qux"}},
+					},
+				},
+			},
+		},
 	}
+
 	for i, test := range tests {
 		r := test.in.Validate(path.New("json"))
 		expected := report.Report{}

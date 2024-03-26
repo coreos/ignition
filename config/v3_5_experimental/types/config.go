@@ -34,6 +34,7 @@ var (
 func (cfg Config) Validate(c path.ContextPath) (r report.Report) {
 	systemdPath := "/etc/systemd/system/"
 	unitPaths := map[string]struct{}{}
+
 	for _, unit := range cfg.Systemd.Units {
 		if !util.NilOrEmpty(unit.Contents) {
 			pathString := systemdPath + unit.Name
@@ -61,5 +62,43 @@ func (cfg Config) Validate(c path.ContextPath) (r report.Report) {
 			r.AddOnError(c.Append("storage", "links", i, "path"), errors.ErrPathConflictsSystemd)
 		}
 	}
+
+	allPaths := map[string]struct{}{}
+
+	for _, f := range cfg.Storage.Files {
+		allPaths[f.Path] = struct{}{}
+
+		filePath := getParentDirectory(f.Path)
+		if _, exists := allPaths[filePath]; exists {
+			r.AddOnError(c.Append("storage", "files"), errors.ErrPathConflictsParentDir)
+		}
+	}
+
+	for _, d := range cfg.Storage.Directories {
+		allPaths[d.Path] = struct{}{}
+
+		dirPath := getParentDirectory(d.Path)
+		if _, exists := allPaths[dirPath]; exists {
+			r.AddOnError(c.Append("storage", "directories"), errors.ErrPathConflictsParentDir)
+		}
+	}
+
+	for _, l := range cfg.Storage.Links {
+		allPaths[l.Path] = struct{}{}
+
+		linkPath := getParentDirectory(l.Path)
+		if _, exists := allPaths[linkPath]; exists {
+			r.AddOnError(c.Append("storage", "links"), errors.ErrPathConflictsParentDir)
+		}
+	}
 	return
+}
+
+func getParentDirectory(p string) string {
+	index := len(p) - 1
+	for index > 0 && p[index-1] != '/' {
+		index--
+	}
+
+	return p[:index]
 }
