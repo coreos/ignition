@@ -98,6 +98,10 @@ type Fetcher struct {
 	// It is used when fetching resources from GCS.
 	GCSSession *storage.Client
 
+	// AkamaiMetadataToken holds the token returned by the Metadata Service
+	// and is required for subsequent requests.
+	AkamaiMetadataToken string
+
 	// Whether to only attempt fetches which can be performed offline. This
 	// currently only includes the "data" scheme. Other schemes will result in
 	// ErrNeedNet. In the future, we can improve on this by dropping this
