@@ -6,6 +6,7 @@ nav_order: 8
 
 Ignition is currently only supported for the following platforms:
 
+* [Akamai Connected Cloud] (`akamai`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys and network configuration are handled separately.
 * [Alibaba Cloud] (`aliyun`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [Apple Hypervisor] (`applehv`) - Ignition will read its configuration using an HTTP GET over a vsock connection with its host on port 1024.
 * [Amazon Web Services] (`aws`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
@@ -36,6 +37,7 @@ Ignition is under active development, so this list may grow over time.
 
 For most cloud providers, cloud SSH keys and custom network configuration are handled by [Afterburn].
 
+[Akamai Connected Cloud]: https://www.linode.com
 [Alibaba Cloud]: https://www.alibabacloud.com/product/ecs
 [Apple Hypervisor]: https://developer.apple.com/documentation/hypervisor
 [Amazon Web Services]: https://aws.amazon.com/ec2/
