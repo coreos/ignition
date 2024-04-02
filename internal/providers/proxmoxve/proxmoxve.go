@@ -75,15 +75,7 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		f.Logger.Info("cidata drive was not available in time. Continuing without a config...")
 	}
 
-	config, report, err := util.ParseConfig(f.Logger, data)
-	if err != nil {
-		// Proxmox VE will populate user-data with a cloud-init YAML config by default.
-		// If such config is present, we should not return an error,
-		// and instead just ignore it and let Afterburn pick it up later.
-		return util.ParseConfig(f.Logger, []byte{})
-	}
-
-	return config, report, err
+	return util.ParseConfig(f.Logger, data)
 }
 
 func fileExists(path string) bool {
