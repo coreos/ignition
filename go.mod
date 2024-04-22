@@ -3,7 +3,7 @@ module github.com/coreos/ignition/v2
 go 1.20
 
 require (
-	cloud.google.com/go/compute/metadata v0.2.3
+	cloud.google.com/go/compute/metadata v0.3.0
 	cloud.google.com/go/storage v1.40.0
 	github.com/aws/aws-sdk-go v1.51.21
 	github.com/beevik/etree v1.3.0
@@ -29,7 +29,6 @@ require (
 
 require (
 	cloud.google.com/go v0.112.1 // indirect
-	cloud.google.com/go/compute v1.24.0 // indirect
 	cloud.google.com/go/iam v1.1.7 // indirect
 	github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
