@@ -266,6 +266,9 @@
             "clevis": {
               "$ref": "#/definitions/storage/definitions/clevis"
             },
+            "cex": {
+              "$ref": "#/definitions/storage/definitions/cex"
+            },
             "options": {
               "type": "array",
               "items": {
@@ -331,6 +334,14 @@
             },
             "advertisement": {
               "type": ["string", "null"]
+            }
+          }
+        },
+        "cex": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": ["boolean", "null"]
             }
           }
         },

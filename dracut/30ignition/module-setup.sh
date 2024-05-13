@@ -60,9 +60,13 @@ install() {
 
     # Required by s390x's z/VM installation.
     # Supporting https://github.com/coreos/ignition/pull/865
-    inst_multiple -o chccwdev vmur
+    if [[ ${DRACUT_ARCH:-$(uname -m)} == s390x ]]; then
+        inst_multiple chccwdev vmur zkey zkey-cryptsetup
 
-    # Required on system using SELinux
+        inst_simple "$moddir/ignition-cex" "/etc/luks/cex.key"
+    fi
+
+    # Required on system using SELinux.
     inst_multiple -o setfiles
 
     inst_script "$moddir/ignition-kargs-helper.sh" \
@@ -112,5 +116,10 @@ installkernel() {
      instmods -c vsock
      instmods -c vmw_vsock_virtio_transport_common
      instmods -c vmw_vsock_virtio_transport
+
+     # required for cex card early initialization
+     if [[ ${DRACUT_ARCH:-$(uname -m)} == s390x ]]; then
+        instmods -c zcrypt_cex4
+     fi
 }
 

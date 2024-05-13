@@ -11,6 +11,7 @@ nav_order: 9
 ### Features
 
 - Support Akamai Connected Cloud (Linode)
+- Support LUKS encryption using IBM CEX secure keys
 
 ### Changes
 

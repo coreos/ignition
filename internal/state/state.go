@@ -41,6 +41,9 @@ type State struct {
 	// the filesystem during files stage.  This is for special
 	// circumstances only.
 	ProviderOutputFiles []types.File `json:"providerOutputFiles"`
+	// Volume Key files generated during LUKS setup in disks stage, which
+	// need to be written out during files stage.
+	LuksPersistSecureKeyRepoFiles map[string]string `json:"luksPersistVolumeKeyFiles"`
 }
 
 type FetchedConfig struct {

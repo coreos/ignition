@@ -53,10 +53,12 @@ var (
 	vfatMkfsCmd  = "mkfs.fat"
 	xfsMkfsCmd   = "mkfs.xfs"
 
-	//zVM programs
-	vmurCmd      = "vmur"
-	chccwdevCmd  = "chccwdev"
-	cioIgnoreCmd = "cio_ignore"
+	// z/VM programs
+	vmurCmd           = "vmur"
+	chccwdevCmd       = "chccwdev"
+	cioIgnoreCmd      = "cio_ignore"
+	zkeycryptsetupCmd = "zkey-cryptsetup"
+	zkeyCmd           = "zkey"
 
 	// LUKS programs
 	clevisCmd     = "clevis"
@@ -77,6 +79,7 @@ var (
 	// Special file paths in the real root
 	luksRealRootKeyFilePath = "/etc/luks/"
 	resultFilePath          = "/etc/.ignition-result.json"
+	luksCexSecureKeyRepo    = "/etc/zkey/repository/"
 )
 
 func DiskByLabelDir() string { return diskByLabelDir }
@@ -108,14 +111,17 @@ func XfsMkfsCmd() string   { return xfsMkfsCmd }
 func VmurCmd() string      { return vmurCmd }
 func ChccwdevCmd() string  { return chccwdevCmd }
 func CioIgnoreCmd() string { return cioIgnoreCmd }
+func ZkeyCryptCmd() string { return zkeycryptsetupCmd }
+func ZkeyCmd() string      { return zkeyCmd }
 
 func ClevisCmd() string     { return clevisCmd }
 func CryptsetupCmd() string { return cryptsetupCmd }
 
 func KargsCmd() string { return kargsCmd }
 
-func LuksRealRootKeyFilePath() string { return luksRealRootKeyFilePath }
-func ResultFilePath() string          { return resultFilePath }
+func LuksRealRootKeyFilePath() string   { return luksRealRootKeyFilePath }
+func ResultFilePath() string            { return resultFilePath }
+func LuksRealVolumeKeyFilePath() string { return luksCexSecureKeyRepo }
 
 func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !BlackboxTesting() }
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
