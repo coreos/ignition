@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0
-	cloud.google.com/go/storage v1.40.0
+	cloud.google.com/go/storage v1.41.0
 	github.com/aws/aws-sdk-go v1.53.0
 	github.com/beevik/etree v1.3.0
 	github.com/containers/libhvee v0.7.1
@@ -31,7 +31,7 @@ require (
 	cloud.google.com/go v0.112.2 // indirect
 	cloud.google.com/go/auth v0.4.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
-	cloud.google.com/go/iam v1.1.7 // indirect
+	cloud.google.com/go/iam v1.1.8 // indirect
 	github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
@@ -57,8 +57,8 @@ require (
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be // indirect
+	google.golang.org/genproto v0.0.0-20240401170217-c3f982113cda // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240506185236-b8a5c65736ae // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240429193739-8cf5692501f6 // indirect
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
