@@ -4,18 +4,24 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.19.0 (unreleased)
+## Upcoming Ignition 2.20.0 (unreleased)
 
 ### Breaking changes
+
+### Features
+
+### Changes
+
+### Bug fixes
+
+
+## Ignition 2.19.0 (2024-06-05)
 
 ### Features
 
 - Support Akamai Connected Cloud (Linode)
 - Support LUKS encryption using IBM CEX secure keys
 
-### Changes
-
-### Bug fixes
 
 ## Ignition 2.18.0 (2024-03-01)
 
@@ -27,7 +33,6 @@ nav_order: 9
 ### Features
 
 - Support Scaleway
-
 
 ### Changes
 
