@@ -17,6 +17,9 @@ nav_order: 9
 
 ## Ignition 2.19.0 (2024-06-05)
 
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 40 key](https://getfedora.org/security/).
+
 ### Features
 
 - Support Akamai Connected Cloud (Linode)
