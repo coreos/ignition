@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,7 @@ import (
 	"time"
 
 	"github.com/coreos/ignition/v2/config"
+	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/tests/register"
 	"github.com/coreos/ignition/v2/tests/servers"
 	"github.com/coreos/ignition/v2/tests/types"
@@ -259,13 +261,20 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	// If we're not expecting the config to be bad, make sure it passes
 	// validation.
 	if !test.ConfigShouldBeBad {
-		_, rpt, err := config.Parse([]byte(test.Config))
+		renderedConfig, rpt, err := config.Parse([]byte(test.Config))
 		if rpt.IsFatal() {
 			return fmt.Errorf("test has bad config: %s", rpt.String())
 		}
 		if err != nil {
 			return fmt.Errorf("error parsing config: %v", err)
 		}
+		defer func() {
+			for _, luks := range renderedConfig.Storage.Luks {
+				if err := removeLuksDevice(luks.Name); err != nil {
+					t.Error(fmt.Errorf("failed to remove existing LUKS device %s: %v", luks.Name, err))
+				}
+			}
+		}()
 	}
 
 	// Ignition config
@@ -346,4 +355,20 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		}
 		return fmt.Errorf("Expected failure and ignition succeeded")
 	}
+}
+
+// Remove a LUKS device
+func removeLuksDevice(deviceName string) error {
+	deviceExists, err := util.PathExists(fmt.Sprintf("/dev/mapper/%s", deviceName))
+	if err != nil {
+		return fmt.Errorf("failed to check if device exists at %s: %v", deviceName, err)
+	}
+	if deviceExists {
+		cmd := exec.Command("sudo", "cryptsetup", "luksClose", deviceName)
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to remove LUKS device %s: %v", deviceName, err)
+		}
+	}
+
+	return nil
 }
