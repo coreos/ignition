@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:39 AS builder
+FROM registry.fedoraproject.org/fedora:40 AS builder
 RUN dnf install -y golang git-core
 RUN mkdir /ignition-validate
 COPY . /ignition-validate
