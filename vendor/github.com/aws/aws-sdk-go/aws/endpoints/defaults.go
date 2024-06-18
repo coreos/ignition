@@ -4583,91 +4583,6 @@ var awsPartition = partition{
 				}: endpoint{},
 			},
 		},
-		"backupstorage": service{
-			Endpoints: serviceEndpoints{
-				endpointKey{
-					Region: "af-south-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "ap-east-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "ap-northeast-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "ap-northeast-2",
-				}: endpoint{},
-				endpointKey{
-					Region: "ap-northeast-3",
-				}: endpoint{},
-				endpointKey{
-					Region: "ap-south-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "ap-south-2",
-				}: endpoint{},
-				endpointKey{
-					Region: "ap-southeast-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "ap-southeast-2",
-				}: endpoint{},
-				endpointKey{
-					Region: "ap-southeast-3",
-				}: endpoint{},
-				endpointKey{
-					Region: "ap-southeast-4",
-				}: endpoint{},
-				endpointKey{
-					Region: "ca-central-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "eu-central-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "eu-central-2",
-				}: endpoint{},
-				endpointKey{
-					Region: "eu-north-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "eu-south-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "eu-south-2",
-				}: endpoint{},
-				endpointKey{
-					Region: "eu-west-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "eu-west-2",
-				}: endpoint{},
-				endpointKey{
-					Region: "eu-west-3",
-				}: endpoint{},
-				endpointKey{
-					Region: "me-central-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "me-south-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "sa-east-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "us-east-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "us-east-2",
-				}: endpoint{},
-				endpointKey{
-					Region: "us-west-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "us-west-2",
-				}: endpoint{},
-			},
-		},
 		"batch": service{
 			Defaults: endpointDefaults{
 				defaultKey{}: endpoint{},
@@ -4914,6 +4829,14 @@ var awsPartition = partition{
 					},
 				},
 				endpointKey{
+					Region: "bedrock-fips-ca-central-1",
+				}: endpoint{
+					Hostname: "bedrock-fips.ca-central-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Region: "ca-central-1",
+					},
+				},
+				endpointKey{
 					Region: "bedrock-fips-us-east-1",
 				}: endpoint{
 					Hostname: "bedrock-fips.us-east-1.amazonaws.com",
@@ -4999,6 +4922,14 @@ var awsPartition = partition{
 					Hostname: "bedrock-runtime.eu-west-3.amazonaws.com",
 					CredentialScope: credentialScope{
 						Region: "eu-west-3",
+					},
+				},
+				endpointKey{
+					Region: "bedrock-runtime-fips-ca-central-1",
+				}: endpoint{
+					Hostname: "bedrock-runtime-fips.ca-central-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Region: "ca-central-1",
 					},
 				},
 				endpointKey{
@@ -21884,6 +21815,9 @@ var awsPartition = partition{
 					Region: "ca-central-1",
 				}: endpoint{},
 				endpointKey{
+					Region: "ca-west-1",
+				}: endpoint{},
+				endpointKey{
 					Region: "eu-central-1",
 				}: endpoint{},
 				endpointKey{
@@ -25440,6 +25374,9 @@ var awsPartition = partition{
 					},
 					Deprecated: boxedTrue,
 				},
+				endpointKey{
+					Region: "me-central-1",
+				}: endpoint{},
 				endpointKey{
 					Region: "sa-east-1",
 				}: endpoint{},
@@ -36361,16 +36298,6 @@ var awscnPartition = partition{
 				}: endpoint{},
 			},
 		},
-		"backupstorage": service{
-			Endpoints: serviceEndpoints{
-				endpointKey{
-					Region: "cn-north-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "cn-northwest-1",
-				}: endpoint{},
-			},
-		},
 		"batch": service{
 			Endpoints: serviceEndpoints{
 				endpointKey{
@@ -39140,16 +39067,6 @@ var awsusgovPartition = partition{
 				}: endpoint{},
 			},
 		},
-		"backupstorage": service{
-			Endpoints: serviceEndpoints{
-				endpointKey{
-					Region: "us-gov-east-1",
-				}: endpoint{},
-				endpointKey{
-					Region: "us-gov-west-1",
-				}: endpoint{},
-			},
-		},
 		"batch": service{
 			Defaults: endpointDefaults{
 				defaultKey{}: endpoint{},
@@ -39200,6 +39117,22 @@ var awsusgovPartition = partition{
 		},
 		"bedrock": service{
 			Endpoints: serviceEndpoints{
+				endpointKey{
+					Region: "bedrock-fips-us-gov-west-1",
+				}: endpoint{
+					Hostname: "bedrock-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
+				endpointKey{
+					Region: "bedrock-runtime-fips-us-gov-west-1",
+				}: endpoint{
+					Hostname: "bedrock-runtime-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 				endpointKey{
 					Region: "bedrock-runtime-us-gov-west-1",
 				}: endpoint{
@@ -43782,6 +43715,46 @@ var awsusgovPartition = partition{
 					Variant: fipsVariant,
 				}: endpoint{
 					Hostname: "securityhub-fips.us-gov-west-1.amazonaws.com",
+				},
+			},
+		},
+		"securitylake": service{
+			Endpoints: serviceEndpoints{
+				endpointKey{
+					Region: "us-gov-east-1",
+				}: endpoint{},
+				endpointKey{
+					Region:  "us-gov-east-1",
+					Variant: fipsVariant,
+				}: endpoint{
+					Hostname: "securitylake.us-gov-east-1.amazonaws.com",
+				},
+				endpointKey{
+					Region: "us-gov-east-1-fips",
+				}: endpoint{
+					Hostname: "securitylake.us-gov-east-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Region: "us-gov-east-1",
+					},
+					Deprecated: boxedTrue,
+				},
+				endpointKey{
+					Region: "us-gov-west-1",
+				}: endpoint{},
+				endpointKey{
+					Region:  "us-gov-west-1",
+					Variant: fipsVariant,
+				}: endpoint{
+					Hostname: "securitylake.us-gov-west-1.amazonaws.com",
+				},
+				endpointKey{
+					Region: "us-gov-west-1-fips",
+				}: endpoint{
+					Hostname: "securitylake.us-gov-west-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Region: "us-gov-west-1",
+					},
+					Deprecated: boxedTrue,
 				},
 			},
 		},
