@@ -86,11 +86,12 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	// The Linode Metadata Service requires userdata to be base64-encoded
 	// when it is uploaded, so we will have to decode the response.
 	data := make([]byte, base64.StdEncoding.DecodedLen(len(encoded)))
-	if _, err := base64.StdEncoding.Decode(data, encoded); err != nil {
+	n, err := base64.StdEncoding.Decode(data, encoded)
+	if err != nil {
 		return types.Config{}, report.Report{}, fmt.Errorf("decode base64: %w", err)
 	}
 
-	return util.ParseConfig(f.Logger, data)
+	return util.ParseConfig(f.Logger, data[:n])
 }
 
 // defaultTokenTTL is the time-to-live (TTL; in seconds) for an authorization

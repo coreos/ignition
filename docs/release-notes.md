@@ -14,6 +14,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- Fix Akamai Ignition base64 decoding on padded payloads
 
 ## Ignition 2.19.0 (2024-06-05)
 
