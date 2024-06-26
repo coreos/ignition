@@ -35,6 +35,7 @@ import (
 	_ "github.com/coreos/ignition/v2/internal/providers/openstack"
 	_ "github.com/coreos/ignition/v2/internal/providers/packet"
 	_ "github.com/coreos/ignition/v2/internal/providers/powervs"
+	_ "github.com/coreos/ignition/v2/internal/providers/proxmoxve"
 	_ "github.com/coreos/ignition/v2/internal/providers/qemu"
 	_ "github.com/coreos/ignition/v2/internal/providers/scaleway"
 	_ "github.com/coreos/ignition/v2/internal/providers/virtualbox"
