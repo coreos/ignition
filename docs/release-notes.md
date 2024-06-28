@@ -10,7 +10,11 @@ nav_order: 9
 
 ### Features
 
+- Support partitioning disk with mounted partitions
+
 ### Changes
+
+- The Dracut module now installs partx
 
 ### Bug fixes
 
