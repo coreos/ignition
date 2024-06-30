@@ -4,7 +4,7 @@ nav_order: 8
 
 # Supported Platforms
 
-Ignition is currently only supported for the following platforms:
+Ignition is currently supported for the following platforms:
 
 * [Akamai Connected Cloud] (`akamai`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys and network configuration are handled separately.
 * [Alibaba Cloud] (`aliyun`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
