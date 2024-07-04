@@ -39,6 +39,7 @@ install() {
         mkfs.fat \
         mkfs.xfs \
         mkswap \
+        partx \
         sgdisk \
         useradd \
         userdel \

@@ -36,6 +36,7 @@ var (
 	groupdelCmd  = "groupdel"
 	mdadmCmd     = "mdadm"
 	mountCmd     = "mount"
+	partxCmd     = "partx"
 	sgdiskCmd    = "sgdisk"
 	modprobeCmd  = "modprobe"
 	udevadmCmd   = "udevadm"
@@ -92,6 +93,7 @@ func GroupaddCmd() string  { return groupaddCmd }
 func GroupdelCmd() string  { return groupdelCmd }
 func MdadmCmd() string     { return mdadmCmd }
 func MountCmd() string     { return mountCmd }
+func PartxCmd() string     { return partxCmd }
 func SgdiskCmd() string    { return sgdiskCmd }
 func ModprobeCmd() string  { return modprobeCmd }
 func UdevadmCmd() string   { return udevadmCmd }
