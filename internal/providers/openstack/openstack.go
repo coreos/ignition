@@ -43,6 +43,15 @@ const (
 	configDriveUserdataPath = "/openstack/latest/user_data"
 )
 
+// TODO: Find a better var name
+var (
+	singleStackMetadataServiceUrl = url.URL{
+		Scheme: "http",
+		Host:   "fe80::a9fe:a9fe",
+		Path:   "openstack/latest/user_data",
+	}
+)
+
 var (
 	metadataServiceUrl = url.URL{
 		Scheme: "http",
@@ -107,6 +116,11 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		return fetchConfigFromMetadataService(f)
 	})
 
+	// TODO: logic to fetch only for OpenStack single-stack IPv6
+	dispatch("metadata service", func() ([]byte, error) {
+		return fetchConfigFromSinglestackMetadataService(f)
+	})
+
 Loop:
 	for {
 		select {
@@ -168,6 +182,19 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 
 func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{})
+
+	// the metadata server exists but doesn't contain any actual metadata,
+	// assume that there is no config specified
+	if err == resource.ErrNotFound {
+		return nil, nil
+	}
+
+	return res, err
+}
+
+// TODO: Find a better func name
+func fetchConfigFromSinglestackMetadataService(f *resource.Fetcher) ([]byte, error) {
+	res, err := f.FetchToBuffer(singleStackMetadataServiceUrl, resource.FetchOptions{})
 
 	// the metadata server exists but doesn't contain any actual metadata,
 	// assume that there is no config specified
