@@ -3,7 +3,7 @@ module github.com/coreos/ignition/v2
 go 1.20
 
 require (
-	cloud.google.com/go/compute/metadata v0.3.0
+	cloud.google.com/go/compute/metadata v0.4.0
 	cloud.google.com/go/storage v1.42.0
 	github.com/aws/aws-sdk-go v1.54.11
 	github.com/beevik/etree v1.4.0
