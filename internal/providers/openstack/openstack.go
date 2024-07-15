@@ -22,6 +22,7 @@ package openstack
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"os/exec"
@@ -44,9 +45,14 @@ const (
 )
 
 var (
-	metadataServiceUrl = url.URL{
+	metadataServiceUrlIPv4 = url.URL{
 		Scheme: "http",
 		Host:   "169.254.169.254",
+		Path:   "openstack/latest/user_data",
+	}
+	metadataServiceUrlIPv6 = url.URL{
+		Scheme: "http",
+		Host:   "[fe80::a9fe:a9fe%]",
 		Path:   "openstack/latest/user_data",
 	}
 )
@@ -166,14 +172,75 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 	return os.ReadFile(filepath.Join(mnt, configDriveUserdataPath))
 }
 
-func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
-	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{})
+// checks if the given IP is an IPv6 address.
+func isIPv6Address(ip net.IP) bool {
+	isIPv6 := ip.To4() == nil
+	return isIPv6
+}
 
-	// the metadata server exists but doesn't contain any actual metadata,
-	// assume that there is no config specified
-	if err == resource.ErrNotFound {
-		return nil, nil
+// findNetworkInterfaceWithIPv6 returns the name of the first network interface with an active IPv6 address.
+// This interface name is needed to format the link-local address for accessing the IPv6 metadata service.
+// For more details, see: https://docs.openstack.org/nova/2024.1/user/metadata.html
+func findNetworkInterfaceWithIPv6() (string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", fmt.Errorf("error fetching network interfaces: %v", err)
 	}
 
-	return res, err
+	for _, iface := range interfaces {
+
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		addrs, err := iface.Addrs()
+		if err != nil {
+			fmt.Printf("Error fetching addresses for interface %s: %v\n", iface.Name, err)
+			continue
+		}
+
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok && isIPv6Address(ipnet.IP) {
+				return iface.Name, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("no active IPv6 network interface found")
+}
+
+// Fetches configuration from IPv4 and IPv6 metadata services
+func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
+	var ipv4Res, ipv6Res []byte
+	var ipv4Err, ipv6Err error
+
+	// Try fetching from IPv4 first
+	ipv4Res, ipv4Err = f.FetchToBuffer(metadataServiceUrlIPv4, resource.FetchOptions{})
+	if ipv4Err == nil {
+		fmt.Println("Successfully fetched configuration from IPv4.")
+		return ipv4Res, nil
+	}
+	fmt.Printf("IPv4 fetch failed: %v. Attempting to fetch from IPv6...\n", ipv4Err)
+
+	// If IPv4 fails, find the network interface for IPv6
+	interfaceName, err := findNetworkInterfaceWithIPv6()
+	if err != nil {
+		fmt.Printf("IPv6 metadata service lookup failed: %v\n", err)
+		return nil, fmt.Errorf("both IPv4 and IPv6 lookup failed")
+	}
+
+	// Prepare the IPv6 metadata service URL
+	metadataServiceUrlIPv6.Host = fmt.Sprintf("[%s%s]", "fe80::a9fe:a9fe%", interfaceName)
+	metadataServiceUrlIPv6Str := fmt.Sprintf("http://[%s%s]/openstack/latest/user_data", metadataServiceUrlIPv6.Host, interfaceName)
+	fmt.Printf("Fetching from IPv6 metadata service at %s...\n", metadataServiceUrlIPv6Str)
+
+	// Try to fetch from IPv6
+	fmt.Printf("Attempting to fetch from IPv6 metadata service at: %s\n", metadataServiceUrlIPv6Str)
+
+	ipv6Res, ipv6Err = f.FetchToBuffer(metadataServiceUrlIPv6, resource.FetchOptions{})
+	if ipv6Err != nil {
+		return nil, fmt.Errorf("IPv4 and IPv6 services failed")
+	}
+
+	fmt.Println("Successfully fetched configuration from IPv6.")
+	return ipv6Res, nil
 }
