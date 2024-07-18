@@ -68,7 +68,7 @@ To create files, directories or symlinks in `/proc`, `/sys` or `/dev`, you shoul
 
 Similarly, to makes changes under the `/tmp` or `/run` paths, you should use [tmpfiles.d config files](https://www.mankier.com/5/tmpfiles.d).
 
-...
+These directories are managed by system services (sysctl, udev, and systemd). Changes under the directories must come from the services' configuration. Otherwise, the services are not aware of the changes, and may ignore or overwrite them.
 
 ## SELinux
 
