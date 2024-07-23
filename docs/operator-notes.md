@@ -68,7 +68,7 @@ To create files, directories or symlinks in `/proc`, `/sys` or `/dev`, you shoul
 
 Similarly, to make changes under the `/tmp` or `/run` paths, you should use [tmpfiles.d config files](https://www.mankier.com/5/tmpfiles.d).
 
-Those directories are managed by system services (systemd, udev, etc.). Changes under those directories should come from the services' configuration. Otherwise, those services will not be aware of those changes, and may ignore or overwrite them.
+Those paths are expected to be mount points for temporary (`/tmp`) or virtual (`/proc`, `/sys`, `/dev`) filesystems and at the time Ignition runs, none of those paths are mounted. Using Ignition to write to those paths will thus not have the desired effect.
 
 ## SELinux
 
