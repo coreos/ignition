@@ -24,6 +24,7 @@ Ignition is currently supported for the following platforms:
 * Bare Metal (`metal`) - Use the `ignition.config.url` kernel parameter to provide a URL to the configuration. The URL can use the `http://`, `https://`, `tftp://`, `s3://`, `arn:`, or `gs://` schemes to specify a remote config.
 * [Nutanix] (`nutanix`) - Ignition will read its configuration from the instance userdata via config drive. Cloud SSH keys are handled separately.
 * [OpenStack] (`openstack`) - Ignition will read its configuration from the instance userdata via either metadata service or config drive. Cloud SSH keys are handled separately.
+* [Proxmox VE] (`proxmoxve`) - Ignition will read its configuration from the instance userdata via config drive. Cloud SSH keys are handled separately.
 * [Equinix Metal] (`packet`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [IBM Power Systems Virtual Server] (`powervs`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [QEMU] (`qemu`) - Ignition will read its configuration from the 'opt/com.coreos/config' key on the QEMU Firmware Configuration Device (available in QEMU 2.4.0 and higher).
@@ -54,6 +55,7 @@ For most cloud providers, cloud SSH keys and custom network configuration are ha
 [KubeVirt]: https://kubevirt.io
 [Nutanix]: https://www.nutanix.com/products/ahv
 [OpenStack]: https://www.openstack.org/
+[Proxmox VE]: https://www.proxmox.com/en/proxmox-virtual-environment/overview
 [Equinix Metal]: https://metal.equinix.com/product/
 [IBM Power Systems Virtual Server]: https://www.ibm.com/products/power-virtual-server
 [QEMU]: https://www.qemu.org/
