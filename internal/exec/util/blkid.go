@@ -142,7 +142,7 @@ func CBufToGoPtr(s [C.PART_INFO_BUF_SIZE]C.char) *string {
 	return util.StrToPtr(CBufToGoStr(s))
 }
 
-// DumpPartitionTable returns a list of all partitions on device (e.g. /dev/vda). The list
+// DumpDisk returns a list of all partitions on device (e.g. /dev/vda). The list
 // of partitions returned is unordered.
 func DumpDisk(device string) (DiskInfo, error) {
 	output := DiskInfo{}
