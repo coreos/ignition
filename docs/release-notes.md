@@ -13,6 +13,8 @@ Starting with this release, ignition-validate binaries are signed with the
 
 ### Features
 
+- Add Azure blob support for fetching ignition configs
+
 ### Changes
 
 ### Bug fixes

@@ -17,6 +17,7 @@ package resource
 import (
 	"compress/gzip"
 	"crypto/sha512"
+	"fmt"
 	"net/url"
 	"reflect"
 	"testing"
@@ -337,4 +338,61 @@ func TestParseARN(t *testing.T) {
 		assert.Equal(t, test.region, region, "#%d: bad region", i)
 		assert.Equal(t, test.regionHint, regionHint, "#%d: bad region hint", i)
 	}
+}
+
+func TestParseAzureStorageUrl(t *testing.T) {
+	tests := []struct {
+		url            url.URL
+		storageAccount string
+		container      string
+		file           string
+		err            error
+	}{
+		{
+			url: url.URL{
+				Scheme: "https",
+				Host:   "example.blob.core.windows.net",
+				Path:   "/my-container/file.ign",
+			},
+			storageAccount: "https://example.blob.core.windows.net/",
+			container:      "my-container",
+			file:           "file.ign",
+			err:            nil,
+		},
+		{
+			url: url.URL{
+				Scheme: "https",
+				Host:   "example.blob.core.windows.net",
+				Path:   "/invalid-url",
+			},
+			storageAccount: "",
+			container:      "",
+			file:           "",
+			err:            fmt.Errorf("invalid URL path, ensure url has a structure of /container/filename.ign: /invalid-url"),
+		},
+		{
+			url: url.URL{
+				Scheme: "https",
+				Host:   "example.blob.core.windows.net",
+				Path:   "/invalid-url/another-blob/myfile.ign",
+			},
+			storageAccount: "",
+			container:      "",
+			file:           "",
+			err:            fmt.Errorf("invalid URL path, ensure url has a structure of /container/filename.ign: /invalid-url/another-blob/myfile.ign"),
+		},
+	}
+
+	logger := log.New(true)
+	f := Fetcher{
+		Logger: &logger,
+	}
+	for i, test := range tests {
+		storageAccount, container, file, err := f.parseAzureStorageUrl(test.url)
+		assert.Equal(t, test.err, err, "#%d: bad err", i)
+		assert.Equal(t, test.storageAccount, storageAccount, "#%d: bad storageAccount", i)
+		assert.Equal(t, test.container, container, "#%d: bad container", i)
+		assert.Equal(t, test.file, file, "#%d: bad file", i)
+	}
+
 }
