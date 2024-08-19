@@ -39,6 +39,8 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -149,7 +151,11 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 	dest := new(bytes.Buffer)
 	switch u.Scheme {
 	case "http", "https":
-		err = f.fetchFromHTTP(u, dest, opts)
+		if strings.HasSuffix(u.Host, ".blob.core.windows.net") {
+			err = f.fetchFromAzureBlob(u, dest, opts)
+		} else {
+			err = f.fetchFromHTTP(u, dest, opts)
+		}
 	case "tftp":
 		err = f.fetchFromTFTP(u, dest, opts)
 	case "data":
@@ -210,6 +216,9 @@ func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
 
 	switch u.Scheme {
 	case "http", "https":
+		if strings.HasSuffix(u.Host, ".blob.core.windows.net") {
+			return f.fetchFromAzureBlob(u, dest, opts)
+		}
 		return f.fetchFromHTTP(u, dest, opts)
 	case "tftp":
 		return f.fetchFromTFTP(u, dest, opts)
@@ -552,6 +561,39 @@ func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest s3target, input
 		return err
 	}
 	return nil
+}
+
+func (f *Fetcher) fetchFromAzureBlob(u url.URL, dest io.Writer, opts FetchOptions) error {
+	// Read about NewDefaultAzureCredential https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#DefaultAzureCredential
+	// DefaultAzureCredential is a default credential chain for applications deployed to azure.
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		return fmt.Errorf("failed to obtain Azure credential: %w", err)
+	}
+
+	ctx := context.Background()
+
+	// breakdown the url into 3 objects
+	// storage account url
+	// blob
+	// file
+	storageAccount := fmt.Sprintf("%s://%s/", u.Scheme, u.Host)
+
+	pathSegments := strings.Split(strings.Trim(u.Path, "/"), "/")
+	container := pathSegments[0]
+	file := pathSegments[1]
+
+	storageClient, err := azblob.NewClient(storageAccount, cred, nil)
+	if err != nil {
+		return fmt.Errorf("failed create azblob client %w", err)
+	}
+
+	downloadStream, err := storageClient.DownloadStream(ctx, container, file, nil)
+	if err != nil {
+		return fmt.Errorf("failed to download blob %w", err)
+	}
+
+	return f.decompressCopyHashAndVerify(dest, downloadStream.Body, opts)
 }
 
 // uncompress will wrap the given io.Reader in a decompresser specified in the

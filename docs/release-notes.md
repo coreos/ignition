@@ -12,6 +12,7 @@ nav_order: 9
 
 - Support partitioning disk with mounted partitions
 - Support Proxmox VE
+- Add Azure blob support for fetching ignition configs
 
 ### Changes
 
