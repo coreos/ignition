@@ -76,7 +76,7 @@ func DetectDefault(opts *DetectOptions) (*auth.Credentials, error) {
 	if err := opts.validate(); err != nil {
 		return nil, err
 	}
-	if opts.CredentialsJSON != nil {
+	if len(opts.CredentialsJSON) > 0 {
 		return readCredentialsFileJSON(opts.CredentialsJSON, opts)
 	}
 	if opts.CredentialsFile != "" {
@@ -190,7 +190,7 @@ func (o *DetectOptions) client() *http.Client {
 	if o.Client != nil {
 		return o.Client
 	}
-	return internal.CloneDefaultClient()
+	return internal.DefaultClient()
 }
 
 func readCredentialsFile(filename string, opts *DetectOptions) (*auth.Credentials, error) {
