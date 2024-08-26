@@ -30,6 +30,7 @@ import (
 	"strconv"
 	"strings"
 
+	sharedErrors "github.com/coreos/ignition/v2/config/shared/errors"
 	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
@@ -177,7 +178,7 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 		return nil, err
 	}
 
-	realDimensions, err := parseSgdiskPretend(output, partitionsToInspect)
+	realDimensions, err := parseSfdiskPretend(output, partitionsToInspect)
 	if err != nil {
 		return nil, err
 	}
@@ -279,6 +280,64 @@ func parseSgdiskPretend(sgdiskOut string, partitionNumbers []int) (map[int]sgdis
 	if state != FAIL_ON_START_END {
 		// We stopped parsing in the middle of a info block. Something is wrong
 		return nil, ErrBadSgdiskOutput
+	}
+
+	return output, nil
+}
+
+type sfdiskOutput struct {
+	start int64
+	size  int64
+}
+
+// ParsePretend takes the output from sfdisk running with the argument --no-act. Similar to sgdisk
+// it then uses regex to parse the output into understood values like 'start' 'size' and attempts
+// to catch any failures and wrap them to return to the caller.
+func parseSfdiskPretend(sfdiskOut string, partitionNumbers []int) (map[int]sfdiskOutput, error) {
+	if len(partitionNumbers) == 0 {
+		return nil, nil
+	}
+
+	// Prepare the data, and a regex for matching on partitions
+	partitionRegex := regexp.MustCompile(`^/dev/\S+\s+\S*\s+(\d+)\s+(\d+)\s+\d+\s+\S+\s+\S+\s+\S+.*$`)
+	output := map[int]sfdiskOutput{}
+	current := sfdiskOutput{}
+	i := 0
+	lines := strings.Split(sfdiskOut, "\n")
+	for _, line := range lines {
+		matches := partitionRegex.FindStringSubmatch(line)
+
+		// Sanity check number of partition entries
+		if i > len(partitionNumbers) {
+			return nil, sharedErrors.ErrBadSfdiskPretend
+		}
+
+		// Verify that we are not reading a 'failed' or 'error'
+		errorRegex := regexp.MustCompile(`(?i)(failed|error)`)
+		if errorRegex.MatchString(line) {
+			return nil, fmt.Errorf("%w: sfdisk returned :%v", sharedErrors.ErrBadSfdiskPretend, line)
+		}
+
+		// When we get a match it should be
+		// Whole line at [0]
+		// Start at [1]
+		// Size at [2]
+		if len(matches) > 1 {
+			start, err := strconv.Atoi(matches[1])
+			if err != nil {
+				return nil, err
+			}
+			end, err := strconv.Atoi(matches[2])
+			if err != nil {
+				return nil, err
+			}
+
+			current.start = int64(start)
+			// Add one due to overlap
+			current.size = int64(end - start + 1)
+			output[partitionNumbers[i]] = current
+			i++
+		}
 	}
 
 	return output, nil
