@@ -34,12 +34,12 @@ import (
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
-	"github.com/coreos/ignition/v2/internal/sgdisk"
+	"github.com/coreos/ignition/v2/internal/sfdisk"
 	iutil "github.com/coreos/ignition/v2/internal/util"
 )
 
 var (
-	ErrBadSgdiskOutput = errors.New("sgdisk had unexpected output")
+	ErrBadsfdiskOutput = errors.New("sfdisk had unexpected output")
 )
 
 // createPartitions creates the partitions described in config.Storage.Disks.
@@ -75,7 +75,7 @@ func (s stage) createPartitions(config types.Config) error {
 
 // partitionMatches determines if the existing partition matches the spec given. See doc/operator notes for what
 // what it means for an existing partition to match the spec. spec must have non-zero Start and Size.
-func partitionMatches(existing util.PartitionInfo, spec sgdisk.Partition) error {
+func partitionMatches(existing util.PartitionInfo, spec sfdisk.Partition) error {
 	if err := partitionMatchesCommon(existing, spec); err != nil {
 		return err
 	}
@@ -87,13 +87,13 @@ func partitionMatches(existing util.PartitionInfo, spec sgdisk.Partition) error 
 
 // partitionMatchesResize returns if the existing partition should be resized by evaluating if
 // `resize`field is true and partition matches in all respects except size.
-func partitionMatchesResize(existing util.PartitionInfo, spec sgdisk.Partition) bool {
+func partitionMatchesResize(existing util.PartitionInfo, spec sfdisk.Partition) bool {
 	return cutil.IsTrue(spec.Resize) && partitionMatchesCommon(existing, spec) == nil
 }
 
 // partitionMatchesCommon handles the common tests (excluding the partition size) to determine
 // if the existing partition matches the spec given.
-func partitionMatchesCommon(existing util.PartitionInfo, spec sgdisk.Partition) error {
+func partitionMatchesCommon(existing util.PartitionInfo, spec sfdisk.Partition) error {
 	if spec.Number != existing.Number {
 		return fmt.Errorf("partition numbers did not match (specified %d, got %d). This should not happen, please file a bug.", spec.Number, existing.Number)
 	}
@@ -113,7 +113,7 @@ func partitionMatchesCommon(existing util.PartitionInfo, spec sgdisk.Partition) 
 }
 
 // partitionShouldBeInspected returns if the partition has zeroes that need to be resolved to sectors.
-func partitionShouldBeInspected(part sgdisk.Partition) bool {
+func partitionShouldBeInspected(part sfdisk.Partition) bool {
 	if part.Number == 0 {
 		return false
 	}
@@ -131,19 +131,19 @@ func convertMiBToSectors(mib *int, sectorSize int) *int64 {
 }
 
 // getRealStartAndSize returns a map of partition numbers to a struct that contains what their real start
-// and end sector should be. It runs sgdisk --pretend to determine what the partitions would look like if
+// and end sector should be. It runs sfdisk --pretend to determine what the partitions would look like if
 // everything specified were to be (re)created.
-func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo util.DiskInfo) ([]sgdisk.Partition, error) {
-	partitions := []sgdisk.Partition{}
+func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo util.DiskInfo) ([]sfdisk.Partition, error) {
+	partitions := []sfdisk.Partition{}
 	for _, cpart := range dev.Partitions {
-		partitions = append(partitions, sgdisk.Partition{
+		partitions = append(partitions, sfdisk.Partition{
 			Partition:     cpart,
 			StartSector:   convertMiBToSectors(cpart.StartMiB, diskInfo.LogicalSectorSize),
 			SizeInSectors: convertMiBToSectors(cpart.SizeMiB, diskInfo.LogicalSectorSize),
 		})
 	}
 
-	op := sgdisk.Begin(s.Logger, devAlias)
+	op := sfdisk.Begin(s.Logger, devAlias)
 	for _, part := range partitions {
 		if info, exists := diskInfo.GetPartition(part.Number); exists {
 			// delete all existing partitions
@@ -157,7 +157,7 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 			}
 		}
 		if partitionShouldExist(part) {
-			// Clear the label. sgdisk doesn't escape control characters. This makes parsing easier
+			// Clear the label. sfdisk doesn't escape control characters. This makes parsing easier
 			part.Label = nil
 			op.CreatePartition(part)
 		}
@@ -177,12 +177,12 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 		return nil, err
 	}
 
-	realDimensions, err := parseSgdiskPretend(output, partitionsToInspect)
+	realDimensions, err := parsesfdiskPretend(output, partitionsToInspect)
 	if err != nil {
 		return nil, err
 	}
 
-	result := []sgdisk.Partition{}
+	result := []sfdisk.Partition{}
 	for _, part := range partitions {
 		if dims, ok := realDimensions[part.Number]; ok {
 			if part.StartSector != nil {
@@ -197,7 +197,7 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 	return result, nil
 }
 
-type sgdiskOutput struct {
+type sfdiskOutput struct {
 	start int64
 	size  int64
 }
@@ -213,17 +213,17 @@ func parseLine(r *regexp.Regexp, line string) (int64, error) {
 	case 2:
 		return strconv.ParseInt(matches[1], 10, 64)
 	default:
-		return 0, ErrBadSgdiskOutput
+		return 0, ErrBadsfdiskOutput
 	}
 }
 
-// parseSgdiskPretend parses the output of running sgdisk pretend with --info specified for each partition
-// number specified in partitionNumbers. E.g. if paritionNumbers is [1,4,5], it is expected that the sgdisk
-// output was from running `sgdisk --pretend <commands> --info=1 --info=4 --info=5`. It assumes the the
+// parsesfdiskPretend parses the output of running sfdisk pretend with --info specified for each partition
+// number specified in partitionNumbers. E.g. if paritionNumbers is [1,4,5], it is expected that the sfdisk
+// output was from running `sfdisk --pretend <commands> --info=1 --info=4 --info=5`. It assumes the the
 // partition labels are well behaved (i.e. contain no control characters). It returns a list of partitions
-// matching the partition numbers specified, but with the start and size information as determined by sgdisk.
-// The partition numbers need to passed in because sgdisk includes them in its output.
-func parseSgdiskPretend(sgdiskOut string, partitionNumbers []int) (map[int]sgdiskOutput, error) {
+// matching the partition numbers specified, but with the start and size information as determined by sfdisk.
+// The partition numbers need to passed in because sfdisk includes them in its output.
+func parsesfdiskPretend(sfdiskOut string, partitionNumbers []int) (map[int]sfdiskOutput, error) {
 	if len(partitionNumbers) == 0 {
 		return nil, nil
 	}
@@ -235,12 +235,12 @@ func parseSgdiskPretend(sgdiskOut string, partitionNumbers []int) (map[int]sgdis
 		FAIL_ON_START_END = iota
 	)
 
-	output := map[int]sgdiskOutput{}
+	output := map[int]sfdiskOutput{}
 	state := START
-	current := sgdiskOutput{}
+	current := sfdiskOutput{}
 	i := 0
 
-	lines := strings.Split(sgdiskOut, "\n")
+	lines := strings.Split(sfdiskOut, "\n")
 	for _, line := range lines {
 		switch state {
 		case START:
@@ -264,21 +264,21 @@ func parseSgdiskPretend(sgdiskOut string, partitionNumbers []int) (map[int]sgdis
 				if i == len(partitionNumbers) {
 					state = FAIL_ON_START_END
 				} else {
-					current = sgdiskOutput{}
+					current = sfdiskOutput{}
 					state = START
 				}
 			}
 		case FAIL_ON_START_END:
 			if len(startRegex.FindStringSubmatch(line)) != 0 ||
 				len(endRegex.FindStringSubmatch(line)) != 0 {
-				return nil, ErrBadSgdiskOutput
+				return nil, ErrBadsfdiskOutput
 			}
 		}
 	}
 
 	if state != FAIL_ON_START_END {
 		// We stopped parsing in the middle of a info block. Something is wrong
-		return nil, ErrBadSgdiskOutput
+		return nil, ErrBadsfdiskOutput
 	}
 
 	return output, nil
@@ -286,7 +286,7 @@ func parseSgdiskPretend(sgdiskOut string, partitionNumbers []int) (map[int]sgdis
 
 // partitionShouldExist returns whether a bool is indicating if a partition should exist or not.
 // nil (unspecified in json) is treated the same as true.
-func partitionShouldExist(part sgdisk.Partition) bool {
+func partitionShouldExist(part sfdisk.Partition) bool {
 	return !cutil.IsFalse(part.ShouldExist)
 }
 
@@ -438,14 +438,14 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		return fmt.Errorf("refusing to operate on directly active disk %q", devAlias)
 	}
 	if cutil.IsTrue(dev.WipeTable) {
-		op := sgdisk.Begin(s.Logger, devAlias)
+		op := sfdisk.Begin(s.Logger, devAlias)
 		s.Logger.Info("wiping partition table requested on %q", devAlias)
 		if len(activeParts) > 0 {
 			return fmt.Errorf("refusing to wipe active disk %q", devAlias)
 		}
 		op.WipeTable(true)
 		if err := op.Commit(); err != nil {
-			// `sgdisk --zap-all` will exit code 2 if the table was corrupted; retry it
+			// `sfdisk --zap-all` will exit code 2 if the table was corrupted; retry it
 			// https://github.com/coreos/fedora-coreos-tracker/issues/1596
 			s.Logger.Info("potential error encountered while wiping table... retrying")
 			if err := op.Commit(); err != nil {
@@ -457,7 +457,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 	// Ensure all partitions with number 0 are last
 	sort.Stable(PartitionList(dev.Partitions))
 
-	op := sgdisk.Begin(s.Logger, devAlias)
+	op := sfdisk.Begin(s.Logger, devAlias)
 
 	diskInfo, err := s.getPartitionMap(devAlias)
 	if err != nil {
@@ -542,7 +542,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		return fmt.Errorf("commit failure: %v", err)
 	}
 
-	// In contrast to similar tools, sgdisk does not trigger the update of the
+	// In contrast to similar tools, sfdisk does not trigger the update of the
 	// kernel partition table with BLKPG but only uses BLKRRPART which fails
 	// as soon as one partition of the disk is mounted
 	if len(activeParts) > 0 {
