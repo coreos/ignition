@@ -23,7 +23,7 @@ import (
 	"hash"
 	"strings"
 
-	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 )
 
 var (
