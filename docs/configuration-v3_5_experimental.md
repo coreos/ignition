@@ -155,7 +155,7 @@ The Ignition configuration is a JSON document conforming to the following specif
         * **config** (string): the clevis configuration JSON.
         * **_needsNetwork_** (boolean): whether or not the device requires networking.
     * **_cex_** (object): describes the IBM Crypto Express (CEX) card configuration for the luks device.
-      * **_enabled_** (boolean): whether or not to use a CEX secure key to encrypt the luks device.
+      * **_enabled_** (boolean): whether or not to enable cex compatibility for luks. If omitted, defaults to false.
 * **_systemd_** (object): describes the desired state of the systemd units.
   * **_units_** (list of objects): the list of systemd units. Every unit must have a unique `name`.
     * **name** (string): the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service").
