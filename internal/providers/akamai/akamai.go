@@ -91,7 +91,14 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		return types.Config{}, report.Report{}, fmt.Errorf("decode base64: %w", err)
 	}
 
-	return util.ParseConfig(f.Logger, data[:n])
+	// The Linode Metadata Service can compress userdata.
+	// We have to gunzip if needed.
+	unzipData, err := util.TryUnzip(data[:n])
+	if err != nil {
+		return types.Config{}, report.Report{}, fmt.Errorf("unzip: %w", err)
+	}
+
+	return util.ParseConfig(f.Logger, unzipData)
 }
 
 // defaultTokenTTL is the time-to-live (TTL; in seconds) for an authorization
