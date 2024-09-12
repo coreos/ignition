@@ -13,7 +13,13 @@ After=ignition-disks.service
 Before=ignition-files.service
 
 # Make sure ExecStop= runs before we switch root
+# and that we order ourselves after network such that
+# if networking is brought up it will still be available
+# for our ExecStop= command. On some providers like Equinix
+# Metal (Packet) there is a network callback sent out
+# for each Ignition stage (including umount).
 Before=initrd-switch-root.target
+After=network.target
 
 OnFailure=emergency.target
 OnFailureJobMode=isolate
