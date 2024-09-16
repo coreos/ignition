@@ -20,6 +20,7 @@ nav_order: 9
 ### Bug fixes
 
 - Fix Akamai Ignition base64 decoding on padded payloads
+- Fix Makefile GOARCH for loongarch64 ([#1942](https://github.com/coreos/ignition/pull/1942))
 
 ## Ignition 2.19.0 (2024-06-05)
 
