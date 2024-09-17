@@ -15,35 +15,31 @@
 package sgdisk
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/partitioners"
+)
+
+var (
+	ErrBadSgdiskOutput = errors.New("sgdisk had unexpected output")
 )
 
 type Operation struct {
 	logger    *log.Logger
 	dev       string
 	wipe      bool
-	parts     []Partition
+	parts     []partitioners.Partition
 	deletions []int
 	infos     []int
-}
-
-// We ignore types.Partition.StartMiB/SizeMiB in favor of
-// StartSector/SizeInSectors.  The caller is expected to do the conversion.
-type Partition struct {
-	types.Partition
-	StartSector   *int64
-	SizeInSectors *int64
-
-	// shadow StartMiB/SizeMiB so they're not accidentally used
-	StartMiB string
-	SizeMiB  string
 }
 
 // Begin begins an sgdisk operation
@@ -52,7 +48,7 @@ func Begin(logger *log.Logger, dev string) *Operation {
 }
 
 // CreatePartition adds the supplied partition to the list of partitions to be created as part of an operation.
-func (op *Operation) CreatePartition(p Partition) {
+func (op *Operation) CreatePartition(p partitioners.Partition) {
 	op.parts = append(op.parts, p)
 }
 
@@ -125,6 +121,88 @@ func (op *Operation) Commit() error {
 	return nil
 }
 
+// ParseOutput parses the output of running sgdisk pretend with --info specified for each partition
+// number specified in partitionNumbers. E.g. if paritionNumbers is [1,4,5], it is expected that the sgdisk
+// output was from running `sgdisk --pretend <commands> --info=1 --info=4 --info=5`. It assumes the the
+// partition labels are well behaved (i.e. contain no control characters). It returns a list of partitions
+// matching the partition numbers specified, but with the start and size information as determined by sgdisk.
+// The partition numbers need to passed in because sgdisk includes them in its output.
+func (op *Operation) ParseOutput(sgdiskOutput string, partitionNumbers []int) (map[int]partitioners.Output, error) {
+	if len(partitionNumbers) == 0 {
+		return nil, nil
+	}
+	startRegex := regexp.MustCompile(`^First sector: (\d*) \(.*\)$`)
+	endRegex := regexp.MustCompile(`^Last sector: (\d*) \(.*\)$`)
+	const (
+		START             = iota
+		END               = iota
+		FAIL_ON_START_END = iota
+	)
+
+	output := map[int]partitioners.Output{}
+	state := START
+	current := partitioners.Output{}
+	i := 0
+
+	lines := strings.Split(sgdiskOutput, "\n")
+	for _, line := range lines {
+		switch state {
+		case START:
+			start, err := parseLine(startRegex, line)
+			if err != nil {
+				return nil, err
+			}
+			if start != -1 {
+				current.Start = start
+				state = END
+			}
+		case END:
+			end, err := parseLine(endRegex, line)
+			if err != nil {
+				return nil, err
+			}
+			if end != -1 {
+				current.Size = 1 + end - current.Start
+				output[partitionNumbers[i]] = current
+				i++
+				if i == len(partitionNumbers) {
+					state = FAIL_ON_START_END
+				} else {
+					current = partitioners.Output{}
+					state = START
+				}
+			}
+		case FAIL_ON_START_END:
+			if len(startRegex.FindStringSubmatch(line)) != 0 ||
+				len(endRegex.FindStringSubmatch(line)) != 0 {
+				return nil, ErrBadSgdiskOutput
+			}
+		}
+	}
+
+	if state != FAIL_ON_START_END {
+		// We stopped parsing in the middle of a info block. Something is wrong
+		return nil, ErrBadSgdiskOutput
+	}
+
+	return output, nil
+}
+
+// parseLine takes a regexp that captures an int64 and a string to match on. On success it returns
+// the captured int64 and nil. If the regexp does not match it returns -1 and nil. If it encountered
+// an error it returns 0 and the error.
+func parseLine(r *regexp.Regexp, line string) (int64, error) {
+	matches := r.FindStringSubmatch(line)
+	switch len(matches) {
+	case 0:
+		return -1, nil
+	case 2:
+		return strconv.ParseInt(matches[1], 10, 64)
+	default:
+		return 0, ErrBadSgdiskOutput
+	}
+}
+
 func (op Operation) buildOptions() []string {
 	opts := []string{}
 
@@ -162,14 +240,14 @@ func (op Operation) buildOptions() []string {
 	return opts
 }
 
-func partitionGetStart(p Partition) string {
+func partitionGetStart(p partitioners.Partition) string {
 	if p.StartSector != nil {
 		return fmt.Sprintf("%d", *p.StartSector)
 	}
 	return "0"
 }
 
-func partitionGetSize(p Partition) string {
+func partitionGetSize(p partitioners.Partition) string {
 	if p.SizeInSectors != nil {
 		return fmt.Sprintf("%d", *p.SizeInSectors)
 	}
