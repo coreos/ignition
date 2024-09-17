@@ -1,4 +1,4 @@
-package disks
+package sfdisk_test
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	internalErrors "github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/internal/partitioners"
+	"github.com/coreos/ignition/v2/internal/partitioners/sfdisk"
 )
 
 func TestPartitionParse(t *testing.T) {
@@ -14,7 +16,7 @@ func TestPartitionParse(t *testing.T) {
 		name             string
 		sfdiskOut        string
 		partitionNumbers []int
-		expectedOutput   map[int]sfdiskOutput
+		expectedOutput   map[int]partitioners.Output
 		expectedError    error
 	}{
 		{
@@ -37,8 +39,8 @@ Device     Boot Start   End Sectors Size Id Type
 /dev/vda1        2048  2057      10   5K 83 Linux
 The partition table is unchanged (--no-act).`,
 			partitionNumbers: []int{1},
-			expectedOutput: map[int]sfdiskOutput{
-				1: {start: 2048, size: 10},
+			expectedOutput: map[int]partitioners.Output{
+				1: {Start: 2048, Size: 10},
 			},
 			expectedError: nil,
 		},
@@ -64,9 +66,9 @@ Device     Boot Start   End Sectors Size Id Type
 /dev/vda2        4096  4105      10   5K 83 Linux
 The partition table is unchanged (--no-act).`,
 			partitionNumbers: []int{1, 2},
-			expectedOutput: map[int]sfdiskOutput{
-				1: {start: 2048, size: 10},
-				2: {start: 4096, size: 10},
+			expectedOutput: map[int]partitioners.Output{
+				1: {Start: 2048, Size: 10},
+				2: {Start: 4096, Size: 10},
 			},
 			expectedError: nil,
 		},
@@ -84,16 +86,16 @@ Failed to add #1 partition: Numerical result out of range
 Leaving.
 `,
 			partitionNumbers: []int{1},
-			expectedOutput: map[int]sfdiskOutput{
-				1: {start: 0, size: 0},
+			expectedOutput: map[int]partitioners.Output{
+				1: {Start: 0, Size: 0},
 			},
 			expectedError: internalErrors.ErrBadSfdiskPretend,
 		},
 	}
-
+	op := sfdisk.Begin(nil, "")
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			output, err := parseSfdiskPretend(tt.sfdiskOut, tt.partitionNumbers)
+			output, err := op.ParseOutput(tt.sfdiskOut, tt.partitionNumbers)
 			if tt.expectedError != nil {
 				if !errors.Is(err, tt.expectedError) {
 					t.Errorf("#%d: bad error: result = %v, expected = %v", i, err, tt.expectedError)
