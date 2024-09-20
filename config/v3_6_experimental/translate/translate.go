@@ -16,8 +16,8 @@ package translate
 
 import (
 	"github.com/coreos/ignition/v2/config/translate"
-	old_types "github.com/coreos/ignition/v2/config/v3_4/types"
-	"github.com/coreos/ignition/v2/config/v3_5/types"
+	old_types "github.com/coreos/ignition/v2/config/v3_5/types"
+	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 )
 
 func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
@@ -27,33 +27,9 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	return
 }
 
-func translateLuks(old old_types.Luks) (ret types.Luks) {
-	tr := translate.NewTranslator()
-	tr.AddCustomTranslator(translateTang)
-	tr.Translate(&old.Clevis, &ret.Clevis)
-	tr.Translate(&old.Device, &ret.Device)
-	tr.Translate(&old.KeyFile, &ret.KeyFile)
-	tr.Translate(&old.Label, &ret.Label)
-	tr.Translate(&old.Name, &ret.Name)
-	tr.Translate(&old.OpenOptions, &ret.OpenOptions)
-	tr.Translate(&old.Options, &ret.Options)
-	tr.Translate(&old.Discard, &ret.Discard)
-	tr.Translate(&old.UUID, &ret.UUID)
-	tr.Translate(&old.WipeVolume, &ret.WipeVolume)
-	return
-}
-
-func translateTang(old old_types.Tang) (ret types.Tang) {
-	tr := translate.NewTranslator()
-	tr.Translate(&old.Thumbprint, &ret.Thumbprint)
-	tr.Translate(&old.URL, &ret.URL)
-	return
-}
-
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
-	tr.AddCustomTranslator(translateLuks)
 	tr.Translate(&old, &ret)
 	return
 }
