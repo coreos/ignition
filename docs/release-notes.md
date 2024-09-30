@@ -11,11 +11,13 @@ nav_order: 9
 ### Features
 
 - Support partitioning disk with mounted partitions
-- Support Proxmox VE
 
 ### Changes
 
 - The Dracut module now installs partx
+- Mark the 3.5.0 config spec as stable
+- No longer accept configs with version 3.5.0-experimental
+- Create new 3.6.0-experimental config spec from 3.5.0
 
 ### Bug fixes
 
