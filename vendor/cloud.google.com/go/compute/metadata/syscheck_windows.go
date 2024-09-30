@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build linux
-// +build linux
+//go:build windows
 
 package metadata
 
 import (
-	"errors"
-	"syscall"
+	"strings"
+
+	"golang.org/x/sys/windows/registry"
 )
 
-func init() {
-	// Initialize syscallRetryable to return true on transient socket-level
-	// errors. These errors are specific to Linux.
-	syscallRetryable = func(err error) bool {
-		return errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.ECONNREFUSED)
+func systemInfoSuggestsGCE() bool {
+	k, err := registry.OpenKey(registry.LOCAL_MACHINE, `SYSTEM\HardwareConfig\Current`, registry.QUERY_VALUE)
+	if err != nil {
+		return false
 	}
+	defer k.Close()
+
+	s, _, err := k.GetStringValue("SystemProductName")
+	if err != nil {
+		return false
+	}
+	s = strings.TrimSpace(s)
+	return strings.HasPrefix(s, "Google")
 }
