@@ -12,6 +12,7 @@ nav_order: 9
 
 - Support partitioning disk with mounted partitions
 - Support Proxmox VE
+- Support gzipped Akamai user_data
 
 ### Changes
 
