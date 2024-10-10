@@ -46,6 +46,7 @@ PKG_VET=$(go list ./... | \
 echo "Checking gofix..."
 # https://github.com/coreos/ignition/issues/1950
 go_version=$(go version | awk '{print $3}')
+echo $go_version
 go tool fix -go="$go_version" -diff $SRC
 
 echo "Checking gofmt..."
