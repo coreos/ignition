@@ -164,7 +164,7 @@ func (s *stage) relabel(paths ...string) {
 // relabelFiles relabels all the files that were marked for relabeling using
 // the libselinux APIs.
 func (s *stage) relabelFiles() error {
-	if s.toRelabel == nil || len(s.toRelabel) == 0 {
+	if len(s.toRelabel) == 0 {
 		return nil
 	}
 

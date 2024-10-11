@@ -100,7 +100,7 @@ func (f *ConfigFetcher) fetchReferencedConfig(cfgRef types.Resource) (types.Conf
 		return types.Config{}, err
 	}
 	var headers http.Header
-	if cfgRef.HTTPHeaders != nil && len(cfgRef.HTTPHeaders) > 0 {
+	if len(cfgRef.HTTPHeaders) > 0 {
 		headers, err = cfgRef.HTTPHeaders.Parse()
 		if err != nil {
 			return types.Config{}, err

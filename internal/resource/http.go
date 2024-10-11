@@ -171,7 +171,7 @@ func (f *Fetcher) getCABlob(ca types.Resource) ([]byte, error) {
 	}
 
 	var headers http.Header
-	if ca.HTTPHeaders != nil && len(ca.HTTPHeaders) > 0 {
+	if len(ca.HTTPHeaders) > 0 {
 		headers, err = ca.HTTPHeaders.Parse()
 		if err != nil {
 			return nil, err

@@ -78,7 +78,7 @@ func newFetchOp(l *log.Logger, node types.Node, contents types.Resource) (FetchO
 	}
 
 	var headers http.Header
-	if contents.HTTPHeaders != nil && len(contents.HTTPHeaders) > 0 {
+	if len(contents.HTTPHeaders) > 0 {
 		headers, err = contents.HTTPHeaders.Parse()
 		if err != nil {
 			return FetchOp{}, err
