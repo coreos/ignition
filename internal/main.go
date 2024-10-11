@@ -89,7 +89,7 @@ func ignitionMain() {
 	logger := log.New(flags.logToStdout)
 	defer logger.Close()
 
-	logger.Info(version.String)
+	logger.Info(version.String) //nolint:govet
 	logger.Info("Stage: %v", flags.stage)
 
 	platformConfig := platform.MustGet(flags.platform.String())
@@ -157,7 +157,7 @@ func ignitionApplyMain() {
 	logger := log.New(true)
 	defer logger.Close()
 
-	logger.Info(version.String)
+	logger.Info(version.String) //nolint:govet
 
 	var blob []byte
 	var err error
@@ -219,7 +219,7 @@ func ignitionRmCfgMain() {
 	logger := log.New(flags.logToStdout)
 	defer logger.Close()
 
-	logger.Info(version.String)
+	logger.Info(version.String) //nolint:govet
 
 	platformConfig := platform.MustGet(flags.platform)
 	fetcher, err := platformConfig.NewFetcher(&logger)
