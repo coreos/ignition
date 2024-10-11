@@ -44,7 +44,7 @@ PKG_VET=$(go list ./... | \
 	grep --invert-match internal/log)
 
 echo "Checking gofix..."
-go tool fix -diff $SRC
+go tool fix -go=go1.20 -diff $SRC
 
 echo "Checking gofmt..."
 res=$(gofmt -d -e -s $SRC)
