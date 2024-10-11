@@ -44,7 +44,8 @@ PKG_VET=$(go list ./... | \
 	grep --invert-match internal/log)
 
 echo "Checking gofix..."
-go tool fix -diff $SRC
+go_version=$(go version | awk '{print $3}')
+go tool fix -go="$go_version" -diff $SRC
 
 echo "Checking gofmt..."
 res=$(gofmt -d -e -s $SRC)
