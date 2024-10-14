@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build linux
-// +build linux
+//go:build !windows && !linux
 
 package metadata
 
-import (
-	"errors"
-	"syscall"
-)
-
-func init() {
-	// Initialize syscallRetryable to return true on transient socket-level
-	// errors. These errors are specific to Linux.
-	syscallRetryable = func(err error) bool {
-		return errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.ECONNREFUSED)
-	}
+// systemInfoSuggestsGCE reports whether the local system (without
+// doing network requests) suggests that we're running on GCE. If this
+// returns true, testOnGCE tries a bit harder to reach its metadata
+// server.
+func systemInfoSuggestsGCE() bool {
+	// We don't currently have checks for other GOOS
+	return false
 }
