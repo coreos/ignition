@@ -10,6 +10,34 @@ Occasionally, there are changes made to Ignition's configuration that break back
 1. TOC
 {:toc}
 
+## From Version 3.4.0 to 3.5.0
+
+### LUKS cex
+
+The `luks` section gained a new `cex` field for s390x. If specified and true, the LUKS volume will issue volume encryption using IBM Crypto Express Card.
+
+<!-- ignition -->
+```json
+{
+  "ignition": { "version": "3.5.0" },
+  "kernelArguments": {
+    "shouldExist": [
+      "'rd.luks.key=/etc/luks/cex.key'"
+    ]
+  },
+  "storage": {
+    "luks": [{
+      "name": "luks-cex",
+      "device": "/dev/sdb",
+      "discard": true,
+      "cex": {
+        "enabled": true
+      }
+    }]
+  }
+}
+```
+
 ## From Version 3.3.0 to 3.4.0
 
 There are not any breaking changes between versions 3.3.0 and 3.4.0 of the configuration specification. Any valid 3.3.0 configuration can be updated to a 3.4.0 configuration by simply changing the version string in the config.
