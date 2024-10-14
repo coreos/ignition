@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,19 +13,16 @@
 // limitations under the License.
 
 //go:build linux
-// +build linux
 
 package metadata
 
 import (
-	"errors"
-	"syscall"
+	"os"
+	"strings"
 )
 
-func init() {
-	// Initialize syscallRetryable to return true on transient socket-level
-	// errors. These errors are specific to Linux.
-	syscallRetryable = func(err error) bool {
-		return errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.ECONNREFUSED)
-	}
+func systemInfoSuggestsGCE() bool {
+	b, _ := os.ReadFile("/sys/class/dmi/id/product_name")
+	name := strings.TrimSpace(string(b))
+	return name == "Google" || name == "Google Compute Engine"
 }
