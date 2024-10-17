@@ -29,6 +29,7 @@ import (
 	_ "github.com/coreos/ignition/v2/internal/providers/hetzner"
 	_ "github.com/coreos/ignition/v2/internal/providers/hyperv"
 	_ "github.com/coreos/ignition/v2/internal/providers/ibmcloud"
+	_ "github.com/coreos/ignition/v2/internal/providers/ionoscloud"
 	_ "github.com/coreos/ignition/v2/internal/providers/kubevirt"
 	_ "github.com/coreos/ignition/v2/internal/providers/metal"
 	_ "github.com/coreos/ignition/v2/internal/providers/nutanix"
