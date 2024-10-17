@@ -19,6 +19,7 @@
 package ionoscloud
 
 import (
+	"bytes"
 	"os"
 
 	"github.com/coreos/ignition/v2/config/v3_5_experimental/types"
@@ -48,5 +49,12 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		f.Logger.Err("couldn't read config %q: %v", defaultFilename, err)
 		return types.Config{}, report.Report{}, err
 	}
+
+	header := []byte("#cloud-config\n")
+	if bytes.HasPrefix(rawConfig, header) {
+		f.Logger.Debug("config drive (%q) contains a cloud-config configuration, ignoring", defaultFilename)
+		return types.Config{}, report.Report{}, err
+	}
+
 	return util.ParseConfig(f.Logger, rawConfig)
 }
