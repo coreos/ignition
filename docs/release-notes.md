@@ -10,6 +10,8 @@ nav_order: 9
 
 ### Features
 
+- Support IONOS Cloud
+
 ### Changes
 
 ### Bug fixes
