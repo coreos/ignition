@@ -4,9 +4,18 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.20.0 (unreleased)
+## Upcoming Ignition 2.21.0 (unreleased)
 
 ### Breaking changes
+
+### Features
+
+### Changes
+
+### Bug fixes
+
+
+## Ignition 2.20.0 (2024-10-22)
 
 ### Features
 
@@ -26,6 +35,7 @@ nav_order: 9
 - Fix network race when phoning home on Equinix Metal
 - Fix Akamai Ignition base64 decoding on padded payloads
 - Fix Makefile GOARCH for loongarch64 ([#1942](https://github.com/coreos/ignition/pull/1942))
+
 
 ## Ignition 2.19.0 (2024-06-05)
 
