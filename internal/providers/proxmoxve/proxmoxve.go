@@ -20,7 +20,6 @@
 package proxmoxve
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -132,8 +131,7 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 		return nil, err
 	}
 
-	header := []byte("#cloud-config\n")
-	if bytes.HasPrefix(contents, header) {
+	if util.IsCloudConfig(contents) {
 		logger.Debug("config drive (%q) contains a cloud-config configuration, ignoring", path)
 		return nil, nil
 	}
