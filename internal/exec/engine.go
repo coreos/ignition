@@ -179,7 +179,7 @@ func (e *Engine) acquireConfig(stageName string) (cfg types.Config, err error) {
 		cfg, err = e.acquireProviderConfig()
 
 		// if we've successfully fetched and cached the configs, log about them
-		if err == nil {
+		if err == nil && journal.Enabled() {
 			for _, cfgInfo := range e.State.FetchedConfigs {
 				if logerr := logStructuredJournalEntry(cfgInfo); logerr != nil {
 					e.Logger.Info("failed to log systemd journal entry: %v", logerr)

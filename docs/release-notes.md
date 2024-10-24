@@ -35,6 +35,7 @@ nav_order: 9
 - Fix network race when phoning home on Equinix Metal
 - Fix Akamai Ignition base64 decoding on padded payloads
 - Fix Makefile GOARCH for loongarch64 ([#1942](https://github.com/coreos/ignition/pull/1942))
+- Fix Alpine distro print journal not beging available warn ([#1955](https://github.com/coreos/ignition/pull/1955))
 
 
 ## Ignition 2.19.0 (2024-06-05)
