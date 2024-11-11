@@ -386,8 +386,8 @@ func (f *Fetcher) fetchFromGCS(u url.URL, dest io.Writer, opts FetchOptions) err
 		if metadata.OnGCE() {
 			// check whether the VM is associated with a service
 			// account
-			if _, err := metadata.Scopes(""); err == nil {
-				id, _ := metadata.ProjectID()
+			if _, err := metadata.ScopesWithContext(ctx, ""); err == nil {
+				id, _ := metadata.ProjectIDWithContext(ctx)
 				creds := &google.Credentials{
 					ProjectID:   id,
 					TokenSource: google.ComputeTokenSource("", storage.ScopeReadOnly),
