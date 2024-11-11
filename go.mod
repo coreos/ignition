@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/storage v1.43.0
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/beevik/etree v1.4.0
-	github.com/containers/libhvee v0.7.1
+	github.com/containers/libhvee v0.9.0
 	github.com/coreos/go-semver v0.3.1
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/coreos/vcontext v0.0.0-20230201181013-d72178a18687
@@ -35,7 +35,7 @@ require (
 	github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/godbus/dbus/v5 v5.0.4 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
