@@ -7,7 +7,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      labels: ["skip-notes"]
+    labels: ["skip-notes"]
     open-pull-requests-limit: 3
   - package-ecosystem: gomod
     directory: /
