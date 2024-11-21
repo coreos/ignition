@@ -57,7 +57,8 @@ install() {
         clevis-luks-unlock \
         pwmake \
         tpm2_create \
-        tpm2_createpolicy
+        tpm2_createpolicy \
+        tpm2_getcap
 
     # Required by s390x's z/VM installation.
     # Supporting https://github.com/coreos/ignition/pull/865
