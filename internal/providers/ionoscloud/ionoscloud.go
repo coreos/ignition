@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc.
+// Copyright 2024 Red Hat, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,13 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// The OpenStack provider fetches configurations from the userdata available in
-// both the config-drive as well as the network metadata service. Whichever
-// responds first is the config that is used.
+//
 // NOTE: This provider is still EXPERIMENTAL.
+//
+// The IONOS Cloud provider fetches the ignition config from the user-data
+// available in an injected file at /var/lib/cloud/seed/nocloud/user-data.
+// This file is created by the IONOS Cloud VM handler before the first boot
+// through the cloud init user data handling.
+//
+// User data with the directive #cloud-config will be ignored
+// See for more: https://docs.ionos.com/cloud/compute-services/compute-engine/how-tos/boot-cloud-init
 
-package proxmoxve
+package ionoscloud
 
 import (
 	"context"
@@ -39,17 +44,16 @@ import (
 )
 
 const (
-	cidataPath  = "/user-data"
-	deviceLabel = "cidata"
+	rootLabelEnvVar  = "IGNITION_CONFIG_ROOT_LABEL"
+	defaultRootLabel = "ROOT"
+	userDataPath     = "/var/lib/cloud/seed/nocloud/user-data"
 )
 
 func init() {
-	platform.Register(
-		platform.Provider{
-			Name:  "proxmoxve",
-			Fetch: fetchConfig,
-		},
-	)
+	platform.Register(platform.Provider{
+		Name:  "ionoscloud",
+		Fetch: fetchConfig,
+	})
 }
 
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
@@ -73,15 +77,20 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		cancel()
 	}
 
+	deviceLabel := os.Getenv(rootLabelEnvVar)
+	if deviceLabel == "" {
+		deviceLabel = defaultRootLabel
+	}
+
 	go dispatch(
-		"config drive (cidata)", func() ([]byte, error) {
+		"load config from root partition", func() ([]byte, error) {
 			return fetchConfigFromDevice(f.Logger, ctx, filepath.Join(distro.DiskByLabelDir(), deviceLabel))
 		},
 	)
 
 	<-ctx.Done()
 	if ctx.Err() == context.DeadlineExceeded {
-		f.Logger.Info("cidata drive was not available in time. Continuing without a config...")
+		f.Logger.Info("root partition was not available in time. Continuing without a config...")
 	}
 
 	return util.ParseConfig(f.Logger, data)
@@ -92,9 +101,9 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string) ([]byte, error) {
-	for !fileExists(path) {
-		logger.Debug("config drive (%q) not found. Waiting...", path)
+func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, device string) ([]byte, error) {
+	for !fileExists(device) {
+		logger.Debug("root partition (%q) not found. Waiting...", device)
 		select {
 		case <-time.After(time.Second):
 		case <-ctx.Done():
@@ -103,14 +112,14 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 	}
 
 	logger.Debug("creating temporary mount point")
-	mnt, err := os.MkdirTemp("", "ignition-configdrive")
+	mnt, err := os.MkdirTemp("", "ignition-config")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
 	defer os.Remove(mnt)
 
-	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", path, mnt)
-	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
+	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", device, mnt)
+	if _, err := logger.LogCmd(cmd, "mounting root partition"); err != nil {
 		return nil, err
 	}
 	defer func() {
@@ -118,21 +127,21 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 			func() error {
 				return ut.UmountPath(mnt)
 			},
-			"unmounting %q at %q", path, mnt,
+			"unmounting %q at %q", device, mnt,
 		)
 	}()
 
-	if !fileExists(filepath.Join(mnt, cidataPath)) {
+	if !fileExists(filepath.Join(mnt, userDataPath)) {
 		return nil, nil
 	}
 
-	contents, err := os.ReadFile(filepath.Join(mnt, cidataPath))
+	contents, err := os.ReadFile(filepath.Join(mnt, userDataPath))
 	if err != nil {
 		return nil, err
 	}
 
 	if util.IsCloudConfig(contents) {
-		logger.Debug("config drive (%q) contains a cloud-config configuration, ignoring", path)
+		logger.Debug("root partition (%q) contains a cloud-config configuration, ignoring", device)
 		return nil, nil
 	}
 
