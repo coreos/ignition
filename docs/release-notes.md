@@ -13,6 +13,8 @@ Starting with this release, ignition-validate binaries are signed with the
 
 ### Features
 
+- Support IONOS Cloud
+
 ### Changes
 
 ### Bug fixes
