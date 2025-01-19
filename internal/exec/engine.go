@@ -121,7 +121,7 @@ func (e Engine) Run(stageName string) error {
 		return err
 	}
 
-	e.Logger.PushPrefix(stageName) //nolint:govet
+	e.Logger.PushPrefix("%s", stageName)
 	defer e.Logger.PopPrefix()
 
 	fullConfig := latest.Merge(baseConfig, latest.Merge(systemBaseConfig, cfg))
