@@ -20,17 +20,10 @@ import (
 
 func IsCloudConfig(contents []byte) bool {
 	header := []byte("#cloud-config\n")
-	if bytes.HasPrefix(contents, header) {
-		return true
-	}
-	return false
+	return bytes.HasPrefix(contents, header)
 }
 
 func IsShellScript(contents []byte) bool {
 	header := []byte("#!/bin/\n")
-	if bytes.HasPrefix(contents, header) {
-		return true
-	}
-
-	return false
+	return bytes.HasPrefix(contents, header)
 }
