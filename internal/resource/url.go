@@ -39,6 +39,8 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -149,7 +151,11 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 	dest := new(bytes.Buffer)
 	switch u.Scheme {
 	case "http", "https":
-		err = f.fetchFromHTTP(u, dest, opts)
+		if strings.HasSuffix(u.Host, ".blob.core.windows.net") {
+			err = f.fetchFromAzureBlob(u, dest, opts)
+		} else {
+			err = f.fetchFromHTTP(u, dest, opts)
+		}
 	case "tftp":
 		err = f.fetchFromTFTP(u, dest, opts)
 	case "data":
@@ -210,6 +216,9 @@ func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
 
 	switch u.Scheme {
 	case "http", "https":
+		if strings.HasSuffix(u.Host, ".blob.core.windows.net") {
+			return f.fetchFromAzureBlob(u, dest, opts)
+		}
 		return f.fetchFromHTTP(u, dest, opts)
 	case "tftp":
 		return f.fetchFromTFTP(u, dest, opts)
@@ -551,6 +560,62 @@ func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest s3target, input
 		}
 		return err
 	}
+	return nil
+}
+
+// parse the a Azure Blob Storage URL into its components:
+// storage account, container, and file
+func (f *Fetcher) parseAzureStorageUrl(u url.URL) (string, string, string, error) {
+	storageAccount := fmt.Sprintf("%s://%s/", u.Scheme, u.Host)
+	pathSegments := strings.Split(strings.Trim(u.Path, "/"), "/")
+	if len(pathSegments) != 2 {
+		f.Logger.Debug("invalid URL path: %s", u.Path)
+		return "", "", "", fmt.Errorf("invalid URL path, ensure url has a structure of /container/filename.ign: %s", u.Path)
+	}
+	container := pathSegments[0]
+	file := pathSegments[1]
+
+	return storageAccount, container, file, nil
+}
+
+func (f *Fetcher) fetchFromAzureBlob(u url.URL, dest io.Writer, opts FetchOptions) error {
+	// Read about NewDefaultAzureCredential https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#DefaultAzureCredential
+	// DefaultAzureCredential is a default credential chain for applications deployed to azure.
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		f.Logger.Debug("failed to obtain Azure credential: %v", err)
+		return fmt.Errorf("failed to obtain Azure credential: %w", err)
+	}
+
+	// Create a context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	storageAccount, container, file, err := f.parseAzureStorageUrl(u)
+	if err != nil {
+		return err
+	}
+
+	// Create Azure Blob Storage client
+	storageClient, err := azblob.NewClient(storageAccount, cred, nil)
+	if err != nil {
+		f.Logger.Debug("failed to create azblob client: %v", err)
+		return fmt.Errorf("failed to create azblob client: %w", err)
+	}
+
+	downloadStream, err := storageClient.DownloadStream(ctx, container, file, nil)
+	if err != nil {
+		return fmt.Errorf("failed to download blob from container '%s', file '%s': %w", container, file, err)
+	}
+	defer downloadStream.Body.Close()
+
+	// Process the downloaded blob
+	err = f.decompressCopyHashAndVerify(dest, downloadStream.Body, opts)
+	if err != nil {
+		f.Logger.Debug("Error processing downloaded blob: %v", err)
+		return fmt.Errorf("failed to process downloaded blob: %w", err)
+	}
+
 	return nil
 }
 
