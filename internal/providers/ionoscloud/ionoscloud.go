@@ -14,12 +14,15 @@
 //
 // NOTE: This provider is still EXPERIMENTAL.
 //
-// The IONOS Cloud provider fetches the ignition config from the user-data
-// available in an injected file at /var/lib/cloud/seed/nocloud/user-data.
+// The IONOS Cloud provider fetches the ignition config from a user-data file.
 // This file is created by the IONOS Cloud VM handler before the first boot
-// through the cloud init user data handling.
+// and gets injected into a device at /config/user-data by default.
 //
-// User data with the directive #cloud-config will be ignored
+// The kernel parameters deviceLabelKernelFlag and userDataKernelFlag can be
+// used during the build process of images and for the VM initialization to
+// specify on which disk or partition the user-data is going to be injected.
+//
+// User data files with the directive #cloud-config and #!/bin/ will be ignored
 // See for more: https://docs.ionos.com/cloud/compute-services/compute-engine/how-tos/boot-cloud-init
 
 package ionoscloud
@@ -48,7 +51,7 @@ const (
 	deviceLabelKernelFlag = "ignition.config.device"
 	defaultDeviceLabel    = "OEM"
 	userDataKernelFlag    = "ignition.config.path"
-	defaultUserDataPath   = "config.ign"
+	defaultUserDataPath   = "config/user-data"
 )
 
 func init() {
