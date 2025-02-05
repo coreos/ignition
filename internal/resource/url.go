@@ -100,6 +100,10 @@ type Fetcher struct {
 	// It is used when fetching resources from GCS.
 	GCSSession *storage.Client
 
+	// Azure credential to use when fetching resources from Azure Blob Storage.
+	// using DefaultAzureCredential()
+	AzSession *azidentity.DefaultAzureCredential
+
 	// Whether to only attempt fetches which can be performed offline. This
 	// currently only includes the "data" scheme. Other schemes will result in
 	// ErrNeedNet. In the future, we can improve on this by dropping this
@@ -151,9 +155,15 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 	dest := new(bytes.Buffer)
 	switch u.Scheme {
 	case "http", "https":
-		if strings.HasSuffix(u.Host, ".blob.core.windows.net") {
+		isAzureBlob := strings.HasSuffix(u.Host, ".blob.core.windows.net")
+		if f.AzSession != nil && isAzureBlob {
 			err = f.fetchFromAzureBlob(u, dest, opts)
-		} else {
+			if err != nil {
+				f.Logger.Info("could not fetch %s via Azure credentials: %v", u.String(), err)
+				f.Logger.Info("falling back to HTTP fetch")
+			}
+		}
+		if !isAzureBlob || f.AzSession == nil || err != nil {
 			err = f.fetchFromHTTP(u, dest, opts)
 		}
 	case "tftp":
@@ -213,13 +223,21 @@ func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
 	if f.Offline && util.UrlNeedsNet(u) {
 		return ErrNeedNet
 	}
-
+	var err error
 	switch u.Scheme {
 	case "http", "https":
-		if strings.HasSuffix(u.Host, ".blob.core.windows.net") {
-			return f.fetchFromAzureBlob(u, dest, opts)
+		isAzureBlob := strings.HasSuffix(u.Host, ".blob.core.windows.net")
+		if f.AzSession != nil && isAzureBlob {
+			err = f.fetchFromAzureBlob(u, dest, opts)
+			if err != nil {
+				f.Logger.Info("could not fetch %s via Azure credentials: %v", u.String(), err)
+				f.Logger.Info("falling back to HTTP fetch")
+			}
 		}
-		return f.fetchFromHTTP(u, dest, opts)
+		if !isAzureBlob || f.AzSession == nil || err != nil {
+			err = f.fetchFromHTTP(u, dest, opts)
+		}
+		return err
 	case "tftp":
 		return f.fetchFromTFTP(u, dest, opts)
 	case "data":
@@ -579,16 +597,8 @@ func (f *Fetcher) parseAzureStorageUrl(u url.URL) (string, string, string, error
 }
 
 func (f *Fetcher) fetchFromAzureBlob(u url.URL, dest io.Writer, opts FetchOptions) error {
-	// Read about NewDefaultAzureCredential https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#DefaultAzureCredential
-	// DefaultAzureCredential is a default credential chain for applications deployed to azure.
-	cred, err := azidentity.NewDefaultAzureCredential(nil)
-	if err != nil {
-		f.Logger.Debug("failed to obtain Azure credential: %v", err)
-		return fmt.Errorf("failed to obtain Azure credential: %w", err)
-	}
-
-	// Create a context with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// Create a context
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	storageAccount, container, file, err := f.parseAzureStorageUrl(u)
@@ -597,7 +607,7 @@ func (f *Fetcher) fetchFromAzureBlob(u url.URL, dest io.Writer, opts FetchOption
 	}
 
 	// Create Azure Blob Storage client
-	storageClient, err := azblob.NewClient(storageAccount, cred, nil)
+	storageClient, err := azblob.NewClient(storageAccount, f.AzSession, nil)
 	if err != nil {
 		f.Logger.Debug("failed to create azblob client: %v", err)
 		return fmt.Errorf("failed to create azblob client: %w", err)
