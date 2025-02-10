@@ -25,7 +25,7 @@ require (
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/vmware/vmw-guestinfo v0.0.0-20220317130741-510905f0efa3
 	golang.org/x/net v0.34.0
-	golang.org/x/oauth2 v0.25.0
+	golang.org/x/oauth2 v0.26.0
 	golang.org/x/sys v0.29.0
 	google.golang.org/api v0.219.0
 	gopkg.in/yaml.v3 v3.0.1
