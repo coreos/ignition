@@ -22,6 +22,7 @@ package proxmoxve
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -40,7 +41,8 @@ import (
 )
 
 const (
-	cidataPath  = "/user-data"
+	ciuserdataPath = "/user-data"
+	civendordataPath = "/vendor-data"
 	deviceLabel = "cidata"
 )
 
@@ -123,20 +125,38 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 		)
 	}()
 
-	if !fileExists(filepath.Join(mnt, cidataPath)) {
-		return nil, nil
-	}
-
-	contents, err := os.ReadFile(filepath.Join(mnt, cidataPath))
-	if err != nil {
-		return nil, err
-	}
-
+	paths := []string{ciuserdataPath, civendordataPath}
 	header := []byte("#cloud-config\n")
-	if bytes.HasPrefix(contents, header) {
-		logger.Debug("config drive (%q) contains a cloud-config configuration, ignoring", path)
-		return nil, nil
+
+	for _, path := range paths {
+			fullPath := filepath.Join(mnt, path)
+			if !fileExists(fullPath) {
+					continue
+			}
+
+			contents, err := os.ReadFile(fullPath)
+			if err != nil {
+					// Log the error but continue to next file
+					logger.Debug("failed to read %q: %v", fullPath, err)
+					continue
+			}
+
+			// Skip if it's a cloud-config file
+			if bytes.HasPrefix(contents, header) {
+					logger.Debug("config drive (%q) contains a cloud-config configuration, ignoring", fullPath)
+					continue
+				}
+
+				// Try to validate if it's JSON
+				if json.Valid(contents) {
+					// Since paths are ordered with ciuserdataPath first,
+					// we'll automatically get the right precedence
+					// user-data should always be chosen over vendor-data
+					logger.Debug("config drive (%q) contains an ignition configuration", fullPath)
+					return contents, nil
+			}
 	}
 
-	return contents, nil
+	// No valid JSON found in any of the files
+	return nil, nil
 }
