@@ -121,6 +121,7 @@ installkernel() {
      # required for cex card early initialization
      if [[ ${DRACUT_ARCH:-$(uname -m)} == s390x ]]; then
         instmods -c zcrypt_cex4
+        instmods -c pkey_cca
      fi
 }
 
