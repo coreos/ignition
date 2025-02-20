@@ -19,6 +19,7 @@ Starting with this release, ignition-validate binaries are signed with the
 
 ### Bug fixes
 
+- Add `pkey_cca` kernel module to detect CEX domain for LUKS encryption
 
 ## Ignition 2.20.0 (2024-10-22)
 
