@@ -42,6 +42,7 @@ import (
 
 const (
 	ciuserdataPath = "/user-data"
+	// See https://bugzilla.proxmox.com/show_bug.cgi?id=2429 for more details about vendordata
 	civendordataPath = "/vendor-data"
 	deviceLabel = "cidata"
 )
