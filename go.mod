@@ -1,7 +1,7 @@
 module github.com/coreos/ignition/v2
 
 go 1.22.0
-toolchain go1.22.10
+toolchain go1.23.6
 
 require (
 	cloud.google.com/go/compute/metadata v0.6.0
@@ -26,7 +26,7 @@ require (
 	golang.org/x/net v0.35.0
 	golang.org/x/oauth2 v0.26.0
 	golang.org/x/sys v0.30.0
-	google.golang.org/api v0.221.0
+	google.golang.org/api v0.222.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -81,7 +81,7 @@ require (
 	golang.org/x/time v0.10.0 // indirect
 	google.golang.org/genproto v0.0.0-20241118233622-e639e219e697 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241209162323-e6fa225c2576 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250207221924-e9438ea467c6 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250212204824-5a70512c5d8b // indirect
 	google.golang.org/grpc v1.70.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 )
