@@ -9,6 +9,8 @@ nav_order: 9
 Starting with this release, ignition-validate binaries are signed with the
 [Fedora 41 key](https://getfedora.org/security/).
 
+- Also check vendor-data for Ignition config on Proxmox VE
+
 ### Breaking changes
 
 ### Features
