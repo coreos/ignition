@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
@@ -71,14 +72,31 @@ var (
 
 func init() {
 	platform.Register(platform.Provider{
-		Name:  "azure",
-		Fetch: fetchConfig,
+		Name:       "azure",
+		NewFetcher: newFetcher,
+		Fetch:      fetchConfig,
 	})
 }
 
 // fetchConfig wraps fetchFromAzureMetadata to implement the provider fetch interface.
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	return fetchFromAzureMetadata(f)
+}
+
+// newFetcher returns a fetcher that tries to authenticate with Azure's default credential chain.
+func newFetcher(l *log.Logger) (resource.Fetcher, error) {
+	// Read about NewDefaultAzureCredential https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#DefaultAzureCredential
+	// DefaultAzureCredential is a default credential chain for applications deployed to azure.
+	session, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		l.Info("could not retrieve any azure credentials: %v", err)
+		session = nil
+	}
+
+	return resource.Fetcher{
+		Logger:    l,
+		AzSession: session,
+	}, nil
 }
 
 // fetchFromAzureMetadata first tries to fetch userData from IMDS then fallback on customData in case

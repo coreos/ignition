@@ -30,6 +30,16 @@ Ignition has built-in support for fetching resources from the Amazon Simple Stor
 
 Append `?versionId=<version>` to any of the URL formats to fetch the specified object version.
 
+## Azure Blob Access
+
+When Ignition runs on an Azure environment, it attempts to authenticate using the [Azure default credential chain](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#DefaultAzureCredential). If authentication is successful, these credentials are utilized to access resources hosted in Azure Blob Storage.
+
+The URL format for accessing Azure Blob Storage is `https://<storageAccount>.blob.core.windows.net/<container>/<fileName>`. Ignition recognizes this pattern and parses it into its components. It then uses the [Azure Blob Storage API](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/storage/azblob#section-readme) to fetch resources.
+
+When accessing a private Azure Blob Storage resource, ensure that the credentials assigned to the Azure VM have the necessary permissions. Typically, this means assigning at least a contributor role on the storage account.
+
+If Ignition is not running on an Azure system or if Azure credentials are unavailable, it can still access public Azure Blobs by falling back to an anonymous HTTP fetch.
+
 ## HTTP headers
 
 When fetching data from an HTTP URL for config references, CA references and file contents, additional headers can be attached to the request using the `httpHeaders` attribute. This allows downloading data from servers that require authentication or some additional parameters from your request.
