@@ -57,8 +57,8 @@ github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDk
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/xds/go v0.0.0-20240905190251-b4127c9b8d78 h1:QVw89YDxXxEe+l8gU8ETbOasdwEV+avkR75ZzsVV9WI=
 github.com/cncf/xds/go v0.0.0-20240905190251-b4127c9b8d78/go.mod h1:W+zGtBO5Y1IgJhy4+A9GOqVhqLpfZi+vwmdNXUehLA8=
-github.com/containers/libhvee v0.9.0 h1:5UxJMka1lDfxTeITA25Pd8QVVttJAG43eQS1Getw1tc=
-github.com/containers/libhvee v0.9.0/go.mod h1:p44VJd8jMIx3SRN1eM6PxfCEwXQE0lJ0dQppCAlzjPQ=
+github.com/containers/libhvee v0.10.0 h1:7VLv8keWZpHuGmWvyY4c1mVH5V1JYb1G78VC+8AlrM0=
+github.com/containers/libhvee v0.10.0/go.mod h1:at0h8lRcK5jCKfQgU/e6Io0Mw12F36zRLjXVOXRoDTM=
 github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb h1:rmqyI19j3Z/74bIRhuC59RB442rXUazKNueVpfJPxg4=
 github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb/go.mod h1:rcFZM3uxVvdyNmsAV2jopgPD1cs5SPWJWU5dOz2LUnw=
 github.com/coreos/go-semver v0.3.1 h1:yi21YpKnrx1gt5R+la8n5WgS0kCrsPp33dmEyHReZr4=
