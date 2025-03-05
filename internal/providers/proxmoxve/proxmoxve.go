@@ -40,8 +40,10 @@ import (
 )
 
 const (
-	cidataPath  = "/user-data"
-	deviceLabel = "cidata"
+	ciuserdataPath = "/user-data"
+	// See https://bugzilla.proxmox.com/show_bug.cgi?id=2429 for more details about vendordata
+	civendordataPath = "/vendor-data"
+	deviceLabel      = "cidata"
 )
 
 func init() {
@@ -123,20 +125,37 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 		)
 	}()
 
-	if !fileExists(filepath.Join(mnt, cidataPath)) {
-		return nil, nil
-	}
-
-	contents, err := os.ReadFile(filepath.Join(mnt, cidataPath))
-	if err != nil {
-		return nil, err
-	}
-
+	paths := []string{ciuserdataPath, civendordataPath}
 	header := []byte("#cloud-config\n")
-	if bytes.HasPrefix(contents, header) {
-		logger.Debug("config drive (%q) contains a cloud-config configuration, ignoring", path)
-		return nil, nil
+
+	for _, path := range paths {
+		fullPath := filepath.Join(mnt, path)
+		if !fileExists(fullPath) {
+			continue
+		}
+
+		contents, err := os.ReadFile(fullPath)
+		if err != nil {
+			// Log the error but continue to next file
+			logger.Debug("failed to read %q: %v", fullPath, err)
+			continue
+		}
+
+		// Skip if it's a cloud-config file
+		if bytes.HasPrefix(contents, header) {
+			logger.Debug("config drive (%q) contains a cloud-config configuration, ignoring", fullPath)
+			continue
+		}
+
+		// Check if there's actual content in the file
+		if len(contents) > 0 {
+			logger.Debug("config drive (%q) contains data", fullPath)
+			return contents, nil
+		}
+
+		logger.Debug("config drive (%q) is empty, ignoring", fullPath)
 	}
 
-	return contents, nil
+	// No valid configuration found in any of the files
+	return nil, nil
 }
