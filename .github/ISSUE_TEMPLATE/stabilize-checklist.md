@@ -1,3 +1,10 @@
+---
+name: Stabilization checklist
+about: Stabilization checklist template
+title: New stabilization for ignition
+labels: jira
+---
+
 # Marking an experimental spec as stable
 
 When an experimental version of the Ignition config spec (e.g.: `3.1.0-experimental`) is to be declared stable (e.g. `3.1.0`), there are a handful of changes that must be made to the code base. These changes should have the following effects:
