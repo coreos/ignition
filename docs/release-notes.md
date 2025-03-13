@@ -4,7 +4,18 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.21.0 (unreleased)
+## Upcoming Ignition 2.22.0 (unreleased)
+
+### Breaking changes
+
+### Features
+
+### Changes
+
+### Bug fixes
+
+
+## Ignition 2.21.0 (2025-03-13)
 
 Starting with this release, ignition-validate binaries are signed with the
 [Fedora 41 key](https://getfedora.org/security/).
@@ -21,6 +32,7 @@ Starting with this release, ignition-validate binaries are signed with the
 ### Bug fixes
 
 - Add `pkey_cca` kernel module to detect CEX domain for LUKS encryption
+
 
 ## Ignition 2.20.0 (2024-10-22)
 
