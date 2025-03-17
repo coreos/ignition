@@ -33,7 +33,7 @@ install: all
 	ln -sf ../lib/dracut/modules.d/30ignition/ignition $(DESTDIR)/usr/libexec/ignition-rmcfg
 
 install-grub-for-bootupd:
-	install -m 0644 -D -t $(DESTDIR)/usr/lib/bootupd/grub2-static/configs.d grub2/ignition.cfg
+	install -m 0644 -D -t $(DESTDIR)/usr/lib/bootupd/grub2-static/configs.d grub2/05_ignition.cfg
 
 .PHONY: vendor
 vendor:
