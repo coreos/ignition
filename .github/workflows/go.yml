@@ -41,7 +41,7 @@ jobs:
     - name: Test
       run: ./test
     - name: Run linter
-      uses: golangci/golangci-lint-action@v6
+      uses: golangci/golangci-lint-action@v7
       with:
         version: v1.64.4
         args: -E=gofmt --timeout=30m0s
