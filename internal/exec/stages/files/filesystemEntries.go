@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"syscall"
 	"time"
 
 	cutil "github.com/coreos/ignition/v2/config/util"
@@ -31,6 +32,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/log"
 
 	"github.com/vincent-petithory/dataurl"
+	"golang.org/x/sys/unix"
 )
 
 // createCrypttabEntries creates entries inside of /etc/crypttab for LUKS volumes,
@@ -312,9 +314,31 @@ func (tmp fileEntry) create(l *log.Logger, u util.Util) error {
 			return fmt.Errorf("failed to create file %q: %v", op.Node.Path, err)
 		}
 	}
+	l.Info("Setting permissions %s: %d", f.Node.Path, *f.Mode)
+	mode := uint32(*f.Mode)
+	res := os.FileMode(mode & 0777)
+
+	if mode&syscall.S_ISGID != 0 {
+		l.Info("Setting permissions %s: requested setgid", f.Node.Path)
+		res |= os.ModeSetgid
+	}
+	if mode&syscall.S_ISUID != 0 {
+		l.Info("Setting permissions %s: requested setuid", f.Node.Path)
+		res |= os.ModeSetuid
+	}
+	if mode&syscall.S_ISVTX != 0 {
+		l.Info("Setting permissions %s: requested sticky", f.Node.Path)
+		res |= os.ModeSticky
+	}
+	l.Info("Setting permissions %s: %d", f.Node.Path, res)
 	if err := u.SetPermissions(f.Mode, f.Node); err != nil {
 		return fmt.Errorf("error setting file permissions for %s: %v", f.Path, err)
 	}
+	info := unix.Stat_t{}
+	if err := unix.Stat(f.Node.Path, &info); err != nil {
+		return fmt.Errorf("error getting file permissions for %s: %v", f.Path, err)
+	}
+	l.Info("Effective permissions %s: %d", f.Node.Path, os.FileMode(info.Mode))
 	return nil
 }
 
