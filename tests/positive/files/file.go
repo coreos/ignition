@@ -28,6 +28,7 @@ func init() {
 	register.Register(register.PositiveTest, AppendToExistingFile())
 	register.Register(register.PositiveTest, AppendToNonexistentFile())
 	register.Register(register.PositiveTest, ApplyDefaultFilePermissions())
+	register.Register(register.PositiveTest, ApplyCustomFilePermissions())
 	register.Register(register.PositiveTest, CreateFileFromCompressedDataURL())
 	// TODO: Investigate why ignition's C code hates our environment
 	// register.Register(register.PositiveTest, UserGroupByName())
@@ -363,6 +364,186 @@ func ApplyDefaultFilePermissions() types.Test {
 		},
 	})
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ApplyCustomFilePermissions() types.Test {
+	name := "files.customperms"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "passwd": {
+	    "users": [
+	      {
+	        "name": "auser",
+	        "uid": 1001,
+			"shouldExist": false
+	      }
+	    ],
+	    "groups": [
+	      {
+	        "name": "auser",
+	        "gid": 1001,
+			"shouldExist": false
+	      }
+	    ]
+	  },
+	  "storage": {
+	    "files": [
+	      {
+	        "path": "/foo/setuidsetgid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 3565
+	      },
+		  {
+	        "path": "/foo/auser/setuidsetgid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 3565,
+	        "user": { "id": 1001 },
+			"group": { "id": 1001 }
+	      },		  {
+	        "path": "/foo/root/setuidsetgid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 3565,
+	        "user": { "id": 0 },
+			"group": { "id": 0 }
+	      },
+	      {
+	        "path": "/foo/setuid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 2541
+	      },
+		  {
+	        "path": "/foo/auser/setuid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 2541,
+	        "user": { "id": 1001 },
+			"group": { "id": 1001 }
+	      },		  
+		  {
+	        "path": "/foo/root/setuid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 2541,
+	        "user": { "id": 0 },
+			"group": { "id": 0 }
+	      },
+	      {
+	        "path": "/foo/setgid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 1517
+	      },
+		  {
+	        "path": "/foo/auser/setgid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 1517,
+	        "user": { "id": 1001 },
+			"group": { "id": 1001 }
+	      },		  
+		  {
+	        "path": "/foo/root/setgid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 1517,
+	        "user": { "id": 0 },
+			"group": { "id": 0 }
+	      }
+	    ]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "setuidsetgid",
+			},
+			Contents: "hello world\n",
+			Mode:     06755,
+		},
+		{
+			Node: types.Node{
+				Directory: "foo/auser",
+				Name:      "setuidsetgid",
+				User:      1001,
+				Group:     1001,
+			},
+			Contents: "hello world\n",
+			Mode:     06755,
+		},
+		{
+			Node: types.Node{
+				Directory: "foo/root",
+				Name:      "setuidsetgid",
+				User:      0,
+				Group:     0,
+			},
+			Contents: "hello world\n",
+			Mode:     06755,
+		},
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "setuid",
+			},
+			Contents: "hello world\n",
+			Mode:     04755,
+		},
+		{
+			Node: types.Node{
+				Directory: "foo/auser",
+				Name:      "setuid",
+				User:      1001,
+				Group:     1001,
+			},
+			Contents: "hello world\n",
+			Mode:     04755,
+		},
+		{
+			Node: types.Node{
+				Directory: "foo/root",
+				Name:      "setuid",
+				User:      0,
+				Group:     0,
+			},
+			Contents: "hello world\n",
+			Mode:     04755,
+		},
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "setgid",
+			},
+			Contents: "hello world\n",
+			Mode:     02755,
+		},
+		{
+			Node: types.Node{
+				Directory: "foo/auser",
+				Name:      "setgid",
+				User:      1001,
+				Group:     1001,
+			},
+			Contents: "hello world\n",
+			Mode:     02755,
+		},
+		{
+			Node: types.Node{
+				Directory: "foo/root",
+				Name:      "setgid",
+				User:      0,
+				Group:     0,
+			},
+			Contents: "hello world\n",
+			Mode:     02755,
+		},
+	})
+	configMinVersion := "3.6.0-experimental"
 
 	return types.Test{
 		Name:             name,
