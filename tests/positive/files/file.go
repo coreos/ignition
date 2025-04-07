@@ -28,6 +28,7 @@ func init() {
 	register.Register(register.PositiveTest, AppendToExistingFile())
 	register.Register(register.PositiveTest, AppendToNonexistentFile())
 	register.Register(register.PositiveTest, ApplyDefaultFilePermissions())
+	register.Register(register.PositiveTest, ApplyCustomFilePermissions())
 	register.Register(register.PositiveTest, CreateFileFromCompressedDataURL())
 	// TODO: Investigate why ignition's C code hates our environment
 	// register.Register(register.PositiveTest, UserGroupByName())
@@ -363,6 +364,69 @@ func ApplyDefaultFilePermissions() types.Test {
 		},
 	})
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func ApplyCustomFilePermissions() types.Test {
+	name := "files.customperms"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [
+	      {
+	        "path": "/foo/setuidsetgid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 3565
+	      },
+	      {
+	        "path": "/foo/setuid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 2541
+	      },
+	      {
+	        "path": "/foo/setgid",
+	        "contents": { "source": "data:,hello%20world%0A" },
+	        "mode": 1517
+	      }
+	    ]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "setuidsetgid",
+			},
+			Contents: "hello world\n",
+			Mode:     06755,
+		},
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "setuid",
+			},
+			Contents: "hello world\n",
+			Mode:     04755,
+		},
+		{
+			Node: types.Node{
+				Directory: "foo",
+				Name:      "setgid",
+			},
+			Contents: "hello world\n",
+			Mode:     02755,
+		},
+	})
+	configMinVersion := "3.4.0"
 
 	return types.Test{
 		Name:             name,
