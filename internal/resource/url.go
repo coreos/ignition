@@ -36,8 +36,12 @@ import (
 	configErrors "github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/util"
+	"github.com/coreos/vcontext/report"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+
+	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	providersUtil "github.com/coreos/ignition/v2/internal/providers/util"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
@@ -50,6 +54,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pin/tftp"
 	"github.com/vincent-petithory/dataurl"
+)
+
+const (
+	IPv4 = "ipv4"
+	IPv6 = "ipv6"
 )
 
 var (
@@ -724,4 +733,51 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, string, error
 	bucket := bucketUrlSplit[len(bucketUrlSplit)-1]
 	key := strings.Join(urlSplit[1:], "/")
 	return bucket, key, "", regionHint, nil
+}
+
+// FetchConfigDualStack is a function that takes care of fetching Ignition configuration on systems where IPv4 only, IPv6 only or both are available.
+func FetchConfigDualStack(f *Fetcher, userdataURLs map[string]url.URL, fetchConfig func(*Fetcher, url.URL) ([]byte, error)) (types.Config, report.Report, error) {
+	var (
+		data []byte
+		err  error
+	)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	success := make(chan string, 1)
+
+	fetch := func(ctx context.Context, ip url.URL) {
+		data, err = fetchConfig(f, ip)
+		if err != nil {
+			f.Logger.Err("fetching configuration for %s: %v", ip.String(), err)
+			cancel()
+			return
+		}
+
+		success <- ip.String()
+	}
+
+	if ipv4, ok := userdataURLs[IPv4]; ok {
+		go fetch(ctx, ipv4)
+	}
+
+	if ipv6, ok := userdataURLs[IPv6]; ok {
+		go fetch(ctx, ipv6)
+	}
+
+	// Wait for one success. (i.e wait for the first configuration to be available)
+	select {
+	case ip := <-success:
+		if ip != "" {
+			f.Logger.Debug("got configuration from: %s", ip)
+			return providersUtil.ParseConfig(f.Logger, data)
+		}
+	case <-ctx.Done():
+		f.Logger.Debug("unable to fetch a configuration from endpoint")
+		return types.Config{}, report.Report{}, err
+	}
+
+	f.Logger.Debug("unable to fetch a configuration from endpoint")
+	return types.Config{}, report.Report{}, err
 }
