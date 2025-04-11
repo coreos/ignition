@@ -36,8 +36,12 @@ import (
 	configErrors "github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/util"
+	"github.com/coreos/vcontext/report"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+
+	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	providersUtil "github.com/coreos/ignition/v2/internal/providers/util"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
@@ -50,6 +54,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pin/tftp"
 	"github.com/vincent-petithory/dataurl"
+)
+
+const (
+	IPv4 = "ipv4"
+	IPv6 = "ipv6"
 )
 
 var (
@@ -724,4 +733,60 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, string, error
 	bucket := bucketUrlSplit[len(bucketUrlSplit)-1]
 	key := strings.Join(urlSplit[1:], "/")
 	return bucket, key, "", regionHint, nil
+}
+
+// FetchConfigDualStack is a function that takes care of fetching Ignition configuration on systems where IPv4 only, IPv6 only or both are available.
+// From a high level point of view, this function will try to fetch in parallel Ignition configuration from IPv4 and/or IPv6 - if both endpoints are available, it will
+// return the first configuration successfully fetched.
+func FetchConfigDualStack(f *Fetcher, userdataURLs map[string]url.URL, fetchConfig func(*Fetcher, url.URL) ([]byte, error)) (types.Config, report.Report, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var (
+		err      error
+		nbErrors int
+	)
+
+	// cfg holds the configuration for a given IP
+	cfg := make(map[url.URL][]byte)
+
+	// success hold the IP of the first successful configuration fetching
+	success := make(chan url.URL, 1)
+	errors := make(chan error, 2)
+
+	fetch := func(ctx context.Context, ip url.URL) {
+		d, e := fetchConfig(f, ip)
+		if e != nil {
+			f.Logger.Err("fetching configuration for %s: %v", ip.String(), e)
+			err = e
+			errors <- e
+		} else {
+			cfg[ip] = d
+			success <- ip
+		}
+	}
+
+	if ipv4, ok := userdataURLs[IPv4]; ok {
+		go fetch(ctx, ipv4)
+	}
+
+	if ipv6, ok := userdataURLs[IPv6]; ok {
+		go fetch(ctx, ipv6)
+	}
+
+	// Now wait for one success. (i.e wait for the first configuration to be available)
+	select {
+	case ip := <-success:
+		f.Logger.Debug("got configuration from: %s", ip.String())
+		return providersUtil.ParseConfig(f.Logger, cfg[ip])
+	case <-errors:
+		nbErrors++
+		if nbErrors == 2 {
+			f.Logger.Debug("all routines have failed to fetch configuration, returning last known error: %v", err)
+			return types.Config{}, report.Report{}, err
+		}
+	}
+
+	// we should never reach this line
+	return types.Config{}, report.Report{}, err
 }
