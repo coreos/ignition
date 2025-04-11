@@ -25,6 +25,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"os"
 	"strings"
@@ -339,10 +340,17 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 			p int
 		)
 
+		host := u.Hostname()
+		addr, _ := netip.ParseAddr(host)
+		network := "tcp6"
+		if addr.Is4() {
+			network = "tcp4"
+		}
+
 		// Assert that the port is not already used.
 		for {
 			p = opts.LocalPort()
-			l, err := net.Listen("tcp4", fmt.Sprintf(":%d", p))
+			l, err := net.Listen(network, fmt.Sprintf(":%d", p))
 			if err != nil && errors.Is(err, syscall.EADDRINUSE) {
 				continue
 			} else if err == nil {
