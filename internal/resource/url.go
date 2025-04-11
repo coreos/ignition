@@ -25,9 +25,11 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -36,8 +38,12 @@ import (
 	configErrors "github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/util"
+	"github.com/coreos/vcontext/report"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+
+	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	providersUtil "github.com/coreos/ignition/v2/internal/providers/util"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
@@ -47,6 +53,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/pin/tftp"
 	"github.com/vincent-petithory/dataurl"
+)
+
+const (
+	IPv4 = "ipv4"
+	IPv6 = "ipv6"
 )
 
 var (
@@ -325,10 +336,17 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 			p int
 		)
 
+		host := u.Hostname()
+		addr, _ := netip.ParseAddr(host)
+		network := "tcp6"
+		if addr.Is4() {
+			network = "tcp4"
+		}
+
 		// Assert that the port is not already used.
 		for {
 			p = opts.LocalPort()
-			l, err := net.Listen("tcp4", fmt.Sprintf(":%d", p))
+			l, err := net.Listen(network, fmt.Sprintf(":%d", p))
 			if err != nil && errors.Is(err, syscall.EADDRINUSE) {
 				continue
 			} else if err == nil {
@@ -734,4 +752,83 @@ func (f *Fetcher) parseARN(arnURL string) (string, string, string, string, error
 	bucket := bucketUrlSplit[len(bucketUrlSplit)-1]
 	key := strings.Join(urlSplit[1:], "/")
 	return bucket, key, "", regionHint, nil
+}
+
+// FetchConfigDualStack is a function that takes care of fetching Ignition configuration on systems where IPv4 only, IPv6 only or both are available.
+// From a high level point of view, this function will try to fetch in parallel Ignition configuration from IPv4 and/or IPv6 - if both endpoints are available, it will
+// return the first configuration successfully fetched.
+func FetchConfigDualStack(f *Fetcher, userdataURLs map[string]url.URL, fetchConfig func(*Fetcher, url.URL) ([]byte, error)) (types.Config, report.Report, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var (
+		err      error
+		nbErrors int
+		mu       sync.Mutex
+	)
+
+	cfg := make(map[url.URL][]byte)
+
+	success := make(chan url.URL, 1)
+	errors := make(chan error, 2)
+
+	fetch := func(ctx context.Context, ip url.URL) {
+		d, e := fetchConfig(f, ip)
+		if e != nil {
+			f.Logger.Err("fetching configuration for %s: %v", ip.String(), e)
+			mu.Lock()
+			err = e
+			mu.Unlock()
+			errors <- e
+			return
+		}
+		_, _, parseErr := providersUtil.ParseConfig(f.Logger, d)
+		if parseErr != nil {
+			f.Logger.Err("parsing configuration from %s: %v", ip.String(), parseErr)
+			mu.Lock()
+			err = parseErr
+			mu.Unlock()
+			errors <- parseErr
+			return
+		}
+
+		mu.Lock()
+		cfg[ip] = d
+		mu.Unlock()
+		select {
+		case success <- ip:
+		default:
+		}
+	}
+
+	numGoroutines := 0
+	if ipv4, ok := userdataURLs[IPv4]; ok {
+		go fetch(ctx, ipv4)
+		numGoroutines++
+	}
+
+	if ipv6, ok := userdataURLs[IPv6]; ok {
+		go fetch(ctx, ipv6)
+		numGoroutines++
+	}
+
+	for {
+		select {
+		case ip := <-success:
+			f.Logger.Debug("got configuration from: %s", ip.String())
+			mu.Lock()
+			data := cfg[ip]
+			mu.Unlock()
+			return providersUtil.ParseConfig(f.Logger, data)
+		case <-errors:
+			nbErrors++
+			if nbErrors >= numGoroutines {
+				mu.Lock()
+				lastErr := err
+				mu.Unlock()
+				f.Logger.Debug("all routines have failed to fetch configuration, returning last known error: %v", lastErr)
+				return types.Config{}, report.Report{}, lastErr
+			}
+		}
+	}
 }
