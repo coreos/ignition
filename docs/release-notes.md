@@ -13,6 +13,7 @@ Starting with this release, ignition-validate binaries are signed with the
 ### Features
 
 - Support Oracle Cloud Infrastructure
+- IPv6 support for Scaleway metadata endpoint ([#2052](https://github.com/coreos/ignition/pull/2052))
 
 ### Changes
 
