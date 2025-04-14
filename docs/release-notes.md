@@ -89,6 +89,7 @@ Starting with this release, ignition-validate binaries are signed with the
 - Support partitioning disk with mounted partitions
 - Support Proxmox VE
 - Support gzipped Akamai user_data
+- Support IPv6 for single-stack OpenStack
 
 ### Changes
 
