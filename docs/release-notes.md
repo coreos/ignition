@@ -16,6 +16,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- Fix use of setuid/setgid/sticky mode bits
 
 ## Ignition 2.21.0 (2025-03-13)
 
