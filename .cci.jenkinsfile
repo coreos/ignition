@@ -69,9 +69,7 @@ cosaPod {
     }, testiso: {
         shwrap("""
             cd /srv/coreos
-            cosa buildextend-metal
-            cosa buildextend-metal4k
-            cosa buildextend-live --fast
+            cosa osbuild metal metal4k live
         """)
         kolaTestIso()
     }
