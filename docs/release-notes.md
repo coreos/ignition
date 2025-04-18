@@ -10,6 +10,8 @@ nav_order: 9
 
 ### Features
 
+- IPv6 support for Scaleway metadata endpoint
+
 ### Changes
 
 - Rename ignition.cfg -> 05_ignition.cfg
