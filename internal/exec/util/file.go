@@ -152,7 +152,7 @@ func (u Util) WriteLink(s types.Link) error {
 
 func (u Util) SetPermissions(mode *int, node types.Node) error {
 	if mode != nil {
-		if err := os.Chmod(node.Path, ToFileMode(*mode)); err != nil {
+		if err := os.Chmod(node.Path, toFileMode(*mode)); err != nil {
 			return fmt.Errorf("failed to change mode of %s: %v", node.Path, err)
 		}
 	}
@@ -169,7 +169,7 @@ func (u Util) SetPermissions(mode *int, node types.Node) error {
 }
 
 // toFileMode converts Go permission bits to POSIX permission bits.
-func ToFileMode(m int) os.FileMode {
+func toFileMode(m int) os.FileMode {
 	mode := uint32(m)
 	res := os.FileMode(mode & 0777)
 
