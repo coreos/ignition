@@ -5,6 +5,8 @@ nav_order: 9
 # Release Notes
 
 ## Upcoming Ignition 2.22.0 (unreleased)
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 42 key](https://getfedora.org/security/).
 
 ### Breaking changes
 
