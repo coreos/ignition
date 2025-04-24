@@ -255,7 +255,7 @@ root:
                   replacement: are not supported
                   if:
                     - variant: ignition
-                      max: 3.3.0
+                      max: 3.5.0
             - name: user
               desc: "specifies the file's owner."
               children:
