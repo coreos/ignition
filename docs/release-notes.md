@@ -14,6 +14,7 @@ nav_order: 9
 
 - Rename ignition.cfg -> 05_ignition.cfg
 - Support setting setuid/setgid/sticky mode bits _(3.6.0-exp)_
+- Warn if setuid/setgid/sticky mode bits specified _(3.4.0 - 3.5.0)_
 
 ### Bug fixes
 
