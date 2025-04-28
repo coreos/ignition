@@ -8,7 +8,7 @@ require (
 	cloud.google.com/go/storage v1.50.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.9.0
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.0
-	github.com/aws/aws-sdk-go v1.55.6
+	github.com/aws/aws-sdk-go v1.55.7
 	github.com/beevik/etree v1.5.0
 	github.com/containers/libhvee v0.10.0
 	github.com/coreos/go-semver v0.3.1
