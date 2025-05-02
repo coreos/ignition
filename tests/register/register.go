@@ -63,6 +63,15 @@ func Register(tType TestType, t types.Test) {
 	if semverErr == nil && version != nil && t.ConfigMinVersion != "" {
 		for _, v := range configVersions[version.Major] {
 			if version.LessThan(v) {
+				// Check if the test is limited to a max version
+				if test.ConfigMaxVersion != "" {
+					maximumVersion, maxVersionSemverErr := semver.NewVersion(test.ConfigMinVersion)
+					// If a valid max version is given and the next deep copy is greater than the max version then we dont register it
+					if maxVersionSemverErr == nil && maximumVersion.LessThan(v) {
+						continue
+					}
+				}
+
 				test = types.DeepCopy(t)
 				test.ReplaceAllVersionVars(v.String())
 				test.ConfigVersion = v.String()
