@@ -15,9 +15,12 @@ Starting with this release, ignition-validate binaries are signed with the
 ### Changes
 
 - Rename ignition.cfg -> 05_ignition.cfg
+- Support setting setuid/setgid/sticky mode bits _(3.6.0-exp)_
+- Warn if setuid/setgid/sticky mode bits specified _(3.4.0 - 3.5.0)_
 
 ### Bug fixes
 
+- Fix use of setuid/setgid/sticky mode bits
 
 ## Ignition 2.21.0 (2025-03-13)
 

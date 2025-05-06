@@ -151,25 +151,33 @@ func (u Util) WriteLink(s types.Link) error {
 }
 
 func (u Util) SetPermissions(mode *int, node types.Node) error {
-	if mode != nil {
-		if err := os.Chmod(node.Path, toFileMode(*mode)); err != nil {
-			return fmt.Errorf("failed to change mode of %s: %v", node.Path, err)
-		}
-	}
-
+	// Set ownership and then permissions.
+	// From https://man7.org/linux/man-pages/man2/lchown.2.html:
+	// "When the owner or group of an executable file is changed by an
+	// unprivileged user, the S_ISUID and S_ISGID mode bits are cleared. POSIX
+	// does not specify whether this also should happen when root does the
+	// chown(); the Linux behavior depends on the kernel version, and since
+	// Linux 2.2.13, root is treated like other users."
 	defaultUid, defaultGid, _ := getFileOwnerAndMode(node.Path)
 	uid, gid, err := u.ResolveNodeUidAndGid(node, defaultUid, defaultGid)
 	if err != nil {
 		return fmt.Errorf("failed to determine correct uid and gid for %s: %v", node.Path, err)
 	}
+
 	if err := os.Lchown(node.Path, uid, gid); err != nil {
 		return fmt.Errorf("failed to change ownership of %s: %v", node.Path, err)
+	}
+
+	if mode != nil {
+		if err := os.Chmod(node.Path, ToFileMode(*mode)); err != nil {
+			return fmt.Errorf("failed to change mode of %s: %v", node.Path, err)
+		}
 	}
 	return nil
 }
 
 // toFileMode converts Go permission bits to POSIX permission bits.
-func toFileMode(m int) os.FileMode {
+func ToFileMode(m int) os.FileMode {
 	mode := uint32(m)
 	res := os.FileMode(mode & 0777)
 

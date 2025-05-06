@@ -15,11 +15,13 @@
 package types
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestModeValidate(t *testing.T) {
@@ -58,5 +60,52 @@ func TestModeValidate(t *testing.T) {
 		if !reflect.DeepEqual(test.out, err) {
 			t.Errorf("#%d: bad err: want %v, got %v", i, test.out, err)
 		}
+	}
+}
+
+func TestPermissionBitsValidate(t *testing.T) {
+	tests := []struct {
+		in  *int
+		out error
+	}{
+		{
+			nil,
+			nil,
+		},
+		{
+			util.IntToPtr(0),
+			nil,
+		},
+		{
+			util.IntToPtr(0644),
+			nil,
+		},
+		{
+			util.IntToPtr(0755),
+			nil,
+		},
+		{
+			util.IntToPtr(0777),
+			nil,
+		},
+		{
+			util.IntToPtr(01755),
+			errors.ErrModeSpecialBits,
+		},
+		{
+			util.IntToPtr(02755),
+			errors.ErrModeSpecialBits,
+		},
+		{
+			util.IntToPtr(04755),
+			errors.ErrModeSpecialBits,
+		},
+	}
+	for i, test := range tests {
+		t.Run(fmt.Sprintf("validate %d", i), func(t *testing.T) {
+			actual := validateModeSpecialBits(test.in)
+			expected := test.out
+			assert.Equal(t, actual, expected, "bad validation for special bits")
+		})
 	}
 }

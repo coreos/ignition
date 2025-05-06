@@ -16,7 +16,6 @@ package translate
 
 import (
 	"github.com/coreos/ignition/v2/config/translate"
-	"github.com/coreos/ignition/v2/config/util"
 	old_types "github.com/coreos/ignition/v2/config/v3_3/types"
 	"github.com/coreos/ignition/v2/config/v3_4/types"
 )
@@ -25,31 +24,6 @@ func translateIgnition(old old_types.Ignition) (ret types.Ignition) {
 	// use a new translator so we don't recurse infinitely
 	translate.NewTranslator().Translate(&old, &ret)
 	ret.Version = types.MaxVersion.String()
-	return
-}
-
-func translateFileEmbedded1(old old_types.FileEmbedded1) (ret types.FileEmbedded1) {
-	tr := translate.NewTranslator()
-	tr.Translate(&old.Append, &ret.Append)
-	tr.Translate(&old.Contents, &ret.Contents)
-	if old.Mode != nil {
-		// We support the special mode bits for specs >=3.4.0, so if
-		// the user provides special mode bits in an Ignition config
-		// with the version < 3.4.0, then we need to explicitly mask
-		// those bits out during translation.
-		ret.Mode = util.IntToPtr(*old.Mode & ^07000)
-	}
-	return
-}
-
-func translateDirectoryEmbedded1(old old_types.DirectoryEmbedded1) (ret types.DirectoryEmbedded1) {
-	if old.Mode != nil {
-		// We support the special mode bits for specs >=3.4.0, so if
-		// the user provides special mode bits in an Ignition config
-		// with the version < 3.4.0, then we need to explicitly mask
-		// those bits out during translation.
-		ret.Mode = util.IntToPtr(*old.Mode & ^07000)
-	}
 	return
 }
 
@@ -77,8 +51,6 @@ func translateTang(old old_types.Tang) (ret types.Tang) {
 func Translate(old old_types.Config) (ret types.Config) {
 	tr := translate.NewTranslator()
 	tr.AddCustomTranslator(translateIgnition)
-	tr.AddCustomTranslator(translateDirectoryEmbedded1)
-	tr.AddCustomTranslator(translateFileEmbedded1)
 	tr.AddCustomTranslator(translateLuks)
 	tr.Translate(&old, &ret)
 	return

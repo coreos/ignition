@@ -101,6 +101,7 @@ type Test struct {
 	SystemDirFiles    []File
 	Env               []string // Environment variables for Ignition
 	Config            string
+	ConfigMaxVersion  string
 	ConfigMinVersion  string
 	ConfigVersion     string
 	ConfigShouldBeBad bool // Set to true to skip config validation step
