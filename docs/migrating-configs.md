@@ -10,6 +10,35 @@ Occasionally, there are changes made to Ignition's configuration that break back
 1. TOC
 {:toc}
 
+
+## From Version 3.5.0 to 3.6.0-experimental
+
+### Special mode bits supported
+
+The `mode` field of the `files` and `directories` sections now respects the setuid, setgid, and sticky bits. Previous spec versions ignore these bits, but will generate a warning on Ignition ≥ 2.22.0.
+
+<!-- ignition -->
+```json
+{
+  "ignition": {
+    "version": "3.6.0-experimental"
+  },
+  "storage": {
+    "files": [{
+      "path": "/usr/local/bin/setuid",
+      "contents": {
+        "source": "https://rootkit.example.com/setuid"
+      },
+      "mode": 2541
+    }],
+    "directories": [{
+      "path": "/var/local/tmp",
+      "mode": 1023
+    }]
+  }
+}
+```
+
 ## From Version 3.4.0 to 3.5.0
 
 ### LUKS cex
@@ -105,32 +134,6 @@ The `luks` section gained a new `openOptions` field. It is a list of options Ign
       "clevis": {
         "tpm2": true
       }
-    }]
-  }
-}
-```
-
-### Special mode bits supported
-
-The `mode` field of the `files` and `directories` sections now respects the setuid, setgid, and sticky bits. Previous spec versions ignore these bits, but will generate a warning on Ignition ≥ 2.14.0.
-
-<!-- ignition -->
-```json
-{
-  "ignition": {
-    "version": "3.4.0"
-  },
-  "storage": {
-    "files": [{
-      "path": "/usr/local/bin/setuid",
-      "contents": {
-        "source": "https://rootkit.example.com/setuid"
-      },
-      "mode": 2541
-    }],
-    "directories": [{
-      "path": "/var/local/tmp",
-      "mode": 1023
     }]
   }
 }
