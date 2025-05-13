@@ -12,6 +12,8 @@ Starting with this release, ignition-validate binaries are signed with the
 
 ### Features
 
+- IPv6 support for Scaleway metadata endpoint
+
 ### Changes
 
 - Rename ignition.cfg -> 05_ignition.cfg
