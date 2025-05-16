@@ -17,6 +17,7 @@ Starting with this release, ignition-validate binaries are signed with the
 - Rename ignition.cfg -> 05_ignition.cfg
 - Support setting setuid/setgid/sticky mode bits _(3.6.0-exp)_
 - Warn if setuid/setgid/sticky mode bits specified _(3.4.0 - 3.5.0)_
+- Add initial TMT tests and a new workflow to execute tests on PRs
 
 ### Bug fixes
 

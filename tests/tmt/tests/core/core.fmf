@@ -1,0 +1,9 @@
+---
+summary: runs ignition --version and checks return code
+tag: 
+  - smoke
+test: |
+  set -x -e -o pipefail
+  source /tmp/ignition_bin_dir
+  ${IGNITION_BIN_DIR}/ignition --version
+
