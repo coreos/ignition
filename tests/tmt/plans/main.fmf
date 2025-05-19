@@ -1,0 +1,35 @@
+---
+# This prepare is used to control when the ignition is installed using
+# the distribution package or when it is built from source in the test environment
+prepare:
+  - name: Set IGNITION_BIN_DIR when built from source
+    when: use_built_from_src is defined and use_built_from_src == true
+    how: shell
+    script: |
+      # This is a workaround script for the fact that the ignition binary is not in the PATH
+      # when running the tests in the tmt environment when it is built from source.
+      # The ignition binary is located in the tmt run instance directory and it needed
+      # to set a environment variable to point to the ignition binary location.
+      set -x -e -o pipefail
+      echo "Preparing the test environment"
+      BIN_DESTINATION="/usr/local/bin"
+      IGNITION_BIN_NAME="ignition"
+      PARENT_DIR=$(dirname "${TMT_TREE}")
+      IGNITION_BIN_FULL_PATH=$(find "${PARENT_DIR}" -type f -name "${IGNITION_BIN_NAME}")
+      if [ -z "${IGNITION_BIN_FULL_PATH}" ]; then
+          echo "ignition file not found."
+          exit 1
+      fi
+      IGNITION_BIN_DIR=$(dirname "${IGNITION_BIN_FULL_PATH}")
+      echo "IGNITION_BIN_DIR=${IGNITION_BIN_DIR}" > /tmp/ignition_bin_dir
+  - name: Install ignition package
+    when: use_built_from_src is not defined or use_built_from_src == false
+    how: install
+    package: ignition
+  - name: Set IGNITION_BIN_DIR when installed package
+    when: use_built_from_src is not defined or use_built_from_src == false
+    how: shell
+    script: |
+      set -x -e -o pipefail
+      echo "IGNITION_BIN_DIR=/usr/lib/dracut/modules.d/30ignition" > /tmp/ignition_bin_dir
+

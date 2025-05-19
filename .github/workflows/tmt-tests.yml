@@ -1,0 +1,79 @@
+---
+name: TMT Tests
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      plan_filter:
+        description: |
+          Test plan filter name, ie: tag:smoke.
+          If provided, only tests matching this filter will be run, otherwise all tests will be run.
+          From the TMT help:
+            Apply an advanced filter using key:value
+            pairs and logical operators. For example
+            'tier:1 & tag:core'. Use the 'name' key to
+            search by name. See 'pydoc fmf.filter' for
+            detailed documentation on the syntax
+        required: false
+        default: ''
+      use_built_from_src:
+        description: 'Built ignition from source instead of install distro package'
+        required: true
+        default: 'true'
+
+jobs:
+  tmt-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Set additional paths
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          set -x -e -o pipefail
+          sudo apt-get update
+          sudo apt-get install -y podman libblkid-dev rsync
+          pip install --user tmt
+
+      - name: Build Ignition
+        if: ${{ github.event.inputs.use_built_from_src == 'true' }}
+        run: |
+          set -x -e -o pipefail
+          make all
+
+      - name: Run TMT tests
+        run: |
+          set -x -e -o pipefail
+          if [ "$ACT" = "true" ]; then
+            echo "Running locally using ACT" # ACT ref:  https://github.com/nektos/act
+            TMT_PROVISION_OPTS="--how local --feeling-safe"
+          else
+            TMT_PROVISION_OPTS="--how container"
+          fi
+          if [ -n "${{ github.event.inputs.plan_filter }}" ]; then
+            PLAN_FILTER_PARAM="plan --filter '${{ github.event.inputs.plan_filter }}'"
+          fi
+          if [ "${{ github.event.inputs.use_built_from_src }}" == "true" ]; then
+            CONTEXT_PARAM="--context use_built_from_src=${{ github.event.inputs.use_built_from_src }}"
+          else
+            CONTEXT_PARAM="--context use_built_from_src=false"
+          fi
+          # eval is used to allow the use of variables in the command
+          # and to avoid issues withe the tmt --filter option
+          eval "tmt $CONTEXT_PARAM run --all --debug -vvvv provision $TMT_PROVISION_OPTS $PLAN_FILTER_PARAM"
+
