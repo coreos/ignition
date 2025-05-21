@@ -386,14 +386,14 @@ func ApplyCustomFilePermissions() types.Test {
 	      {
 	        "name": "auser",
 	        "uid": 1001,
-			"shouldExist": false
+	        "shouldExist": false
 	      }
 	    ],
 	    "groups": [
 	      {
 	        "name": "auser",
 	        "gid": 1001,
-			"shouldExist": false
+	        "shouldExist": false
 	      }
 	    ]
 	  },
@@ -404,56 +404,57 @@ func ApplyCustomFilePermissions() types.Test {
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 3565
 	      },
-		  {
+	      {
 	        "path": "/foo/auser/setuidsetgid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 3565,
 	        "user": { "id": 1001 },
-			"group": { "id": 1001 }
-	      },		  {
+	        "group": { "id": 1001 }
+	      },
+	      {
 	        "path": "/foo/root/setuidsetgid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 3565,
 	        "user": { "id": 0 },
-			"group": { "id": 0 }
+	        "group": { "id": 0 }
 	      },
 	      {
 	        "path": "/foo/setuid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 2541
 	      },
-		  {
+	      {
 	        "path": "/foo/auser/setuid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 2541,
 	        "user": { "id": 1001 },
-			"group": { "id": 1001 }
-	      },		  
-		  {
+	        "group": { "id": 1001 }
+	      },
+	      {
 	        "path": "/foo/root/setuid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 2541,
 	        "user": { "id": 0 },
-			"group": { "id": 0 }
+	        "group": { "id": 0 }
 	      },
 	      {
 	        "path": "/foo/setgid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 1517
 	      },
-		  {
+	      {
 	        "path": "/foo/auser/setgid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 1517,
 	        "user": { "id": 1001 },
-			"group": { "id": 1001 }
-	      },		  
-		  {
+	        "group": { "id": 1001 }
+	      },
+	      {
 	        "path": "/foo/root/setgid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 1517,
 	        "user": { "id": 0 },
-			"group": { "id": 0 }
+	        "group": { "id": 0 }
 	      }
 	    ]
 	  }
@@ -569,14 +570,14 @@ func ApplyCustomFilePermissionsBeforeBugfix() types.Test {
 	      {
 	        "name": "auser",
 	        "uid": 1001,
-			"shouldExist": false
+	        "shouldExist": false
 	      }
 	    ],
 	    "groups": [
 	      {
 	        "name": "auser",
 	        "gid": 1001,
-			"shouldExist": false
+	        "shouldExist": false
 	      }
 	    ]
 	  },
@@ -587,56 +588,57 @@ func ApplyCustomFilePermissionsBeforeBugfix() types.Test {
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 3565
 	      },
-		  {
+	      {
 	        "path": "/foo/auser/setuidsetgid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 3565,
 	        "user": { "id": 1001 },
-			"group": { "id": 1001 }
-	      },		  {
+	        "group": { "id": 1001 }
+	      },
+	      {
 	        "path": "/foo/root/setuidsetgid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 3565,
 	        "user": { "id": 0 },
-			"group": { "id": 0 }
+	        "group": { "id": 0 }
 	      },
 	      {
 	        "path": "/foo/setuid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 2541
 	      },
-		  {
+	      {
 	        "path": "/foo/auser/setuid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 2541,
 	        "user": { "id": 1001 },
-			"group": { "id": 1001 }
-	      },		  
-		  {
+	        "group": { "id": 1001 }
+	      },
+	      {
 	        "path": "/foo/root/setuid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 2541,
 	        "user": { "id": 0 },
-			"group": { "id": 0 }
+	        "group": { "id": 0 }
 	      },
 	      {
 	        "path": "/foo/setgid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 1517
 	      },
-		  {
+	      {
 	        "path": "/foo/auser/setgid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 1517,
 	        "user": { "id": 1001 },
-			"group": { "id": 1001 }
-	      },		  
-		  {
+	        "group": { "id": 1001 }
+	      },
+	      {
 	        "path": "/foo/root/setgid",
 	        "contents": { "source": "data:,hello%20world%0A" },
 	        "mode": 1517,
 	        "user": { "id": 0 },
-			"group": { "id": 0 }
+	        "group": { "id": 0 }
 	      }
 	    ]
 	  }
