@@ -24,7 +24,7 @@ on:
         default: ''
       use_built_from_src:
         description: 'Built ignition from source instead of install distro package'
-        required: true
+        required: false
         default: 'true'
 
 jobs:
@@ -41,6 +41,7 @@ jobs:
 
       - name: Set additional paths
         run: |
+          set -x -e -o pipefail
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
@@ -51,7 +52,7 @@ jobs:
           pip install --user tmt
 
       - name: Build Ignition
-        if: ${{ github.event.inputs.use_built_from_src == 'true' }}
+        if: github.event.inputs.use_built_from_src == '' || github.event.inputs.use_built_from_src == 'true'
         run: |
           set -x -e -o pipefail
           make all
@@ -68,8 +69,8 @@ jobs:
           if [ -n "${{ github.event.inputs.plan_filter }}" ]; then
             PLAN_FILTER_PARAM="plan --filter '${{ github.event.inputs.plan_filter }}'"
           fi
-          if [ "${{ github.event.inputs.use_built_from_src }}" == "true" ]; then
-            CONTEXT_PARAM="--context use_built_from_src=${{ github.event.inputs.use_built_from_src }}"
+          if [ -z "${{ github.event.inputs.use_built_from_src }}" ] || [ "${{ github.event.inputs.use_built_from_src }}" == "true" ]; then
+            CONTEXT_PARAM="--context use_built_from_src=true"
           else
             CONTEXT_PARAM="--context use_built_from_src=false"
           fi
