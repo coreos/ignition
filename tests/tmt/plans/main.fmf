@@ -12,7 +12,6 @@ prepare:
       # to set a environment variable to point to the ignition binary location.
       set -x -e -o pipefail
       echo "Preparing the test environment"
-      BIN_DESTINATION="/usr/local/bin"
       IGNITION_BIN_NAME="ignition"
       PARENT_DIR=$(dirname "${TMT_TREE}")
       IGNITION_BIN_FULL_PATH=$(find "${PARENT_DIR}" -type f -name "${IGNITION_BIN_NAME}")
