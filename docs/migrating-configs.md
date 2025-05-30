@@ -41,9 +41,9 @@ The `mode` field of the `files` and `directories` sections now respects the setu
 
 ## From Version 3.4.0 to 3.5.0
 
-### LUKS cex
+### LUKS CEX support
 
-The `luks` section gained a new `cex` field for s390x. If specified and true, the LUKS volume will issue volume encryption using IBM Crypto Express Card.
+The `luks` section gained a new `cex` field for s390x. If specified and true, the LUKS volume will issue volume encryption using IBM Crypto Express Card (CEX).
 
 <!-- ignition -->
 ```json
