@@ -21,11 +21,14 @@ package openstack
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
@@ -44,10 +47,18 @@ const (
 )
 
 var (
-	metadataServiceUrl = url.URL{
-		Scheme: "http",
-		Host:   "169.254.169.254",
-		Path:   "openstack/latest/user_data",
+	userdataURLs = map[string]url.URL{
+		resource.IPv4: {
+			Scheme: "http",
+			Host:   "169.254.169.254",
+			Path:   "openstack/latest/user_data",
+		},
+
+		resource.IPv6: {
+			Scheme: "http",
+			Host:   "[fe80::a9fe:a9fe%iface]",
+			Path:   "openstack/latest/user_data",
+		},
 	}
 )
 
@@ -167,7 +178,26 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 }
 
 func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
-	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{})
+	urls := map[string]url.URL{
+		string(resource.IPv4): userdataURLs[resource.IPv4],
+	}
+
+	ifaceName, err := findInterfaceWithIPv6()
+	if err == nil {
+		ipv6Url := userdataURLs[resource.IPv6]
+		ipv6Url.Host = strings.Replace(ipv6Url.Host, "iface", ifaceName, 1)
+		urls[string(resource.IPv6)] = ipv6Url
+	} else {
+		f.Logger.Info("No active IPv6 network interface found: %v", err)
+	}
+
+	cfg, _, err := resource.FetchConfigDualStack(
+		f,
+		urls,
+		func(f *resource.Fetcher, u url.URL) ([]byte, error) {
+			return f.FetchToBuffer(u, resource.FetchOptions{})
+		},
+	)
 
 	// the metadata server exists but doesn't contain any actual metadata,
 	// assume that there is no config specified
@@ -175,5 +205,34 @@ func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 		return nil, nil
 	}
 
-	return res, err
+	data, err := json.Marshal(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func findInterfaceWithIPv6() (string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", fmt.Errorf("error fetching network interfaces: %v", err)
+	}
+
+	for _, iface := range interfaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok && ipnet.IP.To16() != nil && ipnet.IP.To4() == nil {
+				return iface.Name, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("no active IPv6 network interface found")
 }
