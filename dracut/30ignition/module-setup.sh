@@ -3,6 +3,11 @@
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
 check() {
+    # Ignore when building kdump initrd
+    if [[ $hostonly_mode == "strict" ]]; then 
+        return 1
+    fi
+
     # Only include this if another module requests it.
     # In our case it'll be the distro provided module with integration and customizations
     # (coreos-ignition/ignition-microos/...).
