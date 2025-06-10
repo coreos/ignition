@@ -12,6 +12,8 @@ Starting with this release, ignition-validate binaries are signed with the
 
 ### Features
 
+- Support Oracle Cloud Infrastructure
+
 ### Changes
 
 - Rename ignition.cfg -> 05_ignition.cfg
