@@ -4,7 +4,18 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.22.0 (unreleased)
+## Upcoming Ignition 2.23.0 (unreleased)
+
+### Breaking changes
+
+### Features
+
+### Changes
+
+### Bug fixes
+
+
+## Ignition 2.22.0 (2025-07-08)
 Starting with this release, ignition-validate binaries are signed with the
 [Fedora 42 key](https://getfedora.org/security/).
 
