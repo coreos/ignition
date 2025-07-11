@@ -53,7 +53,8 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		RetryCodes: []int{http.StatusTooManyRequests},
 	})
 	if err != nil && err != resource.ErrNotFound {
-		return types.Config{}, report.Report{}, fmt.Errorf("fetching to buffer: %w", err)
+		// Do not wrap these errors, ignition uses direct comparsion to distinguish them.
+		return types.Config{}, report.Report{}, err
 	}
 
 	userdata := make([]byte, base64.StdEncoding.DecodedLen(len(data)))

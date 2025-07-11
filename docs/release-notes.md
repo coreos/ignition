@@ -14,6 +14,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- Fix fetch-offline for Oracle Cloud Infrastructure
 
 ## Ignition 2.22.0 (2025-07-08)
 Starting with this release, ignition-validate binaries are signed with the
