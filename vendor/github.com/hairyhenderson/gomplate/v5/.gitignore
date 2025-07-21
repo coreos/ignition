@@ -1,0 +1,11 @@
+.git
+bin
+testbin
+report.xml
+./gomplate
+*.cid
+*.iid
+*.out
+.netlify
+docs/.hugo_build.lock
+bench.txt

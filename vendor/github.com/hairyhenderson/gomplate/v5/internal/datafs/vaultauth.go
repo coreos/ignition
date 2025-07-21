@@ -1,0 +1,119 @@
+package datafs
+
+import (
+	"context"
+	"fmt"
+	"io/fs"
+	"os"
+
+	"github.com/hairyhenderson/go-fsimpl/vaultfs/vaultauth"
+	"github.com/hairyhenderson/gomplate/v5/internal/iohelpers"
+	"github.com/hashicorp/vault/api"
+	"github.com/hashicorp/vault/api/auth/aws"
+	authk8s "github.com/hashicorp/vault/api/auth/kubernetes"
+)
+
+// compositeVaultAuthMethod configures the auth method based on environment
+// variables. It tries [vaultauth.EnvAuthMethod] first, then falls back to
+// Kubernetes, AWS EC2, and AWS IAM auth methods one-by-one.
+func compositeVaultAuthMethod(envFsys fs.FS) api.AuthMethod {
+	return vaultauth.CompositeAuthMethod(
+		vaultauth.EnvAuthMethod(),
+		envKubernetesAuthAdapter(envFsys),
+		envEC2AuthAdapter(envFsys),
+		envIAMAuthAdapter(envFsys),
+	)
+}
+
+// envEC2AuthAdapter builds an AWS EC2 authentication method from environment
+// variables, for use only with [compositeVaultAuthMethod]
+func envEC2AuthAdapter(envFS fs.FS) api.AuthMethod {
+	mountPath := GetenvFsys(envFS, "VAULT_AUTH_AWS_MOUNT", "aws")
+
+	nonce := GetenvFsys(envFS, "VAULT_AUTH_AWS_NONCE")
+	role := GetenvFsys(envFS, "VAULT_AUTH_AWS_ROLE")
+
+	awsauth, err := aws.NewAWSAuth(
+		aws.WithEC2Auth(),
+		aws.WithMountPath(mountPath),
+		aws.WithNonce(nonce),
+		aws.WithRole(role),
+	)
+	if err != nil {
+		return nil
+	}
+
+	output := GetenvFsys(envFS, "VAULT_AUTH_AWS_NONCE_OUTPUT")
+	if output == "" {
+		return awsauth
+	}
+
+	return &ec2AuthNonceWriter{AWSAuth: awsauth, nonce: nonce, output: output}
+}
+
+// envIAMAuthAdapter builds an AWS IAM authentication method from environment
+// variables, for use only with [compositeVaultAuthMethod]
+func envIAMAuthAdapter(envFS fs.FS) api.AuthMethod {
+	mountPath := GetenvFsys(envFS, "VAULT_AUTH_AWS_MOUNT", "aws")
+	role := GetenvFsys(envFS, "VAULT_AUTH_AWS_ROLE")
+
+	awsauth, err := aws.NewAWSAuth(
+		aws.WithIAMAuth(),
+		aws.WithMountPath(mountPath),
+		aws.WithRole(role),
+	)
+	if err != nil {
+		return nil
+	}
+
+	return awsauth
+}
+
+// envKubernetesAuthAdapter builds a Kubernetes authentication method from
+// environment variables (VAULT_AUTH_K8S_ROLE, VAULT_AUTH_K8S_MOUNT, and
+// VAULT_AUTH_K8S_JWT_PATH), for use only with [compositeVaultAuthMethod]
+func envKubernetesAuthAdapter(envFS fs.FS) api.AuthMethod {
+	role := GetenvFsys(envFS, "VAULT_AUTH_K8S_ROLE")
+	if role == "" {
+		return nil
+	}
+	mount := GetenvFsys(envFS, "VAULT_AUTH_K8S_MOUNT", "kubernetes")
+	jwtPath := GetenvFsys(envFS, "VAULT_AUTH_K8S_JWT_PATH", "/var/run/secrets/kubernetes.io/serviceaccount/token")
+
+	k8sAuth, err := authk8s.NewKubernetesAuth(
+		role,
+		authk8s.WithMountPath(mount),
+		authk8s.WithServiceAccountTokenPath(jwtPath),
+	)
+	if err != nil {
+		return nil
+	}
+	return k8sAuth
+}
+
+// ec2AuthNonceWriter - wraps an AWSAuth, and writes the nonce to the nonce
+// output file - only for ec2 auth
+type ec2AuthNonceWriter struct {
+	*aws.AWSAuth
+	nonce  string
+	output string
+}
+
+func (a *ec2AuthNonceWriter) Login(ctx context.Context, client *api.Client) (*api.Secret, error) {
+	secret, err := a.AWSAuth.Login(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := a.nonce
+	if val, ok := secret.Auth.Metadata["nonce"]; ok {
+		nonce = val
+	}
+
+	err = os.WriteFile(a.output, []byte(nonce+"\n"), iohelpers.NormalizeFileMode(0o600))
+	if err != nil {
+		return nil, fmt.Errorf("error writing nonce output file: %w", err)
+	}
+
+	return secret, nil
+}
