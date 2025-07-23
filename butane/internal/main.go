@@ -16,11 +16,12 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/pflag"
 
+	baseutil "github.com/coreos/ignition/v2/butane/base/util"
 	"github.com/coreos/ignition/v2/butane/config"
 	"github.com/coreos/ignition/v2/butane/config/common"
 	breport "github.com/coreos/ignition/v2/butane/internal/report"
@@ -62,6 +63,7 @@ func main() {
 	pflag.BoolVarP(&options.Pretty, "pretty", "p", false, "output formatted json")
 	pflag.BoolVarP(&options.Raw, "raw", "r", false, "never wrap in a MachineConfig; force Ignition output")
 	pflag.BoolVar(&options.YAMLDocumentSeparator, "yaml-doc-separator", false, "prepend YAML document separator (---) to YAML output")
+	pflag.BoolVarP(&baseutil.EnableGomplate, "enable-gomplate", "", false, "Enable gomplate evaluation")
 	pflag.BoolVar(&rawErrors, "raw-errors", false, "show raw errors, rather than pretty printing them")
 	pflag.StringVar(&colorFlag, "color", "auto", `control color output: "auto", "always", or "never"`)
 	pflag.Lookup("color").NoOptDefVal = "always"
@@ -111,6 +113,15 @@ func main() {
 		os.Exit(0)
 	}
 
+	if baseutil.EnableGomplate {
+		baseutil.GomplateConfigPath = filepath.Join(options.FilesDir, baseutil.GomplateConfigPath)
+
+		err := baseutil.InitGomplateRenderer()
+		if err != nil {
+			fail("failed to initialize gomplate: %v\n", err)
+		}
+	}
+
 	infile := os.Stdin
 	filename := "<stdin>"
 	if input != "" {
@@ -123,7 +134,7 @@ func main() {
 		filename = input
 	}
 
-	dataIn, err := io.ReadAll(infile)
+	dataIn, err := baseutil.GomplateReadLocalFile(infile)
 	if err != nil {
 		fail("failed to read %s: %v\n", infile.Name(), err)
 	}

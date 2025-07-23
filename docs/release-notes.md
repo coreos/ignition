@@ -16,6 +16,7 @@ nav_order: 9
 ### Changes
 
 - `./test` validates the Butane configs in `butane/docs`, restoring coverage that was lost when Butane merged into this repository
+- Add support for [`gomplate`](https://github.com/hairyhenderson/gomplate) integration, opt-in via `--enable-gomplate`
 
 ### Bug fixes
 
