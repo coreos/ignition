@@ -39,6 +39,7 @@ import (
 	_ "github.com/coreos/ignition/v2/internal/providers/proxmoxve"
 	_ "github.com/coreos/ignition/v2/internal/providers/qemu"
 	_ "github.com/coreos/ignition/v2/internal/providers/scaleway"
+	_ "github.com/coreos/ignition/v2/internal/providers/upcloud"
 	_ "github.com/coreos/ignition/v2/internal/providers/virtualbox"
 	_ "github.com/coreos/ignition/v2/internal/providers/vmware"
 	_ "github.com/coreos/ignition/v2/internal/providers/vultr"
