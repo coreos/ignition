@@ -33,8 +33,8 @@ func (s stage) createRaids(config types.Config) error {
 	if len(config.Storage.Raid) == 0 {
 		return nil
 	}
-	s.Logger.PushPrefix("createRaids")
-	defer s.Logger.PopPrefix()
+	s.PushPrefix("createRaids")
+	defer s.PopPrefix()
 
 	devs := []string{}
 	for _, array := range config.Storage.Raid {
@@ -73,7 +73,7 @@ func (s stage) createRaids(config types.Config) error {
 			args = append(args, util.DeviceAlias(string(dev)))
 		}
 
-		if _, err := s.Logger.LogCmd(
+		if _, err := s.LogCmd(
 			exec.Command(distro.MdadmCmd(), args...),
 			"creating %q", md.Name,
 		); err != nil {

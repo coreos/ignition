@@ -19,6 +19,7 @@
 package nutanix
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -61,7 +62,7 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromDevice(logger *log.Logger, path string) ([]byte, error) {
+func fetchConfigFromDevice(logger *log.Logger, path string) (data []byte, err error) {
 	// The config drive is always attached, even if there's no user-data passed
 	for !fileExists(path) {
 		logger.Debug("config drive (%q) not found. Waiting...", path)
@@ -73,19 +74,22 @@ func fetchConfigFromDevice(logger *log.Logger, path string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
-	defer os.Remove(mnt)
+	defer func() {
+		err = errors.Join(err, os.Remove(mnt))
+	}()
 
 	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", path, mnt)
-	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
-		return nil, err
+	if _, cmdErr := logger.LogCmd(cmd, "mounting config drive"); cmdErr != nil {
+		return nil, cmdErr
 	}
 	defer func() {
-		_ = logger.LogOp(
+		unmountErr := logger.LogOp(
 			func() error {
 				return ut.UmountPath(mnt)
 			},
 			"unmounting %q at %q", path, mnt,
 		)
+		err = errors.Join(err, unmountErr)
 	}()
 
 	mntConfigDriveUserdataPath := filepath.Join(mnt, configDriveUserdataPath)

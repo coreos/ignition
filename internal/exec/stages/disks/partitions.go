@@ -47,8 +47,8 @@ func (s stage) createPartitions(config types.Config) error {
 	if len(config.Storage.Disks) == 0 {
 		return nil
 	}
-	s.Logger.PushPrefix("createPartitions")
-	defer s.Logger.PopPrefix()
+	s.PushPrefix("createPartitions")
+	defer s.PopPrefix()
 
 	devs := []string{}
 	for _, disk := range config.Storage.Disks {
@@ -62,7 +62,7 @@ func (s stage) createPartitions(config types.Config) error {
 	for _, dev := range config.Storage.Disks {
 		devAlias := util.DeviceAlias(string(dev.Device))
 
-		err := s.Logger.LogOp(func() error {
+		err := s.LogOp(func() error {
 			return s.partitionDisk(dev, devAlias)
 		}, "partitioning %q", devAlias)
 		if err != nil {
@@ -95,7 +95,7 @@ func partitionMatchesResize(existing util.PartitionInfo, spec sgdisk.Partition) 
 // if the existing partition matches the spec given.
 func partitionMatchesCommon(existing util.PartitionInfo, spec sgdisk.Partition) error {
 	if spec.Number != existing.Number {
-		return fmt.Errorf("partition numbers did not match (specified %d, got %d). This should not happen, please file a bug.", spec.Number, existing.Number)
+		return fmt.Errorf("partition numbers did not match (specified %d, got %d). This should not happen, please file a bug", spec.Number, existing.Number)
 	}
 	if spec.StartSector != nil && *spec.StartSector != existing.StartSector {
 		return fmt.Errorf("starting sector did not match (specified %d, got %d)", *spec.StartSector, existing.StartSector)
@@ -293,7 +293,7 @@ func partitionShouldExist(part sgdisk.Partition) bool {
 // getPartitionMap returns a map of partitions on device, indexed by partition number
 func (s stage) getPartitionMap(device string) (util.DiskInfo, error) {
 	info := util.DiskInfo{}
-	err := s.Logger.LogOp(
+	err := s.LogOp(
 		func() error {
 			var err error
 			info, err = util.DumpDisk(device)
@@ -439,7 +439,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 	}
 	if cutil.IsTrue(dev.WipeTable) {
 		op := sgdisk.Begin(s.Logger, devAlias)
-		s.Logger.Info("wiping partition table requested on %q", devAlias)
+		s.Info("wiping partition table requested on %q", devAlias)
 		if len(activeParts) > 0 {
 			return fmt.Errorf("refusing to wipe active disk %q", devAlias)
 		}
@@ -447,7 +447,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		if err := op.Commit(); err != nil {
 			// `sgdisk --zap-all` will exit code 2 if the table was corrupted; retry it
 			// https://github.com/coreos/fedora-coreos-tracker/issues/1596
-			s.Logger.Info("potential error encountered while wiping table... retrying")
+			s.Info("potential error encountered while wiping table... retrying")
 			if err := op.Commit(); err != nil {
 				return err
 			}
@@ -494,7 +494,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		// This is a translation of the matrix in the operator notes.
 		switch {
 		case !exists && !shouldExist:
-			s.Logger.Info("partition %d specified as nonexistant and no partition was found. Success.", part.Number)
+			s.Info("partition %d specified as nonexistant and no partition was found. Success.", part.Number)
 		case !exists && shouldExist:
 			op.CreatePartition(part)
 			modification = true
@@ -506,10 +506,10 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 			modification = true
 			partxDelete = append(partxDelete, uint64(part.Number))
 		case exists && shouldExist && matches:
-			s.Logger.Info("partition %d found with correct specifications", part.Number)
+			s.Info("partition %d found with correct specifications", part.Number)
 		case exists && shouldExist && !wipeEntry && !matches:
 			if partitionMatchesResize(info, part) {
-				s.Logger.Info("resizing partition %d", part.Number)
+				s.Info("resizing partition %d", part.Number)
 				op.DeletePartition(part.Number)
 				part.Number = info.Number
 				part.GUID = &info.GUID
@@ -520,17 +520,17 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 				modification = true
 				partxUpdate = append(partxUpdate, uint64(part.Number))
 			} else {
-				return fmt.Errorf("Partition %d didn't match: %v", part.Number, matchErr)
+				return fmt.Errorf("partition %d didn't match: %v", part.Number, matchErr)
 			}
 		case exists && shouldExist && wipeEntry && !matches:
-			s.Logger.Info("partition %d did not meet specifications, wiping partition entry and recreating", part.Number)
+			s.Info("partition %d did not meet specifications, wiping partition entry and recreating", part.Number)
 			op.DeletePartition(part.Number)
 			op.CreatePartition(part)
 			modification = true
 			partxUpdate = append(partxUpdate, uint64(part.Number))
 		default:
 			// unfortunatey, golang doesn't check that all cases are handled exhaustively
-			return fmt.Errorf("Unreachable code reached when processing partition %d. golang--", part.Number)
+			return fmt.Errorf("unreachable code reached when processing partition %d. golang--", part.Number)
 		}
 
 		if partInUse && modification {
@@ -549,7 +549,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		runPartxCommand := func(op string, partitions []uint64) error {
 			for _, partNr := range partitions {
 				cmd := exec.Command(distro.PartxCmd(), "--"+op, "--nr", strconv.FormatUint(partNr, 10), blockDevResolved)
-				if _, err := s.Logger.LogCmd(cmd, "triggering partition %d %s on %q", partNr, op, devAlias); err != nil {
+				if _, err := s.LogCmd(cmd, "triggering partition %d %s on %q", partNr, op, devAlias); err != nil {
 					return fmt.Errorf("partition %s failed: %v", op, err)
 				}
 			}

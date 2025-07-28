@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The OpenStack provider fetches configurations from the userdata available in
-// both the config-drive as well as the network metadata service. Whichever
-// responds first is the config that is used.
+// The IBM Cloud provider fetches configurations from the userdata available in
+// the config-drive.
 // NOTE: This provider is still EXPERIMENTAL.
 
 package ibmcloud
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -88,7 +88,7 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string) ([]byte, error) {
+func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string) (data []byte, err error) {
 	for !fileExists(path) {
 		logger.Debug("config drive (%q) not found. Waiting...", path)
 		select {
@@ -103,19 +103,24 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
-	defer os.Remove(mnt)
+	defer func() {
+		if removeErr := os.Remove(mnt); removeErr != nil {
+			err = errors.Join(err, fmt.Errorf("failed to remove temp directory %q: %w", mnt, removeErr))
+		}
+	}()
 
 	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", path, mnt)
 	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
 		return nil, err
 	}
 	defer func() {
-		_ = logger.LogOp(
+		unmountErr := logger.LogOp(
 			func() error {
 				return ut.UmountPath(mnt)
 			},
 			"unmounting %q at %q", path, mnt,
 		)
+		err = errors.Join(err, unmountErr)
 	}()
 
 	if !fileExists(filepath.Join(mnt, cidataPath)) {

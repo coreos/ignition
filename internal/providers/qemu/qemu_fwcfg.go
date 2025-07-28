@@ -50,26 +50,28 @@ func init() {
 	})
 }
 
-func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func fetchConfig(f *resource.Fetcher) (cfg types.Config, rpt report.Report, err error) {
 	// load qemu_fw_cfg module
-	_, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "qemu_fw_cfg"), "loading QEMU firmware config module")
-	if err != nil {
-		return types.Config{}, report.Report{}, err
+	if _, err = f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "qemu_fw_cfg"), "loading QEMU firmware config module"); err != nil {
+		return
 	}
 
 	// get size of firmware blob, if it exists
-	sizeBytes, err := os.ReadFile(firmwareConfigSizePath)
+	var sizeBytes []byte
+	sizeBytes, err = os.ReadFile(firmwareConfigSizePath)
 	if os.IsNotExist(err) {
 		f.Logger.Info("QEMU firmware config was not found. Ignoring...")
-		return util.ParseConfig(f.Logger, []byte{})
+		cfg, rpt, err = util.ParseConfig(f.Logger, []byte{})
+		return
 	} else if err != nil {
 		f.Logger.Err("couldn't read QEMU firmware config size: %v", err)
-		return types.Config{}, report.Report{}, err
+		return
 	}
-	size, err := strconv.Atoi(strings.TrimSpace(string(sizeBytes)))
+	var size int
+	size, err = strconv.Atoi(strings.TrimSpace(string(sizeBytes)))
 	if err != nil {
 		f.Logger.Err("couldn't parse QEMU firmware config size: %v", err)
-		return types.Config{}, report.Report{}, err
+		return
 	}
 
 	// Read firmware blob.  We need to make as few, large read() calls as
@@ -79,21 +81,26 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	// better, and without reallocating.
 	// Leave an extra guard byte to check for EOF
 	data := make([]byte, 0, size+1)
-	fh, err := os.Open(firmwareConfigPath)
+	var fh *os.File
+	fh, err = os.Open(firmwareConfigPath)
 	if err != nil {
 		f.Logger.Err("couldn't open QEMU firmware config: %v", err)
-		return types.Config{}, report.Report{}, err
+		return
 	}
-	defer fh.Close()
+	defer func() {
+		err = errors.Join(err, fh.Close())
+	}()
+
 	lastReport := time.Now()
 	reporting := false
 	for len(data) < size {
 		// if size is correct, we will never call this at an offset
 		// where it would return io.EOF
-		n, err := fh.Read(data[len(data):cap(data)])
+		var n int
+		n, err = fh.Read(data[len(data):cap(data)])
 		if err != nil {
 			f.Logger.Err("couldn't read QEMU firmware config: %v", err)
-			return types.Config{}, report.Report{}, err
+			return
 		}
 		data = data[:len(data)+n]
 		if !reporting && time.Since(lastReport).Seconds() >= 10 {
@@ -108,12 +115,14 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	if len(data) > size {
 		// overflowed into guard byte
 		f.Logger.Err("missing EOF reading QEMU firmware config")
-		return types.Config{}, report.Report{}, errors.New("missing EOF")
+		err = errors.New("missing EOF")
+		return
 	}
 	// If size is not at a page boundary, we know we're at EOF because
 	// the guard byte was not filled.  If size is at a page boundary,
 	// trust that firmwareConfigSizePath was telling the truth to avoid
 	// incurring an extra read call to check for EOF.  We're at the end
 	// of the file so the extra read would be maximally expensive.
-	return util.ParseConfig(f.Logger, data)
+	cfg, rpt, err = util.ParseConfig(f.Logger, data)
+	return
 }

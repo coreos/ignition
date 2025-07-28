@@ -48,7 +48,7 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	_, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "vmur"), "Loading zVM control program module")
 	if err != nil {
 		f.Logger.Err("Couldn't install vmur module: %v", err)
-		errors := fmt.Errorf("Couldn't install vmur module: %v", err)
+		errors := fmt.Errorf("couldn't install vmur module: %v", err)
 		return types.Config{}, report.Report{}, errors
 	}
 	// Online the reader device.
@@ -61,7 +61,7 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	readerInfo, err := exec.Command(distro.VmurCmd(), "li").CombinedOutput()
 	if err != nil {
 		f.Logger.Err("Can not get reader device: %v", err)
-		errors := fmt.Errorf("Can not get reader device: %v", err)
+		errors := fmt.Errorf("can not get reader device: %v", err)
 		return types.Config{}, report.Report{}, errors
 	}
 	for _, records := range strings.Split(string(readerInfo), "\n") {
@@ -102,13 +102,13 @@ func onlineDevice(logger *log.Logger) error {
 		_, err = logger.LogCmd(exec.Command(distro.CioIgnoreCmd(), "-r", readerDevice), "Expose reader device")
 		if err != nil {
 			logger.Err("Couldn't expose reader device %q: %v", readerDevice, err)
-			errors := fmt.Errorf("Couldn't expose reader device %q: %v", readerDevice, err)
+			errors := fmt.Errorf("couldn't expose reader device %q: %v", readerDevice, err)
 			return errors
 		}
 		_, err = logger.LogCmd(exec.Command(distro.ChccwdevCmd(), "-e", readerDevice), "Brings a Linux device online")
 		if err != nil {
 			logger.Err("Couldn't online reader device")
-			errors := fmt.Errorf("Couldn't online reader device")
+			errors := fmt.Errorf("couldn't online reader device")
 			return errors
 		}
 	}
