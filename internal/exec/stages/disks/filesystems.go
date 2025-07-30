@@ -43,8 +43,8 @@ func (s stage) createFilesystems(config types.Config) error {
 		return nil
 	}
 
-	s.Logger.PushPrefix("createFilesystems")
-	defer s.Logger.PopPrefix()
+	s.PushPrefix("createFilesystems")
+	defer s.PopPrefix()
 
 	devs := []string{}
 	for _, fs := range fss {
@@ -95,7 +95,7 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 	devAlias := util.DeviceAlias(string(fs.Device))
 
 	var info util.FilesystemInfo
-	err := s.Logger.LogOp(
+	err := s.LogOp(
 		func() error {
 			var err error
 			info, err = util.GetFilesystemInfo(devAlias, false)
@@ -106,7 +106,7 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 				var err2 error
 				info, err2 = util.GetFilesystemInfo(devAlias, true)
 				if err2 == nil {
-					s.Logger.Warning("%v", err)
+					s.Warning("%v", err)
 				}
 				err = err2
 			}
@@ -117,7 +117,7 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 	if err != nil {
 		return err
 	}
-	s.Logger.Info("found %s filesystem at %q with uuid %q and label %q", info.Type, fs.Device, info.UUID, info.Label)
+	s.Info("found %s filesystem at %q with uuid %q and label %q", info.Type, fs.Device, info.UUID, info.Label)
 
 	if !cutil.IsTrue(fs.WipeFilesystem) {
 		fileSystemFormat := *fs.Format
@@ -129,15 +129,15 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 		if info.Type == fileSystemFormat &&
 			(fs.Label == nil || info.Label == *fs.Label) &&
 			(fs.UUID == nil || canonicalizeFilesystemUUID(info.Type, info.UUID) == canonicalizeFilesystemUUID(fileSystemFormat, *fs.UUID)) {
-			s.Logger.Info("filesystem at %q is already correctly formatted. Skipping mkfs...", fs.Device)
+			s.Info("filesystem at %q is already correctly formatted. Skipping mkfs...", fs.Device)
 			return nil
 		} else if info.Type != "" {
-			s.Logger.Err("filesystem at %q is not of the correct type, label, or UUID (found %s, %q, %s) and a filesystem wipe was not requested", fs.Device, info.Type, info.Label, info.UUID)
+			s.Err("filesystem at %q is not of the correct type, label, or UUID (found %s, %q, %s) and a filesystem wipe was not requested", fs.Device, info.Type, info.Label, info.UUID)
 			return ErrBadFilesystem
 		}
 	}
 
-	if _, err := s.Logger.LogCmd(
+	if _, err := s.LogCmd(
 		exec.Command(distro.WipefsCmd(), "-a", devAlias),
 		"wiping filesystem signatures from %q",
 		devAlias,
@@ -202,7 +202,7 @@ func (s stage) createFilesystem(fs types.Filesystem) error {
 	}
 
 	args = append(args, devAlias)
-	if _, err := s.Logger.LogCmd(
+	if _, err := s.LogCmd(
 		exec.Command(mkfs, args...),
 		"creating %q filesystem on %q",
 		*fs.Format, devAlias,

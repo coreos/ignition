@@ -45,7 +45,7 @@ func (s *stage) warnOnOldSystemdVersion() error {
 		return err
 	}
 	if systemdVersion < 240 {
-		s.Logger.Warning("The version of systemd (%q) is less than 240. Enabling/disabling instantiated units may not work. See https://github.com/coreos/ignition/issues/586 for more information.", systemdVersion)
+		s.Warning("The version of systemd (%q) is less than 240. Enabling/disabling instantiated units may not work. See https://github.com/coreos/ignition/issues/586 for more information.", systemdVersion)
 	}
 	return nil
 }
@@ -89,7 +89,7 @@ func (s *stage) createUnits(config types.Config) error {
 		if unit.Mask != nil {
 			if *unit.Mask { // mask: true
 				relabelpath := ""
-				if err := s.Logger.LogOp(
+				if err := s.LogOp(
 					func() error {
 						var err error
 						relabelpath, err = s.MaskUnit(unit)
@@ -106,7 +106,7 @@ func (s *stage) createUnits(config types.Config) error {
 					return err
 				}
 				if masked {
-					if err := s.Logger.LogOp(
+					if err := s.LogOp(
 						func() error {
 							return s.UnmaskUnit(unit)
 						},
@@ -172,14 +172,14 @@ func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
 			unitString = fmt.Sprintf("%s %s", unitString, strings.Join(value.instances, " "))
 		}
 		if value.enabled {
-			if err := s.Logger.LogOp(
+			if err := s.LogOp(
 				func() error { return s.EnableUnit(unitString) },
 				"setting preset to enabled for %q", unitString,
 			); err != nil {
 				return err
 			}
 		} else {
-			if err := s.Logger.LogOp(
+			if err := s.LogOp(
 				func() error { return s.DisableUnit(unitString) },
 				"setting preset to disabled for %q", unitString,
 			); err != nil {
@@ -202,7 +202,7 @@ func (s *stage) createSystemdPresetFile(presets map[string]*Preset) error {
 // If the contents of the unit or are empty, the unit is not created. The same
 // applies to the unit's dropins.
 func (s *stage) writeSystemdUnit(unit types.Unit) error {
-	return s.Logger.LogOp(func() error {
+	return s.LogOp(func() error {
 		relabeledDropinDir := false
 		for _, dropin := range unit.Dropins {
 			if dropin.Contents == nil {
@@ -210,7 +210,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit) error {
 			}
 			f, err := s.FileFromSystemdUnitDropin(unit, dropin)
 			if err != nil {
-				s.Logger.Crit("error converting systemd dropin: %v", err)
+				s.Crit("error converting systemd dropin: %v", err)
 				return err
 			}
 			// trim off prefix since this needs to be relative to the sysroot
@@ -218,7 +218,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit) error {
 				panic(fmt.Sprintf("Dropin path %s isn't under prefix %s", f.Node.Path, s.DestDir))
 			}
 			relabelPath := f.Node.Path[len(s.DestDir):]
-			if err := s.Logger.LogOp(
+			if err := s.LogOp(
 				func() error { return s.PerformFetch(f) },
 				"writing systemd drop-in %q at %q", dropin.Name, f.Node.Path,
 			); err != nil {
@@ -236,7 +236,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit) error {
 
 		f, err := s.FileFromSystemdUnit(unit)
 		if err != nil {
-			s.Logger.Crit("error converting unit: %v", err)
+			s.Crit("error converting unit: %v", err)
 			return err
 		}
 		// trim off prefix since this needs to be relative to the sysroot
@@ -244,7 +244,7 @@ func (s *stage) writeSystemdUnit(unit types.Unit) error {
 			panic(fmt.Sprintf("Unit path %s isn't under prefix %s", f.Node.Path, s.DestDir))
 		}
 		relabelPath := f.Node.Path[len(s.DestDir):]
-		if err := s.Logger.LogOp(
+		if err := s.LogOp(
 			func() error { return s.PerformFetch(f) },
 			"writing unit %q at %q", unit.Name, f.Node.Path,
 		); err != nil {

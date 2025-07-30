@@ -15,6 +15,7 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -164,7 +165,7 @@ func (ut Util) DisableUnit(disabledUnit string) error {
 	// For more information: https://github.com/coreos/fedora-coreos-tracker/issues/392
 	// This is a short-term solution until the upstream systemd PR
 	// (https://github.com/systemd/systemd/pull/15205) gets accepted.
-	if err := ut.Logger.LogOp(
+	if err := ut.LogOp(
 		func() error {
 			args := []string{"--root", ut.DestDir, "disable", disabledUnit}
 			if output, err := exec.Command(distro.SystemctlCmd(), args...).CombinedOutput(); err != nil {
@@ -179,7 +180,7 @@ func (ut Util) DisableUnit(disabledUnit string) error {
 	return ut.appendLineToPreset(fmt.Sprintf("disable %s", disabledUnit))
 }
 
-func (ut Util) appendLineToPreset(data string) error {
+func (ut Util) appendLineToPreset(data string) (err error) {
 	path, err := ut.JoinPath(PresetPath)
 	if err != nil {
 		return err
@@ -192,7 +193,9 @@ func (ut Util) appendLineToPreset(data string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		err = errors.Join(err, file.Close())
+	}()
 
 	_, err = file.WriteString(data + "\n")
 	return err

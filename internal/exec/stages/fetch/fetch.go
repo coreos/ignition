@@ -65,6 +65,6 @@ func (s stage) Apply(_ types.Config, _ bool) error {
 
 func (s stage) Run(_ types.Config) error {
 	// Nothing - all we do is fetch and allow anything else in the initramfs to run
-	s.Logger.Info("fetch complete")
+	s.Info("fetch complete")
 	return nil
 }

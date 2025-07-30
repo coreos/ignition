@@ -52,8 +52,13 @@ func main() {
 		fmt.Printf("couldn't open group file: %v\n", err)
 		os.Exit(1)
 	}
-	defer groupFile.Close()
-	_, err = groupFile.Write([]byte(fmt.Sprintf("%s\n", strings.Join(modifiedGroupContent, "\n"))))
+	defer func() {
+		if err := groupFile.Close(); err != nil {
+			fmt.Printf("couldn't close group file: %v\n", err)
+			os.Exit(1)
+		}
+	}()
+	_, err = fmt.Fprintf(groupFile, "%s\n", strings.Join(modifiedGroupContent, "\n"))
 	if err != nil {
 		fmt.Printf("couldn't write to group file: %v\n", err)
 		os.Exit(1)
@@ -75,8 +80,13 @@ func main() {
 		fmt.Printf("couldn't open gshadow file: %v\n", err)
 		os.Exit(1)
 	}
-	defer gshadowFile.Close()
-	_, err = gshadowFile.Write([]byte(fmt.Sprintf("%s\n", strings.Join(modifiedGShadowContent, "\n"))))
+	defer func() {
+		if err := gshadowFile.Close(); err != nil {
+			fmt.Printf("couldn't close gshadow file: %v\n", err)
+			os.Exit(1)
+		}
+	}()
+	_, err = fmt.Fprintf(gshadowFile, "%s\n", strings.Join(modifiedGShadowContent, "\n"))
 	if err != nil {
 		fmt.Printf("couldn't write to gshadow file: %v\n", err)
 		os.Exit(1)
