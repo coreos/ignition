@@ -30,6 +30,7 @@ Ignition is currently supported for the following platforms:
 * [IBM Power Systems Virtual Server] (`powervs`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [QEMU] (`qemu`) - Ignition will read its configuration from the 'opt/com.coreos/config' key on the QEMU Firmware Configuration Device (available in QEMU 2.4.0 and higher).
 * [Scaleway] (`scaleway`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
+* [UpCloud] (`upcloud`) - Ignition will read its configuration from the instance userdata fetched from the metadata service (which is NOT enabled by default, make sure you enable it if you use custom images). Cloud SSH keys are handled separately.
 * [VirtualBox] (`virtualbox`) - Use the VirtualBox guest property `/Ignition/Config` to provide the config to the virtual machine.
 * [VMware] (`vmware`) - Use the VMware Guestinfo variables `ignition.config.data` and `ignition.config.data.encoding` to provide the config and its encoding to the virtual machine. Valid encodings are "", "base64", and "gzip+base64". Guestinfo variables can be provided directly or via an OVF environment, with priority given to variables specified directly.
 * [Vultr] (`vultr`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
@@ -62,6 +63,7 @@ For most cloud providers, cloud SSH keys and custom network configuration are ha
 [IBM Power Systems Virtual Server]: https://www.ibm.com/products/power-virtual-server
 [QEMU]: https://www.qemu.org/
 [Scaleway]: https://www.scaleway.com
+[UpCloud]: https://www.upcloud.com
 [VirtualBox]: https://www.virtualbox.org/
 [VMware]: https://www.vmware.com/
 [Vultr]: https://www.vultr.com/products/cloud-compute/
