@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The OpenStack provider fetches configurations from the userdata available in
-// both the config-drive as well as the network metadata service. Whichever
-// responds first is the config that is used.
+// The IBM Cloud provider fetches configurations from the userdata available in
+// the config-drive.
 // NOTE: This provider is still EXPERIMENTAL.
 
 package ibmcloud
