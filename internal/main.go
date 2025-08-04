@@ -137,8 +137,8 @@ func ignitionApplyMain() {
 	pflag.BoolVar(&flags.IgnoreUnsupported, "ignore-unsupported", false, "ignore unsupported config sections")
 	pflag.BoolVar(&flags.Offline, "offline", false, "error out if config references remote resources")
 	pflag.Usage = func() {
-		fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options] config.ign\n", os.Args[0])
-		fmt.Fprintf(pflag.CommandLine.Output(), "Options:\n")
+		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options] config.ign\n", os.Args[0])
+		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Options:\n")
 		pflag.PrintDefaults()
 	}
 	pflag.Parse()
@@ -195,8 +195,8 @@ func ignitionRmCfgMain() {
 	pflag.BoolVar(&flags.logToStdout, "log-to-stdout", false, "log to stdout instead of the system log")
 	pflag.BoolVar(&flags.version, "version", false, "print the version and exit")
 	pflag.Usage = func() {
-		fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options]\n", os.Args[0])
-		fmt.Fprintf(pflag.CommandLine.Output(), "Options:\n")
+		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options]\n", os.Args[0])
+		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Options:\n")
 		pflag.PrintDefaults()
 	}
 	pflag.Parse()
