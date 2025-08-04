@@ -16,7 +16,6 @@ package util
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -32,7 +31,7 @@ const (
 
 var selinuxPolicy = ""
 
-func (ut Util) getSelinuxPolicy() (policy string, err error) {
+func (ut Util) getSelinuxPolicy() (string, error) {
 	if selinuxPolicy == "" {
 		configPath, err := ut.JoinPath(selinuxConfig)
 		if err != nil {
@@ -43,9 +42,7 @@ func (ut Util) getSelinuxPolicy() (policy string, err error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to open %v: %v", selinuxConfig, err)
 		}
-		defer func() {
-			err = errors.Join(err, file.Close())
-		}()
+		defer file.Close()
 
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
@@ -65,7 +62,7 @@ func (ut Util) getSelinuxPolicy() (policy string, err error) {
 		}
 	}
 
-	return selinuxPolicy, err
+	return selinuxPolicy, nil
 }
 
 // RelabelFiles relabels all the files matching the globby patterns given.
@@ -82,7 +79,7 @@ func (ut Util) RelabelFiles(patterns []string) error {
 
 	cmd := exec.Command(distro.SetfilesCmd(), "-vF0", "-r", ut.DestDir, file_contexts, "-f", "-")
 	cmd.Stdin = strings.NewReader(strings.Join(patterns, "\000") + "\000")
-	if _, err := ut.LogCmd(cmd, "relabeling %d patterns", len(patterns)); err != nil {
+	if _, err := ut.Logger.LogCmd(cmd, "relabeling %d patterns", len(patterns)); err != nil {
 		return err
 	}
 	return nil

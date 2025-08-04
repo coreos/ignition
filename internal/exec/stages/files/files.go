@@ -137,7 +137,7 @@ func (s stage) runImpl(config types.Config, isApply bool, applyIgnoreUnsupported
 // we only collect filenames if we need to.
 func (s *stage) checkRelabeling() error {
 	if !distro.SelinuxRelabel() {
-		s.Debug("compiled without relabeling support, skipping")
+		s.Logger.Debug("compiled without relabeling support, skipping")
 		return nil
 	}
 

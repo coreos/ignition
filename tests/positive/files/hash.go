@@ -106,7 +106,7 @@ func ValidateFileHashFromHTTPURL() types.Test {
 	name := "files.create.withhash.http"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	config := strings.ReplaceAll(`{
+	config := strings.Replace(`{
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
@@ -117,7 +117,7 @@ func ValidateFileHashFromHTTPURL() types.Test {
 	      }
 	    }]
 	  }
-	}`, "HASH", servers.ContentsHash)
+	}`, "HASH", servers.ContentsHash, -1)
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
@@ -142,7 +142,7 @@ func ValidateFileHashFromHTTPURLForSHA256() types.Test {
 	name := "files.create.withhash.http.sha256"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	config := strings.ReplaceAll(`{
+	config := strings.Replace(`{
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
@@ -153,7 +153,7 @@ func ValidateFileHashFromHTTPURLForSHA256() types.Test {
 	      }
 	    }]
 	  }
-	}`, "HASH", servers.ContentsHashForSHA256)
+	}`, "HASH", servers.ContentsHashForSHA256, -1)
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{

@@ -18,7 +18,6 @@
 package powervs
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -61,7 +60,7 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromDevice(logger *log.Logger, path string) (data []byte, err error) {
+func fetchConfigFromDevice(logger *log.Logger, path string) ([]byte, error) {
 	for !fileExists(path) {
 		logger.Debug("config drive (%q) not found. Waiting...", path)
 		time.Sleep(time.Second)
@@ -72,22 +71,19 @@ func fetchConfigFromDevice(logger *log.Logger, path string) (data []byte, err er
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
-	defer func() {
-		err = errors.Join(err, os.Remove(mnt))
-	}()
+	defer os.Remove(mnt)
 
 	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", path, mnt)
-	if _, cmdErr := logger.LogCmd(cmd, "mounting config drive"); cmdErr != nil {
-		return nil, cmdErr
+	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
+		return nil, err
 	}
 	defer func() {
-		unmountErr := logger.LogOp(
+		_ = logger.LogOp(
 			func() error {
 				return ut.UmountPath(mnt)
 			},
 			"unmounting %q at %q", path, mnt,
 		)
-		err = errors.Join(err, unmountErr)
 	}()
 
 	if !fileExists(filepath.Join(mnt, configDriveUserdataPath)) {

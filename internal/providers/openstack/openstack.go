@@ -144,11 +144,7 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
-	defer func() {
-		if removeErr := os.Remove(mnt); removeErr != nil && err == nil {
-			err = fmt.Errorf("failed to remove temp directory %q: %w", mnt, removeErr)
-		}
-	}()
+	defer os.Remove(mnt)
 
 	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", path, mnt)
 	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {

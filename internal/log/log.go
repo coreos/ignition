@@ -62,8 +62,8 @@ func New(logToStdout bool) Logger {
 }
 
 // Close closes the logger.
-func (l Logger) Close() error {
-	return l.ops.Close()
+func (l Logger) Close() {
+	l.ops.Close()
 }
 
 // Emerg logs a message at emergency priority.

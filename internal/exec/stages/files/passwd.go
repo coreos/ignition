@@ -104,8 +104,8 @@ func (s stage) ensureUsers(config types.Config) error {
 	if len(config.Passwd.Users) == 0 {
 		return nil
 	}
-	s.PushPrefix("ensureUsers")
-	defer s.PopPrefix()
+	s.Logger.PushPrefix("ensureUsers")
+	defer s.Logger.PopPrefix()
 
 	for _, u := range config.Passwd.Users {
 		if err := s.EnsureUser(u); err != nil {
@@ -142,8 +142,8 @@ func (s stage) ensureGroups(config types.Config) error {
 	if len(config.Passwd.Groups) == 0 {
 		return nil
 	}
-	s.PushPrefix("ensureGroups")
-	defer s.PopPrefix()
+	s.Logger.PushPrefix("ensureGroups")
+	defer s.Logger.PopPrefix()
 
 	for _, g := range config.Passwd.Groups {
 		if err := s.EnsureGroup(g); err != nil {

@@ -146,7 +146,7 @@ func (s stage) mountFs(fs types.Filesystem) error {
 
 	args := translateOptionSliceToString(fs.MountOptions, ",")
 	cmd := exec.Command(distro.MountCmd(), "-o", args, "-t", *fs.Format, fs.Device, path)
-	if _, err := s.LogCmd(cmd,
+	if _, err := s.Logger.LogCmd(cmd,
 		"mounting %q at %q with type %q and options %q", fs.Device, path, *fs.Format, args,
 	); err != nil {
 		return err
@@ -155,7 +155,7 @@ func (s stage) mountFs(fs types.Filesystem) error {
 	if distro.SelinuxRelabel() {
 		// relabel the root of the disk if it's fresh
 		if isEmpty, err := util.FilesystemIsEmpty(path); err != nil {
-			return fmt.Errorf("checking if mountpoint %s is empty: %v", path, err)
+			return fmt.Errorf("Checking if mountpoint %s is empty: %v", path, err)
 		} else if isEmpty {
 			if err := s.RelabelFiles([]string{path}); err != nil {
 				return err

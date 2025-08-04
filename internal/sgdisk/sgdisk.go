@@ -104,7 +104,7 @@ func (op *Operation) Pretend() (string, error) {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return "", fmt.Errorf("failed to pretend to create partitions. Err: %v. Stderr: %v", err, string(errors))
+		return "", fmt.Errorf("Failed to pretend to create partitions. Err: %v. Stderr: %v", err, string(errors))
 	}
 
 	return string(output), nil

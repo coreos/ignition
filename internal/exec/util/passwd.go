@@ -175,7 +175,7 @@ func writeAuthKeysFile(u *user.User, fp string, keys []byte) error {
 		return fmt.Errorf("opening file %q as user %s and group %s: %w", fp, u.Uid, u.Gid, err)
 	}
 	if _, err = f.Write(keys); err != nil {
-		_ = f.Close() // ignore errors
+		f.Close() // ignore errors
 		return fmt.Errorf("writing file %q: %w", fp, err)
 	}
 	if err := f.Close(); err != nil {

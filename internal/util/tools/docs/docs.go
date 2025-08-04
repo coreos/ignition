@@ -112,7 +112,7 @@ func findJsonSections(fileLines []string) ([][]string, uint, error) {
 	var currentSection []string
 
 	var ignoredSections uint = 0
-	var state = notInSection
+	var state sectionState = notInSection
 
 	for _, line := range fileLines {
 		switch state {

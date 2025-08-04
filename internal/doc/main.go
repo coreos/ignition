@@ -67,56 +67,49 @@ func generate(dir string) error {
 	}
 
 	for i, c := range configs {
-		if err := func() (err error) {
-			ver := *semver.New(c.version)
+		ver := *semver.New(c.version)
 
-			// clean up any previous experimental spec doc, for use
-			// during spec stabilization
-			experimentalPath := filepath.Join(dir, fmt.Sprintf("configuration-v%d_%d_experimental.md", ver.Major, ver.Minor))
-			if err := os.Remove(experimentalPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
-				return err
-			}
-
-			// open file
-			var path string
-			switch ver.PreRelease {
-			case "":
-				path = filepath.Join(dir, fmt.Sprintf("configuration-v%d_%d.md", ver.Major, ver.Minor))
-			case "experimental":
-				path = experimentalPath
-			default:
-				panic(fmt.Errorf("unexpected prerelease: %v", ver.PreRelease))
-			}
-			f, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-			if err != nil {
-				return err
-			}
-			defer func() {
-				err = errors.Join(err, f.Close())
-			}()
-
-			// write header
-			args := struct {
-				Version  semver.Version
-				NavOrder int
-			}{
-				Version:  ver,
-				NavOrder: 50 - i,
-			}
-			if err := header.Execute(f, args); err != nil {
-				return fmt.Errorf("writing header for %s: %w", c.version, err)
-			}
-
-			// write docs
-			vers := doc.VariantVersions{
-				doc.IGNITION_VARIANT: ver,
-			}
-			if err := comps.Generate(vers, c.config, nil, f); err != nil {
-				return fmt.Errorf("generating doc for %s: %w", c.version, err)
-			}
-			return nil
-		}(); err != nil {
+		// clean up any previous experimental spec doc, for use
+		// during spec stabilization
+		experimentalPath := filepath.Join(dir, fmt.Sprintf("configuration-v%d_%d_experimental.md", ver.Major, ver.Minor))
+		if err := os.Remove(experimentalPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
 			return err
+		}
+
+		// open file
+		var path string
+		switch ver.PreRelease {
+		case "":
+			path = filepath.Join(dir, fmt.Sprintf("configuration-v%d_%d.md", ver.Major, ver.Minor))
+		case "experimental":
+			path = experimentalPath
+		default:
+			panic(fmt.Errorf("unexpected prerelease: %v", ver.PreRelease))
+		}
+		f, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		// write header
+		args := struct {
+			Version  semver.Version
+			NavOrder int
+		}{
+			Version:  ver,
+			NavOrder: 50 - i,
+		}
+		if err := header.Execute(f, args); err != nil {
+			return fmt.Errorf("writing header for %s: %w", c.version, err)
+		}
+
+		// write docs
+		vers := doc.VariantVersions{
+			doc.IGNITION_VARIANT: ver,
+		}
+		if err := comps.Generate(vers, c.config, nil, f); err != nil {
+			return fmt.Errorf("generating doc for %s: %w", c.version, err)
 		}
 	}
 	return nil

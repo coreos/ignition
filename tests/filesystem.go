@@ -21,7 +21,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -59,7 +58,7 @@ func prepareRootPartitionForPasswd(ctx context.Context, root *types.Partition) (
 		return err
 	}
 	defer func() {
-		err = errors.Join(err, umountPartition(root))
+		err = umountPartition(root)
 	}()
 
 	mountPath := root.MountPath
@@ -174,12 +173,10 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 	defer func() {
 		// Delete the image file if this function exits with an error
 		if err != nil {
-			_ = os.Remove(disk.ImageFile)
+			os.Remove(disk.ImageFile)
 		}
 	}()
-	if err = out.Close(); err != nil {
-		return
-	}
+	out.Close()
 
 	// Truncate the file to the given size
 	if err = os.Truncate(disk.ImageFile, imageSize); err != nil {
@@ -221,7 +218,7 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 		defer func() {
 			// Delete the mount path if this function exits with an error
 			if err != nil {
-				_ = os.RemoveAll(mountPath)
+				os.RemoveAll(mountPath)
 			}
 		}()
 
@@ -236,17 +233,14 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 		if _, err := rand.Read(bytes); err != nil {
 			return err
 		}
-		var f *os.File
-		f, err = os.OpenFile(disk.ImageFile, os.O_WRONLY, 0666)
+		f, err := os.OpenFile(disk.ImageFile, os.O_WRONLY, 0666)
 		if err != nil {
 			return err
 		}
-		defer func() {
-			err = errors.Join(err, f.Close())
-		}()
 		if _, err := f.Write(bytes); err != nil {
 			return err
 		}
+		defer f.Close()
 	}
 
 	return nil
@@ -325,20 +319,17 @@ func formatPartition(ctx context.Context, partition *types.Partition) error {
 	return nil
 }
 
-func writePartitionData(device string, contents string) (err error) {
+func writePartitionData(device string, contents string) error {
 	bzipped, err := base64.StdEncoding.DecodeString(contents)
 	if err != nil {
 		return err
 	}
 	reader := bzip2.NewReader(bytes.NewBuffer(bzipped))
-	var f *os.File
-	f, err = os.OpenFile(device, os.O_WRONLY, 0644)
+	f, err := os.OpenFile(device, os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err = errors.Join(err, f.Close())
-	}()
+	defer f.Close()
 	_, err = io.Copy(f, reader)
 	return err
 }
@@ -417,7 +408,7 @@ func createFilesForPartition(ctx context.Context, partition *types.Partition) (e
 		return
 	}
 	defer func() {
-		err = errors.Join(err, umountPartition(partition))
+		err = umountPartition(partition)
 	}()
 
 	err = createDirectoriesFromSlice(partition.MountPath, partition.Directories)
@@ -446,34 +437,25 @@ func createFilesForPartitions(ctx context.Context, partitions []*types.Partition
 
 func createFilesFromSlice(basedir string, files []types.File) error {
 	for _, file := range files {
-		if err := func() (err error) {
-			err = os.MkdirAll(filepath.Join(
-				basedir, file.Directory), 0755)
+		err := os.MkdirAll(filepath.Join(
+			basedir, file.Directory), 0755)
+		if err != nil {
+			return err
+		}
+		f, err := os.OpenFile(filepath.Join(basedir, file.Directory, file.Name), os.O_CREATE|os.O_WRONLY, os.FileMode(file.Mode))
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		if file.Contents != "" {
+			writer := bufio.NewWriter(f)
+			_, err := writer.WriteString(file.Contents)
 			if err != nil {
 				return err
 			}
-			f, err := os.OpenFile(filepath.Join(basedir, file.Directory, file.Name), os.O_CREATE|os.O_WRONLY, os.FileMode(file.Mode))
-			if err != nil {
-				return err
-			}
-			defer func() {
-				err = errors.Join(err, f.Close())
-			}()
-			if file.Contents != "" {
-				writer := bufio.NewWriter(f)
-				_, err := writer.WriteString(file.Contents)
-				if err != nil {
-					return err
-				}
-				if err := writer.Flush(); err != nil {
-					return err
-				}
-			}
-			if err := os.Chown(filepath.Join(basedir, file.Directory, file.Name), file.User, file.Group); err != nil {
-				return err
-			}
-			return nil
-		}(); err != nil {
+			writer.Flush()
+		}
+		if err := os.Chown(filepath.Join(basedir, file.Directory, file.Name), file.User, file.Group); err != nil {
 			return err
 		}
 	}

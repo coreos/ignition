@@ -21,7 +21,6 @@ package cloudstack
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -158,15 +157,14 @@ func findLease() (*os.File, error) {
 	}
 }
 
-func getDHCPServerAddress() (address string, err error) {
+func getDHCPServerAddress() (string, error) {
 	lease, err := findLease()
 	if err != nil {
 		return "", err
 	}
-	defer func() {
-		err = errors.Join(err, lease.Close())
-	}()
+	defer lease.Close()
 
+	var address string
 	line := bufio.NewScanner(lease)
 	for line.Scan() {
 		parts := strings.Split(line.Text(), "=")
@@ -180,10 +178,10 @@ func getDHCPServerAddress() (address string, err error) {
 		return "", fmt.Errorf("dhcp server address not found in leases")
 	}
 
-	return address, err
+	return address, nil
 }
 
-func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, label string) (data []byte, err error) {
+func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, label string) ([]byte, error) {
 	for !labelExists(label) {
 		logger.Debug("config drive (%q) not found. Waiting...", label)
 		select {
@@ -203,24 +201,19 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, label string
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
-	defer func() {
-		if removeErr := os.Remove(mnt); removeErr != nil {
-			err = errors.Join(err, fmt.Errorf("failed to remove temp directory %q: %w", mnt, removeErr))
-		}
-	}()
+	defer os.Remove(mnt)
 
 	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", path, mnt)
 	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
 		return nil, err
 	}
 	defer func() {
-		unmountErr := logger.LogOp(
+		_ = logger.LogOp(
 			func() error {
 				return ut.UmountPath(mnt)
 			},
 			"unmounting %q at %q", path, mnt,
 		)
-		err = errors.Join(err, unmountErr)
 	}()
 
 	if !fileExists(filepath.Join(mnt, configDriveUserdataPath)) {

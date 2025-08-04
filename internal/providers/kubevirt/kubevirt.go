@@ -19,7 +19,6 @@
 package kubevirt
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -62,7 +61,7 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromDevice(logger *log.Logger, path string) (data []byte, err error) {
+func fetchConfigFromDevice(logger *log.Logger, path string) ([]byte, error) {
 	// There is not always a config drive in kubevirt, but we can limit ignition usage
 	// to VMs with config drives. Block forever if there is none.
 	for !fileExists(path) {
@@ -75,24 +74,19 @@ func fetchConfigFromDevice(logger *log.Logger, path string) (data []byte, err er
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
-	defer func() {
-		if removeErr := os.Remove(mnt); removeErr != nil {
-			err = errors.Join(err, fmt.Errorf("failed to remove temp directory %q: %w", mnt, removeErr))
-		}
-	}()
+	defer os.Remove(mnt)
 
 	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", path, mnt)
 	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
 		return nil, err
 	}
 	defer func() {
-		unmountErr := logger.LogOp(
+		_ = logger.LogOp(
 			func() error {
 				return ut.UmountPath(mnt)
 			},
 			"unmounting %q at %q", path, mnt,
 		)
-		err = errors.Join(err, unmountErr)
 	}()
 
 	mntConfigDriveUserdataPath := filepath.Join(mnt, configDriveUserdataPath)

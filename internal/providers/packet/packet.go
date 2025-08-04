@@ -142,11 +142,6 @@ func postMessage(stageName string, e error, url string) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if closeErr := respPost.Body.Close(); closeErr != nil && err == nil {
-			err = closeErr
-		}
-	}()
-
+	defer respPost.Body.Close()
 	return err
 }

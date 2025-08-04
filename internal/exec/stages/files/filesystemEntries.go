@@ -40,8 +40,8 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 		return nil
 	}
 
-	s.PushPrefix("createCrypttabEntries")
-	defer s.PopPrefix()
+	s.Logger.PushPrefix("createCrypttabEntries")
+	defer s.Logger.PopPrefix()
 
 	path, err := s.JoinPath("/etc/crypttab")
 	if err != nil {
@@ -154,8 +154,8 @@ func (s *stage) createResultFile() error {
 		return nil
 	}
 
-	s.PushPrefix("createResultFile")
-	defer s.PopPrefix()
+	s.Logger.PushPrefix("createResultFile")
+	defer s.Logger.PopPrefix()
 
 	var prevReport interface{}
 	prevPath, err := s.JoinPath(distro.ResultFilePath())
@@ -170,9 +170,9 @@ func (s *stage) createResultFile() error {
 		// To check if it's a live system
 		if err := exec.Command("is-live-image").Run(); err != nil {
 			if _, ok := err.(*exec.ExitError); !ok {
-				s.Notice("failed to run is-live-image hook: %v", err)
+				s.Logger.Notice("failed to run is-live-image hook: %v", err)
 			}
-			s.Warning("Ignition has already run on this system. Unexpected behavior may occur. Ignition is not designed to run more than once per system.")
+			s.Logger.Warning("Ignition has already run on this system. Unexpected behavior may occur. Ignition is not designed to run more than once per system.")
 			err = json.Unmarshal(prevData, &prevReport)
 			if err != nil {
 				return fmt.Errorf("couldn't unmarshal previous report output: %v", err)
@@ -238,8 +238,8 @@ func (s *stage) createResultFile() error {
 
 // createFilesystemsEntries creates the files described in config.Storage.{Files,Directories}.
 func (s *stage) createFilesystemsEntries(config types.Config) error {
-	s.PushPrefix("createFilesystemsFiles")
-	defer s.PopPrefix()
+	s.Logger.PushPrefix("createFilesystemsFiles")
+	defer s.Logger.PopPrefix()
 
 	entries, err := s.getOrderedCreationList(config)
 	if err != nil {
@@ -491,8 +491,8 @@ func (s *stage) relabelPath(path string) error {
 
 // createEntries creates any files or directories listed for the filesystem in Storage.{Files,Directories}.
 func (s *stage) createEntries(entries []filesystemEntry) error {
-	s.PushPrefix("createFiles")
-	defer s.PopPrefix()
+	s.Logger.PushPrefix("createFiles")
+	defer s.Logger.PopPrefix()
 
 	for _, e := range entries {
 		path := e.node().Path
@@ -518,8 +518,8 @@ func (s *stage) createCexVolumeKeys(config types.Config) error {
 	if len(config.Storage.Luks) == 0 {
 		return nil
 	}
-	s.PushPrefix("createCexVolumeKeys")
-	defer s.PopPrefix()
+	s.Logger.PushPrefix("createCexVolumeKeys")
+	defer s.Logger.PopPrefix()
 	for _, luks := range config.Storage.Luks {
 		if !luks.Cex.IsPresent() {
 			continue
