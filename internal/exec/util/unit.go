@@ -164,7 +164,7 @@ func (ut Util) DisableUnit(disabledUnit string) error {
 	// For more information: https://github.com/coreos/fedora-coreos-tracker/issues/392
 	// This is a short-term solution until the upstream systemd PR
 	// (https://github.com/systemd/systemd/pull/15205) gets accepted.
-	if err := ut.Logger.LogOp(
+	if err := ut.LogOp(
 		func() error {
 			args := []string{"--root", ut.DestDir, "disable", disabledUnit}
 			if output, err := exec.Command(distro.SystemctlCmd(), args...).CombinedOutput(); err != nil {

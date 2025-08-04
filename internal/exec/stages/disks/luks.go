@@ -98,8 +98,8 @@ func (s *stage) createLuks(config types.Config) error {
 	if len(config.Storage.Luks) == 0 {
 		return nil
 	}
-	s.Logger.PushPrefix("createLuks")
-	defer s.Logger.PopPrefix()
+	s.PushPrefix("createLuks")
+	defer s.PopPrefix()
 
 	devs := []string{}
 	for _, luks := range config.Storage.Luks {
@@ -153,14 +153,14 @@ func (s *stage) createLuks(config types.Config) error {
 					Contents: luks.KeyFile,
 				},
 			}
-			fetchOps, err := s.Util.PrepareFetches(s.Util.Logger, f)
+			fetchOps, err := s.PrepareFetches(s.Logger, f)
 			if err != nil {
 				return fmt.Errorf("failed to resolve keyfile %q: %v", f.Path, err)
 			}
 			for _, op := range fetchOps {
-				if err := s.Util.Logger.LogOp(
+				if err := s.LogOp(
 					func() error {
-						return s.Util.PerformFetch(op)
+						return s.PerformFetch(op)
 					}, "writing file %q", f.Path,
 				); err != nil {
 					return fmt.Errorf("failed to create keyfile %q: %v", op.Node.Path, err)
@@ -187,17 +187,17 @@ func (s *stage) createLuks(config types.Config) error {
 				// try to reuse the LUKS device; device will be opened
 				// if successful.
 				if err := s.reuseLuksDevice(luks, keyFilePath); err != nil {
-					s.Logger.Err("volume wipe was not requested and luks device %q could not be reused: %v", *luks.Device, err)
+					s.Err("volume wipe was not requested and luks device %q could not be reused: %v", *luks.Device, err)
 					return ErrBadVolume
 				}
 				// Re-used devices cannot have Ignition generated key-files or be clevis devices so we cannot
 				// leak any key files when exiting the loop early
-				s.Logger.Info("volume at %q is already correctly formatted. Skipping...", *luks.Device)
+				s.Info("volume at %q is already correctly formatted. Skipping...", *luks.Device)
 				continue
 			}
 
 			var info execUtil.FilesystemInfo
-			err = s.Logger.LogOp(
+			err = s.LogOp(
 				func() error {
 					var err error
 					info, err = execUtil.GetFilesystemInfo(devAlias, false)
@@ -208,7 +208,7 @@ func (s *stage) createLuks(config types.Config) error {
 						var err2 error
 						info, err2 = execUtil.GetFilesystemInfo(devAlias, true)
 						if err2 == nil {
-							s.Logger.Warning("%v", err)
+							s.Warning("%v", err)
 						}
 						err = err2
 					}
@@ -219,13 +219,13 @@ func (s *stage) createLuks(config types.Config) error {
 			if err != nil {
 				return err
 			}
-			s.Logger.Info("found %s at %q with uuid %q and label %q", info.Type, *luks.Device, info.UUID, info.Label)
+			s.Info("found %s at %q with uuid %q and label %q", info.Type, *luks.Device, info.UUID, info.Label)
 			if info.Type != "" {
-				s.Logger.Err("volume at %q is not of the correct type (found %s) and a volume wipe was not requested", *luks.Device, info.Type)
+				s.Err("volume at %q is not of the correct type (found %s) and a volume wipe was not requested", *luks.Device, info.Type)
 				return ErrBadVolume
 			}
 		} else {
-			if _, err := s.Logger.LogCmd(
+			if _, err := s.LogCmd(
 				exec.Command(distro.WipefsCmd(), "-a", devAlias),
 				"wiping filesystem signatures from %q",
 				devAlias,
@@ -271,7 +271,7 @@ func (s *stage) createLuks(config types.Config) error {
 			args = append(args, cex_args...)
 		}
 
-		if _, err := s.Logger.LogCmd(
+		if _, err := s.LogCmd(
 			exec.Command(distro.CryptsetupCmd(), args...),
 			"creating %q", luks.Name,
 		); err != nil {
@@ -289,7 +289,7 @@ func (s *stage) createLuks(config types.Config) error {
 		}
 
 		// open the device
-		if _, err := s.Logger.LogCmd(
+		if _, err := s.LogCmd(
 			exec.Command(distro.CryptsetupCmd(), luksOpenArgs(luks, keyFilePath)...),
 			"opening luks device %v", luks.Name,
 		); err != nil {
@@ -361,7 +361,7 @@ func (s *stage) createLuks(config types.Config) error {
 			}
 
 			// lets bind our device
-			if _, err := s.Logger.LogCmd(
+			if _, err := s.LogCmd(
 				exec.Command(distro.ClevisCmd(), "luks", "bind", "-f", "-k", keyFilePath, "-d", devAlias, pin, config), "Clevis bind",
 			); err != nil {
 				return fmt.Errorf("binding clevis device: %v", err)
@@ -377,13 +377,13 @@ func (s *stage) createLuks(config types.Config) error {
 			// Check if we can safely close and re-open the device
 			if tangServersWithoutAdv+intTpm2 >= threshold {
 				// close & re-open Clevis devices to make sure that we can unlock them
-				if _, err := s.Logger.LogCmd(
+				if _, err := s.LogCmd(
 					exec.Command(distro.CryptsetupCmd(), "luksClose", luks.Name),
 					"closing clevis luks device %v", luks.Name,
 				); err != nil {
 					return fmt.Errorf("closing luks device: %v", err)
 				}
-				if _, err := s.Logger.LogCmd(
+				if _, err := s.LogCmd(
 					exec.Command(distro.ClevisCmd(), "luks", "unlock", "-d", devAlias, "-n", luks.Name),
 					"reopening clevis luks device %s", luks.Name,
 				); err != nil {
@@ -394,7 +394,7 @@ func (s *stage) createLuks(config types.Config) error {
 
 		if ignitionCreatedKeyFile && luks.Clevis.IsPresent() {
 			// assume the user does not want the generated key & remove it
-			if _, err := s.Logger.LogCmd(
+			if _, err := s.LogCmd(
 				exec.Command(distro.CryptsetupCmd(), "luksRemoveKey", devAlias, keyFilePath),
 				"removing key file for %v", luks.Name,
 			); err != nil {
@@ -504,7 +504,7 @@ func (s *stage) reuseLuksDevice(luks types.Luks, keyFilePath string) error {
 	}
 
 	// open the device to make sure the keyfile is valid
-	if _, err := s.Logger.LogCmd(
+	if _, err := s.LogCmd(
 		exec.Command(distro.CryptsetupCmd(), luksOpenArgs(luks, keyFilePath)...),
 		"opening luks device %v", luks.Name,
 	); err != nil {
@@ -650,7 +650,7 @@ func (s *stage) zkeySecKeyGen(luks types.Luks) error {
 		return fmt.Errorf("querying APQNs: %w", err)
 	}
 	args = append(args, "--apqns", dom)
-	if _, err = s.Logger.LogCmd(
+	if _, err = s.LogCmd(
 		exec.Command(distro.ZkeyCmd(), args...),
 		"generating cex secure keys"); err != nil {
 		return fmt.Errorf("generating secure key: %w", err)
@@ -694,7 +694,7 @@ func (s *stage) zkeySecCryptGenArgs(luks types.Luks) ([]string, error) {
 
 // Setting Verification pattern for keyslot after the luksFormat the device.
 func (s *stage) zkeyCryptSetvp(luks types.Luks, key string) error {
-	if _, err := s.Logger.LogCmd(exec.Command(distro.ZkeyCryptCmd(), "setvp",
+	if _, err := s.LogCmd(exec.Command(distro.ZkeyCryptCmd(), "setvp",
 		execUtil.DeviceAlias(*luks.Device),
 		"--key-file", key),
 		"Setting verification pattern for device: %q", execUtil.DeviceAlias(*luks.Device)); err != nil {

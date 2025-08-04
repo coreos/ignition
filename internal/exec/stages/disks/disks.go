@@ -135,7 +135,7 @@ func (s stage) waitForUdev(dev string) error {
 	// nothing causes the kernel/udev to reread the partition table and
 	// recreate the /dev/DISKpX entries. If that was the case best we could
 	// do here is to add a retry loop (and relax the function comment).
-	_, err = s.Logger.LogCmd(
+	_, err = s.LogCmd(
 		exec.Command(distro.UdevadmCmd(), "trigger", "--settle",
 			devPath), "waiting for triggered uevent")
 	if err != nil {
@@ -165,7 +165,7 @@ func (s stage) createDeviceAliases(devs []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to create device alias for %q: %v", dev, err)
 		}
-		s.Logger.Info("created device alias for %q: %q -> %q", dev, util.DeviceAlias(dev), target)
+		s.Info("created device alias for %q: %q -> %q", dev, util.DeviceAlias(dev), target)
 	}
 
 	return nil

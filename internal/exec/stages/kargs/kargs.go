@@ -93,7 +93,7 @@ func (s *stage) addKargs(config types.Config) error {
 	for _, arg := range config.KernelArguments.ShouldNotExist {
 		opts = append(opts, "--should-not-exist", string(arg))
 	}
-	_, err := s.Logger.LogCmd(
+	_, err := s.LogCmd(
 		exec.Command(distro.KargsCmd(), opts...),
 		"updating kernel arguments")
 	return err

@@ -98,7 +98,7 @@ func (s stage) umountFs(fs types.Filesystem) error {
 		return err
 	}
 
-	if err := s.Logger.LogOp(func() error { return unix.Unmount(path, 0) },
+	if err := s.LogOp(func() error { return unix.Unmount(path, 0) },
 		"umounting %q", path,
 	); err != nil {
 		return err

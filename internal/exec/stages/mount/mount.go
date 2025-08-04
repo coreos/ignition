@@ -146,7 +146,7 @@ func (s stage) mountFs(fs types.Filesystem) error {
 
 	args := translateOptionSliceToString(fs.MountOptions, ",")
 	cmd := exec.Command(distro.MountCmd(), "-o", args, "-t", *fs.Format, fs.Device, path)
-	if _, err := s.Logger.LogCmd(cmd,
+	if _, err := s.LogCmd(cmd,
 		"mounting %q at %q with type %q and options %q", fs.Device, path, *fs.Format, args,
 	); err != nil {
 		return err
