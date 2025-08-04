@@ -95,7 +95,9 @@ func main() {
 		fmt.Printf("couldn't open passwd file: %v\n", err)
 		os.Exit(1)
 	}
-	defer passwdFile.Close()
+	defer func() {
+		_ = passwdFile.Close()
+	}()
 	_, err = passwdFile.Write([]byte(passwdLine))
 	if err != nil {
 		fmt.Printf("couldn't write to passwd file: %v\n", err)
@@ -109,7 +111,9 @@ func main() {
 		fmt.Printf("couldn't open group file: %v\n", err)
 		os.Exit(1)
 	}
-	defer groupFile.Close()
+	defer func() {
+		_ = groupFile.Close()
+	}()
 	_, err = groupFile.Write([]byte(groupLine))
 	if err != nil {
 		fmt.Printf("couldn't write to group file: %v\n", err)
@@ -123,7 +127,9 @@ func main() {
 		fmt.Printf("couldn't open shadow file: %v\n", err)
 		os.Exit(1)
 	}
-	defer shadowFile.Close()
+	defer func() {
+		_ = shadowFile.Close()
+	}()
 	_, err = shadowFile.Write([]byte(shadowLine))
 	if err != nil {
 		fmt.Printf("couldn't write to shadow file: %v\n", err)
@@ -137,7 +143,9 @@ func main() {
 		fmt.Printf("couldn't open gshadow file: %v\n", err)
 		os.Exit(1)
 	}
-	defer gshadowFile.Close()
+	defer func() {
+		_ = gshadowFile.Close()
+	}()
 	_, err = gshadowFile.Write([]byte(gshadowLine))
 	if err != nil {
 		fmt.Printf("couldn't write to gshadow file: %v\n", err)

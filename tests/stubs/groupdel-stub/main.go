@@ -52,7 +52,9 @@ func main() {
 		fmt.Printf("couldn't open group file: %v\n", err)
 		os.Exit(1)
 	}
-	defer groupFile.Close()
+	defer func() {
+		_ = groupFile.Close()
+	}()
 	_, err = groupFile.Write([]byte(fmt.Sprintf("%s\n", strings.Join(modifiedGroupContent, "\n"))))
 	if err != nil {
 		fmt.Printf("couldn't write to group file: %v\n", err)
@@ -75,7 +77,9 @@ func main() {
 		fmt.Printf("couldn't open gshadow file: %v\n", err)
 		os.Exit(1)
 	}
-	defer gshadowFile.Close()
+	defer func() {
+		_ = gshadowFile.Close()
+	}()
 	_, err = gshadowFile.Write([]byte(fmt.Sprintf("%s\n", strings.Join(modifiedGShadowContent, "\n"))))
 	if err != nil {
 		fmt.Printf("couldn't write to gshadow file: %v\n", err)

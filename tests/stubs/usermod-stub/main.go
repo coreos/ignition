@@ -110,7 +110,10 @@ func main() {
 		fmt.Printf("couldn't open passwd file: %v\n", err)
 		os.Exit(1)
 	}
-	defer passwdFile.Close()
+	defer func() {
+		_ = passwdFile.Close()
+	}()
+
 	_, err = passwdFile.Write([]byte(strings.Join(passwdLines, "\n")))
 	if err != nil {
 		fmt.Printf("couldn't write to passwd file: %v\n", err)
