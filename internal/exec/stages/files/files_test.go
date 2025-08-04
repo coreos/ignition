@@ -204,7 +204,7 @@ func TestEntrySort(t *testing.T) {
 		sort.Slice(entries, func(i, j int) bool { return util.Depth(entries[i].node().Path) < util.Depth(entries[j].node().Path) })
 		outpaths := make([]types.Directory, len(test.in.data))
 		for j, dir := range entries {
-			outpaths[j].Node.Path = dir.node().Path
+			outpaths[j].Path = dir.node().Path
 		}
 		if !reflect.DeepEqual(test.out.data, outpaths) {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.data, outpaths)

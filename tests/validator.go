@@ -215,7 +215,7 @@ func validateFilesDirectoriesAndLinks(t *testing.T, ctx context.Context, expecte
 }
 
 func validateFile(t *testing.T, partition *types.Partition, file types.File) {
-	path := filepath.Join(partition.MountPath, file.Node.Directory, file.Node.Name)
+	path := filepath.Join(partition.MountPath, file.Directory, file.Name)
 	fileInfo := unix.Stat_t{}
 	if err := unix.Lstat(path, &fileInfo); err != nil {
 		t.Errorf("Error stat'ing file %s: %v", path, err)
@@ -240,7 +240,7 @@ func validateFile(t *testing.T, partition *types.Partition, file types.File) {
 }
 
 func validateDirectory(t *testing.T, partition *types.Partition, dir types.Directory) {
-	path := filepath.Join(partition.MountPath, dir.Node.Directory, dir.Node.Name)
+	path := filepath.Join(partition.MountPath, dir.Directory, dir.Name)
 	dirInfo := unix.Stat_t{}
 	if err := unix.Lstat(path, &dirInfo); err != nil {
 		t.Errorf("Error stat'ing directory %s: %v", path, err)
@@ -254,7 +254,7 @@ func validateDirectory(t *testing.T, partition *types.Partition, dir types.Direc
 }
 
 func validateLink(t *testing.T, partition *types.Partition, link types.Link) {
-	linkPath := filepath.Join(partition.MountPath, link.Node.Directory, link.Node.Name)
+	linkPath := filepath.Join(partition.MountPath, link.Directory, link.Name)
 	linkInfo := unix.Stat_t{}
 	if err := unix.Lstat(linkPath, &linkInfo); err != nil {
 		t.Error("Error stat'ing link \"" + linkPath + "\": " + err.Error())
