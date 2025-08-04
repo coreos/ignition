@@ -54,7 +54,7 @@ func getPartitionSet(device string) (map[int]struct{}, error) {
 			continue
 		}
 		if len(match) != 2 {
-			return nil, fmt.Errorf("Invalid regex result from parsing sgdisk")
+			return nil, fmt.Errorf("invalid regex result from parsing sgdisk")
 		}
 		num, err := strconv.Atoi(match[1])
 		if err != nil {

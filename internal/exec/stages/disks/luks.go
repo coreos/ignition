@@ -685,7 +685,7 @@ func (s *stage) zkeySecCryptGenArgs(luks types.Luks) ([]string, error) {
 	}
 	keysize, err := s.zkeySecKeySize(volKeyfile)
 	if err != nil {
-		return ret, fmt.Errorf("Error getting the key size %w", err)
+		return ret, fmt.Errorf("error getting the key size %w", err)
 	}
 	ret = append(ret, "--key-size", keysize)
 

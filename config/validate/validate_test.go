@@ -116,7 +116,7 @@ func TestValidateWithContext(t *testing.T) {
 		{
 			in:    struct{}{},
 			inRaw: `{"foo":"bar"}`,
-			out:   mkReport(fmt.Errorf("Unused key foo"), path.New("json", tree.Key("foo")), report.Warn, 1, 2),
+			out:   mkReport(fmt.Errorf("unused key foo"), path.New("json", tree.Key("foo")), report.Warn, 1, 2),
 		},
 		{
 			in:    test2{},
