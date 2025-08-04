@@ -220,13 +220,13 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 			// The device may not be on this disk, if it's not found here let's
 			// assume we'll find it on another one and keep going
 			if device != "" {
-				test.Config = strings.Replace(test.Config, d.Substitution, device, -1)
+				test.Config = strings.ReplaceAll(test.Config, d.Substitution, device)
 			}
 		}
 
 		// Replace any instance of $disk<num> with the actual loop device
 		// that got assigned to it
-		test.Config = strings.Replace(test.Config, fmt.Sprintf("$disk%d", i), disk.Device, -1)
+		test.Config = strings.ReplaceAll(test.Config, fmt.Sprintf("$disk%d", i), disk.Device)
 
 		if rootPartition == nil {
 			rootPartition = getRootPartition(disk.Partitions)

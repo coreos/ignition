@@ -136,7 +136,7 @@ func validateDisk(t *testing.T, d types.Disk) error {
 }
 
 func formatUUID(s string) string {
-	return strings.ToUpper(strings.Replace(s, "-", "", -1))
+	return strings.ToUpper(strings.ReplaceAll(s, "-", ""))
 }
 
 func validateFilesystems(t *testing.T, expected []*types.Partition) error {

@@ -70,7 +70,7 @@ func CreateFileFromRemoteContentsHTTPCompressed() types.Test {
 	name := "files.create.http.compressed"
 	in := types.GetBaseDisk()
 	out := types.GetBaseDisk()
-	config := strings.Replace(`{
+	config := strings.ReplaceAll(`{
 	  "ignition": { "version": "$version" },
 	  "storage": {
 	    "files": [{
@@ -84,7 +84,7 @@ func CreateFileFromRemoteContentsHTTPCompressed() types.Test {
 	      }
 	    }]
 	  }
-	}`, "HASH", servers.ContentsHash, -1)
+	}`, "HASH", servers.ContentsHash)
 	out[0].Partitions.AddFiles("ROOT", []types.File{
 		{
 			Node: types.Node{
