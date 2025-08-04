@@ -28,8 +28,8 @@ import (
 )
 
 var (
-	dummy = errors.New("dummy error")
-	empty = path.New("json")
+	errDummy = errors.New("dummy error")
+	empty    = path.New("json")
 )
 
 // mkReport generates reports with a single error with the specified context, line, col and kind
@@ -55,7 +55,7 @@ func mangleReport(r *report.Report) {
 type test struct{}
 
 func (t test) Validate(c path.ContextPath) (r report.Report) {
-	r.AddOnError(c, dummy)
+	r.AddOnError(c, errDummy)
 	return
 }
 
@@ -106,12 +106,12 @@ func TestValidateWithContext(t *testing.T) {
 		},
 		{
 			in:  test{},
-			out: mkReport(dummy, empty, report.Error, 0, 0),
+			out: mkReport(errDummy, empty, report.Error, 0, 0),
 		},
 		{
 			in:    test{},
 			inRaw: "{   }",
-			out:   mkReport(dummy, empty, report.Error, 1, 2),
+			out:   mkReport(errDummy, empty, report.Error, 1, 2),
 		},
 		{
 			in:    struct{}{},
@@ -121,7 +121,7 @@ func TestValidateWithContext(t *testing.T) {
 		{
 			in:    test2{},
 			inRaw: `{"foobar": {}}`,
-			out:   mkReport(dummy, path.New("json", "foobar"), report.Error, 1, 13),
+			out:   mkReport(errDummy, path.New("json", "foobar"), report.Error, 1, 13),
 		},
 		{
 			in: test3{},
