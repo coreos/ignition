@@ -141,11 +141,12 @@ func fromEnv(nameSuffix, defaultValue string) string {
 
 func bakedStringToBool(s string) bool {
 	// the linker only supports string args, so do some basic bool sensing
-	if s == "true" || s == "1" {
+	switch s {
+	case "true", "1":
 		return true
-	} else if s == "false" || s == "0" {
+	case "false", "0":
 		return false
-	} else {
+	default:
 		// if we got a bad compile flag, just crash and burn rather than assume
 		panic(fmt.Sprintf("value '%s' cannot be interpreted as a boolean", s))
 	}
