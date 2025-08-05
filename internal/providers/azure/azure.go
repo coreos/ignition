@@ -242,7 +242,9 @@ func isCdromPresent(logger *log.Logger, devicePath string) bool {
 		logger.Info("failed to open config device: %v", err)
 		return false
 	}
-	defer device.Close()
+	defer func() {
+		_ = device.Close()
+	}()
 
 	logger.Debug("getting drive status for %q", devicePath)
 	status, _, errno := unix.Syscall(

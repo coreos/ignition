@@ -84,7 +84,9 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		f.Logger.Err("couldn't open QEMU firmware config: %v", err)
 		return types.Config{}, report.Report{}, err
 	}
-	defer fh.Close()
+	defer func() {
+		_ = fh.Close()
+	}()
 	lastReport := time.Now()
 	reporting := false
 	for len(data) < size {

@@ -162,7 +162,9 @@ func getDHCPServerAddress() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer lease.Close()
+	defer func() {
+		_ = lease.Close()
+	}()
 
 	var address string
 	line := bufio.NewScanner(lease)
