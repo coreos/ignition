@@ -71,7 +71,11 @@ func TestUserLookup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("temp base error: %v", err)
 	}
-	defer os.RemoveAll(td)
+	defer func() {
+		if err := os.RemoveAll(td); err != nil {
+			t.Errorf("failed to remove temp dir: %v", err)
+		}
+	}()
 
 	logger := log.New(true)
 	defer logger.Close()
@@ -108,7 +112,11 @@ func TestGroupLookup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("temp base error: %v", err)
 	}
-	defer os.RemoveAll(td)
+	defer func() {
+		if err := os.RemoveAll(td); err != nil {
+			t.Errorf("failed to remove temp dir: %v", err)
+		}
+	}()
 
 	logger := log.New(true)
 	defer logger.Close()
