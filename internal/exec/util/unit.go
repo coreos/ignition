@@ -192,7 +192,9 @@ func (ut Util) appendLineToPreset(data string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	_, err = file.WriteString(data + "\n")
 	return err

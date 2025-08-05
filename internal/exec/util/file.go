@@ -207,16 +207,20 @@ func (u Util) PerformFetch(f FetchOp) error {
 	if err != nil {
 		return err
 	}
-	defer tmp.Close()
+	defer func() {
+		_ = tmp.Close()
+	}()
 
 	// os.CreateTemp defaults to 0600
-	if err := tmp.Chmod(DefaultFilePermissions); err != nil {
+	if err = tmp.Chmod(DefaultFilePermissions); err != nil {
 		return err
 	}
 
 	// sometimes the following line will fail (the file might be renamed),
 	// but that's ok (we wanted to keep the file in that case).
-	defer os.Remove(tmp.Name())
+	defer func() {
+		_ = os.Remove(tmp.Name())
+	}()
 
 	err = u.Fetcher.Fetch(f.Url, tmp, f.FetchOptions)
 	if err != nil {
@@ -244,7 +248,9 @@ func (u Util) PerformFetch(f FetchOp) error {
 		if err != nil {
 			return err
 		}
-		defer targetFile.Close()
+		defer func() {
+			_ = targetFile.Close()
+		}()
 
 		if _, err = tmp.Seek(0, io.SeekStart); err != nil {
 			return err
@@ -299,7 +305,9 @@ func FilesystemIsEmpty(dirpath string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer dfd.Close()
+	defer func() {
+		_ = dfd.Close()
+	}()
 
 	for {
 		names, err := dfd.Readdirnames(1)

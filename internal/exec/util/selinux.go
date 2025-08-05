@@ -42,7 +42,9 @@ func (ut Util) getSelinuxPolicy() (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to open %v: %v", selinuxConfig, err)
 		}
-		defer file.Close()
+		defer func() {
+			_ = file.Close()
+		}()
 
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
