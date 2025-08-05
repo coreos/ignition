@@ -59,7 +59,7 @@ func main() {
 	defer func() {
 		_ = passwdFile.Close()
 	}()
-	_, err = passwdFile.Write([]byte(fmt.Sprintf("%s\n", strings.Join(modifiedPasswdContent, "\n"))))
+	_, err = fmt.Fprintf(passwdFile, "%s\n", strings.Join(modifiedPasswdContent, "\n"))
 	if err != nil {
 		fmt.Printf("couldn't write to passwd file: %v\n", err)
 		os.Exit(1)
@@ -84,7 +84,7 @@ func main() {
 	defer func() {
 		_ = groupFile.Close()
 	}()
-	_, err = groupFile.Write([]byte(fmt.Sprintf("%s\n", strings.Join(modifiedGroupContent, "\n"))))
+	_, err = fmt.Fprintf(groupFile, "%s\n", strings.Join(modifiedGroupContent, "\n"))
 	if err != nil {
 		fmt.Printf("couldn't write to group file: %v\n", err)
 		os.Exit(1)
@@ -109,7 +109,7 @@ func main() {
 	defer func() {
 		_ = shadowFile.Close()
 	}()
-	_, err = shadowFile.Write([]byte(fmt.Sprintf("%s\n", strings.Join(modifiedShadowContent, "\n"))))
+	_, err = fmt.Fprintf(shadowFile, "%s\n", strings.Join(modifiedShadowContent, "\n"))
 	if err != nil {
 		fmt.Printf("couldn't write to shadow file: %v\n", err)
 		os.Exit(1)
@@ -134,7 +134,7 @@ func main() {
 	defer func() {
 		_ = gshadowFile.Close()
 	}()
-	_, err = gshadowFile.Write([]byte(fmt.Sprintf("%s\n", strings.Join(modifiedGShadowContent, "\n"))))
+	_, err = fmt.Fprintf(gshadowFile, "%s\n", strings.Join(modifiedGShadowContent, "\n"))
 	if err != nil {
 		fmt.Printf("couldn't write to gshadow file: %v\n", err)
 		os.Exit(1)
