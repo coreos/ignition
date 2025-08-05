@@ -338,7 +338,7 @@ func (e *Engine) signalNeedNet() error {
 	if f, err := os.Create(e.NeedNet); err != nil {
 		return err
 	} else {
-		f.Close()
+		_ = f.Close()
 	}
 	return nil
 }
