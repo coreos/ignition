@@ -337,7 +337,7 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 			if err != nil && errors.Is(err, syscall.EADDRINUSE) {
 				continue
 			} else if err == nil {
-				l.Close()
+				_ = l.Close()
 				break
 			}
 		}
@@ -377,7 +377,9 @@ func (f *Fetcher) fetchFromHTTP(u url.URL, dest io.Writer, opts FetchOptions) er
 	if err != nil {
 		return err
 	}
-	defer dataReader.Close()
+	defer func() {
+		_ = dataReader.Close()
+	}()
 
 	switch status {
 	case http.StatusOK, http.StatusNoContent:
@@ -617,7 +619,9 @@ func (f *Fetcher) fetchFromAzureBlob(u url.URL, dest io.Writer, opts FetchOption
 	if err != nil {
 		return fmt.Errorf("failed to download blob from container '%s', file '%s': %w", container, file, err)
 	}
-	defer downloadStream.Body.Close()
+	defer func() {
+		_ = downloadStream.Body.Close()
+	}()
 
 	// Process the downloaded blob
 	err = f.decompressCopyHashAndVerify(dest, downloadStream.Body, opts)
@@ -647,17 +651,19 @@ func (f *Fetcher) uncompress(r io.Reader, opts FetchOptions) (io.ReadCloser, err
 // and will return an error if there's any problems with any of this or if the
 // hash doesn't match the expected hash in the opts.
 func (f *Fetcher) decompressCopyHashAndVerify(dest io.Writer, src io.Reader, opts FetchOptions) error {
+	var decompressor io.ReadCloser
 	decompressor, err := f.uncompress(src, opts)
 	if err != nil {
 		return err
 	}
-	defer decompressor.Close()
+	defer func() {
+		_ = decompressor.Close()
+	}()
 	if opts.Hash != nil {
 		opts.Hash.Reset()
 		dest = io.MultiWriter(dest, opts.Hash)
 	}
-	_, err = io.Copy(dest, decompressor)
-	if err != nil {
+	if _, err = io.Copy(dest, decompressor); err != nil {
 		return err
 	}
 	if opts.Hash != nil {
