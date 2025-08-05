@@ -446,25 +446,33 @@ func createFilesForPartitions(ctx context.Context, partitions []*types.Partition
 
 func createFilesFromSlice(basedir string, files []types.File) error {
 	for _, file := range files {
-		err := os.MkdirAll(filepath.Join(
-			basedir, file.Directory), 0755)
-		if err != nil {
-			return err
-		}
-		f, err := os.OpenFile(filepath.Join(basedir, file.Directory, file.Name), os.O_CREATE|os.O_WRONLY, os.FileMode(file.Mode))
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		if file.Contents != "" {
-			writer := bufio.NewWriter(f)
-			_, err := writer.WriteString(file.Contents)
+		if err := func() (err error) {
+			err = os.MkdirAll(filepath.Join(basedir, file.Directory), 0755)
 			if err != nil {
 				return err
 			}
-			writer.Flush()
-		}
-		if err := os.Chown(filepath.Join(basedir, file.Directory, file.Name), file.User, file.Group); err != nil {
+			f, err := os.OpenFile(filepath.Join(basedir, file.Directory, file.Name), os.O_CREATE|os.O_WRONLY, os.FileMode(file.Mode))
+			if err != nil {
+				return err
+			}
+			defer func() {
+				err = errors.Join(err, f.Close())
+			}()
+			if file.Contents != "" {
+				writer := bufio.NewWriter(f)
+				_, err := writer.WriteString(file.Contents)
+				if err != nil {
+					return err
+				}
+				if err := writer.Flush(); err != nil {
+					return err
+				}
+			}
+			if err := os.Chown(filepath.Join(basedir, file.Directory, file.Name), file.User, file.Group); err != nil {
+				return err
+			}
+			return nil
+		}(); err != nil {
 			return err
 		}
 	}
