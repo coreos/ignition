@@ -204,7 +204,11 @@ func getRawConfig(f *resource.Fetcher, devicePath string, fstype string) ([]byte
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
-	defer os.Remove(mnt)
+	defer func() {
+		if removeErr := os.Remove(mnt); removeErr != nil {
+			logger.Warning("failed to remove temp directory %q: %v", mnt, removeErr)
+		}
+	}()
 
 	logger.Debug("mounting config device")
 	if err := logger.LogOp(
