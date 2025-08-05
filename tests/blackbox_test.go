@@ -133,7 +133,11 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	if err != nil {
 		return fmt.Errorf("failed to create a temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDirectory)
+	defer func() {
+		if err := os.RemoveAll(tmpDirectory); err != nil {
+			t.Logf("failed to remove temp directory: %v", err)
+		}
+	}()
 	// the tmpDirectory must be 0755 or the tests will fail as the tool will
 	// not have permissions to perform some actions in the mounted folders
 	err = os.Chmod(tmpDirectory, 0755)
@@ -148,7 +152,11 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	err = createFilesFromSlice(systemConfigDir, test.SystemDirFiles)
 	// Defer before the error handling because the createFilesFromSlice function
 	// can fail after partially-creating things
-	defer os.RemoveAll(systemConfigDir)
+	defer func() {
+		if err := os.RemoveAll(systemConfigDir); err != nil {
+			t.Logf("failed to remove system config directory: %v", err)
+		}
+	}()
 	if err != nil {
 		return err
 	}
