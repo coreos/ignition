@@ -128,8 +128,14 @@ func (s *stage) createLuks(config types.Config) error {
 			return fmt.Errorf("creating keyfile: %w", err)
 		}
 		keyFilePath := keyFile.Name()
-		keyFile.Close()
-		defer os.Remove(keyFilePath)
+		if err := keyFile.Close(); err != nil {
+			s.Warning("could not close file %s: %v", keyFilePath, err)
+		}
+		defer func() {
+			if err = os.Remove(keyFilePath); err != nil {
+				s.Warning("could not remove file %s: %v", keyFilePath, err)
+			}
+		}()
 
 		if luks.Cex.IsPresent() {
 			// each LUKS device has associated keyfiles
