@@ -233,17 +233,18 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 
 	if disk.CorruptTable {
 		bytes := make([]byte, 1536)
-		if _, err := rand.Read(bytes); err != nil {
+		if _, err = rand.Read(bytes); err != nil {
 			return err
 		}
-		f, err := os.OpenFile(disk.ImageFile, os.O_WRONLY, 0666)
+		var f *os.File
+		f, err = os.OpenFile(disk.ImageFile, os.O_WRONLY, 0666)
 		if err != nil {
 			return err
 		}
 		defer func() {
 			err = errors.Join(err, f.Close())
 		}()
-		if _, err := f.Write(bytes); err != nil {
+		if _, err = f.Write(bytes); err != nil {
 			return err
 		}
 	}
@@ -330,7 +331,8 @@ func writePartitionData(device string, contents string) (err error) {
 		return err
 	}
 	reader := bzip2.NewReader(bytes.NewBuffer(bzipped))
-	f, err := os.OpenFile(device, os.O_WRONLY, 0644)
+	var f *os.File
+	f, err = os.OpenFile(device, os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
