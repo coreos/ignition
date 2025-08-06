@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -58,7 +59,7 @@ func prepareRootPartitionForPasswd(ctx context.Context, root *types.Partition) (
 		return err
 	}
 	defer func() {
-		err = umountPartition(root)
+		err = errors.Join(err, umountPartition(root))
 	}()
 
 	mountPath := root.MountPath
@@ -173,10 +174,12 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 	defer func() {
 		// Delete the image file if this function exits with an error
 		if err != nil {
-			os.Remove(disk.ImageFile)
+			err = errors.Join(err, os.Remove(disk.ImageFile))
 		}
 	}()
-	out.Close()
+	if err = out.Close(); err != nil {
+		return err
+	}
 
 	// Truncate the file to the given size
 	if err = os.Truncate(disk.ImageFile, imageSize); err != nil {
@@ -192,7 +195,7 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 	loopdev := disk.Device
 	defer func() {
 		if err != nil {
-			_ = destroyDevice(loopdev)
+			err = errors.Join(err, destroyDevice(loopdev))
 		}
 	}()
 
@@ -218,7 +221,7 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 		defer func() {
 			// Delete the mount path if this function exits with an error
 			if err != nil {
-				os.RemoveAll(mountPath)
+				err = errors.Join(err, os.RemoveAll(mountPath))
 			}
 		}()
 
@@ -237,10 +240,12 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 		if err != nil {
 			return err
 		}
+		defer func() {
+			err = errors.Join(err, f.Close())
+		}()
 		if _, err := f.Write(bytes); err != nil {
 			return err
 		}
-		defer f.Close()
 	}
 
 	return nil
@@ -319,7 +324,7 @@ func formatPartition(ctx context.Context, partition *types.Partition) error {
 	return nil
 }
 
-func writePartitionData(device string, contents string) error {
+func writePartitionData(device string, contents string) (err error) {
 	bzipped, err := base64.StdEncoding.DecodeString(contents)
 	if err != nil {
 		return err
@@ -329,7 +334,9 @@ func writePartitionData(device string, contents string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		err = errors.Join(err, f.Close())
+	}()
 	_, err = io.Copy(f, reader)
 	return err
 }
@@ -408,7 +415,7 @@ func createFilesForPartition(ctx context.Context, partition *types.Partition) (e
 		return
 	}
 	defer func() {
-		err = umountPartition(partition)
+		err = errors.Join(err, umountPartition(partition))
 	}()
 
 	err = createDirectoriesFromSlice(partition.MountPath, partition.Directories)
