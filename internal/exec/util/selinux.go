@@ -16,7 +16,6 @@ package util
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -32,7 +31,7 @@ const (
 
 var selinuxPolicy = ""
 
-func (ut Util) getSelinuxPolicy() (policy string, err error) {
+func (ut Util) getSelinuxPolicy() (string, error) {
 	if selinuxPolicy == "" {
 		configPath, err := ut.JoinPath(selinuxConfig)
 		if err != nil {
@@ -44,7 +43,7 @@ func (ut Util) getSelinuxPolicy() (policy string, err error) {
 			return "", fmt.Errorf("failed to open %v: %v", selinuxConfig, err)
 		}
 		defer func() {
-			err = errors.Join(err, file.Close())
+			_ = file.Close()
 		}()
 
 		scanner := bufio.NewScanner(file)
@@ -65,7 +64,7 @@ func (ut Util) getSelinuxPolicy() (policy string, err error) {
 		}
 	}
 
-	return selinuxPolicy, err
+	return selinuxPolicy, nil
 }
 
 // RelabelFiles relabels all the files matching the globby patterns given.

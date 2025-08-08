@@ -174,11 +174,11 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 	defer func() {
 		// Delete the image file if this function exits with an error
 		if err != nil {
-			_ = os.Remove(disk.ImageFile)
+			err = errors.Join(err, os.Remove(disk.ImageFile))
 		}
 	}()
 	if err = out.Close(); err != nil {
-		return
+		return err
 	}
 
 	// Truncate the file to the given size
@@ -195,7 +195,7 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 	loopdev := disk.Device
 	defer func() {
 		if err != nil {
-			_ = destroyDevice(loopdev)
+			err = errors.Join(err, destroyDevice(loopdev))
 		}
 	}()
 
@@ -221,7 +221,7 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 		defer func() {
 			// Delete the mount path if this function exits with an error
 			if err != nil {
-				_ = os.RemoveAll(mountPath)
+				err = errors.Join(err, os.RemoveAll(mountPath))
 			}
 		}()
 
@@ -233,7 +233,7 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 
 	if disk.CorruptTable {
 		bytes := make([]byte, 1536)
-		if _, err := rand.Read(bytes); err != nil {
+		if _, err = rand.Read(bytes); err != nil {
 			return err
 		}
 		var f *os.File
@@ -244,7 +244,7 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 		defer func() {
 			err = errors.Join(err, f.Close())
 		}()
-		if _, err := f.Write(bytes); err != nil {
+		if _, err = f.Write(bytes); err != nil {
 			return err
 		}
 	}
@@ -447,8 +447,7 @@ func createFilesForPartitions(ctx context.Context, partitions []*types.Partition
 func createFilesFromSlice(basedir string, files []types.File) error {
 	for _, file := range files {
 		if err := func() (err error) {
-			err = os.MkdirAll(filepath.Join(
-				basedir, file.Directory), 0755)
+			err = os.MkdirAll(filepath.Join(basedir, file.Directory), 0755)
 			if err != nil {
 				return err
 			}

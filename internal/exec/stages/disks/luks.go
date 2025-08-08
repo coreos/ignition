@@ -114,12 +114,12 @@ func (s *stage) createLuks(config types.Config) error {
 	s.State.LuksPersistSecureKeyRepoFiles = make(map[string]string)
 
 	for _, luks := range config.Storage.Luks {
+		// TODO: allow Ignition generated KeyFiles for
+		// non-clevis devices that can be persisted.
+		// TODO: create devices in parallel.
+		// track whether Ignition creates the KeyFile
+		// so that it can be removed
 		if err := func() (err error) {
-			// TODO: allow Ignition generated KeyFiles for
-			// non-clevis devices that can be persisted.
-			// TODO: create devices in parallel.
-			// track whether Ignition creates the KeyFile
-			// so that it can be removed
 			var ignitionCreatedKeyFile bool
 			devAlias := execUtil.DeviceAlias(*luks.Device)
 
@@ -129,12 +129,13 @@ func (s *stage) createLuks(config types.Config) error {
 				return fmt.Errorf("creating keyfile: %w", err)
 			}
 			keyFilePath := keyFile.Name()
-			if closeErr := keyFile.Close(); closeErr != nil {
-				removeErr := os.Remove(keyFilePath)
-				return errors.Join(fmt.Errorf("closing keyfile: %w", closeErr), removeErr)
+			if err := keyFile.Close(); err != nil {
+				s.Warning("could not close file %s: %v", keyFilePath, err)
 			}
 			defer func() {
-				err = errors.Join(err, os.Remove(keyFilePath))
+				if err = os.Remove(keyFilePath); err != nil {
+					s.Warning("could not remove file %s: %v", keyFilePath, err)
+				}
 			}()
 
 			if luks.Cex.IsPresent() {
@@ -416,6 +417,7 @@ func (s *stage) createLuks(config types.Config) error {
 			if err := s.waitForUdev(devAlias); err != nil {
 				return fmt.Errorf("failed to wait for udev on %q after LUKS: %v", devAlias, err)
 			}
+
 			return nil
 		}(); err != nil {
 			return err

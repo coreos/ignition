@@ -88,9 +88,8 @@ func fetchConfig(f *resource.Fetcher) (cfg types.Config, rpt report.Report, err 
 		return
 	}
 	defer func() {
-		err = errors.Join(err, fh.Close())
+		_ = fh.Close()
 	}()
-
 	lastReport := time.Now()
 	reporting := false
 	for len(data) < size {

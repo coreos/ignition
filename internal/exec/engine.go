@@ -16,7 +16,6 @@ package exec
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -24,7 +23,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-systemd/v22/journal"
-	ignerrors "github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/shared/errors"
 	latest "github.com/coreos/ignition/v2/config/v3_6_experimental"
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
@@ -71,7 +70,7 @@ type Engine struct {
 func (e Engine) Run(stageName string) error {
 	if e.Fetcher == nil || e.Logger == nil {
 		fmt.Fprintf(os.Stderr, "engine incorrectly configured\n")
-		return ignerrors.ErrEngineConfiguration
+		return errors.ErrEngineConfiguration
 	}
 	baseConfig := emptyConfig
 
@@ -115,7 +114,7 @@ func (e Engine) Run(stageName string) error {
 			e.Logger.Crit("failed to signal neednet: %v", err)
 		}
 		return err
-	} else if err == ignerrors.ErrEmpty {
+	} else if err == errors.ErrEmpty {
 		e.Logger.Info("%v: ignoring user-provided config", err)
 	} else if err != nil {
 		e.Logger.Crit("failed to acquire config: %v", err)
@@ -230,7 +229,7 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 
 	// (Re)Fetch the config if the cache is unreadable.
 	cfg, err = e.fetchProviderConfig()
-	if err == ignerrors.ErrEmpty {
+	if err == errors.ErrEmpty {
 		// Continue if the provider config was empty as we want to write an empty
 		// cache config for use by other stages.
 		cfg = emptyConfig
@@ -260,7 +259,7 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 	rpt := validate.Validate(cfg, "json")
 	e.Logger.LogReport(rpt)
 	if rpt.IsFatal() {
-		err = ignerrors.ErrInvalid
+		err = errors.ErrInvalid
 		e.Logger.Crit("merging configs resulted in an invalid config")
 		return
 	}
@@ -332,16 +331,14 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 	return configFetcher.RenderConfig(cfg)
 }
 
-func (e *Engine) signalNeedNet() (err error) {
-	if err = executil.MkdirForFile(e.NeedNet); err != nil {
+func (e *Engine) signalNeedNet() error {
+	if err := executil.MkdirForFile(e.NeedNet); err != nil {
 		return err
 	}
-	f, err := os.Create(e.NeedNet)
-	if err != nil {
+	if f, err := os.Create(e.NeedNet); err != nil {
 		return err
+	} else {
+		_ = f.Close()
 	}
-	defer func() {
-		err = errors.Join(err, f.Close())
-	}()
 	return nil
 }

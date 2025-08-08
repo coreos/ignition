@@ -78,11 +78,7 @@ func TestUserLookup(t *testing.T) {
 	}()
 
 	logger := log.New(true)
-	defer func() {
-		if err := logger.Close(); err != nil {
-			t.Errorf("failed to close logger: %v", err)
-		}
-	}()
+	defer logger.Close()
 
 	u := &Util{
 		DestDir: td,
@@ -123,11 +119,7 @@ func TestGroupLookup(t *testing.T) {
 	}()
 
 	logger := log.New(true)
-	defer func() {
-		if err := logger.Close(); err != nil {
-			t.Errorf("failed to close logger: %v", err)
-		}
-	}()
+	defer logger.Close()
 
 	u := &Util{
 		DestDir: td,

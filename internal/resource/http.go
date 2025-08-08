@@ -316,9 +316,7 @@ func (c HttpClient) httpReaderWithHeader(opts FetchOptions, url string) (io.Read
 			if !shouldRetryHttp(resp.StatusCode, opts) {
 				return resp.Body, resp.StatusCode, cancelFn, nil
 			}
-			if err := resp.Body.Close(); err != nil {
-				c.logger.Warning("failed to close response body: %v", err)
-			}
+			_ = resp.Body.Close()
 		} else {
 			c.logger.Info("%s error: %v", opts.HTTPVerb, err)
 		}

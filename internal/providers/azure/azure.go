@@ -18,7 +18,6 @@ package azure
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -27,7 +26,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	ignerrors "github.com/coreos/ignition/v2/config/shared/errors"
+	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -118,7 +117,7 @@ func fetchFromAzureMetadata(f *resource.Fetcher) (types.Config, report.Report, e
 		return util.ParseConfig(logger, userData)
 	}
 
-	if err != ignerrors.ErrEmpty {
+	if err != errors.ErrEmpty {
 		return types.Config{}, report.Report{}, err
 	}
 
@@ -148,7 +147,7 @@ func fetchFromIMDS(f *resource.Fetcher) ([]byte, error) {
 	n := len(data)
 
 	if n == 0 {
-		return nil, ignerrors.ErrEmpty
+		return nil, errors.ErrEmpty
 	}
 
 	// data is base64 encoded by the IMDS
@@ -176,22 +175,17 @@ func FetchFromOvfDevice(f *resource.Fetcher, ovfFsTypes []string) (types.Config,
 				return types.Config{}, report.Report{}, fmt.Errorf("failed to retrieve block devices with FSTYPE=%q: %v", ovfFsType, err)
 			}
 			for _, dev := range devices {
-				if _, checked := checkedDevices[dev]; !checked {
-					// verify that this is a CD-ROM drive. This helps
-					// to avoid reading data from an arbitrary block
-					// device attached to the VM by the user.
-					present, err := isCdromPresent(logger, dev)
+				_, checked := checkedDevices[dev]
+				// verify that this is a CD-ROM drive. This helps
+				// to avoid reading data from an arbitrary block
+				// device attached to the VM by the user.
+				if !checked && isCdromPresent(logger, dev) {
+					rawConfig, err := getRawConfig(f, dev, ovfFsType)
 					if err != nil {
-						logger.Debug("failed to check for cdrom on device %q: %v", dev, err)
-					}
-					if present {
-						rawConfig, err := getRawConfig(f, dev, ovfFsType)
-						if err != nil {
-							logger.Debug("failed to retrieve config from device %q: %v", dev, err)
-						} else {
-							logger.Info("config has been read from custom data")
-							return util.ParseConfig(logger, rawConfig)
-						}
+						logger.Debug("failed to retrieve config from device %q: %v", dev, err)
+					} else {
+						logger.Info("config has been read from custom data")
+						return util.ParseConfig(logger, rawConfig)
 					}
 				}
 				checkedDevices[dev] = struct{}{}
@@ -204,55 +198,56 @@ func FetchFromOvfDevice(f *resource.Fetcher, ovfFsTypes []string) (types.Config,
 }
 
 // getRawConfig returns the config by mounting the given block device
-func getRawConfig(f *resource.Fetcher, devicePath string, fstype string) (rawConfig []byte, err error) {
+func getRawConfig(f *resource.Fetcher, devicePath string, fstype string) ([]byte, error) {
 	logger := f.Logger
 	mnt, err := os.MkdirTemp("", "ignition-azure")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
 	defer func() {
-		err = errors.Join(err, os.Remove(mnt))
+		if removeErr := os.Remove(mnt); removeErr != nil {
+			logger.Warning("failed to remove temp directory %q: %v", mnt, removeErr)
+		}
 	}()
 
 	logger.Debug("mounting config device")
-	if mountErr := logger.LogOp(
+	if err := logger.LogOp(
 		func() error { return unix.Mount(devicePath, mnt, fstype, unix.MS_RDONLY, "") },
 		"mounting %q at %q", devicePath, mnt,
-	); mountErr != nil {
-		return nil, fmt.Errorf("failed to mount device %q at %q: %v", devicePath, mnt, mountErr)
+	); err != nil {
+		return nil, fmt.Errorf("failed to mount device %q at %q: %v", devicePath, mnt, err)
 	}
 	defer func() {
-		unmountErr := logger.LogOp(
+		_ = logger.LogOp(
 			func() error { return unix.Unmount(mnt, 0) },
 			"unmounting %q at %q", devicePath, mnt,
 		)
-		err = errors.Join(err, unmountErr)
 	}()
 
 	// detect the config drive by looking for a file which is always present
 	logger.Debug("checking for config drive")
-	if _, statErr := os.Stat(filepath.Join(mnt, "ovf-env.xml")); statErr != nil {
-		return nil, fmt.Errorf("device %q does not appear to be a config drive: %v", devicePath, statErr)
+	if _, err := os.Stat(filepath.Join(mnt, "ovf-env.xml")); err != nil {
+		return nil, fmt.Errorf("device %q does not appear to be a config drive: %v", devicePath, err)
 	}
 
 	logger.Debug("reading config")
-	rawConfig, err = os.ReadFile(filepath.Join(mnt, configPath))
+	rawConfig, err := os.ReadFile(filepath.Join(mnt, configPath))
 	if err != nil && !os.IsNotExist(err) {
 		return nil, fmt.Errorf("failed to read config from device %q: %v", devicePath, err)
 	}
-	return rawConfig, err
+	return rawConfig, nil
 }
 
 // isCdromPresent verifies if the given config drive is CD-ROM
-func isCdromPresent(logger *log.Logger, devicePath string) (present bool, err error) {
+func isCdromPresent(logger *log.Logger, devicePath string) bool {
 	logger.Debug("opening config device: %q", devicePath)
 	device, err := os.Open(devicePath)
 	if err != nil {
 		logger.Info("failed to open config device: %v", err)
-		return false, err
+		return false
 	}
 	defer func() {
-		err = errors.Join(err, device.Close())
+		_ = device.Close()
 	}()
 
 	logger.Debug("getting drive status for %q", devicePath)
@@ -278,5 +273,5 @@ func isCdromPresent(logger *log.Logger, devicePath string) (present bool, err er
 		logger.Err("failed to get drive status: %s", errno.Error())
 	}
 
-	return (status == CDS_DISC_OK), err
+	return (status == CDS_DISC_OK)
 }

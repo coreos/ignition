@@ -145,8 +145,8 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
 	defer func() {
-		if removeErr := os.Remove(mnt); removeErr != nil && err == nil {
-			err = fmt.Errorf("failed to remove temp directory %q: %w", mnt, removeErr)
+		if removeErr := os.Remove(mnt); removeErr != nil {
+			logger.Warning("failed to remove temp directory %q: %v", mnt, removeErr)
 		}
 	}()
 

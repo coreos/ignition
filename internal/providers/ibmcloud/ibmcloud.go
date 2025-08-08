@@ -20,7 +20,6 @@ package ibmcloud
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -88,7 +87,7 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string) (data []byte, err error) {
+func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string) ([]byte, error) {
 	for !fileExists(path) {
 		logger.Debug("config drive (%q) not found. Waiting...", path)
 		select {
@@ -105,7 +104,7 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 	}
 	defer func() {
 		if removeErr := os.Remove(mnt); removeErr != nil {
-			err = errors.Join(err, fmt.Errorf("failed to remove temp directory %q: %w", mnt, removeErr))
+			logger.Warning("failed to remove temp directory %q: %v", mnt, removeErr)
 		}
 	}()
 
@@ -114,13 +113,12 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 		return nil, err
 	}
 	defer func() {
-		unmountErr := logger.LogOp(
+		_ = logger.LogOp(
 			func() error {
 				return ut.UmountPath(mnt)
 			},
 			"unmounting %q at %q", path, mnt,
 		)
-		err = errors.Join(err, unmountErr)
 	}()
 
 	if !fileExists(filepath.Join(mnt, cidataPath)) {

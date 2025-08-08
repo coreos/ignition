@@ -20,7 +20,6 @@ package vmware
 import (
 	"compress/gzip"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -64,13 +63,13 @@ func decodeBase64Data(data string) ([]byte, error) {
 	return decodedData, nil
 }
 
-func decodeGzipData(data string) (p []byte, err error) {
+func decodeGzipData(data string) ([]byte, error) {
 	reader, err := gzip.NewReader(strings.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		err = errors.Join(err, reader.Close())
+		_ = reader.Close()
 	}()
 
 	return io.ReadAll(reader)

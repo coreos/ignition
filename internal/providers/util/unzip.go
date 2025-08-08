@@ -17,12 +17,11 @@ package util
 import (
 	"bytes"
 	"compress/gzip"
-	"errors"
 	"io"
 	"net/http"
 )
 
-func TryUnzip(raw []byte) (p []byte, err error) {
+func TryUnzip(raw []byte) ([]byte, error) {
 	if http.DetectContentType(raw) != "application/x-gzip" {
 		return raw, nil
 	}
@@ -32,7 +31,7 @@ func TryUnzip(raw []byte) (p []byte, err error) {
 		return nil, err
 	}
 	defer func() {
-		err = errors.Join(err, reader.Close())
+		_ = reader.Close()
 	}()
 
 	return io.ReadAll(reader)

@@ -114,6 +114,7 @@ func generate(dir string) error {
 			if err := comps.Generate(vers, c.config, nil, f); err != nil {
 				return fmt.Errorf("generating doc for %s: %w", c.version, err)
 			}
+
 			return nil
 		}(); err != nil {
 			return err

@@ -15,7 +15,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -41,125 +40,129 @@ var (
 )
 
 func main() {
-	err := func() (err error) {
-		flag.StringVar(&flagRoot, "root", "", "Apply changes in the CHROOT_DIR directory and use the configuration files from the CHROOT_DIR directory")
-		flag.StringVar(&flagHomeDir, "home-dir", "", "The new user will be created using HOME_DIR as the value for the user's login directory")
-		flag.BoolVar(&flagCreateHome, "create-home", false, "Create the user's home directory if it does not exist.")
-		flag.BoolVar(&flagNoCreateHome, "no-create-home", false, "Do no create the user's home directory")
-		flag.BoolVar(&flagNoUserGroup, "no-user-group", false, "Do not create a group with the same name as the user")
-		flag.BoolVar(&flagSystem, "system", false, "Create a system account")
-		flag.BoolVar(&flagNoLogInit, "no-log-init", false, "Do not add the user to the lastlog and faillog databases")
-		flag.StringVar(&flagPassword, "password", "", "The encrypted password, as returned by crypt")
-		flag.IntVar(&flagUid, "uid", -1, "The numerical value of the user's ID")
-		flag.StringVar(&flagComment, "comment", "", "Any text string. It is generally a short description of the login, and is currently used as the field for the user's full name.")
-		flag.IntVar(&flagGid, "gid", -1, "The group name or number of the user's initial login group")
-		flag.StringVar(&flagGroups, "groups", "", "A list of supplementary groups which the user is also a member of")
-		flag.StringVar(&flagShell, "shell", "", "The name of the user's login shell")
+	flag.StringVar(&flagRoot, "root", "", "Apply changes in the CHROOT_DIR directory and use the configuration files from the CHROOT_DIR directory")
+	flag.StringVar(&flagHomeDir, "home-dir", "", "The new user will be created using HOME_DIR as the value for the user's login directory")
+	flag.BoolVar(&flagCreateHome, "create-home", false, "Create the user's home directory if it does not exist.")
+	flag.BoolVar(&flagNoCreateHome, "no-create-home", false, "Do no create the user's home directory")
+	flag.BoolVar(&flagNoUserGroup, "no-user-group", false, "Do not create a group with the same name as the user")
+	flag.BoolVar(&flagSystem, "system", false, "Create a system account")
+	flag.BoolVar(&flagNoLogInit, "no-log-init", false, "Do not add the user to the lastlog and faillog databases")
+	flag.StringVar(&flagPassword, "password", "", "The encrypted password, as returned by crypt")
+	flag.IntVar(&flagUid, "uid", -1, "The numerical value of the user's ID")
+	flag.StringVar(&flagComment, "comment", "", "Any text string. It is generally a short description of the login, and is currently used as the field for the user's full name.")
+	flag.IntVar(&flagGid, "gid", -1, "The group name or number of the user's initial login group")
+	flag.StringVar(&flagGroups, "groups", "", "A list of supplementary groups which the user is also a member of")
+	flag.StringVar(&flagShell, "shell", "", "The name of the user's login shell")
 
-		flag.Parse()
+	flag.Parse()
 
-		if len(flag.Args()) != 1 {
-			return fmt.Errorf("incorrectly called")
-		}
-
-		username := flag.Args()[0]
-
-		var uidGid int
-		if flagUid == -1 || flagGid == -1 {
-			var err error
-			uidGid, err = getNextUidAndGid()
-			if err != nil {
-				return fmt.Errorf("error getting next uid/gid: %w", err)
-			}
-		}
-		if flagUid == -1 {
-			flagUid = uidGid
-		}
-		if flagGid == -1 {
-			flagGid = uidGid
-		}
-		if flagHomeDir == "" {
-			flagHomeDir = "/home/" + username
-		}
-		if flagShell == "" {
-			flagShell = "/bin/bash"
-		}
-		if flagPassword == "" {
-			flagPassword = "*"
-		}
-
-		passwdLine := fmt.Sprintf("%s:x:%d:%d:%s:%s:%s\n", username, flagUid, flagGid, flagComment, flagHomeDir, flagShell)
-
-		passwdFile, err := os.OpenFile(path.Join(flagRoot, "/etc/passwd"), os.O_APPEND|os.O_WRONLY, 0644)
-		if err != nil {
-			return fmt.Errorf("couldn't open passwd file: %w", err)
-		}
-		defer func() {
-			err = errors.Join(err, passwdFile.Close())
-		}()
-		_, err = passwdFile.Write([]byte(passwdLine))
-		if err != nil {
-			return fmt.Errorf("couldn't write to passwd file: %w", err)
-		}
-
-		groupLine := fmt.Sprintf("%s:x:%d:\n", username, flagGid)
-
-		groupFile, err := os.OpenFile(path.Join(flagRoot, "/etc/group"), os.O_APPEND|os.O_WRONLY, 0644)
-		if err != nil {
-			return fmt.Errorf("couldn't open group file: %w", err)
-		}
-		defer func() {
-			err = errors.Join(err, groupFile.Close())
-		}()
-		_, err = groupFile.Write([]byte(groupLine))
-		if err != nil {
-			return fmt.Errorf("couldn't write to group file: %w", err)
-		}
-
-		shadowLine := fmt.Sprintf("%s:%s:17331:0:99999:7:::\n", username, flagPassword)
-
-		shadowFile, err := os.OpenFile(path.Join(flagRoot, "/etc/shadow"), os.O_APPEND|os.O_WRONLY, 0644)
-		if err != nil {
-			return fmt.Errorf("couldn't open shadow file: %w", err)
-		}
-		defer func() {
-			err = errors.Join(err, shadowFile.Close())
-		}()
-		_, err = shadowFile.Write([]byte(shadowLine))
-		if err != nil {
-			return fmt.Errorf("couldn't write to shadow file: %w", err)
-		}
-
-		gshadowLine := fmt.Sprintf("%s:!::\n", username)
-
-		gshadowFile, err := os.OpenFile(path.Join(flagRoot, "etc/gshadow"), os.O_APPEND|os.O_WRONLY, 0644)
-		if err != nil {
-			return fmt.Errorf("couldn't open gshadow file: %w", err)
-		}
-		defer func() {
-			err = errors.Join(err, gshadowFile.Close())
-		}()
-		_, err = gshadowFile.Write([]byte(gshadowLine))
-		if err != nil {
-			return fmt.Errorf("couldn't write to gshadow file: %w", err)
-		}
-
-		if !flagNoCreateHome {
-			err = os.MkdirAll(path.Join(flagRoot, flagHomeDir), 0755)
-			if err != nil {
-				return fmt.Errorf("couldn't create home directory: %w", err)
-			}
-			err = os.Chown(path.Join(flagRoot, flagHomeDir), flagUid, flagGid)
-			if err != nil {
-				return fmt.Errorf("couldn't chown home directory: %w", err)
-			}
-		}
-		return nil
-	}()
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+	if len(flag.Args()) != 1 {
+		fmt.Printf("incorrectly called\n")
 		os.Exit(1)
+	}
+
+	username := flag.Args()[0]
+
+	var uidGid int
+	if flagUid == -1 || flagGid == -1 {
+		var err error
+		uidGid, err = getNextUidAndGid()
+		if err != nil {
+			fmt.Printf("error getting next uid/gid: %v\n", err)
+			os.Exit(1)
+		}
+	}
+	if flagUid == -1 {
+		flagUid = uidGid
+	}
+	if flagGid == -1 {
+		flagGid = uidGid
+	}
+	if flagHomeDir == "" {
+		flagHomeDir = "/home/" + username
+	}
+	if flagShell == "" {
+		flagShell = "/bin/bash"
+	}
+	if flagPassword == "" {
+		flagPassword = "*"
+	}
+
+	passwdLine := fmt.Sprintf("%s:x:%d:%d:%s:%s:%s\n", username, flagUid, flagGid, flagComment, flagHomeDir, flagShell)
+
+	passwdFile, err := os.OpenFile(path.Join(flagRoot, "/etc/passwd"), os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("couldn't open passwd file: %v\n", err)
+		os.Exit(1)
+	}
+	defer func() {
+		_ = passwdFile.Close()
+	}()
+	_, err = passwdFile.Write([]byte(passwdLine))
+	if err != nil {
+		fmt.Printf("couldn't write to passwd file: %v\n", err)
+		os.Exit(1)
+	}
+
+	groupLine := fmt.Sprintf("%s:x:%d:\n", username, flagGid)
+
+	groupFile, err := os.OpenFile(path.Join(flagRoot, "/etc/group"), os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("couldn't open group file: %v\n", err)
+		os.Exit(1)
+	}
+	defer func() {
+		_ = groupFile.Close()
+	}()
+	_, err = groupFile.Write([]byte(groupLine))
+	if err != nil {
+		fmt.Printf("couldn't write to group file: %v\n", err)
+		os.Exit(1)
+	}
+
+	shadowLine := fmt.Sprintf("%s:%s:17331:0:99999:7:::\n", username, flagPassword)
+
+	shadowFile, err := os.OpenFile(path.Join(flagRoot, "/etc/shadow"), os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("couldn't open shadow file: %v\n", err)
+		os.Exit(1)
+	}
+	defer func() {
+		_ = shadowFile.Close()
+	}()
+	_, err = shadowFile.Write([]byte(shadowLine))
+	if err != nil {
+		fmt.Printf("couldn't write to shadow file: %v\n", err)
+		os.Exit(1)
+	}
+
+	gshadowLine := fmt.Sprintf("%s:!::\n", username)
+
+	gshadowFile, err := os.OpenFile(path.Join(flagRoot, "etc/gshadow"), os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("couldn't open gshadow file: %v\n", err)
+		os.Exit(1)
+	}
+	defer func() {
+		_ = gshadowFile.Close()
+	}()
+	_, err = gshadowFile.Write([]byte(gshadowLine))
+	if err != nil {
+		fmt.Printf("couldn't write to gshadow file: %v\n", err)
+		os.Exit(1)
+	}
+
+	if !flagNoCreateHome {
+		err = os.MkdirAll(path.Join(flagRoot, flagHomeDir), 0755)
+		if err != nil {
+			fmt.Printf("couldn't create home directory: %v\n", err)
+			os.Exit(1)
+		}
+		err = os.Chown(path.Join(flagRoot, flagHomeDir), flagUid, flagGid)
+		if err != nil {
+			fmt.Printf("couldn't chown home directory: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }
 

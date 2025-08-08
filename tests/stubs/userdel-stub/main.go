@@ -57,10 +57,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer func() {
-		if err := passwdFile.Close(); err != nil {
-			fmt.Printf("couldn't close passwd file: %v\n", err)
-			os.Exit(1)
-		}
+		_ = passwdFile.Close()
 	}()
 	_, err = fmt.Fprintf(passwdFile, "%s\n", strings.Join(modifiedPasswdContent, "\n"))
 	if err != nil {
@@ -85,10 +82,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer func() {
-		if err := groupFile.Close(); err != nil {
-			fmt.Printf("couldn't close group file: %v\n", err)
-			os.Exit(1)
-		}
+		_ = groupFile.Close()
 	}()
 	_, err = fmt.Fprintf(groupFile, "%s\n", strings.Join(modifiedGroupContent, "\n"))
 	if err != nil {
@@ -113,10 +107,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer func() {
-		if err := shadowFile.Close(); err != nil {
-			fmt.Printf("couldn't close shadow file: %v\n", err)
-			os.Exit(1)
-		}
+		_ = shadowFile.Close()
 	}()
 	_, err = fmt.Fprintf(shadowFile, "%s\n", strings.Join(modifiedShadowContent, "\n"))
 	if err != nil {
@@ -141,10 +132,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer func() {
-		if err := gshadowFile.Close(); err != nil {
-			fmt.Printf("couldn't close gshadow file: %v\n", err)
-			os.Exit(1)
-		}
+		_ = gshadowFile.Close()
 	}()
 	_, err = fmt.Fprintf(gshadowFile, "%s\n", strings.Join(modifiedGShadowContent, "\n"))
 	if err != nil {

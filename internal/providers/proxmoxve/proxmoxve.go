@@ -22,7 +22,6 @@ package proxmoxve
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -96,7 +95,7 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string) (data []byte, err error) {
+func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string) ([]byte, error) {
 	for !fileExists(path) {
 		logger.Debug("config drive (%q) not found. Waiting...", path)
 		select {
@@ -112,21 +111,22 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 		return nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
 	defer func() {
-		err = errors.Join(err, os.Remove(mnt))
+		if removeErr := os.Remove(mnt); removeErr != nil {
+			logger.Warning("failed to remove temp directory %q: %v", mnt, removeErr)
+		}
 	}()
 
 	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", path, mnt)
-	if _, cmdErr := logger.LogCmd(cmd, "mounting config drive"); cmdErr != nil {
-		return nil, cmdErr
+	if _, err := logger.LogCmd(cmd, "mounting config drive"); err != nil {
+		return nil, err
 	}
 	defer func() {
-		unmountErr := logger.LogOp(
+		_ = logger.LogOp(
 			func() error {
 				return ut.UmountPath(mnt)
 			},
 			"unmounting %q at %q", path, mnt,
 		)
-		err = errors.Join(err, unmountErr)
 	}()
 
 	paths := []string{ciuserdataPath, civendordataPath}
@@ -138,10 +138,10 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 			continue
 		}
 
-		contents, readErr := os.ReadFile(fullPath)
-		if readErr != nil {
+		contents, err := os.ReadFile(fullPath)
+		if err != nil {
 			// Log the error but continue to next file
-			logger.Debug("failed to read %q: %v", fullPath, readErr)
+			logger.Debug("failed to read %q: %v", fullPath, err)
 			continue
 		}
 

@@ -15,7 +15,6 @@
 package util
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -180,7 +179,7 @@ func (ut Util) DisableUnit(disabledUnit string) error {
 	return ut.appendLineToPreset(fmt.Sprintf("disable %s", disabledUnit))
 }
 
-func (ut Util) appendLineToPreset(data string) (err error) {
+func (ut Util) appendLineToPreset(data string) error {
 	path, err := ut.JoinPath(PresetPath)
 	if err != nil {
 		return err
@@ -194,7 +193,7 @@ func (ut Util) appendLineToPreset(data string) (err error) {
 		return err
 	}
 	defer func() {
-		err = errors.Join(err, file.Close())
+		_ = file.Close()
 	}()
 
 	_, err = file.WriteString(data + "\n")
