@@ -124,10 +124,11 @@ func (cfg Config) validateParents(c path.ContextPath) report.Report {
 		// Check if any parent path exists as a file or link
 		parentPath := entry.Path
 		for {
-			parentPath = filepath.Dir(parentPath)
-			if parentPath == "/" || parentPath == "." {
+			newParentPath := filepath.Dir(parentPath)
+			if newParentPath == parentPath {
 				break
 			}
+			parentPath = newParentPath
 
 			if parentEntry, exists := paths[parentPath]; exists {
 				// If the parent is not a directory, it's a conflict
