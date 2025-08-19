@@ -15,6 +15,7 @@
 package types
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -247,6 +248,120 @@ func TestConfigValidation(t *testing.T) {
 					},
 				},
 			},
+		},
+
+		// test 7: file path conflicts with another file path, should error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar"}},
+						{Node: Node{Path: "/foo/bar/baz"}},
+					},
+				},
+			},
+			out: fmt.Errorf("invalid entry at path /foo/bar/baz: %w", errors.ErrMissLabeledDir),
+			at:  path.New("json", "storage", "files", 1, "path"),
+		},
+		// test 8: file path conflicts with link path, should error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar"}},
+					},
+					Links: []Link{
+						{Node: Node{Path: "/foo/bar/baz"}},
+					},
+				},
+			},
+			out: fmt.Errorf("invalid entry at path /foo/bar/baz: %w", errors.ErrMissLabeledDir),
+			at:  path.New("json", "storage", "links", 0, "path"),
+		},
+
+		// test 9: file path conflicts with directory path, should error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar"}},
+					},
+					Directories: []Directory{
+						{Node: Node{Path: "/foo/bar/baz"}},
+					},
+				},
+			},
+			out: fmt.Errorf("invalid entry at path /foo/bar/baz: %w", errors.ErrMissLabeledDir),
+			at:  path.New("json", "storage", "directories", 0, "path"),
+		},
+
+		// test 10: non-conflicting scenarios with same parent directory, should not error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar/baz"}},
+					},
+					Directories: []Directory{
+						{Node: Node{Path: "/foo/bar"}},
+					},
+				},
+			},
+		},
+		// test 11: non-conflicting scenarios with a link, should not error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar"}},
+					},
+					Links: []Link{
+						{Node: Node{Path: "/baz/qux"}},
+					},
+				},
+			},
+		},
+		// test 12: deep path conflict - file conflicts with deeper nested path, should error
+		{
+			in: Config{
+				Storage: Storage{
+					Files: []File{
+						{Node: Node{Path: "/foo/bar"}},
+						{Node: Node{Path: "/foo/bar/baz/deep/file"}},
+					},
+				},
+			},
+			out: fmt.Errorf("invalid entry at path /foo/bar/baz/deep/file: %w", errors.ErrMissLabeledDir),
+			at:  path.New("json", "storage", "files", 1, "path"),
+		},
+		// test 13: multiple levels with directories, should not error
+		{
+			in: Config{
+				Storage: Storage{
+					Directories: []Directory{
+						{Node: Node{Path: "/foo"}},
+						{Node: Node{Path: "/foo/bar"}},
+					},
+					Files: []File{
+						{Node: Node{Path: "/foo/bar/baz"}},
+					},
+				},
+			},
+		},
+		// test 14: link conflicts with file parent, should error
+		{
+			in: Config{
+				Storage: Storage{
+					Links: []Link{
+						{Node: Node{Path: "/foo/bar"}},
+					},
+					Files: []File{
+						{Node: Node{Path: "/foo/bar/child"}},
+					},
+				},
+			},
+			out: fmt.Errorf("invalid entry at path /foo/bar/child: %w", errors.ErrMissLabeledDir),
+			at:  path.New("json", "storage", "files", 0, "path"),
 		},
 	}
 	for i, test := range tests {
