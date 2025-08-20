@@ -85,6 +85,8 @@ var (
 	ErrInvalidProxy              = errors.New("proxies must be http(s)")
 	ErrInsecureProxy             = errors.New("insecure plaintext HTTP proxy specified for HTTPS resources")
 	ErrPathConflictsSystemd      = errors.New("path conflicts with systemd unit or dropin")
+	ErrPathAlreadyExists         = errors.New("path already exists")
+	ErrMissLabeledDir            = errors.New("parent directory path matches configured file, check path, and ensure parent directory is configured")
 	ErrCexWithClevis             = errors.New("cannot use cex with clevis")
 	ErrCexWithKeyFile            = errors.New("cannot use key file with cex")
 
