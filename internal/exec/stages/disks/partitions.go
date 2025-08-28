@@ -153,11 +153,13 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 		if info, exists := diskInfo.GetPartition(part.Number); exists {
 			// delete all existing partitions
 			op.DeletePartition(part.Number)
-			if part.StartSector == nil && !cutil.IsTrue(part.WipePartitionEntry) {
-				// don't care means keep the same if we can't wipe, otherwise stick it at start 0
+			// Preserve existing start/size when unspecified so we recreate the entry
+			// at the same offset. This avoids tools (e.g., sfdisk) auto-choosing a
+			// new aligned start which would move the filesystem.
+			if part.StartSector == nil || (part.StartSector != nil && *part.StartSector == 0) {
 				part.StartSector = &info.StartSector
 			}
-			if part.SizeInSectors == nil && !cutil.IsTrue(part.WipePartitionEntry) {
+			if part.SizeInSectors == nil {
 				part.SizeInSectors = &info.SizeInSectors
 			}
 		}
@@ -442,6 +444,11 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		case exists && shouldExist && wipeEntry && !matches:
 			s.Info("partition %d did not meet specifications, wiping partition entry and recreating", part.Number)
 			op.DeletePartition(part.Number)
+			// Ensure we preserve the existing start if unspecified or zero so the filesystem
+			// remains at the same offset and mountable after recreation (important for sfdisk).
+			if part.StartSector == nil || (part.StartSector != nil && *part.StartSector == 0) {
+				part.StartSector = &info.StartSector
+			}
 			op.CreatePartition(part)
 			modification = true
 			partxUpdate = append(partxUpdate, uint64(part.Number))

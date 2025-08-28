@@ -74,7 +74,8 @@ func (op *Operation) Pretend() (string, error) {
 	}
 
 	script := op.buildOptions()
-	cmd := exec.Command("sh", "-c", fmt.Sprintf("echo -e \"%s\" | sudo %s --no-act %s", script, distro.SfdiskCmd(), op.dev))
+	cmd := exec.Command(distro.SfdiskCmd(), "--no-act", "-X", "gpt", op.dev)
+	cmd.Stdin = strings.NewReader(script)
 	stdout, err := cmd.StdoutPipe()
 
 	if err != nil {
@@ -214,13 +215,15 @@ func (op Operation) buildOptions() string {
 			script.WriteString(fmt.Sprintf("%d : ", p.Number))
 		}
 
-		if p.StartSector != nil {
+		if p.StartSector != nil && *p.StartSector != 0 {
 			script.WriteString(fmt.Sprintf("start=%d ", *p.StartSector))
-
 		}
 
-		if p.SizeInSectors != nil {
+		if p.SizeInSectors != nil && *p.SizeInSectors != 0 {
 			script.WriteString(fmt.Sprintf("size=%d ", *p.SizeInSectors))
+		} else if p.SizeInSectors != nil && *p.SizeInSectors == 0 {
+			// Use size=+ to fill remaining space (like sgdisk "+0")
+			script.WriteString("size=+ ")
 		}
 
 		if util.NotEmpty(p.TypeGUID) {
