@@ -41,13 +41,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/pin/tftp"
 	"github.com/vincent-petithory/dataurl"
 )
@@ -87,10 +84,8 @@ type Fetcher struct {
 	// timeouts Ignition was configured to used will be ignored.
 	client *HttpClient
 
-	// The AWS Session to use when fetching resources from S3. If left nil, the
-	// first S3 object that is fetched will initialize the field. This can be
-	// used to set credentials.
-	AWSSession *session.Session
+	// AWSConfig is the AWS SDK v2 config to use for S3 interactions.
+	AWSConfig *aws.Config
 
 	// The region where the AWS machine trying to fetch is.
 	// This is used as a hint to fetch the S3 bucket from the right partition and region.
@@ -172,7 +167,7 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 		err = f.fetchFromDataURL(u, dest, opts)
 	case "s3", "arn":
 		buf := &s3buf{
-			WriteAtBuffer: aws.NewWriteAtBuffer([]byte{}),
+			WriteAtBuffer: manager.NewWriteAtBuffer([]byte{}),
 		}
 		err = f.fetchFromS3(u, buf, opts)
 		return buf.Bytes(), err
@@ -190,7 +185,7 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 // Read() and Seek() are only safe to call after the download call is made. This is only for
 // use with fetchFromS3* functions.
 type s3buf struct {
-	*aws.WriteAtBuffer
+	*manager.WriteAtBuffer
 	// only safe to call read/seek after finishing writing. Not safe for parallel use
 	reader io.ReadSeeker
 }
@@ -467,24 +462,15 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 		defer cancelFn()
 	}
 
-	if f.AWSSession == nil {
-		var err error
-		f.AWSSession, err = session.NewSession(&aws.Config{
-			Credentials: credentials.AnonymousCredentials,
-		})
-		if err != nil {
-			return err
-		}
-	}
-	sess := f.AWSSession.Copy()
-
 	// Determine the bucket and key based on the URL scheme
 	var bucket, key, region, regionHint string
 	var err error
 	switch u.Scheme {
 	case "s3":
 		bucket = u.Host
-		key = u.Path
+		// s3 object keys should not start with a leading slash
+		// e.g., s3://bucket/path/to/object => Key: "path/to/object"
+		key = strings.TrimLeft(u.Path, "/")
 	case "arn":
 		fullURL := u.Scheme + ":" + u.Opaque
 		// Parse the bucket and key from the ARN Resource.
@@ -498,11 +484,21 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 		return ErrSchemeUnsupported
 	}
 
+	if f.client == nil {
+		if err := f.newHttpClient(); err != nil {
+			return err
+		}
+	}
+
+	if f.AWSConfig == nil {
+		f.AWSConfig = &aws.Config{Credentials: aws.AnonymousCredentials{}}
+	}
+	cfg := *f.AWSConfig
+
 	// Determine the partition and region this bucket is in
 	if region == "" {
 		// We didn't get an accesspoint ARN, so we don't know the
-		// region directly.  Maybe we computed a region hint from
-		// the ARN partition field?
+		// region directly. Use hints if available.
 		if regionHint == "" {
 			// Nope; we got an unknown ARN partition value or an
 			// s3:// URL.  Maybe we're running in AWS and can
@@ -513,18 +509,17 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 			// Nope; assume aws partition.
 			regionHint = "us-east-1"
 		}
-		// Use the region hint to ask the correct partition for the
-		// bucket's region.
-		region, err = s3manager.GetBucketRegion(ctx, sess, bucket, regionHint)
+		// Use the region hint to ask the correct partition for the bucket's region.
+		tmpClient := s3.NewFromConfig(cfg, func(o *s3.Options) {
+			o.Region = regionHint
+			o.HTTPClient = f.client.client
+		})
+		r, err := manager.GetBucketRegion(ctx, tmpClient, bucket)
 		if err != nil {
-			if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
-				return fmt.Errorf("couldn't determine the region for bucket %q: %v", bucket, err)
-			}
-			return err
+			return fmt.Errorf("couldn't determine the region for bucket %q: %v", bucket, err)
 		}
+		region = r
 	}
-
-	sess.Config.Region = aws.String(region)
 
 	var versionId *string
 	if v, ok := u.Query()["versionId"]; ok && len(v) > 0 {
@@ -536,9 +531,24 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 		Key:       &key,
 		VersionId: versionId,
 	}
-	err = f.fetchFromS3WithCreds(ctx, dest, input, sess)
-	if err != nil {
-		return err
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.Region = region
+		o.HTTPClient = f.client.client
+		o.EndpointOptions.UseDualStackEndpoint = aws.DualStackEndpointStateEnabled
+	})
+
+	if err := f.fetchFromS3WithClient(ctx, dest, input, client); err != nil {
+		// Fallback to anonymous credentials for public buckets
+		anonClient := s3.NewFromConfig(cfg, func(o *s3.Options) {
+			o.Region = region
+			o.HTTPClient = f.client.client
+			o.EndpointOptions.UseDualStackEndpoint = aws.DualStackEndpointStateEnabled
+			o.Credentials = aws.AnonymousCredentials{}
+		})
+		if err2 := f.fetchFromS3WithClient(ctx, dest, input, anonClient); err2 != nil {
+			return fmt.Errorf("error fetching object %q from bucket %q: %v (anonymous fetch also failed: %v)", key, bucket, err, err2)
+		}
 	}
 	if opts.Hash != nil {
 		opts.Hash.Reset()
@@ -562,25 +572,10 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 	return nil
 }
 
-func (f *Fetcher) fetchFromS3WithCreds(ctx context.Context, dest s3target, input *s3.GetObjectInput, sess *session.Session) error {
-	httpClient, err := defaultHTTPClient()
-	if err != nil {
-		return err
-	}
-
-	awsConfig := aws.NewConfig().WithHTTPClient(httpClient).WithUseDualStack(true)
-	s3Client := s3.New(sess, awsConfig)
-	downloader := s3manager.NewDownloaderWithClient(s3Client)
-	if _, err := downloader.DownloadWithContext(ctx, dest, input); err != nil {
-		if awserrval, ok := err.(awserr.Error); ok && awserrval.Code() == "EC2RoleRequestError" {
-			// If this error was due to an EC2 role request error, try again
-			// with the anonymous credentials.
-			sess.Config.Credentials = credentials.AnonymousCredentials
-			return f.fetchFromS3WithCreds(ctx, dest, input, sess)
-		}
-		return err
-	}
-	return nil
+func (f *Fetcher) fetchFromS3WithClient(ctx context.Context, dest s3target, input *s3.GetObjectInput, client *s3.Client) error {
+	downloader := manager.NewDownloader(client)
+	_, err := downloader.Download(ctx, dest, input)
+	return err
 }
 
 // parse the a Azure Blob Storage URL into its components:

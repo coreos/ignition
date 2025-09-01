@@ -9,7 +9,11 @@ require (
 	cloud.google.com/go/storage v1.56.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.10.1
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.2
-	github.com/aws/aws-sdk-go v1.55.7
+	github.com/aws/aws-sdk-go-v2 v1.38.2
+	github.com/aws/aws-sdk-go-v2/credentials v1.18.8
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.5
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.19.2
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.87.2
 	github.com/beevik/etree v1.5.1
 	github.com/containers/libhvee v0.10.0
 	github.com/coreos/go-semver v0.3.1
@@ -44,6 +48,15 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.27.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.53.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.53.0 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.1 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.8.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.5 // indirect
+	github.com/aws/smithy-go v1.23.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20250501225837-2ac532fd4443 // indirect
 	github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb // indirect
@@ -59,7 +72,6 @@ require (
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mdlayher/socket v0.4.1 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
