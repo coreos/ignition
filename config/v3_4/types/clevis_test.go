@@ -65,6 +65,14 @@ func TestClevisCustomValidate(t *testing.T) {
 			at:  path.New("", "config"),
 			out: errors.ErrClevisConfigRequired,
 		},
+		{
+			in: ClevisCustom{
+				Config:       util.StrToPtr("z"),
+				NeedsNetwork: util.BoolToPtr(true),
+				Pin:          util.StrToPtr("trustee"),
+			},
+			out: nil,
+		},
 	}
 
 	for i, test := range tests {

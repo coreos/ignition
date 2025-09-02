@@ -35,7 +35,7 @@ func (cu ClevisCustom) Validate(c path.ContextPath) (r report.Report) {
 	}
 	if util.NotEmpty(cu.Pin) {
 		switch *cu.Pin {
-		case "tpm2", "tang", "sss":
+		case "tpm2", "tang", "sss", "trustee":
 		default:
 			r.AddOnError(c.Append("pin"), errors.ErrUnknownClevisPin)
 		}
