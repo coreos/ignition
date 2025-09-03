@@ -22,6 +22,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -116,9 +117,11 @@ func doInit(f *resource.Fetcher) error {
 	}
 
 	// Determine the partition and region this instance is in
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 	regionHint := "us-east-1"
 	client := imds.NewFromConfig(*f.AWSConfig)
-	out, err := client.GetRegion(context.Background(), &imds.GetRegionInput{})
+	out, err := client.GetRegion(ctx, &imds.GetRegionInput{})
 	if err != nil {
 		f.Logger.Warning("failed to determine EC2 region, falling back to default %s: %v", regionHint, err)
 	} else {
