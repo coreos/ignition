@@ -543,15 +543,20 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 	})
 
 	if err := f.fetchFromS3WithClient(ctx, dest, input, client); err != nil {
-		// Fallback to anonymous credentials for public buckets
-		anonClient := s3.NewFromConfig(cfg, func(o *s3.Options) {
-			o.Region = region
-			o.HTTPClient = f.client.client
-			o.EndpointOptions.UseDualStackEndpoint = aws.DualStackEndpointStateEnabled
-			o.Credentials = aws.AnonymousCredentials{}
-		})
-		if err2 := f.fetchFromS3WithClient(ctx, dest, input, anonClient); err2 != nil {
-			return fmt.Errorf("error fetching object %q from bucket %q: %v (anonymous fetch also failed: %v)", key, bucket, err, err2)
+		// Fallback to anonymous credentials if we failed to retrieve an EC2 IMDS role.
+		// The SDK does not provide a typed error for this case.
+		if strings.Contains(err.Error(), "EC2 IMDS role") {
+			anonClient := s3.NewFromConfig(cfg, func(o *s3.Options) {
+				o.Region = region
+				o.HTTPClient = f.client.client
+				o.EndpointOptions.UseDualStackEndpoint = aws.DualStackEndpointStateEnabled
+				o.Credentials = aws.AnonymousCredentials{}
+			})
+			if err2 := f.fetchFromS3WithClient(ctx, dest, input, anonClient); err2 != nil {
+				return fmt.Errorf("error fetching object %q from bucket %q anonymously: %w (authenticated fetch also failed: %w)", key, bucket, err2, err)
+			}
+		} else {
+			return fmt.Errorf("error fetching object %q from bucket %q: %s", key, bucket, err.Error())
 		}
 	}
 	if opts.Hash != nil {
