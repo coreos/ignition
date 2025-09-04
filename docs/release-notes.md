@@ -14,6 +14,8 @@ nav_order: 9
 
 ### Changes
 
+- Switch to aws-sdk-go-v2 for S3 fetches and EC2 interactions
+
 ### Bug fixes
 
 - Fix fetch-offline for Oracle Cloud Infrastructure
