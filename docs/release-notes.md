@@ -14,6 +14,8 @@ nav_order: 9
 
 ### Changes
 
+-   Fix validation to properly detect when a file/link path conflicts with a parent directory.
+
 ### Bug fixes
 
 - Fix fetch-offline for Oracle Cloud Infrastructure
