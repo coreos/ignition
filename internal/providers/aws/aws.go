@@ -18,9 +18,11 @@
 package aws
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -28,10 +30,9 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	"github.com/coreos/vcontext/report"
 )
 
@@ -68,15 +69,10 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 }
 
 func newFetcher(l *log.Logger) (resource.Fetcher, error) {
-	sess, err := session.NewSession(&aws.Config{})
-	if err != nil {
-		return resource.Fetcher{}, err
-	}
-	sess.Config.Credentials = ec2rolecreds.NewCredentials(sess)
-
+	cfg := aws.Config{Credentials: aws.NewCredentialsCache(ec2rolecreds.New())}
 	return resource.Fetcher{
-		Logger:     l,
-		AWSSession: sess,
+		Logger:    l,
+		AWSConfig: &cfg,
 	}, nil
 }
 
@@ -121,10 +117,15 @@ func doInit(f *resource.Fetcher) error {
 	}
 
 	// Determine the partition and region this instance is in
-	regionHint, err := ec2metadata.New(f.AWSSession).Region()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	regionHint := "us-east-1"
+	client := imds.NewFromConfig(*f.AWSConfig)
+	out, err := client.GetRegion(ctx, &imds.GetRegionInput{})
 	if err != nil {
-		regionHint = "us-east-1"
 		f.Logger.Warning("failed to determine EC2 region, falling back to default %s: %v", regionHint, err)
+	} else {
+		regionHint = out.Region
 	}
 	f.S3RegionHint = regionHint
 	return nil
