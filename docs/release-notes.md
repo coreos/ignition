@@ -4,9 +4,18 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.23.0 (unreleased)
+## Upcoming Ignition 2.24.0 (unreleased)
 
 ### Breaking changes
+
+### Features
+
+### Changes
+
+### Bug fixes
+
+
+## Ignition 2.23.0 (2025-09-10)
 
 ### Features
 
