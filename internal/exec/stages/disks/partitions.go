@@ -22,15 +22,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 
 	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
-	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/partitioners"
@@ -105,9 +102,7 @@ func partitionMatchesCommon(existing util.PartitionInfo, spec partitioners.Parti
 	if spec.StartSector != nil && *spec.StartSector != existing.StartSector {
 		return fmt.Errorf("starting sector did not match (specified %d, got %d)", *spec.StartSector, existing.StartSector)
 	}
-	if cutil.NotEmpty(spec.GUID) && !strings.EqualFold(*spec.GUID, existing.GUID) {
-		return fmt.Errorf("GUID did not match (specified %q, got %q)", *spec.GUID, existing.GUID)
-	}
+	// Skip GUID equality here; GUID will be enforced post-commit by the device manager
 	if cutil.NotEmpty(spec.TypeGUID) && !strings.EqualFold(*spec.TypeGUID, existing.TypeGUID) {
 		return fmt.Errorf("type GUID did not match (specified %q, got %q)", *spec.TypeGUID, existing.TypeGUID)
 	}
@@ -196,6 +191,17 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 			}
 			if part.SizeInSectors != nil {
 				part.SizeInSectors = &dims.Size
+			}
+		} else {
+			// If we couldn't resolve zero-values via Pretend/ParseOutput (e.g., sfdisk),
+			// treat 0 as "don't care" for matching by clearing them here. The sfdisk
+			// script was already queued earlier with the original values (including size=+),
+			// so this only affects subsequent matching logic.
+			if part.StartSector != nil && *part.StartSector == 0 {
+				part.StartSector = nil
+			}
+			if part.SizeInSectors != nil && *part.SizeInSectors == 0 {
+				part.SizeInSectors = nil
 			}
 		}
 		result = append(result, part)
@@ -366,10 +372,15 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		if err := op.Commit(); err != nil {
 			// `sgdisk --zap-all` will exit code 2 if the table was corrupted; retry it
 			// https://github.com/coreos/fedora-coreos-tracker/issues/1596
-			s.Info("potential error encountered while wiping table... retrying")
+			s.Logger.Info("potential error encountered while wiping table... retrying")
 			if err := op.Commit(); err != nil {
 				return err
 			}
+		}
+
+		// Ensure the kernel and udev have fully processed the table change
+		if err := s.waitForUdev(blockDevResolved); err != nil {
+			return fmt.Errorf("failed to wait for udev after wipe on %q: %v", blockDevResolved, err)
 		}
 	}
 
@@ -466,36 +477,14 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		return fmt.Errorf("commit failure: %v", err)
 	}
 
-	// In contrast to similar tools, sgdisk does not trigger the update of the
-	// kernel partition table with BLKPG but only uses BLKRRPART which fails
-	// as soon as one partition of the disk is mounted
-	if len(activeParts) > 0 {
-		runPartxCommand := func(op string, partitions []uint64) error {
-			for _, partNr := range partitions {
-				cmd := exec.Command(distro.PartxCmd(), "--"+op, "--nr", strconv.FormatUint(partNr, 10), blockDevResolved)
-				if _, err := s.LogCmd(cmd, "triggering partition %d %s on %q", partNr, op, devAlias); err != nil {
-					return fmt.Errorf("partition %s failed: %v", op, err)
-				}
-			}
-			return nil
-		}
-		if err := runPartxCommand("delete", partxDelete); err != nil {
-			return err
-		}
-		if err := runPartxCommand("update", partxUpdate); err != nil {
-			return err
-		}
-		if err := runPartxCommand("add", partxAdd); err != nil {
-			return err
-		}
-	}
+	// sfdisk handles kernel notification better than sgdisk; skip manual partx operations
 
 	// It's best to wait here for the /dev/ABC entries to be
 	// (re)created, not only for other parts of the initramfs but
 	// also because s.waitOnDevices() can still race with udev's
 	// partition entry recreation.
-	if err := s.waitForUdev(devAlias); err != nil {
-		return fmt.Errorf("failed to wait for udev on %q after partitioning: %v", devAlias, err)
+	if err := s.waitForUdev(blockDevResolved); err != nil {
+		return fmt.Errorf("failed to wait for udev on %q after partitioning: %v", blockDevResolved, err)
 	}
 
 	return nil

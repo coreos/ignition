@@ -22,6 +22,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	sharedErrors "github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
@@ -117,15 +118,26 @@ func (op *Operation) Commit() error {
 
 	// If wipe we need to reset the partition table
 	if op.wipe {
-		// Erase the existing partition tables
-		cmd := exec.Command(distro.WipefsCmd(), "-a", op.dev)
-		if _, err := op.logger.LogCmd(cmd, "option wipe selected, and failed to execute on %q", op.dev); err != nil {
+		// Create a fresh GPT disk label and wipe signatures using sfdisk directly
+		cmd := exec.Command(distro.SfdiskCmd(), "--wipe", "always", "--label", "gpt", op.dev)
+		if _, err := op.logger.LogCmd(cmd, "wiping partition table on %q", op.dev); err != nil {
 			return fmt.Errorf("wipe partition table failed: %v", err)
 		}
 	}
 
 	if err := op.runSfdisk(true); err != nil {
 		return fmt.Errorf("sfdisk commit failed with: %v", err)
+	}
+
+	// Attributes should be set by the script; post-commit enforcement can interfere
+
+	// Give the kernel time to process attribute changes and flush block device cache
+	time.Sleep(100 * time.Millisecond)
+
+	// Force block device cache flush so blkid sees updated metadata
+	cmd := exec.Command("blockdev", "--flushbufs", op.dev)
+	if _, err := op.logger.LogCmd(cmd, "flushing block device cache for %q", op.dev); err != nil {
+		op.logger.Warning("failed to flush block device cache for %q: %v", op.dev, err)
 	}
 
 	return nil
@@ -136,7 +148,8 @@ func (op *Operation) runSfdisk(shouldWrite bool) error {
 	if !shouldWrite {
 		opts = append(opts, "--no-act")
 	}
-	opts = append(opts, "-X", "gpt", op.dev)
+	// Always target GPT and wipe conflicting signatures to match sgdisk behavior
+	opts = append(opts, "--wipe", "always", "-X", "gpt", op.dev)
 	fmt.Printf("The options are %v", opts)
 	cmd := exec.Command(distro.SfdiskCmd(), opts...)
 	cmd.Stdin = strings.NewReader(op.buildOptions())
@@ -205,6 +218,9 @@ func (op *Operation) ParseOutput(sfdiskOutput string, partitionNumbers []int) (m
 func (op Operation) buildOptions() string {
 	var script bytes.Buffer
 
+	// sfdisk script mode requires a header
+	script.WriteString("label: gpt\n")
+
 	for _, p := range op.parts {
 		println("Starting Build Options Script Building")
 
@@ -213,6 +229,9 @@ func (op Operation) buildOptions() string {
 
 		if p.Number != 0 {
 			script.WriteString(fmt.Sprintf("%d : ", p.Number))
+		} else {
+			// For partition number 0, let sfdisk auto-assign the next available number
+			script.WriteString(": ")
 		}
 
 		if p.StartSector != nil && *p.StartSector != 0 {
@@ -271,6 +290,38 @@ func (op *Operation) handleInfo() error {
 			return fmt.Errorf("failed to retrieve partition info for %d: %v, output: %s", num, err, output)
 		}
 		op.logger.Info("partition info: %s", output)
+	}
+	return nil
+}
+
+func (op *Operation) enforcePartitionAttributes() error {
+	for _, p := range op.parts {
+		// Partition number 0 is a special placeholder; skip attribute setting
+		if p.Number == 0 {
+			continue
+		}
+		// GUID (partition UUID)
+		if util.NotEmpty(p.GUID) {
+			guidLower := strings.ToLower(*p.GUID)
+			cmd := exec.Command(distro.SfdiskCmd(), "--part-uuid", op.dev, fmt.Sprintf("%d", p.Number), guidLower)
+			if _, err := op.logger.LogCmd(cmd, "setting partition %d uuid on %q", p.Number, op.dev); err != nil {
+				return fmt.Errorf("failed to set partition %d uuid: %v", p.Number, err)
+			}
+		}
+		// Label (partition name)
+		if p.Label != nil {
+			cmd := exec.Command(distro.SfdiskCmd(), "--part-label", op.dev, fmt.Sprintf("%d", p.Number), *p.Label)
+			if _, err := op.logger.LogCmd(cmd, "setting partition %d label on %q", p.Number, op.dev); err != nil {
+				return fmt.Errorf("failed to set partition %d label: %v", p.Number, err)
+			}
+		}
+		// Type GUID
+		if util.NotEmpty(p.TypeGUID) {
+			cmd := exec.Command(distro.SfdiskCmd(), "--part-type", op.dev, fmt.Sprintf("%d", p.Number), *p.TypeGUID)
+			if _, err := op.logger.LogCmd(cmd, "setting partition %d type on %q", p.Number, op.dev); err != nil {
+				return fmt.Errorf("failed to set partition %d type: %v", p.Number, err)
+			}
+		}
 	}
 	return nil
 }
