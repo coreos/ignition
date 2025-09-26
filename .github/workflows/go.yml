@@ -24,11 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Set up Go 1.x
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
     - name: Check out repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v4
     - name: Install Linux dependencies
       if: runner.os == 'Linux'
       run: |
@@ -60,9 +60,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v4
     - name: Set up Go 1.x
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v5
       with:
         go-version: 1.24.x
     - name: Install schematyper
