@@ -10,6 +10,8 @@ nav_order: 9
 
 ### Features
 
+- Add support for nocloud config fetching in kubevirt
+
 ### Changes
 
 ### Bug fixes

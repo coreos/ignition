@@ -37,6 +37,7 @@ import (
 )
 
 const (
+	nocloudUserdataPath     = "/user-data"
 	configDriveUserdataPath = "/openstack/latest/user_data"
 )
 
@@ -48,9 +49,15 @@ func init() {
 }
 
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	data, err := fetchConfigFromDevice(f.Logger, filepath.Join(distro.DiskByLabelDir(), "config-2"))
+	// Try nocloud (cidata) first
+	data, err := fetchConfigFromDevice(f.Logger, filepath.Join(distro.DiskByLabelDir(), "cidata"), nocloudUserdataPath)
 	if err != nil {
-		return types.Config{}, report.Report{}, err
+		f.Logger.Debug("failed to fetch from nocloud cidata: %v, trying config-2 fallback", err)
+		// Fall back to config-2 (OpenStack format)
+		data, err = fetchConfigFromDevice(f.Logger, filepath.Join(distro.DiskByLabelDir(), "config-2"), configDriveUserdataPath)
+		if err != nil {
+			return types.Config{}, report.Report{}, err
+		}
 	}
 
 	return util.ParseConfig(f.Logger, data)
@@ -61,7 +68,7 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromDevice(logger *log.Logger, path string) ([]byte, error) {
+func fetchConfigFromDevice(logger *log.Logger, path string, userdataPath string) ([]byte, error) {
 	// There is not always a config drive in kubevirt, but we can limit ignition usage
 	// to VMs with config drives. Block forever if there is none.
 	for !fileExists(path) {
@@ -93,10 +100,10 @@ func fetchConfigFromDevice(logger *log.Logger, path string) ([]byte, error) {
 		)
 	}()
 
-	mntConfigDriveUserdataPath := filepath.Join(mnt, configDriveUserdataPath)
-	if !fileExists(mntConfigDriveUserdataPath) {
+	mntUserdataPath := filepath.Join(mnt, userdataPath)
+	if !fileExists(mntUserdataPath) {
 		return nil, nil
 	}
 
-	return os.ReadFile(mntConfigDriveUserdataPath)
+	return os.ReadFile(mntUserdataPath)
 }
