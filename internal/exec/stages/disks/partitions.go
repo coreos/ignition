@@ -323,6 +323,13 @@ func (p PartitionList) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
+func isBlockDevMapper(blockDevResolved string) bool {
+	blockDevNode := filepath.Base(blockDevResolved)
+	dmName := fmt.Sprintf("/sys/class/block/%s/dm/name", blockDevNode)
+	_, err := os.Stat(dmName)
+	return err == nil
+}
+
 // Expects a /dev/xyz path
 func blockDevHeld(blockDevResolved string) (bool, error) {
 	_, blockDevNode := filepath.Split(blockDevResolved)
@@ -384,9 +391,14 @@ func blockDevPartitions(blockDevResolved string) ([]string, error) {
 func blockDevInUse(blockDevResolved string, skipPartitionCheck bool) (bool, []string, error) {
 	// Note: This ignores swap and LVM usage
 	inUse := false
-	held, err := blockDevHeld(blockDevResolved)
-	if err != nil {
-		return false, nil, fmt.Errorf("failed to check if %q is held: %v", blockDevResolved, err)
+	isDevMapper := isBlockDevMapper(blockDevResolved)
+	held := false
+	if !isDevMapper {
+		var err error
+		held, err = blockDevHeld(blockDevResolved)
+		if err != nil {
+			return false, nil, fmt.Errorf("failed to check if %q is held: %v", blockDevResolved, err)
+		}
 	}
 	mounted, err := blockDevMounted(blockDevResolved)
 	if err != nil {
