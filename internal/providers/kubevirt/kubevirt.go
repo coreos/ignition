@@ -48,11 +48,13 @@ func init() {
 }
 
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	data, err := fetchConfigFromDevice(f.Logger, filepath.Join(distro.DiskByLabelDir(), "config-2"))
+	var data []byte
+	var err error
+	configPath := filepath.Join(distro.DiskByLabelDir(), "config-2")
+	data, err = fetchConfigFromDevice(f.Logger, configPath)
 	if err != nil {
-		return types.Config{}, report.Report{}, err
+		f.Logger.Err("failed to fetch config from %s: %v", configPath, err)
 	}
-
 	return util.ParseConfig(f.Logger, data)
 }
 
