@@ -19,10 +19,12 @@
 package kubevirt
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
@@ -49,14 +51,52 @@ func init() {
 }
 
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	// Try nocloud (cidata) first
-	data, err := fetchConfigFromDevice(f.Logger, filepath.Join(distro.DiskByLabelDir(), "cidata"), nocloudUserdataPath)
-	if err != nil {
-		f.Logger.Debug("failed to fetch from nocloud cidata: %v, trying config-2 fallback", err)
-		// Fall back to config-2 (OpenStack format)
-		data, err = fetchConfigFromDevice(f.Logger, filepath.Join(distro.DiskByLabelDir(), "config-2"), configDriveUserdataPath)
-		if err != nil {
-			return types.Config{}, report.Report{}, err
+	var data []byte
+	errChan := make(chan error)
+	ctx, cancel := context.WithCancel(context.Background())
+	dispatchCount := 0
+	var once sync.Once
+
+	dispatch := func(name string, fn func() ([]byte, error)) {
+		dispatchCount++
+		go func() {
+			raw, err := fn()
+			if err != nil {
+				switch err {
+				case context.Canceled:
+				default:
+					f.Logger.Err("failed to fetch config from %s: %v", name, err)
+				}
+				errChan <- err
+				return
+			}
+
+			once.Do(func() {
+				data = raw
+				cancel()
+			})
+		}()
+	}
+
+	dispatch("config drive (cidata)", func() ([]byte, error) {
+		return fetchConfigFromDevice(f.Logger, ctx, filepath.Join(distro.DiskByLabelDir(), "cidata"), nocloudUserdataPath)
+	})
+
+	dispatch("config drive (config-2)", func() ([]byte, error) {
+		return fetchConfigFromDevice(f.Logger, ctx, filepath.Join(distro.DiskByLabelDir(), "config-2"), configDriveUserdataPath)
+	})
+
+Loop:
+	for {
+		select {
+		case <-ctx.Done():
+			break Loop
+		case <-errChan:
+			dispatchCount--
+			if dispatchCount == 0 {
+				f.Logger.Info("couldn't fetch config")
+				break Loop
+			}
 		}
 	}
 
@@ -68,12 +108,14 @@ func fileExists(path string) bool {
 	return (err == nil)
 }
 
-func fetchConfigFromDevice(logger *log.Logger, path string, userdataPath string) ([]byte, error) {
-	// There is not always a config drive in kubevirt, but we can limit ignition usage
-	// to VMs with config drives. Block forever if there is none.
+func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string, userdataPath string) ([]byte, error) {
 	for !fileExists(path) {
 		logger.Debug("config drive (%q) not found. Waiting...", path)
-		time.Sleep(time.Second)
+		select {
+		case <-time.After(time.Second):
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
 	}
 
 	logger.Debug("creating temporary mount point")
