@@ -132,11 +132,13 @@ func (s *stage) createLuks(config types.Config) error {
 			if err := keyFile.Close(); err != nil {
 				s.Warning("could not close file %s: %v", keyFilePath, err)
 			}
-			defer func() {
-				if err = os.Remove(keyFilePath); err != nil {
-					s.Warning("could not remove file %s: %v", keyFilePath, err)
+			// We must pass 'keyFilePath' as a parameter here, since it may change below (cex).
+			// Otherwise, the deferred function will see the modified value instead of the original one.
+			defer func(name string) {
+				if removeErr := os.Remove(name); removeErr != nil {
+					s.Warning("could not remove file %s: %v", name, removeErr)
 				}
-			}()
+			}(keyFilePath)
 
 			if luks.Cex.IsPresent() {
 				// each LUKS device has associated keyfiles

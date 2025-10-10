@@ -15,7 +15,7 @@ nav_order: 9
 ### Changes
 
 ### Bug fixes
-
+- Fix occasional cex.key file removal
 
 ## Ignition 2.23.0 (2025-09-10)
 
