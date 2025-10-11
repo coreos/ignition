@@ -24,28 +24,36 @@ import (
 
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 	"github.com/coreos/ignition/v2/internal/platform"
-	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
 	"github.com/coreos/vcontext/report"
 )
 
 var (
-	userdataURL = url.URL{
-		Scheme: "http",
-		Host:   "169.254.42.42",
-		Path:   "user_data/cloud-init",
+	userdataURLs = map[string]url.URL{
+		resource.IPv4: {
+			Scheme: "http",
+			Host:   "169.254.42.42",
+			Path:   "user_data/cloud-init",
+		},
+		resource.IPv6: {
+			Scheme: "http",
+			Host:   "[fd00:42::42]",
+			Path:   "user_data/cloud-init",
+		},
 	}
 )
 
 func init() {
 	platform.Register(platform.Provider{
-		Name:  "scaleway",
-		Fetch: fetchConfig,
+		Name: "scaleway",
+		Fetch: func(f *resource.Fetcher) (types.Config, report.Report, error) {
+			return resource.FetchConfigDualStack(f, userdataURLs, fetchConfig)
+		},
 	})
 }
 
-func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
+func fetchConfig(f *resource.Fetcher, userdataURL url.URL) ([]byte, error) {
 	// For security reason, Scaleway requires to query user data with a source port below 1024.
 	port := func() int {
 		return rand.Intn(1022) + 1
@@ -55,8 +63,8 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		LocalPort: port,
 	})
 	if err != nil && err != resource.ErrNotFound {
-		return types.Config{}, report.Report{}, err
+		return nil, err
 	}
 
-	return util.ParseConfig(f.Logger, data)
+	return data, nil
 }
