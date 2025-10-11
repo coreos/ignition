@@ -1,0 +1,2265 @@
+--- FAIL: TestIgnitionBlackBox (0.00s)
+    --- FAIL: TestIgnitionBlackBox/partition.match.recreate.delete.add_3.0.0 (4.09s)
+        blackbox_test.go:122: partition.match.recreate.delete.add 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [
+            			{
+            				"device": "/dev/loop75",
+            				"partitions": [
+            				{
+            					"label": "important-data",
+            					"number": 1,
+            					"startMiB": 1,
+            					"sizeMiB": 32
+            				},
+            				{
+            					"label": "ephemeral-data",
+            					"number": 2,
+            					"startMiB": 33,
+            					"sizeMiB": 64,
+            					"wipePartitionEntry": true
+            				},
+            				{
+            					"number": 3,
+            					"shouldExist": false,
+            					"wipePartitionEntry": true
+            				},
+            				{
+            					"label": "even-more-data",
+            					"number": 4,
+            					"startMiB": 97,
+            					"sizeMiB": 32
+            				}
+            				]
+            			}
+            			]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-4127799301/ignition.json -neednet /var/tmp/ignition-blackbox-4127799301/neednet -state-file /var/tmp/ignition-blackbox-4127799301/state]
+        filesystem.go:139: PID: 2709965
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4127799301/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4127799301/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-4127799301/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-4127799301/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: 78a69db8a306bb91be475aa6cdbb17934d654c6629faa15be4e9f28ddd1adeda007733e06f38f82a5f41d7c32378d5df98c492cc311e5a7105a4c007b03069db
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-4127799301/ignition.json -neednet /var/tmp/ignition-blackbox-4127799301/neednet -state-file /var/tmp/ignition-blackbox-4127799301/state]
+        filesystem.go:139: PID: 2709987
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4127799301/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4127799301/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop75]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop75]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop75": "/run/ignition/dev_aliases/dev/loop75" -> "/dev/loop75"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 1 on "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 2 on "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 3 on "/run/ignition/dev_aliases/dev/loop75"
+            Starting Build Options Script Building
+            {{<nil> <nil> 1 <nil> <nil> 0xc0005d51a0 0xc0005d51a8 <nil> <nil>} 0xc0006904b8 0xc0006904c0  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 2 <nil> <nil> 0xc0005d51c0 0xc0005d51c8 <nil> 0xc0005d51d0} 0xc0006904c8 0xc0006904d0  }
+            label: gpt
+            1 : start=2048 size=65536 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 
+            2 : start=67584 size=131072 
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 4 <nil> <nil> 0xc0005d51d8 0xc0005d51f0 <nil> <nil>} 0xc0006904d8 0xc0006904e0  }
+            label: gpt
+            1 : start=2048 size=65536 
+            2 : start=67584 size=131072 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 
+            2 : start=67584 size=131072 
+            4 : start=198656 size=65536 
+            
+            INFO     : disks: createPartitions: op(2): partition 1 found with correct specifications
+            INFO     : disks: createPartitions: op(2): partition 2 did not meet specifications, wiping partition entry and recreating
+            Commit: HERE
+            [{{<nil> 0xc0006a4310 2 <nil> <nil> 0xc0005d51c0 0xc0005d51c8 <nil> 0xc0005d51d0} 0xc0006904c8 0xc0006904d0  } {{<nil> 0xc0006a4320 4 <nil> <nil> 0xc0005d51d8 0xc0005d51f0 <nil> <nil>} 0xc0006904d8 0xc0006904e0  }]
+            Starting Build Options Script Building
+            {{<nil> 0xc0006a4310 2 <nil> <nil> 0xc0005d51c0 0xc0005d51c8 <nil> 0xc0005d51d0} 0xc0006904c8 0xc0006904d0  }
+            label: gpt
+            
+            here!
+            label: gpt
+            2 : start=67584 size=131072 name=ephemeral-data 
+            
+            Starting Build Options Script Building
+            {{<nil> 0xc0006a4320 4 <nil> <nil> 0xc0005d51d8 0xc0005d51f0 <nil> <nil>} 0xc0006904d8 0xc0006904e0  }
+            label: gpt
+            2 : start=67584 size=131072 name=ephemeral-data 
+            
+            here!
+            label: gpt
+            2 : start=67584 size=131072 name=ephemeral-data 
+            4 : start=198656 size=65536 name=even-more-data 
+            
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop75]Starting Build Options Script Building
+            {{<nil> 0xc0006a4310 2 <nil> <nil> 0xc0005d51c0 0xc0005d51c8 <nil> 0xc0005d51d0} 0xc0006904c8 0xc0006904d0  }
+            label: gpt
+            
+            here!
+            label: gpt
+            2 : start=67584 size=131072 name=ephemeral-data 
+            
+            Starting Build Options Script Building
+            {{<nil> 0xc0006a4320 4 <nil> <nil> 0xc0005d51d8 0xc0005d51f0 <nil> <nil>} 0xc0006904d8 0xc0006904e0  }
+            label: gpt
+            2 : start=67584 size=131072 name=ephemeral-data 
+            
+            here!
+            label: gpt
+            2 : start=67584 size=131072 name=ephemeral-data 
+            4 : start=198656 size=65536 name=even-more-data 
+            
+            INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 2 partitions and creating 2 partitions on "/run/ignition/dev_aliases/dev/loop75"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 2 partitions and creating 2 partitions on "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop75"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage mount -root /var/tmp/ignition-blackbox-4127799301/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-4127799301/ignition.json -neednet /var/tmp/ignition-blackbox-4127799301/neednet -state-file /var/tmp/ignition-blackbox-4127799301/state]
+        filesystem.go:139: PID: 2710537
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: mount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4127799301/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4127799301/system/base.platform.d/file"
+            INFO     : mount: mount passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage files -root /var/tmp/ignition-blackbox-4127799301/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-4127799301/ignition.json -neednet /var/tmp/ignition-blackbox-4127799301/neednet -state-file /var/tmp/ignition-blackbox-4127799301/state]
+        filesystem.go:139: PID: 2710552
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: files
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4127799301/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4127799301/system/base.platform.d/file"
+            DEBUG    : files: compiled without relabeling support, skipping
+            INFO     : files: createResultFile: createFiles: op(1): [started]  writing file "/var/tmp/ignition-blackbox-4127799301/hd0p9/etc/.ignition-result.json"
+            INFO     : files: createResultFile: createFiles: op(1): [finished] writing file "/var/tmp/ignition-blackbox-4127799301/hd0p9/etc/.ignition-result.json"
+            INFO     : files: files passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage umount -root /var/tmp/ignition-blackbox-4127799301/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-4127799301/ignition.json -neednet /var/tmp/ignition-blackbox-4127799301/neednet -state-file /var/tmp/ignition-blackbox-4127799301/state]
+        filesystem.go:139: PID: 2710579
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: umount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4127799301/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4127799301/system/base.platform.d/file"
+            INFO     : umount: umount passed
+            INFO     : Ignition finished successfully
+        validator.go:80: Partition 1 is missing
+        blackbox_test.go:95: couldn't find GUID
+    --- FAIL: TestIgnitionBlackBox/partition.create.startsize0_3.0.0 (1.99s)
+        blackbox_test.go:122: partition.create.startsize0 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [{
+            				"device": "/dev/loop77",
+            				"wipeTable": false,
+            				"partitions": [{
+            					"label": "fills-disk",
+            					"number": 1,
+            					"startMiB": 0,
+            					"sizeMiB": 0,
+            					"typeGuid": "1b7615fa-81c7-45c3-9aeb-fad4d0ad8606",
+            					"guid": "4c70caf6-3da6-4d1e-8783-3c4b586b2a8b"
+            				}]
+            			}]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2605621850/ignition.json -neednet /var/tmp/ignition-blackbox-2605621850/neednet -state-file /var/tmp/ignition-blackbox-2605621850/state]
+        filesystem.go:139: PID: 2715504
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2605621850/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2605621850/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-2605621850/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-2605621850/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: b31a764c571d3365dd4ebfb0e09bf0bd6275e1ea127b9234e0a14b70d6f53458f1fb0de67c5646efde828ebc38415165112bc0c89369238feb000a1a0e8baaee
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2605621850/ignition.json -neednet /var/tmp/ignition-blackbox-2605621850/neednet -state-file /var/tmp/ignition-blackbox-2605621850/state]
+        filesystem.go:139: PID: 2715517
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2605621850/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2605621850/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop77]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop77]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop77": "/run/ignition/dev_aliases/dev/loop77" -> "/dev/loop77"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): retrieving information for partition 1 on "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): partition info: Disk /run/ignition/dev_aliases/dev/loop77: 33.02 MiB, 34619904 bytes, 67617 sectors
+            Units: sectors of 1 * 512 = 512 bytes
+            Sector size (logical/physical): 512 bytes / 512 bytes
+            I/O size (minimum/optimal): 512 bytes / 512 bytes
+            
+            Starting Build Options Script Building
+            {{0xc00005fcd0 <nil> 1 <nil> <nil> 0xc0005fb1b0 0xc0005fb1b8 0xc000624010 <nil>} 0xc0006503f8 0xc000650400  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : size=+ type=1b7615fa-81c7-45c3-9aeb-fad4d0ad8606 uuid=4c70caf6-3da6-4d1e-8783-3c4b586b2a8b 
+            
+            Commit: HERE
+            [{{0xc00005fcd0 0xc000624000 1 <nil> <nil> 0xc0005fb1b0 0xc0005fb1b8 0xc000624010 <nil>} <nil> <nil>  }]
+            Starting Build Options Script Building
+            {{0xc00005fcd0 0xc000624000 1 <nil> <nil> 0xc0005fb1b0 0xc0005fb1b8 0xc000624010 <nil>} <nil> <nil>  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : type=1b7615fa-81c7-45c3-9aeb-fad4d0ad8606 uuid=4c70caf6-3da6-4d1e-8783-3c4b586b2a8b name=fills-disk 
+            
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop77]Starting Build Options Script Building
+            {{0xc00005fcd0 0xc000624000 1 <nil> <nil> 0xc0005fb1b0 0xc0005fb1b8 0xc000624010 <nil>} <nil> <nil>  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : type=1b7615fa-81c7-45c3-9aeb-fad4d0ad8606 uuid=4c70caf6-3da6-4d1e-8783-3c4b586b2a8b name=fills-disk 
+            
+            INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 1 partitions on "/run/ignition/dev_aliases/dev/loop77"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 1 partitions on "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop77"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage mount -root /var/tmp/ignition-blackbox-2605621850/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2605621850/ignition.json -neednet /var/tmp/ignition-blackbox-2605621850/neednet -state-file /var/tmp/ignition-blackbox-2605621850/state]
+        filesystem.go:139: PID: 2715727
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: mount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2605621850/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2605621850/system/base.platform.d/file"
+            INFO     : mount: mount passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage files -root /var/tmp/ignition-blackbox-2605621850/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2605621850/ignition.json -neednet /var/tmp/ignition-blackbox-2605621850/neednet -state-file /var/tmp/ignition-blackbox-2605621850/state]
+        filesystem.go:139: PID: 2715754
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: files
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2605621850/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2605621850/system/base.platform.d/file"
+            DEBUG    : files: compiled without relabeling support, skipping
+            INFO     : files: createResultFile: createFiles: op(1): [started]  writing file "/var/tmp/ignition-blackbox-2605621850/hd0p9/etc/.ignition-result.json"
+            INFO     : files: createResultFile: createFiles: op(1): [finished] writing file "/var/tmp/ignition-blackbox-2605621850/hd0p9/etc/.ignition-result.json"
+            INFO     : files: files passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage umount -root /var/tmp/ignition-blackbox-2605621850/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2605621850/ignition.json -neednet /var/tmp/ignition-blackbox-2605621850/neednet -state-file /var/tmp/ignition-blackbox-2605621850/state]
+        filesystem.go:139: PID: 2715778
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: umount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2605621850/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2605621850/system/base.platform.d/file"
+            INFO     : umount: umount passed
+            INFO     : Ignition finished successfully
+        validator.go:151: Sectors does not match! 65536 63488
+    --- FAIL: TestIgnitionBlackBox/partition.match.sizestart.unspecd_3.0.0 (2.02s)
+        blackbox_test.go:122: partition.match.sizestart.unspecd 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [{
+            				"device": "/dev/loop68",
+            				"partitions": [{
+            					"label": "ROOT",
+            					"number": 9,
+            					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E"
+            				}
+            				]
+            			}]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2953872576/ignition.json -neednet /var/tmp/ignition-blackbox-2953872576/neednet -state-file /var/tmp/ignition-blackbox-2953872576/state]
+        filesystem.go:139: PID: 2715597
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2953872576/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2953872576/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-2953872576/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-2953872576/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: cedd2021515e0aeaf2fc359ced9c5ad8a9ab39c80604e5e1253205daf9e347f0fe948b0ef1ba84f5a4cdf727b1c4adddad792cfbaa1d4f1c92d36474a45054de
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2953872576/ignition.json -neednet /var/tmp/ignition-blackbox-2953872576/neednet -state-file /var/tmp/ignition-blackbox-2953872576/state]
+        filesystem.go:139: PID: 2715612
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2953872576/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2953872576/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop68]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop68]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop68": "/run/ignition/dev_aliases/dev/loop68" -> "/dev/loop68"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 9 on "/run/ignition/dev_aliases/dev/loop68"
+            Starting Build Options Script Building
+            {{<nil> <nil> 9 <nil> <nil> <nil> <nil> 0xc000574000 <nil>} 0xc0004d0170 0xc0004d0178  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=528384 size=262144 type=3884DD41-8582-4404-B9A8-E9B84F2DF50E 
+            
+            INFO     : disks: createPartitions: op(2): partition 9 found with correct specifications
+            Commit: HERE
+            []
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop68]INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop68"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop68"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        blackbox_test.go:95: failed: "mount": exit status 32
+            mount: /var/tmp/ignition-blackbox-2953872576/hd0p9: fsconfig system call failed: /dev/loop68p9: Can't lookup blockdev.
+                   dmesg(1) may have more information after failed mount system call.
+            
+    --- FAIL: TestIgnitionBlackBox/partition.match.rootfillsdisk_3.0.0 (2.07s)
+        blackbox_test.go:122: partition.match.rootfillsdisk 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [{
+            				"device": "/dev/loop76",
+            				"partitions": [{
+            					"label": "ROOT",
+            					"number": 9,
+            					"startMiB": 0,
+            					"sizeMiB": 0,
+            					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E"
+            				}
+            				]
+            			}]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3428807410/ignition.json -neednet /var/tmp/ignition-blackbox-3428807410/neednet -state-file /var/tmp/ignition-blackbox-3428807410/state]
+        filesystem.go:139: PID: 2715925
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3428807410/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3428807410/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-3428807410/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-3428807410/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: dd8725bd5f09bac2fb8e1340cce173762f46f827cc1b2e3009406f8588cdcbddfab4c43657eda69d2513720650ab9ee12b1ce98328061865a9131fdaf3fc7644
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3428807410/ignition.json -neednet /var/tmp/ignition-blackbox-3428807410/neednet -state-file /var/tmp/ignition-blackbox-3428807410/state]
+        filesystem.go:139: PID: 2715933
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3428807410/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3428807410/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop76]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop76]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop76": "/run/ignition/dev_aliases/dev/loop76" -> "/dev/loop76"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop76"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop76"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop76"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 9 on "/run/ignition/dev_aliases/dev/loop76"
+            INFO     : disks: createPartitions: op(2): retrieving information for partition 9 on "/run/ignition/dev_aliases/dev/loop76"
+            INFO     : disks: createPartitions: op(2): partition info: Disk /run/ignition/dev_aliases/dev/loop76: 386.02 MiB, 404767232 bytes, 790561 sectors
+            Units: sectors of 1 * 512 = 512 bytes
+            Sector size (logical/physical): 512 bytes / 512 bytes
+            I/O size (minimum/optimal): 512 bytes / 512 bytes
+            Disklabel type: gpt
+            Disk identifier: E74CB174-3AE0-43CF-89A4-52B091A8741E
+            
+            Device                                  Start    End Sectors  Size Type
+            /run/ignition/dev_aliases/dev/loop76p1   4096 266239  262144  128M EFI System
+            /run/ignition/dev_aliases/dev/loop76p6 266240 528383  262144  128M Linux filesystem
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 9 <nil> <nil> 0xc0006711a0 0xc0006711a8 0xc000616330 <nil>} 0xc0008a82b0 0xc000671200  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=528384 size=+ type=3884DD41-8582-4404-B9A8-E9B84F2DF50E 
+            
+            INFO     : disks: createPartitions: op(2): partition 9 found with correct specifications
+            Commit: HERE
+            []
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop76]INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop76"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop76"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop76"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop76"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop76"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop76"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop76"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop76"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        blackbox_test.go:95: failed: "mount": exit status 32
+            mount: /var/tmp/ignition-blackbox-3428807410/hd0p9: fsconfig system call failed: /dev/loop76p9: Can't lookup blockdev.
+                   dmesg(1) may have more information after failed mount system call.
+            
+    --- FAIL: TestIgnitionBlackBox/partition.number0_3.0.0 (3.49s)
+        blackbox_test.go:122: partition.number0 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [{
+            				"device": "/dev/loop78",
+            				"partitions": [
+            				{
+            					"label": "newpart",
+            					"sizeMiB": 32
+            				},
+            				{
+            					"number": 1,
+            					"label": "foobar"
+            				}
+            				]
+            			}]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3538086854/ignition.json -neednet /var/tmp/ignition-blackbox-3538086854/neednet -state-file /var/tmp/ignition-blackbox-3538086854/state]
+        filesystem.go:139: PID: 2715946
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3538086854/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3538086854/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-3538086854/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-3538086854/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: c3e7cbb189b58d8b0c115e229a48f935a63a72a608d10220e846d779286fd4465867010b92891dcfbf27a29d79e4f1833cb804d18f6851a38006bdbf1975d444
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3538086854/ignition.json -neednet /var/tmp/ignition-blackbox-3538086854/neednet -state-file /var/tmp/ignition-blackbox-3538086854/state]
+        filesystem.go:139: PID: 2715954
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3538086854/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3538086854/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop78]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop78]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop78": "/run/ignition/dev_aliases/dev/loop78" -> "/dev/loop78"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 1 on "/run/ignition/dev_aliases/dev/loop78"
+            Starting Build Options Script Building
+            {{<nil> <nil> 1 <nil> <nil> <nil> <nil> <nil> <nil>} 0xc0001943a0 0xc0001943a8  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 0 <nil> <nil> 0xc000594df8 <nil> <nil> <nil>} <nil> 0xc000780660  }
+            label: gpt
+            1 : start=2048 size=65536 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 
+            : size=65536 
+            
+            INFO     : disks: createPartitions: op(2): partition 1 found with correct specifications
+            Commit: HERE
+            [{{<nil> 0xc000115370 0 <nil> <nil> 0xc000594df8 <nil> <nil> <nil>} <nil> 0xc000780660  }]
+            Starting Build Options Script Building
+            {{<nil> 0xc000115370 0 <nil> <nil> 0xc000594df8 <nil> <nil> <nil>} <nil> 0xc000780660  }
+            label: gpt
+            
+            here!
+            label: gpt
+            : size=65536 name=newpart 
+            
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop78]Starting Build Options Script Building
+            {{<nil> 0xc000115370 0 <nil> <nil> 0xc000594df8 <nil> <nil> <nil>} <nil> 0xc000780660  }
+            label: gpt
+            
+            here!
+            label: gpt
+            : size=65536 name=newpart 
+            
+            INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 1 partitions on "/run/ignition/dev_aliases/dev/loop78"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 1 partitions on "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop78"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage mount -root /var/tmp/ignition-blackbox-3538086854/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3538086854/ignition.json -neednet /var/tmp/ignition-blackbox-3538086854/neednet -state-file /var/tmp/ignition-blackbox-3538086854/state]
+        filesystem.go:139: PID: 2716180
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: mount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3538086854/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3538086854/system/base.platform.d/file"
+            INFO     : mount: mount passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage files -root /var/tmp/ignition-blackbox-3538086854/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3538086854/ignition.json -neednet /var/tmp/ignition-blackbox-3538086854/neednet -state-file /var/tmp/ignition-blackbox-3538086854/state]
+        filesystem.go:139: PID: 2716193
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: files
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3538086854/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3538086854/system/base.platform.d/file"
+            DEBUG    : files: compiled without relabeling support, skipping
+            INFO     : files: createResultFile: createFiles: op(1): [started]  writing file "/var/tmp/ignition-blackbox-3538086854/hd0p9/etc/.ignition-result.json"
+            INFO     : files: createResultFile: createFiles: op(1): [finished] writing file "/var/tmp/ignition-blackbox-3538086854/hd0p9/etc/.ignition-result.json"
+            INFO     : files: files passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage umount -root /var/tmp/ignition-blackbox-3538086854/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3538086854/ignition.json -neednet /var/tmp/ignition-blackbox-3538086854/neednet -state-file /var/tmp/ignition-blackbox-3538086854/state]
+        filesystem.go:139: PID: 2716203
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: umount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3538086854/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3538086854/system/base.platform.d/file"
+            INFO     : umount: umount passed
+            INFO     : Ignition finished successfully
+        validator.go:142: TypeGUID does not match! 33af8a11-c009-4eeb-bc40-45bb1bd2db81 0FC63DAF-8483-4772-8E79-3D69D8477DE4
+        validator.go:145: GUID does not match! 3a0eb475-fc4f-41f2-af28-030724479126 CA289556-9555-4FB8-9797-2DA1DFBE633C
+        validator.go:148: Label does not match! foobar newpart
+        validator.go:80: Partition 2 is missing
+        blackbox_test.go:95: couldn't find GUID
+    --- FAIL: TestIgnitionBlackBox/partition.resizeroot.withzeros_3.0.0 (2.28s)
+        blackbox_test.go:122: partition.resizeroot.withzeros 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [{
+            				"device": "/dev/loop67",
+            				"partitions": [{
+            					"label": "ROOT",
+            					"number": 9,
+            					"startMiB": 0,
+            					"sizeMiB": 0,
+            					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E",
+            					"wipePartitionEntry": true
+            				}
+            				]
+            			}]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-1316085455/ignition.json -neednet /var/tmp/ignition-blackbox-1316085455/neednet -state-file /var/tmp/ignition-blackbox-1316085455/state]
+        filesystem.go:139: PID: 2715985
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1316085455/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1316085455/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-1316085455/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-1316085455/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: 66184f409bd3e1d5f5c2b2f1964db1de8981a86de4dbb006b5d607d03ccaf23ac0257189093d1e6ed1a26b9f442d69857154075be1c0c78b6ac0c03151a96d55
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-1316085455/ignition.json -neednet /var/tmp/ignition-blackbox-1316085455/neednet -state-file /var/tmp/ignition-blackbox-1316085455/state]
+        filesystem.go:139: PID: 2716002
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1316085455/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1316085455/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop67]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop67]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop67": "/run/ignition/dev_aliases/dev/loop67" -> "/dev/loop67"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 9 on "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): retrieving information for partition 9 on "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): partition info: Disk /run/ignition/dev_aliases/dev/loop67: 6.46 GiB, 6931104256 bytes, 13537313 sectors
+            Units: sectors of 1 * 512 = 512 bytes
+            Sector size (logical/physical): 512 bytes / 512 bytes
+            I/O size (minimum/optimal): 512 bytes / 512 bytes
+            Disklabel type: gpt
+            Disk identifier: E70809FB-F2EB-4573-A634-BF59AEDFFFD3
+            
+            Device                                  Start    End Sectors  Size Type
+            /run/ignition/dev_aliases/dev/loop67p1   4096 266239  262144  128M EFI System
+            /run/ignition/dev_aliases/dev/loop67p6 266240 528383  262144  128M Linux filesystem
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 9 <nil> <nil> 0xc00011c080 0xc00011c088 0xc00005f9c0 0xc00011c230} 0xc00079e030 0xc0007f6130  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=528384 size=+ type=3884DD41-8582-4404-B9A8-E9B84F2DF50E 
+            
+            INFO     : disks: createPartitions: op(2): partition 9 found with correct specifications
+            Commit: HERE
+            []
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop67]INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop67"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop67"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        blackbox_test.go:95: failed: "mount": exit status 32
+            mount: /var/tmp/ignition-blackbox-1316085455/hd0p9: fsconfig system call failed: /dev/loop67p9: Can't lookup blockdev.
+                   dmesg(1) may have more information after failed mount system call.
+            
+    --- FAIL: TestIgnitionBlackBox/partition.resizeExistingPartition_3.2.0 (2.28s)
+        blackbox_test.go:122: partition.resizeExistingPartition 3.2.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            			"ignition": {
+            				"version": "3.2.0"
+            			},
+            			"storage": {
+            				"disks": [{
+            					"device": "/dev/loop68",
+            					"wipeTable": false,
+            					"partitions": [{
+            						"label": "ROOT",
+            						"number": 9,
+            						"sizeMiB": 6352,
+            						"resize": true
+            					}
+            					]
+            				}]
+            			}
+            		}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3349648193/ignition.json -neednet /var/tmp/ignition-blackbox-3349648193/neednet -state-file /var/tmp/ignition-blackbox-3349648193/state]
+        filesystem.go:139: PID: 2716211
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3349648193/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3349648193/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-3349648193/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-3349648193/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: 86bf546fb8c66a217f657f743372c52744a85b69072e6d8ba8e3676733ec3ca2f1a3067295740a563d30038fecad1e5e971ba9f6d33f099fea024fd416e207eb
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3349648193/ignition.json -neednet /var/tmp/ignition-blackbox-3349648193/neednet -state-file /var/tmp/ignition-blackbox-3349648193/state]
+        filesystem.go:139: PID: 2716238
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3349648193/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3349648193/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop68]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop68]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop68": "/run/ignition/dev_aliases/dev/loop68" -> "/dev/loop68"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 9 on "/run/ignition/dev_aliases/dev/loop68"
+            Starting Build Options Script Building
+            {{<nil> <nil> 9 0xc000647190 <nil> 0xc000647198 <nil> <nil> <nil>} 0xc0006a44e0 0xc0006fed58  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=528384 size=13008896 
+            
+            INFO     : disks: createPartitions: op(2): resizing partition 9
+            Commit: HERE
+            [{{0xc000c27a50 0xc000c27a40 9 0xc000647190 <nil> 0xc000647198 <nil> 0xc000c27a60 <nil>} 0xc000c27a70 0xc0006fed58  }]
+            Starting Build Options Script Building
+            {{0xc000c27a50 0xc000c27a40 9 0xc000647190 <nil> 0xc000647198 <nil> 0xc000c27a60 <nil>} 0xc000c27a70 0xc0006fed58  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=528384 size=13008896 type=3884DD41-8582-4404-B9A8-E9B84F2DF50E uuid=AB4A9052-8894-45D9-A965-AB533ECA24F1 name=ROOT 
+            
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop68]Starting Build Options Script Building
+            {{0xc000c27a50 0xc000c27a40 9 0xc000647190 <nil> 0xc000647198 <nil> 0xc000c27a60 <nil>} 0xc000c27a70 0xc0006fed58  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=528384 size=13008896 type=3884DD41-8582-4404-B9A8-E9B84F2DF50E uuid=AB4A9052-8894-45D9-A965-AB533ECA24F1 name=ROOT 
+            
+            INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 1 partitions and creating 1 partitions on "/run/ignition/dev_aliases/dev/loop68"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 1 partitions and creating 1 partitions on "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop68"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop68"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop68"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage mount -root /var/tmp/ignition-blackbox-3349648193/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3349648193/ignition.json -neednet /var/tmp/ignition-blackbox-3349648193/neednet -state-file /var/tmp/ignition-blackbox-3349648193/state]
+        filesystem.go:139: PID: 2716474
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: mount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3349648193/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3349648193/system/base.platform.d/file"
+            INFO     : mount: mount passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage files -root /var/tmp/ignition-blackbox-3349648193/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3349648193/ignition.json -neednet /var/tmp/ignition-blackbox-3349648193/neednet -state-file /var/tmp/ignition-blackbox-3349648193/state]
+        filesystem.go:139: PID: 2716484
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: files
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3349648193/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3349648193/system/base.platform.d/file"
+            DEBUG    : files: compiled without relabeling support, skipping
+            INFO     : files: createResultFile: createFiles: op(1): [started]  writing file "/var/tmp/ignition-blackbox-3349648193/hd0p9/etc/.ignition-result.json"
+            INFO     : files: createResultFile: createFiles: op(1): [finished] writing file "/var/tmp/ignition-blackbox-3349648193/hd0p9/etc/.ignition-result.json"
+            INFO     : files: files passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage umount -root /var/tmp/ignition-blackbox-3349648193/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3349648193/ignition.json -neednet /var/tmp/ignition-blackbox-3349648193/neednet -state-file /var/tmp/ignition-blackbox-3349648193/state]
+        filesystem.go:139: PID: 2716495
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: umount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3349648193/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3349648193/system/base.platform.d/file"
+            INFO     : umount: umount passed
+            INFO     : Ignition finished successfully
+        validator.go:80: Partition 1 is missing
+        blackbox_test.go:95: couldn't find GUID
+    --- FAIL: TestIgnitionBlackBox/partition.resizeroot_3.0.0 (2.19s)
+        blackbox_test.go:122: partition.resizeroot 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [{
+            				"device": "/dev/loop73",
+            				"partitions": [{
+            					"label": "ROOT",
+            					"number": 9,
+            					"sizeMiB": 6352,
+            					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E",
+            					"guid": "3ED3993F-0016-422B-B134-09FCBA6F66EF",
+            					"wipePartitionEntry": true
+            				}
+            				]
+            			}]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-4251050698/ignition.json -neednet /var/tmp/ignition-blackbox-4251050698/neednet -state-file /var/tmp/ignition-blackbox-4251050698/state]
+        filesystem.go:139: PID: 2716587
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4251050698/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4251050698/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-4251050698/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-4251050698/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: 80986006effc46880715ddd52f614e3cde1b328bd49505702d8cf4c081e5d47d4d26dc4192655507ff61cb34cf34061dc7e20c71ea4a6cb70015bf64402e6697
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-4251050698/ignition.json -neednet /var/tmp/ignition-blackbox-4251050698/neednet -state-file /var/tmp/ignition-blackbox-4251050698/state]
+        filesystem.go:139: PID: 2716599
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4251050698/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4251050698/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop73]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop73]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop73": "/run/ignition/dev_aliases/dev/loop73" -> "/dev/loop73"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 9 on "/run/ignition/dev_aliases/dev/loop73"
+            Starting Build Options Script Building
+            {{0xc00005fcd0 <nil> 9 <nil> <nil> 0xc000012310 <nil> 0xc0005aa010 0xc000012318} 0xc000195520 0xc0005e8c38  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=528384 size=13008896 type=3884DD41-8582-4404-B9A8-E9B84F2DF50E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF 
+            
+            INFO     : disks: createPartitions: op(2): partition 9 did not meet specifications, wiping partition entry and recreating
+            Commit: HERE
+            [{{0xc00005fcd0 0xc0005aa000 9 <nil> <nil> 0xc000012310 <nil> 0xc0005aa010 0xc000012318} 0xc000dd4030 0xc0005e8c38  }]
+            Starting Build Options Script Building
+            {{0xc00005fcd0 0xc0005aa000 9 <nil> <nil> 0xc000012310 <nil> 0xc0005aa010 0xc000012318} 0xc000dd4030 0xc0005e8c38  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=528384 size=13008896 type=3884DD41-8582-4404-B9A8-E9B84F2DF50E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF name=ROOT 
+            
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop73]Starting Build Options Script Building
+            {{0xc00005fcd0 0xc0005aa000 9 <nil> <nil> 0xc000012310 <nil> 0xc0005aa010 0xc000012318} 0xc000dd4030 0xc0005e8c38  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=528384 size=13008896 type=3884DD41-8582-4404-B9A8-E9B84F2DF50E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF name=ROOT 
+            
+            INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 1 partitions and creating 1 partitions on "/run/ignition/dev_aliases/dev/loop73"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 1 partitions and creating 1 partitions on "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop73"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage mount -root /var/tmp/ignition-blackbox-4251050698/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-4251050698/ignition.json -neednet /var/tmp/ignition-blackbox-4251050698/neednet -state-file /var/tmp/ignition-blackbox-4251050698/state]
+        filesystem.go:139: PID: 2716723
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: mount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4251050698/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4251050698/system/base.platform.d/file"
+            INFO     : mount: mount passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage files -root /var/tmp/ignition-blackbox-4251050698/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-4251050698/ignition.json -neednet /var/tmp/ignition-blackbox-4251050698/neednet -state-file /var/tmp/ignition-blackbox-4251050698/state]
+        filesystem.go:139: PID: 2716737
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: files
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4251050698/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4251050698/system/base.platform.d/file"
+            DEBUG    : files: compiled without relabeling support, skipping
+            INFO     : files: createResultFile: createFiles: op(1): [started]  writing file "/var/tmp/ignition-blackbox-4251050698/hd0p9/etc/.ignition-result.json"
+            INFO     : files: createResultFile: createFiles: op(1): [finished] writing file "/var/tmp/ignition-blackbox-4251050698/hd0p9/etc/.ignition-result.json"
+            INFO     : files: files passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage umount -root /var/tmp/ignition-blackbox-4251050698/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-4251050698/ignition.json -neednet /var/tmp/ignition-blackbox-4251050698/neednet -state-file /var/tmp/ignition-blackbox-4251050698/state]
+        filesystem.go:139: PID: 2716746
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: umount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4251050698/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-4251050698/system/base.platform.d/file"
+            INFO     : umount: umount passed
+            INFO     : Ignition finished successfully
+        validator.go:80: Partition 1 is missing
+        blackbox_test.go:95: couldn't find GUID
+    --- FAIL: TestIgnitionBlackBox/partition.wipebadtable_3.0.0 (2.31s)
+        blackbox_test.go:122: partition.wipebadtable 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [
+            			{
+            				"device": "/dev/loop78",
+            				"wipeTable": true
+            			}
+            			]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-1272740900/ignition.json -neednet /var/tmp/ignition-blackbox-1272740900/neednet -state-file /var/tmp/ignition-blackbox-1272740900/state]
+        filesystem.go:139: PID: 2716932
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1272740900/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1272740900/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-1272740900/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-1272740900/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: a3ab3ed597aadef41c7d1a74ecf8e3a3e2327eb6754f4213e0a01484cf03cf1baa34ae30eba678e09b5cf0faf211adef09265c7ae8db977ee292b6875586a951
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-1272740900/ignition.json -neednet /var/tmp/ignition-blackbox-1272740900/neednet -state-file /var/tmp/ignition-blackbox-1272740900/state]
+        filesystem.go:139: PID: 2716949
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1272740900/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1272740900/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop78]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop78]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop78": "/run/ignition/dev_aliases/dev/loop78" -> "/dev/loop78"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): wiping partition table requested on "/run/ignition/dev_aliases/dev/loop78"
+            Commit: HERE
+            []
+            INFO     : disks: createPartitions: op(2): op(3): [started]  wiping partition table on "/run/ignition/dev_aliases/dev/loop78"
+            DEBUG    : disks: createPartitions: op(2): op(3): executing: "sfdisk" "--wipe" "always" "--label" "gpt" "/run/ignition/dev_aliases/dev/loop78"
+            CRITICAL : disks: createPartitions: op(2): op(3): [failed]   wiping partition table on "/run/ignition/dev_aliases/dev/loop78": exit status 1: Cmd: "sfdisk" "--wipe" "always" "--label" "gpt" "/run/ignition/dev_aliases/dev/loop78" Stdout: "Checking that no-one is using this disk right now ... OK\n\nDisk /run/ignition/dev_aliases/dev/loop78: 33.02 MiB, 34619904 bytes, 67617 sectors\nUnits: sectors of 1 * 512 = 512 bytes\nSector size (logical/physical): 512 bytes / 512 bytes\nI/O size (minimum/optimal): 512 bytes / 512 bytes\n\n>>> Done.\n\nNew situation:\n" Stderr: ""
+            INFO     : disks: createPartitions: op(2): potential error encountered while wiping table... retrying
+            Commit: HERE
+            []
+            INFO     : disks: createPartitions: op(2): op(4): [started]  wiping partition table on "/run/ignition/dev_aliases/dev/loop78"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "--label" "gpt" "/run/ignition/dev_aliases/dev/loop78"
+            CRITICAL : disks: createPartitions: op(2): op(4): [failed]   wiping partition table on "/run/ignition/dev_aliases/dev/loop78": exit status 1: Cmd: "sfdisk" "--wipe" "always" "--label" "gpt" "/run/ignition/dev_aliases/dev/loop78" Stdout: "Checking that no-one is using this disk right now ... OK\n\nDisk /run/ignition/dev_aliases/dev/loop78: 33.02 MiB, 34619904 bytes, 67617 sectors\nUnits: sectors of 1 * 512 = 512 bytes\nSector size (logical/physical): 512 bytes / 512 bytes\nI/O size (minimum/optimal): 512 bytes / 512 bytes\n\n>>> Done.\n\nNew situation:\n" Stderr: ""
+            CRITICAL : disks: createPartitions: op(2): [failed]   partitioning "/run/ignition/dev_aliases/dev/loop78": wipe partition table failed: exit status 1: Cmd: "sfdisk" "--wipe" "always" "--label" "gpt" "/run/ignition/dev_aliases/dev/loop78" Stdout: "Checking that no-one is using this disk right now ... OK\n\nDisk /run/ignition/dev_aliases/dev/loop78: 33.02 MiB, 34619904 bytes, 67617 sectors\nUnits: sectors of 1 * 512 = 512 bytes\nSector size (logical/physical): 512 bytes / 512 bytes\nI/O size (minimum/optimal): 512 bytes / 512 bytes\n\n>>> Done.\n\nNew situation:\n" Stderr: ""
+            disks failed
+            Full config:
+            {
+              "ignition": {
+                "config": {
+                  "replace": {
+                    "verification": {}
+                  }
+                },
+                "proxy": {},
+                "security": {
+                  "tls": {}
+                },
+                "timeouts": {},
+                "version": "3.6.0-experimental"
+              },
+              "kernelArguments": {},
+              "passwd": {},
+              "storage": {
+                "disks": [
+                  {
+                    "device": "/dev/loop78",
+                    "wipeTable": true
+                  }
+                ]
+              },
+              "systemd": {}
+            }
+            CRITICAL : Ignition failed: create partitions failed: wipe partition table failed: exit status 1: Cmd: "sfdisk" "--wipe" "always" "--label" "gpt" "/run/ignition/dev_aliases/dev/loop78" Stdout: "Checking that no-one is using this disk right now ... OK\n\nDisk /run/ignition/dev_aliases/dev/loop78: 33.02 MiB, 34619904 bytes, 67617 sectors\nUnits: sectors of 1 * 512 = 512 bytes\nSector size (logical/physical): 512 bytes / 512 bytes\nI/O size (minimum/optimal): 512 bytes / 512 bytes\n\n>>> Done.\n\nNew situation:\n" Stderr: ""
+        blackbox_test.go:95: exit status 1
+    --- FAIL: TestIgnitionBlackBox/partition.match.all_3.0.0 (2.65s)
+        blackbox_test.go:122: partition.match.all 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [{
+            				"device": "/dev/loop75",
+            				"partitions": [
+            				{
+            					"label": "EFI-SYSTEM",
+            					"number": 1,
+            					"startMiB": 2,
+            					"sizeMiB": 128,
+            					"typeGuid": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
+            				},
+            				{
+            					"label": "OEM",
+            					"number": 6,
+            					"startMiB": 130,
+            					"sizeMiB": 128,
+            					"typeGuid": "0FC63DAF-8483-4772-8E79-3D69D8477DE4"
+            				},
+            				{
+            					"label": "ROOT",
+            					"number": 9,
+            					"startMiB": 258,
+            					"sizeMiB": 128,
+            					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E"
+            				}
+            				]
+            			}]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2424267842/ignition.json -neednet /var/tmp/ignition-blackbox-2424267842/neednet -state-file /var/tmp/ignition-blackbox-2424267842/state]
+        filesystem.go:139: PID: 2716628
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2424267842/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2424267842/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-2424267842/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-2424267842/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: cf9d68db25fe160a0a70ecd1113fca1d9a3eddc5bd8dbc3490c8b95800fbd85345336eb568e8bbd2db027200ff4bf80552193cac14bfc9efa9713de2087727e4
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2424267842/ignition.json -neednet /var/tmp/ignition-blackbox-2424267842/neednet -state-file /var/tmp/ignition-blackbox-2424267842/state]
+        filesystem.go:139: PID: 2716635
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2424267842/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2424267842/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop75]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop75]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop75": "/run/ignition/dev_aliases/dev/loop75" -> "/dev/loop75"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 1 on "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 6 on "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 9 on "/run/ignition/dev_aliases/dev/loop75"
+            Starting Build Options Script Building
+            {{<nil> <nil> 1 <nil> <nil> 0xc0006531b0 0xc0006531b8 0xc000660000 <nil>} 0xc000510040 0xc000510048  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : start=4096 size=262144 type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B 
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 6 <nil> <nil> 0xc0006531c8 0xc0006531d0 0xc000660020 <nil>} 0xc000510050 0xc000510058  }
+            label: gpt
+            1 : start=4096 size=262144 type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B 
+            
+            here!
+            label: gpt
+            1 : start=4096 size=262144 type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B 
+            6 : start=266240 size=262144 type=0FC63DAF-8483-4772-8E79-3D69D8477DE4 
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 9 <nil> <nil> 0xc0006531e0 0xc0006531e8 0xc000660040 <nil>} 0xc000510060 0xc000510068  }
+            label: gpt
+            1 : start=4096 size=262144 type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B 
+            6 : start=266240 size=262144 type=0FC63DAF-8483-4772-8E79-3D69D8477DE4 
+            
+            here!
+            label: gpt
+            1 : start=4096 size=262144 type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B 
+            6 : start=266240 size=262144 type=0FC63DAF-8483-4772-8E79-3D69D8477DE4 
+            9 : start=528384 size=262144 type=3884DD41-8582-4404-B9A8-E9B84F2DF50E 
+            
+            INFO     : disks: createPartitions: op(2): partition 1 found with correct specifications
+            INFO     : disks: createPartitions: op(2): partition 6 found with correct specifications
+            INFO     : disks: createPartitions: op(2): partition 9 found with correct specifications
+            Commit: HERE
+            []
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop75]INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop75"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop75"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        blackbox_test.go:95: failed: "mount": exit status 32
+            mount: /var/tmp/ignition-blackbox-2424267842/hd0p9: fsconfig system call failed: /dev/loop75p9: Can't lookup blockdev.
+                   dmesg(1) may have more information after failed mount system call.
+            
+    --- FAIL: TestIgnitionBlackBox/partition.match.all.withwipe_3.0.0 (2.79s)
+        blackbox_test.go:122: partition.match.all.withwipe 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [{
+            				"device": "/dev/loop67",
+            				"partitions": [
+            				{
+            					"label": "EFI-SYSTEM",
+            					"number": 1,
+            					"startMiB": 2,
+            					"sizeMiB": 128,
+            					"wipePartitionEntry": true,
+            					"typeGuid": "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
+            				},
+            				{
+            					"label": "OEM",
+            					"number": 6,
+            					"startMiB": 130,
+            					"sizeMiB": 128,
+            					"wipePartitionEntry": true,
+            					"typeGuid": "0FC63DAF-8483-4772-8E79-3D69D8477DE4"
+            				},
+            				{
+            					"label": "ROOT",
+            					"number": 9,
+            					"startMiB": 258,
+            					"sizeMiB": 128,
+            					"wipePartitionEntry": true,
+            					"typeGuid": "3884DD41-8582-4404-B9A8-E9B84F2DF50E"
+            				}
+            				]
+            			}]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-215497716/ignition.json -neednet /var/tmp/ignition-blackbox-215497716/neednet -state-file /var/tmp/ignition-blackbox-215497716/state]
+        filesystem.go:139: PID: 2716661
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-215497716/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-215497716/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-215497716/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-215497716/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: f0b67b22802257579e316b05b3d26b1110374e78bbe43c0b380a8d7423833da601839da9a30d0f40c6756c8ab1bdd313153bda2e337c2702ae77ca4cdee17e96
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-215497716/ignition.json -neednet /var/tmp/ignition-blackbox-215497716/neednet -state-file /var/tmp/ignition-blackbox-215497716/state]
+        filesystem.go:139: PID: 2716672
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-215497716/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-215497716/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop67]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop67]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop67": "/run/ignition/dev_aliases/dev/loop67" -> "/dev/loop67"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 1 on "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 6 on "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 9 on "/run/ignition/dev_aliases/dev/loop67"
+            Starting Build Options Script Building
+            {{<nil> <nil> 1 <nil> <nil> 0xc00063f580 0xc00063f588 0xc0006481e0 0xc00063f590} 0xc0004b28c8 0xc0004b28d0  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : start=4096 size=262144 type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B 
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 6 <nil> <nil> 0xc00063f598 0xc00063f5a0 0xc000648200 0xc00063f5a8} 0xc0004b28d8 0xc0004b28e0  }
+            label: gpt
+            1 : start=4096 size=262144 type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B 
+            
+            here!
+            label: gpt
+            1 : start=4096 size=262144 type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B 
+            6 : start=266240 size=262144 type=0FC63DAF-8483-4772-8E79-3D69D8477DE4 
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 9 <nil> <nil> 0xc00063f5b0 0xc00063f5b8 0xc000648220 0xc00063f5c0} 0xc0004b28e8 0xc0004b28f0  }
+            label: gpt
+            1 : start=4096 size=262144 type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B 
+            6 : start=266240 size=262144 type=0FC63DAF-8483-4772-8E79-3D69D8477DE4 
+            
+            here!
+            label: gpt
+            1 : start=4096 size=262144 type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B 
+            6 : start=266240 size=262144 type=0FC63DAF-8483-4772-8E79-3D69D8477DE4 
+            9 : start=528384 size=262144 type=3884DD41-8582-4404-B9A8-E9B84F2DF50E 
+            
+            INFO     : disks: createPartitions: op(2): partition 1 found with correct specifications
+            INFO     : disks: createPartitions: op(2): partition 6 found with correct specifications
+            INFO     : disks: createPartitions: op(2): partition 9 found with correct specifications
+            Commit: HERE
+            []
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop67]INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop67"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop67"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop67"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop67"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        blackbox_test.go:95: failed: "mount": exit status 32
+            mount: /var/tmp/ignition-blackbox-215497716/hd0p9: fsconfig system call failed: /dev/loop67p9: Can't lookup blockdev.
+                   dmesg(1) may have more information after failed mount system call.
+            
+    --- FAIL: TestIgnitionBlackBox/partition.append_3.0.0 (3.11s)
+        blackbox_test.go:122: partition.append 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [{
+            				"device": "/dev/loop77",
+            				"wipeTable": false,
+            				"partitions": [{
+            					"label": "additional-partition",
+            					"number": 3,
+            					"sizeMiB": 32,
+            					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
+            					"guid": "3ED3993F-0016-422B-B134-09FCBA6F66EF"
+            				},
+            				{
+            					"label": "additional-partition2",
+            					"number": 4,
+            					"sizeMiB": 32,
+            					"typeGuid": "F39C522B-9966-4429-A8F8-417CD5D83E5E",
+            					"guid": "accedd09-76c2-4363-9893-f5689a78c47f"
+            				}]
+            			}]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-378240902/ignition.json -neednet /var/tmp/ignition-blackbox-378240902/neednet -state-file /var/tmp/ignition-blackbox-378240902/state]
+        filesystem.go:139: PID: 2716834
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-378240902/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-378240902/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-378240902/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-378240902/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: 8676facaded66222234c1e02df392d9f0d03af1e1d19dde0bc196e068faa95b64f8f65d3c7c75810e66bc4c89d36e33c934b716adcb029dc1c35db83bd67a46c
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-378240902/ignition.json -neednet /var/tmp/ignition-blackbox-378240902/neednet -state-file /var/tmp/ignition-blackbox-378240902/state]
+        filesystem.go:139: PID: 2716857
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-378240902/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-378240902/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop77]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop77]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop77": "/run/ignition/dev_aliases/dev/loop77" -> "/dev/loop77"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop77"
+            Starting Build Options Script Building
+            {{0xc00005fcd0 <nil> 3 <nil> <nil> 0xc00017f190 <nil> 0xc000284010 <nil>} <nil> 0xc0006385e8  }
+            label: gpt
+            
+            here!
+            label: gpt
+            3 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF 
+            
+            Starting Build Options Script Building
+            {{0xc000284020 <nil> 4 <nil> <nil> 0xc00017f198 <nil> 0xc000284040 <nil>} <nil> 0xc0006385f0  }
+            label: gpt
+            3 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF 
+            
+            here!
+            label: gpt
+            3 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF 
+            4 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=accedd09-76c2-4363-9893-f5689a78c47f 
+            
+            Commit: HERE
+            [{{0xc00005fcd0 0xc000284000 3 <nil> <nil> 0xc00017f190 <nil> 0xc000284010 <nil>} <nil> 0xc0006385e8  } {{0xc000284020 0xc000284030 4 <nil> <nil> 0xc00017f198 <nil> 0xc000284040 <nil>} <nil> 0xc0006385f0  }]
+            Starting Build Options Script Building
+            {{0xc00005fcd0 0xc000284000 3 <nil> <nil> 0xc00017f190 <nil> 0xc000284010 <nil>} <nil> 0xc0006385e8  }
+            label: gpt
+            
+            here!
+            label: gpt
+            3 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF name=additional-partition 
+            
+            Starting Build Options Script Building
+            {{0xc000284020 0xc000284030 4 <nil> <nil> 0xc00017f198 <nil> 0xc000284040 <nil>} <nil> 0xc0006385f0  }
+            label: gpt
+            3 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF name=additional-partition 
+            
+            here!
+            label: gpt
+            3 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF name=additional-partition 
+            4 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=accedd09-76c2-4363-9893-f5689a78c47f name=additional-partition2 
+            
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop77]Starting Build Options Script Building
+            {{0xc00005fcd0 0xc000284000 3 <nil> <nil> 0xc00017f190 <nil> 0xc000284010 <nil>} <nil> 0xc0006385e8  }
+            label: gpt
+            
+            here!
+            label: gpt
+            3 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF name=additional-partition 
+            
+            Starting Build Options Script Building
+            {{0xc000284020 0xc000284030 4 <nil> <nil> 0xc00017f198 <nil> 0xc000284040 <nil>} <nil> 0xc0006385f0  }
+            label: gpt
+            3 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF name=additional-partition 
+            
+            here!
+            label: gpt
+            3 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=3ED3993F-0016-422B-B134-09FCBA6F66EF name=additional-partition 
+            4 : size=65536 type=F39C522B-9966-4429-A8F8-417CD5D83E5E uuid=accedd09-76c2-4363-9893-f5689a78c47f name=additional-partition2 
+            
+            INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 2 partitions on "/run/ignition/dev_aliases/dev/loop77"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 2 partitions on "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop77"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop77"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop77"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage mount -root /var/tmp/ignition-blackbox-378240902/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-378240902/ignition.json -neednet /var/tmp/ignition-blackbox-378240902/neednet -state-file /var/tmp/ignition-blackbox-378240902/state]
+        filesystem.go:139: PID: 2717016
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: mount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-378240902/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-378240902/system/base.platform.d/file"
+            INFO     : mount: mount passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage files -root /var/tmp/ignition-blackbox-378240902/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-378240902/ignition.json -neednet /var/tmp/ignition-blackbox-378240902/neednet -state-file /var/tmp/ignition-blackbox-378240902/state]
+        filesystem.go:139: PID: 2717023
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: files
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-378240902/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-378240902/system/base.platform.d/file"
+            DEBUG    : files: compiled without relabeling support, skipping
+            INFO     : files: createResultFile: createFiles: op(1): [started]  writing file "/var/tmp/ignition-blackbox-378240902/hd0p9/etc/.ignition-result.json"
+            INFO     : files: createResultFile: createFiles: op(1): [finished] writing file "/var/tmp/ignition-blackbox-378240902/hd0p9/etc/.ignition-result.json"
+            INFO     : files: files passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage umount -root /var/tmp/ignition-blackbox-378240902/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-378240902/ignition.json -neednet /var/tmp/ignition-blackbox-378240902/neednet -state-file /var/tmp/ignition-blackbox-378240902/state]
+        filesystem.go:139: PID: 2717033
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: umount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-378240902/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-378240902/system/base.platform.d/file"
+            INFO     : umount: umount passed
+            INFO     : Ignition finished successfully
+        validator.go:80: Partition 1 is missing
+        blackbox_test.go:95: couldn't find GUID
+    --- FAIL: TestIgnitionBlackBox/parition.no-op_3.0.0 (1.87s)
+        blackbox_test.go:122: parition.no-op 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [
+            			{
+            				"device": "/dev/loop75"
+            			}
+            			]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-1177660831/ignition.json -neednet /var/tmp/ignition-blackbox-1177660831/neednet -state-file /var/tmp/ignition-blackbox-1177660831/state]
+        filesystem.go:139: PID: 2718972
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1177660831/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1177660831/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-1177660831/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-1177660831/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: bd3896ff03978d172f80411eabba251f767bad8a67297eff58bed6bea82e35a7fe0e97527f99685d7cdbeacd22adee37a1a4c1c11dec56ba44edfca21f24ea50
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-1177660831/ignition.json -neednet /var/tmp/ignition-blackbox-1177660831/neednet -state-file /var/tmp/ignition-blackbox-1177660831/state]
+        filesystem.go:139: PID: 2718991
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1177660831/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1177660831/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop75]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop75]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop75": "/run/ignition/dev_aliases/dev/loop75" -> "/dev/loop75"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop75"
+            Commit: HERE
+            []
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop75]INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop75"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop75"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop75"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop75"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        blackbox_test.go:95: failed: "mount": exit status 32
+            mount: /var/tmp/ignition-blackbox-1177660831/hd0p9: fsconfig system call failed: /dev/loop75p9: Can't lookup blockdev.
+                   dmesg(1) may have more information after failed mount system call.
+            
+    --- FAIL: TestIgnitionBlackBox/partition.no-op.nonexistent_3.0.0 (2.56s)
+        blackbox_test.go:122: partition.no-op.nonexistent 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [
+            			{
+            				"device": "/dev/loop73",
+            				"partitions": [
+            				{
+            					"number": 10,
+            					"shouldExist": false
+            				},
+            				{
+            					"number": 11,
+            					"shouldExist": false
+            				},
+            				{
+            					"number": 999,
+            					"shouldExist": false
+            				}
+            				]
+            			},
+            			{
+            				"device": "/dev/loop81",
+            				"partitions": [
+            				{
+            					"number": 1,
+            					"shouldExist": false
+            				},
+            				{
+            					"number": 11,
+            					"shouldExist": false
+            				},
+            				{
+            					"number": 999,
+            					"shouldExist": false
+            				}
+            				]
+            			}
+            			]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-1847783479/ignition.json -neednet /var/tmp/ignition-blackbox-1847783479/neednet -state-file /var/tmp/ignition-blackbox-1847783479/state]
+        filesystem.go:139: PID: 2719051
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1847783479/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1847783479/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-1847783479/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-1847783479/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: 612541df5752d3346c27ea6715a1ffe829bf32b8585898f1a1b9ef7395926f00eca8cd240262cc6ec8ccf1c7fc22fe73b4c1b1d61a7460828a26189af258686c
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-1847783479/ignition.json -neednet /var/tmp/ignition-blackbox-1847783479/neednet -state-file /var/tmp/ignition-blackbox-1847783479/state]
+        filesystem.go:139: PID: 2719076
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1847783479/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1847783479/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop73 /dev/loop81]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop73 /dev/loop81]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop73": "/run/ignition/dev_aliases/dev/loop73" -> "/dev/loop73"
+            INFO     : disks: createPartitions: created device alias for "/dev/loop81": "/run/ignition/dev_aliases/dev/loop81" -> "/dev/loop81"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): partition 10 specified as nonexistant and no partition was found. Success.
+            INFO     : disks: createPartitions: op(2): partition 11 specified as nonexistant and no partition was found. Success.
+            INFO     : disks: createPartitions: op(2): partition 999 specified as nonexistant and no partition was found. Success.
+            Commit: HERE
+            []
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop73]INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop73"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop73"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop73"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop73"
+            INFO     : disks: createPartitions: op(7): [started]  partitioning "/run/ignition/dev_aliases/dev/loop81"
+            INFO     : disks: createPartitions: op(7): op(8): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop81"
+            INFO     : disks: createPartitions: op(7): op(8): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop81"
+            INFO     : disks: createPartitions: op(7): partition 1 specified as nonexistant and no partition was found. Success.
+            INFO     : disks: createPartitions: op(7): partition 11 specified as nonexistant and no partition was found. Success.
+            INFO     : disks: createPartitions: op(7): partition 999 specified as nonexistant and no partition was found. Success.
+            Commit: HERE
+            []
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop81]INFO     : disks: createPartitions: op(7): op(9): [started]  deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop81"
+            DEBUG    : disks: createPartitions: op(7): op(9): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop81"
+            INFO     : disks: createPartitions: op(7): op(9): [finished] deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop81"
+            INFO     : disks: createPartitions: op(7): op(a): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop81"
+            DEBUG    : disks: createPartitions: op(7): op(a): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop81"
+            INFO     : disks: createPartitions: op(7): op(a): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop81"
+            INFO     : disks: createPartitions: op(7): op(b): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(7): op(b): executing: "udevadm" "trigger" "--settle" "/dev/loop81"
+            INFO     : disks: createPartitions: op(7): op(b): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(7): [finished] partitioning "/run/ignition/dev_aliases/dev/loop81"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        blackbox_test.go:95: failed: "mount": exit status 32
+            mount: /var/tmp/ignition-blackbox-1847783479/hd0p9: fsconfig system call failed: /dev/loop73p9: Can't lookup blockdev.
+                   dmesg(1) may have more information after failed mount system call.
+            
+    --- FAIL: TestIgnitionBlackBox/partitions.complex_3.0.0 (5.26s)
+        blackbox_test.go:122: partitions.complex 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [{
+            				"device": "/dev/loop80",
+            				"wipeTable": false,
+            				"partitions": [
+            				{
+            					"label": "p1",
+            					"number": 1,
+            					"startMiB": 1,
+            					"sizeMiB": 32,
+            					"typeGuid": "316f19f9-9e0f-431e-859e-ae6908dbe8ca",
+            					"guid": "53f2e871-f468-437c-b90d-f3c6409df81a",
+            					"wipePartitionEntry": true
+            				},
+            				{
+            					"label": "dont-delete",
+            					"number": 2,
+            					"sizeMiB": 32
+            				},
+            				{
+            					"label": "new-biggest",
+            					"number": 3,
+            					"sizeMiB": 0,
+            					"startMiB": 0,
+            					"typeGuid": "6050e8fc-1e31-473b-bcc0-714e32fcb09d",
+            					"guid": "f14984bc-6f08-4885-b668-526263469a00",
+            					"wipePartitionEntry": true
+            				},
+            				{
+            					"number": 4,
+            					"shouldExist": false,
+            					"wipePartitionEntry": true
+            				},
+            				{
+            					"number": 9,
+            					"shouldExist": false
+            				}
+            				]
+            			}]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2106586420/ignition.json -neednet /var/tmp/ignition-blackbox-2106586420/neednet -state-file /var/tmp/ignition-blackbox-2106586420/state]
+        filesystem.go:139: PID: 2718935
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2106586420/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2106586420/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-2106586420/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-2106586420/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: 4b1cd1652b80c378a422ad2ff04eed8f6bd6b9bf4b00d7bf400478099587ec3ec1d75998201700ba2bec4905405100b9c7cfd702fd887b1506cd49d731c294c9
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2106586420/ignition.json -neednet /var/tmp/ignition-blackbox-2106586420/neednet -state-file /var/tmp/ignition-blackbox-2106586420/state]
+        filesystem.go:139: PID: 2718959
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2106586420/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2106586420/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop80]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop80]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop80": "/run/ignition/dev_aliases/dev/loop80" -> "/dev/loop80"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 1 on "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 2 on "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 3 on "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 4 on "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): retrieving information for partition 3 on "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): partition info: Disk /run/ignition/dev_aliases/dev/loop80: 321.02 MiB, 336609792 bytes, 657441 sectors
+            Units: sectors of 1 * 512 = 512 bytes
+            Sector size (logical/physical): 512 bytes / 512 bytes
+            I/O size (minimum/optimal): 512 bytes / 512 bytes
+            Disklabel type: gpt
+            Disk identifier: 9FFAC632-D098-46D2-8B2D-F647311F36DD
+            
+            Device                                  Start    End Sectors Size Type
+            /run/ignition/dev_aliases/dev/loop80p5 460800 526335   65536  32M unknown
+            
+            Starting Build Options Script Building
+            {{0xc00005fcd0 <nil> 1 <nil> <nil> 0xc0005c91a0 0xc0005c91a8 0xc0005d8010 0xc0005c91b0} 0xc00071a3f0 0xc00071a3f8  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a 
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 2 <nil> <nil> 0xc0005c91c0 <nil> <nil> <nil>} 0xc00013a0d0 0xc00071a400  }
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a 
+            2 : start=133120 size=65536 
+            
+            Starting Build Options Script Building
+            {{0xc0005d8030 <nil> 3 <nil> <nil> 0xc0005c91c8 0xc0005c91e0 0xc0005d8050 0xc0005c91e8} 0xc00013a120 0xc00071a410  }
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a 
+            2 : start=133120 size=65536 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a 
+            2 : start=133120 size=65536 
+            3 : start=198656 size=+ type=6050e8fc-1e31-473b-bcc0-714e32fcb09d uuid=f14984bc-6f08-4885-b668-526263469a00 
+            
+            INFO     : disks: createPartitions: op(2): partition 1 did not meet specifications, wiping partition entry and recreating
+            INFO     : disks: createPartitions: op(2): partition 2 found with correct specifications
+            INFO     : disks: createPartitions: op(2): partition 3 did not meet specifications, wiping partition entry and recreating
+            INFO     : disks: createPartitions: op(2): partition 9 specified as nonexistant and no partition was found. Success.
+            Commit: HERE
+            [{{0xc00005fcd0 0xc0005d8000 1 <nil> <nil> 0xc0005c91a0 0xc0005c91a8 0xc0005d8010 0xc0005c91b0} 0xc00071a3f0 0xc00071a3f8  } {{0xc0005d8030 0xc0005d8040 3 <nil> <nil> 0xc0005c91c8 0xc0005c91e0 0xc0005d8050 0xc0005c91e8} 0xc000600850 <nil>  }]
+            Starting Build Options Script Building
+            {{0xc00005fcd0 0xc0005d8000 1 <nil> <nil> 0xc0005c91a0 0xc0005c91a8 0xc0005d8010 0xc0005c91b0} 0xc00071a3f0 0xc00071a3f8  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a name=p1 
+            
+            Starting Build Options Script Building
+            {{0xc0005d8030 0xc0005d8040 3 <nil> <nil> 0xc0005c91c8 0xc0005c91e0 0xc0005d8050 0xc0005c91e8} 0xc000600850 <nil>  }
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a name=p1 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a name=p1 
+            3 : start=198656 type=6050e8fc-1e31-473b-bcc0-714e32fcb09d uuid=f14984bc-6f08-4885-b668-526263469a00 name=new-biggest 
+            
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop80]Starting Build Options Script Building
+            {{0xc00005fcd0 0xc0005d8000 1 <nil> <nil> 0xc0005c91a0 0xc0005c91a8 0xc0005d8010 0xc0005c91b0} 0xc00071a3f0 0xc00071a3f8  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a name=p1 
+            
+            Starting Build Options Script Building
+            {{0xc0005d8030 0xc0005d8040 3 <nil> <nil> 0xc0005c91c8 0xc0005c91e0 0xc0005d8050 0xc0005c91e8} 0xc000600850 <nil>  }
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a name=p1 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=316f19f9-9e0f-431e-859e-ae6908dbe8ca uuid=53f2e871-f468-437c-b90d-f3c6409df81a name=p1 
+            3 : start=198656 type=6050e8fc-1e31-473b-bcc0-714e32fcb09d uuid=f14984bc-6f08-4885-b668-526263469a00 name=new-biggest 
+            
+            INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 3 partitions and creating 2 partitions on "/run/ignition/dev_aliases/dev/loop80"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 3 partitions and creating 2 partitions on "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop80"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop80"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop80"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage mount -root /var/tmp/ignition-blackbox-2106586420/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2106586420/ignition.json -neednet /var/tmp/ignition-blackbox-2106586420/neednet -state-file /var/tmp/ignition-blackbox-2106586420/state]
+        filesystem.go:139: PID: 2719689
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: mount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2106586420/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2106586420/system/base.platform.d/file"
+            INFO     : mount: mount passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage files -root /var/tmp/ignition-blackbox-2106586420/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2106586420/ignition.json -neednet /var/tmp/ignition-blackbox-2106586420/neednet -state-file /var/tmp/ignition-blackbox-2106586420/state]
+        filesystem.go:139: PID: 2719704
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: files
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2106586420/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2106586420/system/base.platform.d/file"
+            DEBUG    : files: compiled without relabeling support, skipping
+            INFO     : files: createResultFile: createFiles: op(1): [started]  writing file "/var/tmp/ignition-blackbox-2106586420/hd0p9/etc/.ignition-result.json"
+            INFO     : files: createResultFile: createFiles: op(1): [finished] writing file "/var/tmp/ignition-blackbox-2106586420/hd0p9/etc/.ignition-result.json"
+            INFO     : files: files passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage umount -root /var/tmp/ignition-blackbox-2106586420/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2106586420/ignition.json -neednet /var/tmp/ignition-blackbox-2106586420/neednet -state-file /var/tmp/ignition-blackbox-2106586420/state]
+        filesystem.go:139: PID: 2719721
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: umount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2106586420/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2106586420/system/base.platform.d/file"
+            INFO     : umount: umount passed
+            INFO     : Ignition finished successfully
+        validator.go:80: Partition 2 is missing
+        blackbox_test.go:95: couldn't find GUID
+    --- FAIL: TestIgnitionBlackBox/partition.match.recreate_3.0.0 (4.32s)
+        blackbox_test.go:122: partition.match.recreate 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {
+            			"version": "3.0.0"
+            		},
+            		"storage": {
+            			"disks": [
+            			{
+            				"device": "/dev/loop82",
+            				"partitions": [
+            				{
+            					"label": "important-data",
+            					"number": 1,
+            					"startMiB": 1,
+            					"sizeMiB": 32,
+            					"wipePartitionEntry": true,
+            					"typeGuid": "5bd49ad7-64ae-4553-a26e-0c2f22408b2f"
+            				},
+            				{
+            					"label": "ephemeral-data",
+            					"number": 2,
+            					"startMiB": 33,
+            					"sizeMiB": 32,
+            					"wipePartitionEntry": true,
+            					"guid": "5bd49ad7-64ae-4553-a26e-0c2f22408b2f"
+            				},
+            				{
+            					"label": "even-more-data",
+            					"number": 3,
+            					"startMiB": 65,
+            					"sizeMiB": 32,
+            					"wipePartitionEntry": true
+            				}
+            				]
+            			}
+            			]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2359402311/ignition.json -neednet /var/tmp/ignition-blackbox-2359402311/neednet -state-file /var/tmp/ignition-blackbox-2359402311/state]
+        filesystem.go:139: PID: 2719428
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2359402311/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2359402311/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-2359402311/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-2359402311/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: c3ec92932821ea7b50e9c9e1954f52bd405582a0d8fecdece27227a88921a9e63fe3eac77b832250d7876e30b64c0cd6b123a05772ca47d692bad7744b5b77f0
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2359402311/ignition.json -neednet /var/tmp/ignition-blackbox-2359402311/neednet -state-file /var/tmp/ignition-blackbox-2359402311/state]
+        filesystem.go:139: PID: 2719439
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2359402311/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2359402311/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop82]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop82]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop82": "/run/ignition/dev_aliases/dev/loop82" -> "/dev/loop82"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop82"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop82"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop82"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 1 on "/run/ignition/dev_aliases/dev/loop82"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 2 on "/run/ignition/dev_aliases/dev/loop82"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 3 on "/run/ignition/dev_aliases/dev/loop82"
+            Starting Build Options Script Building
+            {{<nil> <nil> 1 <nil> <nil> 0xc000612c40 0xc000612c48 0xc00053de30 0xc000612c50} 0xc00066de08 0xc00066de10  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f 
+            
+            Starting Build Options Script Building
+            {{0xc00053de40 <nil> 2 <nil> <nil> 0xc000612c60 0xc000612c68 <nil> 0xc000612c70} 0xc00066de18 0xc00066de20  }
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f 
+            2 : start=67584 size=65536 uuid=5bd49ad7-64ae-4553-a26e-0c2f22408b2f 
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 3 <nil> <nil> 0xc000612c80 0xc000612c88 <nil> 0xc000612c90} 0xc00066de28 0xc00066de30  }
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f 
+            2 : start=67584 size=65536 uuid=5bd49ad7-64ae-4553-a26e-0c2f22408b2f 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f 
+            2 : start=67584 size=65536 uuid=5bd49ad7-64ae-4553-a26e-0c2f22408b2f 
+            3 : start=133120 size=65536 
+            
+            INFO     : disks: createPartitions: op(2): partition 1 did not meet specifications, wiping partition entry and recreating
+            INFO     : disks: createPartitions: op(2): partition 2 found with correct specifications
+            INFO     : disks: createPartitions: op(2): partition 3 did not meet specifications, wiping partition entry and recreating
+            Commit: HERE
+            [{{<nil> 0xc00053de20 1 <nil> <nil> 0xc000612c40 0xc000612c48 0xc00053de30 0xc000612c50} 0xc00066de08 0xc00066de10  } {{<nil> 0xc00053de60 3 <nil> <nil> 0xc000612c80 0xc000612c88 <nil> 0xc000612c90} 0xc00066de28 0xc00066de30  }]
+            Starting Build Options Script Building
+            {{<nil> 0xc00053de20 1 <nil> <nil> 0xc000612c40 0xc000612c48 0xc00053de30 0xc000612c50} 0xc00066de08 0xc00066de10  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f name=important-data 
+            
+            Starting Build Options Script Building
+            {{<nil> 0xc00053de60 3 <nil> <nil> 0xc000612c80 0xc000612c88 <nil> 0xc000612c90} 0xc00066de28 0xc00066de30  }
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f name=important-data 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f name=important-data 
+            3 : start=133120 size=65536 name=even-more-data 
+            
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop82]Starting Build Options Script Building
+            {{<nil> 0xc00053de20 1 <nil> <nil> 0xc000612c40 0xc000612c48 0xc00053de30 0xc000612c50} 0xc00066de08 0xc00066de10  }
+            label: gpt
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f name=important-data 
+            
+            Starting Build Options Script Building
+            {{<nil> 0xc00053de60 3 <nil> <nil> 0xc000612c80 0xc000612c88 <nil> 0xc000612c90} 0xc00066de28 0xc00066de30  }
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f name=important-data 
+            
+            here!
+            label: gpt
+            1 : start=2048 size=65536 type=5bd49ad7-64ae-4553-a26e-0c2f22408b2f name=important-data 
+            3 : start=133120 size=65536 name=even-more-data 
+            
+            INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 2 partitions and creating 2 partitions on "/run/ignition/dev_aliases/dev/loop82"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop82"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 2 partitions and creating 2 partitions on "/run/ignition/dev_aliases/dev/loop82"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop82"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop82"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop82"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop82"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop82"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage mount -root /var/tmp/ignition-blackbox-2359402311/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2359402311/ignition.json -neednet /var/tmp/ignition-blackbox-2359402311/neednet -state-file /var/tmp/ignition-blackbox-2359402311/state]
+        filesystem.go:139: PID: 2719838
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: mount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2359402311/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2359402311/system/base.platform.d/file"
+            INFO     : mount: mount passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage files -root /var/tmp/ignition-blackbox-2359402311/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2359402311/ignition.json -neednet /var/tmp/ignition-blackbox-2359402311/neednet -state-file /var/tmp/ignition-blackbox-2359402311/state]
+        filesystem.go:139: PID: 2719849
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: files
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2359402311/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2359402311/system/base.platform.d/file"
+            DEBUG    : files: compiled without relabeling support, skipping
+            INFO     : files: createResultFile: createFiles: op(1): [started]  writing file "/var/tmp/ignition-blackbox-2359402311/hd0p9/etc/.ignition-result.json"
+            INFO     : files: createResultFile: createFiles: op(1): [finished] writing file "/var/tmp/ignition-blackbox-2359402311/hd0p9/etc/.ignition-result.json"
+            INFO     : files: files passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage umount -root /var/tmp/ignition-blackbox-2359402311/hd0p9 -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2359402311/ignition.json -neednet /var/tmp/ignition-blackbox-2359402311/neednet -state-file /var/tmp/ignition-blackbox-2359402311/state]
+        filesystem.go:139: PID: 2719856
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: umount
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2359402311/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2359402311/system/base.platform.d/file"
+            INFO     : umount: umount passed
+            INFO     : Ignition finished successfully
+        validator.go:80: Partition 2 is missing
+        blackbox_test.go:95: couldn't find GUID
+    --- FAIL: TestIgnitionBlackBox/luks.formattedDevice.wipeVolume.tpm2_3.2.0 (9.16s)
+        blackbox_test.go:122: luks.formattedDevice.wipeVolume.tpm2 3.2.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": { "version": "3.2.0" },
+            		"storage": {
+            		  "luks": [
+            			{
+            			  "clevis": {
+            				"tpm2": true
+            			  },	
+            			  "device": "/dev/loop74p6",
+            			  "name": "d4a45532-8449-4a13-b4a6-6af58b0d71db",
+            			  "wipeVolume": true
+            			}
+            		  ]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2637314925/ignition.json -neednet /var/tmp/ignition-blackbox-2637314925/neednet -state-file /var/tmp/ignition-blackbox-2637314925/state]
+        filesystem.go:139: PID: 2718400
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2637314925/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2637314925/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-2637314925/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-2637314925/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: af828bd7f9d23d0083333972856ac254214a46fa82c9d6768fd1d5ca9dc63fa508a246c886b063265f05b2bc45799217090f405aa3faf5e897ef3965715b2c25
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-2637314925/ignition.json -neednet /var/tmp/ignition-blackbox-2637314925/neednet -state-file /var/tmp/ignition-blackbox-2637314925/state]
+        filesystem.go:139: PID: 2718425
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2637314925/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-2637314925/system/base.platform.d/file"
+            INFO     : disks: createLuks: op(1): [started]  waiting for devices [/dev/loop74p6]
+            INFO     : disks: createLuks: op(1): [finished] waiting for devices [/dev/loop74p6]
+            INFO     : disks: createLuks: created device alias for "/dev/loop74p6": "/run/ignition/dev_aliases/dev/loop74p6" -> "/dev/loop74p6"
+            INFO     : disks: createLuks: op(2): [started]  wiping filesystem signatures from "/run/ignition/dev_aliases/dev/loop74p6"
+            DEBUG    : disks: createLuks: op(2): executing: "wipefs" "-a" "/run/ignition/dev_aliases/dev/loop74p6"
+            INFO     : disks: createLuks: op(2): [finished] wiping filesystem signatures from "/run/ignition/dev_aliases/dev/loop74p6"
+            INFO     : disks: createLuks: op(3): [started]  creating "d4a45532-8449-4a13-b4a6-6af58b0d71db"
+            DEBUG    : disks: createLuks: op(3): executing: "cryptsetup" "luksFormat" "--type" "luks2" "--key-file" "/tmp/ignition-luks-974936932" "/run/ignition/dev_aliases/dev/loop74p6"
+            INFO     : disks: createLuks: op(3): [finished] creating "d4a45532-8449-4a13-b4a6-6af58b0d71db"
+            INFO     : disks: createLuks: op(4): [started]  opening luks device d4a45532-8449-4a13-b4a6-6af58b0d71db
+            DEBUG    : disks: createLuks: op(4): executing: "cryptsetup" "luksOpen" "/run/ignition/dev_aliases/dev/loop74p6" "d4a45532-8449-4a13-b4a6-6af58b0d71db" "--key-file" "/tmp/ignition-luks-974936932" "--persistent"
+            INFO     : disks: createLuks: op(4): [finished] opening luks device d4a45532-8449-4a13-b4a6-6af58b0d71db
+            INFO     : disks: createLuks: op(5): [started]  Clevis bind
+            DEBUG    : disks: createLuks: op(5): executing: "clevis" "luks" "bind" "-f" "-k" "/tmp/ignition-luks-974936932" "-d" "/run/ignition/dev_aliases/dev/loop74p6" "sss" "{\"pins\":{\"tpm2\":{}},\"t\":1}"
+            CRITICAL : disks: createLuks: op(5): [failed]   Clevis bind: exit status 2: Cmd: "clevis" "luks" "bind" "-f" "-k" "/tmp/ignition-luks-974936932" "-d" "/run/ignition/dev_aliases/dev/loop74p6" "sss" "{\"pins\":{\"tpm2\":{}},\"t\":1}" Stdout: "" Stderr: "\nCommand 'clevis luks bind -f -k /tmp/ignition-luks-974936932 -d /run/ignition/dev_aliases/dev/loop74p6 sss {\"pins\":{\"tpm2\":{}},\"t\":1}' is invalid\n\nUsage: clevis COMMAND [OPTIONS]\n\n  clevis decrypt          Decrypts using the policy defined at encryption time\n  clevis decrypt tpm2plus Encrypts using a TPM2.0 chip binding policy\n  clevis encrypt sss      Encrypts using a Shamir's Secret Sharing policy\n  clevis encrypt tang     Encrypts using a Tang binding server policy\n  clevis encrypt tpm2plus Encrypts using a TPM2.0 chip binding policy\n  clevis pin tpm2         Encrypts using a TPM2.0 chip binding policy\n\n"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        blackbox_test.go:95: found critical ignition log
+--- FAIL: TestIgnitionBlackBoxNegative (0.00s)
+    --- FAIL: TestIgnitionBlackBoxNegative/partition.match.failstofill_3.0.0 (1.96s)
+        blackbox_test.go:122: partition.match.failstofill 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {"version": "3.0.0"},
+            		"storage": {
+            			"disks": [
+            			{
+            				"device": "/dev/loop69",
+            				"partitions": [
+            				{
+            					"number": 9,
+            					"sizeMiB": 0
+            				}
+            				]
+            			}
+            			]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-1375108527/ignition.json -neednet /var/tmp/ignition-blackbox-1375108527/neednet -state-file /var/tmp/ignition-blackbox-1375108527/state]
+        filesystem.go:139: PID: 2722076
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1375108527/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1375108527/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-1375108527/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-1375108527/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: b54948a2c04cf3049cc4e13eba8086833baadd40d41e2f25db9f013508fffef7a01df4c85279e2c6bcd67f17c8f431656ea8f5d7a62c0687c64bed5e34facfe7
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-1375108527/ignition.json -neednet /var/tmp/ignition-blackbox-1375108527/neednet -state-file /var/tmp/ignition-blackbox-1375108527/state]
+        filesystem.go:139: PID: 2722085
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1375108527/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-1375108527/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop69]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop69]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop69": "/run/ignition/dev_aliases/dev/loop69" -> "/dev/loop69"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop69"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop69"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop69"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 9 on "/run/ignition/dev_aliases/dev/loop69"
+            INFO     : disks: createPartitions: op(2): retrieving information for partition 9 on "/run/ignition/dev_aliases/dev/loop69"
+            INFO     : disks: createPartitions: op(2): partition info: Disk /run/ignition/dev_aliases/dev/loop69: 418.02 MiB, 438321664 bytes, 856097 sectors
+            Units: sectors of 1 * 512 = 512 bytes
+            Sector size (logical/physical): 512 bytes / 512 bytes
+            I/O size (minimum/optimal): 512 bytes / 512 bytes
+            Disklabel type: gpt
+            Disk identifier: 070A1EE8-3CC4-472C-BC40-595587CB1C08
+            
+            Device                                  Start    End Sectors  Size Type
+            /run/ignition/dev_aliases/dev/loop69p1   4096 266239  262144  128M EFI System
+            /run/ignition/dev_aliases/dev/loop69p6 266240 528383  262144  128M Linux filesystem
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 9 <nil> <nil> 0xc0006911a0 <nil> <nil> <nil>} 0xc0006a4210 0xc000801c78  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=528384 size=+ 
+            
+            INFO     : disks: createPartitions: op(2): partition 9 found with correct specifications
+            Commit: HERE
+            []
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop69]INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop69"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop69"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop69"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop69"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop69"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop69"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop69"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop69"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        blackbox_test.go:115: failed: "mount": exit status 32
+            mount: /var/tmp/ignition-blackbox-1375108527/hd0p9: fsconfig system call failed: /dev/loop69p9: Can't lookup blockdev.
+                   dmesg(1) may have more information after failed mount system call.
+            
+    --- FAIL: TestIgnitionBlackBoxNegative/partition.match.failstostart_3.0.0 (2.07s)
+        blackbox_test.go:122: partition.match.failstostart 3.0.0
+        blackbox_test.go:267: Rendered Ignition Config:
+            {
+            		"ignition": {"version": "3.0.0"},
+            		"storage": {
+            			"disks": [
+            			{
+            				"device": "/dev/loop78",
+            				"partitions": [
+            				{
+            					"number": 9,
+            					"startMiB": 0
+            				}
+            				]
+            			}
+            			]
+            		}
+            	}
+        filesystem.go:130: ignition [-platform file -stage fetch -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3328680830/ignition.json -neednet /var/tmp/ignition-blackbox-3328680830/neednet -state-file /var/tmp/ignition-blackbox-3328680830/state]
+        filesystem.go:139: PID: 2722126
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: fetch
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3328680830/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3328680830/system/base.platform.d/file"
+            DEBUG    : parsed url from cmdline: ""
+            INFO     : no config URL provided
+            INFO     : reading system config file "/var/tmp/ignition-blackbox-3328680830/system/user.ign"
+            INFO     : no config at "/var/tmp/ignition-blackbox-3328680830/system/user.ign"
+            INFO     : using default filename
+            INFO     : using config file at "config.ign"
+            DEBUG    : parsing config with SHA512: 34dc26e4c31d90c464e8d231215c727e35274c92a14734f6c61cc9d49de8760040ddc6c0b8398e4600445a9af95c6e2d107d01068b4ccad71abed41c9b0b739b
+            INFO     : fetch: fetch complete
+            INFO     : fetch: fetch passed
+            INFO     : Ignition finished successfully
+        filesystem.go:130: ignition [-platform file -stage disks -root  -log-to-stdout -config-cache /var/tmp/ignition-blackbox-3328680830/ignition.json -neednet /var/tmp/ignition-blackbox-3328680830/neednet -state-file /var/tmp/ignition-blackbox-3328680830/state]
+        filesystem.go:139: PID: 2722138
+        filesystem.go:141: Ignition output:
+            INFO     : Ignition v2.22.0-59-gd10ef648-dirty
+            INFO     : Stage: disks
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3328680830/system/base.d"
+            INFO     : no config dir at "/var/tmp/ignition-blackbox-3328680830/system/base.platform.d/file"
+            INFO     : disks: createPartitions: op(1): [started]  waiting for devices [/dev/loop78]
+            INFO     : disks: createPartitions: op(1): [finished] waiting for devices [/dev/loop78]
+            INFO     : disks: createPartitions: created device alias for "/dev/loop78": "/run/ignition/dev_aliases/dev/loop78" -> "/dev/loop78"
+            INFO     : disks: createPartitions: op(2): [started]  partitioning "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(3): [started]  reading partition table of "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(3): [finished] reading partition table of "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): running sfdisk to delete partition 9 on "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): retrieving information for partition 9 on "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): partition info: Disk /run/ignition/dev_aliases/dev/loop78: 418.02 MiB, 438321664 bytes, 856097 sectors
+            Units: sectors of 1 * 512 = 512 bytes
+            Sector size (logical/physical): 512 bytes / 512 bytes
+            I/O size (minimum/optimal): 512 bytes / 512 bytes
+            Disklabel type: gpt
+            Disk identifier: 0704977C-1495-42E9-8265-F68A40AC714B
+            
+            Device                                  Start    End Sectors  Size Type
+            /run/ignition/dev_aliases/dev/loop78p1   4096 266239  262144  128M EFI System
+            /run/ignition/dev_aliases/dev/loop78p6 266240 528383  262144  128M Linux filesystem
+            
+            Starting Build Options Script Building
+            {{<nil> <nil> 9 <nil> <nil> <nil> 0xc0004b7190 <nil> <nil>} 0xc000194440 0xc000194448  }
+            label: gpt
+            
+            here!
+            label: gpt
+            9 : start=593920 size=262144 
+            
+            INFO     : disks: createPartitions: op(2): partition 9 found with correct specifications
+            Commit: HERE
+            []
+            The options are [--wipe always -X gpt /run/ignition/dev_aliases/dev/loop78]INFO     : disks: createPartitions: op(2): op(4): [started]  deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop78"
+            DEBUG    : disks: createPartitions: op(2): op(4): executing: "sfdisk" "--wipe" "always" "-X" "gpt" "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(4): [finished] deleting 0 partitions and creating 0 partitions on "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(5): [started]  flushing block device cache for "/run/ignition/dev_aliases/dev/loop78"
+            DEBUG    : disks: createPartitions: op(2): op(5): executing: "blockdev" "--flushbufs" "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(5): [finished] flushing block device cache for "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(6): [started]  waiting for triggered uevent
+            DEBUG    : disks: createPartitions: op(2): op(6): executing: "udevadm" "trigger" "--settle" "/dev/loop78"
+            INFO     : disks: createPartitions: op(2): op(6): [finished] waiting for triggered uevent
+            INFO     : disks: createPartitions: op(2): [finished] partitioning "/run/ignition/dev_aliases/dev/loop78"
+            INFO     : disks: disks passed
+            INFO     : Ignition finished successfully
+        blackbox_test.go:115: failed: "mount": exit status 32
+            mount: /var/tmp/ignition-blackbox-3328680830/hd0p9: fsconfig system call failed: /dev/loop78p9: Can't lookup blockdev.
+                   dmesg(1) may have more information after failed mount system call.
+            
+FAIL
