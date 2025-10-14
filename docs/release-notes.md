@@ -4,18 +4,27 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.24.0 (unreleased)
+## Upcoming Ignition 2.25.0 (unreleased)
 
 ### Breaking changes
 
 ### Features
 
-- Add support for nocloud config fetching in kubevirt
-
 ### Changes
 
 ### Bug fixes
+
+
+## Ignition 2.24.0 (2024-10-14)
+
+### Features
+
+- Add support for nocloud config fetching in kubevirt
+
+### Bug fixes
+
 - Fix occasional cex.key file removal
+- Fix multipath partitioning: ignore DM holders when no partitions are mounted
 
 ## Ignition 2.23.0 (2025-09-10)
 
@@ -30,7 +39,6 @@ nav_order: 9
 ### Bug fixes
 
 - Fix fetch-offline for Oracle Cloud Infrastructure
-- Fix multipath partitioning: ignore DM holders when no partitions are mounted;continue to refuse if the disk or any partition is active. ([#2128](https://github.com/coreos/ignition/issues/2128))
 
 ## Ignition 2.22.0 (2025-07-08)
 Starting with this release, ignition-validate binaries are signed with the
