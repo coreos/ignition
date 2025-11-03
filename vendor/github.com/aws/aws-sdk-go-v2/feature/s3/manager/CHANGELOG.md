@@ -1,3 +1,23 @@
+# v1.20.2 (2025-10-30)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.1 (2025-10-28)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.20.0 (2025-10-27)
+
+* **Feature**: Add durability checks to validate part count and range for upload/download. You can disable this with `DisableValidateParts` in upload/download options, though doing so is not recommended because it damages the durability posture of your application.
+
+# v1.19.15 (2025-10-23)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.19.14 (2025-10-22)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.19.13 (2025-10-16)
 
 * **Dependency Update**: Bump minimum Go version to 1.23.
