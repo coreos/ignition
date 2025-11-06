@@ -23,6 +23,7 @@ Ignition is currently supported for the following platforms:
 * [KubeVirt] (`kubevirt`) - Ignition will read its configuration from the instance userdata via `cloudInitConfigDrive` or `cloudInitNoCloud`. Cloud SSH keys are handled separately.
 * Bare Metal (`metal`) - Use the `ignition.config.url` kernel parameter to provide a URL to the configuration. The URL can use the `http://`, `https://`, `tftp://`, `s3://`, `arn:`, or `gs://` schemes to specify a remote config.
 * [Nutanix] (`nutanix`) - Ignition will read its configuration from the instance userdata via config drive. Cloud SSH keys are handled separately.
+* [NVIDIA BlueField] (`nvidiabluefield`) - Ignition will read its configuration from the bootfifo sysfs interface from the mlxbf_bootctl platform driver.
 * [OpenStack] (`openstack`) - Ignition will read its configuration from the instance userdata via either metadata service or config drive. Cloud SSH keys are handled separately.
 * [Oracle Cloud Infrastucture] (`oraclecloud`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [Proxmox VE] (`proxmoxve`) - Ignition will read its configuration from the instance userdata via config drive. If there isn't any valid Ignition configuration in userdata it will check the vendordata next. Cloud SSH keys are handled separately.

@@ -123,5 +123,10 @@ installkernel() {
         instmods -c zcrypt_cex4
         instmods -c pkey_cca
      fi
+
+     # required by nvidiabluefield platform to read ignition file through bootfifo sysfs interface
+     if [[ ${DRACUT_ARCH:-$(uname -m)} == aarch64 ]]; then
+        instmods -c mlxbf_bootctl
+     fi
 }
 

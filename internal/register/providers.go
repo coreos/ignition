@@ -32,6 +32,7 @@ import (
 	_ "github.com/coreos/ignition/v2/internal/providers/kubevirt"
 	_ "github.com/coreos/ignition/v2/internal/providers/metal"
 	_ "github.com/coreos/ignition/v2/internal/providers/nutanix"
+	_ "github.com/coreos/ignition/v2/internal/providers/nvidiabluefield"
 	_ "github.com/coreos/ignition/v2/internal/providers/openstack"
 	_ "github.com/coreos/ignition/v2/internal/providers/oraclecloud"
 	_ "github.com/coreos/ignition/v2/internal/providers/packet"
