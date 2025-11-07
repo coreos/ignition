@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora:42 AS builder
+FROM quay.io/fedora/fedora:43 AS builder
 RUN dnf install -y golang git-core
 RUN mkdir /ignition-validate
 COPY . /ignition-validate
