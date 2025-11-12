@@ -1,7 +1,7 @@
 resource:
   children:
     - name: source
-      desc: "the URL of the %TYPE%. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+      desc: "the URL of the %TYPE%. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, `oem` (Flatcar only), and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
       # source is typically required by validation, but some inclusion sites
       # will override this
       required: true

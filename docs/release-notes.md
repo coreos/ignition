@@ -12,6 +12,8 @@ nav_order: 9
 
 ### Changes
 
+- Add `oem` URL scheme for Flatcar Container Linux relates to [Butane #634](https://github.com/coreos/butane/issues/634)
+
 ### Bug fixes
 
 
