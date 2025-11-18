@@ -16,6 +16,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- Fix invalid random source in FIPS 140-only mode in FIPS mode ([#2159](https://github.com/coreos/ignition/pull/2159))
 
 ## Ignition 2.24.0 (2024-10-14)
 

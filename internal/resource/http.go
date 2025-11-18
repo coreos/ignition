@@ -25,6 +25,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -218,16 +219,52 @@ func (f *Fetcher) RewriteCAsWithDataUrls(cas []types.Resource) error {
 	return nil
 }
 
+func isFIPSEnabled() bool {
+	data, err := os.ReadFile("/proc/sys/crypto/fips_enabled")
+	if err != nil {
+		// If the file doesn't exist or can't be read, assume FIPS is not enabled
+		return false
+	}
+	// Check if the content is "1" (with or without trailing newline)
+	return len(data) > 0 && data[0] == '1'
+}
+
 // DefaultHTTPClient builds the default `http.client` for Ignition.
 func defaultHTTPClient() (*http.Client, error) {
-	urand, err := earlyrand.UrandomReader()
-	if err != nil {
-		return nil, err
+	var tlsConfig tls.Config
+
+	if isFIPSEnabled() {
+		// In FIPS mode (GOEXPERIMENT=strictfipsruntime), we can't set a random source.
+		// Setting a custom random source like /dev/urandom causes the error:
+		// "crypto/ecdh: invalid random source in FIPS 140-only mode"
+		tlsConfig = tls.Config{}
+	} else {
+		// In non-FIPS mode let's use the `earlyrand.UrandomReader()`
+		// this source reads from `/dev/urandom` (`man urandom`) rather
+		// than calling the `getrandom` API (`man getrandom`).
+		//
+		//   > When  read, the /dev/urandom device returns random bytes
+		//   > using a pseudorandom number generator seeded from the entropy
+		//   > pool. Reads from this device do not block (i.e., the CPU is
+		//   > not yielded)
+		//
+		// This is a tradeoff to not block early boot because:
+		//
+		//   > When read during early boot time, /dev/urandom may return
+		//   > data prior to the entropy pool being initialized. If this
+		//   > is of concern in your application, use getrandom(2) or
+		//   > /dev/random instead.
+		//
+		// See https://github.com/coreos/ignition/issues/645
+		urand, err := earlyrand.UrandomReader()
+		if err != nil {
+			return nil, err
+		}
+		tlsConfig = tls.Config{
+			Rand: urand,
+		}
 	}
 
-	tlsConfig := tls.Config{
-		Rand: urand,
-	}
 	transport := http.Transport{
 		ResponseHeaderTimeout: time.Duration(defaultHttpResponseHeaderTimeout) * time.Second,
 		Dial: (&net.Dialer{
