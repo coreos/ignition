@@ -20,6 +20,7 @@ nav_order: 9
 
 - Fix invalid random source in FIPS 140-only mode in FIPS mode ([#2159](https://github.com/coreos/ignition/pull/2159))
 
+
 ## Ignition 2.24.0 (2024-10-14)
 
 ### Features
@@ -30,6 +31,7 @@ nav_order: 9
 
 - Fix occasional cex.key file removal
 - Fix multipath partitioning: ignore DM holders when no partitions are mounted
+
 
 ## Ignition 2.23.0 (2025-09-10)
 
@@ -45,7 +47,9 @@ nav_order: 9
 
 - Fix fetch-offline for Oracle Cloud Infrastructure
 
+
 ## Ignition 2.22.0 (2025-07-08)
+
 Starting with this release, ignition-validate binaries are signed with the
 [Fedora 42 key](https://getfedora.org/security/).
 
@@ -65,6 +69,7 @@ Starting with this release, ignition-validate binaries are signed with the
 ### Bug fixes
 
 - Fix use of setuid/setgid/sticky mode bits
+
 
 ## Ignition 2.21.0 (2025-03-13)
 
