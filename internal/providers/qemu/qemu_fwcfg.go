@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //go:build !s390x && !ppc64le
-// +build !s390x,!ppc64le
 
 // The default QEMU provider fetches a local configuration from the firmware
 // config interface (opt/com.coreos/config). Platforms without support for
