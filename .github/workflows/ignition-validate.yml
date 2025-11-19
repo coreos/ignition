@@ -20,7 +20,7 @@ jobs:
     name: Test ignition-validate
     strategy:
       matrix:
-        go-version: [1.24.x]
+        go-version: [1.25.x]
         os: [macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
