@@ -13,7 +13,6 @@
 // limitations under the License.
 
 //go:build s390x || ppc64le
-// +build s390x ppc64le
 
 // The QEMU provider on s390x and ppc64le fetches a configuration file from an
 // attached block device with id 'virtio-ignition'.
