@@ -9,6 +9,7 @@ nav_order: 9
 ### Breaking changes
 
 ### Features
+- The name for custom clevis pins is not validated by Ignition anymore, enabling the use of arbitrary custom pins.
 
 ### Changes
 
