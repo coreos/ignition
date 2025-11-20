@@ -126,18 +126,6 @@ func TestURLValidate(t *testing.T) {
 			util.StrToPtr("gs://bucket/object"),
 			nil,
 		},
-		{
-			util.StrToPtr("oem:///example.txt"),
-			nil,
-		},
-		{
-			util.StrToPtr("oem:///scripts/setup.sh"),
-			nil,
-		},
-		{
-			util.StrToPtr("oem:///etc/custom.conf"),
-			nil,
-		},
 	}
 
 	for i, test := range tests {

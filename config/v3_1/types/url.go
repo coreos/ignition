@@ -30,7 +30,7 @@ func validateURL(s string) error {
 	}
 
 	switch u.Scheme {
-	case "http", "https", "tftp", "oem":
+	case "http", "https", "tftp":
 		return nil
 	case "s3":
 		if v, ok := u.Query()["versionId"]; ok {
