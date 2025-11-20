@@ -17,6 +17,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- Fix EnsureGroup to be idempotent when group already exists ([#2158](https://github.com/coreos/ignition/pull/2158))
 - Fix invalid random source in FIPS 140-only mode in FIPS mode ([#2159](https://github.com/coreos/ignition/pull/2159))
 
 
