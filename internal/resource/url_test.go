@@ -396,3 +396,139 @@ func TestParseAzureStorageUrl(t *testing.T) {
 	}
 
 }
+
+func TestFetchConfigDualStack(t *testing.T) {
+	logger := log.New(true)
+	f := Fetcher{
+		Logger: &logger,
+	}
+
+	tests := []struct {
+		name         string
+		userdataURLs map[string]url.URL
+		fetchConfig  func(*Fetcher, url.URL) ([]byte, error)
+		expectError  bool
+		expectIPv    string
+	}{
+		{
+			name: "IPv4 only success",
+			userdataURLs: map[string]url.URL{
+				IPv4: {
+					Scheme: "data",
+					Opaque: "," + url.PathEscape(`{"ignition":{"version":"3.5.0"},"storage":{}}`),
+				},
+			},
+			fetchConfig: func(f *Fetcher, u url.URL) ([]byte, error) {
+				return f.FetchToBuffer(u, FetchOptions{})
+			},
+			expectError: false,
+			expectIPv:   IPv4,
+		},
+		{
+			name: "IPv6 only success",
+			userdataURLs: map[string]url.URL{
+				IPv6: {
+					Scheme: "data",
+					Opaque: "," + url.PathEscape(`{"ignition":{"version":"3.5.0"},"storage":{}}`),
+				},
+			},
+			fetchConfig: func(f *Fetcher, u url.URL) ([]byte, error) {
+				return f.FetchToBuffer(u, FetchOptions{})
+			},
+			expectError: false,
+			expectIPv:   IPv6,
+		},
+		{
+			name: "both IPv4 and IPv6 success",
+			userdataURLs: map[string]url.URL{
+				IPv4: {
+					Scheme: "data",
+					Opaque: "," + url.PathEscape(`{"ignition":{"version":"3.5.0"},"storage":{}}`),
+				},
+				IPv6: {
+					Scheme: "data",
+					Opaque: "," + url.PathEscape(`{"ignition":{"version":"3.5.0"},"passwd":{"users":[{"name":"test"}]}}`),
+				},
+			},
+			fetchConfig: func(f *Fetcher, u url.URL) ([]byte, error) {
+				return f.FetchToBuffer(u, FetchOptions{})
+			},
+			expectError: false,
+		},
+		{
+			name: "both IPv4 and IPv6 fail - use invalid JSON to avoid network retries",
+			userdataURLs: map[string]url.URL{
+				IPv4: {
+					Scheme: "data",
+					Opaque: ",invalid-json-content",
+				},
+				IPv6: {
+					Scheme: "data",
+					Opaque: ",also-invalid-json",
+				},
+			},
+			fetchConfig: func(f *Fetcher, u url.URL) ([]byte, error) {
+				return f.FetchToBuffer(u, FetchOptions{})
+			},
+			expectError: true,
+		},
+
+		{
+			name: "IPv4 success with invalid JSON",
+			userdataURLs: map[string]url.URL{
+				IPv4: {
+					Scheme: "data",
+					Opaque: ",invalid-json",
+				},
+			},
+			fetchConfig: func(f *Fetcher, u url.URL) ([]byte, error) {
+				return f.FetchToBuffer(u, FetchOptions{})
+			},
+			expectError: true,
+		},
+		{
+			name: "IPv4 fails, IPv6 succeeds",
+			userdataURLs: map[string]url.URL{
+				IPv4: {
+					Scheme: "data",
+					Opaque: ",invalid-json",
+				},
+				IPv6: {
+					Scheme: "data",
+					Opaque: "," + url.PathEscape(`{"ignition":{"version":"3.5.0"},"storage":{}}`),
+				},
+			},
+			fetchConfig: func(f *Fetcher, u url.URL) ([]byte, error) {
+				return f.FetchToBuffer(u, FetchOptions{})
+			},
+			expectError: false,
+			expectIPv:   IPv6,
+		},
+	}
+
+	for i, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cfg, rpt, err := FetchConfigDualStack(&f, test.userdataURLs, test.fetchConfig)
+
+			if test.expectError {
+				if err == nil {
+					t.Errorf("#%d: FetchConfigDualStack() expected error, got nil", i)
+				}
+				// Config should be empty on error
+				if cfg.Ignition.Version != "" {
+					t.Errorf("#%d: FetchConfigDualStack() should return empty config on error, got version %q", i, cfg.Ignition.Version)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("#%d: FetchConfigDualStack() unexpected error: %v", i, err)
+				}
+				// Should have a valid config
+				if cfg.Ignition.Version == "" {
+					t.Errorf("#%d: FetchConfigDualStack() should return non-zero config for valid URLs", i)
+				}
+			}
+
+			_ = rpt
+		})
+	}
+}
