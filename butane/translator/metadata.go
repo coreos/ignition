@@ -24,6 +24,13 @@ type commonFields struct {
 	Version semver.Version `yaml:"version"`
 }
 
+type Metadata struct {
+	commonFields
+	Description     string
+	Experimental    bool
+	IgnitionVersion semver.Version
+}
+
 func (c *commonFields) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type plain commonFields
 	var raw plain
