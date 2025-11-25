@@ -22,20 +22,17 @@ import (
 )
 
 var TranslatorRegistry = &Registry{
-    translators: make(map[string]Translator),
+	translators: map[string]Translator{},
 }
 
 type Registry struct {
 	translators map[string]Translator
 }
 
-func (r *Registry) RegisterTranslator(variant, version string, trans Translator) {
-	cf, err := newCF(variant, version)
-	if err != nil {
-		panic(fmt.Sprintf("tried to register a translator with an invalid key (%s+%s)", variant, version))
-	}
+func (r *Registry) RegisterTranslator(trans Translator) {
+	cf := trans.Metadata().commonFields
 	if _, ok := r.translators[cf.asKey()]; ok {
-		panic(fmt.Sprintf("tried to reregister existing translator (%s+%s)", variant, version))
+		panic(fmt.Sprintf("tried to reregister existing translator (%+v)", trans.Metadata()))
 	}
 	r.translators[cf.asKey()] = trans
 }
