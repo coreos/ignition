@@ -19,5 +19,13 @@ import (
 )
 
 type Translator interface {
+	Metadata() Metadata
+	// Parse yml into struct
+	Parse(input []byte) interface{}
+	// From yml input to Ignition struct
+	Translate(input []byte, options common.TranslateBytesOptions) (interface{}, report.Report, error)
+	// From yml input to Ingition JSON
 	TranslateBytes(input []byte, options common.TranslateBytesOptions) ([]byte, report.Report, error)
+	// Validates yml struct
+	Validate(in interface{}) report.Report
 }
