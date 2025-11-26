@@ -11,21 +11,27 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package translator
 
 import (
-	"github.com/coreos/butane/config/common"
+	"context"
+
 	"github.com/coreos/vcontext/report"
 )
 
+// Translator translates Butane configuration to Ignition configuration.
+//
+// Each Butane variant (fcos, flatcar, r4e, openshift, etc.) should implement this
+// interface for each supported version.
 type Translator interface {
+	// Metadata the variant, version, and target Ignition version.
 	Metadata() Metadata
-	// Parse yml into struct
-	Parse(input []byte) interface{}
-	// From yml input to Ignition struct
-	Translate(input []byte, options common.TranslateBytesOptions) (interface{}, report.Report, error)
-	// From yml input to Ingition JSON
-	TranslateBytes(input []byte, options common.TranslateBytesOptions) ([]byte, report.Report, error)
-	// Validates yml struct
-	Validate(in interface{}) report.Report
+
+	// Translate converts Butane config bytes to Ignition config bytes.
+	Translate(ctx context.Context, input []byte, opts Options) (Result, error)
+
+	// Validate validates a Butane config without performing translation.
+	Validate(ctx context.Context, input []byte) (report.Report, error)
 }
+
