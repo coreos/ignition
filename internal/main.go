@@ -48,24 +48,22 @@ func main() {
 
 func ignitionMain() {
 	flags := struct {
-		configCache               string
-		fetchTimeout              time.Duration
-		generateCloudConfig       string
-		generatedConfigOverride   string
-		needNet                   string
-		platform                  platform.Name
-		root                      string
-		stage                     stages.Name
-		stateFile                 string
-		version                   bool
-		logToStdout               bool
+		configCache         string
+		fetchTimeout        time.Duration
+		generateCloudConfig string
+		needNet             string
+		platform            platform.Name
+		root                string
+		stage               stages.Name
+		stateFile           string
+		version             bool
+		logToStdout         bool
 	}{}
 
 	flag.StringVar(&flags.configCache, "config-cache", "/run/ignition.json", "where to cache the config")
 	flag.DurationVar(&flags.fetchTimeout, "fetch-timeout", exec.DefaultFetchTimeout, "initial duration for which to wait for config")
 	flag.StringVar(&flags.needNet, "neednet", "/run/ignition/neednet", "flag file to write from fetch-offline if networking is needed")
 	flag.StringVar(&flags.generateCloudConfig, "generate-cloud-config", "", "generate a platform-specific config instead of fetching (e.g. azure)")
-	flag.StringVar(&flags.generatedConfigOverride, "generated-config-override", "", "path to a pre-generated config to use instead of contacting metadata services")
 	flag.Var(&flags.platform, "platform", fmt.Sprintf("current platform. %v", platform.Names()))
 	flag.StringVar(&flags.root, "root", "/", "root of the filesystem")
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
@@ -108,16 +106,15 @@ func ignitionMain() {
 		os.Exit(3)
 	}
 	engine := exec.Engine{
-		Root:                    flags.root,
-		FetchTimeout:            flags.fetchTimeout,
-		GenerateCloudConfig:     flags.generateCloudConfig,
-		GeneratedConfigOverride: flags.generatedConfigOverride,
-		Logger:                  &logger,
-		NeedNet:                 flags.needNet,
-		ConfigCache:             flags.configCache,
-		PlatformConfig:          platformConfig,
-		Fetcher:                 &fetcher,
-		State:                   &state,
+		Root:                flags.root,
+		FetchTimeout:        flags.fetchTimeout,
+		GenerateCloudConfig: flags.generateCloudConfig,
+		Logger:              &logger,
+		NeedNet:             flags.needNet,
+		ConfigCache:         flags.configCache,
+		PlatformConfig:      platformConfig,
+		Fetcher:             &fetcher,
+		State:               &state,
 	}
 
 	err = engine.Run(flags.stage.String())

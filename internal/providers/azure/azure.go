@@ -339,11 +339,20 @@ type sshPublicKey struct {
 }
 
 func (l linuxProvisioningConfigurationSet) passwordAuthDisabled() bool {
-	disabled, err := strconv.ParseBool(strings.TrimSpace(l.DisableSshPasswordAuthentication))
-	if err != nil {
+	val := strings.ToLower(strings.TrimSpace(l.DisableSshPasswordAuthentication))
+	switch val {
+	case "true", "1", "yes":
+		return true
+	case "false", "0", "no", "":
 		return false
+	default:
+		// Try parsing as bool for any other values
+		disabled, err := strconv.ParseBool(val)
+		if err != nil {
+			return false
+		}
+		return disabled
 	}
-	return disabled
 }
 
 func generateCloudConfig(f *resource.Fetcher) (types.Config, error) {
@@ -383,10 +392,18 @@ func fetchInstanceMetadata(f *resource.Fetcher) (*instanceMetadata, error) {
 	return &meta, nil
 }
 
+const (
+	// maxOvfRetries is the maximum number of attempts to find the OVF environment
+	maxOvfRetries = 30
+	// ovfRetryInterval is the time between retries
+	ovfRetryInterval = time.Second
+)
+
 func readOvfEnvironment(f *resource.Fetcher, ovfFsTypes []string) ([]byte, error) {
 	logger := f.Logger
 	checkedDevices := make(map[string]struct{})
-	for {
+
+	for attempt := 0; attempt < maxOvfRetries; attempt++ {
 		for _, ovfFsType := range ovfFsTypes {
 			devices, err := execUtil.GetBlockDevices(ovfFsType)
 			if err != nil {
@@ -407,8 +424,12 @@ func readOvfEnvironment(f *resource.Fetcher, ovfFsTypes []string) ([]byte, error
 				checkedDevices[dev] = struct{}{}
 			}
 		}
-		time.Sleep(time.Second)
+		if attempt < maxOvfRetries-1 {
+			time.Sleep(ovfRetryInterval)
+		}
 	}
+
+	return nil, fmt.Errorf("failed to find OVF environment after %d attempts", maxOvfRetries)
 }
 
 func parseProvisioningConfig(raw []byte) (*linuxProvisioningConfigurationSet, error) {
@@ -441,7 +462,18 @@ func buildGeneratedConfig(meta *instanceMetadata, provisioning *linuxProvisionin
 		SSHAuthorizedKeys: sshKeys,
 	}
 	if password != "" {
-		user.PasswordHash = cfgutil.StrToPtr(password)
+		// Hash the password if it's not already hashed
+		var passwordHash string
+		if IsPasswordHashed(password) {
+			passwordHash = password
+		} else {
+			var err error
+			passwordHash, err = HashPassword(password)
+			if err != nil {
+				return types.Config{}, fmt.Errorf("hashing password: %w", err)
+			}
+		}
+		user.PasswordHash = cfgutil.StrToPtr(passwordHash)
 	}
 
 	sudoersFile := newDataFile("/etc/sudoers.d/99_wheel_nopasswd", 0440, "%wheel ALL=(ALL) NOPASSWD:ALL\n")

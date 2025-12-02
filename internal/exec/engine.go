@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/coreos/go-systemd/v22/journal"
-	"github.com/coreos/ignition/v2/config"
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	latest "github.com/coreos/ignition/v2/config/v3_6_experimental"
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
@@ -56,16 +55,15 @@ var (
 
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
-	ConfigCache             string
-	FetchTimeout            time.Duration
-	GenerateCloudConfig     string
-	GeneratedConfigOverride string
-	Logger                  *log.Logger
-	NeedNet                 string
-	Root                    string
-	PlatformConfig          platform.Config
-	Fetcher                 *resource.Fetcher
-	State                   *state.State
+	ConfigCache         string
+	FetchTimeout        time.Duration
+	GenerateCloudConfig string
+	Logger              *log.Logger
+	NeedNet             string
+	Root                string
+	PlatformConfig      platform.Config
+	Fetcher             *resource.Fetcher
+	State               *state.State
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -339,10 +337,6 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 }
 
 func (e *Engine) fetchGeneratedConfig() (types.Config, error) {
-	if e.GeneratedConfigOverride != "" {
-		return e.loadOverrideConfig()
-	}
-
 	if e.GenerateCloudConfig != e.PlatformConfig.Name() {
 		return types.Config{}, fmt.Errorf("cannot generate %q config on %q platform", e.GenerateCloudConfig, e.PlatformConfig.Name())
 	}
@@ -355,32 +349,6 @@ func (e *Engine) fetchGeneratedConfig() (types.Config, error) {
 	e.State.FetchedConfigs = append(e.State.FetchedConfigs, state.FetchedConfig{
 		Kind:       "user",
 		Source:     fmt.Sprintf("%s-generator", e.GenerateCloudConfig),
-		Referenced: false,
-	})
-
-	configFetcher := ConfigFetcher{
-		Logger:  e.Logger,
-		Fetcher: e.Fetcher,
-		State:   e.State,
-	}
-
-	return configFetcher.RenderConfig(cfg)
-}
-
-func (e *Engine) loadOverrideConfig() (types.Config, error) {
-	blob, err := os.ReadFile(e.GeneratedConfigOverride)
-	if err != nil {
-		return types.Config{}, fmt.Errorf("reading generated config override at %q: %w", e.GeneratedConfigOverride, err)
-	}
-	cfg, rpt, err := config.Parse(blob)
-	e.Logger.LogReport(rpt)
-	if err != nil {
-		return types.Config{}, err
-	}
-
-	e.State.FetchedConfigs = append(e.State.FetchedConfigs, state.FetchedConfig{
-		Kind:       "user",
-		Source:     fmt.Sprintf("override:%s", e.GeneratedConfigOverride),
 		Referenced: false,
 	})
 
