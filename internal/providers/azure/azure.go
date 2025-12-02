@@ -18,21 +18,27 @@ package azure
 
 import (
 	"encoding/base64"
+	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/coreos/ignition/v2/config/shared/errors"
+	cfgutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
+	"github.com/vincent-petithory/dataurl"
 
 	"github.com/coreos/vcontext/report"
 	"golang.org/x/sys/unix"
@@ -68,13 +74,26 @@ var (
 		Path:     "metadata/instance/compute/userData",
 		RawQuery: "api-version=2021-01-01&format=text",
 	}
+	imdsInstanceURL = url.URL{
+		Scheme:   "http",
+		Host:     "169.254.169.254",
+		Path:     "metadata/instance",
+		RawQuery: "api-version=2021-01-01&format=json&extended=true",
+	}
 )
+
+var imdsRetryCodes = []int{
+	404,
+	410,
+	429,
+}
 
 func init() {
 	platform.Register(platform.Provider{
-		Name:       "azure",
-		NewFetcher: newFetcher,
-		Fetch:      fetchConfig,
+		Name:                "azure",
+		NewFetcher:          newFetcher,
+		Fetch:               fetchConfig,
+		GenerateCloudConfig: generateCloudConfig,
 	})
 }
 
@@ -134,12 +153,7 @@ func fetchFromIMDS(f *resource.Fetcher) ([]byte, error) {
 	// Here, we match the cloud-init set.
 	// https://github.com/canonical/cloud-init/commit/c1a2047cf291
 	// https://github.com/coreos/ignition/issues/1806
-	retryCodes := []int{
-		404, // not found
-		410, // gone
-		429, // rate-limited
-	}
-	data, err := f.FetchToBuffer(imdsUserdataURL, resource.FetchOptions{Headers: headers, RetryCodes: retryCodes})
+	data, err := f.FetchToBuffer(imdsUserdataURL, resource.FetchOptions{Headers: headers, RetryCodes: imdsRetryCodes})
 	if err != nil {
 		return nil, fmt.Errorf("fetching to buffer: %w", err)
 	}
@@ -200,42 +214,8 @@ func FetchFromOvfDevice(f *resource.Fetcher, ovfFsTypes []string) (types.Config,
 // getRawConfig returns the config by mounting the given block device
 func getRawConfig(f *resource.Fetcher, devicePath string, fstype string) ([]byte, error) {
 	logger := f.Logger
-	mnt, err := os.MkdirTemp("", "ignition-azure")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temp directory: %v", err)
-	}
-	defer func() {
-		if removeErr := os.Remove(mnt); removeErr != nil {
-			logger.Warning("failed to remove temp directory %q: %v", mnt, removeErr)
-		}
-	}()
-
-	logger.Debug("mounting config device")
-	if err := logger.LogOp(
-		func() error { return unix.Mount(devicePath, mnt, fstype, unix.MS_RDONLY, "") },
-		"mounting %q at %q", devicePath, mnt,
-	); err != nil {
-		return nil, fmt.Errorf("failed to mount device %q at %q: %v", devicePath, mnt, err)
-	}
-	defer func() {
-		_ = logger.LogOp(
-			func() error { return unix.Unmount(mnt, 0) },
-			"unmounting %q at %q", devicePath, mnt,
-		)
-	}()
-
-	// detect the config drive by looking for a file which is always present
-	logger.Debug("checking for config drive")
-	if _, err := os.Stat(filepath.Join(mnt, "ovf-env.xml")); err != nil {
-		return nil, fmt.Errorf("device %q does not appear to be a config drive: %v", devicePath, err)
-	}
-
 	logger.Debug("reading config")
-	rawConfig, err := os.ReadFile(filepath.Join(mnt, configPath))
-	if err != nil && !os.IsNotExist(err) {
-		return nil, fmt.Errorf("failed to read config from device %q: %v", devicePath, err)
-	}
-	return rawConfig, nil
+	return readFileFromDevice(f, devicePath, fstype, configPath)
 }
 
 // isCdromPresent verifies if the given config drive is CD-ROM
@@ -274,4 +254,265 @@ func isCdromPresent(logger *log.Logger, devicePath string) bool {
 	}
 
 	return (status == CDS_DISC_OK)
+}
+
+func readFileFromDevice(f *resource.Fetcher, devicePath string, fstype string, relativePath string) ([]byte, error) {
+	logger := f.Logger
+	mnt, err := os.MkdirTemp("", "ignition-azure")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temp directory: %v", err)
+	}
+	defer func() {
+		if removeErr := os.Remove(mnt); removeErr != nil {
+			logger.Warning("failed to remove temp directory %q: %v", mnt, removeErr)
+		}
+	}()
+
+	logger.Debug("mounting config device")
+	if err := logger.LogOp(
+		func() error { return unix.Mount(devicePath, mnt, fstype, unix.MS_RDONLY, "") },
+		"mounting %q at %q", devicePath, mnt,
+	); err != nil {
+		return nil, fmt.Errorf("failed to mount device %q at %q: %v", devicePath, mnt, err)
+	}
+	defer func() {
+		_ = logger.LogOp(
+			func() error { return unix.Unmount(mnt, 0) },
+			"unmounting %q at %q", devicePath, mnt,
+		)
+	}()
+
+	logger.Debug("checking for config drive")
+	if _, err := os.Stat(filepath.Join(mnt, "ovf-env.xml")); err != nil {
+		return nil, fmt.Errorf("device %q does not appear to be a config drive: %v", devicePath, err)
+	}
+
+	target := filepath.Join(mnt, strings.TrimPrefix(relativePath, "/"))
+	data, err := os.ReadFile(target)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to read %q from device %q: %v", relativePath, devicePath, err)
+	}
+	return data, nil
+}
+
+type instanceMetadata struct {
+	Compute instanceComputeMetadata `json:"compute"`
+}
+
+type instanceComputeMetadata struct {
+	Hostname   string              `json:"hostname"`
+	OSProfile  instanceOSProfile   `json:"osProfile"`
+	PublicKeys []instancePublicKey `json:"publicKeys"`
+}
+
+type instanceOSProfile struct {
+	AdminUsername string `json:"adminUsername"`
+}
+
+type instancePublicKey struct {
+	KeyData string `json:"keyData"`
+}
+
+type provisioningEnvelope struct {
+	LinuxProvisioningConfigurationSet linuxProvisioningConfigurationSet `xml:"LinuxProvisioningConfigurationSet"`
+}
+
+type linuxProvisioningConfigurationSet struct {
+	HostName                         string     `xml:"HostName"`
+	UserName                         string     `xml:"UserName"`
+	UserPassword                     string     `xml:"UserPassword"`
+	DisableSshPasswordAuthentication string     `xml:"DisableSshPasswordAuthentication"`
+	SSH                              sshSection `xml:"SSH"`
+	CustomData                       string     `xml:"CustomData"`
+	UserData                         string     `xml:"UserData"`
+}
+
+type sshSection struct {
+	PublicKeys []sshPublicKey `xml:"PublicKeys>PublicKey"`
+}
+
+type sshPublicKey struct {
+	Value string `xml:"Value"`
+}
+
+func (l linuxProvisioningConfigurationSet) passwordAuthDisabled() bool {
+	disabled, err := strconv.ParseBool(strings.TrimSpace(l.DisableSshPasswordAuthentication))
+	if err != nil {
+		return false
+	}
+	return disabled
+}
+
+func generateCloudConfig(f *resource.Fetcher) (types.Config, error) {
+	meta, err := fetchInstanceMetadata(f)
+	if err != nil {
+		return types.Config{}, fmt.Errorf("fetching instance metadata: %w", err)
+	}
+
+	ovfRaw, err := readOvfEnvironment(f, []string{CDS_FSTYPE_UDF})
+	if err != nil {
+		return types.Config{}, fmt.Errorf("reading provisioning metadata: %w", err)
+	}
+	if len(ovfRaw) == 0 {
+		return types.Config{}, fmt.Errorf("ovf-env.xml was empty")
+	}
+
+	provisioning, err := parseProvisioningConfig(ovfRaw)
+	if err != nil {
+		return types.Config{}, fmt.Errorf("parsing provisioning metadata: %w", err)
+	}
+
+	return buildGeneratedConfig(meta, provisioning)
+}
+
+func fetchInstanceMetadata(f *resource.Fetcher) (*instanceMetadata, error) {
+	headers := make(http.Header)
+	headers.Set("Metadata", "true")
+	data, err := f.FetchToBuffer(imdsInstanceURL, resource.FetchOptions{Headers: headers, RetryCodes: imdsRetryCodes})
+	if err != nil {
+		return nil, fmt.Errorf("fetching metadata: %w", err)
+	}
+
+	var meta instanceMetadata
+	if err := json.Unmarshal(data, &meta); err != nil {
+		return nil, fmt.Errorf("decoding metadata: %w", err)
+	}
+	return &meta, nil
+}
+
+func readOvfEnvironment(f *resource.Fetcher, ovfFsTypes []string) ([]byte, error) {
+	logger := f.Logger
+	checkedDevices := make(map[string]struct{})
+	for {
+		for _, ovfFsType := range ovfFsTypes {
+			devices, err := execUtil.GetBlockDevices(ovfFsType)
+			if err != nil {
+				return nil, fmt.Errorf("failed to retrieve block devices with FSTYPE=%q: %v", ovfFsType, err)
+			}
+			for _, dev := range devices {
+				if _, checked := checkedDevices[dev]; checked {
+					continue
+				}
+				if isCdromPresent(logger, dev) {
+					data, err := readFileFromDevice(f, dev, ovfFsType, "ovf-env.xml")
+					if err != nil {
+						logger.Debug("failed to read ovf environment from device %q: %v", dev, err)
+					} else if len(data) > 0 {
+						return data, nil
+					}
+				}
+				checkedDevices[dev] = struct{}{}
+			}
+		}
+		time.Sleep(time.Second)
+	}
+}
+
+func parseProvisioningConfig(raw []byte) (*linuxProvisioningConfigurationSet, error) {
+	var env provisioningEnvelope
+	if err := xml.Unmarshal(raw, &env); err != nil {
+		return nil, err
+	}
+	return &env.LinuxProvisioningConfigurationSet, nil
+}
+
+func buildGeneratedConfig(meta *instanceMetadata, provisioning *linuxProvisioningConfigurationSet) (types.Config, error) {
+	username := strings.TrimSpace(meta.Compute.OSProfile.AdminUsername)
+	if username == "" {
+		username = strings.TrimSpace(provisioning.UserName)
+	}
+	if username == "" {
+		return types.Config{}, fmt.Errorf("unable to determine admin username from metadata or provisioning data")
+	}
+
+	password := strings.TrimSpace(provisioning.UserPassword)
+	passwordAuthDisabled := provisioning.passwordAuthDisabled()
+
+	sshKeys := collectSSHPublicKeys(meta, provisioning)
+
+	user := types.PasswdUser{
+		Name:              username,
+		Groups:            []types.Group{"wheel"},
+		HomeDir:           cfgutil.StrToPtr(fmt.Sprintf("/home/%s", username)),
+		Shell:             cfgutil.StrToPtr("/bin/bash"),
+		SSHAuthorizedKeys: sshKeys,
+	}
+	if password != "" {
+		user.PasswordHash = cfgutil.StrToPtr(password)
+	}
+
+	sudoersFile := newDataFile("/etc/sudoers.d/99_wheel_nopasswd", 0440, "%wheel ALL=(ALL) NOPASSWD:ALL\n")
+	passwordSetting := "yes"
+	if passwordAuthDisabled {
+		passwordSetting = "no"
+	}
+	sshConfig := fmt.Sprintf(`# Custom SSHD settings
+PasswordAuthentication %s
+PermitRootLogin no
+AllowUsers %s
+`, passwordSetting, username)
+	sshdFile := newDataFile("/etc/ssh/sshd_config.d/10-custom.conf", 0644, sshConfig)
+
+	return types.Config{
+		Ignition: types.Ignition{
+			Version: types.MaxVersion.String(),
+		},
+		Passwd: types.Passwd{
+			Users: []types.PasswdUser{user},
+		},
+		Storage: types.Storage{
+			Files: []types.File{sudoersFile, sshdFile},
+		},
+	}, nil
+}
+
+func collectSSHPublicKeys(meta *instanceMetadata, provisioning *linuxProvisioningConfigurationSet) []types.SSHAuthorizedKey {
+	seen := make(map[string]struct{})
+	var keys []types.SSHAuthorizedKey
+
+	if meta != nil {
+		for _, k := range meta.Compute.PublicKeys {
+			key := strings.TrimSpace(k.KeyData)
+			if key == "" {
+				continue
+			}
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			seen[key] = struct{}{}
+			keys = append(keys, types.SSHAuthorizedKey(key))
+		}
+	}
+
+	if provisioning != nil {
+		for _, pk := range provisioning.SSH.PublicKeys {
+			key := strings.TrimSpace(pk.Value)
+			if key == "" {
+				continue
+			}
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			seen[key] = struct{}{}
+			keys = append(keys, types.SSHAuthorizedKey(key))
+		}
+	}
+
+	return keys
+}
+
+func newDataFile(path string, mode int, contents string) types.File {
+	encoded := dataurl.EncodeBytes([]byte(contents))
+	return types.File{
+		Node: types.Node{
+			Path: path,
+		},
+		FileEmbedded1: types.FileEmbedded1{
+			Mode:     cfgutil.IntToPtr(mode),
+			Contents: types.Resource{Source: &encoded},
+		},
+	}
 }

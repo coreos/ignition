@@ -10,6 +10,7 @@ nav_order: 9
 
 ### Features
 - The name for custom clevis pins is not validated by Ignition anymore, enabling the use of arbitrary custom pins.
+- Azure images can opt into `--generate-cloud-config=azure`, letting `ignition-fetch.service` synthesize an admin-user config from IMDS metadata and the provisioning media.
 
 ### Changes
 

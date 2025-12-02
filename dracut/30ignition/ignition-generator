@@ -59,4 +59,16 @@ else
     fi
 fi
 
-echo "PLATFORM_ID=$(cmdline_arg ignition.platform.id)" > /run/ignition.env
+platform_id="$(cmdline_arg ignition.platform.id)"
+ignition_args=()
+if [[ "${platform_id}" == "azure" ]]; then
+    ignition_args+=("--generate-cloud-config=azure")
+    demo_config="/usr/lib/ignition/azure-generated-config.ign"
+    if [[ -f "${demo_config}" ]]; then
+        ignition_args+=("--generated-config-override=${demo_config}")
+    fi
+fi
+{
+    echo "PLATFORM_ID=${platform_id}"
+    echo "IGNITION_ARGS=${ignition_args[*]}"
+} > /run/ignition.env
