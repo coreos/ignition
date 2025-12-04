@@ -21,11 +21,15 @@ package openstack
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
@@ -44,10 +48,18 @@ const (
 )
 
 var (
-	metadataServiceUrl = url.URL{
-		Scheme: "http",
-		Host:   "169.254.169.254",
-		Path:   "openstack/latest/user_data",
+	userdataURLs = map[string]url.URL{
+		resource.IPv4: {
+			Scheme: "http",
+			Host:   "169.254.169.254",
+			Path:   "openstack/latest/user_data",
+		},
+
+		resource.IPv6: {
+			Scheme: "http",
+			Host:   "[fe80::a9fe:a9fe%iface]",
+			Path:   "openstack/latest/user_data",
+		},
 	}
 )
 
@@ -171,7 +183,23 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 }
 
 func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
-	res, err := f.FetchToBuffer(metadataServiceUrl, resource.FetchOptions{})
+	ipv6Interfaces, err := findInterfacesWithIPv6()
+	if err != nil {
+		f.Logger.Info("No active IPv6 network interface found: %v", err)
+		// Fall back to IPv4 only
+		return fetchConfigFromMetadataServiceIPv4Only(f)
+	}
+
+	urls := []url.URL{userdataURLs[resource.IPv4]}
+
+	for _, ifaceName := range ipv6Interfaces {
+		ipv6Url := userdataURLs[resource.IPv6]
+		ipv6Url.Host = strings.Replace(ipv6Url.Host, "iface", ifaceName, 1)
+		urls = append(urls, ipv6Url)
+	}
+
+	// Use parallel fetching for all interfaces
+	cfg, _, err := fetchConfigParallel(f, urls)
 
 	// the metadata server exists but doesn't contain any actual metadata,
 	// assume that there is no config specified
@@ -179,5 +207,137 @@ func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 		return nil, nil
 	}
 
-	return res, err
+	data, err := json.Marshal(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func fetchConfigFromMetadataServiceIPv4Only(f *resource.Fetcher) ([]byte, error) {
+	urls := map[string]url.URL{
+		string(resource.IPv4): userdataURLs[resource.IPv4],
+	}
+
+	cfg, _, err := resource.FetchConfigDualStack(
+		f,
+		urls,
+		func(f *resource.Fetcher, u url.URL) ([]byte, error) {
+			return f.FetchToBuffer(u, resource.FetchOptions{})
+		},
+	)
+
+	// the metadata server exists but doesn't contain any actual metadata,
+	// assume that there is no config specified
+	if err == resource.ErrNotFound {
+		return nil, nil
+	}
+
+	data, err := json.Marshal(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func fetchConfigParallel(f *resource.Fetcher, urls []url.URL) (types.Config, report.Report, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var (
+		err      error
+		nbErrors int
+	)
+
+	cfg := make(map[url.URL][]byte)
+
+	success := make(chan url.URL, 1)
+	errors := make(chan error, len(urls))
+
+	// Use waitgroup to wait for all goroutines to complete
+	var wg sync.WaitGroup
+
+	fetch := func(_ context.Context, u url.URL) {
+		defer wg.Done()
+		d, e := f.FetchToBuffer(u, resource.FetchOptions{})
+		if e != nil {
+			f.Logger.Err("fetching configuration for %s: %v", u.String(), e)
+			err = e
+			errors <- e
+		} else {
+			cfg[u] = d
+			select {
+			case success <- u:
+			default:
+			}
+		}
+	}
+
+	// Start goroutines for all URLs
+	for _, u := range urls {
+		wg.Add(1)
+		go fetch(ctx, u)
+	}
+
+	// Wait for the first success or all failures
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case u := <-success:
+		f.Logger.Debug("got configuration from: %s", u.String())
+		return util.ParseConfig(f.Logger, cfg[u])
+	case <-errors:
+		nbErrors++
+		if nbErrors == len(urls) {
+			f.Logger.Debug("all routines have failed to fetch configuration, returning last known error: %v", err)
+			return types.Config{}, report.Report{}, err
+		}
+	case <-done:
+		// All goroutines completed, check if we have any success
+		if len(cfg) > 0 {
+			// Return the first successful configuration
+			for u, data := range cfg {
+				f.Logger.Debug("got configuration from: %s", u.String())
+				return util.ParseConfig(f.Logger, data)
+			}
+		}
+	}
+
+	return types.Config{}, report.Report{}, err
+}
+
+func findInterfacesWithIPv6() ([]string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return nil, fmt.Errorf("error fetching network interfaces: %v", err)
+	}
+
+	var ipv6Interfaces []string
+	for _, iface := range interfaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok && ipnet.IP.To16() != nil && ipnet.IP.To4() == nil {
+				ipv6Interfaces = append(ipv6Interfaces, iface.Name)
+				break
+			}
+		}
+	}
+
+	if len(ipv6Interfaces) == 0 {
+		return nil, fmt.Errorf("no active IPv6 network interface found")
+	}
+
+	return ipv6Interfaces, nil
 }
