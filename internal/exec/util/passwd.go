@@ -339,8 +339,6 @@ func (u Util) EnsureGroup(g types.PasswdGroup) error {
 
 	if util.NotEmpty(g.PasswordHash) {
 		args = append(args, "--password", *g.PasswordHash)
-	} else {
-		args = append(args, "--password", "*")
 	}
 
 	var cmd string
