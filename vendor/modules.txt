@@ -236,6 +236,9 @@ github.com/beevik/etree
 # github.com/cespare/xxhash/v2 v2.3.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
+# github.com/clarketm/json v1.17.1
+## explicit
+github.com/clarketm/json
 # github.com/cncf/xds/go v0.0.0-20250501225837-2ac532fd4443
 ## explicit; go 1.19
 github.com/cncf/xds/go/udpa/annotations
@@ -249,6 +252,62 @@ github.com/cncf/xds/go/xds/type/v3
 # github.com/containers/libhvee v0.10.0
 ## explicit; go 1.22.8
 github.com/containers/libhvee/pkg/kvp
+# github.com/coreos/butane v0.24.0
+## explicit; go 1.20
+github.com/coreos/butane/base/util
+github.com/coreos/butane/base/v0_1
+github.com/coreos/butane/base/v0_2
+github.com/coreos/butane/base/v0_3
+github.com/coreos/butane/base/v0_4
+github.com/coreos/butane/base/v0_5
+github.com/coreos/butane/base/v0_6
+github.com/coreos/butane/base/v0_7_exp
+github.com/coreos/butane/config
+github.com/coreos/butane/config/common
+github.com/coreos/butane/config/fcos/v1_0
+github.com/coreos/butane/config/fcos/v1_1
+github.com/coreos/butane/config/fcos/v1_2
+github.com/coreos/butane/config/fcos/v1_3
+github.com/coreos/butane/config/fcos/v1_4
+github.com/coreos/butane/config/fcos/v1_5
+github.com/coreos/butane/config/fcos/v1_6
+github.com/coreos/butane/config/fcos/v1_7_exp
+github.com/coreos/butane/config/fiot/v1_0
+github.com/coreos/butane/config/fiot/v1_1_exp
+github.com/coreos/butane/config/flatcar/v1_0
+github.com/coreos/butane/config/flatcar/v1_1
+github.com/coreos/butane/config/flatcar/v1_2_exp
+github.com/coreos/butane/config/openshift/v4_10
+github.com/coreos/butane/config/openshift/v4_10/result
+github.com/coreos/butane/config/openshift/v4_11
+github.com/coreos/butane/config/openshift/v4_11/result
+github.com/coreos/butane/config/openshift/v4_12
+github.com/coreos/butane/config/openshift/v4_12/result
+github.com/coreos/butane/config/openshift/v4_13
+github.com/coreos/butane/config/openshift/v4_13/result
+github.com/coreos/butane/config/openshift/v4_14
+github.com/coreos/butane/config/openshift/v4_14/result
+github.com/coreos/butane/config/openshift/v4_15
+github.com/coreos/butane/config/openshift/v4_15/result
+github.com/coreos/butane/config/openshift/v4_16
+github.com/coreos/butane/config/openshift/v4_16/result
+github.com/coreos/butane/config/openshift/v4_17
+github.com/coreos/butane/config/openshift/v4_17/result
+github.com/coreos/butane/config/openshift/v4_18
+github.com/coreos/butane/config/openshift/v4_18/result
+github.com/coreos/butane/config/openshift/v4_19
+github.com/coreos/butane/config/openshift/v4_19/result
+github.com/coreos/butane/config/openshift/v4_20_exp
+github.com/coreos/butane/config/openshift/v4_20_exp/result
+github.com/coreos/butane/config/openshift/v4_8
+github.com/coreos/butane/config/openshift/v4_8/result
+github.com/coreos/butane/config/openshift/v4_9
+github.com/coreos/butane/config/openshift/v4_9/result
+github.com/coreos/butane/config/r4e/v1_0
+github.com/coreos/butane/config/r4e/v1_1
+github.com/coreos/butane/config/r4e/v1_2_exp
+github.com/coreos/butane/config/util
+github.com/coreos/butane/translate
 # github.com/coreos/go-json v0.0.0-20230131223807-18775e0fb4fb
 ## explicit; go 1.18
 github.com/coreos/go-json
@@ -267,6 +326,7 @@ github.com/coreos/vcontext/path
 github.com/coreos/vcontext/report
 github.com/coreos/vcontext/tree
 github.com/coreos/vcontext/validate
+github.com/coreos/vcontext/yaml
 # github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
