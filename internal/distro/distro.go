@@ -33,6 +33,7 @@ var (
 
 	// Helper programs
 	groupaddCmd  = "groupadd"
+	groupmodCmd  = "groupmod"
 	groupdelCmd  = "groupdel"
 	mdadmCmd     = "mdadm"
 	mountCmd     = "mount"
@@ -90,6 +91,7 @@ func BootIDPath() string        { return bootIDPath }
 func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
 
 func GroupaddCmd() string  { return groupaddCmd }
+func GroupmodCmd() string  { return groupmodCmd }
 func GroupdelCmd() string  { return groupdelCmd }
 func MdadmCmd() string     { return mdadmCmd }
 func MountCmd() string     { return mountCmd }

@@ -339,16 +339,22 @@ func (u Util) EnsureGroup(g types.PasswdGroup) error {
 
 	if util.NotEmpty(g.PasswordHash) {
 		args = append(args, "--password", *g.PasswordHash)
-	} else {
-		args = append(args, "--password", "*")
 	}
 
-	args = appendIfTrue(args, g.System, "--system")
+	var cmd string
+	if exists {
+		cmd = distro.GroupmodCmd()
+		args = append(args, g.Name)
+		_, err = u.LogCmd(exec.Command(cmd, args...),
+			"modifying group %q", g.Name)
+	} else {
+		cmd = distro.GroupaddCmd()
+		args = appendIfTrue(args, g.System, "--system")
+		args = append(args, g.Name)
+		_, err = u.LogCmd(exec.Command(cmd, args...),
+			"adding group %q", g.Name)
+	}
 
-	args = append(args, g.Name)
-
-	_, err = u.LogCmd(exec.Command(distro.GroupaddCmd(), args...),
-		"adding group %q", g.Name)
 	return err
 }
 

@@ -22,7 +22,9 @@ import (
 func init() {
 	register.Register(register.PositiveTest, AddPasswdUsers())
 	register.Register(register.PositiveTest, DeletePasswdUsers())
+	register.Register(register.PositiveTest, AddGroups())
 	register.Register(register.PositiveTest, DeleteGroups())
+	register.Register(register.PositiveTest, EnsureGroupIdempotent())
 	register.Register(register.PositiveTest, UseAuthorizedKeysFile())
 	register.Register(register.PositiveTest, AddPasswdUserWithMountPoints())
 }
@@ -246,6 +248,71 @@ func DeletePasswdUsers() types.Test {
 				Directory: "etc",
 			},
 			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// AddGroups verifies that groups can be created
+func AddGroups() types.Test {
+	name := "groups.add"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+		"ignition": {
+			"version": "$version"
+		},
+		"passwd": {
+			"groups": [
+				{
+					"name": "testgroup",
+					"gid": 1500
+				},
+				{
+					"name": "systemgroup",
+					"system": true
+				}
+			]
+		}
+	}`
+	configMinVersion := "3.0.0"
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "group",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "gshadow",
+				Directory: "etc",
+			},
+			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\n",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "group",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\ntestgroup:x:1500:\nsystemgroup:x:201:\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "gshadow",
+				Directory: "etc",
+			},
+			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\ntestgroup:!::\nsystemgroup:!::\n",
 		},
 	})
 
@@ -624,6 +691,69 @@ ENCRYPT_METHOD SHA512
 		Out:              out,
 		MntDevices:       mntDevices,
 		Env:              env,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// EnsureGroupIdempotent verifies that EnsureGroup is idempotent.
+// Tests the fix where groupmod
+// is used instead of groupadd when the group already exists.
+func EnsureGroupIdempotent() types.Test {
+	name := "groups.ensure.idempotent"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+		"ignition": {
+			"version": "$version"
+		},
+		"passwd": {
+			"groups": [
+				{
+					"name": "existinggroup",
+					"gid": 1500
+				}
+			]
+		}
+	}`
+	configMinVersion := "3.0.0"
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "group",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\nexistinggroup:x:1500:\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "gshadow",
+				Directory: "etc",
+			},
+			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\nexistinggroup:!::\n",
+		},
+	})
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "group",
+				Directory: "etc",
+			},
+			Contents: "root:x:0:root\nwheel:x:10:root,core\nsudo:x:150:\ndocker:x:233:core\nsystemd-coredump:x:998:\nfleet:x:253:core\ncore:x:500:\nrkt-admin:x:999:\nrkt:x:251:core\nexistinggroup:x:1500:\n",
+		},
+		{
+			Node: types.Node{
+				Name:      "gshadow",
+				Directory: "etc",
+			},
+			Contents: "root:*::root\nusers:*::\nsudo:*::\nwheel:*::root,core\nsudo:*::\ndocker:*::core\nsystemd-coredump:!!::\nfleet:!!::core\nrkt-admin:!!::\nrkt:!!::core\ncore:*::\nexistinggroup:!::\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
 		Config:           config,
 		ConfigMinVersion: configMinVersion,
 	}
