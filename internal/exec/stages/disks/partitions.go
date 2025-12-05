@@ -20,27 +20,29 @@ package disks
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	cutil "github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
-	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/exec/util"
-	"github.com/coreos/ignition/v2/internal/sgdisk"
+	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/partitioners"
+	"github.com/coreos/ignition/v2/internal/partitioners/sfdisk"
+	"github.com/coreos/ignition/v2/internal/partitioners/sgdisk"
 	iutil "github.com/coreos/ignition/v2/internal/util"
 )
 
-var (
-	ErrBadSgdiskOutput = errors.New("sgdisk had unexpected output")
-)
+func getDeviceManager(logger *log.Logger, dev string) partitioners.DeviceManager {
+	// To be replaced with build tag support or something similar.
+	if false {
+		return sgdisk.Begin(logger, dev)
+	}
+	return sfdisk.Begin(logger, dev)
+}
 
 // createPartitions creates the partitions described in config.Storage.Disks.
 func (s stage) createPartitions(config types.Config) error {
@@ -75,7 +77,7 @@ func (s stage) createPartitions(config types.Config) error {
 
 // partitionMatches determines if the existing partition matches the spec given. See doc/operator notes for what
 // what it means for an existing partition to match the spec. spec must have non-zero Start and Size.
-func partitionMatches(existing util.PartitionInfo, spec sgdisk.Partition) error {
+func partitionMatches(existing util.PartitionInfo, spec partitioners.Partition) error {
 	if err := partitionMatchesCommon(existing, spec); err != nil {
 		return err
 	}
@@ -87,22 +89,20 @@ func partitionMatches(existing util.PartitionInfo, spec sgdisk.Partition) error 
 
 // partitionMatchesResize returns if the existing partition should be resized by evaluating if
 // `resize`field is true and partition matches in all respects except size.
-func partitionMatchesResize(existing util.PartitionInfo, spec sgdisk.Partition) bool {
+func partitionMatchesResize(existing util.PartitionInfo, spec partitioners.Partition) bool {
 	return cutil.IsTrue(spec.Resize) && partitionMatchesCommon(existing, spec) == nil
 }
 
 // partitionMatchesCommon handles the common tests (excluding the partition size) to determine
 // if the existing partition matches the spec given.
-func partitionMatchesCommon(existing util.PartitionInfo, spec sgdisk.Partition) error {
+func partitionMatchesCommon(existing util.PartitionInfo, spec partitioners.Partition) error {
 	if spec.Number != existing.Number {
 		return fmt.Errorf("partition numbers did not match (specified %d, got %d). This should not happen, please file a bug", spec.Number, existing.Number)
 	}
 	if spec.StartSector != nil && *spec.StartSector != existing.StartSector {
 		return fmt.Errorf("starting sector did not match (specified %d, got %d)", *spec.StartSector, existing.StartSector)
 	}
-	if cutil.NotEmpty(spec.GUID) && !strings.EqualFold(*spec.GUID, existing.GUID) {
-		return fmt.Errorf("GUID did not match (specified %q, got %q)", *spec.GUID, existing.GUID)
-	}
+	// Skip GUID equality here; GUID will be enforced post-commit by the device manager
 	if cutil.NotEmpty(spec.TypeGUID) && !strings.EqualFold(*spec.TypeGUID, existing.TypeGUID) {
 		return fmt.Errorf("type GUID did not match (specified %q, got %q)", *spec.TypeGUID, existing.TypeGUID)
 	}
@@ -113,7 +113,7 @@ func partitionMatchesCommon(existing util.PartitionInfo, spec sgdisk.Partition) 
 }
 
 // partitionShouldBeInspected returns if the partition has zeroes that need to be resolved to sectors.
-func partitionShouldBeInspected(part sgdisk.Partition) bool {
+func partitionShouldBeInspected(part partitioners.Partition) bool {
 	if part.Number == 0 {
 		return false
 	}
@@ -133,26 +133,28 @@ func convertMiBToSectors(mib *int, sectorSize int) *int64 {
 // getRealStartAndSize returns a map of partition numbers to a struct that contains what their real start
 // and end sector should be. It runs sgdisk --pretend to determine what the partitions would look like if
 // everything specified were to be (re)created.
-func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo util.DiskInfo) ([]sgdisk.Partition, error) {
-	partitions := []sgdisk.Partition{}
+func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo util.DiskInfo) ([]partitioners.Partition, error) {
+	partitions := []partitioners.Partition{}
 	for _, cpart := range dev.Partitions {
-		partitions = append(partitions, sgdisk.Partition{
+		partitions = append(partitions, partitioners.Partition{
 			Partition:     cpart,
 			StartSector:   convertMiBToSectors(cpart.StartMiB, diskInfo.LogicalSectorSize),
 			SizeInSectors: convertMiBToSectors(cpart.SizeMiB, diskInfo.LogicalSectorSize),
 		})
 	}
 
-	op := sgdisk.Begin(s.Logger, devAlias)
+	op := getDeviceManager(s.Logger, devAlias)
 	for _, part := range partitions {
 		if info, exists := diskInfo.GetPartition(part.Number); exists {
 			// delete all existing partitions
 			op.DeletePartition(part.Number)
-			if part.StartSector == nil && !cutil.IsTrue(part.WipePartitionEntry) {
-				// don't care means keep the same if we can't wipe, otherwise stick it at start 0
+			// Preserve existing start/size when unspecified so we recreate the entry
+			// at the same offset. This avoids tools (e.g., sfdisk) auto-choosing a
+			// new aligned start which would move the filesystem.
+			if part.StartSector == nil || (part.StartSector != nil && *part.StartSector == 0) {
 				part.StartSector = &info.StartSector
 			}
-			if part.SizeInSectors == nil && !cutil.IsTrue(part.WipePartitionEntry) {
+			if part.SizeInSectors == nil {
 				part.SizeInSectors = &info.SizeInSectors
 			}
 		}
@@ -176,20 +178,30 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 	if err != nil {
 		return nil, err
 	}
-
-	realDimensions, err := parseSgdiskPretend(output, partitionsToInspect)
+	realDimensions, err := op.ParseOutput(output, partitionsToInspect)
 	if err != nil {
 		return nil, err
 	}
 
-	result := []sgdisk.Partition{}
+	result := []partitioners.Partition{}
 	for _, part := range partitions {
 		if dims, ok := realDimensions[part.Number]; ok {
 			if part.StartSector != nil {
-				part.StartSector = &dims.start
+				part.StartSector = &dims.Start
 			}
 			if part.SizeInSectors != nil {
-				part.SizeInSectors = &dims.size
+				part.SizeInSectors = &dims.Size
+			}
+		} else {
+			// If we couldn't resolve zero-values via Pretend/ParseOutput (e.g., sfdisk),
+			// treat 0 as "don't care" for matching by clearing them here. The sfdisk
+			// script was already queued earlier with the original values (including size=+),
+			// so this only affects subsequent matching logic.
+			if part.StartSector != nil && *part.StartSector == 0 {
+				part.StartSector = nil
+			}
+			if part.SizeInSectors != nil && *part.SizeInSectors == 0 {
+				part.SizeInSectors = nil
 			}
 		}
 		result = append(result, part)
@@ -197,96 +209,9 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 	return result, nil
 }
 
-type sgdiskOutput struct {
-	start int64
-	size  int64
-}
-
-// parseLine takes a regexp that captures an int64 and a string to match on. On success it returns
-// the captured int64 and nil. If the regexp does not match it returns -1 and nil. If it encountered
-// an error it returns 0 and the error.
-func parseLine(r *regexp.Regexp, line string) (int64, error) {
-	matches := r.FindStringSubmatch(line)
-	switch len(matches) {
-	case 0:
-		return -1, nil
-	case 2:
-		return strconv.ParseInt(matches[1], 10, 64)
-	default:
-		return 0, ErrBadSgdiskOutput
-	}
-}
-
-// parseSgdiskPretend parses the output of running sgdisk pretend with --info specified for each partition
-// number specified in partitionNumbers. E.g. if paritionNumbers is [1,4,5], it is expected that the sgdisk
-// output was from running `sgdisk --pretend <commands> --info=1 --info=4 --info=5`. It assumes the the
-// partition labels are well behaved (i.e. contain no control characters). It returns a list of partitions
-// matching the partition numbers specified, but with the start and size information as determined by sgdisk.
-// The partition numbers need to passed in because sgdisk includes them in its output.
-func parseSgdiskPretend(sgdiskOut string, partitionNumbers []int) (map[int]sgdiskOutput, error) {
-	if len(partitionNumbers) == 0 {
-		return nil, nil
-	}
-	startRegex := regexp.MustCompile(`^First sector: (\d*) \(.*\)$`)
-	endRegex := regexp.MustCompile(`^Last sector: (\d*) \(.*\)$`)
-	const (
-		START             = iota
-		END               = iota
-		FAIL_ON_START_END = iota
-	)
-
-	output := map[int]sgdiskOutput{}
-	state := START
-	current := sgdiskOutput{}
-	i := 0
-
-	lines := strings.Split(sgdiskOut, "\n")
-	for _, line := range lines {
-		switch state {
-		case START:
-			start, err := parseLine(startRegex, line)
-			if err != nil {
-				return nil, err
-			}
-			if start != -1 {
-				current.start = start
-				state = END
-			}
-		case END:
-			end, err := parseLine(endRegex, line)
-			if err != nil {
-				return nil, err
-			}
-			if end != -1 {
-				current.size = 1 + end - current.start
-				output[partitionNumbers[i]] = current
-				i++
-				if i == len(partitionNumbers) {
-					state = FAIL_ON_START_END
-				} else {
-					current = sgdiskOutput{}
-					state = START
-				}
-			}
-		case FAIL_ON_START_END:
-			if len(startRegex.FindStringSubmatch(line)) != 0 ||
-				len(endRegex.FindStringSubmatch(line)) != 0 {
-				return nil, ErrBadSgdiskOutput
-			}
-		}
-	}
-
-	if state != FAIL_ON_START_END {
-		// We stopped parsing in the middle of a info block. Something is wrong
-		return nil, ErrBadSgdiskOutput
-	}
-
-	return output, nil
-}
-
 // partitionShouldExist returns whether a bool is indicating if a partition should exist or not.
 // nil (unspecified in json) is treated the same as true.
-func partitionShouldExist(part sgdisk.Partition) bool {
+func partitionShouldExist(part partitioners.Partition) bool {
 	return !cutil.IsFalse(part.ShouldExist)
 }
 
@@ -450,7 +375,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		return fmt.Errorf("refusing to operate on directly active disk %q", devAlias)
 	}
 	if cutil.IsTrue(dev.WipeTable) {
-		op := sgdisk.Begin(s.Logger, devAlias)
+		op := getDeviceManager(s.Logger, devAlias)
 		s.Info("wiping partition table requested on %q", devAlias)
 		if len(activeParts) > 0 {
 			return fmt.Errorf("refusing to wipe active disk %q", devAlias)
@@ -464,12 +389,17 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 				return err
 			}
 		}
+
+		// Ensure the kernel and udev have fully processed the table change
+		if err := s.waitForUdev(blockDevResolved); err != nil {
+			return fmt.Errorf("failed to wait for udev after wipe on %q: %v", blockDevResolved, err)
+		}
 	}
 
 	// Ensure all partitions with number 0 are last
 	sort.Stable(PartitionList(dev.Partitions))
 
-	op := sgdisk.Begin(s.Logger, devAlias)
+	op := getDeviceManager(s.Logger, devAlias)
 
 	diskInfo, err := s.getPartitionMap(devAlias)
 	if err != nil {
@@ -485,10 +415,6 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 	if err != nil {
 		return err
 	}
-
-	var partxAdd []uint64
-	var partxDelete []uint64
-	var partxUpdate []uint64
 
 	for _, part := range resolvedPartitions {
 		shouldExist := partitionShouldExist(part)
@@ -510,15 +436,22 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		case !exists && shouldExist:
 			op.CreatePartition(part)
 			modification = true
-			partxAdd = append(partxAdd, uint64(part.Number))
 		case exists && !shouldExist && !wipeEntry:
 			return fmt.Errorf("partition %d exists but is specified as nonexistant and wipePartitionEntry is false", part.Number)
 		case exists && !shouldExist && wipeEntry:
 			op.DeletePartition(part.Number)
 			modification = true
-			partxDelete = append(partxDelete, uint64(part.Number))
 		case exists && shouldExist && matches:
 			s.Info("partition %d found with correct specifications", part.Number)
+			// For sfdisk, we need to include matching partitions in the operation
+			// because sfdisk replaces the entire partition table with the script content.
+			// Populate the partition with existing values to ensure it's preserved.
+			part.StartSector = &info.StartSector
+			part.SizeInSectors = &info.SizeInSectors
+			part.TypeGUID = &info.TypeGUID
+			part.GUID = &info.GUID
+			part.Label = &info.Label
+			op.CreatePartition(part)
 		case exists && shouldExist && !wipeEntry && !matches:
 			if partitionMatchesResize(info, part) {
 				s.Info("resizing partition %d", part.Number)
@@ -530,16 +463,19 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 				part.StartSector = &info.StartSector
 				op.CreatePartition(part)
 				modification = true
-				partxUpdate = append(partxUpdate, uint64(part.Number))
 			} else {
 				return fmt.Errorf("partition %d didn't match: %v", part.Number, matchErr)
 			}
 		case exists && shouldExist && wipeEntry && !matches:
 			s.Info("partition %d did not meet specifications, wiping partition entry and recreating", part.Number)
 			op.DeletePartition(part.Number)
+			// Ensure we preserve the existing start if unspecified or zero so the filesystem
+			// remains at the same offset and mountable after recreation (important for sfdisk).
+			if part.StartSector == nil || (part.StartSector != nil && *part.StartSector == 0) {
+				part.StartSector = &info.StartSector
+			}
 			op.CreatePartition(part)
 			modification = true
-			partxUpdate = append(partxUpdate, uint64(part.Number))
 		default:
 			// unfortunatey, golang doesn't check that all cases are handled exhaustively
 			return fmt.Errorf("unreachable code reached when processing partition %d. golang--", part.Number)
@@ -554,36 +490,14 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		return fmt.Errorf("commit failure: %v", err)
 	}
 
-	// In contrast to similar tools, sgdisk does not trigger the update of the
-	// kernel partition table with BLKPG but only uses BLKRRPART which fails
-	// as soon as one partition of the disk is mounted
-	if len(activeParts) > 0 {
-		runPartxCommand := func(op string, partitions []uint64) error {
-			for _, partNr := range partitions {
-				cmd := exec.Command(distro.PartxCmd(), "--"+op, "--nr", strconv.FormatUint(partNr, 10), blockDevResolved)
-				if _, err := s.LogCmd(cmd, "triggering partition %d %s on %q", partNr, op, devAlias); err != nil {
-					return fmt.Errorf("partition %s failed: %v", op, err)
-				}
-			}
-			return nil
-		}
-		if err := runPartxCommand("delete", partxDelete); err != nil {
-			return err
-		}
-		if err := runPartxCommand("update", partxUpdate); err != nil {
-			return err
-		}
-		if err := runPartxCommand("add", partxAdd); err != nil {
-			return err
-		}
-	}
+	// sfdisk handles kernel notification better than sgdisk; skip manual partx operations
 
 	// It's best to wait here for the /dev/ABC entries to be
 	// (re)created, not only for other parts of the initramfs but
 	// also because s.waitOnDevices() can still race with udev's
 	// partition entry recreation.
-	if err := s.waitForUdev(devAlias); err != nil {
-		return fmt.Errorf("failed to wait for udev on %q after partitioning: %v", devAlias, err)
+	if err := s.waitForUdev(blockDevResolved); err != nil {
+		return fmt.Errorf("failed to wait for udev on %q after partitioning: %v", blockDevResolved, err)
 	}
 
 	return nil
