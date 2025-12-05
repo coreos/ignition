@@ -20,6 +20,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
 
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
@@ -51,9 +52,11 @@ func init() {
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	// the vsock module must be built into the kernel or loaded so we can communicate
 	// with the host
-	if _, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "vsock"), "Loading vsock kernel module"); err != nil {
-		f.Logger.Err("failed to install vsock kernel module: %v", err)
-		return types.Config{}, report.Report{}, fmt.Errorf("failed to install vsock kernel module: %v", err)
+	if _, statErr := os.Stat("/sys/devices/virtual/misc/vsock"); statErr != nil {
+		if _, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "vsock"), "Loading vsock kernel module"); err != nil {
+			f.Logger.Err("failed to install vsock kernel module: %v", err)
+			return types.Config{}, report.Report{}, fmt.Errorf("failed to install vsock kernel module: %v", err)
+		}
 	}
 
 	// we use a http GET over vsock to fetch the ignition file.  the

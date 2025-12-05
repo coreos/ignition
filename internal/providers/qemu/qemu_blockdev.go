@@ -52,9 +52,10 @@ func init() {
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 	f.Logger.Warning("Fetching the Ignition config via the Virtio block driver is currently experimental and subject to change.")
 
-	_, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "virtio_blk"), "loading Virtio block driver module")
-	if err != nil {
-		return types.Config{}, report.Report{}, err
+	if _, statErr := os.Stat("/sys/bus/virtio/drivers/virtio_blk"); statErr != nil {
+		if _, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "virtio_blk"), "loading Virtio block driver module"); err != nil {
+			return types.Config{}, report.Report{}, err
+		}
 	}
 
 	data, err := fetchConfigFromBlockDevice(f.Logger)

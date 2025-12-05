@@ -16,6 +16,7 @@ package hyperv
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 
@@ -47,9 +48,10 @@ func fetchConfig(f *resource.Fetcher) ([]types.File, types.Config, report.Report
 
 	// To read key-value pairs from the Windows host, the hv_util kernel
 	// module must be loaded to create the kernel device
-	_, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "hv_utils"), "loading hv_utils kernel module")
-	if err != nil {
-		return nil, types.Config{}, report.Report{}, fmt.Errorf("loading hv_utils kernel module: %w", err)
+	if _, statErr := os.Stat("/sys/bus/vmbus/drivers/hv_utils"); statErr != nil {
+		if _, err := f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "hv_utils"), "loading hv_utils kernel module"); err != nil {
+			return nil, types.Config{}, report.Report{}, fmt.Errorf("loading hv_utils kernel module: %w", err)
+		}
 	}
 
 	keyValuePairs, err := kvp.GetKeyValuePairs()
