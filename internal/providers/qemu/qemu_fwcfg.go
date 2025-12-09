@@ -51,8 +51,10 @@ func init() {
 
 func fetchConfig(f *resource.Fetcher) (cfg types.Config, rpt report.Report, err error) {
 	// load qemu_fw_cfg module
-	if _, err = f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "qemu_fw_cfg"), "loading QEMU firmware config module"); err != nil {
-		return
+	if _, statErr := os.Stat("/sys/firmware/qemu_fw_cfg"); statErr != nil {
+		if _, err = f.Logger.LogCmd(exec.Command(distro.ModprobeCmd(), "qemu_fw_cfg"), "loading QEMU firmware config module"); err != nil {
+			return
+		}
 	}
 
 	// get size of firmware blob, if it exists
