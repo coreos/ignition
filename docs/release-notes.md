@@ -25,6 +25,9 @@ Starting with this release, ignition-validate binaries are signed with the
 
 ## Ignition 2.24.0 (2024-10-14)
 
+This version was actually released 2025-10-14, but changing the title now would
+invalidate links to this entry here in the release notes.
+
 ### Features
 
 - Add support for nocloud config fetching in kubevirt
