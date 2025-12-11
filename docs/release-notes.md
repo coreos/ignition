@@ -20,6 +20,7 @@ Starting with this release, ignition-validate binaries are signed with the
 
 ### Bug fixes
 
+- Fix EnsureGroup to be idempotent when group already exists ([#2158](https://github.com/coreos/ignition/pull/2158))
 - Fix invalid random source in FIPS 140-only mode in FIPS mode ([#2159](https://github.com/coreos/ignition/pull/2159))
 - Only load kernel modules when actually necessary so that they can be built-in ([#2164](https://github.com/coreos/ignition/pull/2164))
 
