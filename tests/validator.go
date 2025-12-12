@@ -81,29 +81,58 @@ func validateDisk(t *testing.T, d types.Disk) error {
 		}
 		delete(partitionSet, e.Number)
 
-		sgdiskInfo, err := exec.Command(
-			"sgdisk", "-i", strconv.Itoa(e.Number),
-			d.Device).CombinedOutput()
-		if err != nil {
-			t.Error("sgdisk -i", strconv.Itoa(e.Number), err)
-			return nil
+		// Try sfdisk first (for sfdisk-based partitioning), fall back to sgdisk
+		var actualGUID, actualTypeGUID, actualSectors, actualLabel string
+
+		sfdiskUUID, sfdiskErr := exec.Command("sfdisk", "--part-uuid", d.Device, strconv.Itoa(e.Number)).CombinedOutput()
+		actualGUID = strings.TrimSpace(string(sfdiskUUID))
+
+		typeOut, typeErr := exec.Command("sfdisk", "--part-type", d.Device, strconv.Itoa(e.Number)).CombinedOutput()
+		actualTypeGUID = strings.TrimSpace(string(typeOut))
+
+		labelOut, labelErr := exec.Command("sfdisk", "--part-label", d.Device, strconv.Itoa(e.Number)).CombinedOutput()
+		actualLabel = strings.TrimSpace(string(labelOut))
+
+		// Get size via sfdisk --list
+		listOut, listErr := exec.Command("sfdisk", "--list", d.Device).CombinedOutput()
+		if listErr == nil {
+			// Parse sfdisk list output for size
+			re := regexp.MustCompile(fmt.Sprintf(`%sp%d\s+\d+\s+\d+\s+(\d+)`, regexp.QuoteMeta(d.Device), e.Number))
+			match := re.FindSubmatch(listOut)
+			if len(match) >= 2 {
+				actualSectors = string(match[1])
+			} else {
+				actualSectors = "0"
+			}
+		} else {
+			actualSectors = "0"
 		}
 
-		actualGUID, err := regexpSearch("GUID", "Partition unique GUID: (?P<partition_guid>[\\d\\w-]+)", sgdiskInfo)
-		if err != nil {
-			return err
-		}
-		actualTypeGUID, err := regexpSearch("type GUID", "Partition GUID code: (?P<partition_code>[\\d\\w-]+)", sgdiskInfo)
-		if err != nil {
-			return err
-		}
-		actualSectors, err := regexpSearch("partition size", "Partition size: (?P<sectors>\\d+) sectors", sgdiskInfo)
-		if err != nil {
-			return err
-		}
-		actualLabel, err := regexpSearch("partition name", "Partition name: '(?P<name>[\\d\\w-_]+)'", sgdiskInfo)
-		if err != nil {
-			return err
+		// If any sfdisk command failed or returned empty, fall back to sgdisk
+		if sfdiskErr != nil || typeErr != nil || labelErr != nil || actualGUID == "" || actualTypeGUID == "" {
+			// Fall back to sgdisk
+			sgdiskInfo, err := exec.Command("sgdisk", "-i", strconv.Itoa(e.Number), d.Device).CombinedOutput()
+			if err != nil {
+				t.Error("sgdisk -i", strconv.Itoa(e.Number), err)
+				return nil
+			}
+
+			actualGUID, err = regexpSearch("GUID", "Partition unique GUID: (?P<partition_guid>[\\d\\w-]+)", sgdiskInfo)
+			if err != nil {
+				return err
+			}
+			actualTypeGUID, err = regexpSearch("type GUID", "Partition GUID code: (?P<partition_code>[\\d\\w-]+)", sgdiskInfo)
+			if err != nil {
+				return err
+			}
+			actualSectors, err = regexpSearch("partition size", "Partition size: (?P<sectors>\\d+) sectors", sgdiskInfo)
+			if err != nil {
+				return err
+			}
+			actualLabel, err = regexpSearch("partition name", "Partition name: '(?P<name>[\\d\\w-_]+)'", sgdiskInfo)
+			if err != nil {
+				return err
+			}
 		}
 
 		// have to align the size to the nearest sector alignment boundary first
