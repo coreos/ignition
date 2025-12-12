@@ -4,19 +4,26 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.25.0 (unreleased)
-
-Starting with this release, ignition-validate binaries are signed with the
-[Fedora 43 key](https://getfedora.org/security/).
+## Upcoming Ignition 2.26.0 (unreleased)
 
 ### Breaking changes
 
 ### Features
 
+### Changes
+
+### Bug fixes
+
+
+## Ignition 2.25.0 (2025-12-11)
+
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 43 key](https://getfedora.org/security/).
+
+### Features
+
 - The name for custom clevis pins is not validated by Ignition anymore, enabling the use of arbitrary custom pins _(3.6.0-exp)_
 - Add NVIDIA BlueField provider
-
-### Changes
 
 ### Bug fixes
 
