@@ -21,7 +21,6 @@ package openstack
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/url"
@@ -199,48 +198,34 @@ func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 	}
 
 	// Use parallel fetching for all interfaces
-	cfg, _, err := fetchConfigParallel(f, urls)
-
-	// the metadata server exists but doesn't contain any actual metadata,
-	// assume that there is no config specified
-	if err == resource.ErrNotFound {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(cfg)
+	data, err := fetchConfigParallel(f, urls)
 	if err != nil {
+		// the metadata server exists but doesn't contain any actual metadata,
+		// assume that there is no config specified
+		if err == resource.ErrNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
+
 	return data, nil
 }
 
 func fetchConfigFromMetadataServiceIPv4Only(f *resource.Fetcher) ([]byte, error) {
-	urls := map[string]url.URL{
-		string(resource.IPv4): userdataURLs[resource.IPv4],
-	}
+	ipv4Url := userdataURLs[resource.IPv4]
 
-	cfg, _, err := resource.FetchConfigDualStack(
-		f,
-		urls,
-		func(f *resource.Fetcher, u url.URL) ([]byte, error) {
-			return f.FetchToBuffer(u, resource.FetchOptions{})
-		},
-	)
-
-	// the metadata server exists but doesn't contain any actual metadata,
-	// assume that there is no config specified
-	if err == resource.ErrNotFound {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(cfg)
+	data, err := f.FetchToBuffer(ipv4Url, resource.FetchOptions{})
 	if err != nil {
+		if err == resource.ErrNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
+
 	return data, nil
 }
 
-func fetchConfigParallel(f *resource.Fetcher, urls []url.URL) (types.Config, report.Report, error) {
+func fetchConfigParallel(f *resource.Fetcher, urls []url.URL) ([]byte, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -289,12 +274,12 @@ func fetchConfigParallel(f *resource.Fetcher, urls []url.URL) (types.Config, rep
 	select {
 	case u := <-success:
 		f.Logger.Debug("got configuration from: %s", u.String())
-		return util.ParseConfig(f.Logger, cfg[u])
+		return cfg[u], nil
 	case <-errors:
 		nbErrors++
 		if nbErrors == len(urls) {
 			f.Logger.Debug("all routines have failed to fetch configuration, returning last known error: %v", err)
-			return types.Config{}, report.Report{}, err
+			return nil, err
 		}
 	case <-done:
 		// All goroutines completed, check if we have any success
@@ -302,12 +287,12 @@ func fetchConfigParallel(f *resource.Fetcher, urls []url.URL) (types.Config, rep
 			// Return the first successful configuration
 			for u, data := range cfg {
 				f.Logger.Debug("got configuration from: %s", u.String())
-				return util.ParseConfig(f.Logger, data)
+				return data, nil
 			}
 		}
 	}
 
-	return types.Config{}, report.Report{}, err
+	return nil, err
 }
 
 func findInterfacesWithIPv6() ([]string, error) {
