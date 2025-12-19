@@ -16,6 +16,7 @@ package translator
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 )
 
@@ -83,15 +84,46 @@ func (r *Registry) List() []Metadata {
 
 // Translate auto-detects variant/version and translates the input.
 func (r *Registry) Translate(ctx context.Context, input []byte, opts Options) (Result, error) {
+	res := Result{}
 	variant, version, err := ParseVariantVersion(input)
 	if err != nil {
-		return Result{}, fmt.Errorf("failed to parse variant/version: %w", err)
+		return res, fmt.Errorf("failed to parse variant/version: %w", err)
 	}
 
 	t, err := r.Get(variant, version)
 	if err != nil {
-		return Result{}, err
+		return res, err
 	}
 
-	return t.Translate(ctx, input, opts)
+	parsed, err := t.Parse(input)
+	if err != nil {
+		return res, err
+	}
+
+	report, err := t.Validate(parsed)
+	res.Report = report
+	if err != nil {
+		return res, err
+	}
+
+	translated, report, err := t.Translate(parsed, opts)
+	res.Report.Merge(report)
+	if err != nil {
+		return res, err
+	}
+
+	out, err := marshal(translated, opts.Pretty)
+	if err != nil {
+		return res, err
+	}
+	res.Output = out
+
+	return res, nil
+}
+
+func marshal(from interface{}, pretty bool) ([]byte, error) {
+	if pretty {
+		return json.MarshalIndent(from, "", "  ")
+	}
+	return json.Marshal(from)
 }
