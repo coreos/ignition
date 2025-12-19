@@ -15,8 +15,6 @@
 package translator
 
 import (
-	"context"
-
 	"github.com/coreos/vcontext/report"
 )
 
@@ -27,11 +25,10 @@ import (
 type Translator interface {
 	// Metadata the variant, version, and target Ignition version.
 	Metadata() Metadata
-
-	// Translate converts Butane config bytes to Ignition config bytes.
-	Translate(ctx context.Context, input []byte, opts Options) (Result, error)
-
-	// Validate validates a Butane config without performing translation.
-	Validate(ctx context.Context, input []byte) (report.Report, error)
+	// Parse yml into schema struct, basically a yaml.Unmarshal wrapper?
+	Parse(input []byte /*opts?*/) (interface{}, error)
+	// From inner schema struct to Ignition struct
+	Translate(input interface{}, options Options) (interface{}, report.Report, error)
+	// Validates yml inner struct
+	Validate(in interface{}) (report.Report, error)
 }
-
