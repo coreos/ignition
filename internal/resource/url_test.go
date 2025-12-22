@@ -504,6 +504,20 @@ func TestFetchConfigDualStack(t *testing.T) {
 			expectError: false,
 			expectIPv:   IPv6,
 		},
+		{
+			name: "IPv4 returns empty data",
+			userdataURLs: map[string]url.URL{
+				IPv4: {
+					Scheme: "data",
+					Opaque: ",",
+				},
+			},
+			fetchConfig: func(f *Fetcher, u url.URL) ([]byte, error) {
+				// Return empty bytes to simulate empty metadata response
+				return []byte{}, nil
+			},
+			expectError: true,
+		},
 	}
 
 	for i, test := range tests {
@@ -513,6 +527,10 @@ func TestFetchConfigDualStack(t *testing.T) {
 			if test.expectError {
 				if err == nil {
 					t.Errorf("#%d: FetchConfigDualStack() expected error, got nil", i)
+				}
+				// For empty data case, verify it returns ErrEmpty
+				if test.name == "IPv4 returns empty data" && err != errors.ErrEmpty {
+					t.Errorf("#%d: FetchConfigDualStack() expected errors.ErrEmpty for empty data, got %v", i, err)
 				}
 				// Config should be empty on error
 				if cfg.Ignition.Version != "" {
