@@ -13,7 +13,11 @@ nav_order: 9
 ### Changes
 
 ### Bug fixes
-- Fixed OpenStack provider returning empty JSON instead of empty bytes when metadata has no config
+
+## Ignition 2.25.1 (2025-12-22)
+
+### Bug fixes
+- Fix OpenStack provider returning empty JSON instead of empty bytes when metadata has no config
 
 
 ## Ignition 2.25.0 (2025-12-11)
