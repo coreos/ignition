@@ -16,7 +16,7 @@ jobs:
     container: quay.io/coreos-assembler/fcos-buildroot:testing-devel
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       # https://github.com/actions/checkout/issues/760
       - name: Mark git checkout as safe
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
