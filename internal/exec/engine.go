@@ -55,14 +55,15 @@ var (
 
 // Engine represents the entity that fetches and executes a configuration.
 type Engine struct {
-	ConfigCache    string
-	FetchTimeout   time.Duration
-	Logger         *log.Logger
-	NeedNet        string
-	Root           string
-	PlatformConfig platform.Config
-	Fetcher        *resource.Fetcher
-	State          *state.State
+	ConfigCache         string
+	FetchTimeout        time.Duration
+	GenerateCloudConfig bool
+	Logger              *log.Logger
+	NeedNet             string
+	Root                string
+	PlatformConfig      platform.Config
+	Fetcher             *resource.Fetcher
+	State               *state.State
 }
 
 // Run executes the stage of the given name. It returns true if the stage
@@ -286,6 +287,10 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 // is unavailable. This will also render the config (see renderConfig) before
 // returning.
 func (e *Engine) fetchProviderConfig() (types.Config, error) {
+	if e.GenerateCloudConfig {
+		return e.fetchGeneratedConfig()
+	}
+
 	platformConfigs := []platform.Config{
 		cmdline.Config,
 		system.Config,
@@ -321,6 +326,28 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 	if err != nil {
 		return types.Config{}, err
 	}
+
+	configFetcher := ConfigFetcher{
+		Logger:  e.Logger,
+		Fetcher: e.Fetcher,
+		State:   e.State,
+	}
+
+	return configFetcher.RenderConfig(cfg)
+}
+
+func (e *Engine) fetchGeneratedConfig() (types.Config, error) {
+	e.Logger.Info("using generated cloud config for platform %q", e.PlatformConfig.Name())
+	cfg, err := e.PlatformConfig.GenerateConfig(e.Fetcher)
+	if err != nil {
+		return types.Config{}, err
+	}
+
+	e.State.FetchedConfigs = append(e.State.FetchedConfigs, state.FetchedConfig{
+		Kind:       "user",
+		Source:     fmt.Sprintf("%s-generator", e.PlatformConfig.Name()),
+		Referenced: false,
+	})
 
 	configFetcher := ConfigFetcher{
 		Logger:  e.Logger,

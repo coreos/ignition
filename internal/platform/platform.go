@@ -49,6 +49,9 @@ type Provider struct {
 	Status     func(stageName string, f resource.Fetcher, e error) error
 	DelConfig  func(f *resource.Fetcher) error
 
+	// Generates a platform-specific Ignition config from cloud provider metadata.
+	GenerateCloudConfig func(f *resource.Fetcher) (types.Config, error)
+
 	// Fetch, and also save output files to be written during files stage.
 	// Avoid, unless you're certain you need it.
 	FetchWithFiles func(f *resource.Fetcher) ([]types.File, types.Config, report.Report, error)
@@ -102,6 +105,13 @@ func (c Config) DelConfig(f *resource.Fetcher) error {
 	} else {
 		return ErrCannotDelete
 	}
+}
+
+func (c Config) GenerateConfig(f *resource.Fetcher) (types.Config, error) {
+	if c.p.GenerateCloudConfig != nil {
+		return c.p.GenerateCloudConfig(f)
+	}
+	return types.Config{}, ErrNoProvider
 }
 
 var configs = registry.Create("platform configs")
