@@ -25,4 +25,4 @@ After=network.target
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=/run/ignition.env
-ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=fetch ${IGNITION_ARGS}
+ExecStart=/usr/bin/ignition --root=/sysroot --platform=${PLATFORM_ID} --stage=fetch --generate-cloud-config=true ${IGNITION_ARGS}
