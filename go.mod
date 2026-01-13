@@ -1,6 +1,8 @@
 module github.com/coreos/ignition/v2
 
-go 1.25
+go 1.24.0
+
+toolchain go1.24.1
 
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
@@ -17,7 +19,7 @@ require (
 	github.com/coreos/go-semver v0.3.1
 	github.com/coreos/go-systemd/v22 v22.6.0
 	github.com/coreos/vcontext v0.0.0-20230201181013-d72178a18687
-	github.com/google/renameio/v2 v2.0.2
+	github.com/google/renameio/v2 v2.0.1
 	github.com/google/uuid v1.6.0
 	github.com/mdlayher/vsock v1.2.1
 	github.com/mitchellh/copystructure v1.2.0
