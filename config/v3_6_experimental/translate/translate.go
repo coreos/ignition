@@ -63,6 +63,10 @@ func Translate(old old_types.Config) (ret types.Config) {
 	tr.AddCustomTranslator(translateIgnition)
 	tr.AddCustomTranslator(translateDirectoryEmbedded1)
 	tr.AddCustomTranslator(translateFileEmbedded1)
-	tr.Translate(&old, &ret)
+	tr.Translate(&old.Ignition, &ret.Ignition)
+	tr.Translate(&old.KernelArguments, &ret.KernelArguments)
+	tr.Translate(&old.Passwd, &ret.Passwd)
+	tr.Translate(&old.Storage, &ret.Storage)
+	tr.Translate(&old.Systemd, &ret.Systemd)
 	return
 }
