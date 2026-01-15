@@ -68,6 +68,8 @@ var (
 	// partition
 	ErrReuseByLabel         = errors.New("partitions cannot be reused by label; number must be specified except on boot disk (/dev/disk/by-id/coreos-boot-disk) or when wipe_table is true")
 	ErrWrongPartitionNumber = errors.New("incorrect partition number; a new partition will be created using reserved label")
+	ErrRootTooSmall         = errors.New("root should have 8GiB of space assigned")
+	ErrRootConstrained      = errors.New("root partition cannot expand; it is set to fill available space but is followed by an auto-positioned partition")
 
 	// MachineConfigs
 	ErrFieldElided              = errors.New("field ignored in raw mode")
