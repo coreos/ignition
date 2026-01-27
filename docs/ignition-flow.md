@@ -71,8 +71,6 @@ flowchart TB
     %% ===== STYLING =====
     classDef service fill:#42a5f5,stroke:#1565c0,stroke-width:2px,color:#000
     classDef target fill:#ffa726,stroke:#e65100,stroke-width:2px,color:#000
-    classDef ideas fill:#fff59d,stroke:#f57f17,color:#000
-    classDef concerns fill:#ef9a9a,stroke:#c62828,color:#000
     
     class A,B,C,D,E,F,H,I,J,K,N4 service
     class G,L,N5 target
