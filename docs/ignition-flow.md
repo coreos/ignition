@@ -34,7 +34,7 @@ flowchart TB
         D0 --> D1
         D1 --> D1a
         D1 --> D1b
-        D2["Get IMDS userdata"]
+        D2["Request cloud specific configs"]
         D3["Open config device /dev/sr0"]
         D1a --> D2
         D1b --> D2
