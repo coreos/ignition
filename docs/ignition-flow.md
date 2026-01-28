@@ -35,10 +35,15 @@ flowchart TB
         online_check_configs --> online_base_dir
         online_check_configs --> online_platform_dir
         online_request_cloud_configs["Request cloud specific configs"]
-        online_open_config_device["Open config device /dev/sr0"]
+        online_cloud_configs_present{"Cloud configs present?"}
+        online_use_cloud_configs["Merge configs if present"]
+        online_open_config_device["Open and read config device"]
         online_base_dir --> online_request_cloud_configs
         online_platform_dir --> online_request_cloud_configs
-        online_request_cloud_configs --> online_open_config_device
+        online_request_cloud_configs --> online_cloud_configs_present
+        online_cloud_configs_present -->|Yes| online_use_cloud_configs
+        online_cloud_configs_present -->|No| online_open_config_device
+        online_open_config_device --> online_use_cloud_configs
     end
     fetch_service --> FETCH_ONLINE
     
@@ -50,11 +55,13 @@ flowchart TB
         link_up["Link up"]
         network_config["systemd-networkd.service - Network Configuration"]
         network_target["network.target reached"]
-        get_dhcp_address["Get DHCP address"]
-        networkd_service --> find_primary_nic --> link_up --> network_config --> network_target --> get_dhcp_address
+        networkd_service --> find_primary_nic --> link_up --> network_config --> network_target
     end
     setup --> NETWORK
     NETWORK --> FETCH_ONLINE
+    NETWORK --> get_dhcp_address["Get DHCP address"]
+    get_dhcp_address --> online_cloud_configs_present
+
     
     %% --- Disk & Mount Services ---
     FETCH_ONLINE --> kargs_service["ignition-kargs.service"]
@@ -72,6 +79,6 @@ flowchart TB
     classDef service fill:#42a5f5,stroke:#1565c0,stroke-width:2px,color:#000
     classDef target fill:#ffa726,stroke:#e65100,stroke-width:2px,color:#000
     
-    class setup_pre,setup,fetch_offline,fetch_service,kargs_service,disks_service,mount_service,files_service,quench_service,initrd_setup_root,network_config service
+    class setup_pre,setup,fetch_offline,fetch_service,kargs_service,disks_service,mount_service,files_service,quench_service,initrd_setup_root,network_config,networkd_service service
     class diskful_target,complete_target,network_target target
 ```
