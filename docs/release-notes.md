@@ -14,6 +14,8 @@ nav_order: 9
 
 ### Bug fixes
 
+- Include `groupmod` binary in initramfs ([#2190](https://github.com/coreos/ignition/pull/2190))
+
 ## Ignition 2.25.1 (2025-12-22)
 
 ### Bug fixes
