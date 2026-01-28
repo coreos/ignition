@@ -28,7 +28,7 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - name: Check out repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Install Linux dependencies
       if: runner.os == 'Linux'
       run: |
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Set up Go 1.x
       uses: actions/setup-go@v5
       with:

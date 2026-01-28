@@ -29,7 +29,7 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - name: Check out repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Build ignition-validate
       shell: bash
       run: go build -o ignition-validate github.com/coreos/ignition/v2/validate
