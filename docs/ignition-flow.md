@@ -60,8 +60,7 @@ flowchart TB
     setup --> NETWORK
     NETWORK --> FETCH_ONLINE
     NETWORK --> get_dhcp_address["Get DHCP address"]
-    get_dhcp_address --> online_cloud_configs_present
-
+    get_dhcp_address --> online_request_cloud_configs
     
     %% --- Disk & Mount Services ---
     FETCH_ONLINE --> kargs_service["ignition-kargs.service"]
