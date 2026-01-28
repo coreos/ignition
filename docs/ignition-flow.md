@@ -3,75 +3,75 @@ flowchart TB
     %% ===== IGNITION BOOT FLOW =====
     
     %% --- Early Boot ---
-    A["ignition-setup-pre.service"] --> B["ignition-setup.service"]
-    B --> C["ignition-fetch-offline.service"]
+    setup_pre["ignition-setup-pre.service"] --> setup["ignition-setup.service"]
+    setup --> fetch_offline["ignition-fetch-offline.service"]
     
     %% --- Fetch Offline Details ---
     subgraph FETCH_OFFLINE ["Ignition Fetch Offline"]
         direction TB
-        C0["Detect platform"]
-        C1["Check configs at:"]
-        C2["/usr/lib/ignition/base.d"]
-        C3["/usr/lib/ignition/base.platform.d/{platform}"]
-        C0 --> C1
-        C1 --> C2
-        C1 --> C3
-        C4["Merge configs if present"]
-        C2 --> C4
-        C3 --> C4
+        offline_detect_platform["Detect platform"]
+        offline_check_configs["Check configs at:"]
+        offline_base_dir["/usr/lib/ignition/base.d"]
+        offline_platform_dir["/usr/lib/ignition/base.platform.d/{platform}"]
+        offline_detect_platform --> offline_check_configs
+        offline_check_configs --> offline_base_dir
+        offline_check_configs --> offline_platform_dir
+        offline_merge_configs["Merge configs if present"]
+        offline_base_dir --> offline_merge_configs
+        offline_platform_dir --> offline_merge_configs
     end
-    C --> FETCH_OFFLINE
+    fetch_offline --> FETCH_OFFLINE
     
-    FETCH_OFFLINE --> D["ignition-fetch.service"]
+    FETCH_OFFLINE --> fetch_service["ignition-fetch.service"]
     
     %% --- Fetch Service Details ---
     subgraph FETCH_ONLINE ["Ignition Fetch"]
         direction TB
-        D0["Detect platform"]
-        D1["Check configs at:"]
-        D1a["/usr/lib/ignition/base.d"]
-        D1b["/usr/lib/ignition/base.platform.d/{platform}"]
-        D0 --> D1
-        D1 --> D1a
-        D1 --> D1b
-        D2["Request cloud specific configs"]
-        D3["Open config device /dev/sr0"]
-        D1a --> D2
-        D1b --> D2
-        D2 --> D3
+        online_detect_platform["Detect platform"]
+        online_check_configs["Check configs at:"]
+        online_base_dir["/usr/lib/ignition/base.d"]
+        online_platform_dir["/usr/lib/ignition/base.platform.d/{platform}"]
+        online_detect_platform --> online_check_configs
+        online_check_configs --> online_base_dir
+        online_check_configs --> online_platform_dir
+        online_request_cloud_configs["Request cloud specific configs"]
+        online_open_config_device["Open config device /dev/sr0"]
+        online_base_dir --> online_request_cloud_configs
+        online_platform_dir --> online_request_cloud_configs
+        online_request_cloud_configs --> online_open_config_device
     end
-    D --> FETCH_ONLINE
+    fetch_service --> FETCH_ONLINE
     
     %% --- Network Stack ---
     subgraph NETWORK ["Network Stack"]
         direction TB
-        N1["systemd-networkd.service"]
-        N2["Find primary NIC"]
-        N3["Link up"]
-        N4["systemd-networkd.service - Network Configuration"]
-        N5["network.target reached"]
-        N6["Get DHCP address"]
-        N1 --> N2 --> N3 --> N4 --> N5 --> N6
+        networkd_service["systemd-networkd.service"]
+        find_primary_nic["Find primary NIC"]
+        link_up["Link up"]
+        network_config["systemd-networkd.service - Network Configuration"]
+        network_target["network.target reached"]
+        get_dhcp_address["Get DHCP address"]
+        networkd_service --> find_primary_nic --> link_up --> network_config --> network_target --> get_dhcp_address
     end
-    B --> NETWORK
+    setup --> NETWORK
     NETWORK --> FETCH_ONLINE
     
     %% --- Disk & Mount Services ---
-    FETCH_ONLINE --> E["ignition-kargs.service"]
-    E --> F["ignition-disks.service"]
-    F --> G["ignition-diskful.target reached"]
-    G --> H["ignition-mount.service"]
+    FETCH_ONLINE --> kargs_service["ignition-kargs.service"]
+    kargs_service --> disks_service["ignition-disks.service"]
+    disks_service --> diskful_target["ignition-diskful.target reached"]
+    diskful_target --> mount_service["ignition-mount.service"]
     
     %% --- Files & Users ---
-    H --> I["ignition-files.service"]
-    I --> J["ignition-quench.service"]
-    J --> K["initrd-setup-root-after-ignition.service"]
-    J --> L["ignition-complete.target"]
+    mount_service --> files_service["ignition-files.service"]
+    files_service --> quench_service["ignition-quench.service"]
+    quench_service --> initrd_setup_root["initrd-setup-root-after-ignition.service"]
+    quench_service --> complete_target["ignition-complete.target"]
     
     %% ===== STYLING =====
     classDef service fill:#42a5f5,stroke:#1565c0,stroke-width:2px,color:#000
     classDef target fill:#ffa726,stroke:#e65100,stroke-width:2px,color:#000
     
-    class A,B,C,D,E,F,H,I,J,K,N4 service
-    class G,L,N5 target
+    class setup_pre,setup,fetch_offline,fetch_service,kargs_service,disks_service,mount_service,files_service,quench_service,initrd_setup_root,network_config service
+    class diskful_target,complete_target,network_target target
 ```
