@@ -25,6 +25,7 @@ type Config struct {
 	Passwd          Passwd          `json:"passwd,omitempty"`
 	Storage         Storage         `json:"storage,omitempty"`
 	Systemd         Systemd         `json:"systemd,omitempty"`
+	Attestation     Attestation     `json:"attestation,omitempty"`
 }
 
 type Device string
@@ -261,4 +262,17 @@ type Unit struct {
 
 type Verification struct {
 	Hash *string `json:"hash,omitempty"`
+}
+
+type Attestation struct {
+	AttestationKey AttestationKey `json:"attestation_key,omitempty"`
+}
+
+type AttestationKey struct {
+	Registration Registration `json:"registration,omitempty"`
+}
+
+type Registration struct {
+	Url         *string `json:"url,omitempty"`
+	Certificate *string `json:"certificat,omitempty"`
 }
