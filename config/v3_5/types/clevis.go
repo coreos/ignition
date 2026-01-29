@@ -33,13 +33,7 @@ func (cu ClevisCustom) Validate(c path.ContextPath) (r report.Report) {
 	if util.NilOrEmpty(cu.Pin) && util.NilOrEmpty(cu.Config) && !util.IsTrue(cu.NeedsNetwork) {
 		return
 	}
-	if util.NotEmpty(cu.Pin) {
-		switch *cu.Pin {
-		case "tpm2", "tang", "sss":
-		default:
-			r.AddOnError(c.Append("pin"), errors.ErrUnknownClevisPin)
-		}
-	} else {
+	if util.NilOrEmpty(cu.Pin) {
 		r.AddOnError(c.Append("pin"), errors.ErrClevisPinRequired)
 	}
 	if util.NilOrEmpty(cu.Config) {
