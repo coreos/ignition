@@ -33,6 +33,7 @@ install() {
     # present
     inst_multiple -o \
         groupadd \
+        groupmod \
         groupdel \
         mkfs.btrfs \
         mkfs.ext4 \
