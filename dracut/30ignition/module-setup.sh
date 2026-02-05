@@ -14,9 +14,12 @@ depends() {
 }
 
 install_ignition_unit() {
-    local unit="$1"; shift
-    local target="${1:-ignition-complete.target}"; shift
-    local instantiated="${1:-$unit}"; shift
+    local unit="$1"
+    shift
+    local target="${1:-ignition-complete.target}"
+    shift
+    local instantiated="${1:-$unit}"
+    shift
     inst_simple "$moddir/$unit" "$systemdsystemunitdir/$unit"
     # note we `|| exit 1` here so we error out if e.g. the units are missing
     # see https://github.com/coreos/fedora-coreos-config/issues/799
@@ -33,6 +36,7 @@ install() {
     # present
     inst_multiple -o \
         groupadd \
+        groupmod \
         groupdel \
         mkfs.btrfs \
         mkfs.ext4 \
@@ -110,23 +114,22 @@ install() {
 }
 
 installkernel() {
-     # required by hyperv platform to read kvp from the kernel
-     instmods hv_utils
+    # required by hyperv platform to read kvp from the kernel
+    instmods hv_utils
 
-     # required by applehv platform to read ignition file through vsock
-     instmods -c vsock
-     instmods -c vmw_vsock_virtio_transport_common
-     instmods -c vmw_vsock_virtio_transport
+    # required by applehv platform to read ignition file through vsock
+    instmods -c vsock
+    instmods -c vmw_vsock_virtio_transport_common
+    instmods -c vmw_vsock_virtio_transport
 
-     # required for cex card early initialization
-     if [[ ${DRACUT_ARCH:-$(uname -m)} == s390x ]]; then
+    # required for cex card early initialization
+    if [[ ${DRACUT_ARCH:-$(uname -m)} == s390x ]]; then
         instmods -c zcrypt_cex4
         instmods -c pkey_cca
-     fi
+    fi
 
-     # required by nvidiabluefield platform to read ignition file through bootfifo sysfs interface
-     if [[ ${DRACUT_ARCH:-$(uname -m)} == aarch64 ]]; then
+    # required by nvidiabluefield platform to read ignition file through bootfifo sysfs interface
+    if [[ ${DRACUT_ARCH:-$(uname -m)} == aarch64 ]]; then
         instmods -c mlxbf_bootctl
-     fi
+    fi
 }
-
