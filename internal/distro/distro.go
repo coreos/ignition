@@ -39,6 +39,7 @@ var (
 	mountCmd     = "mount"
 	partxCmd     = "partx"
 	sgdiskCmd    = "sgdisk"
+	sfdiskCmd    = "sfdisk"
 	modprobeCmd  = "modprobe"
 	udevadmCmd   = "udevadm"
 	usermodCmd   = "usermod"
@@ -97,6 +98,7 @@ func MdadmCmd() string     { return mdadmCmd }
 func MountCmd() string     { return mountCmd }
 func PartxCmd() string     { return partxCmd }
 func SgdiskCmd() string    { return sgdiskCmd }
+func SfdiskCmd() string    { return sfdiskCmd }
 func ModprobeCmd() string  { return modprobeCmd }
 func UdevadmCmd() string   { return udevadmCmd }
 func UsermodCmd() string   { return usermodCmd }

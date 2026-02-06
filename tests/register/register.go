@@ -15,14 +15,6 @@
 package register
 
 import (
-	"github.com/coreos/go-semver/semver"
-	types30 "github.com/coreos/ignition/v2/config/v3_0/types"
-	types31 "github.com/coreos/ignition/v2/config/v3_1/types"
-	types32 "github.com/coreos/ignition/v2/config/v3_2/types"
-	types33 "github.com/coreos/ignition/v2/config/v3_3/types"
-	types34 "github.com/coreos/ignition/v2/config/v3_4/types"
-	types35 "github.com/coreos/ignition/v2/config/v3_5/types"
-	types_exp "github.com/coreos/ignition/v2/config/v3_6_experimental/types"
 	"github.com/coreos/ignition/v2/tests/types"
 )
 
@@ -46,37 +38,9 @@ func register(tType TestType, t types.Test) {
 // Registers t for every version, inside the same major version,
 // that is equal to or greater than the specified ConfigMinVersion.
 func Register(tType TestType, t types.Test) {
-	// update confgiVersions with new config versions
-	configVersions := [][]semver.Version{
-		{semver.Version{}}, // place holder 0
-		{semver.Version{}}, // place holder 1
-		{semver.Version{}}, // place holder 2
-		{types30.MaxVersion, types31.MaxVersion, types32.MaxVersion, types33.MaxVersion, types34.MaxVersion, types35.MaxVersion, types_exp.MaxVersion},
-	}
-
+	// Register only the specified minimum config version (no expansion across versions)
 	test := types.DeepCopy(t)
-	version, semverErr := semver.NewVersion(test.ConfigMinVersion)
 	test.ReplaceAllVersionVars(test.ConfigMinVersion)
 	test.ConfigVersion = test.ConfigMinVersion
-	register(tType, test) // some tests purposefully don't have config version
-
-	if semverErr == nil && version != nil && t.ConfigMinVersion != "" {
-		for _, v := range configVersions[version.Major] {
-			if version.LessThan(v) {
-				// Check if the test is limited to a max version
-				if test.ConfigMaxVersion != "" {
-					maximumVersion, maxVersionSemverErr := semver.NewVersion(test.ConfigMinVersion)
-					// If a valid max version is given and the next deep copy is greater than the max version then we dont register it
-					if maxVersionSemverErr == nil && maximumVersion.LessThan(v) {
-						continue
-					}
-				}
-
-				test = types.DeepCopy(t)
-				test.ReplaceAllVersionVars(v.String())
-				test.ConfigVersion = v.String()
-				register(tType, test)
-			}
-		}
-	}
+	register(tType, test)
 }
