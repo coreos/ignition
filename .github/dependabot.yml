@@ -7,16 +7,6 @@
 
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    labels: ["skip-notes"]
-    open-pull-requests-limit: 3
-    groups:
-      actions:
-        patterns:
-          - "*"
   - package-ecosystem: gomod
     directory: /
     schedule:
