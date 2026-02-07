@@ -26,6 +26,7 @@ import (
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	latest "github.com/coreos/ignition/v2/config/v3_6_experimental"
 	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	"github.com/coreos/ignition/v2/internal/attestation"
 	"github.com/coreos/ignition/v2/internal/exec/stages"
 	executil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -176,7 +177,7 @@ func logStructuredJournalEntry(cfgInfo state.FetchedConfig) error {
 func (e *Engine) acquireConfig(stageName string) (cfg types.Config, err error) {
 	switch {
 	case strings.HasPrefix(stageName, "fetch"):
-		cfg, err = e.acquireProviderConfig()
+		cfg, err = e.acquireProviderConfig(stageName)
 
 		// if we've successfully fetched and cached the configs, log about them
 		if err == nil && journal.Enabled() {
@@ -216,7 +217,7 @@ func (e *Engine) acquireCachedConfig() (cfg types.Config, err error) {
 
 // acquireProviderConfig attempts to fetch the configuration from the
 // provider.
-func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
+func (e *Engine) acquireProviderConfig(stageName string) (cfg types.Config, err error) {
 	// Create a new http client and fetcher with the timeouts set via the flags,
 	// since we don't have a config with timeout values we can use
 	timeout := int(e.FetchTimeout.Seconds())
@@ -228,7 +229,7 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 	}
 
 	// (Re)Fetch the config if the cache is unreadable.
-	cfg, err = e.fetchProviderConfig()
+	cfg, err = e.fetchProviderConfig(stageName)
 	if err == errors.ErrEmpty {
 		// Continue if the provider config was empty as we want to write an empty
 		// cache config for use by other stages.
@@ -285,7 +286,7 @@ func (e *Engine) acquireProviderConfig() (cfg types.Config, err error) {
 // it checks the config engine's provider. An error is returned if the provider
 // is unavailable. This will also render the config (see renderConfig) before
 // returning.
-func (e *Engine) fetchProviderConfig() (types.Config, error) {
+func (e *Engine) fetchProviderConfig(stageName string) (types.Config, error) {
 	platformConfigs := []platform.Config{
 		cmdline.Config,
 		system.Config,
@@ -314,6 +315,17 @@ func (e *Engine) fetchProviderConfig() (types.Config, error) {
 		Source:     providerKey,
 		Referenced: false,
 	})
+
+	if err := attestation.HandleAttestation(e.Logger, &cfg, e.PlatformConfig.Name(), e.NeedNet); err != nil {
+		if err == resource.ErrNeedNet && stageName == "fetch-offline" {
+			err = e.signalNeedNet()
+			if err != nil {
+				e.Logger.Crit("failed to signal neednet: %v", err)
+			}
+			return cfg, resource.ErrNeedNet
+		}
+		return types.Config{}, err
+	}
 
 	// Replace the HTTP client in the fetcher to be configured with the
 	// timeouts of the config
