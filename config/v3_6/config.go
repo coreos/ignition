@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v3_6_experimental
+package v3_6
 
 import (
 	"github.com/coreos/ignition/v2/config/merge"
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
 	prev "github.com/coreos/ignition/v2/config/v3_5"
-	"github.com/coreos/ignition/v2/config/v3_6_experimental/translate"
-	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_6/translate"
+	"github.com/coreos/ignition/v2/config/v3_6/types"
 	"github.com/coreos/ignition/v2/config/validate"
 
 	"github.com/coreos/go-semver/semver"
