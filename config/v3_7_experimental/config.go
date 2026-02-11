@@ -18,7 +18,7 @@ import (
 	"github.com/coreos/ignition/v2/config/merge"
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
-	prev "github.com/coreos/ignition/v2/config/v3_5"
+	prev "github.com/coreos/ignition/v2/config/v3_6"
 	"github.com/coreos/ignition/v2/config/v3_7_experimental/translate"
 	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	"github.com/coreos/ignition/v2/config/validate"
@@ -58,8 +58,8 @@ func Parse(rawConfig []byte) (types.Config, report.Report, error) {
 	return config, rpt, nil
 }
 
-// ParseCompatibleVersion parses the raw config of version 3.6.0 or
-// lesser into a 3.6 types.Config struct and generates a report of any errors,
+// ParseCompatibleVersion parses the raw config of version 3.7.0-experimental or
+// lesser into a 3.7-exp types.Config struct and generates a report of any errors,
 // warnings, info, and deprecations it encountered
 func ParseCompatibleVersion(raw []byte) (types.Config, report.Report, error) {
 	version, rpt, err := util.GetConfigVersion(raw)

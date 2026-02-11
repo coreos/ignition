@@ -25,8 +25,9 @@ import (
 
 var (
 	MaxVersion = semver.Version{
-		Major: 3,
-		Minor: 6,
+		Major:      3,
+		Minor:      7,
+		PreRelease: "experimental",
 	}
 )
 
