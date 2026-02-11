@@ -545,7 +545,7 @@ func ApplyCustomFilePermissions() types.Test {
 			Mode:     02755,
 		},
 	})
-	configMinVersion := "3.6.0-experimental"
+	configMinVersion := "3.6.0"
 
 	return types.Test{
 		Name:             name,
