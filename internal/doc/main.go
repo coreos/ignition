@@ -32,7 +32,7 @@ import (
 	v33 "github.com/coreos/ignition/v2/config/v3_3/types"
 	v34 "github.com/coreos/ignition/v2/config/v3_4/types"
 	v35 "github.com/coreos/ignition/v2/config/v3_5/types"
-	v36 "github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	v36 "github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 )
 
 var (

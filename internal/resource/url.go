@@ -42,7 +42,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
-	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	providersUtil "github.com/coreos/ignition/v2/internal/providers/util"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"

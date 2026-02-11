@@ -25,7 +25,7 @@ import (
 
 	"github.com/coreos/go-systemd/v22/journal"
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	"github.com/coreos/ignition/v2/internal/as_user"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"golang.org/x/sys/unix"
