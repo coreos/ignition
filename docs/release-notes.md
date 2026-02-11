@@ -10,6 +10,10 @@ nav_order: 9
 
 ### Features
 
+- Mark the 3.6.0 config spec as stable
+- No longer accept configs with version 3.6.0-experimental
+- Create new 3.7.0-experimental config spec from 3.6.0
+
 ### Changes
 
 ### Bug fixes
