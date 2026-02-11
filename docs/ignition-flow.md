@@ -1,11 +1,21 @@
 ```mermaid
+---
+config:
+    flowchart:
+        defaultRenderer: elk
+---
 flowchart TB
     %% ===== IGNITION BOOT FLOW =====
-    
+
     %% --- Early Boot ---
-    setup_pre["ignition-setup-pre.service"] --> setup["ignition-setup.service"]
-    setup --> fetch_offline["ignition-fetch-offline.service"]
+    subgraph EARLY_BOOT [" "]
+        direction TB
+        setup_pre["ignition-setup-pre.service"] --> setup["ignition-setup.service"]
+        setup --> fetch_offline["ignition-fetch-offline.service"]
+    end
     
+    boot["Boot"] --> setup_pre
+
     %% --- Fetch Offline Details ---
     subgraph FETCH_OFFLINE ["Ignition Fetch Offline"]
         direction TB
@@ -48,23 +58,29 @@ flowchart TB
     fetch_service --> FETCH_ONLINE
     
     %% --- Network Stack ---
-    subgraph NETWORK ["Network Stack"]
-        direction TB
-        networkd_service["systemd-networkd.service"]
-        find_primary_nic["Find primary NIC"]
-        link_up["Link up"]
-        network_config["systemd-networkd.service - Network Configuration"]
-        network_target["network.target reached"]
-        networkd_service --> find_primary_nic --> link_up --> network_config --> network_target
+    subgraph NETWORK_GROUP [" "]
+        subgraph NETWORK ["Network Stack"]
+            direction TB
+            networkd_service["systemd-networkd.service"]
+            find_primary_nic["Find primary NIC"]
+            link_up["Link up"]
+            network_config["systemd-networkd.service - Network Configuration"]
+            network_target["network.target reached"]
+            networkd_service --> find_primary_nic --> link_up --> network_config --> network_target
+        end
+        get_dhcp_address["Get DHCP address"]
+        NETWORK --> get_dhcp_address
     end
     setup --> NETWORK
     NETWORK --> FETCH_ONLINE
-    NETWORK --> get_dhcp_address["Get DHCP address"]
     get_dhcp_address --> online_request_cloud_configs
     
     %% --- Disk & Mount Services ---
     FETCH_ONLINE --> kargs_service["ignition-kargs.service"]
-    kargs_service --> disks_service["ignition-disks.service"]
+    kargs_service -->|kargs changed| reboot_kargs["Reboot"]
+    reboot_kargs --> setup_pre
+    
+    kargs_service -->|no changes| disks_service["ignition-disks.service"]
     disks_service --> diskful_target["ignition-diskful.target reached"]
     diskful_target --> mount_service["ignition-mount.service"]
     
@@ -82,4 +98,7 @@ flowchart TB
     
     class setup_pre,setup,fetch_offline,fetch_service,kargs_service,disks_service,mount_service,files_service,quench_service,initrd_setup_root,network_config,networkd_service,afterburn_hostname_service service
     class diskful_target,complete_target,network_target,initrd_root_fs_target target
+    
+    style EARLY_BOOT fill:none,stroke:none
+    style NETWORK_GROUP fill:none,stroke:none
 ```
