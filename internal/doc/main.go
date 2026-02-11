@@ -32,7 +32,8 @@ import (
 	v33 "github.com/coreos/ignition/v2/config/v3_3/types"
 	v34 "github.com/coreos/ignition/v2/config/v3_4/types"
 	v35 "github.com/coreos/ignition/v2/config/v3_5/types"
-	v36 "github.com/coreos/ignition/v2/config/v3_7_experimental/types"
+	v36 "github.com/coreos/ignition/v2/config/v3_6/types"
+	v37 "github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 )
 
 var (
@@ -47,13 +48,14 @@ func generate(dir string) error {
 		config  any
 	}{
 		// generate in inverse order of website navbar
-		{"3.6.0-experimental", v36.Config{}},
+		{"3.7.0-experimental", v37.Config{}},
 		{"3.0.0", v30.Config{}},
 		{"3.1.0", v31.Config{}},
 		{"3.2.0", v32.Config{}},
 		{"3.3.0", v33.Config{}},
 		{"3.4.0", v34.Config{}},
 		{"3.5.0", v35.Config{}},
+		{"3.6.0", v36.Config{}},
 	}
 
 	if err := os.MkdirAll(dir, 0755); err != nil {
