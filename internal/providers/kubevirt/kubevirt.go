@@ -27,7 +27,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/platform"

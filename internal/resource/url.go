@@ -42,7 +42,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
-	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	providersUtil "github.com/coreos/ignition/v2/internal/providers/util"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -72,7 +72,7 @@ var (
 	// config is being fetched
 	configHeaders = http.Header{
 		"Accept-Encoding": []string{"identity"},
-		"Accept":          []string{"application/vnd.coreos.ignition+json;version=3.5.0, */*;q=0.1"},
+		"Accept":          []string{"application/vnd.coreos.ignition+json;version=3.6.0, */*;q=0.1"},
 	}
 
 	// We could derive this info from aws-sdk-go/aws/endpoints/defaults.go,

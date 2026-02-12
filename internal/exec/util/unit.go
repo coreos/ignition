@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
 
 	"github.com/vincent-petithory/dataurl"

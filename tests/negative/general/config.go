@@ -281,12 +281,12 @@ func VersionOnlyConfig25() types.Test {
 }
 
 func VersionOnlyConfig36() types.Test {
-	name := "config.versions.3.7.0-exp"
+	name := "config.versions.3.8.0-exp"
 	in := types.GetBaseDisk()
 	out := in
 	config := `{
 	  "ignition": {
-	    "version": "3.7.0-experimental"
+	    "version": "3.8.0-experimental"
 	  }
 	}`
 

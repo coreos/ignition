@@ -11,7 +11,11 @@ Occasionally, there are changes made to Ignition's configuration that break back
 {:toc}
 
 
-## From Version 3.5.0 to 3.6.0-experimental
+## From Version 3.6.0 to 3.7.0-experimental
+
+There are not any breaking changes between versions 3.6.0 and 3.7.0-experimental of the configuration specification. Any valid 3.6.0 configuration can be updated to a 3.7.0-experimental configuration by simply changing the version string in the config.
+
+## From Version 3.5.0 to 3.6.0
 
 ### Special mode bits supported
 
@@ -21,7 +25,7 @@ The `mode` field of the `files` and `directories` sections now respects the setu
 ```json
 {
   "ignition": {
-    "version": "3.6.0-experimental"
+    "version": "3.6.0"
   },
   "storage": {
     "files": [{
