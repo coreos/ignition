@@ -55,7 +55,7 @@ flowchart TB
         online_cloud_configs_present -->|No| online_open_config_device
         online_config_device_present{"Config present?"}
         online_open_config_device --> online_config_device_present
-        online_config_device_present -->|Yes| online_write_device["Write configto /run/ignition.json"]
+        online_config_device_present -->|Yes| online_write_device["Write config to /run/ignition.json"]
         online_write_device --> online_done
         online_config_device_present -->|No| online_done
     end
