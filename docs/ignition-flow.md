@@ -17,11 +17,9 @@ flowchart TB
         offline_detect_platform --> offline_check_configs
         offline_check_configs --> offline_base_dir
         offline_check_configs --> offline_platform_dir
-        offline_merge_configs["Merge configs if present"]
-        offline_base_dir --> offline_merge_configs
-        offline_platform_dir --> offline_merge_configs
         offline_check_user_ign{"/usr/lib/ignition/user.ign exists?"}
-        offline_merge_configs --> offline_check_user_ign
+        offline_base_dir --> offline_check_user_ign
+        offline_platform_dir --> offline_check_user_ign
         offline_check_user_ign -->|Yes| offline_copy_user_ign["Write to /run/ignition.json"]
         offline_check_user_ign -->|No| offline_done["Done"]
         offline_copy_user_ign --> offline_done
@@ -45,11 +43,9 @@ flowchart TB
         online_request_cloud_configs["Request cloud specific configs"]
         online_cloud_configs_present{"Cloud configs present?"}
         online_open_config_device["Open and read config device"]
-        online_merge_configs["Merge configs if present"]
-        online_base_dir --> online_merge_configs
-        online_platform_dir --> online_merge_configs
         online_check_user_ign{"/usr/lib/ignition/user.ign exists?"}
-        online_merge_configs --> online_check_user_ign
+        online_base_dir --> online_check_user_ign
+        online_platform_dir --> online_check_user_ign
         online_check_user_ign -->|Yes| online_copy_user_ign["Write config to /run/ignition.json"]
         online_check_user_ign -->|No| online_request_cloud_configs
         online_copy_user_ign --> online_done["Done"]
