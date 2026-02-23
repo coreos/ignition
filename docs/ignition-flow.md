@@ -65,11 +65,9 @@ flowchart TB
     subgraph NETWORK ["Network Stack"]
         direction TB
         networkd_service["systemd-networkd.service"]
-        find_primary_nic["Find primary NIC"]
-        link_up["Link up"]
         network_config["systemd-networkd.service - Network Configuration"]
         network_target["network.target reached"]
-        networkd_service --> find_primary_nic --> link_up --> network_config --> network_target
+        networkd_service -->  network_config --> network_target
     end
     setup --> NETWORK
     NETWORK --> FETCH_ONLINE
