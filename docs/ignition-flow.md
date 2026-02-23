@@ -29,7 +29,7 @@ flowchart TB
     fetch_offline --> FETCH_OFFLINE
     
     FETCH_OFFLINE --> fetch_check{"/run/ignition.json exists?"}
-    fetch_check -->|Yes, skip service| kargs_service
+    fetch_check -->|Yes, skip ignition-fetch.service| kargs_service
     fetch_check -->|No| fetch_service["ignition-fetch.service"]
     
     %% --- Fetch Service Details ---
@@ -90,7 +90,27 @@ flowchart TB
     mount_service --> files_service["ignition-files.service"]
     initrd_root_fs_target["initrd-root-fs.target"] --> afterburn_hostname_service["afterburn-hostname.service"]
     afterburn_hostname_service -.-> files_service
-    files_service --> quench_service["ignition-quench.service"]
+    
+    %% --- Files Service Details ---
+    subgraph FILES ["Ignition Files"]
+        direction TB
+        files_detect_platform["Detect platform"]
+        files_check_configs["Check configs at:"]
+        files_base_dir["/usr/lib/ignition/base.d"]
+        files_platform_dir["/usr/lib/ignition/base.platform.d/{platform}"]
+        files_detect_platform --> files_check_configs
+        files_check_configs --> files_base_dir
+        files_check_configs --> files_platform_dir
+        files_base_dir --> files_check_run_json
+        files_platform_dir --> files_check_run_json
+        files_check_run_json{"/run/ignition.json exists?"}
+        files_check_run_json -->|Yes| files_merge_all["Merge all detected configs and apply"]
+        files_merge_all --> files_done["Done"]
+        files_check_run_json -->|No| files_error["Error"]
+    end
+    files_service --> FILES
+    
+    FILES --> quench_service["ignition-quench.service"]
     quench_service --> initrd_setup_root["initrd-setup-root-after-ignition.service"]
     quench_service --> complete_target["ignition-complete.target"]
     
