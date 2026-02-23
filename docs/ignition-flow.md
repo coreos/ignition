@@ -20,10 +20,17 @@ flowchart TB
         offline_merge_configs["Merge configs if present"]
         offline_base_dir --> offline_merge_configs
         offline_platform_dir --> offline_merge_configs
+        offline_check_user_ign{"/usr/lib/ignition/user.ign exists?"}
+        offline_merge_configs --> offline_check_user_ign
+        offline_check_user_ign -->|Yes| offline_copy_user_ign["Copy to /run/ignition.json"]
+        offline_check_user_ign -->|No| offline_done["Done"]
+        offline_copy_user_ign --> offline_done
     end
     fetch_offline --> FETCH_OFFLINE
     
-    FETCH_OFFLINE --> fetch_service["ignition-fetch.service"]
+    FETCH_OFFLINE --> fetch_check{"/run/ignition.json exists?"}
+    fetch_check -->|Yes, skip service| kargs_service
+    fetch_check -->|No| fetch_service["ignition-fetch.service"]
     
     %% --- Fetch Service Details ---
     subgraph FETCH_ONLINE ["Ignition Fetch"]
@@ -39,8 +46,14 @@ flowchart TB
         online_cloud_configs_present{"Cloud configs present?"}
         online_use_cloud_configs["Merge configs if present"]
         online_open_config_device["Open and read config device"]
-        online_base_dir --> online_request_cloud_configs
-        online_platform_dir --> online_request_cloud_configs
+        online_merge_configs["Merge configs if present"]
+        online_base_dir --> online_merge_configs
+        online_platform_dir --> online_merge_configs
+        online_check_user_ign{"/usr/lib/ignition/user.ign exists?"}
+        online_merge_configs --> online_check_user_ign
+        online_check_user_ign -->|Yes| online_copy_user_ign["Copy to /run/ignition.json"]
+        online_check_user_ign -->|No| online_request_cloud_configs
+        online_copy_user_ign --> online_done["Done"]
         online_request_cloud_configs --> online_cloud_configs_present
         online_cloud_configs_present -->|Yes| online_use_cloud_configs
         online_cloud_configs_present -->|No| online_open_config_device
