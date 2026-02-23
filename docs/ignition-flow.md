@@ -22,7 +22,7 @@ flowchart TB
         offline_platform_dir --> offline_merge_configs
         offline_check_user_ign{"/usr/lib/ignition/user.ign exists?"}
         offline_merge_configs --> offline_check_user_ign
-        offline_check_user_ign -->|Yes| offline_copy_user_ign["Copy to /run/ignition.json"]
+        offline_check_user_ign -->|Yes| offline_copy_user_ign["Write to /run/ignition.json"]
         offline_check_user_ign -->|No| offline_done["Done"]
         offline_copy_user_ign --> offline_done
     end
@@ -44,20 +44,24 @@ flowchart TB
         online_check_configs --> online_platform_dir
         online_request_cloud_configs["Request cloud specific configs"]
         online_cloud_configs_present{"Cloud configs present?"}
-        online_use_cloud_configs["Merge configs if present"]
         online_open_config_device["Open and read config device"]
         online_merge_configs["Merge configs if present"]
         online_base_dir --> online_merge_configs
         online_platform_dir --> online_merge_configs
         online_check_user_ign{"/usr/lib/ignition/user.ign exists?"}
         online_merge_configs --> online_check_user_ign
-        online_check_user_ign -->|Yes| online_copy_user_ign["Copy to /run/ignition.json"]
+        online_check_user_ign -->|Yes| online_copy_user_ign["Write config to /run/ignition.json"]
         online_check_user_ign -->|No| online_request_cloud_configs
         online_copy_user_ign --> online_done["Done"]
         online_request_cloud_configs --> online_cloud_configs_present
-        online_cloud_configs_present -->|Yes| online_use_cloud_configs
+        online_cloud_configs_present -->|Yes| online_write_cloud["Write config to /run/ignition.json"]
+        online_write_cloud --> online_done
         online_cloud_configs_present -->|No| online_open_config_device
-        online_open_config_device --> online_use_cloud_configs
+        online_config_device_present{"Config present?"}
+        online_open_config_device --> online_config_device_present
+        online_config_device_present -->|Yes| online_write_device["Write configto /run/ignition.json"]
+        online_write_device --> online_done
+        online_config_device_present -->|No| online_done
     end
     fetch_service --> FETCH_ONLINE
     
