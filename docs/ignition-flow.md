@@ -40,7 +40,7 @@ flowchart TB
         online_detect_platform --> online_check_configs
         online_check_configs --> online_base_dir
         online_check_configs --> online_platform_dir
-        online_fetch_provider["Fetch provider-specific config (see Provider Specific Behavior below)"]
+        online_fetch_provider["Fetch provider-specific configs (see Provider Specific Behavior below)"]
         online_check_user_ign{"/usr/lib/ignition/user.ign exists?"}
         online_base_dir --> online_check_user_ign
         online_platform_dir --> online_check_user_ign
