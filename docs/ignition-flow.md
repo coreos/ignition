@@ -40,24 +40,16 @@ flowchart TB
         online_detect_platform --> online_check_configs
         online_check_configs --> online_base_dir
         online_check_configs --> online_platform_dir
-        online_request_cloud_configs["Request cloud specific configs"]
-        online_cloud_configs_present{"Cloud configs present?"}
-        online_open_config_device["Open and read config device"]
+        online_fetch_provider["Fetch provider-specific config (see Provider Specific Behavior below)"]
         online_check_user_ign{"/usr/lib/ignition/user.ign exists?"}
         online_base_dir --> online_check_user_ign
         online_platform_dir --> online_check_user_ign
         online_check_user_ign -->|Yes| online_copy_user_ign["Write config to /run/ignition.json"]
-        online_check_user_ign -->|No| online_request_cloud_configs
+        online_check_user_ign -->|No| online_fetch_provider
         online_copy_user_ign --> online_done["Done"]
-        online_request_cloud_configs --> online_cloud_configs_present
-        online_cloud_configs_present -->|Yes| online_write_cloud["Write config to /run/ignition.json"]
-        online_write_cloud --> online_done
-        online_cloud_configs_present -->|No| online_open_config_device
-        online_config_device_present{"Config present?"}
-        online_open_config_device --> online_config_device_present
-        online_config_device_present -->|Yes| online_write_device["Write config to /run/ignition.json"]
-        online_write_device --> online_done
-        online_config_device_present -->|No| online_done
+        online_fetch_provider -->|Config found| online_write_provider["Write config to /run/ignition.json"]
+        online_write_provider --> online_done
+        online_fetch_provider -->|No config| online_done
     end
     fetch_service --> FETCH_ONLINE
     
@@ -72,7 +64,7 @@ flowchart TB
     setup --> NETWORK
     NETWORK --> FETCH_ONLINE
     NETWORK --> get_dhcp_address["Get DHCP address"]
-    get_dhcp_address --> online_request_cloud_configs
+    get_dhcp_address --> online_fetch_provider
     
     %% --- Disk & Mount Services ---
     FETCH_ONLINE --> kargs_service["ignition-kargs.service"]
@@ -117,4 +109,37 @@ flowchart TB
     class setup_pre,setup,fetch_offline,fetch_service,kargs_service,disks_service,mount_service,files_service,quench_service,initrd_setup_root,network_config,networkd_service,afterburn_hostname_service service
     class diskful_target,complete_target,network_target,initrd_root_fs_target target
 
+```
+
+## Provider Specific Behavior
+### Config Fetch
+#### Azure
+```mermaid
+flowchart TB
+    %% ===== AZURE PROVIDER-SPECIFIC CONFIG FETCH =====
+
+    start["Fetch provider-specific config"] --> imds_request["HTTP GET to Azure IMDS
+    http://169.254.169.254/metadata/instance/compute/userData
+    ?api-version=2021-01-01&format=text
+    Header - Metadata: true"]
+
+    imds_request --> imds_retry{"Response code?"}
+    imds_retry -->|"404, 410, 429, or 5xx
+    Retry with exponential backoff
+    (200ms initial, 5s max)"| imds_request
+    imds_retry -->|"Network Unreachable
+    (DHCP has not completed)"| imds_request
+    imds_retry -->|200, empty body| fallback_ovf
+    imds_retry -->|200, has body| write_config["Write decoded config to /run/ignition.json"]
+    imds_retry -->|Other error| error["Error"]
+    write_config --> done["Done"]
+
+    fallback_ovf["Fallback: read OVF custom data from CD-ROM device"]
+    fallback_ovf --> scan["Scan for UDF CD-ROM"]
+    scan --> mount["Mount device"]
+    mount --> read["Read for ovf-envf.xml and CustomData.bin"]
+    read --> available{"Config available?"}
+    available -->|Yes| write_device["Write config to /run/ignition.json"]
+    write_device --> done
+    available -->|No| wait["Wait 1s"] --> scan
 ```
