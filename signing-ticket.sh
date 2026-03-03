@@ -33,7 +33,7 @@ do_sign() {
 # Grab the binaries out of the redistributable rpm
 rpm="ignition-validate-redistributable-${VR}.noarch.rpm"
 koji download-build --key $RPMKEY --rpm $rpm
-rpm -qip $rpm | grep -P "^Signature.*${RPMKEY}$" # Verify the output has the key in it
+rpm -Kv "$rpm" 2>&1 | grep -qi "${RPMKEY}" # Verify the output has the key in it
 rpm2cpio $rpm | cpio -idv './usr/share/ignition/ignition-validate-*'
 
 # Rename the binaries
