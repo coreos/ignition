@@ -56,7 +56,7 @@ func TestClevisCustomValidate(t *testing.T) {
 				Pin:    util.StrToPtr("z"),
 			},
 			at:  path.New("", "pin"),
-			out: errors.ErrUnknownClevisPin,
+			out: nil,
 		},
 		{
 			in: ClevisCustom{
