@@ -12,6 +12,8 @@ nav_order: 9
 
 ### Changes
 
+- Fix test script compatibility with Go 1.26 which removed the `-go` flag from `go tool fix`
+
 ### Bug fixes
 
 
