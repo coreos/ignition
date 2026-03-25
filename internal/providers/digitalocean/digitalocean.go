@@ -20,7 +20,7 @@ package digitalocean
 import (
 	"net/url"
 
-	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"

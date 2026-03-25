@@ -12,7 +12,7 @@ hash schematyper 2>/dev/null || {
     exit 1
 }
 
-specs="v3_0 v3_1 v3_2 v3_3 v3_4 v3_5 v3_6_experimental"
+specs="v3_0 v3_1 v3_2 v3_3 v3_4 v3_5 v3_6 v3_7_experimental"
 
 for spec in $specs
 do

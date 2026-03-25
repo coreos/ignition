@@ -23,7 +23,7 @@ import (
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	cutil "github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/v3_6_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/systemd"
 )
@@ -45,7 +45,7 @@ func (s *stage) warnOnOldSystemdVersion() error {
 		return err
 	}
 	if systemdVersion < 240 {
-		s.Warning("The version of systemd (%q) is less than 240. Enabling/disabling instantiated units may not work. See https://github.com/coreos/ignition/issues/586 for more information.", systemdVersion)
+		s.Warning("The version of systemd (%d) is less than 240. Enabling/disabling instantiated units may not work. See https://github.com/coreos/ignition/issues/586 for more information.", systemdVersion)
 	}
 	return nil
 }

@@ -4,7 +4,7 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.26.0 (unreleased)
+## Upcoming Ignition 2.27.0 (unreleased)
 
 ### Breaking changes
 
@@ -12,7 +12,23 @@ nav_order: 9
 
 ### Changes
 
+- Fix test script compatibility with Go 1.26 which removed the `-go` flag from `go tool fix`
+
 ### Bug fixes
+
+
+## Ignition 2.26.0 (2026-02-17)
+
+### Features
+
+- Mark the 3.6.0 config spec as stable
+- No longer accept configs with version 3.6.0-experimental
+- Create new 3.7.0-experimental config spec from 3.6.0
+
+### Bug fixes
+
+- Include `groupmod` binary in initramfs ([#2190](https://github.com/coreos/ignition/pull/2190))
+
 
 ## Ignition 2.25.1 (2025-12-22)
 
