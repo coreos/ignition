@@ -44,11 +44,10 @@ flowchart TB
         online_check_user_ign{"/usr/lib/ignition/user.ign exists?"}
         online_base_dir --> online_check_user_ign
         online_platform_dir --> online_check_user_ign
-        online_check_user_ign -->|Yes| online_copy_user_ign["Write config to /run/ignition.json"]
+        online_check_user_ign -->|Yes| online_write_config["Write config to /run/ignition.json"]
         online_check_user_ign -->|No| online_fetch_provider
-        online_copy_user_ign --> online_done["Done"]
-        online_fetch_provider -->|Config found| online_write_provider["Write config to /run/ignition.json"]
-        online_write_provider --> online_done
+        online_write_config --> online_done["Done"]
+        online_fetch_provider -->|Config found| online_write_config
         online_fetch_provider -->|No config| online_done
     end
     fetch_service --> FETCH_ONLINE
