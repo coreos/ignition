@@ -2,8 +2,36 @@
 flowchart TB
     %% ===== IGNITION BOOT FLOW =====
 
-    %% --- Early Boot ---
-    boot["Boot"] --> setup_pre["ignition-setup-pre.service"]
+    %% --- GRUB Firstboot Detection ---
+    boot["Boot"] --> grub["GRUB bootloader"]
+
+    subgraph GRUB_FIRSTBOOT ["GRUB Firstboot Detection"]
+        direction TB
+        grub_check{"/ignition.firstboot
+        stamp file on bootfs?"}
+        grub_check -->|Yes| grub_source["Source /ignition.firstboot
+        (may set ignition_network_kcmdline)"]
+        grub_source --> grub_append["Append to kernel cmdline:
+        ignition.firstboot $ignition_network_kcmdline"]
+        grub_check -->|No| grub_no_flag["No ignition.firstboot on cmdline"]
+    end
+    grub --> GRUB_FIRSTBOOT
+
+    %% --- Initramfs Generator ---
+    GRUB_FIRSTBOOT --> generator["ignition-generator
+    (reads /proc/cmdline)"]
+    generator --> firstboot_check{"ignition.firstboot
+    on kernel cmdline?"}
+
+    %% --- Subsequent Boot Path ---
+    firstboot_check -->|No| subsequent_target["ignition-subsequent.target"]
+    subsequent_target --> subsequent_diskful["ignition-diskful-subsequent.target"]
+    subsequent_diskful --> subsequent_done["Ignition services do not run.
+    Boot continues normally."]
+
+    %% --- Firstboot Path ---
+    firstboot_check -->|Yes| complete_gate["ignition-complete.target activated"]
+    complete_gate --> setup_pre["ignition-setup-pre.service"]
     setup_pre --> setup["ignition-setup.service"]
     setup --> fetch_offline["ignition-fetch-offline.service"]
 
@@ -97,14 +125,16 @@ flowchart TB
     end
     files_service --> FILES
     
-    FILES --> complete_target["ignition-complete.target"]
+    FILES --> complete_target["ignition-complete.target reached"]
+    
+    complete_target --> delete_config["ignition-delete-config.service"]
     
     %% ===== STYLING =====
     classDef service fill:#42a5f5,stroke:#1565c0,stroke-width:2px,color:#000
     classDef target fill:#ffa726,stroke:#e65100,stroke-width:2px,color:#000
     
-    class setup_pre,setup,fetch_offline,fetch_service,kargs_service,disks_service,mount_service,files_service,network_config,networkd_service,afterburn_hostname_service service
-    class diskful_target,complete_target,network_target,initrd_root_fs_target target
+    class setup_pre,setup,fetch_offline,fetch_service,kargs_service,disks_service,mount_service,files_service,network_config,networkd_service,afterburn_hostname_service,delete_config service
+    class diskful_target,complete_target,complete_gate,network_target,initrd_root_fs_target,subsequent_target,subsequent_diskful target
 
 ```
 
