@@ -50,6 +50,7 @@ install:
 			bn=$$(basename $$x); \
 			install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/$${bn} $$x/*; \
 		done; \
+		chmod a+x $(DESTDIR)/usr/lib/dracut/modules.d/40ignition-ostree/ignition-relabel; \
 	else \
 		install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/30ignition dracut/30ignition/*; \
 	fi
