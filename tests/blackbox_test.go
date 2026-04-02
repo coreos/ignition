@@ -146,6 +146,8 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	}
 
 	systemConfigDir := filepath.Join(tmpDirectory, "system")
+	systemRuntimeConfigDir := filepath.Join(tmpDirectory, "system-runtime")
+	systemLocalConfigDir := filepath.Join(tmpDirectory, "system-local")
 	var rootPartition *types.Partition
 
 	// Setup
@@ -155,6 +157,24 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	defer func() {
 		if err := os.RemoveAll(systemConfigDir); err != nil {
 			t.Logf("failed to remove system config directory: %v", err)
+		}
+	}()
+	if err != nil {
+		return err
+	}
+	err = createFilesFromSlice(systemRuntimeConfigDir, test.SystemRuntimeDirFiles)
+	defer func() {
+		if err := os.RemoveAll(systemRuntimeConfigDir); err != nil {
+			t.Logf("failed to remove system runtime config directory: %v", err)
+		}
+	}()
+	if err != nil {
+		return err
+	}
+	err = createFilesFromSlice(systemLocalConfigDir, test.SystemLocalDirFiles)
+	defer func() {
+		if err := os.RemoveAll(systemLocalConfigDir); err != nil {
+			t.Logf("failed to remove system local config directory: %v", err)
 		}
 	}()
 	if err != nil {
@@ -293,6 +313,8 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	// Ignition
 	appendEnv := test.Env
 	appendEnv = append(appendEnv, "IGNITION_SYSTEM_CONFIG_DIR="+systemConfigDir)
+	appendEnv = append(appendEnv, "IGNITION_SYSTEM_RUNTIME_CONFIG_DIR="+systemRuntimeConfigDir)
+	appendEnv = append(appendEnv, "IGNITION_SYSTEM_LOCAL_CONFIG_DIR="+systemLocalConfigDir)
 
 	if !negativeTests {
 		if err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {

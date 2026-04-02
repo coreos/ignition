@@ -98,7 +98,9 @@ type Test struct {
 	In                []Disk // Disk state before running Ignition
 	Out               []Disk // Expected disk state after running Ignition
 	MntDevices        []MntDevice
-	SystemDirFiles    []File
+	SystemDirFiles        []File
+	SystemRuntimeDirFiles []File
+	SystemLocalDirFiles   []File
 	Env               []string // Environment variables for Ignition
 	Config            string
 	ConfigMaxVersion  string
@@ -295,6 +297,14 @@ func DeepCopy(t Test) Test {
 	SystemDirFiles := make([]File, len(t.SystemDirFiles))
 	copy(SystemDirFiles, t.SystemDirFiles)
 	t.SystemDirFiles = SystemDirFiles
+
+	SystemRuntimeDirFiles := make([]File, len(t.SystemRuntimeDirFiles))
+	copy(SystemRuntimeDirFiles, t.SystemRuntimeDirFiles)
+	t.SystemRuntimeDirFiles = SystemRuntimeDirFiles
+
+	SystemLocalDirFiles := make([]File, len(t.SystemLocalDirFiles))
+	copy(SystemLocalDirFiles, t.SystemLocalDirFiles)
+	t.SystemLocalDirFiles = SystemLocalDirFiles
 
 	return t
 }
