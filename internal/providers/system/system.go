@@ -90,13 +90,15 @@ func readConfigFile(logger *log.Logger, path string) (types.Config, report.Repor
 	return util.ParseConfig(logger, rawConfig)
 }
 
-// fetchBaseDirectoryConfig is a helper function to merge all the base config fragments inside of a particular directory.
-// The function iterates in reverse priority so higher-priority dirs overwrite.
+// fetchBaseDirectoryConfig collects base config fragments from a subdirectory
+// across all system config dirs. SystemConfigDirs() returns directories in
+// descending priority order by construction (runtime > local > vendor), so
+// iterating forward visits the highest-priority directory first; the first
+// directory to claim a filename wins.
 func fetchBaseDirectoryConfig(logger *log.Logger, dir string) (types.Config, report.Report, error) {
-	dirs := distro.SystemConfigDirs()
 	fileMap := make(map[string]string)
-	for i := len(dirs) - 1; i >= 0; i-- {
-		path := filepath.Join(dirs[i], dir)
+	for _, sysDir := range distro.SystemConfigDirs() {
+		path := filepath.Join(sysDir, dir)
 		entries, err := os.ReadDir(path)
 		if os.IsNotExist(err) {
 			logger.Info("no config dir at %q", path)
@@ -106,7 +108,9 @@ func fetchBaseDirectoryConfig(logger *log.Logger, dir string) (types.Config, rep
 			return types.Config{}, report.Report{}, err
 		}
 		for _, entry := range entries {
-			fileMap[entry.Name()] = filepath.Join(path, entry.Name())
+			if _, exists := fileMap[entry.Name()]; !exists {
+				fileMap[entry.Name()] = filepath.Join(path, entry.Name())
+			}
 		}
 	}
 

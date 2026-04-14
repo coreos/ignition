@@ -94,20 +94,20 @@ type MntDevice struct {
 }
 
 type Test struct {
-	Name              string
-	In                []Disk // Disk state before running Ignition
-	Out               []Disk // Expected disk state after running Ignition
-	MntDevices        []MntDevice
+	Name                  string
+	In                    []Disk // Disk state before running Ignition
+	Out                   []Disk // Expected disk state after running Ignition
+	MntDevices            []MntDevice
 	SystemDirFiles        []File
 	SystemRuntimeDirFiles []File
 	SystemLocalDirFiles   []File
-	Env               []string // Environment variables for Ignition
-	Config            string
-	ConfigMaxVersion  string
-	ConfigMinVersion  string
-	ConfigVersion     string
-	ConfigShouldBeBad bool // Set to true to skip config validation step
-	SkipCriticalCheck bool // Set to true to skip critical logging check
+	Env                   []string // Environment variables for Ignition
+	Config                string
+	ConfigMaxVersion      string
+	ConfigMinVersion      string
+	ConfigVersion         string
+	ConfigShouldBeBad     bool // Set to true to skip config validation step
+	SkipCriticalCheck     bool // Set to true to skip critical logging check
 }
 
 func (ps Partitions) GetPartition(label string) *Partition {

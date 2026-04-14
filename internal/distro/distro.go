@@ -91,9 +91,11 @@ func DiskByLabelDir() string { return diskByLabelDir }
 
 func KernelCmdlinePath() string { return kernelCmdlinePath }
 func BootIDPath() string        { return bootIDPath }
-func SystemRuntimeConfigDir() string { return fromEnv("SYSTEM_RUNTIME_CONFIG_DIR", systemRuntimeConfigDir) }
-func SystemLocalConfigDir() string   { return fromEnv("SYSTEM_LOCAL_CONFIG_DIR", systemLocalConfigDir) }
-func SystemConfigDir() string        { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
+func SystemRuntimeConfigDir() string {
+	return fromEnv("SYSTEM_RUNTIME_CONFIG_DIR", systemRuntimeConfigDir)
+}
+func SystemLocalConfigDir() string { return fromEnv("SYSTEM_LOCAL_CONFIG_DIR", systemLocalConfigDir) }
+func SystemConfigDir() string      { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
 
 // SystemConfigDirs returns config directories in descending priority order.
 func SystemConfigDirs() []string {
