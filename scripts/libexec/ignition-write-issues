@@ -1,0 +1,67 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+IGNITION_RESULT=/etc/.ignition-result.json
+
+WARN='\033[0;33m' # yellow
+RESET='\033[0m' # reset
+
+mkdir -p /run/issue.d
+touch /run/issue.d/30_ignition_provisioning.issue
+
+d=$(date --date "$(jq -r .provisioningDate "${IGNITION_RESULT}")" +"%Y/%m/%d %H:%M:%S %Z")
+ignitionBoot=$(jq -r .provisioningBootID "${IGNITION_RESULT}")
+if [ $(cat /proc/sys/kernel/random/boot_id) = "${ignitionBoot}" ]; then
+    echo "Ignition: ran on ${d} (this boot)" \
+        > /run/issue.d/30_ignition_provisioning.issue
+
+    # checking for /run/ostree-live as the live system with persistent storage can run Ignition more than once
+    if ! test -f /run/ostree-live && jq -e .previousReport.provisioningDate "${IGNITION_RESULT}" &>/dev/null; then
+        prevdate=$(date --date "$(jq -r .previousReport.provisioningDate "${IGNITION_RESULT}")" +"%Y/%m/%d %H:%M:%S %Z")
+        cat << EOF > /etc/issue.d/30_ignition_run_more_than_once.issue
+${WARN}
+############################################################################
+WARNING: Ignition previously ran on ${prevdate}. Unexpected
+behavior may occur. Ignition is not designed to run more than once per system.
+############################################################################
+${RESET}
+EOF
+    fi
+    # In Ignition, we've two config validation checks, the one after
+    # fetching a config and the second after merging configs. Sometimes,
+    # a warning goes away after merging, however, it's possible that a
+    # warning appears in case merging creates a contradiction between
+    # two fields. So this workflow eventually sends duplicate warnings
+    # in journal entries. Hence, we need to avoid displaying duplicate
+    # Ignition warnings on the console.
+    # For e.g. In the journal entries, we might see the following logs:
+    #
+    # warning at $.systemd.units.0.contents, line 1 col 997: unit "echo@.service" is enabled, but has no install section so enable does nothing
+    # warning at $.systemd.units.0.contents: unit "echo@.service" is enabled, but has no install section so enable does nothing
+    #
+    # In order to normalize these logs, we'd need to get rid of the line
+    # and column numbers entirely using the sed command, and then use
+    # `sort -u` to remove duplicate content. After this, we'd see the
+    # following warning on the console:
+    #
+    # warning at $.systemd.units.0.contents: unit "echo@.service" is enabled, but has no install section so enable does nothing
+    #
+    # TODO: find a way to query journal entries recorded before the
+    # system switches to real root
+    journalctl -t ignition -o cat -p warning | sed -r 's/, line [0-9]+ col [0-9]+//g' | sort -u | while read line; do
+        echo -e "${WARN}Ignition: $line${RESET}" >> /etc/issue.d/30_ignition_warnings.issue
+    done
+else
+    nreboots=$(($(journalctl --list-boots | wc -l) - 1))
+    [ "${nreboots}" -eq 1 ] && boot="boot" || boot="boots"
+    echo "Ignition: ran on ${d} (at least $nreboots $boot ago)" \
+        > /run/issue.d/30_ignition_provisioning.issue
+fi
+
+if jq -e .userConfigProvided "${IGNITION_RESULT}" &>/dev/null; then
+    echo "Ignition: user-provided config was applied" \
+        >> /run/issue.d/30_ignition_provisioning.issue
+else
+    echo -e "${WARN}Ignition: no config provided by user${RESET}" \
+        >> /run/issue.d/30_ignition_provisioning.issue
+fi
