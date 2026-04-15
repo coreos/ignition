@@ -46,16 +46,17 @@ butane-cross:
 .PHONY: install
 install:
 	if [ $(INSTALL_ALL_DRACUT_MODULES) -eq 1 ]; then \
-		for x in dracut/*; do \
+		for x in dracut/modules.d/*; do \
 			bn=$$(basename $$x); \
 			install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/$${bn} $$x/*; \
 		done; \
 		install -m 755  -D -t $(DESTDIR)/usr/libexec scripts/libexec/ignition-write-issues; \
 		install -m 0644 -D -t $(DESTDIR)/usr/lib/systemd/system systemd/ignition-write-issues.service; \
 		install -m 0644 -D -t $(DESTDIR)/usr/lib/systemd/system-preset systemd/system-preset/40-ignition.preset; \
+		install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/dracut.conf.d dracut/dracut.conf.d/*; \
 		chmod a+x $(DESTDIR)/usr/lib/dracut/modules.d/40ignition-ostree/ignition-relabel; \
 	else \
-		install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/30ignition dracut/30ignition/*; \
+		install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/30ignition dracut/modules.d/30ignition/*; \
 	fi
 
 	chmod a+x $(DESTDIR)/usr/lib/dracut/modules.d/*/*.sh $(DESTDIR)/usr/lib/dracut/modules.d/*/*-generator
