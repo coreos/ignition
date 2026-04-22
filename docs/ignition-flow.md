@@ -58,9 +58,14 @@ flowchart TB
     end
     fetch_offline --> FETCH_OFFLINE
     
+    FETCH_OFFLINE -.-> distro_network["Distro-managed network bring-up"]
     FETCH_OFFLINE --> fetch_check{"/run/ignition.json exists?"}
     fetch_check -->|Yes, skip ignition-fetch.service| kargs_service
-    fetch_check -->|No| fetch_service["ignition-fetch.service"]
+    fetch_check -->|No| neednet_check{"/run/ignition/neednet exists?"}
+    neednet_check -->|No| kargs_service
+    distro_network --> network_target["network.target reached"]
+    neednet_check --> |Yes| fetch_service["ignition-fetch.service"]
+    network_target --> fetch_service
     
     %% --- Fetch Service Details ---
     subgraph FETCH_ONLINE ["Ignition Fetch"]
@@ -121,6 +126,8 @@ flowchart TB
     
     class fetch_offline,fetch_service,kargs_service,disks_service,mount_service,files_service,afterburn_hostname_service,delete_config service
     class diskful_target,complete_target,complete_gate,network_target,initrd_root_fs_target,subsequent_target,subsequent_diskful target
+    classDef distro fill:#66bb6a,stroke:#2e7d32,stroke-width:2px,color:#000
+    class distro_network distro
 
 ```
 
