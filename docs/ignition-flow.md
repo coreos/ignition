@@ -101,9 +101,7 @@ flowchart TB
         direction TB
         files_read_cache["Read cached config
         from /run/ignition.json"]
-        files_apply["Merge with base configs and apply
-        (create users, write files,
-        directories, links)"]
+        files_apply["Merge with base configs and apply"]
         files_done["Done"]
         files_read_cache --> files_apply
         files_apply --> files_done
@@ -112,7 +110,10 @@ flowchart TB
     
     FILES --> complete_target["ignition-complete.target reached"]
     
-    complete_target --> delete_config["ignition-delete-config.service"]
+    complete_target --> pivot_root["Pivot to real root"]
+    pivot_root --> firstboot_delete_check{"Is this the first boot?"}
+    firstboot_delete_check -->|Yes| delete_config["ignition-delete-config.service"]
+    firstboot_delete_check -->|No| skip_delete["Skip config deletion"]
     
     %% ===== STYLING =====
     classDef service fill:#42a5f5,stroke:#1565c0,stroke-width:2px,color:#000
