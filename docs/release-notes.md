@@ -18,6 +18,9 @@ nav_order: 9
 
 ### Misc. changes
 
+- Warn on root partition size is too small _(fcos 1.3.0-1.8.0-exp)_
+- Warn on root partition constrained by another partition _(fcos 1.3.0-1.8.0-exp)_
+
 ### Docs changes
 
 ## Butane 0.27.0 (2026-02-27)
