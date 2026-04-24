@@ -28,8 +28,11 @@ var (
 	// initrd file paths
 	kernelCmdlinePath = "/proc/cmdline"
 	bootIDPath        = "/proc/sys/kernel/random/boot_id"
-	// initramfs directory containing distro-provided base config
-	systemConfigDir = "/usr/lib/ignition"
+	// initramfs directories containing base and user config,
+	// searched in descending priority order
+	systemRuntimeConfigDir = "/run/ignition"
+	systemLocalConfigDir   = "/etc/ignition"
+	systemConfigDir        = "/usr/lib/ignition"
 
 	// Helper programs
 	groupaddCmd  = "groupadd"
@@ -88,7 +91,20 @@ func DiskByLabelDir() string { return diskByLabelDir }
 
 func KernelCmdlinePath() string { return kernelCmdlinePath }
 func BootIDPath() string        { return bootIDPath }
-func SystemConfigDir() string   { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
+func SystemRuntimeConfigDir() string {
+	return fromEnv("SYSTEM_RUNTIME_CONFIG_DIR", systemRuntimeConfigDir)
+}
+func SystemLocalConfigDir() string { return fromEnv("SYSTEM_LOCAL_CONFIG_DIR", systemLocalConfigDir) }
+func SystemConfigDir() string      { return fromEnv("SYSTEM_CONFIG_DIR", systemConfigDir) }
+
+// SystemConfigDirs returns config directories in descending priority order.
+func SystemConfigDirs() []string {
+	return []string{
+		SystemRuntimeConfigDir(),
+		SystemLocalConfigDir(),
+		SystemConfigDir(),
+	}
+}
 
 func GroupaddCmd() string  { return groupaddCmd }
 func GroupmodCmd() string  { return groupmodCmd }

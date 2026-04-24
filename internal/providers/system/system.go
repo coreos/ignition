@@ -17,6 +17,7 @@ package system
 import (
 	"os"
 	"path/filepath"
+	"sort"
 
 	latest "github.com/coreos/ignition/v2/config/v3_7_experimental"
 	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
@@ -60,12 +61,22 @@ func FetchBaseConfig(logger *log.Logger, platformName string) (types.Config, rep
 	return fullBaseConfig, fullReport, nil
 }
 
+// fetchConfig searches for user.ign across system config directories
+// in priority order; first found wins.
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	return doFetchConfig(f.Logger, userFilename)
+	for _, dir := range distro.SystemConfigDirs() {
+		cfg, r, err := readConfigFile(f.Logger, filepath.Join(dir, userFilename))
+		if err == platform.ErrNoProvider {
+			continue
+		}
+		return cfg, r, err
+	}
+	return types.Config{}, report.Report{}, platform.ErrNoProvider
 }
 
-func doFetchConfig(logger *log.Logger, filename string) (types.Config, report.Report, error) {
-	path := filepath.Join(distro.SystemConfigDir(), filename)
+// readConfigFile reads and parses a config at the given path.
+// Returns ErrNoProvider if the file does not exist.
+func readConfigFile(logger *log.Logger, path string) (types.Config, report.Report, error) {
 	logger.Info("reading system config file %q", path)
 
 	rawConfig, err := os.ReadFile(path)
@@ -79,30 +90,50 @@ func doFetchConfig(logger *log.Logger, filename string) (types.Config, report.Re
 	return util.ParseConfig(logger, rawConfig)
 }
 
-// fetchBaseDirectoryConfig is a helper function to merge all the base config fragments inside of a particular directory.
+// fetchBaseDirectoryConfig collects base config fragments from a subdirectory
+// across all system config dirs. SystemConfigDirs() returns directories in
+// descending priority order by construction (runtime > local > vendor), so
+// iterating forward visits the highest-priority directory first; the first
+// directory to claim a filename wins.
 func fetchBaseDirectoryConfig(logger *log.Logger, dir string) (types.Config, report.Report, error) {
+	fileMap := make(map[string]string)
+	for _, sysDir := range distro.SystemConfigDirs() {
+		path := filepath.Join(sysDir, dir)
+		entries, err := os.ReadDir(path)
+		if os.IsNotExist(err) {
+			logger.Info("no config dir at %q", path)
+			continue
+		} else if err != nil {
+			logger.Err("couldn't read config dir %q: %v", path, err)
+			return types.Config{}, report.Report{}, err
+		}
+		for _, entry := range entries {
+			if _, exists := fileMap[entry.Name()]; !exists {
+				fileMap[entry.Name()] = filepath.Join(path, entry.Name())
+			}
+		}
+	}
+
+	if len(fileMap) == 0 {
+		logger.Info("no configs found in %q across system config directories", dir)
+		return types.Config{}, report.Report{}, nil
+	}
+
+	names := make([]string, 0, len(fileMap))
+	for name := range fileMap {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
 	var baseConfig types.Config
-	var report report.Report
-	path := filepath.Join(distro.SystemConfigDir(), dir)
-	configs, err := os.ReadDir(path)
-	if os.IsNotExist(err) {
-		logger.Info("no config dir at %q", path)
-		return types.Config{}, report, nil
-	} else if err != nil {
-		logger.Err("couldn't read config dir %q: %v", path, err)
-		return types.Config{}, report, err
-	}
-	if len(configs) == 0 {
-		logger.Info("no configs at %q", path)
-		return types.Config{}, report, nil
-	}
-	for _, config := range configs {
-		intermediateConfig, intermediateReport, err := doFetchConfig(logger, filepath.Join(dir, config.Name()))
+	var fullReport report.Report
+	for _, name := range names {
+		intermediateConfig, intermediateReport, err := readConfigFile(logger, fileMap[name])
 		if err != nil {
 			return types.Config{}, intermediateReport, err
 		}
 		baseConfig = latest.Merge(baseConfig, intermediateConfig)
-		report.Merge(intermediateReport)
+		fullReport.Merge(intermediateReport)
 	}
-	return baseConfig, report, nil
+	return baseConfig, fullReport, nil
 }
