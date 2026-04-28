@@ -46,12 +46,14 @@ func (s stage) createFilesystems(config types.Config) error {
 	s.PushPrefix("createFilesystems")
 	defer s.PopPrefix()
 
-	devs := []string{}
+	physicalDevs := []string{}
 	for _, fs := range fss {
-		devs = append(devs, string(fs.Device))
+		if fs.IsBlockDevice() {
+			physicalDevs = append(physicalDevs, string(fs.Device))
+		}
 	}
 
-	if err := s.waitOnDevicesAndCreateAliases(devs, "filesystems"); err != nil {
+	if err := s.waitOnDevicesAndCreateAliases(physicalDevs, "filesystems"); err != nil {
 		return err
 	}
 
@@ -89,7 +91,7 @@ func (s stage) createFilesystems(config types.Config) error {
 }
 
 func (s stage) createFilesystem(fs types.Filesystem) error {
-	if fs.Format == nil {
+	if fs.Format == nil || !fs.IsBlockDevice() {
 		return nil
 	}
 	devAlias := util.DeviceAlias(string(fs.Device))

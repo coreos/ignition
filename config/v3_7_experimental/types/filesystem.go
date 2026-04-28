@@ -35,10 +35,63 @@ func (f Filesystem) IgnoreDuplicates() map[string]struct{} {
 
 func (f Filesystem) Validate(c path.ContextPath) (r report.Report) {
 	r.AddOnError(c.Append("path"), f.validatePath())
-	r.AddOnError(c.Append("device"), validatePath(f.Device))
+	r.AddOnError(c.Append("device"), f.validateDevice())
 	r.AddOnError(c.Append("format"), f.validateFormat())
 	r.AddOnError(c.Append("label"), f.validateLabel())
+
+	f.validateBlockDeviceOnlyFields(c, &r)
+
 	return
+}
+
+// Non-block file systems cannot have UUID, Mkfs options, or wipeFilesystem enabled
+func (f Filesystem) validateBlockDeviceOnlyFields(c path.ContextPath, r *report.Report) {
+	if f.IsBlockDevice() {
+		return
+	}
+	if util.NotEmpty(f.UUID) {
+		r.AddOnError(c.Append("uuid"), errors.ErrUUIDNotSupportedForFormat)
+	}
+	if util.IsTrue(f.WipeFilesystem) {
+		r.AddOnError(c.Append("wipeFilesystem"), errors.ErrWipeNotSupportedForFormat)
+	}
+	if len(f.Options) > 0 {
+		r.AddOnError(c.Append("options"), errors.ErrMkfsOptionsNotSupportedForFormat)
+	}
+}
+
+func (f Filesystem) IsBlockDevice() bool {
+	if util.NilOrEmpty(f.Format) {
+		return true
+	}
+
+	switch *f.Format {
+	case "virtiofs":
+		return false
+	default:
+		return true
+	}
+}
+
+func (f Filesystem) validateDevice() error {
+	if util.NilOrEmpty(f.Format) {
+		return validatePath(f.Device)
+	}
+
+	switch *f.Format {
+	// File Systems that use tags don't need a path check, lets just make sure it is not empty
+	case "virtiofs":
+		if f.Device == "" {
+			return errors.ErrNoDevice
+		}
+		// This is part of the virtiofs spec. QEMU should also error if you try to startup with a tag too long
+		if len(f.Device) > 36 {
+			return errors.ErrVirtiofsDeviceTagTooLong
+		}
+		return nil
+	default:
+		return validatePath(f.Device)
+	}
 }
 
 func (f Filesystem) validatePath() error {
@@ -57,7 +110,7 @@ func (f Filesystem) validateFormat() error {
 		}
 	} else {
 		switch *f.Format {
-		case "ext4", "btrfs", "xfs", "swap", "vfat", "none":
+		case "ext4", "btrfs", "xfs", "swap", "vfat", "none", "virtiofs":
 		default:
 			return errors.ErrFilesystemInvalidFormat
 		}
@@ -101,6 +154,9 @@ func (f Filesystem) validateLabel() error {
 			// source: man mkfs.fat
 			return errors.ErrVfatLabelTooLong
 		}
+	case "virtiofs":
+		// This will only be reached if the label is non-empty
+		return errors.ErrVirtiofsCannotHaveLabel
 	}
 	return nil
 }
