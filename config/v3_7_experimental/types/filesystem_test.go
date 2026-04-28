@@ -15,10 +15,12 @@
 package types
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
+	"github.com/coreos/vcontext/path"
 )
 
 func TestFilesystemValidateFormat(t *testing.T) {
@@ -32,6 +34,10 @@ func TestFilesystemValidateFormat(t *testing.T) {
 		},
 		{
 			Filesystem{Format: util.StrToPtr("btrfs")},
+			nil,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs")},
 			nil,
 		},
 		{
@@ -183,12 +189,122 @@ func TestLabelValidate(t *testing.T) {
 			in:  in{filesystem: Filesystem{Format: util.StrToPtr("vfat"), Label: util.StrToPtr("thislabelistoolong")}},
 			out: out{err: errors.ErrVfatLabelTooLong},
 		},
+		{
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("virtiofs"), Label: nil}},
+			out: out{},
+		},
+		{
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("virtiofs"), Label: util.StrToPtr("data")}},
+			out: out{err: errors.ErrVirtiofsCannotHaveLabel},
+		},
 	}
 
 	for i, test := range tests {
 		err := test.in.filesystem.validateLabel()
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
+}
+
+func TestFilesystemValidateDevice(t *testing.T) {
+	tests := []struct {
+		in  Filesystem
+		out error
+	}{
+		{
+			Filesystem{Format: util.StrToPtr("ext4"), Device: "/dev/vda1"},
+			nil,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("ext4"), Device: ""},
+			errors.ErrNoPath,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("ext4"), Device: "vda1"},
+			errors.ErrPathRelative,
+		},
+		{
+			Filesystem{Format: nil, Device: "/dev/vda1"},
+			nil,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: "myshare"},
+			nil,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: ""},
+			errors.ErrNoDevice,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+			errors.ErrVirtiofsDeviceTagTooLong,
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.validateDevice()
+		if test.out != err {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out, err)
+		}
+	}
+}
+
+func TestValidateFileSystem(t *testing.T) {
+	tests := []struct {
+		fs     Filesystem
+		errors []error
+	}{
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: "myshare", Path: util.StrToPtr("/mnt")},
+			nil,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: "myshare", UUID: util.StrToPtr("abc")},
+			[]error{errors.ErrUUIDNotSupportedForFormat},
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: "myshare", WipeFilesystem: util.BoolToPtr(true)},
+			[]error{errors.ErrWipeNotSupportedForFormat},
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: "myshare", Options: []FilesystemOption{"opt"}},
+			[]error{errors.ErrMkfsOptionsNotSupportedForFormat},
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: "myshare", UUID: util.StrToPtr("abc"), WipeFilesystem: util.BoolToPtr(true), Options: []FilesystemOption{"opt"}},
+			[]error{errors.ErrUUIDNotSupportedForFormat, errors.ErrWipeNotSupportedForFormat, errors.ErrMkfsOptionsNotSupportedForFormat},
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: "myshare", MountOptions: []MountOption{"dax"}},
+			nil,
+		},
+	}
+
+	for i, test := range tests {
+		p := path.New("test", "filesystem", i)
+		r := test.fs.Validate(p)
+
+		got := make([]string, len(r.Entries))
+		for j, entry := range r.Entries {
+			got[j] = entry.Message
+		}
+
+		expected := make([]string, len(test.errors))
+		for j, err := range test.errors {
+			expected[j] = err.Error()
+		}
+
+		for _, msg := range got {
+			if !slices.Contains(expected, msg) {
+				t.Errorf("#%d: did not expect to find error %q", i, msg)
+			}
+		}
+
+		for _, msg := range expected {
+			if !slices.Contains(got, msg) {
+				t.Errorf("#%d: expected to find error %q", i, msg)
+			}
 		}
 	}
 }

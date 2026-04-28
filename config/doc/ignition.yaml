@@ -172,12 +172,23 @@ root:
           desc: the list of filesystems to be configured. `device` and `format` need to be specified. Every filesystem must have a unique `device`.
           children:
             - name: device
-              desc: the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
+              desc: the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks. For virtiofs, this is the tag name.
+              transforms:
+                - regex: " For virtiofs, this is the tag name."
+                  replacement: ""
+                  if:
+                    - variant: ignition
+                      max: 3.6.0
             - name: format
-              desc: the filesystem format (ext4, btrfs, xfs, vfat, swap, or none).
+              desc: the filesystem format (ext4, btrfs, xfs, vfat, virtiofs, swap, or none).
               # not part of the primary key, but required by validation
               required: true
               transforms:
+                - regex: "virtiofs, "
+                  replacement: ""
+                  if:
+                    - variant: ignition
+                      max: 3.6.0
                 - regex: "swap, or none"
                   replacement: "or swap"
                   if:
