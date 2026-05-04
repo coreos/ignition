@@ -1,6 +1,6 @@
 export GO111MODULE=on
 
-INSTALL_ALL_DRACUT_MODULES=0
+WITH_INTEGRATION ?= 0
 
 # Canonical version of this in https://github.com/coreos/coreos-assembler/blob/6eb97016f4dab7d13aa00ae10846f26c1cd1cb02/Makefile#L19
 GOARCH:=$(shell uname -m)
@@ -45,7 +45,7 @@ butane-cross:
 
 .PHONY: install
 install:
-	if [ $(INSTALL_ALL_DRACUT_MODULES) -eq 1 ]; then \
+	if [ $(WITH_INTEGRATION) -eq 1 ]; then \
 		for x in dracut/modules.d/*; do \
 			bn=$$(basename $$x); \
 			install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/$${bn} $$x/*; \
