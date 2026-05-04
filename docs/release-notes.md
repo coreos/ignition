@@ -15,6 +15,7 @@ nav_order: 9
 ### Changes
 
 - Fix test script compatibility with Go 1.26 which removed the `-go` flag from `go tool fix`
+- Improved documentation for the flow of Ignition across clouds.
 
 ### Bug fixes
 
