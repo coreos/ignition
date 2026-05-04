@@ -58,19 +58,21 @@ cosaPod {
     //    throw new Exception("No 1.6.0-experimental external tests found; comment out this workaround.")
     //}
 
-    // we run the blackbox tests separately instead of as part of the main kola
-    // run since it's a distinct kind of test and we want to draw more
-    // attention to it in the Jenkins UI
-    kola(extraArgs: "--denylist-test ext.*.blackbox")
-
-    parallel blackbox: {
-        unstash name: 'blackbox'
-        kola(extraArgs: "ext.*.blackbox", skipUpgrade: true)
-    }, testiso: {
+    // Build all artifacts before running tests, as iso.* tests are now folded into kola.
+    stage("Build Artifacts") {
         shwrap("""
             cd /srv/coreos
             cosa osbuild metal metal4k live
         """)
-        kolaTestIso()
+    }
+
+    // we run the blackbox tests separately instead of as part of the main kola
+    // run since it's a distinct kind of test and we want to draw more
+    // attention to it in the Jenkins UI
+    parallel blackbox: {
+        unstash name: 'blackbox'
+        kola(extraArgs: "ext.*.blackbox", skipUpgrade: true)
+    }, kola: {
+        kola(extraArgs: "--denylist-test ext.*.blackbox")
     }
 }
