@@ -33,6 +33,37 @@ import (
 	"github.com/vincent-petithory/dataurl"
 )
 
+// isOstreeSystem checks if the system is running ostree by checking for
+// the presence of /run/ostree-booted. This marker file is created by
+// ostree during boot. Also supports OSTREE_BOOTED=1 environment variable
+// for testing.
+func isOstreeSystem(ostreeBootedPath string) bool {
+	if os.Getenv("OSTREE_BOOTED") == "1" {
+		return true
+	}
+	_, err := os.Stat(ostreeBootedPath)
+	return err == nil
+}
+
+// buildCrypttabOptions constructs the options suffix for a crypttab entry.
+// It adds _netdev if network is needed and x-initrd.attach on ostree systems.
+// The x-initrd.attach option prevents systemd-cryptsetup-generator from adding
+// Conflicts=umount.target, which is necessary for soft-reboot to work correctly
+// on ostree systems where /sysroot is not the kernel root mount.
+func buildCrypttabOptions(hasNetworkDev, isOstree bool) string {
+	var options []string
+	if hasNetworkDev {
+		options = append(options, "_netdev")
+	}
+	if isOstree {
+		options = append(options, "x-initrd.attach")
+	}
+	if len(options) == 0 {
+		return ""
+	}
+	return "," + strings.Join(options, ",")
+}
+
 // createCrypttabEntries creates entries inside of /etc/crypttab for LUKS volumes,
 // as well as copying keyfiles to the sysroot.
 func (s *stage) createCrypttabEntries(config types.Config) error {
@@ -55,6 +86,11 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 			Mode: cutil.IntToPtr(0600),
 		},
 	}
+
+	// Detect if we're on an ostree system
+	// Check the host's /run directory, not the target sysroot
+	isOstree := isOstreeSystem("/run/ostree-booted")
+
 	extrafiles := []filesystemEntry{}
 	for _, luks := range config.Storage.Luks {
 		out, err := exec.Command(distro.CryptsetupCmd(), "luksUUID", util.DeviceAlias(*luks.Device)).CombinedOutput()
@@ -62,10 +98,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 			return fmt.Errorf("gathering luks uuid: %s: %v", out, err)
 		}
 		uuid := strings.TrimSpace(string(out))
-		netdev := ""
-		if len(luks.Clevis.Tang) > 0 || cutil.NotEmpty(luks.Clevis.Custom.Pin) && cutil.IsTrue(luks.Clevis.Custom.NeedsNetwork) {
-			netdev = ",_netdev"
-		}
+		hasNetworkDev := len(luks.Clevis.Tang) > 0 || cutil.NotEmpty(luks.Clevis.Custom.Pin) && cutil.IsTrue(luks.Clevis.Custom.NeedsNetwork)
 		keyfile := "none"
 		if !luks.Clevis.IsPresent() {
 			keyfile = filepath.Join(distro.LuksRealRootKeyFilePath(), luks.Name)
@@ -91,7 +124,8 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 				},
 			})
 		}
-		uri := dataurl.EncodeBytes([]byte(fmt.Sprintf("%s UUID=%s %s luks%s\n", luks.Name, uuid, keyfile, netdev)))
+		options := buildCrypttabOptions(hasNetworkDev, isOstree)
+		uri := dataurl.EncodeBytes([]byte(fmt.Sprintf("%s UUID=%s %s luks%s\n", luks.Name, uuid, keyfile, options)))
 		crypttab.Append = append(crypttab.Append, types.Resource{
 			Source: &uri,
 		})

@@ -19,6 +19,8 @@ nav_order: 9
 
 ### Bug fixes
 
+- Add `x-initrd.attach` to crypttab entries on ostree systems to fix soft-reboot with LUKS ([#2219](https://github.com/coreos/ignition/pull/2219))
+
 
 ## Ignition 2.26.0 (2026-02-17)
 
