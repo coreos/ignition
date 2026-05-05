@@ -52,7 +52,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_noProxy_** (list of strings): specifies a list of strings to hosts that should be excluded from proxying. Each value is represented by an `IP address prefix (1.2.3.4)`, `an IP address prefix in CIDR notation (1.2.3.4/8)`, `a domain name`, or `a special DNS label (*)`. An IP address prefix and domain name can also include a literal port number `(1.2.3.4:80)`. A domain name matches that name and all subdomains. A domain name with a leading `.` matches subdomains only. For example `foo.com` matches `foo.com` and `bar.foo.com`; `.y.com` matches `x.y.com` but not `y.com`. A single asterisk `(*)` indicates that no proxying should be done.
 * **_storage_** (object): describes the desired state of the system's storage devices.
   * **_disks_** (list of objects): the list of disks to be configured and their options. Every entry must have a unique `device`.
-    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
+    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks. For virtiofs, this is the tag name.
     * **_wipeTable_** (boolean): whether or not the partition tables shall be wiped. When true, the partition tables are erased before any further manipulation. Otherwise, the existing entries are left intact.
     * **_partitions_** (list of objects): the list of partitions and their configuration for this particular disk. Every partition must have a unique `number`, or if 0 is specified, a unique `label`.
       * **_label_** (string): the PARTLABEL for the partition.
@@ -72,7 +72,7 @@ The Ignition configuration is a JSON document conforming to the following specif
     * **_options_** (list of strings): any additional options to be passed to mdadm.
   * **_filesystems_** (list of objects): the list of filesystems to be configured. `device` and `format` need to be specified. Every filesystem must have a unique `device`.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-    * **format** (string): the filesystem format (ext4, btrfs, xfs, vfat, swap, or none).
+    * **format** (string): the filesystem format (ext4, btrfs, xfs, vfat, virtiofs, swap, or none).
     * **_path_** (string): the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
     * **_wipeFilesystem_** (boolean): whether or not to wipe the device before filesystem creation, see [Ignition's documentation on filesystems](https://coreos.github.io/ignition/operator-notes/#filesystem-reuse-semantics) for more information. Defaults to false.
     * **_label_** (string): the label of the filesystem.

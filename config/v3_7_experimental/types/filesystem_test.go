@@ -35,6 +35,10 @@ func TestFilesystemValidateFormat(t *testing.T) {
 			nil,
 		},
 		{
+			Filesystem{Format: util.StrToPtr("virtiofs")},
+			nil,
+		},
+		{
 			Filesystem{Format: util.StrToPtr("")},
 			nil,
 		},
@@ -183,12 +187,63 @@ func TestLabelValidate(t *testing.T) {
 			in:  in{filesystem: Filesystem{Format: util.StrToPtr("vfat"), Label: util.StrToPtr("thislabelistoolong")}},
 			out: out{err: errors.ErrVfatLabelTooLong},
 		},
+		{
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("virtiofs"), Label: nil}},
+			out: out{},
+		},
+		{
+			in:  in{filesystem: Filesystem{Format: util.StrToPtr("virtiofs"), Label: util.StrToPtr("data")}},
+			out: out{err: errors.ErrVirtiofsCannotHaveLabel},
+		},
 	}
 
 	for i, test := range tests {
 		err := test.in.filesystem.validateLabel()
 		if test.out.err != err {
 			t.Errorf("#%d: bad error: want %v, got %v", i, test.out.err, err)
+		}
+	}
+}
+
+func TestFilesystemValidateDevice(t *testing.T) {
+	tests := []struct {
+		in  Filesystem
+		out error
+	}{
+		{
+			Filesystem{Format: util.StrToPtr("ext4"), Device: "/dev/vda1"},
+			nil,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("ext4"), Device: ""},
+			errors.ErrNoPath,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("ext4"), Device: "vda1"},
+			errors.ErrPathRelative,
+		},
+		{
+			Filesystem{Format: nil, Device: "/dev/vda1"},
+			nil,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: "myshare"},
+			nil,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: ""},
+			errors.ErrNoDevice,
+		},
+		{
+			Filesystem{Format: util.StrToPtr("virtiofs"), Device: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+			errors.ErrVirtiofsDeviceTagTooLong,
+		},
+	}
+
+	for i, test := range tests {
+		err := test.in.validateDevice()
+		if test.out != err {
+			t.Errorf("#%d: bad error: want %v, got %v", i, test.out, err)
 		}
 	}
 }
