@@ -22,10 +22,12 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"iter"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -475,6 +477,32 @@ func partitionDevPath(blockDevResolved string, dmName string, prefix string, par
 	return fmt.Sprintf("/dev/disk/by-id/dm-name-%sp%d", dmName, partNum)
 }
 
+// dmPartitionStartAndSize returns the start sector and size (in 512-byte
+// sectors) of a device mapper partition device by parsing `dmsetup table`.
+// The table for a linear DM partition looks like:
+//
+//	0 <size> linear <major:minor> <start>
+func dmPartitionStartAndSize(partDev string) (int64, int64, error) {
+	out, err := exec.Command(distro.DmsetupCmd(), "table", partDev).Output()
+	if err != nil {
+		return 0, 0, fmt.Errorf("dmsetup table failed for %q: %v", partDev, err)
+	}
+	// Parse: "0 <size> linear <dev> <start>"
+	fields := strings.Fields(strings.TrimSpace(string(out)))
+	if len(fields) < 5 || fields[2] != "linear" {
+		return 0, 0, fmt.Errorf("unexpected dmsetup table output for %q: %q", partDev, string(out))
+	}
+	size, err := strconv.ParseInt(fields[1], 10, 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to parse size from dmsetup table for %q: %v", partDev, err)
+	}
+	start, err := strconv.ParseInt(fields[4], 10, 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to parse start from dmsetup table for %q: %v", partDev, err)
+	}
+	return start, size, nil
+}
+
 // partitionDisk partitions devAlias according to the spec given by dev
 func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 	blockDevResolved, err := filepath.EvalSymlinks(devAlias)
@@ -528,9 +556,9 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		return err
 	}
 
-	var partxAdd []uint64
-	var partxDelete []uint64
-	var partxUpdate []uint64
+	var partxAdd []int
+	var partxDelete []int
+	var partxUpdate []int
 
 	for _, part := range resolvedPartitions {
 		shouldExist := partitionShouldExist(part)
@@ -557,13 +585,13 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		case !exists && shouldExist:
 			op.CreatePartition(part)
 			modification = true
-			partxAdd = append(partxAdd, uint64(part.Number))
+			partxAdd = append(partxAdd, part.Number)
 		case exists && !shouldExist && !wipeEntry:
 			return fmt.Errorf("partition %d exists but is specified as nonexistant and wipePartitionEntry is false", part.Number)
 		case exists && !shouldExist && wipeEntry:
 			op.DeletePartition(part.Number)
 			modification = true
-			partxDelete = append(partxDelete, uint64(part.Number))
+			partxDelete = append(partxDelete, part.Number)
 		case exists && shouldExist && matches:
 			s.Info("partition %d found with correct specifications", part.Number)
 		case exists && shouldExist && !wipeEntry && !matches:
@@ -577,7 +605,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 				part.StartSector = &info.StartSector
 				op.CreatePartition(part)
 				modification = true
-				partxUpdate = append(partxUpdate, uint64(part.Number))
+				partxUpdate = append(partxUpdate, part.Number)
 			} else {
 				return fmt.Errorf("partition %d didn't match: %v", part.Number, matchErr)
 			}
@@ -586,7 +614,7 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 			op.DeletePartition(part.Number)
 			op.CreatePartition(part)
 			modification = true
-			partxUpdate = append(partxUpdate, uint64(part.Number))
+			partxUpdate = append(partxUpdate, part.Number)
 		default:
 			// unfortunatey, golang doesn't check that all cases are handled exhaustively
 			return fmt.Errorf("unreachable code reached when processing partition %d. golang--", part.Number)
@@ -604,26 +632,22 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 	// In contrast to similar tools, sgdisk does not trigger the update of the
 	// kernel partition table with BLKPG but only uses BLKRRPART which fails
 	// as soon as one partition of the disk is mounted
-	if len(activeParts) > 0 {
-		runPartxCommand := func(op string, partitions []uint64) error {
-			for _, partNr := range partitions {
-				cmd := exec.Command(distro.PartxCmd(), "--"+op, "--nr", strconv.FormatUint(partNr, 10), blockDevResolved)
-				if _, err := s.LogCmd(cmd, "triggering partition %d %s on %q", partNr, op, devAlias); err != nil {
-					return fmt.Errorf("partition %s failed: %v", op, err)
-				}
+	runPartxCommand := func(op string, partitions iter.Seq[int]) {
+		for partNr := range partitions {
+			// Don't use LogCmd here because we don't want to treat failure as
+			// critical and this command will never produce anything on Stdout.
+			cmd := exec.Command(distro.PartxCmd(), "--"+op, "--nr", fmt.Sprint(partNr), blockDevResolved)
+			s.Info("triggering partition %d %s on %q", partNr, op, devAlias)
+			s.Debug("executing: %q", cmd.Args)
+			_, err := cmd.Output()
+			if err, ok := err.(*exec.ExitError); ok {
+				s.Notice("%v: Cmd: %q Stderr: %q", err, cmd.Args, err.Stderr)
 			}
-			return nil
-		}
-		if err := runPartxCommand("delete", partxDelete); err != nil {
-			return err
-		}
-		if err := runPartxCommand("update", partxUpdate); err != nil {
-			return err
-		}
-		if err := runPartxCommand("add", partxAdd); err != nil {
-			return err
 		}
 	}
+	runPartxCommand("delete", slices.Values(partxDelete))
+	runPartxCommand("update", slices.Values(partxUpdate))
+	runPartxCommand("add", slices.Values(partxAdd))
 
 	// It's best to wait here for the /dev/ABC entries to be
 	// (re)created, not only for other parts of the initramfs but
@@ -631,6 +655,71 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 	// partition entry recreation.
 	if err := s.waitForUdev(devAlias); err != nil {
 		return fmt.Errorf("failed to wait for udev on %q after partitioning: %v", devAlias, err)
+	}
+
+	for _, part := range resolvedPartitions {
+		partDev := partitionDevPath(blockDevResolved, dmName, prefix, part.Number)
+
+		if slices.Contains(partxDelete, part.Number) {
+			_, err := os.Stat(partDev)
+			if err == nil {
+				return fmt.Errorf("%q unexpectedly exists after partitioning", partDev)
+			} else if !os.IsNotExist(err) {
+				return fmt.Errorf("failed to stat %q after partitioning: %v", partDev, err)
+			}
+		} else if slices.Contains(partxAdd, part.Number) || slices.Contains(partxUpdate, part.Number) {
+			var kernelStart, kernelSize int64
+
+			// sysfs always reports in 512-byte sectors; convert our expected
+			// values from logical sectors to 512-byte sectors for comparison
+			logicalTo512 := int64(diskInfo.LogicalSectorSize) / 512
+
+			if dmName != "" {
+				// DM partition devices don't have a "start" entry in
+				// sysfs. Use dmsetup table to get start and size.
+				kernelStart, kernelSize, err = dmPartitionStartAndSize(partDev)
+				if err != nil {
+					return fmt.Errorf("failed to get DM table for %q: %v", partDev, err)
+				}
+			} else {
+				partDevResolved, err := filepath.EvalSymlinks(partDev)
+				if err != nil {
+					return fmt.Errorf("failed to resolve %q: %v", partDev, err)
+				}
+				sysBlockDir := fmt.Sprintf("/sys/class/block/%s/", filepath.Base(partDevResolved))
+
+				startStr, err := os.ReadFile(sysBlockDir + "start")
+				if err != nil {
+					return fmt.Errorf("failed to read start of %q from sysfs: %v", partDev, err)
+				}
+				kernelStart, err = strconv.ParseInt(strings.TrimSpace(string(startStr)), 10, 64)
+				if err != nil {
+					return fmt.Errorf("failed to parse start of %q from sysfs: %v", partDev, err)
+				}
+
+				sizeStr, err := os.ReadFile(sysBlockDir + "size")
+				if err != nil {
+					return fmt.Errorf("failed to read size of %q from sysfs: %v", partDev, err)
+				}
+				kernelSize, err = strconv.ParseInt(strings.TrimSpace(string(sizeStr)), 10, 64)
+				if err != nil {
+					return fmt.Errorf("failed to parse size of %q from sysfs: %v", partDev, err)
+				}
+			}
+
+			if part.StartSector != nil {
+				expectedStart := *part.StartSector * logicalTo512
+				if kernelStart != expectedStart {
+					return fmt.Errorf("kernel partition start for %q does not match expected (%d != %d 512-byte sectors)", partDev, kernelStart, expectedStart)
+				}
+			}
+			if part.SizeInSectors != nil {
+				expectedSize := *part.SizeInSectors * logicalTo512
+				if kernelSize != expectedSize {
+					return fmt.Errorf("kernel partition size for %q does not match expected (%d != %d 512-byte sectors)", partDev, kernelSize, expectedSize)
+				}
+			}
+		}
 	}
 
 	return nil
