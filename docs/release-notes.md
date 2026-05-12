@@ -11,6 +11,7 @@ nav_order: 9
 ### Features
 
 - Support reading configs from `/run/ignition` and `/etc/ignition/` in addition to `/usr/lib/ignition/`, searched in descending priority order ([#2221](https://github.com/coreos/ignition/pull/2221))
+- Add support for `virtiofs`
 
 ### Changes
 
