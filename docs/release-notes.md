@@ -27,6 +27,7 @@ Starting with this release, ignition-validate binaries are signed with the
 
 - Fix giving disk partition number 0 to get the next available slot. This caused the disks stage to fail since version 2.20.0. ([#2234](https://github.com/coreos/ignition/pull/2234))
 - Fix disk partitioning race condition where the kernel is already aware of the changes before running `partx`, causing a fatal error. ([#2234](https://github.com/coreos/ignition/pull/2234))
+- Add `x-initrd.attach` to crypttab entries to fix soft-reboot with LUKS ([#2219](https://github.com/coreos/ignition/pull/2219))
 
 
 ## Ignition 2.26.0 (2026-02-17)
