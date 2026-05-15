@@ -168,7 +168,7 @@ func readPartitionerFromCmdline() string {
 	}
 	cmdline, err := os.ReadFile(kernelCmdlinePath)
 	if err != nil {
-		return "sgdisk"
+		return "sfdisk"
 	}
 	for _, arg := range strings.Split(strings.TrimSpace(string(cmdline)), " ") {
 		parts := strings.SplitN(arg, "=", 2)
@@ -179,7 +179,7 @@ func readPartitionerFromCmdline() string {
 			}
 		}
 	}
-	return "sgdisk"
+	return "sfdisk"
 }
 
 func fromEnv(nameSuffix, defaultValue string) string {
