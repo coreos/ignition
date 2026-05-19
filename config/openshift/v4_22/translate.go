@@ -108,7 +108,6 @@ func (c Config) ToMachineConfig4_22Unvalidated(options common.TranslateOptions) 
 	if r.IsFatal() {
 		return result.MachineConfig{}, ts, r
 	}
-	ts = translateUserGrubCfg(&cfg, &ts)
 
 	// wrap
 	ts = ts.PrefixPaths(path.New("yaml"), path.New("json", "spec", "config"))
@@ -259,27 +258,4 @@ func validateMCOSupport(mc result.MachineConfig) report.Report {
 		}
 	}
 	return r
-}
-
-// fcos config generates a user.cfg file using append; however, OpenShift config
-// does not support append (since MCO does not support it). Let change the file to use contents
-func translateUserGrubCfg(config *types.Config, ts *translate.TranslationSet) translate.TranslationSet {
-	newMappings := translate.NewTranslationSet("json", "json")
-	for i, file := range config.Storage.Files {
-		if file.Path == "/boot/grub2/user.cfg" {
-			if len(file.Append) != 1 {
-				// The number of append objects was different from expected, this file
-				// was created by the user and not via butane GRUB sugar
-				return *ts
-			}
-			fromPath := path.New("json", "storage", "files", i, "append", 0)
-			translatedPath := path.New("json", "storage", "files", i, "contents")
-			config.Storage.Files[i].Contents = file.Append[0]
-			config.Storage.Files[i].Append = nil
-			newMappings.AddFromCommonObject(fromPath, translatedPath, config.Storage.Files[i].Contents)
-
-			return ts.Map(newMappings)
-		}
-	}
-	return *ts
 }

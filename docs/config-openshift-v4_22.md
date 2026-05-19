@@ -180,10 +180,10 @@ The OpenShift configuration is a YAML document conforming to the following speci
       * **_enabled_** (boolean): whether or not to enable cex compatibility for luks. If omitted, defaults to false.
   * **_mirror_** (object): describes mirroring of the boot disk for fault tolerance.
     * **_devices_** (list of strings): the list of whole-disk devices (not partitions) to include in the disk array, referenced by their absolute path. At least two devices must be specified.
-* **_grub_** (object): describes the desired GRUB bootloader configuration.
-  * **_users_** (list of objects): the list of GRUB superusers.
-    * **name** (string): the user name.
-    * **password_hash** (string): the PBKDF2 password hash, generated with `grub2-mkpasswd-pbkdf2`.
+* **_grub_** (object): Unsupported
+  * **_users_** (list of objects): Unsupported
+    * **name** (string): Unsupported
+    * **password_hash** (string): Unsupported
 * **_openshift_** (object): describes miscellaneous OpenShift configuration. Respected when rendering to a MachineConfig, ignored when rendering directly to an Ignition config.
   * **_kernel_type_** (string): which kernel to use on the node. Must be `default` or `realtime`.
   * **_kernel_arguments_** (list of strings): arguments to be added to the kernel command line.
