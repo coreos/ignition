@@ -25,7 +25,7 @@ nav_order: 9
   3.7.0-experimental
 - Add `systemd.quadlets` section for embedding Podman Quadlet files
   _(fcos 1.8.0-exp, fiot 1.1.0-exp, flatcar 1.2.0-exp, openshift
-  4.22.0+, r4e 1.2.0-exp)_
+  4.23.0-exp, r4e 1.2.0-exp)_
 
 ### Misc. changes
 
