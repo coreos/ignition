@@ -44,7 +44,8 @@ import (
 	openshift4_19 "github.com/coreos/butane/config/openshift/v4_19"
 	openshift4_20 "github.com/coreos/butane/config/openshift/v4_20"
 	openshift4_21 "github.com/coreos/butane/config/openshift/v4_21"
-	openshift4_22_exp "github.com/coreos/butane/config/openshift/v4_22_exp"
+	openshift4_22 "github.com/coreos/butane/config/openshift/v4_22"
+	openshift4_23_exp "github.com/coreos/butane/config/openshift/v4_23_exp"
 	openshift4_8 "github.com/coreos/butane/config/openshift/v4_8"
 	openshift4_9 "github.com/coreos/butane/config/openshift/v4_9"
 	r4e1_0 "github.com/coreos/butane/config/r4e/v1_0"
@@ -93,7 +94,8 @@ func init() {
 	RegisterTranslator("openshift", "4.19.0", openshift4_19.ToConfigBytes)
 	RegisterTranslator("openshift", "4.20.0", openshift4_20.ToConfigBytes)
 	RegisterTranslator("openshift", "4.21.0", openshift4_21.ToConfigBytes)
-	RegisterTranslator("openshift", "4.22.0-experimental", openshift4_22_exp.ToConfigBytes)
+	RegisterTranslator("openshift", "4.22.0", openshift4_22.ToConfigBytes)
+	RegisterTranslator("openshift", "4.23.0-experimental", openshift4_23_exp.ToConfigBytes)
 	RegisterTranslator("r4e", "1.0.0", r4e1_0.ToIgn3_3Bytes)
 	RegisterTranslator("r4e", "1.1.0", r4e1_1.ToIgn3_4Bytes)
 	RegisterTranslator("r4e", "1.2.0-experimental", r4e1_2_exp.ToIgn3_7Bytes)

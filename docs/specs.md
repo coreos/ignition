@@ -27,6 +27,7 @@ We recommend that you always use the latest **stable** specification for your op
   - [v1.1.0](config-flatcar-v1_1.md)
   - [v1.0.0](config-flatcar-v1_0.md)
 - OpenShift (`openshift`)
+  - [v4.22.0](config-openshift-v4_22.md)
   - [v4.21.0](config-openshift-v4_21.md)
   - [v4.20.0](config-openshift-v4_20.md)
   - [v4.19.0](config-openshift-v4_19.md)
@@ -56,7 +57,7 @@ Do not use **experimental** specifications for anything beyond **development and
 - Flatcar (`flatcar`)
   - [v1.2.0-experimental](config-flatcar-v1_2-exp.md)
 - OpenShift (`openshift`)
-  - [v4.22.0-experimental](config-openshift-v4_22-exp.md)
+  - [v4.23.0-experimental](config-openshift-v4_23-exp.md)
 - RHEL for Edge (`r4e`)
   - [v1.2.0-experimental](config-r4e-v1_2-exp.md)
 - Fedora IoT (`fiot`)
@@ -94,7 +95,8 @@ Each version of the Butane specification corresponds to a version of the Ignitio
 | `openshift`    | 4.19.0              | 3.5.0              |
 | `openshift`    | 4.20.0              | 3.5.0              |
 | `openshift`    | 4.21.0              | 3.5.0              |
-| `openshift`    | 4.22.0-experimental | 3.7.0-experimental |
+| `openshift`    | 4.22.0              | 3.6.0              |
+| `openshift`    | 4.23.0-experimental | 3.7.0-experimental |
 | `r4e`          | 1.0.0               | 3.3.0              |
 | `r4e`          | 1.1.0               | 3.4.0              |
 | `r4e`          | 1.2.0-experimental  | 3.7.0-experimental |

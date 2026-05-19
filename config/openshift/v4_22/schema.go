@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.)
 
-package v4_22_exp
+package v4_22
 
 import (
-	fcos "github.com/coreos/butane/config/fcos/v1_8_exp"
+	fcos "github.com/coreos/butane/config/fcos/v1_7"
 )
 
 const ROLE_LABEL_KEY = "machineconfiguration.openshift.io/role"

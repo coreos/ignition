@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.)
 
-package v4_22_exp
+package v4_22
 
 import (
 	"fmt"
 	"testing"
 
 	baseutil "github.com/coreos/butane/base/util"
-	base "github.com/coreos/butane/base/v0_8_exp"
+	base "github.com/coreos/butane/base/v0_7"
 	"github.com/coreos/butane/config/common"
-	fcos "github.com/coreos/butane/config/fcos/v1_8_exp"
-	"github.com/coreos/butane/config/openshift/v4_22_exp/result"
+	fcos "github.com/coreos/butane/config/fcos/v1_7"
+	"github.com/coreos/butane/config/openshift/v4_22/result"
 	confutil "github.com/coreos/butane/config/util"
 	"github.com/coreos/butane/translate"
 
 	"github.com/coreos/ignition/v2/config/util"
-	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
+	"github.com/coreos/ignition/v2/config/v3_6/types"
 	"github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
 	"github.com/stretchr/testify/assert"
@@ -52,7 +52,7 @@ func TestElidedFieldWarning(t *testing.T) {
 	expected.AddOnWarn(path.New("yaml", "openshift", "fips"), common.ErrFieldElided)
 	expected.AddOnWarn(path.New("yaml", "openshift", "kernel_type"), common.ErrFieldElided)
 
-	_, _, r := in.ToIgn3_7Unvalidated(common.TranslateOptions{})
+	_, _, r := in.ToIgn3_6Unvalidated(common.TranslateOptions{})
 	assert.Equal(t, expected, r, "report mismatch")
 }
 
@@ -84,7 +84,7 @@ func TestTranslateConfig(t *testing.T) {
 				Spec: result.Spec{
 					Config: types.Config{
 						Ignition: types.Ignition{
-							Version: "3.7.0-experimental",
+							Version: "3.6.0",
 						},
 					},
 				},
@@ -96,89 +96,6 @@ func TestTranslateConfig(t *testing.T) {
 				{From: path.New("yaml"), To: path.New("json", "spec", "config")},
 				{From: path.New("yaml", "ignition"), To: path.New("json", "spec", "config", "ignition")},
 				{From: path.New("yaml", "version"), To: path.New("json", "spec", "config", "ignition", "version")},
-			},
-		},
-		// Test Grub config
-		{
-			Config{
-				Metadata: Metadata{
-					Name: "z",
-					Labels: map[string]string{
-						ROLE_LABEL_KEY: "z",
-					},
-				},
-				Config: fcos.Config{
-					Grub: fcos.Grub{
-						Users: []fcos.GrubUser{
-							{
-								Name:         "root",
-								PasswordHash: util.StrToPtr("grub.pbkdf2.sha512.10000.874A958E526409..."),
-							},
-						},
-					},
-				},
-			},
-			result.MachineConfig{
-				ApiVersion: result.MC_API_VERSION,
-				Kind:       result.MC_KIND,
-				Metadata: result.Metadata{
-					Name: "z",
-					Labels: map[string]string{
-						ROLE_LABEL_KEY: "z",
-					},
-				},
-				Spec: result.Spec{
-					Config: types.Config{
-						Ignition: types.Ignition{
-							Version: "3.7.0-experimental",
-						},
-						Storage: types.Storage{
-							Filesystems: []types.Filesystem{
-								{
-									Device: "/dev/disk/by-label/boot",
-									Format: util.StrToPtr("ext4"),
-									Path:   util.StrToPtr("/boot"),
-								},
-							},
-							Files: []types.File{
-								{
-									Node: types.Node{
-										Path: "/boot/grub2/user.cfg",
-									},
-									FileEmbedded1: types.FileEmbedded1{
-										Contents: types.Resource{
-											Source:      util.StrToPtr("data:,%23%20Generated%20by%20Butane%0A%0Aset%20superusers%3D%22root%22%0Apassword_pbkdf2%20root%20grub.pbkdf2.sha512.10000.874A958E526409...%0A"),
-											Compression: util.StrToPtr(""),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			[]translate.Translation{
-				{From: path.New("yaml", "version"), To: path.New("json", "apiVersion")},
-				{From: path.New("yaml", "version"), To: path.New("json", "kind")},
-				{From: path.New("yaml", "version"), To: path.New("json", "spec")},
-				{From: path.New("yaml"), To: path.New("json", "spec", "config")},
-				{From: path.New("yaml", "ignition"), To: path.New("json", "spec", "config", "ignition")},
-				{From: path.New("yaml", "version"), To: path.New("json", "spec", "config", "ignition", "version")},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage")},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "filesystems")},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "filesystems", 0)},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "filesystems", 0, "path")},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "filesystems", 0, "device")},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "filesystems", 0, "format")},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "files")},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "files", 0)},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "files", 0, "path")},
-				// "append" field is a remnant of translations performed in fcos config
-				// TODO: add a delete function to translation.TranslationSet and delete "append" translation
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "files", 0, "append")},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "files", 0, "contents")},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "files", 0, "contents", "source")},
-				{From: path.New("yaml", "grub", "users"), To: path.New("json", "spec", "config", "storage", "files", 0, "contents", "compression")},
 			},
 		},
 	}
