@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.)
 
-package v4_22_exp
+package v4_22
 
 import (
 	"fmt"
 	"testing"
 
 	baseutil "github.com/coreos/butane/base/util"
-	base "github.com/coreos/butane/base/v0_8_exp"
+	base "github.com/coreos/butane/base/v0_7"
 	"github.com/coreos/butane/config/common"
-	fcos "github.com/coreos/butane/config/fcos/v1_8_exp"
+	fcos "github.com/coreos/butane/config/fcos/v1_7"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/util"
