@@ -4,9 +4,19 @@ nav_order: 9
 
 # Release notes
 
-## Upcoming Butane 0.28.0 (unreleased)
+## Upcoming Butane 0.29.0 (unreleased)
 
 ### Breaking changes
+
+### Features
+
+### Bug fixes
+
+### Misc. changes
+
+### Docs changes
+
+## Butane 0.28.0 (2026-05-19)
 
 ### Features
 
@@ -17,14 +27,10 @@ nav_order: 9
   _(fcos 1.8.0-exp, fiot 1.1.0-exp, flatcar 1.2.0-exp, openshift
   4.22.0+, r4e 1.2.0-exp)_
 
-### Bug fixes
-
 ### Misc. changes
 
 - Warn on root partition size is too small _(fcos 1.3.0-1.8.0-exp)_
 - Warn on root partition constrained by another partition _(fcos 1.3.0-1.8.0-exp)_
-
-### Docs changes
 
 ## Butane 0.27.0 (2026-02-27)
 
