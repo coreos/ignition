@@ -50,6 +50,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/pin/tftp"
 	"github.com/vincent-petithory/dataurl"
@@ -600,8 +601,13 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 }
 
 func (f *Fetcher) fetchFromS3WithClient(ctx context.Context, dest s3target, input *s3.GetObjectInput, client *s3.Client) error {
-	downloader := manager.NewDownloader(client)
-	_, err := downloader.Download(ctx, dest, input)
+	tm := transfermanager.New(client)
+	_, err := tm.DownloadObject(ctx, &transfermanager.DownloadObjectInput{
+		Bucket:    input.Bucket,
+		Key:       input.Key,
+		VersionID: input.VersionId,
+		WriterAt:  dest,
+	})
 	return err
 }
 
