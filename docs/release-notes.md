@@ -18,6 +18,9 @@ nav_order: 9
 
 ## Butane 0.28.0 (2026-05-19)
 
+Starting with this release, Butane binaries are signed with the [Fedora 44
+key](https://getfedora.org/security/).
+
 ### Features
 
 - Stabilize OpenShift spec 4.22.0, targeting Ignition spec 3.6.0
