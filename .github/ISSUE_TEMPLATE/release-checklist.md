@@ -30,13 +30,13 @@ Fedora packaging:
  - [ ] Run `kinit your_fas_account@FEDORAPROJECT.ORG`
  - [ ] Run `fedpkg new-sources $(spectool -S butane.spec | sed 's:.*/::')`
  - [ ] PR the changes in [Fedora](https://src.fedoraproject.org/rpms/butane)
- - [ ] Once the PR merges to rawhide, merge rawhide into the other relevant branches (e.g. f43) then push those, for example:
+ - [ ] Once the PR merges to rawhide, merge rawhide into the other relevant branches (e.g. f44) then push those, for example:
    ```bash
    git checkout rawhide
    git pull --ff-only
-   git checkout f43
+   git checkout f44
    git merge --ff-only rawhide
-   git push origin f43
+   git push origin f44
    ```
  - [ ] On each of those branches run `fedpkg build` including rawhide.
  - [ ] Once the builds have finished, submit them to [bodhi](https://bodhi.fedoraproject.org/updates/new), filling in:
