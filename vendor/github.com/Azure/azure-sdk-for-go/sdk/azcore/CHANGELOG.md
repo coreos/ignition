@@ -1,5 +1,29 @@
 # Release History
 
+## 1.21.1 (2026-04-16)
+
+### Bugs Fixed
+
+* Fixed an issue in `ResponseError.Error()` where the request URL path was being logged unescaped.
+* Redact query parameters when logging errors.
+* For `runtime.JoinPaths`, don't add a slash between root and paths when `paths` starts with `?` (query string).
+
+### Other Changes
+
+* Upgraded to Go 1.25.0.
+* Upgraded dependencies.
+
+## 1.21.0 (2026-01-12)
+
+### Features Added
+
+* Added `runtime/datetime` package which provides specialized time type wrappers for serializing and deserializing
+time values in various formats used by Azure services.
+
+### Other Changes
+
+* Aligned `cloud.AzureGovernment` and `cloud.AzureChina` audience values with Azure CLI
+
 ## 1.20.0 (2025-11-06)
 
 ### Features Added
