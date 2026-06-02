@@ -38,14 +38,13 @@ type Operation struct {
 	parts     []partitioners.Partition
 	deletions []int
 	infos     []int
+	lastLBA   int64
 }
 
-// Begin begins an sfdisk operation
 func Begin(logger *log.Logger, dev string) *Operation {
 	return &Operation{logger: logger, dev: dev}
 }
 
-// CreatePartition adds the supplied partition to the list of partitions to be created as part of an operation.
 func (op *Operation) CreatePartition(p partitioners.Partition) {
 	op.parts = append(op.parts, p)
 }
@@ -58,7 +57,6 @@ func (op *Operation) Info(num int) {
 	op.infos = append(op.infos, num)
 }
 
-// WipeTable toggles if the table is to be wiped first when committing this operation.
 func (op *Operation) WipeTable(wipe bool) {
 	op.wipe = wipe
 }
@@ -71,9 +69,29 @@ func (op *Operation) WritesCompleteTable() bool {
 	return true
 }
 
-// getLastLBA reads the last usable LBA from the device's GPT header using
-// sfdisk --dump. Returns -1 if unavailable.
+// ensureGPTLabel creates an empty GPT label on the device if one does
+// not already exist. This is needed so that getLastLBA can read
+// last-lba from the GPT header and so that sfdisk --no-act works.
+func (op *Operation) ensureGPTLabel() {
+	cmd := exec.Command(distro.SfdiskCmd(), "--dump", op.dev)
+	if out, err := cmd.Output(); err == nil && strings.Contains(string(out), "label:") {
+		return
+	}
+	if op.logger != nil {
+		op.logger.Info("creating empty GPT label on %q", op.dev)
+	}
+	labelCmd := exec.Command(distro.SfdiskCmd(), "-X", "gpt", op.dev)
+	labelCmd.Stdin = strings.NewReader("label: gpt\n")
+	if output, err := labelCmd.CombinedOutput(); err != nil {
+		if op.logger != nil {
+			op.logger.Warning("failed to create GPT label on %q: %v: %s", op.dev, err, string(output))
+		}
+	}
+}
+
+// getLastLBA reads the last usable LBA from the device's GPT header.
 func (op *Operation) getLastLBA() int64 {
+	op.ensureGPTLabel()
 	cmd := exec.Command(distro.SfdiskCmd(), "--dump", op.dev)
 	stdout, err := cmd.Output()
 	if err != nil {
@@ -90,20 +108,17 @@ func (op *Operation) getLastLBA() int64 {
 	return -1
 }
 
-// readExistingPartitions reads the current partition table from the device
-// using sfdisk --dump. Returns a map of partition number to Partition.
-func (op *Operation) readExistingPartitions() (map[int]partitioners.Partition, error) {
+// readExistingPartitions reads the current partition table using
+// sfdisk --dump.
+func (op *Operation) readExistingPartitions() ([]partitioners.Partition, error) {
 	cmd := exec.Command(distro.SfdiskCmd(), "--dump", op.dev)
 	stdout, err := cmd.Output()
 	if err != nil {
-		// If sfdisk fails (e.g., no partition table), return empty map
-		return map[int]partitioners.Partition{}, nil
+		return nil, nil
 	}
 
-	partitions := make(map[int]partitioners.Partition)
-	// Match lines like: /dev/sda1 : start=     2048, size=    65536, type=..., uuid=..., name="..."
-	lineRegex := regexp.MustCompile(`^(/dev/\S+)\s*:\s*(.*)$`)
-	// Extract partition number from device name: /dev/sda1 -> 1, /dev/nvme0n1p2 -> 2
+	var partitions []partitioners.Partition
+	lineRegex := regexp.MustCompile(`^(/\S+)\s*:\s*(.*)$`)
 	numRegex := regexp.MustCompile(`(\d+)$`)
 
 	for _, line := range strings.Split(string(stdout), "\n") {
@@ -113,10 +128,7 @@ func (op *Operation) readExistingPartitions() (map[int]partitioners.Partition, e
 			continue
 		}
 
-		devName := matches[1]
-		attrs := matches[2]
-
-		numMatch := numRegex.FindStringSubmatch(devName)
+		numMatch := numRegex.FindStringSubmatch(matches[1])
 		if numMatch == nil {
 			continue
 		}
@@ -128,8 +140,7 @@ func (op *Operation) readExistingPartitions() (map[int]partitioners.Partition, e
 		p := partitioners.Partition{}
 		p.Number = partNum
 
-		// Parse key=value pairs from the attributes
-		for _, field := range strings.Split(attrs, ",") {
+		for _, field := range strings.Split(matches[2], ",") {
 			field = strings.TrimSpace(field)
 			kv := strings.SplitN(field, "=", 2)
 			if len(kv) != 2 {
@@ -154,22 +165,17 @@ func (op *Operation) readExistingPartitions() (map[int]partitioners.Partition, e
 			case "uuid":
 				p.GUID = util.StrToPtr(value)
 			case "name":
-				// Remove surrounding quotes
-				value = strings.Trim(value, "\"")
-				p.Label = util.StrToPtr(value)
+				p.Label = util.StrToPtr(strings.Trim(value, "\""))
 			}
 		}
 
-		partitions[partNum] = p
+		partitions = append(partitions, p)
 	}
 
 	return partitions, nil
 }
 
-// writePartitionLine writes a single partition line to the script buffer.
-// lastLBA is the last usable sector; if >= 0, fill-remaining partitions get an
-// explicit size matching sgdisk's inclusive interpretation of last-lba.
-func writePartitionLine(script *bytes.Buffer, p partitioners.Partition, lastLBA int64) {
+func writePartitionLine(script *bytes.Buffer, p partitioners.Partition) {
 	var line bytes.Buffer
 
 	if p.Number > 0 {
@@ -184,10 +190,6 @@ func writePartitionLine(script *bytes.Buffer, p partitioners.Partition, lastLBA 
 
 	if p.SizeInSectors != nil && *p.SizeInSectors != 0 {
 		fmt.Fprintf(&line, " size=%d,", *p.SizeInSectors)
-	} else if lastLBA >= 0 && p.StartSector != nil && *p.StartSector > 0 {
-		// sfdisk's "fill remaining" leaves 1 sector unused compared to
-		// sgdisk.  Compute the exact size to match sgdisk behaviour.
-		fmt.Fprintf(&line, " size=%d,", lastLBA-*p.StartSector+1)
 	} else {
 		line.WriteString(" size=+,")
 	}
@@ -208,70 +210,105 @@ func writePartitionLine(script *bytes.Buffer, p partitioners.Partition, lastLBA 
 	script.WriteString("\n")
 }
 
-// buildCompleteScript constructs an sfdisk script from the given partition map.
-// lastLBA is forwarded to writePartitionLine for fill-remaining size
-// calculation; pass -1 if unknown.
-func buildCompleteScript(partitions map[int]partitioners.Partition, lastLBA int64) string {
+// buildScript constructs an sfdisk script. Fixed-size partitions are
+// written first (sorted by start sector) so that fill-remaining
+// partitions (size=+) see the correct free blocks.
+func buildScript(partitions []partitioners.Partition, lastLBA int64) string {
 	script := &bytes.Buffer{}
 	script.WriteString("label: gpt\n")
-	script.WriteString("grain: 512\n\n")
-
-	// Sort partition numbers: numbered partitions first (ascending), then auto-numbered (0)
-	numbers := make([]int, 0, len(partitions))
-	for num := range partitions {
-		numbers = append(numbers, num)
+	script.WriteString("grain: 512\n")
+	if lastLBA >= 0 {
+		fmt.Fprintf(script, "last-lba: %d\n", lastLBA)
 	}
-	sort.Slice(numbers, func(i, j int) bool {
-		if numbers[i] == 0 {
-			return false
+	script.WriteString("\n")
+
+	sorted := make([]partitioners.Partition, len(partitions))
+	copy(sorted, partitions)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		iFixed := sorted[i].SizeInSectors != nil && *sorted[i].SizeInSectors != 0
+		jFixed := sorted[j].SizeInSectors != nil && *sorted[j].SizeInSectors != 0
+		if iFixed != jFixed {
+			return iFixed
 		}
-		if numbers[j] == 0 {
-			return true
+		if iFixed && jFixed {
+			iStart := int64(0)
+			jStart := int64(0)
+			if sorted[i].StartSector != nil {
+				iStart = *sorted[i].StartSector
+			}
+			if sorted[j].StartSector != nil {
+				jStart = *sorted[j].StartSector
+			}
+			return iStart < jStart
 		}
-		return numbers[i] < numbers[j]
+		return false
 	})
 
-	for _, num := range numbers {
-		p := partitions[num]
-		writePartitionLine(script, p, lastLBA)
+	for _, p := range sorted {
+		writePartitionLine(script, p)
 	}
 
 	return script.String()
 }
 
-// Pretend is like Commit() but uses the --no-act flag and returns the output
-// on stdout for parsing.
-func (op *Operation) Pretend() (string, error) {
-	var existing map[int]partitioners.Partition
-	var err error
+// mergePartitions builds the final partition list from existing disk
+// state plus queued operations.
+func (op *Operation) mergePartitions() ([]partitioners.Partition, error) {
+	var merged []partitioners.Partition
 
-	if op.wipe {
-		existing = make(map[int]partitioners.Partition)
-	} else {
-		existing, err = op.readExistingPartitions()
+	if !op.wipe {
+		existing, err := op.readExistingPartitions()
 		if err != nil {
-			return "", err
+			return nil, err
+		}
+		merged = existing
+	}
+
+	for _, delNum := range op.deletions {
+		var filtered []partitioners.Partition
+		for _, p := range merged {
+			if p.Number != delNum {
+				filtered = append(filtered, p)
+			}
+		}
+		merged = filtered
+	}
+
+	for _, p := range op.parts {
+		if p.Number == 0 {
+			merged = append(merged, p)
+		} else {
+			replaced := false
+			for i := range merged {
+				if merged[i].Number == p.Number {
+					merged[i] = p
+					replaced = true
+					break
+				}
+			}
+			if !replaced {
+				merged = append(merged, p)
+			}
 		}
 	}
 
-	// Apply deletions
-	for _, num := range op.deletions {
-		delete(existing, num)
+	return merged, nil
+}
+
+func (op *Operation) Pretend() (string, error) {
+	merged, err := op.mergePartitions()
+	if err != nil {
+		return "", err
 	}
 
-	// Apply creations
-	for _, p := range op.parts {
-		existing[p.Number] = p
-	}
-
-	lastLBA := op.getLastLBA()
-	scriptContent := buildCompleteScript(existing, lastLBA)
+	op.lastLBA = op.getLastLBA()
+	scriptContent := buildScript(merged, op.lastLBA)
 
 	if op.logger != nil {
 		op.logger.Info("running sfdisk --no-act with script:\n%s", scriptContent)
 	}
 
-	cmd := exec.Command(distro.SfdiskCmd(), "--no-act", "-X", "gpt", op.dev)
+	cmd := exec.Command(distro.SfdiskCmd(), "--no-act", "--wipe-partitions", "always", "-X", "gpt", op.dev)
 	cmd.Stdin = strings.NewReader(scriptContent)
 
 	stdout, err := cmd.StdoutPipe()
@@ -304,12 +341,8 @@ func (op *Operation) Pretend() (string, error) {
 	return string(output), nil
 }
 
-// Commit commits a partitioning operation.
 func (op *Operation) Commit() error {
-	var existing map[int]partitioners.Partition
-
 	if op.wipe {
-		// Create empty GPT table first
 		if op.logger != nil {
 			op.logger.Info("wiping partition table on %q", op.dev)
 		}
@@ -318,51 +351,29 @@ func (op *Operation) Commit() error {
 		if output, err := cmd.CombinedOutput(); err != nil {
 			return fmt.Errorf("failed to wipe partition table on %q: %v: %s", op.dev, err, string(output))
 		}
-		existing = make(map[int]partitioners.Partition)
-	} else {
-		// Read the current table so that partitions present on disk but
-		// not referenced in the ignition config are preserved.  The
-		// caller already passes matching/modified partitions via
-		// CreatePartition, but unreferenced ones would be lost without
-		// this read-modify-write.
-		var err error
-		existing, err = op.readExistingPartitions()
-		if err != nil {
-			return err
-		}
 	}
 
-	// Apply deletions
-	for _, num := range op.deletions {
-		delete(existing, num)
+	merged, err := op.mergePartitions()
+	if err != nil {
+		return err
 	}
 
-	// Apply creations
-	for _, p := range op.parts {
-		existing[p.Number] = p
-	}
-
-	if len(existing) == 0 && !op.wipe {
+	if len(merged) == 0 {
 		return nil
 	}
 
-	// Handle info requests
 	if err := op.handleInfo(); err != nil {
 		return err
 	}
 
-	if len(existing) == 0 {
-		return nil
-	}
-
 	lastLBA := op.getLastLBA()
-	scriptContent := buildCompleteScript(existing, lastLBA)
+	scriptContent := buildScript(merged, lastLBA)
 
 	if op.logger != nil {
 		op.logger.Info("running sfdisk with script:\n%s", scriptContent)
 	}
 
-	cmd := exec.Command(distro.SfdiskCmd(), "--wipe", "auto", "-X", "gpt", op.dev)
+	cmd := exec.Command(distro.SfdiskCmd(), "--wipe", "auto", "--wipe-partitions", "always", "-X", "gpt", op.dev)
 	cmd.Stdin = strings.NewReader(scriptContent)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -372,13 +383,7 @@ func (op *Operation) Commit() error {
 	return nil
 }
 
-// ParseOutput parses the table-format output from sfdisk (the "New situation:"
-// section after --no-act) and returns a map of partition number to Output.
 func (op *Operation) ParseOutput(sfdiskOutput string, partitionNumbers []int) (map[int]partitioners.Output, error) {
-	// Check for error/failure keywords only in the preamble before the
-	// partition table.  The table itself can contain type names like
-	// "Linux filesystem" that are harmless, and user-supplied partition
-	// labels could also contain "error" or "failed".
 	preamble := sfdiskOutput
 	if idx := strings.Index(sfdiskOutput, "Device"); idx >= 0 {
 		preamble = sfdiskOutput[:idx]
@@ -390,12 +395,8 @@ func (op *Operation) ParseOutput(sfdiskOutput string, partitionNumbers []int) (m
 
 	result := make(map[int]partitioners.Output)
 
-	// Match lines like: /dev/vda1   2048  67583   65536  32M Linux filesystem
-	// Device, optional boot flag (*), start, end, sectors, size, type
-	partitionRegex := regexp.MustCompile(`^/dev/\S+\s+\*?\s*(\d+)\s+(\d+)\s+(\d+)\s+`)
-
-	// Extract partition number from device name
-	numRegex := regexp.MustCompile(`^(/dev/\S+)`)
+	partitionRegex := regexp.MustCompile(`^/\S+\s+\*?\s*(\d+)\s+(\d+)\s+(\d+)\s+`)
+	numRegex := regexp.MustCompile(`^(/\S+)`)
 	devNumRegex := regexp.MustCompile(`(\d+)$`)
 
 	for _, line := range strings.Split(sfdiskOutput, "\n") {
@@ -405,13 +406,11 @@ func (op *Operation) ParseOutput(sfdiskOutput string, partitionNumbers []int) (m
 			continue
 		}
 
-		// Get device name to extract partition number
 		devMatch := numRegex.FindStringSubmatch(line)
 		if devMatch == nil {
 			continue
 		}
-		devName := devMatch[1]
-		partNumMatch := devNumRegex.FindStringSubmatch(devName)
+		partNumMatch := devNumRegex.FindStringSubmatch(devMatch[1])
 		if partNumMatch == nil {
 			continue
 		}
@@ -432,6 +431,12 @@ func (op *Operation) ParseOutput(sfdiskOutput string, partitionNumbers []int) (m
 
 		size := end - start + 1
 
+		// sfdisk's fill-remaining (size=+) ends 1 sector before lastLBA.
+		// Correct this to match sgdisk which fills to the exact lastLBA.
+		if op.lastLBA > 0 && end == op.lastLBA-1 {
+			size++
+		}
+
 		result[partNum] = partitioners.Output{
 			Start: start,
 			Size:  size,
@@ -441,7 +446,6 @@ func (op *Operation) ParseOutput(sfdiskOutput string, partitionNumbers []int) (m
 	return result, nil
 }
 
-// handleInfo logs partition information for each requested partition number.
 func (op *Operation) handleInfo() error {
 	if len(op.infos) == 0 {
 		return nil

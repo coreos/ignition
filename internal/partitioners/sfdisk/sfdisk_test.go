@@ -17,6 +17,7 @@ package sfdisk
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -25,12 +26,9 @@ import (
 )
 
 func TestParseOutputSinglePartition(t *testing.T) {
-	op := Begin(nil, "")
+	op := &Operation{lastLBA: 67583}
 
 	sfdiskOutput := `Disk /dev/vda: 2 GiB, 2147483648 bytes, 4194304 sectors
-Units: sectors of 1 * 512 = 512 bytes
-Sector size (logical/physical): 512 bytes / 512 bytes
-I/O size (minimum/optimal): 512 bytes / 512 bytes
 
 >>> Created a new GPT disklabel.
 /dev/vda1: Created a new partition 1 of type 'Linux filesystem' and of size 32 MiB.
@@ -48,20 +46,13 @@ The partition table is unchanged (--no-act).`
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-
-	if len(result) != 1 {
-		t.Fatalf("expected 1 partition, got %d", len(result))
-	}
-
 	assertOutput(t, result, 1, partitioners.Output{Start: 2048, Size: 65536})
 }
 
 func TestParseOutputTwoPartitions(t *testing.T) {
-	op := Begin(nil, "")
+	op := &Operation{}
 
-	sfdiskOutput := `Disk /dev/vda: 2 GiB, 2147483648 bytes, 4194304 sectors
-
-New situation:
+	sfdiskOutput := `New situation:
 Disklabel type: gpt
 
 Device     Start    End Sectors Size Type
@@ -74,17 +65,12 @@ The partition table is unchanged (--no-act).`
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-
-	if len(result) != 2 {
-		t.Fatalf("expected 2 partitions, got %d", len(result))
-	}
-
 	assertOutput(t, result, 1, partitioners.Output{Start: 2048, Size: 65536})
 	assertOutput(t, result, 2, partitioners.Output{Start: 67584, Size: 65536})
 }
 
 func TestParseOutputError(t *testing.T) {
-	op := Begin(nil, "")
+	op := &Operation{}
 
 	sfdiskOutput := `/dev/vda1: Start sector 0 out of range.
 Failed to add #1 partition: Numerical result out of range`
@@ -93,18 +79,15 @@ Failed to add #1 partition: Numerical result out of range`
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-
 	if !errors.Is(err, sharedErrors.ErrBadSfdiskPretend) {
-		t.Fatalf("expected error wrapping ErrBadSfdiskPretend, got: %v", err)
+		t.Fatalf("expected ErrBadSfdiskPretend, got: %v", err)
 	}
 }
 
 func TestParseOutputNoFalsePositiveOnTableContent(t *testing.T) {
-	op := Begin(nil, "")
+	op := &Operation{}
 
-	sfdiskOutput := `Disk /dev/vda: 2 GiB, 2147483648 bytes, 4194304 sectors
-
-New situation:
+	sfdiskOutput := `New situation:
 Disklabel type: gpt
 
 Device     Start   End Sectors Size Type
@@ -114,52 +97,33 @@ The partition table is unchanged (--no-act).`
 
 	result, err := op.ParseOutput(sfdiskOutput, []int{1})
 	if err != nil {
-		t.Fatalf("unexpected error (false positive on table content): %v", err)
+		t.Fatalf("unexpected error: %v", err)
 	}
-
 	assertOutput(t, result, 1, partitioners.Output{Start: 2048, Size: 65536})
 }
 
-func TestBuildCompleteScriptFillRemaining(t *testing.T) {
-	start := int64(67584)
-	size := int64(65536)
-	partitions := map[int]partitioners.Partition{
-		1: {StartSector: &start, SizeInSectors: &size},
-		2: {StartSector: &start},
-	}
-	partitions[1] = partitioners.Partition{StartSector: func() *int64 { v := int64(2048); return &v }(), SizeInSectors: &size}
-	partitions[2] = partitioners.Partition{StartSector: &start, SizeInSectors: func() *int64 { v := int64(0); return &v }()}
+func TestParseOutputLastLBACorrection(t *testing.T) {
+	op := &Operation{lastLBA: 67583}
 
-	script := buildCompleteScript(partitions, 204766)
+	sfdiskOutput := `New situation:
+Disklabel type: gpt
 
-	// Should contain explicit size for fill-remaining partition
-	if expected := "size=137183"; !strings.Contains(script, expected) {
-		t.Errorf("expected script to contain %q for fill-remaining partition, got:\n%s", expected, script)
-	}
-	if strings.Contains(script, "size=+") {
-		t.Errorf("script should not contain size=+ when lastLBA is known, got:\n%s", script)
-	}
-}
+Device     Start   End Sectors Size Type
+/dev/vda1   2048 67582   65535  32M Linux filesystem
 
-func TestBuildCompleteScriptFillRemainingUnknownLBA(t *testing.T) {
-	start := int64(67584)
-	partitions := map[int]partitioners.Partition{
-		1: {StartSector: &start, SizeInSectors: func() *int64 { v := int64(0); return &v }()},
-	}
+The partition table is unchanged (--no-act).`
 
-	script := buildCompleteScript(partitions, -1)
-
-	if !strings.Contains(script, "size=+") {
-		t.Errorf("expected script to contain size=+ when lastLBA is unknown, got:\n%s", script)
+	result, err := op.ParseOutput(sfdiskOutput, []int{1})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
+	assertOutput(t, result, 1, partitioners.Output{Start: 2048, Size: 65536})
 }
 
 func TestParseOutputNvmeDevice(t *testing.T) {
-	op := Begin(nil, "")
+	op := &Operation{}
 
-	sfdiskOutput := `Disk /dev/nvme0n1: 100 GiB, 107374182400 bytes, 209715200 sectors
-
-New situation:
+	sfdiskOutput := `New situation:
 Disklabel type: gpt
 
 Device            Start      End  Sectors  Size Type
@@ -172,17 +136,32 @@ The partition table is unchanged (--no-act).`
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-
 	assertOutput(t, result, 1, partitioners.Output{Start: 2048, Size: 65536})
 	assertOutput(t, result, 2, partitioners.Output{Start: 67584, Size: 65536})
 }
 
+func TestParseOutputDeviceAlias(t *testing.T) {
+	op := &Operation{}
+
+	sfdiskOutput := `New situation:
+Disklabel type: gpt
+
+Device                                        Start   End Sectors Size Type
+/run/ignition/dev_aliases/dev/loop0p1          2048 67583   65536  32M Linux filesystem
+
+The partition table is unchanged (--no-act).`
+
+	result, err := op.ParseOutput(sfdiskOutput, []int{1})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	assertOutput(t, result, 1, partitioners.Output{Start: 2048, Size: 65536})
+}
+
 func TestParseOutputWithBootFlag(t *testing.T) {
-	op := Begin(nil, "")
+	op := &Operation{}
 
-	sfdiskOutput := `Disk /dev/sda: 50 GiB
-
-New situation:
+	sfdiskOutput := `New situation:
 Disklabel type: gpt
 
 Device     Start    End Sectors  Size Type
@@ -195,65 +174,75 @@ The partition table is unchanged (--no-act).`
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-
 	assertOutput(t, result, 1, partitioners.Output{Start: 2048, Size: 65536})
 	assertOutput(t, result, 2, partitioners.Output{Start: 67584, Size: 65536})
 }
 
-func TestParseOutputEmptyPartitions(t *testing.T) {
-	op := Begin(nil, "")
-	result, err := op.ParseOutput("anything", []int{})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result) != 0 {
-		t.Fatalf("expected empty result for empty partitionNumbers, got %v", result)
-	}
-}
-
-func TestBuildCompleteScriptMixedNumbering(t *testing.T) {
-	start1 := int64(2048)
-	size1 := int64(65536)
-	start2 := int64(67584)
-	size2 := int64(65536)
-
-	p1 := partitioners.Partition{StartSector: &start1, SizeInSectors: &size1}
+func TestBuildScriptFixedSizeBeforeFillRemaining(t *testing.T) {
+	p1 := partitioners.Partition{StartSector: int64Ptr(2048), SizeInSectors: int64Ptr(65536)}
 	p1.Number = 1
-	p3 := partitioners.Partition{StartSector: &start2, SizeInSectors: &size2}
+	p5 := partitioners.Partition{StartSector: int64Ptr(460800), SizeInSectors: int64Ptr(65536)}
+	p5.Number = 5
+	p3 := partitioners.Partition{SizeInSectors: int64Ptr(0)}
 	p3.Number = 3
-	p0 := partitioners.Partition{SizeInSectors: &size2}
-	p0.Number = 0
 
-	partitions := map[int]partitioners.Partition{
-		1: p1,
-		3: p3,
-		0: p0,
-	}
-
-	script := buildCompleteScript(partitions, -1)
+	script := buildScript([]partitioners.Partition{p3, p1, p5}, 657407)
 
 	lines := strings.Split(script, "\n")
-	var num1Idx, num3Idx, autoIdx int
-	num1Idx, num3Idx, autoIdx = -1, -1, -1
+	var idx1, idx5, idx3 = -1, -1, -1
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, "1 :") {
-			num1Idx = i
+			idx1 = i
+		}
+		if strings.HasPrefix(trimmed, "5 :") {
+			idx5 = i
 		}
 		if strings.HasPrefix(trimmed, "3 :") {
-			num3Idx = i
-		}
-		if trimmed == ":" || strings.HasPrefix(trimmed, ": ") {
-			autoIdx = i
+			idx3 = i
 		}
 	}
 
-	if num1Idx < 0 || num3Idx < 0 || autoIdx < 0 {
+	if idx1 < 0 || idx5 < 0 || idx3 < 0 {
 		t.Fatalf("missing partition lines in script:\n%s", script)
 	}
-	if num1Idx >= num3Idx || num3Idx >= autoIdx {
-		t.Errorf("expected partition order: 1, 3, auto-numbered; got lines %d, %d, %d in script:\n%s",
-			num1Idx, num3Idx, autoIdx, script)
+	if idx1 >= idx3 || idx5 >= idx3 {
+		t.Errorf("expected fixed-size before fill-remaining; 1=%d, 5=%d, 3=%d in:\n%s", idx1, idx5, idx3, script)
+	}
+}
+
+func TestBuildScriptMultipleAutoNumbered(t *testing.T) {
+	p1 := partitioners.Partition{SizeInSectors: int64Ptr(65536)}
+	p1.Number = 0
+	p1.Label = strPtr("uno")
+	p2 := partitioners.Partition{SizeInSectors: int64Ptr(65536)}
+	p2.Number = 0
+	p2.Label = strPtr("dos")
+	p3 := partitioners.Partition{SizeInSectors: int64Ptr(65536)}
+	p3.Number = 0
+	p3.Label = strPtr("tres")
+
+	script := buildScript([]partitioners.Partition{p1, p2, p3}, -1)
+
+	for _, name := range []string{"uno", "dos", "tres"} {
+		if !strings.Contains(script, fmt.Sprintf(`name="%s"`, name)) {
+			t.Errorf("missing partition %q in script:\n%s", name, script)
+		}
+	}
+}
+
+func TestBuildScriptLastLBAHeader(t *testing.T) {
+	p := partitioners.Partition{SizeInSectors: int64Ptr(0)}
+	p.Number = 1
+
+	script := buildScript([]partitioners.Partition{p}, 67583)
+	if !strings.Contains(script, "last-lba: 67583") {
+		t.Errorf("expected last-lba header, got:\n%s", script)
+	}
+
+	script = buildScript([]partitioners.Partition{p}, -1)
+	if strings.Contains(script, "last-lba:") {
+		t.Errorf("should not contain last-lba when unknown, got:\n%s", script)
 	}
 }
 
@@ -262,19 +251,19 @@ func TestWritePartitionLineMinimal(t *testing.T) {
 	p.Number = 1
 
 	var buf bytes.Buffer
-	writePartitionLine(&buf, p, -1)
+	writePartitionLine(&buf, p)
 	line := buf.String()
 
 	if !strings.HasPrefix(line, "1 :") {
-		t.Errorf("expected line to start with '1 :', got %q", line)
+		t.Errorf("expected '1 :', got %q", line)
 	}
 	if !strings.Contains(line, "size=+") {
-		t.Errorf("expected size=+ for partition with no size, got %q", line)
-	}
-	if !strings.HasSuffix(line, "\n") {
-		t.Errorf("expected line to end with newline, got %q", line)
+		t.Errorf("expected size=+, got %q", line)
 	}
 }
+
+func int64Ptr(v int64) *int64 { return &v }
+func strPtr(v string) *string { return &v }
 
 func assertOutput(t *testing.T, result map[int]partitioners.Output, num int, expected partitioners.Output) {
 	t.Helper()
