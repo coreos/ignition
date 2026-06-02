@@ -20,6 +20,8 @@ nav_order: 9
 
 ### Bug fixes
 
+- Fix giving disk partition number 0 to get the next available slot. This caused the disks stage to fail since version 2.20.0. ([#2234](https://github.com/coreos/ignition/pull/2234))
+
 
 ## Ignition 2.26.0 (2026-02-17)
 

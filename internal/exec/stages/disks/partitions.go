@@ -112,15 +112,6 @@ func partitionMatchesCommon(existing util.PartitionInfo, spec sgdisk.Partition) 
 	return nil
 }
 
-// partitionShouldBeInspected returns if the partition has zeroes that need to be resolved to sectors.
-func partitionShouldBeInspected(part sgdisk.Partition) bool {
-	if part.Number == 0 {
-		return false
-	}
-	return (part.StartSector != nil && *part.StartSector == 0) ||
-		(part.SizeInSectors != nil && *part.SizeInSectors == 0)
-}
-
 func convertMiBToSectors(mib *int, sectorSize int) *int64 {
 	if mib != nil {
 		v := int64(*mib) * (1024 * 1024 / int64(sectorSize))
@@ -130,10 +121,17 @@ func convertMiBToSectors(mib *int, sectorSize int) *int64 {
 	}
 }
 
-// getRealStartAndSize returns a map of partition numbers to a struct that contains what their real start
-// and end sector should be. It runs sgdisk --pretend to determine what the partitions would look like if
-// everything specified were to be (re)created.
+// getRealStartAndSize returns a copy of the given partition configuration with the real partition
+// numbers, start sectors, and end sectors filled in. It runs sgdisk --pretend to determine what the
+// partitions would look like if everything specified were to be (re)created.
 func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo util.DiskInfo) ([]sgdisk.Partition, error) {
+	used := map[int]bool{}
+
+	// Determine which partition numbers are already used.
+	for _, part := range diskInfo.Partitions {
+		used[part.Number] = true
+	}
+
 	partitions := []sgdisk.Partition{}
 	for _, cpart := range dev.Partitions {
 		partitions = append(partitions, sgdisk.Partition{
@@ -156,6 +154,10 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 				part.SizeInSectors = &info.SizeInSectors
 			}
 		}
+		if part.Number > 0 {
+			// Mark the partition number as used or not.
+			used[part.Number] = partitionShouldExist(part)
+		}
 		if partitionShouldExist(part) {
 			// Clear the label. sgdisk doesn't escape control characters. This makes parsing easier
 			part.Label = nil
@@ -163,12 +165,25 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 		}
 	}
 
-	// We only care to examine partitions that have start or size 0.
+	free := 1
 	partitionsToInspect := []int{}
-	for _, part := range partitions {
-		if partitionShouldBeInspected(part) {
-			op.Info(part.Number)
-			partitionsToInspect = append(partitionsToInspect, part.Number)
+	for i := range partitions {
+		part := &partitions[i]
+		if partitionShouldExist(*part) {
+			// Find the next free partition number and use it.
+			if part.Number == 0 {
+				for used[free] {
+					free++
+				}
+				part.Number = free
+				free++
+			}
+			// We only care to examine partitions that have start or size 0.
+			if part.StartSector == nil || *part.StartSector == 0 ||
+				part.SizeInSectors == nil || *part.SizeInSectors == 0 {
+				op.Info(part.Number)
+				partitionsToInspect = append(partitionsToInspect, part.Number)
+			}
 		}
 	}
 
@@ -182,19 +197,14 @@ func (s stage) getRealStartAndSize(dev types.Disk, devAlias string, diskInfo uti
 		return nil, err
 	}
 
-	result := []sgdisk.Partition{}
-	for _, part := range partitions {
+	for i := range partitions {
+		part := &partitions[i]
 		if dims, ok := realDimensions[part.Number]; ok {
-			if part.StartSector != nil {
-				part.StartSector = &dims.start
-			}
-			if part.SizeInSectors != nil {
-				part.SizeInSectors = &dims.size
-			}
+			part.StartSector = &dims.start
+			part.SizeInSectors = &dims.size
 		}
-		result = append(result, part)
 	}
-	return result, nil
+	return partitions, nil
 }
 
 type sgdiskOutput struct {
