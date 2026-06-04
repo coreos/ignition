@@ -30,6 +30,10 @@ key](https://getfedora.org/security/).
   _(fcos 1.8.0-exp, fiot 1.1.0-exp, flatcar 1.2.0-exp, openshift
   4.23.0-exp, r4e 1.2.0-exp)_
 
+### Bug fixes
+
+- Don't warn about partitions being reused by label for boot_device.mirror disks
+
 ### Misc. changes
 
 - Warn on root partition size is too small _(fcos 1.3.0-1.8.0-exp)_
