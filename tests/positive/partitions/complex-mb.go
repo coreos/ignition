@@ -85,6 +85,11 @@ func KitchenSinkMiB() types.Test {
 					"wipePartitionEntry": true
 				},
 				{
+					"number": 2,
+					"shouldExist": false,
+					"wipePartitionEntry": true
+				},
+				{
 					"label": "new-auto2",
 					"number": 0,
 					"sizeMiB": 64,
@@ -162,6 +167,13 @@ func KitchenSinkMiB() types.Test {
 				Length:   65536,
 				TypeGUID: "316f19f9-9e0f-431e-859e-ae6908dbe8ca",
 				GUID:     "3ED3993F-0016-422B-B134-09FCBA6F66EF",
+			},
+			{
+				Label:    "to-replace",
+				Number:   2,
+				Length:   163840,
+				TypeGUID: "c1ea8ad5-2663-44c8-859e-da7fa0c2c059",
+				GUID:     "bd5febf1-f8d3-4b55-9c16-678d4a98ea72",
 			},
 		},
 	})

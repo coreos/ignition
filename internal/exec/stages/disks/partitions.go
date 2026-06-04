@@ -562,6 +562,11 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 
 	for _, part := range resolvedPartitions {
 		shouldExist := partitionShouldExist(part)
+		if !shouldExist && slices.ContainsFunc(resolvedPartitions, func(p sgdisk.Partition) bool {
+			return p.Number == part.Number && partitionShouldExist(p)
+		}) {
+			continue
+		}
 		info, exists := diskInfo.GetPartition(part.Number)
 		var matchErr error
 		if exists {
