@@ -36,8 +36,14 @@ var sdRe = regexp.MustCompile("(/dev/sd[a-z]$)")
 // We can't define a Validate function directly on Disk because that's defined in base,
 // so we use a Validate function on the top-level Config instead.
 func (conf Config) Validate(c path.ContextPath) (r report.Report) {
+	// Collect mirror device paths so we can skip the reuse-by-label
+	// check for them; processBootDevice() will set wipe_table: true.
+	mirrorDevices := make(map[string]bool)
+	for _, dev := range conf.BootDevice.Mirror.Devices {
+		mirrorDevices[dev] = true
+	}
 	for i, disk := range conf.Storage.Disks {
-		if disk.Device != rootDevice && !util.IsTrue(disk.WipeTable) {
+		if disk.Device != rootDevice && !util.IsTrue(disk.WipeTable) && !mirrorDevices[disk.Device] {
 			for p, partition := range disk.Partitions {
 				if partition.Number == 0 && partition.Label != nil {
 					r.AddOnWarn(c.Append("storage", "disks", i, "partitions", p, "number"), common.ErrReuseByLabel)

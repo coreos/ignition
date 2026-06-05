@@ -583,6 +583,30 @@ func TestValidateConfig(t *testing.T) {
 				},
 			},
 		},
+		// valid config (disk is a boot_device.mirror device)
+		{
+			in: Config{
+				Config: base.Config{
+					Storage: base.Storage{
+						Disks: []base.Disk{
+							{
+								Device: "/dev/sda",
+								Partitions: []base.Partition{
+									{
+										Label: util.StrToPtr("root-1"),
+									},
+								},
+							},
+						},
+					},
+				},
+				BootDevice: BootDevice{
+					Mirror: BootDeviceMirror{
+						Devices: []string{"/dev/sda", "/dev/sdb"},
+					},
+				},
+			},
+		},
 		// invalid config (wipe_table is nil)
 		{
 			in: Config{
