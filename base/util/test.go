@@ -134,3 +134,12 @@ func verifyStruct(t *testing.T, v reflect.Value, p path.ContextPath, fieldName s
 	// didn't find field
 	return false
 }
+
+func CompressDataURL(t *testing.T, contents []byte) (string, string) {
+	t.Helper()
+	uri, compression, err := MakeDataURL(contents, nil, true)
+	if err != nil {
+		t.Fatalf("MakeDataURL: %v", err)
+	}
+	return uri, *compression
+}
