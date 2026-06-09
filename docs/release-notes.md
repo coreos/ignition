@@ -14,6 +14,9 @@ nav_order: 9
 
 ### Misc. changes
 
+- Add support for pretty error reporting, can be controlled through
+  the use of `--raw-errors` (disable) and `--color`/`--colour`
+
 ### Docs changes
 
 ## Butane 0.28.0 (2026-05-19)

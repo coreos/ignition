@@ -23,6 +23,7 @@ import (
 
 	"github.com/coreos/butane/config"
 	"github.com/coreos/butane/config/common"
+	breport "github.com/coreos/butane/internal/report"
 	"github.com/coreos/butane/internal/version"
 )
 
@@ -31,14 +32,25 @@ func fail(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
+func isCharDevice(f *os.File) bool {
+	stat, err := f.Stat()
+	if err != nil {
+		return false
+	}
+	return stat.Mode()&os.ModeCharDevice != 0
+}
+
 func main() {
 	var (
 		input       string
 		output      string
+		colorFlag   string
 		check       bool
 		strict      bool
 		helpFlag    bool
 		versionFlag bool
+		rawErrors   bool
+		colorize    bool
 	)
 	options := common.TranslateBytesOptions{}
 	pflag.BoolVarP(&helpFlag, "help", "h", false, "show usage and exit")
@@ -49,6 +61,12 @@ func main() {
 	pflag.BoolVarP(&strict, "strict", "s", false, "fail on any warning")
 	pflag.BoolVarP(&options.Pretty, "pretty", "p", false, "output formatted json")
 	pflag.BoolVarP(&options.Raw, "raw", "r", false, "never wrap in a MachineConfig; force Ignition output")
+	pflag.BoolVar(&rawErrors, "raw-errors", false, "show raw errors, rather than pretty printing them")
+	pflag.StringVar(&colorFlag, "color", "auto", `control color output: "auto", "always", or "never"`)
+	pflag.Lookup("color").NoOptDefVal = "always"
+	pflag.StringVar(&colorFlag, "colour", "auto", `control color output: "auto", "always", or "never"`)
+	pflag.Lookup("colour").NoOptDefVal = "always"
+	pflag.Lookup("colour").Hidden = true
 	pflag.StringVar(&input, "input", "", "read from input file instead of stdin")
 	pflag.Lookup("input").Deprecated = "specify filename directly on command line"
 	pflag.Lookup("input").Hidden = true
@@ -61,6 +79,17 @@ func main() {
 		pflag.PrintDefaults()
 	}
 	pflag.Parse()
+
+	switch colorFlag {
+	case "always", "yes":
+		colorize = true
+	case "never", "no":
+		colorize = false
+	case "auto":
+		_, noColorSet := os.LookupEnv("NO_COLOR")
+		isTTY := isCharDevice(os.Stderr)
+		colorize = !noColorSet && isTTY
+	}
 
 	args := pflag.Args()
 	if len(args) == 1 && input == "" {
@@ -82,6 +111,7 @@ func main() {
 	}
 
 	infile := os.Stdin
+	filename := "<stdin>"
 	if input != "" {
 		var err error
 		infile, err = os.Open(input)
@@ -89,6 +119,7 @@ func main() {
 			fail("failed to open %s: %v\n", input, err)
 		}
 		defer infile.Close()
+		filename = input
 	}
 
 	dataIn, err := io.ReadAll(infile)
@@ -97,7 +128,10 @@ func main() {
 	}
 
 	dataOut, r, err := config.TranslateBytes(dataIn, options)
-	fmt.Fprintf(os.Stderr, "%s", r.String())
+
+	errorString := breport.FormatError(r, filename, dataIn, colorize, rawErrors)
+	fmt.Fprintf(os.Stderr, "%s", errorString)
+
 	if err != nil {
 		fail("Error translating config: %v\n", err)
 	}
