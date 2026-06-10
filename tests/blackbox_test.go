@@ -311,7 +311,10 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	}
 
 	// Ignition
-	appendEnv := test.Env
+	appendEnv := make([]string, len(test.Env))
+	for i, env := range test.Env {
+		appendEnv[i] = strings.ReplaceAll(env, "$SYSTEM_CONFIG_DIR", systemConfigDir)
+	}
 	appendEnv = append(appendEnv, "IGNITION_SYSTEM_CONFIG_DIR="+systemConfigDir)
 	appendEnv = append(appendEnv, "IGNITION_SYSTEM_RUNTIME_CONFIG_DIR="+systemRuntimeConfigDir)
 	appendEnv = append(appendEnv, "IGNITION_SYSTEM_LOCAL_CONFIG_DIR="+systemLocalConfigDir)
