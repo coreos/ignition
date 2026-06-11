@@ -323,11 +323,15 @@ func (p PartitionList) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
-func isBlockDevMapper(blockDevResolved string) bool {
+// blockDevDMName returns the device mapper name for the given block device,
+// or an empty string if it is not a device mapper device.
+func blockDevDMName(blockDevResolved string) string {
 	blockDevNode := filepath.Base(blockDevResolved)
-	dmName := fmt.Sprintf("/sys/class/block/%s/dm/name", blockDevNode)
-	_, err := os.Stat(dmName)
-	return err == nil
+	dmNameBytes, err := os.ReadFile(fmt.Sprintf("/sys/class/block/%s/dm/name", blockDevNode))
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(dmNameBytes))
 }
 
 // Expects a /dev/xyz path
@@ -368,8 +372,23 @@ func blockDevMounted(blockDevResolved string) (bool, error) {
 }
 
 // Expects a /dev/xyz path
-func blockDevPartitions(blockDevResolved string) ([]string, error) {
-	_, blockDevNode := filepath.Split(blockDevResolved)
+func blockDevPartitions(blockDevResolved string, dmName string) ([]string, error) {
+	blockDevNode := filepath.Base(blockDevResolved)
+
+	if dmName != "" {
+		// For device mapper (e.g. multipath), partition devices are
+		// separate DM nodes. Find them via dm-name symlinks.
+		matches, _ := filepath.Glob(fmt.Sprintf("/dev/disk/by-id/dm-name-%sp[0-9]*", dmName))
+		var partitions []string
+		for _, m := range matches {
+			resolved, err := filepath.EvalSymlinks(m)
+			if err != nil {
+				return nil, fmt.Errorf("failed to resolve %q: %v", m, err)
+			}
+			partitions = append(partitions, resolved)
+		}
+		return partitions, nil
+	}
 
 	// This also works for extended MBR partitions
 	sysDir := fmt.Sprintf("/sys/class/block/%s/", blockDevNode)
@@ -388,12 +407,11 @@ func blockDevPartitions(blockDevResolved string) ([]string, error) {
 }
 
 // Expects a /dev/xyz path
-func blockDevInUse(blockDevResolved string, skipPartitionCheck bool) (bool, []string, error) {
+func blockDevInUse(blockDevResolved string, dmName string, skipPartitionCheck bool) (bool, []string, error) {
 	// Note: This ignores swap and LVM usage
 	inUse := false
-	isDevMapper := isBlockDevMapper(blockDevResolved)
 	held := false
-	if !isDevMapper {
+	if dmName == "" {
 		var err error
 		held, err = blockDevHeld(blockDevResolved)
 		if err != nil {
@@ -408,13 +426,13 @@ func blockDevInUse(blockDevResolved string, skipPartitionCheck bool) (bool, []st
 	if skipPartitionCheck {
 		return inUse, nil, nil
 	}
-	partitions, err := blockDevPartitions(blockDevResolved)
+	partitions, err := blockDevPartitions(blockDevResolved, dmName)
 	if err != nil {
 		return false, nil, fmt.Errorf("failed to retrieve partitions of %q: %v", blockDevResolved, err)
 	}
 	var activePartitions []string
 	for _, partition := range partitions {
-		partInUse, _, err := blockDevInUse(partition, true)
+		partInUse, _, err := blockDevInUse(partition, dmName, true)
 		if err != nil {
 			return false, nil, fmt.Errorf("failed to check if partition %q is in use: %v", partition, err)
 		}
@@ -435,6 +453,18 @@ func partitionNumberPrefix(blockDevResolved string) string {
 	return ""
 }
 
+// partitionDevPath returns the expected device path for the given partition
+// number on the given disk. For device mapper devices (e.g. multipath), the
+// partition devices are separate DM nodes, so we locate them via
+// /dev/disk/by-id/dm-name-<name>p<N> symlinks. The returned path may or may
+// not exist on disk.
+func partitionDevPath(blockDevResolved string, dmName string, prefix string, partNum int) string {
+	if dmName == "" {
+		return fmt.Sprintf("%s%s%d", blockDevResolved, prefix, partNum)
+	}
+	return fmt.Sprintf("/dev/disk/by-id/dm-name-%sp%d", dmName, partNum)
+}
+
 // partitionDisk partitions devAlias according to the spec given by dev
 func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 	blockDevResolved, err := filepath.EvalSymlinks(devAlias)
@@ -442,7 +472,9 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		return fmt.Errorf("failed to resolve %q: %v", devAlias, err)
 	}
 
-	inUse, activeParts, err := blockDevInUse(blockDevResolved, false)
+	dmName := blockDevDMName(blockDevResolved)
+
+	inUse, activeParts, err := blockDevInUse(blockDevResolved, dmName, false)
 	if err != nil {
 		return fmt.Errorf("failed usage check on %q: %v", devAlias, err)
 	}
@@ -499,7 +531,12 @@ func (s stage) partitionDisk(dev types.Disk, devAlias string) error {
 		}
 		matches := exists && matchErr == nil
 		wipeEntry := cutil.IsTrue(part.WipePartitionEntry)
-		partInUse := iutil.StrSliceContains(activeParts, fmt.Sprintf("%s%s%d", blockDevResolved, prefix, part.Number))
+
+		partDevForCheck := partitionDevPath(blockDevResolved, dmName, prefix, part.Number)
+		if resolved, err := filepath.EvalSymlinks(partDevForCheck); err == nil {
+			partDevForCheck = resolved
+		}
+		partInUse := iutil.StrSliceContains(activeParts, partDevForCheck)
 
 		var modification bool
 
