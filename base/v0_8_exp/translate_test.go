@@ -56,9 +56,9 @@ func init() {
 // TestTranslateFile tests translating the ct storage.files.[i] entries to ignition storage.files.[i] entries.
 func TestTranslateFile(t *testing.T) {
 	zzz := "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
-	zzz_gz := "data:;base64,H4sIAAAAAAAC/6oajAAQAAD//5tA8d+VAAAA"
+	zzzURI, zzzCompression := baseutil.CompressDataURL(t, []byte(zzz))
 	random := "\xc0\x9cl\x01\x89i\xa5\xbfW\xe4\x1b\xf4J_\xb79P\xa3#\xa7"
-	random_b64 := "data:;base64,wJxsAYlppb9X5Bv0Sl+3OVCjI6c="
+	randomURI, randomCompression := baseutil.CompressDataURL(t, []byte(random))
 
 	filesDir := t.TempDir()
 	fileContents := map[string]string{
@@ -477,21 +477,21 @@ func TestTranslateFile(t *testing.T) {
 				},
 				FileEmbedded1: types.FileEmbedded1{
 					Contents: types.Resource{
-						Source:      util.StrToPtr(zzz_gz),
-						Compression: util.StrToPtr("gzip"),
+						Source:      util.StrToPtr(zzzURI),
+						Compression: util.StrToPtr(zzzCompression),
 					},
 					Append: []types.Resource{
 						{
-							Source:      util.StrToPtr(zzz_gz),
-							Compression: util.StrToPtr("gzip"),
+							Source:      util.StrToPtr(zzzURI),
+							Compression: util.StrToPtr(zzzCompression),
 						},
 						{
-							Source:      util.StrToPtr(random_b64),
-							Compression: util.StrToPtr(""),
+							Source:      util.StrToPtr(randomURI),
+							Compression: util.StrToPtr(randomCompression),
 						},
 						{
-							Source:      util.StrToPtr(random_b64),
-							Compression: util.StrToPtr(""),
+							Source:      util.StrToPtr(randomURI),
+							Compression: util.StrToPtr(randomCompression),
 						},
 						{
 							Source:      util.StrToPtr("data:," + zzz),
@@ -1201,6 +1201,9 @@ RequiredBy=swap.target`),
 
 // TestTranslateTree tests translating the butane storage.trees.[i] entries to ignition storage.files.[i] entries.
 func TestTranslateTree(t *testing.T) {
+	deepPath := "tree/subdir/subdir/subdir/subdir/subdir/subdir/subdir/subdir/subdir/file"
+	deepPathURI, deepPathCompression := baseutil.CompressDataURL(t, []byte(deepPath))
+
 	tests := []struct {
 		options    *common.TranslateOptions // defaulted if not specified
 		dirDirs    map[string]os.FileMode   // relative path -> mode
@@ -1349,8 +1352,8 @@ func TestTranslateTree(t *testing.T) {
 					},
 					FileEmbedded1: types.FileEmbedded1{
 						Contents: types.Resource{
-							Source:      util.StrToPtr("data:;base64,H4sIAAAAAAAC/yopSk3VLy5NSsksIptKy8xJBQQAAP//gkRzjkgAAAA="),
-							Compression: util.StrToPtr("gzip"),
+							Source:      util.StrToPtr(deepPathURI),
+							Compression: util.StrToPtr(deepPathCompression),
 						},
 						Mode: util.IntToPtr(0644),
 					},
@@ -2529,8 +2532,6 @@ Exec=sleep infinity
 [Install]
 WantedBy=multi-user.target`
 
-		SleepContainerAsData = "data:,%5BUnit%5D%0ADescription%3DA%20sleepy%20container%0A%5BContainer%5D%0AContainerName%3Dsleepy-pod-inf%0AImage%3Dquay.io%2Ffedora%2Ffedora%0AExec%3Dsleep%20infinity%0A%5BInstall%5D%0AWantedBy%3Dmulti-user.target"
-
 		SleepContainerTemplate = `[Unit]
 Description=A templated sleepy container
 [Container]
@@ -2541,9 +2542,10 @@ Exec=sleep %i
 Restart=always
 [Install]
 WantedBy=multi-user.target`
-
-		SleepContainerTemplateAsData = "data:;base64,H4sIAAAAAAAC/zSNvU4DMRCE+32KlRAl4Qlc8FekBSGKk4uVb5Ks5Fsf3j2C3x6JJNWMRvPpmz5NI9MrvHRdQ5ulJw4sa5XAzF6BdXBpFqKGTtPLrWbaL3JE+t5k7LQ9HjC3Ltegt1+U9E/zvdL0gf6jBZnu+B0e0oP9MvH5BLt4+KCmfoLT9ZOknmU4TXvzkFozfYkF5ueRlq2GPmyOvgvpR8RfAAAA//91kIIEyQAAAA=="
 	)
+
+	sleepContainerAsData, sleepContainerCompression := baseutil.CompressDataURL(t, []byte(SleepContainer))
+	sleepContainerTemplateAsData, sleepContainerTemplateCompression := baseutil.CompressDataURL(t, []byte(SleepContainerTemplate))
 
 	filesDir := t.TempDir()
 	fileContents := map[string]string{
@@ -2600,8 +2602,8 @@ WantedBy=multi-user.target`
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Contents: types.Resource{
-									Source:      util.StrToPtr(SleepContainerAsData),
-									Compression: util.StrToPtr(""),
+									Source:      util.StrToPtr(sleepContainerAsData),
+									Compression: util.StrToPtr(sleepContainerCompression),
 								},
 								Mode: util.IntToPtr(0644),
 							},
@@ -2612,8 +2614,8 @@ WantedBy=multi-user.target`
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Contents: types.Resource{
-									Source:      util.StrToPtr(SleepContainerAsData),
-									Compression: util.StrToPtr(""),
+									Source:      util.StrToPtr(sleepContainerAsData),
+									Compression: util.StrToPtr(sleepContainerCompression),
 								},
 								Mode: util.IntToPtr(0644),
 							},
@@ -2651,8 +2653,8 @@ WantedBy=multi-user.target`
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Contents: types.Resource{
-									Source:      util.StrToPtr(SleepContainerTemplateAsData),
-									Compression: util.StrToPtr("gzip"),
+									Source:      util.StrToPtr(sleepContainerTemplateAsData),
+									Compression: util.StrToPtr(sleepContainerTemplateCompression),
 								},
 								Mode: util.IntToPtr(0644),
 							},
@@ -2712,8 +2714,8 @@ WantedBy=multi-user.target`
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Contents: types.Resource{
-									Source:      util.StrToPtr(SleepContainerAsData),
-									Compression: util.StrToPtr(""),
+									Source:      util.StrToPtr(sleepContainerAsData),
+									Compression: util.StrToPtr(sleepContainerCompression),
 								},
 								Mode: util.IntToPtr(0644),
 							},
@@ -2786,8 +2788,8 @@ WantedBy=multi-user.target`
 							},
 							FileEmbedded1: types.FileEmbedded1{
 								Contents: types.Resource{
-									Source:      util.StrToPtr(SleepContainerTemplateAsData),
-									Compression: util.StrToPtr("gzip"),
+									Source:      util.StrToPtr(sleepContainerTemplateAsData),
+									Compression: util.StrToPtr(sleepContainerTemplateCompression),
 								},
 								Mode: util.IntToPtr(0644),
 							},
