@@ -15,6 +15,7 @@ nav_order: 9
 
 ### Changes
 
+- Replace GCS client library with direct HTTP calls to the GCS JSON API, significantly reducing binary size ([#2045](https://github.com/coreos/ignition/issues/2045))
 - Fix test script compatibility with Go 1.26 which removed the `-go` flag from `go tool fix`
 - Improved documentation for the flow of Ignition across clouds.
 
