@@ -435,10 +435,13 @@ func (f *Fetcher) fetchFromGCS(u url.URL, dest io.Writer, opts FetchOptions) err
 
 	bucket := u.Host
 	object := strings.TrimLeft(u.Path, "/")
+	decodedPath := fmt.Sprintf("/storage/v1/b/%s/o/%s", bucket, object)
+	rawPath := fmt.Sprintf("/storage/v1/b/%s/o/%s", bucket, url.PathEscape(object))
 	gcsURL := url.URL{
 		Scheme:   "https",
 		Host:     "storage.googleapis.com",
-		Path:     fmt.Sprintf("/storage/v1/b/%s/o/%s", bucket, url.PathEscape(object)),
+		Path:     decodedPath,
+		RawPath:  rawPath,
 		RawQuery: "alt=media",
 	}
 
