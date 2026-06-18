@@ -35,3 +35,7 @@ NAME="ignition-validate"
 
 echo "Building ${NAME}..."
 go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/validate
+
+# Build butane from the subtree (separate Go module)
+echo "Building butane..."
+(cd butane && BIN_PATH=${BIN_PATH} ./build)
