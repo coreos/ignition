@@ -1,0 +1,32 @@
+# This prepare is used to control when butane is installed using
+# the distribution package or when it is built from source in the test environment
+prepare:
+  - name: Set BUTANE_BIN_DIR when built from source
+    when: use_built_from_src is defined and use_built_from_src == true
+    how: shell
+    script: |
+      # This is a workaround script for the fact that the butane binary is not in the PATH
+      # when running the tests in the tmt environment when it is built from source.
+      # The butane binary is located in the tmt run instance directory and it needed
+      # to set a environment variable to point to the butane binary location.
+      set -x -e -o pipefail
+      echo "Preparing the test environment"
+      BUTANE_BIN_NAME="butane"
+      PARENT_DIR=$(dirname "${TMT_TREE}")
+      BUTANE_BIN_FULL_PATH=$(find "${PARENT_DIR}" -type f -name "${BUTANE_BIN_NAME}")
+      if [ -z "${BUTANE_BIN_FULL_PATH}" ]; then
+          echo "butane file not found."
+          exit 1
+      fi
+      BUTANE_BIN_DIR=$(dirname "${BUTANE_BIN_FULL_PATH}")
+      echo "BUTANE_BIN_DIR=${BUTANE_BIN_DIR}" > /tmp/butane_bin_dir
+  - name: Install butane package
+    when: use_built_from_src is not defined or use_built_from_src == false
+    how: install
+    package: butane
+  - name: Set BUTANE_BIN_DIR when installed package
+    when: use_built_from_src is not defined or use_built_from_src == false
+    how: shell
+    script: |
+      set -x -e -o pipefail
+      echo "BUTANE_BIN_DIR=/usr/bin/butane"  > /tmp/butane_bin_dir

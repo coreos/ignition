@@ -1,0 +1,471 @@
+resource:
+  children:
+    - name: source
+      # In Butane, source is never required because inline and local are
+      # possible alternatives.  The exception is fcos 1.0.0, which doesn't
+      # have inline or local.
+      required-if:
+        - variant: fcos
+          max: 1.0.0
+      transforms:
+        - regex: $
+          replacement: " Mutually exclusive with `inline` and `local`."
+        - regex: " and `local`"
+          replacement: ""
+          if:
+            - variant: fcos
+              max: 1.0.0
+    - name: inline
+      after: source
+      desc: "the contents of the %TYPE%. Mutually exclusive with `source` and `local`."
+      transforms:
+        - regex: " and `local`"
+          replacement: ""
+          if:
+            - variant: fcos
+              max: 1.0.0
+    - name: local
+      after: source
+      desc: "a local path to the contents of the %TYPE%, relative to the directory specified by the `--files-dir` command-line argument. Mutually exclusive with `source` and `inline`."
+
+mode:
+  # File mode transforms.
+  transforms:
+    # YAML allows writing octal modes directly
+    - regex: 'Note that the mode must be .+\)\. '
+      replacement: ""
+    # New Ignition spec supports special bits but MCO doesn't
+    - regex: are supported
+      replacement: are not supported
+      if:
+        - variant: openshift
+          min: 4.22.0
+
+append-contents-local:
+  # Mention contents_local on specs that support it.
+  transforms:
+    - regex: $
+      replacement: " Mutually exclusive with `contents_local`."
+    # and remove it again for old specs
+    - regex: " Mutually exclusive with `contents_local`."
+      replacement: ""
+      if:
+        - variant: fcos
+          max: 1.4.0
+        - variant: flatcar
+          max: 1.0.0
+        - variant: openshift
+          max: 4.13.0
+        - variant: r4e
+          max: 1.0.0
+
+root:
+  children:
+    - name: variant
+      after: ^
+      desc: "used to differentiate configs for different operating systems. Must be `%VARIANT%` for this specification."
+      transforms:
+        - regex: "%VARIANT%"
+          replacement: fcos
+          if:
+            - variant: fcos
+        - regex: "%VARIANT%"
+          replacement: flatcar
+          if:
+            - variant: flatcar
+        - regex: "%VARIANT%"
+          replacement: openshift
+          if:
+            - variant: openshift
+        - regex: "%VARIANT%"
+          replacement: r4e
+          if:
+            - variant: r4e
+    - name: version
+      after: ^
+      desc: "the semantic version of the spec for this document. This document is for version `%VERSION%` and generates Ignition configs with version `%ignition_version%`."
+      transforms:
+        - regex: "%VERSION%"
+          replacement: "%fcos_version%"
+          if:
+            - variant: fcos
+        - regex: "%VERSION%"
+          replacement: "%flatcar_version%"
+          if:
+            - variant: flatcar
+        - regex: "%VERSION%"
+          replacement: "%openshift_version%"
+          if:
+            - variant: openshift
+        - regex: "%VERSION%"
+          replacement: "%r4e_version%"
+          if:
+            - variant: r4e
+    - name: metadata
+      after: ^
+      desc: metadata about the generated MachineConfig resource. Respected when rendering to a MachineConfig, ignored when rendering directly to an Ignition config.
+      required: true
+      children:
+        - name: name
+          desc: a unique [name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) for this MachineConfig resource.
+        - name: labels
+          desc: string key/value pairs to apply as [Kubernetes labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) to this MachineConfig resource. `machineconfiguration.openshift.io/role` is required.
+          required: true
+    - name: ignition
+      # Ignition configs require ignition because they require ignition.version.
+      # Butane configs don't have ignition.version.
+      required: false
+      children:
+        - name: config
+          children:
+            - name: merge
+              children:
+                - name: source
+                  # first merge with the Ignition root needs to add the
+                  # field; the merge with the component happens afterward
+                  after: $
+                  transforms:
+                    # no inline directive in fcos 1.0.0
+                    - regex: " Mutually exclusive with `inline`."
+                      replacement: ""
+                      if:
+                        - variant: fcos
+                          max: 1.0.0
+            - name: replace
+              children:
+                - name: source
+                  # first merge with the Ignition root needs to add the
+                  # field; the merge with the component happens afterward
+                  after: $
+                  transforms:
+                    # no inline directive in fcos 1.0.0
+                    - regex: " Mutually exclusive with `inline`."
+                      replacement: ""
+                      if:
+                        - variant: fcos
+                          max: 1.0.0
+        - name: security
+          children:
+            - name: tls
+              children:
+                - name: certificate_authorities
+                  transforms:
+                    - regex: "unique `source`"
+                      replacement: "$0, `inline`, or `local`"
+                    # and then undo it for fcos 1.0.0
+                    - regex: ", `inline`, or `local`"
+                      replacement: ""
+                      if:
+                        - variant: fcos
+                          max: 1.0.0
+                  children:
+                    - name: source
+                      transforms:
+                        # no inline directive in fcos 1.0.0
+                        - regex: " Mutually exclusive with `inline`."
+                          replacement: ""
+                          if:
+                            - variant: fcos
+                              max: 1.0.0
+                    - name: inline
+                      # first merge with the Ignition root needs to add the
+                      # field; the merge with the component happens afterward
+                      after: $
+                      transforms:
+                        - regex: "%TYPE%"
+                          replacement: "certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates"
+                    - name: local
+                      # first merge with the Ignition root needs to add the
+                      # field; the merge with the component happens afterward
+                      after: $
+                      transforms:
+                        - regex: '%TYPE%(, relative to the[^.]+)\.'
+                          replacement: "certificate bundle (in PEM format)$1. The bundle can contain multiple concatenated certificates."
+        - name: proxy
+          transforms:
+            # Snake-case cross-references between children
+            - regex: "`(https|no)Proxy`"
+              replacement: "`${1}_proxy`"
+              descendants: true
+    - name: storage
+      children:
+        - name: disks
+          children:
+            - name: device
+              transforms:
+                - regex: $
+                  replacement: " The boot disk can be referenced as `/dev/disk/by-id/coreos-boot-disk`."
+                  if:
+                    - variant: fcos
+                    - variant: openshift
+                      min: 4.11.0
+        - name: filesystems
+          children:
+            - name: format
+              transforms:
+                - regex: "btrfs, "
+                  replacement: ""
+                  if:
+                    - variant: openshift
+                # "none" unsupported by MCO
+                - regex: "swap, or none"
+                  replacement: "or swap"
+                  if:
+                    - variant: openshift
+                      min: 4.14.0
+            - name: with_mount_unit
+              after: $
+              desc: whether to additionally generate a generic mount unit for this filesystem or a swap unit for this swap area. If a more specific unit is needed, a custom one can be specified in the `systemd.units` section. The unit will be named with the [escaped](https://www.freedesktop.org/software/systemd/man/systemd-escape.html) version of the `path` or `device`, depending on the unit type. If your filesystem is located on a Tang-backed LUKS device, the unit will automatically require network access if you specify the device as `/dev/mapper/<device-name>` or `/dev/disk/by-id/dm-name-<device-name>`.
+              transforms:
+                # no LUKS support
+                - regex: ' If your filesystem is located on a Tang-backed [^.]+\.'
+                  replacement: ""
+                  if:
+                    - variant: fcos
+                      max: 1.1.0
+                # no swap support
+                - regex: " or a swap unit for this swap area"
+                  replacement: ""
+                  if:
+                    - variant: fcos
+                      max: 1.3.0
+                    - variant: openshift
+                      max: 4.13.0
+                - regex: " or `device`, depending on the unit type"
+                  replacement: ""
+                  if:
+                    - variant: fcos
+                      max: 1.3.0
+                    - variant: openshift
+                      max: 4.13.0
+        - name: files
+          children:
+            - name: contents
+              children:
+                - name: source
+                  transforms:
+                    - regex: "Supported schemes are .* haven't been modified."
+                      replacement: 'Only the [`data`](https://tools.ietf.org/html/rfc2397) scheme is supported.'
+                      if:
+                        - variant: openshift
+            - name: mode
+              use: mode
+        - name: directories
+          children:
+            - name: mode
+              use: mode
+        - name: trees
+          after: $
+          desc: a list of local directory trees to be embedded in the config. Ownership, file modes (using `file_mode`) and directories modes (using `dir_mode`) can be specified for the tree. If not specified, ownership is not preserved and file modes are set to 0755 if the local file is executable or 0644 otherwise. Attributes of files, directories, and symlinks can be overridden by creating a corresponding entry in the `files`, `directories`, or `links` section; such `files` entries must omit `contents` and such `links` entries must omit `target`.
+          transforms:
+            - regex: Ownership,
+              replacement: Symlinks must not be present. $0
+              if:
+                - variant: openshift
+            - regex: Attributes of files, directories, and symlinks
+              replacement: File attributes
+              if:
+                - variant: openshift
+            - regex: "`files`, `directories`, or `links`"
+              replacement: "`files`"
+              if:
+                - variant: openshift
+            - regex: "`files` (entries must omit `contents`) and such `links` entries must omit `target`."
+              replacement: $1.
+              if:
+                - variant: openshift
+            - regex: ", file modes \\(using `file_mode`\\) and directories modes \\(using `dir_mode`\\) can be specified for the tree. If not specified, ownership is not preserved and f"
+              replacement: " is not preserved. F"
+              if:
+                - variant: fcos
+                  max: 1.6.0
+                - variant: fiot
+                  max: 1.0.0
+                - variant: flatcar
+                  max: 1.1.0
+                - variant: openshift
+                  max: 4.20.0
+                - variant: r4e
+                  max: 1.1.0
+          children:
+            - name: local
+              desc: the base of the local directory tree, relative to the directory specified by the `--files-dir` command-line argument.
+            - name: path
+              desc: the path of the tree within the target system. Defaults to `/`.
+            - name: file_mode
+              desc: Custom permissions to apply to files
+            - name: dir_mode
+              desc: Custom permissions to apply to directories
+              transforms:
+                - regex: ".*"
+                  replacement: "Unsupported"
+                  if:
+                    - variant: fcos
+                      max: 1.6.0
+                    - variant: fiot
+                      max: 1.0.0
+                    - variant: flatcar
+                      max: 1.1.0
+                    - variant: openshift
+                      max: 4.20.0
+                    - variant: r4e
+                      max: 1.1.0
+            - name: user
+              desc: User owner of the tree
+              children:
+              - name: name
+                desc: username
+              - name: id
+                desc: uid
+            - name: group
+              desc: Group owner of the tree
+              children:
+              - name: name
+                desc: group name
+              - name: id
+                desc: gid
+    - name: systemd
+      children:
+        - name: units
+          children:
+            - name: contents
+              use: append-contents-local
+            - name: contents_local
+              after: contents
+              desc: a local path to the contents of the unit, relative to the directory specified by the `--files-dir` command-line argument. Mutually exclusive with `contents`.
+            - name: dropins
+              children:
+                - name: contents
+                  use: append-contents-local
+                - name: contents_local
+                  after: contents
+                  desc: a local path to the contents of the drop-in, relative to the directory specified by the `--files-dir` command-line argument. Mutually exclusive with `contents`.
+        - name: quadlets
+          after: units
+          desc: a list of Podman Quadlet files.
+          children:
+            - name: name
+              desc: the name of the quadlet file.
+            - name: rootful
+              desc: whether the quadlet runs as root. If true, the file is placed in `/etc/containers/systemd`. If false, it is placed in `/etc/containers/systemd/users`, which applies for all non-root users. Defaults to false.
+            - name: contents
+              desc: the contents of the quadlet file. Mutually exclusive with `contents_local`.
+            - name: contents_local
+              desc: a local path to the contents of the quadlet file, relative to the directory specified by the `--files-dir` command-line argument. Mutually exclusive with `contents`.
+            - name: dropins
+              desc: drop-ins to override settings in the quadlet.
+              children:
+                - name: name
+                  desc: the name of the drop-in file.
+                - name: contents
+                  desc: the contents of the drop-in. Mutually exclusive with `contents_local`.
+                - name: contents_local
+                  desc: a local path to the contents of the drop-in, relative to the directory specified by the `--files-dir` command-line argument. Mutually exclusive with `contents`.
+    - name: passwd
+      children:
+        - name: users
+          children:
+            - name: name
+              transforms:
+                - regex: $
+                  replacement: " Must be `core`."
+                  if:
+                    - variant: openshift
+            - name: ssh_authorized_keys
+              transforms:
+                # older specs can be used with newer OpenShift, so document
+                # the different authorized_keys paths
+                - regex: "as an SSH key fragment at `.ssh/authorized_keys.d/ignition`"
+                  replacement: "to `.ssh/authorized_keys` (OpenShift < 4.13) or `.ssh/authorized_keys.d/ignition` (OpenShift ≥ 4.13)"
+                  if:
+                    - variant: openshift
+                      max: 4.12.0
+            - name: ssh_authorized_keys_local
+              after: ssh_authorized_keys
+              desc: "a list of local paths to SSH key files, relative to the directory specified by the `--files-dir` command-line argument, to be added as SSH key fragments at `.ssh/authorized_keys.d/ignition` in the user's home directory. All SSH keys must be unique. Each file may contain multiple SSH keys, one per line."
+    - name: boot_device
+      after: $
+      desc: describes the desired boot device configuration. At least one of `luks` or `mirror` must be specified.
+      children:
+        - name: layout
+          desc: the disk layout of the target OS image. Supported values are `aarch64`, `ppc64le`, and `x86_64`. Defaults to `x86_64`.
+          transforms:
+            - regex: "Supported values are (.*), and `x86_64`."
+              replacement: "Supported values are $1, `s390x-eckd`, `s390x-virt`, `s390x-zfcp`, and `x86_64`."
+              if:
+                - variant: fcos
+                  min: 1.6.0
+                - variant: openshift
+                  min: 4.19.0
+        - name: luks
+          desc: describes the clevis configuration for encrypting the root filesystem.
+          children:
+            - name: device
+              desc: the whole-disk device (not partitions), referenced by their absolute path. Must start with `/dev/dasd` for `s390x-eckd` layout or `/dev/sd` for `s390x-zfcp` layouts.
+            - name: tang
+              use: tang
+            - name: tpm2
+              desc: whether or not to use a tpm2 device.
+            - name: threshold
+              desc: sets the minimum number of pieces required to decrypt the device. Default is 1.
+            - name: discard
+              desc: whether to issue discard commands to the underlying block device when blocks are freed. Enabling this improves performance and device longevity on SSDs and space utilization on thinly provisioned SAN devices, but leaks information about which disk blocks contain data. If omitted, it defaults to false.
+            - name: cex
+              desc: describes the IBM Crypto Express (CEX) card configuration for the luks device.
+              children:
+                - name: enabled
+                  desc: whether or not to enable cex compatibility for luks. If omitted, defaults to false.
+        - name: mirror
+          desc: describes mirroring of the boot disk for fault tolerance.
+          children:
+            - name: devices
+              desc: the list of whole-disk devices (not partitions) to include in the disk array, referenced by their absolute path. At least two devices must be specified.
+    - name: grub
+      after: $
+      desc: describes the desired GRUB bootloader configuration.
+      transforms:
+        - regex: ".*"
+          replacement: "Unsupported"
+          if:
+            - variant: openshift
+              max: 4.22.0
+      children:
+        - name: users
+          desc: the list of GRUB superusers.
+          transforms:
+            - regex: ".*"
+              replacement: "Unsupported"
+              if:
+                - variant: openshift
+                  max: 4.22.0
+          children:
+            - name: name
+              desc: the user name.
+              transforms:
+                - regex: ".*"
+                  replacement: "Unsupported"
+                  if:
+                    - variant: openshift
+                      max: 4.22.0
+            - name: password_hash
+              desc: the PBKDF2 password hash, generated with `grub2-mkpasswd-pbkdf2`.
+              # required by validation
+              required: true
+              transforms:
+                - regex: ".*"
+                  replacement: "Unsupported"
+                  if:
+                    - variant: openshift
+                      max: 4.22.0
+    - name: openshift
+      after: $
+      desc: describes miscellaneous OpenShift configuration. Respected when rendering to a MachineConfig, ignored when rendering directly to an Ignition config.
+      children:
+        - name: kernel_type
+          desc: which kernel to use on the node. Must be `default` or `realtime`.
+        - name: kernel_arguments
+          desc: arguments to be added to the kernel command line.
+        - name: extensions
+          desc: RHCOS extensions to be installed on the node.
+        - name: fips
+          desc: whether or not to enable FIPS 140-2 compatibility. If omitted, defaults to false.

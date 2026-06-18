@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -eu
+
+export GO111MODULE=on
+export GOFLAGS=-mod=vendor
+export CGO_ENABLED=0
+version=$(git describe --dirty --always)
+LDFLAGS="-w -X github.com/coreos/butane/internal/version.Raw=$version"
+
+NAME=butane
+
+if [ -z ${BIN_PATH+a} ]; then
+	BIN_PATH=${PWD}/bin/$(go env GOARCH)
+fi
+
+echo "Building $NAME..."
+go build -o ${BIN_PATH}/${NAME} -ldflags "$LDFLAGS" internal/main.go

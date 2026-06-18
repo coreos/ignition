@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SRC=$(find . -name '*.go' -not -path "./vendor/*")
+
+echo "checking gofmt"
+res=$(gofmt -d $SRC)
+if [ -n "$res" ]; then
+    echo "$res"
+    exit 1
+fi
+
+echo "checking govet"
+PKG_VET=$(go list ./... | grep --invert-match vendor)
+# tests widely use unkeyed fields in composite literals.  golangci-lint
+# in CI does a more nuanced check.
+go vet -composites=false $PKG_VET
+
+source ./build
+
+echo "Running tests"
+go test ./... -cover
+
+csplit=""
+head=""
+
+if [ "$(go env GOOS)" = linux ]; then
+    csplit="csplit"
+    head="head"
+elif [ "$(go env GOOS)" = darwin ]; then
+    # macOS has BSD versions of csplit and head that behave differently;
+    # check whether brew/macports supplied GNU versions exist
+    if hash gcsplit &> /dev/null; then
+        csplit="gcsplit"
+    fi
+    if hash ghead &> /dev/null; then
+        head="ghead"
+    fi
+elif [ "$(go env GOOS)" = windows ]; then
+    # if we find a Bash on Windows we can comparatively safely assume
+    # Git Bash with GNU utils is being used
+    csplit="csplit"
+    head="head"
+fi
+
+if [ -n "${csplit}" ] && [ -n "${head}" ]; then
+    echo "Checking docs"
+    shopt -s nullglob
+    mkdir tmpdocs
+    trap 'rm -r tmpdocs' EXIT
+    # Create files-dir contents expected by configs
+    mkdir -p tmpdocs/files-dir/tree
+    touch tmpdocs/files-dir/{config.ign,ca.pem,example.conf,example.service,file,file-epilogue,local-file3}
+    echo "ssh-rsa AAAA" > tmpdocs/files-dir/id_rsa.pub
+    echo "ssh-ed25519 AAAA" > tmpdocs/files-dir/id_ed25519.pub
+    echo '{"ignition": {"version": "3.5.0"}}' > tmpdocs/files-dir/ignition.ign
+
+    for doc in docs/*md
+    do
+        echo "Checking ${doc}"
+        # split each doc into a bunch of tmpfiles then run butane on them
+        sed -n '/^<!-- butane-config -->/,/^```$/ p' <"${doc}" \
+             | ${csplit} - '/<!-- butane-config -->/' '{*}' -z --prefix "tmpdocs/config_$(basename ${doc%.*})_" -q
+
+        for i in tmpdocs/config_*
+        do
+            echo "Checking ${i}"
+            tail -n +3 "${i}" | ${head} -n -1 \
+                | "${BIN_PATH}/${NAME}" --check --strict --files-dir tmpdocs/files-dir \
+                || (cat -n "${i}" && false)
+        done
+        rm -f tmpdocs/config_*
+    done
+else
+    # Avoid dealing with presence/behavior of csplit and head
+    echo "skipping docs check because GNU csplit and head are unavailable"
+fi
+
+echo ok
