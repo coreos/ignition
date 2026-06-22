@@ -13,8 +13,9 @@ buildPod {
     withEnv(["XDG_CACHE_HOME=${env.WORKSPACE}/cache"]) {
         // XXX: convert all this to coreos-ci-lib sugar
         stage("Build") {
-            shwrap("make")
-            shwrap("make install DESTDIR=install")
+            shwrap("make ignition BIN_PATH=bin/amd64")
+            shwrap("make ignition-validate BIN_PATH=bin/amd64")
+            shwrap("make install BIN_PATH=bin/amd64 DESTDIR=install")
             stash name: 'build', includes: 'install/**'
         }
         // first, run gofmt/govet/unit tests
