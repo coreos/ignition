@@ -14,6 +14,7 @@ nav_order: 9
 
 ### Misc. changes
 
+- Roll back to Ignition spec 3.5.0 _(openshift 4.22.0)_
 - Add support for pretty error reporting, can be controlled through
   the use of `--raw-errors` (disable) and `--color`/`--colour`
 
