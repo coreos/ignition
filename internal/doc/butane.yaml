@@ -39,7 +39,7 @@ mode:
       replacement: are not supported
       if:
         - variant: openshift
-          min: 4.22.0
+          min: 4.23.0
 
 append-contents-local:
   # Mention contents_local on specs that support it.
@@ -284,7 +284,7 @@ root:
                 - variant: flatcar
                   max: 1.1.0
                 - variant: openshift
-                  max: 4.20.0
+                  max: 4.22.0
                 - variant: r4e
                   max: 1.1.0
           children:
@@ -307,7 +307,7 @@ root:
                     - variant: flatcar
                       max: 1.1.0
                     - variant: openshift
-                      max: 4.20.0
+                      max: 4.22.0
                     - variant: r4e
                       max: 1.1.0
             - name: user

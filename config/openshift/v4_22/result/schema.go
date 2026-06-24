@@ -15,7 +15,7 @@
 package result
 
 import (
-	"github.com/coreos/ignition/v2/config/v3_6/types"
+	"github.com/coreos/ignition/v2/config/v3_5/types"
 )
 
 const (
