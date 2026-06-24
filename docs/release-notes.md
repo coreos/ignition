@@ -4,6 +4,22 @@ nav_order: 9
 
 # Release Notes
 
+## Upcoming Ignition 2.28.0 (unreleased)
+
+### Breaking changes
+
+- The `build` script now requires a subcommand (`ignition`, `ignition-validate`, or `ignition-validate-cross`). Sourcing the build script is no longer supported.
+- `make` no longer invokes the build script directly. Build and install are separate steps with explicit targets (`ignition`, `ignition-validate`, `ignition-validate-cross`, `install`, `install-ignition-validate-cross`, `install-grub-for-bootupd`).
+
+### Changes
+
+- Refactored the Makefile and build script to match the Fedora RPM spec: separate build targets per binary, with `VERSION` and linker flags passed in at build time
+- `build_blackbox_tests` builds a blackbox-specific `ignition` binary with `make`
+- CI and GitHub Actions updated to build via `make ignition` and `make ignition-validate`
+
+### Bug fixes
+
+
 ## Upcoming Ignition 2.27.0 (unreleased)
 
 ### Breaking changes
