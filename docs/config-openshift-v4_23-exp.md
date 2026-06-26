@@ -100,7 +100,7 @@ The OpenShift configuration is a YAML document conforming to the following speci
       * **_compression_** (string): the type of compression used on the file (null or gzip). Compression cannot be used with S3.
       * **_verification_** (object): options related to the verification of the file.
         * **_hash_** (string): the hash of the file, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed file.
-    * **_mode_** (integer): the file's permission mode. Setuid/setgid/sticky bits are not supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents` is unspecified, and a file already exists at the path.
+    * **_mode_** (integer): the file's permission mode. Setuid/setgid/sticky bits are supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents` is unspecified, and a file already exists at the path.
     * **_user_** (object): specifies the file's owner.
       * **_id_** (integer): the user ID of the owner.
       * **_name_** (string): the user name of the owner.
