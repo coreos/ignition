@@ -13,7 +13,7 @@ The OpenShift configuration is a YAML document conforming to the following speci
 <div id="spec-docs"></div>
 
 * **variant** (string): used to differentiate configs for different operating systems. Must be `openshift` for this specification.
-* **version** (string): the semantic version of the spec for this document. This document is for version `4.22.0` and generates Ignition configs with version `3.5.0`.
+* **version** (string): the semantic version of the spec for this document. This document is for version `4.22.0` and generates Ignition configs with version `3.6.0`.
 * **metadata** (object): metadata about the generated MachineConfig resource. Respected when rendering to a MachineConfig, ignored when rendering directly to an Ignition config.
   * **name** (string): a unique [name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) for this MachineConfig resource.
   * **labels** (object): string key/value pairs to apply as [Kubernetes labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) to this MachineConfig resource. `machineconfiguration.openshift.io/role` is required.
@@ -137,9 +137,17 @@ The OpenShift configuration is a YAML document conforming to the following speci
         * **_needs_network_** (boolean): whether or not the device requires networking.
     * **_cex_** (object): describes the IBM Crypto Express (CEX) card configuration for the luks device.
       * **_enabled_** (boolean): whether or not to enable cex compatibility for luks. If omitted, defaults to false.
-  * **_trees_** (list of objects): a list of local directory trees to be embedded in the config. Symlinks must not be present. Ownership is not preserved. File modes are set to 0755 if the local file is executable or 0644 otherwise. File attributes can be overridden by creating a corresponding entry in the `files` section; such entries must omit `contents`.
+  * **_trees_** (list of objects): a list of local directory trees to be embedded in the config. Symlinks must not be present. Ownership, file modes (using `file_mode`) and directories modes (using `dir_mode`) can be specified for the tree. If not specified, ownership is not preserved and file modes are set to 0755 if the local file is executable or 0644 otherwise. File attributes can be overridden by creating a corresponding entry in the `files` section; such entries must omit `contents`.
     * **local** (string): the base of the local directory tree, relative to the directory specified by the `--files-dir` command-line argument.
     * **_path_** (string): the path of the tree within the target system. Defaults to `/`.
+    * **_file_mode_** (integer): Custom permissions to apply to files
+    * **_dir_mode_** (integer): Custom permissions to apply to directories
+    * **_user_** (object): User owner of the tree
+      * **_name_** (string): username
+      * **_id_** (integer): uid
+    * **_group_** (object): Group owner of the tree
+      * **_name_** (string): group name
+      * **_id_** (integer): gid
 * **_systemd_** (object): describes the desired state of the systemd units.
   * **_units_** (list of objects): the list of systemd units. Every unit must have a unique `name`.
     * **name** (string): the name of the unit. This must be suffixed with a valid unit type (e.g. "thing.service").

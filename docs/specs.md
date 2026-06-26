@@ -95,7 +95,7 @@ Each version of the Butane specification corresponds to a version of the Ignitio
 | `openshift`    | 4.19.0              | 3.5.0              |
 | `openshift`    | 4.20.0              | 3.5.0              |
 | `openshift`    | 4.21.0              | 3.5.0              |
-| `openshift`    | 4.22.0              | 3.5.0              |
+| `openshift`    | 4.22.0              | 3.6.0              |
 | `openshift`    | 4.23.0-experimental | 3.7.0-experimental |
 | `r4e`          | 1.0.0               | 3.3.0              |
 | `r4e`          | 1.1.0               | 3.4.0              |
