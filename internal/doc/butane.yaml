@@ -284,7 +284,7 @@ root:
                 - variant: flatcar
                   max: 1.1.0
                 - variant: openshift
-                  max: 4.20.0
+                  max: 4.21.0
                 - variant: r4e
                   max: 1.1.0
           children:
@@ -307,7 +307,7 @@ root:
                     - variant: flatcar
                       max: 1.1.0
                     - variant: openshift
-                      max: 4.20.0
+                      max: 4.21.0
                     - variant: r4e
                       max: 1.1.0
             - name: user
