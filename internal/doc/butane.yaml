@@ -283,6 +283,7 @@ root:
                   max: 1.0.0
                 - variant: flatcar
                   max: 1.1.0
+                # Depends on support in base 0.7 / fcos 1.7.0 and not supported by the MCO
                 - variant: openshift
                   max: 4.22.0
                 - variant: r4e
@@ -306,6 +307,7 @@ root:
                       max: 1.0.0
                     - variant: flatcar
                       max: 1.1.0
+                    # Depends on support in base 0.7 / fcos 1.7.0 and not supported by the MCO
                     - variant: openshift
                       max: 4.22.0
                     - variant: r4e
@@ -420,6 +422,7 @@ root:
           children:
             - name: devices
               desc: the list of whole-disk devices (not partitions) to include in the disk array, referenced by their absolute path. At least two devices must be specified.
+    # GRUB config not supported by the MCO yet
     - name: grub
       after: $
       desc: describes the desired GRUB bootloader configuration.

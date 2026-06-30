@@ -8,13 +8,19 @@ nav_order: 9
 
 ### Breaking changes
 
+- Roll back OpenShift spec 4.22.0 to Ignition spec 3.5.0. Butane 0.28.0
+  stabilized 4.22.0 targeting Ignition 3.6.0
+  ([#704](https://github.com/coreos/butane/pull/704)), but OCP 4.22's Machine
+  Config Operator does not support Ignition 3.6.0
+  ([OCPBUGS-90256](https://redhat.atlassian.net/browse/OCPBUGS-90256)).
+  Configs must be re-transpiled with an updated Butane.
+
 ### Features
 
 ### Bug fixes
 
 ### Misc. changes
 
-- Roll back to Ignition spec 3.5.0 _(openshift 4.22.0)_
 - Add support for pretty error reporting, can be controlled through
   the use of `--raw-errors` (disable) and `--color`/`--colour`
 

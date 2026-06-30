@@ -15,7 +15,24 @@ Occasionally, changes are made to OpenShift Butane configs (those that specify `
 
 ## From Version 4.21.0 to 4.22.0
 
-There are no breaking changes between versions 4.21.0 and 4.22.0 of the `openshift` configuration specification. Any valid 4.21.0 configuration can be updated to a 4.22.0 configuration by changing the version string in the config.
+There are no breaking changes between versions 4.21.0 and 4.22.0 of the
+`openshift` configuration specification. Any valid 4.21.0 configuration can
+be updated to a 4.22.0 configuration by changing the version string in the
+config.
+
+### Ignition version rollback
+
+OpenShift spec 4.22.0 targets Ignition spec 3.5.0. Butane 0.28.0 stabilized the
+4.22.0 spec targeting Ignition 3.6.0
+([#704](https://github.com/coreos/butane/pull/704)), but OCP 4.22's Machine
+Config Operator does not support Ignition 3.6.0
+([OCPBUGS-90256](https://redhat.atlassian.net/browse/OCPBUGS-90256)). If you
+transpiled a config with `version: 4.22.0` using Butane 0.28.0, you must
+re-transpile it with an updated Butane to produce an Ignition config version
+3.5.0 that will be understood by the MCO. Configs that use Ignition 3.6.0 only
+features (such as setuid, setgid, or sticky bits in file modes, or `file_mode`,
+`dir_mode`, `user`, or `group` on `storage.trees`) must be updated before
+re-transpiling.
 
 ## From Version 4.20.0 to 4.21.0
 
