@@ -4,7 +4,19 @@ nav_order: 9
 
 # Release notes
 
-## Upcoming Butane 0.29.0 (unreleased)
+## Upcoming Butane 0.30.0 (unreleased)
+
+### Breaking changes
+
+### Features
+
+### Bug fixes
+
+### Misc. changes
+
+### Docs changes
+
+## Butane 0.29.0 (2026-06-30)
 
 ### Breaking changes
 
