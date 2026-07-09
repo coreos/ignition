@@ -6,6 +6,9 @@ nav_order: 9
 
 ## Upcoming Ignition 2.27.0 (unreleased)
 
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 44 key](https://getfedora.org/security/).
+
 ### Breaking changes
 
 ### Features
