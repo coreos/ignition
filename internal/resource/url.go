@@ -599,8 +599,8 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 }
 
 func (f *Fetcher) fetchFromS3WithClient(ctx context.Context, dest s3target, input *s3.GetObjectInput, client *s3.Client) error {
-	downloader := manager.NewDownloader(client)
-	_, err := downloader.Download(ctx, dest, input)
+	downloader := manager.NewDownloader(client)     //nolint:staticcheck // SA1019: migration to transfermanager tracked separately
+	_, err := downloader.Download(ctx, dest, input) //nolint:staticcheck // SA1019: see above
 	return err
 }
 
