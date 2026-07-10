@@ -17,6 +17,7 @@ package distro
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // Distro-specific settings that can be overridden at link time with e.g.
@@ -42,6 +43,7 @@ var (
 	mountCmd     = "mount"
 	partxCmd     = "partx"
 	sgdiskCmd    = "sgdisk"
+	sfdiskCmd    = "sfdisk"
 	modprobeCmd  = "modprobe"
 	udevadmCmd   = "udevadm"
 	usermodCmd   = "usermod"
@@ -113,6 +115,7 @@ func MdadmCmd() string     { return mdadmCmd }
 func MountCmd() string     { return mountCmd }
 func PartxCmd() string     { return partxCmd }
 func SgdiskCmd() string    { return sgdiskCmd }
+func SfdiskCmd() string    { return sfdiskCmd }
 func ModprobeCmd() string  { return modprobeCmd }
 func UdevadmCmd() string   { return udevadmCmd }
 func UsermodCmd() string   { return usermodCmd }
@@ -147,6 +150,36 @@ func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !Black
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
 func WriteAuthorizedKeysFragment() bool {
 	return bakedStringToBool(fromEnv("WRITE_AUTHORIZED_KEYS_FRAGMENT", writeAuthorizedKeysFragment))
+}
+
+var partitionerBackend string
+
+func PartitionerBackend() string {
+	if partitionerBackend == "" {
+		partitionerBackend = readPartitionerFromCmdline()
+	}
+	return partitionerBackend
+}
+
+func readPartitionerFromCmdline() string {
+	// Allow override via environment variable for testing
+	if env := os.Getenv("IGNITION_PARTITIONER"); env == "sfdisk" || env == "sgdisk" {
+		return env
+	}
+	cmdline, err := os.ReadFile(kernelCmdlinePath)
+	if err != nil {
+		return "sfdisk"
+	}
+	for _, arg := range strings.Split(strings.TrimSpace(string(cmdline)), " ") {
+		parts := strings.SplitN(arg, "=", 2)
+		if parts[0] == "ignition.partitioner" && len(parts) == 2 {
+			switch parts[1] {
+			case "sfdisk", "sgdisk":
+				return parts[1]
+			}
+		}
+	}
+	return "sfdisk"
 }
 
 func fromEnv(nameSuffix, defaultValue string) string {
