@@ -71,6 +71,41 @@ func KitchenSinkMiB() types.Test {
 					"shouldExist": false
 				}
 				]
+			}, {
+				"device": "$disk2",
+				"wipeTable": false,
+				"partitions": [
+				{
+					"label": "p1",
+					"number": 1,
+					"startMiB": 1,
+					"sizeMiB": 32,
+					"typeGuid": "3a5cddf2-5a21-4913-a94d-156344d0f11d",
+					"guid": "f7c8f4c2-f406-426d-8fa2-56f0f03f2062",
+					"wipePartitionEntry": true
+				},
+				{
+					"number": 2,
+					"shouldExist": false,
+					"wipePartitionEntry": true
+				},
+				{
+					"label": "new-auto2",
+					"number": 0,
+					"sizeMiB": 64,
+					"typeGuid": "f6b5fb7e-4856-4254-8754-971dda7f250b",
+					"guid": "9c235a9c-6d3c-42a3-adfb-b2188234c231",
+					"wipePartitionEntry": true
+				},
+				{
+					"label": "new-auto3",
+					"number": 0,
+					"sizeMiB": 96,
+					"typeGuid": "31ce4b8c-6107-4c81-83f0-527770ef7e1f",
+					"guid": "74e097ce-11c3-4f68-855c-4704f597f90d",
+					"wipePartitionEntry": true
+				}
+				]
 			}]
 		}
 	}`
@@ -123,6 +158,25 @@ func KitchenSinkMiB() types.Test {
 			},
 		},
 	})
+	in = append(in, types.Disk{
+		Alignment: types.IgnitionAlignment,
+		Partitions: types.Partitions{
+			{
+				Label:    "p1",
+				Number:   1,
+				Length:   65536,
+				TypeGUID: "316f19f9-9e0f-431e-859e-ae6908dbe8ca",
+				GUID:     "3ED3993F-0016-422B-B134-09FCBA6F66EF",
+			},
+			{
+				Label:    "to-replace",
+				Number:   2,
+				Length:   163840,
+				TypeGUID: "c1ea8ad5-2663-44c8-859e-da7fa0c2c059",
+				GUID:     "bd5febf1-f8d3-4b55-9c16-678d4a98ea72",
+			},
+		},
+	})
 	out = append(out, types.Disk{
 		Alignment: types.IgnitionAlignment,
 		Partitions: types.Partitions{
@@ -157,6 +211,32 @@ func KitchenSinkMiB() types.Test {
 			{
 				TypeCode: "blank",
 				Length:   131072,
+			},
+		},
+	})
+	out = append(out, types.Disk{
+		Alignment: types.IgnitionAlignment,
+		Partitions: types.Partitions{
+			{
+				Label:    "p1",
+				Number:   1,
+				Length:   65536,
+				TypeGUID: "3a5cddf2-5a21-4913-a94d-156344d0f11d",
+				GUID:     "f7c8f4c2-f406-426d-8fa2-56f0f03f2062",
+			},
+			{
+				Label:    "new-auto2",
+				Number:   2,
+				Length:   131072,
+				TypeGUID: "f6b5fb7e-4856-4254-8754-971dda7f250b",
+				GUID:     "9c235a9c-6d3c-42a3-adfb-b2188234c231",
+			},
+			{
+				Label:    "new-auto3",
+				Number:   3,
+				Length:   196608,
+				TypeGUID: "31ce4b8c-6107-4c81-83f0-527770ef7e1f",
+				GUID:     "74e097ce-11c3-4f68-855c-4704f597f90d",
 			},
 		},
 	})
