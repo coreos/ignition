@@ -1,0 +1,46 @@
+# Maintained in https://github.com/coreos/repo-templates
+# Do not edit downstream.
+
+name: Rebuild release container
+
+on:
+  workflow_dispatch:
+    inputs:
+      git-tag:
+        description: Existing Git tag
+        default: vX.Y.Z
+      docker-tag:
+        description: New Docker versioned tag
+        default: vX.Y.Z-1
+
+permissions:
+  contents: read
+
+# avoid races when pushing containers built from main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  build-container:
+    name: Build container image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.git-tag }}
+          # fetch tags so the compiled-in version number is useful
+          fetch-depth: 0
+      # If we're running on a signed tag, actions/checkout rewrites it into
+      # a lightweight tag (!!!) which "git describe" then ignores.  Rewrite
+      # it back.
+      # https://github.com/actions/checkout/issues/290
+      - name: Fix actions/checkout synthetic tag
+        run: git fetch --tags --force
+      - name: Build and push container
+        uses: coreos/actions-lib/build-container@main
+        with:
+          credentials: ${{ secrets.QUAY_AUTH }}
+          push: quay.io/coreos/butane quay.io/coreos/fcct
+          arches: amd64 arm64
+          tags: ${{ github.event.inputs.docker-tag }} release

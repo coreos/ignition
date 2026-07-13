@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo "Generating docs..."
+eval $(go env)
+if [ -z ${BIN_PATH+a} ]; then
+	BIN_PATH=${PWD}/bin/$(go env GOARCH)
+fi
+go build -o ${BIN_PATH}/doc internal/doc/main.go
+${BIN_PATH}/doc ${PWD}/docs

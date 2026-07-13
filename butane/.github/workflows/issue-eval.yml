@@ -1,0 +1,22 @@
+name: issue-eval
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  process-issue:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run issue-eval
+      uses: prestist/issue-eval@main
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        google-ai-api-key: ${{ secrets.GOOGLE_AI_API_KEY }}
+        issue-number: ${{ github.event.issue.number }}
+        repo-owner: ${{ github.repository_owner }}
+        repo-name: ${{ github.event.repository.name }}
