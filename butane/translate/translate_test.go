@@ -18,8 +18,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/coreos/butane/translate/tests/pkga"
-	"github.com/coreos/butane/translate/tests/pkgb"
+	"github.com/coreos/ignition/v2/butane/translate/tests/pkga"
+	"github.com/coreos/ignition/v2/butane/translate/tests/pkgb"
 
 	"github.com/coreos/vcontext/report"
 	"github.com/stretchr/testify/assert"

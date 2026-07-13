@@ -10,14 +10,14 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.)
+// limitations under the License.
 
 package util
 
 import (
 	"fmt"
 
-	"github.com/coreos/butane/translate"
+	"github.com/coreos/ignition/v2/butane/translate"
 
 	"github.com/coreos/ignition/v2/config/merge"
 )

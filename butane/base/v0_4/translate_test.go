@@ -10,7 +10,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.)
+// limitations under the License.
 
 package v0_4
 
@@ -24,10 +24,10 @@ import (
 	"strings"
 	"testing"
 
-	baseutil "github.com/coreos/butane/base/util"
-	"github.com/coreos/butane/config/common"
-	confutil "github.com/coreos/butane/config/util"
-	"github.com/coreos/butane/translate"
+	baseutil "github.com/coreos/ignition/v2/butane/base/util"
+	"github.com/coreos/ignition/v2/butane/config/common"
+	confutil "github.com/coreos/ignition/v2/butane/config/util"
+	"github.com/coreos/ignition/v2/butane/translate"
 
 	"github.com/coreos/ignition/v2/config/util"
 	"github.com/coreos/ignition/v2/config/v3_3/types"
