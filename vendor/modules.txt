@@ -179,6 +179,9 @@ github.com/aws/smithy-go/waiter
 # github.com/beevik/etree v1.6.0
 ## explicit; go 1.23.0
 github.com/beevik/etree
+# github.com/clarketm/json v1.17.1
+## explicit
+github.com/clarketm/json
 # github.com/containers/libhvee v0.11.0
 ## explicit; go 1.25.0
 github.com/containers/libhvee/pkg/kvp
@@ -200,6 +203,7 @@ github.com/coreos/vcontext/path
 github.com/coreos/vcontext/report
 github.com/coreos/vcontext/tree
 github.com/coreos/vcontext/validate
+github.com/coreos/vcontext/yaml
 # github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
