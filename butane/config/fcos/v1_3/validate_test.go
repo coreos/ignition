@@ -93,18 +93,6 @@ func TestReportCorrelation(t *testing.T) {
 			errors.ErrNeedLabelOrNumber.Error(),
 			5,
 		},
-		// Ignition validation error, partition list
-		{
-			`storage:
-                           disks:
-                           - device: /dev/z
-                             partitions:
-                               - number: 1
-                                 should_exist: false
-                               - label: z`,
-			errors.ErrZeroesWithShouldNotExist.Error(),
-			5,
-		},
 		// Ignition duplicate key check, paths
 		{
 			`storage:

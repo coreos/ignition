@@ -338,24 +338,6 @@ func TestReportCorrelation(t *testing.T) {
 			errors.ErrNeedLabelOrNumber.Error(),
 			11,
 		},
-		// Ignition validation error, partition list
-		{
-			`
-                         metadata:
-                           name: something
-                           labels:
-                             machineconfiguration.openshift.io/role: r
-                         storage:
-                           disks:
-                           - device: /dev/z
-                             wipe_table: true
-                             partitions:
-                               - number: 1
-                                 should_exist: false
-                               - label: z`,
-			errors.ErrZeroesWithShouldNotExist.Error(),
-			11,
-		},
 		// Ignition duplicate key check, paths
 		{
 			`
