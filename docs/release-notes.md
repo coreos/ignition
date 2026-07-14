@@ -4,17 +4,7 @@ nav_order: 9
 
 # Release notes
 
-## Upcoming Butane 0.30.0 (unreleased)
-
-### Breaking changes
-
-### Features
-
-### Bug fixes
-
-### Misc. changes
-
-### Docs changes
+Butane 0.29.0 is the last release from this standalone repository. Butane has been merged into the [Ignition](https://github.com/coreos/ignition) repository, where all future releases will be made.
 
 ## Butane 0.29.0 (2026-06-30)
 
