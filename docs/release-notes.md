@@ -13,12 +13,14 @@ Starting with this release, ignition-validate binaries are signed with the
 
 ### Features
 
+- Accept Butane YAML configs in addition to Ignition JSON, with automatic transpilation at boot ([#2235](https://github.com/coreos/ignition/pull/2235))
 - Support reading configs from `/run/ignition` and `/etc/ignition/` in addition to `/usr/lib/ignition/`, searched in descending priority order ([#2221](https://github.com/coreos/ignition/pull/2221))
 - Add support for `virtiofs`
 - Allow deleting a disk partition while creating another partition with number 0. ([#2234](https://github.com/coreos/ignition/pull/2234))
 
 ### Changes
 
+- Merge Butane config transpiler into the Ignition repository; the `butane` CLI is now built from the Ignition source tree ([#2235](https://github.com/coreos/ignition/pull/2235))
 - Replace GCS client library with direct HTTP calls to the GCS JSON API, significantly reducing binary size ([#2045](https://github.com/coreos/ignition/issues/2045))
 - Fix test script compatibility with Go 1.26 which removed the `-go` flag from `go tool fix`
 - Improved documentation for the flow of Ignition across clouds.

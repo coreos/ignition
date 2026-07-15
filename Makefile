@@ -28,6 +28,7 @@ install: all
 	install -m 0644 -D -t $(DESTDIR)/usr/lib/systemd/system systemd/ignition-delete-config.service
 	install -m 0755 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/30ignition bin/$(GOARCH)/ignition
 	install -m 0755 -D -t $(DESTDIR)/usr/bin bin/$(GOARCH)/ignition-validate
+	install -m 0755 -D -t $(DESTDIR)/usr/bin bin/$(GOARCH)/butane
 	install -m 0755 -d $(DESTDIR)/usr/libexec
 	ln -sf ../lib/dracut/modules.d/30ignition/ignition $(DESTDIR)/usr/libexec/ignition-apply
 	ln -sf ../lib/dracut/modules.d/30ignition/ignition $(DESTDIR)/usr/libexec/ignition-rmcfg

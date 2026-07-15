@@ -12,6 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.22.32
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.105.0
 	github.com/beevik/etree v1.6.0
+	github.com/clarketm/json v1.17.1
 	github.com/containers/libhvee v0.11.0
 	github.com/coreos/go-semver v0.3.1
 	github.com/coreos/go-systemd/v22 v22.7.0

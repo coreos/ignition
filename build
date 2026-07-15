@@ -35,3 +35,8 @@ NAME="ignition-validate"
 
 echo "Building ${NAME}..."
 go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/validate
+
+source ./butane/build
+
+# Restore CGO_ENABLED after butane build sets it to 0
+export CGO_ENABLED=1
