@@ -33,6 +33,19 @@ import (
 	"github.com/vincent-petithory/dataurl"
 )
 
+// buildCrypttabOptions constructs the options suffix for a crypttab entry.
+// It always adds x-initrd.attach and adds _netdev if network is needed.
+// The x-initrd.attach option prevents systemd-cryptsetup-generator from
+// adding Conflicts=umount.target, which is necessary for soft-reboot to
+// work correctly with LUKS.
+func buildCrypttabOptions(hasNetworkDev bool) string {
+	options := "x-initrd.attach"
+	if hasNetworkDev {
+		options = "_netdev," + options
+	}
+	return "," + options
+}
+
 // createCrypttabEntries creates entries inside of /etc/crypttab for LUKS volumes,
 // as well as copying keyfiles to the sysroot.
 func (s *stage) createCrypttabEntries(config types.Config) error {
@@ -62,10 +75,7 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 			return fmt.Errorf("gathering luks uuid: %s: %v", out, err)
 		}
 		uuid := strings.TrimSpace(string(out))
-		netdev := ""
-		if len(luks.Clevis.Tang) > 0 || cutil.NotEmpty(luks.Clevis.Custom.Pin) && cutil.IsTrue(luks.Clevis.Custom.NeedsNetwork) {
-			netdev = ",_netdev"
-		}
+		hasNetworkDev := len(luks.Clevis.Tang) > 0 || cutil.NotEmpty(luks.Clevis.Custom.Pin) && cutil.IsTrue(luks.Clevis.Custom.NeedsNetwork)
 		keyfile := "none"
 		if !luks.Clevis.IsPresent() {
 			keyfile = filepath.Join(distro.LuksRealRootKeyFilePath(), luks.Name)
@@ -91,7 +101,8 @@ func (s *stage) createCrypttabEntries(config types.Config) error {
 				},
 			})
 		}
-		uri := dataurl.EncodeBytes([]byte(fmt.Sprintf("%s UUID=%s %s luks%s\n", luks.Name, uuid, keyfile, netdev)))
+		options := buildCrypttabOptions(hasNetworkDev)
+		uri := dataurl.EncodeBytes([]byte(fmt.Sprintf("%s UUID=%s %s luks%s\n", luks.Name, uuid, keyfile, options)))
 		crypttab.Append = append(crypttab.Append, types.Resource{
 			Source: &uri,
 		})

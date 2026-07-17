@@ -31,16 +31,14 @@ import (
 	"strings"
 	"sync"
 	"syscall"
-	"time"
 
 	"cloud.google.com/go/compute/metadata"
-	"cloud.google.com/go/storage"
 	configErrors "github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/util"
 	"github.com/coreos/vcontext/report"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/api/option"
 
 	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	providersUtil "github.com/coreos/ignition/v2/internal/providers/util"
@@ -102,9 +100,10 @@ type Fetcher struct {
 	// This is used as a hint to fetch the S3 bucket from the right partition and region.
 	S3RegionHint string
 
-	// GCSSession is a client for interacting with Google Cloud Storage.
-	// It is used when fetching resources from GCS.
-	GCSSession *storage.Client
+	// GCSTokenSource provides OAuth2 tokens for Google Cloud Storage
+	// access. It is initialized lazily on first GCS fetch when running
+	// on GCE with an associated service account.
+	GCSTokenSource oauth2.TokenSource
 
 	// Azure credential to use when fetching resources from Azure Blob Storage.
 	// using DefaultAzureCredential()
@@ -417,47 +416,47 @@ func (f *Fetcher) fetchFromDataURL(u url.URL, dest io.Writer, opts FetchOptions)
 	return f.decompressCopyHashAndVerify(dest, bytes.NewBuffer(url.Data), opts)
 }
 
-// FetchFromGCS writes the data stored in a GCS bucket as described by u into dest, returning
-// an error if one is encountered. It looks for the default credentials by querying metadata
-// server on GCE. If it fails to get the credentials, then it will fall back to anonymous
-// credentials to fetch the object content.
+// fetchFromGCS fetches an object from Google Cloud Storage using the JSON API
+// directly over HTTP. On GCE instances with a service account, it authenticates
+// using compute metadata credentials. Otherwise it falls back to anonymous access.
 func (f *Fetcher) fetchFromGCS(u url.URL, dest io.Writer, opts FetchOptions) error {
 	ctx := context.Background()
-	if f.GCSSession == nil {
-		clientOption := option.WithoutAuthentication()
+	if f.GCSTokenSource == nil {
 		if metadata.OnGCE() {
-			// check whether the VM is associated with a service
-			// account
 			if _, err := metadata.ScopesWithContext(ctx, ""); err == nil {
-				id, _ := metadata.ProjectIDWithContext(ctx)
-				creds := &google.Credentials{
-					ProjectID:   id,
-					TokenSource: google.ComputeTokenSource("", storage.ScopeReadOnly),
-				}
-				clientOption = option.WithCredentials(creds)
+				f.GCSTokenSource = google.ComputeTokenSource("", "https://www.googleapis.com/auth/devstorage.read_only")
 			} else {
 				f.Logger.Debug("falling back to unauthenticated GCS access: %v", err)
 			}
 		} else {
 			f.Logger.Debug("falling back to unauthenticated GCS access: not running in GCE")
 		}
+	}
 
-		var err error
-		f.GCSSession, err = storage.NewClient(ctx, clientOption)
+	bucket := u.Host
+	object := strings.TrimLeft(u.Path, "/")
+	decodedPath := fmt.Sprintf("/storage/v1/b/%s/o/%s", bucket, object)
+	rawPath := fmt.Sprintf("/storage/v1/b/%s/o/%s", bucket, url.PathEscape(object))
+	gcsURL := url.URL{
+		Scheme:   "https",
+		Host:     "storage.googleapis.com",
+		Path:     decodedPath,
+		RawPath:  rawPath,
+		RawQuery: "alt=media",
+	}
+
+	if opts.Headers == nil {
+		opts.Headers = make(http.Header)
+	}
+	if f.GCSTokenSource != nil {
+		token, err := f.GCSTokenSource.Token()
 		if err != nil {
-			return err
+			return fmt.Errorf("fetching GCS auth token: %v", err)
 		}
+		opts.Headers.Set("Authorization", token.Type()+" "+token.AccessToken)
 	}
 
-	path := strings.TrimLeft(u.Path, "/")
-	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
-	defer cancel()
-	rc, err := f.GCSSession.Bucket(u.Host).Object(path).NewReader(ctx)
-	if err != nil {
-		return fmt.Errorf("error while reading content from (%q): %v", u.String(), err)
-	}
-
-	return f.decompressCopyHashAndVerify(dest, rc, opts)
+	return f.fetchFromHTTP(gcsURL, dest, opts)
 }
 
 type s3target interface {
@@ -600,8 +599,8 @@ func (f *Fetcher) fetchFromS3(u url.URL, dest s3target, opts FetchOptions) error
 }
 
 func (f *Fetcher) fetchFromS3WithClient(ctx context.Context, dest s3target, input *s3.GetObjectInput, client *s3.Client) error {
-	downloader := manager.NewDownloader(client)
-	_, err := downloader.Download(ctx, dest, input)
+	downloader := manager.NewDownloader(client)     //nolint:staticcheck // SA1019: migration to transfermanager tracked separately
+	_, err := downloader.Download(ctx, dest, input) //nolint:staticcheck // SA1019: see above
 	return err
 }
 

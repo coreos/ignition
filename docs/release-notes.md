@@ -6,6 +6,9 @@ nav_order: 9
 
 ## Upcoming Ignition 2.27.0 (unreleased)
 
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 44 key](https://getfedora.org/security/).
+
 ### Breaking changes
 
 ### Features
@@ -13,13 +16,19 @@ nav_order: 9
 - Support reading configs from `/run/ignition` and `/etc/ignition/` in addition to `/usr/lib/ignition/`, searched in descending priority order ([#2221](https://github.com/coreos/ignition/pull/2221))
 - Add support for `virtiofs`
 - Support loading Ignition config from a labeled device via `ignition.config.device` and `ignition.config.path` kernel command-line arguments
+- Allow deleting a disk partition while creating another partition with number 0. ([#2234](https://github.com/coreos/ignition/pull/2234))
 
 ### Changes
 
+- Replace GCS client library with direct HTTP calls to the GCS JSON API, significantly reducing binary size ([#2045](https://github.com/coreos/ignition/issues/2045))
 - Fix test script compatibility with Go 1.26 which removed the `-go` flag from `go tool fix`
 - Improved documentation for the flow of Ignition across clouds.
 
 ### Bug fixes
+
+- Fix giving disk partition number 0 to get the next available slot. This caused the disks stage to fail since version 2.20.0. ([#2234](https://github.com/coreos/ignition/pull/2234))
+- Fix disk partitioning race condition where the kernel is already aware of the changes before running `partx`, causing a fatal error. ([#2234](https://github.com/coreos/ignition/pull/2234))
+- Add `x-initrd.attach` to crypttab entries to fix soft-reboot with LUKS ([#2219](https://github.com/coreos/ignition/pull/2219))
 
 
 ## Ignition 2.26.0 (2026-02-17)

@@ -38,6 +38,7 @@ var (
 	groupaddCmd  = "groupadd"
 	groupmodCmd  = "groupmod"
 	groupdelCmd  = "groupdel"
+	dmsetupCmd   = "dmsetup"
 	mdadmCmd     = "mdadm"
 	mountCmd     = "mount"
 	partxCmd     = "partx"
@@ -109,6 +110,7 @@ func SystemConfigDirs() []string {
 func GroupaddCmd() string  { return groupaddCmd }
 func GroupmodCmd() string  { return groupmodCmd }
 func GroupdelCmd() string  { return groupdelCmd }
+func DmsetupCmd() string   { return dmsetupCmd }
 func MdadmCmd() string     { return mdadmCmd }
 func MountCmd() string     { return mountCmd }
 func PartxCmd() string     { return partxCmd }

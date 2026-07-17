@@ -1,0 +1,110 @@
+name: Binary Size
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+
+# don't waste job slots on superseded code
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Maximum allowed binary growth (percent). PRs exceeding this will fail.
+env:
+  SIZE_THRESHOLD_PCT: 5
+
+jobs:
+  binary-size:
+    name: Check binary size
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v5
+      with:
+        go-version: 1.26.x
+    - name: Install Linux dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libblkid-dev
+    - name: Check out PR branch
+      uses: actions/checkout@v6
+    - name: Build PR binary
+      run: ./build
+    - name: Measure PR binary size
+      id: pr
+      run: |
+        size=$(stat --format='%s' bin/amd64/ignition)
+        echo "size=$size" >> "$GITHUB_OUTPUT"
+        echo "PR binary size: $size bytes ($(numfmt --to=iec-i --suffix=B "$size"))"
+    - name: Check out base branch
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+        clean: false
+    - name: Build base binary
+      run: ./build
+    - name: Measure base binary size
+      id: base
+      run: |
+        size=$(stat --format='%s' bin/amd64/ignition)
+        echo "size=$size" >> "$GITHUB_OUTPUT"
+        echo "Base binary size: $size bytes ($(numfmt --to=iec-i --suffix=B "$size"))"
+    - name: Compare sizes
+      id: compare
+      run: |
+        pr_size=${{ steps.pr.outputs.size }}
+        base_size=${{ steps.base.outputs.size }}
+        delta=$((pr_size - base_size))
+        if [ "$base_size" -eq 0 ]; then
+          pct="N/A"
+          pct_raw=0
+        else
+          pct_raw=$(awk "BEGIN {printf \"%.2f\", ($delta / $base_size) * 100}")
+          pct="${pct_raw}%"
+        fi
+
+        pr_human=$(numfmt --to=iec-i --suffix=B "$pr_size")
+        base_human=$(numfmt --to=iec-i --suffix=B "$base_size")
+        if [ "$delta" -ge 0 ]; then
+          delta_human="+$(numfmt --to=iec-i --suffix=B "$delta")"
+        else
+          abs_delta=$(( -delta ))
+          delta_human="-$(numfmt --to=iec-i --suffix=B "$abs_delta")"
+        fi
+
+        {
+          echo "delta=$delta"
+          echo "pct=$pct"
+          echo "pct_raw=$pct_raw"
+          echo "pr_human=$pr_human"
+          echo "base_human=$base_human"
+          echo "delta_human=$delta_human"
+        } >> "$GITHUB_OUTPUT"
+    - name: Save results
+      run: |
+        mkdir -p /tmp/binary-size
+        cat > /tmp/binary-size/result.txt << EOF
+        ${{ github.event.pull_request.number }}
+        ${{ github.event.pull_request.base.ref }}
+        ${{ steps.compare.outputs.base_human }}
+        ${{ steps.compare.outputs.pr_human }}
+        ${{ steps.compare.outputs.delta_human }}
+        ${{ steps.compare.outputs.pct }}
+        ${{ steps.compare.outputs.pct_raw }}
+        EOF
+    - name: Upload results
+      uses: actions/upload-artifact@v4
+      with:
+        name: binary-size-result
+        path: /tmp/binary-size/result.txt
+    - name: Fail on excessive growth
+      run: |
+        pct_raw=${{ steps.compare.outputs.pct_raw }}
+        threshold=${{ env.SIZE_THRESHOLD_PCT }}
+        exceeds=$(awk "BEGIN {print ($pct_raw > $threshold) ? 1 : 0}")
+        if [ "$exceeds" -eq 1 ]; then
+          echo "::error::Binary grew by ${pct_raw}% which exceeds the ${threshold}% threshold."
+          exit 1
+        fi
+        echo "Binary size change (${pct_raw}%) is within the ${threshold}% threshold."

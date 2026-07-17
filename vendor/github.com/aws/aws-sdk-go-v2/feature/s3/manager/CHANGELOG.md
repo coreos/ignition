@@ -1,3 +1,155 @@
+# v1.22.33 (2026-07-13)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.32 (2026-07-08.2)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.31 (2026-07-06)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.30 (2026-07-01)
+
+* **Bug Fix**: Bump smithy-go to 1.27.3, fix JSON encorder for document.Number, endpoint host label format validation and CBOR union serialization on new serde
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.29 (2026-06-29)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.28 (2026-06-16)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.27 (2026-06-10)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.26 (2026-06-08)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.25 (2026-06-04)
+
+* **Dependency Update**: Update to smithy-go v1.27.1 to fix several union-related deserialization bugs in schema-serde-enabled services.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.24 (2026-06-03)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.23 (2026-06-02)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.22 (2026-05-29)
+
+* **Dependency Update**: Update to smithy-go v1.26.0.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.21 (2026-05-28)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.20 (2026-05-27)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.19 (2026-05-22)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.18 (2026-05-06)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.17 (2026-04-29)
+
+* **Dependency Update**: Update to smithy-go v1.25.1.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.16 (2026-04-22)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.15 (2026-04-17)
+
+* **Dependency Update**: Bump smithy-go to 1.25.0 to support endpointBdd trait
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.14 (2026-04-16)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.13 (2026-04-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.12 (2026-04-02)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.11 (2026-03-31)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.10 (2026-03-26)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.9 (2026-03-23)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.8 (2026-03-13)
+
+* **Bug Fix**: Replace usages of the old ioutil/ package throughout the SDK.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.7 (2026-03-12)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.6 (2026-03-05)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.5 (2026-03-03)
+
+* **Bug Fix**: Modernize non codegen files with go fix
+* **Dependency Update**: Bump minimum Go version to 1.24
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.4 (2026-02-26)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.3 (2026-02-23)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.2 (2026-02-18)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.1 (2026-02-17)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.0 (2026-02-05)
+
+* **Feature**: Deprecate feature/s3/manager, superceded by feature/s3/transfermanager. See https://github.com/aws/aws-sdk-go-v2/discussions/3306
+
+# v1.21.1 (2026-01-28)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.21.0 (2026-01-20)
+
+* **Feature**: Optimize allocation for transfer manager v1 uploader so no extra memory is used in buffer pool for single upload.
+
 # v1.20.19 (2026-01-09)
 
 * **Dependency Update**: Updated to the latest SDK module versions

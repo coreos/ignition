@@ -15,14 +15,18 @@
 package resource
 
 import (
+	"bytes"
 	"compress/gzip"
 	"crypto/sha512"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/oauth2"
 
 	"github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -395,6 +399,139 @@ func TestParseAzureStorageUrl(t *testing.T) {
 		assert.Equal(t, test.file, file, "#%d: bad file", i)
 	}
 
+}
+
+func TestGCSURLConstruction(t *testing.T) {
+	tests := []struct {
+		name     string
+		gsURL    string
+		wantPath string
+	}{
+		{
+			name:     "simple object",
+			gsURL:    "gs://my-bucket/my-object.ign",
+			wantPath: "/storage/v1/b/my-bucket/o/my-object.ign",
+		},
+		{
+			name:     "nested path",
+			gsURL:    "gs://my-bucket/path/to/config.ign",
+			wantPath: "/storage/v1/b/my-bucket/o/path%2Fto%2Fconfig.ign",
+		},
+		{
+			name:     "object with spaces",
+			gsURL:    "gs://my-bucket/my file.ign",
+			wantPath: "/storage/v1/b/my-bucket/o/my%20file.ign",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			u, err := url.Parse(test.gsURL)
+			assert.NoError(t, err)
+
+			bucket := u.Host
+			object := u.Path[1:]
+			gcsURL := url.URL{
+				Scheme:   "https",
+				Host:     "storage.googleapis.com",
+				Path:     fmt.Sprintf("/storage/v1/b/%s/o/%s", bucket, url.PathEscape(object)),
+				RawQuery: "alt=media",
+			}
+			assert.Equal(t, test.wantPath, gcsURL.Path)
+			assert.Equal(t, "alt=media", gcsURL.RawQuery)
+		})
+	}
+}
+
+func TestFetchFromGCSIntegration(t *testing.T) {
+	tests := []struct {
+		name        string
+		bucket      string
+		object      string
+		tokenSource oauth2.TokenSource
+		body        string
+		wantAuth    string
+	}{
+		{
+			name:     "anonymous fetch",
+			bucket:   "my-bucket",
+			object:   "config.ign",
+			body:     `{"ignition":{"version":"3.4.0"}}`,
+			wantAuth: "",
+		},
+		{
+			name:   "authenticated fetch",
+			bucket: "my-bucket",
+			object: "config.ign",
+			body:   `{"ignition":{"version":"3.4.0"}}`,
+			tokenSource: oauth2.StaticTokenSource(&oauth2.Token{
+				AccessToken: "test-token",
+				TokenType:   "Bearer",
+			}),
+			wantAuth: "Bearer test-token",
+		},
+		{
+			name:     "object with slashes",
+			bucket:   "my-bucket",
+			object:   "path/to/config.ign",
+			body:     "nested-content",
+			wantAuth: "",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var gotAuth string
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				gotAuth = r.Header.Get("Authorization")
+
+				wantPath := fmt.Sprintf("/storage/v1/b/%s/o/%s",
+					test.bucket, url.PathEscape(test.object))
+				gotPath := r.URL.RawPath
+				if gotPath == "" {
+					gotPath = r.URL.Path
+				}
+				assert.Equal(t, wantPath, gotPath, "bad request path")
+				assert.Equal(t, "media", r.URL.Query().Get("alt"), "missing alt=media")
+
+				_, _ = w.Write([]byte(test.body))
+			}))
+			defer server.Close()
+
+			serverURL, _ := url.Parse(server.URL)
+
+			logger := log.New(true)
+			f := Fetcher{
+				Logger:         &logger,
+				GCSTokenSource: test.tokenSource,
+			}
+
+			decodedPath := fmt.Sprintf("/storage/v1/b/%s/o/%s", test.bucket, test.object)
+			rawPath := fmt.Sprintf("/storage/v1/b/%s/o/%s", test.bucket, url.PathEscape(test.object))
+			gcsURL := url.URL{
+				Scheme:   serverURL.Scheme,
+				Host:     serverURL.Host,
+				Path:     decodedPath,
+				RawPath:  rawPath,
+				RawQuery: "alt=media",
+			}
+
+			opts := FetchOptions{
+				Headers: make(http.Header),
+			}
+			if f.GCSTokenSource != nil {
+				token, err := f.GCSTokenSource.Token()
+				assert.NoError(t, err)
+				opts.Headers.Set("Authorization", token.Type()+" "+token.AccessToken)
+			}
+
+			dest := new(bytes.Buffer)
+			err := f.fetchFromHTTP(gcsURL, dest, opts)
+			assert.NoError(t, err)
+			assert.Equal(t, test.body, dest.String(), "bad response body")
+			assert.Equal(t, test.wantAuth, gotAuth, "bad auth header")
+		})
+	}
 }
 
 func TestFetchConfigDualStack(t *testing.T) {
