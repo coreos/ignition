@@ -197,7 +197,7 @@ func tryMounting(logger *log.Logger, ctx context.Context, opts *cmdlineOpts) ([]
 		}
 	}()
 
-	cmd := exec.Command(distro.MountCmd(), "-o", "ro", "-t", "auto", device, mnt)
+	cmd := exec.CommandContext(ctx, distro.MountCmd(), "-o", "ro", "-t", "auto", device, mnt)
 	if _, err := logger.LogCmd(cmd, "mounting disk"); err != nil {
 		return nil, err
 	}
