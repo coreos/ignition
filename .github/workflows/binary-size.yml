@@ -2,6 +2,7 @@ name: Binary Size
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 permissions:
   contents: read
 
@@ -100,6 +101,11 @@ jobs:
         path: /tmp/binary-size/result.txt
     - name: Fail on excessive growth
       run: |
+        override="${{ contains(github.event.pull_request.labels.*.name, 'override-size-check') }}"
+        if [ "$override" = "true" ]; then
+          echo "Label 'override-size-check' is present — skipping size threshold enforcement."
+          exit 0
+        fi
         pct_raw=${{ steps.compare.outputs.pct_raw }}
         threshold=${{ env.SIZE_THRESHOLD_PCT }}
         exceeds=$(awk "BEGIN {print ($pct_raw > $threshold) ? 1 : 0}")
