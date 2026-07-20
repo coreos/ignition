@@ -15,6 +15,7 @@ Starting with this release, ignition-validate binaries are signed with the
 
 - Support reading configs from `/run/ignition` and `/etc/ignition/` in addition to `/usr/lib/ignition/`, searched in descending priority order ([#2221](https://github.com/coreos/ignition/pull/2221))
 - Add support for `virtiofs`
+- Support loading Ignition config from a labeled device via `ignition.config.device` and `ignition.config.path` kernel command-line arguments
 - Allow deleting a disk partition while creating another partition with number 0. ([#2234](https://github.com/coreos/ignition/pull/2234))
 
 ### Changes
