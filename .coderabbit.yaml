@@ -1,0 +1,222 @@
+language: "en-US"
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: true
+  high_level_summary: false
+  high_level_summary_in_walkthrough: false
+  poem: false
+  in_progress_fortune: false
+  review_status: true
+  review_details: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: true
+  estimate_code_review_effort: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: true
+  auto_apply_labels: false
+  suggested_reviewers: true
+  auto_assign_reviewers: false
+  enable_prompt_for_ai_agents: true
+  abort_on_close: true
+
+  path_filters:
+    - "!vendor/**"
+
+  path_instructions:
+    - path: "config/v3_0/**"
+      instructions: >
+        This is a frozen stable config spec (v3.0). Files here must NEVER be
+        modified. If changes are proposed, flag them as incorrect -- frozen
+        specs are immutable.
+    - path: "config/v3_1/**"
+      instructions: >
+        This is a frozen stable config spec (v3.1). Files here must NEVER be
+        modified. If changes are proposed, flag them as incorrect -- frozen
+        specs are immutable.
+    - path: "config/v3_2/**"
+      instructions: >
+        This is a frozen stable config spec (v3.2). Files here must NEVER be
+        modified. If changes are proposed, flag them as incorrect -- frozen
+        specs are immutable.
+    - path: "config/v3_3/**"
+      instructions: >
+        This is a frozen stable config spec (v3.3). Files here must NEVER be
+        modified. If changes are proposed, flag them as incorrect -- frozen
+        specs are immutable.
+    - path: "config/v3_4/**"
+      instructions: >
+        This is a frozen stable config spec (v3.4). Files here must NEVER be
+        modified. If changes are proposed, flag them as incorrect -- frozen
+        specs are immutable.
+    - path: "config/v3_5/**"
+      instructions: >
+        This is a frozen stable config spec (v3.5). Files here must NEVER be
+        modified. If changes are proposed, flag them as incorrect -- frozen
+        specs are immutable.
+    - path: "config/v3_6/**"
+      instructions: >
+        This is a frozen stable config spec (v3.6). Files here must NEVER be
+        modified. If changes are proposed, flag them as incorrect -- frozen
+        specs are immutable.
+    - path: "config/v3_7_experimental/**"
+      instructions: >
+        This is the active experimental config spec. New features go here.
+        Ensure schema changes are accompanied by running ./generate.
+        types/schema.go is generated -- it must not be manually edited.
+        Verify that translation functions in translate/ are updated for any
+        new or changed fields.
+    - path: "config/**"
+      instructions: >
+        The config/ directory is the frontend stable library API consumed by
+        external programs (e.g., Butane). API-breaking changes require bumping
+        the Ignition major version. Ensure backward compatibility.
+    - path: "internal/exec/stages/**"
+      instructions: >
+        Execution stages are fixed (fetch-offline, fetch, disks, mount, files,
+        umount). External projects hardcode this list. Do not add or remove
+        stages. Config must be declarative -- describe desired state, not
+        actions.
+    - path: "internal/providers/**"
+      instructions: >
+        Platform providers must retry config fetch, allow empty config, and
+        never guess the platform ID. Every provider must be documented in
+        docs/supported-platforms.md. Any fields requiring network access must
+        be registered in the fetch-offline needs-net detector.
+    - path: "internal/resource/**"
+      instructions: >
+        Resource fetching code (HTTP, S3, GCS, TFTP, data URIs). Security is
+        critical here -- always provide secure defaults. No directives that
+        encourage unsafe behavior.
+    - path: "tests/**"
+      instructions: >
+        Blackbox integration tests. New test modules must be imported in
+        tests/registry/registry.go. Use table-driven tests with struct{ in, out }
+        slices.
+    - path: "docs/**"
+      instructions: >
+        Documentation served via GitHub Pages/Jekyll. Every platform must be
+        documented in supported-platforms.md. The ./test script validates doc
+        consistency.
+
+  auto_review:
+    enabled: true
+    drafts: false
+    auto_incremental_review: true
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: true
+    autofix:
+      enabled: true
+
+  pre_merge_checks:
+    title:
+      mode: "warning"
+      requirements: >
+        PR title must follow the format 'subsystem: lowercase description'.
+        Examples: 'providers/hetzner: add Hetzner Cloud support',
+        'config/v3_6: stabilize spec', '*: refactor provider interface'.
+        Use imperative mood, lowercase after colon, no trailing period.
+    description:
+      mode: "warning"
+    custom_checks:
+      - name: "Commit message convention"
+        mode: "warning"
+        instructions: >
+          Check that every non-merge commit message in this PR follows the
+          format 'subsystem: lowercase description'. The subsystem is
+          typically a file path prefix (e.g., 'providers/hetzner',
+          'config/v3_6', 'internal/exec/stages/files'), a component name
+          (e.g., 'docs', 'tests', 'ci'), or '*' for cross-cutting changes.
+          After the colon and space, the description must start with a
+          lowercase letter and use imperative mood (e.g., 'add', 'fix',
+          'update', not 'Added', 'Fixes', 'Updates'). There must be no
+          trailing period. Merge commits (starting with 'Merge') should be
+          ignored. Flag any commit that does not conform.
+
+  tools:
+    golangci-lint:
+      enabled: true
+    shellcheck:
+      enabled: true
+    yamllint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    hadolint:
+      enabled: true
+    actionlint:
+      enabled: true
+    zizmor:
+      enabled: true
+    gitleaks:
+      enabled: true
+    trufflehog:
+      enabled: true
+    # Disable tools irrelevant to this Go project
+    checkov:
+      enabled: false
+    clang:
+      enabled: false
+    cppcheck:
+      enabled: false
+    ruff:
+      enabled: false
+    biome:
+      enabled: false
+    eslint:
+      enabled: false
+    phpstan:
+      enabled: false
+    phpmd:
+      enabled: false
+    phpcs:
+      enabled: false
+    swiftlint:
+      enabled: false
+    detekt:
+      enabled: false
+    rubocop:
+      enabled: false
+    flake8:
+      enabled: false
+    pylint:
+      enabled: false
+    oxc:
+      enabled: false
+    stylelint:
+      enabled: false
+    htmlhint:
+      enabled: false
+    clippy:
+      enabled: false
+    brakeman:
+      enabled: false
+    fortitudeLint:
+      enabled: false
+    shopifyThemeCheck:
+      enabled: false
+    luacheck:
+      enabled: false
+    prismaLint:
+      enabled: false
+    sqlfluff:
+      enabled: false
+    squawk:
+      enabled: false
+    dotenvLint:
+      enabled: false
+    buf:
+      enabled: false
+
+chat:
+  auto_reply: true
