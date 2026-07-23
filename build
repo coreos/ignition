@@ -2,36 +2,82 @@
 
 set -eu
 
+print_usage() {
+	echo "Usage: $0 [ignition|ignition-validate|ignition-validate-cross]" >&2
+}
+
+if [ $# -eq 0 ]; then
+	print_usage
+	exit 1
+fi
+
 export GO111MODULE=on
 
 NAME="ignition"
 ORG_PATH="github.com/coreos"
 REPO_PATH="${ORG_PATH}/${NAME}/v2"
-GLDFLAGS=${GLDFLAGS:-}
 export GOFLAGS=-mod=vendor
+GLDFLAGS=${GLDFLAGS:-}
 
-if [ -z ${VERSION+a} ]; then
+if [ -z "${VERSION:-}" ]; then
 	VERSION=$(git describe --dirty --always)
-	echo "Using version from git: $VERSION"
+	echo "Using version from git: ${VERSION}"
 fi
 
-GLDFLAGS+="-X github.com/coreos/ignition/v2/internal/version.Raw=${VERSION}"
+GLDFLAGS+=" -X github.com/coreos/ignition/v2/internal/version.Raw=${VERSION}"
 
 eval $(go env)
 
 if [ -z ${BIN_PATH+a} ]; then
-	export BIN_PATH=${PWD}/bin/${GOARCH}
+	export BIN_PATH=${PWD}/bin/
 fi
 
 export CGO_ENABLED=1
 
-echo "Building ${NAME}..."
-# clean the cache since cgo isn't correctly handled by gocache. Test to see if this version
-# of go supports caching before trying to clear the cache
-go clean -help 2>&1 | grep -F '[-cache]' >/dev/null && go clean -cache -testcache
-go build -buildmode=pie -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/internal
+ignition() {
+	local name="ignition"
+	echo "Building ${name} ${GOEXPERIMENT:+with GOEXPERIMENT=${GOEXPERIMENT}}..."
+	# clean the cache since cgo isn't correctly handled by gocache.
+	go clean -cache -testcache
+	go build -buildmode=pie -ldflags "${GLDFLAGS}" -o "${BIN_PATH}/${name}" ${REPO_PATH}/internal
+}
 
-NAME="ignition-validate"
+ignition_validate() {
+	local name="ignition-validate"
 
-echo "Building ${NAME}..."
-go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/${NAME} ${REPO_PATH}/validate
+	echo "Building ${name}..."
+	go build -ldflags "${GLDFLAGS}" -o "${BIN_PATH}/${name}" ${REPO_PATH}/validate
+}
+
+build_cross_validate() {
+	local goos=$1 goarch=$2 output=$3
+	echo "Building ${output}..."
+	CGO_ENABLED=0 GOARCH=${goarch} GOOS=${goos} go build -ldflags "${GLDFLAGS}" -a -v -x -o "${BIN_PATH}/${output}" ${REPO_PATH}/validate
+}
+
+ignition_validate_cross() {
+	build_cross_validate linux arm64 ignition-validate-aarch64-unknown-linux-gnu-static
+	build_cross_validate darwin arm64 ignition-validate-aarch64-apple-darwin
+	build_cross_validate linux ppc64le ignition-validate-ppc64le-unknown-linux-gnu-static
+	build_cross_validate linux s390x ignition-validate-s390x-unknown-linux-gnu-static
+	build_cross_validate linux amd64 ignition-validate-x86_64-unknown-linux-gnu-static
+	build_cross_validate darwin amd64 ignition-validate-x86_64-apple-darwin
+	build_cross_validate windows amd64 ignition-validate-x86_64-pc-windows-gnu.exe
+}
+
+case "$1" in
+ignition)
+	ignition
+	;;
+ignition-validate)
+	ignition_validate
+	;;
+ignition-validate-cross)
+	ignition_validate_cross
+	;;
+*)
+	echo "Unknown command: $1" >&2
+	print_usage
+	exit 1
+	;;
+esac
