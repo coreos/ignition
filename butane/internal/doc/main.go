@@ -238,7 +238,7 @@ func generateOne(dir string, comps doc.Components, variant variant, version vers
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	// write header
 	args := struct {

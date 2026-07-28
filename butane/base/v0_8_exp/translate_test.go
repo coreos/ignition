@@ -1857,7 +1857,7 @@ func TestTranslateTree(t *testing.T) {
 					t.Error(err)
 					return
 				}
-				defer listener.Close()
+				defer func() { _ = listener.Close() }()
 			}
 
 			config := Config{

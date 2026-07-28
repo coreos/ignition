@@ -74,8 +74,8 @@ func main() {
 	pflag.StringVarP(&options.FilesDir, "files-dir", "d", "", "allow embedding local files from this directory")
 
 	pflag.Usage = func() {
-		fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options] [input-file]\n", os.Args[0])
-		fmt.Fprintf(pflag.CommandLine.Output(), "Options:\n")
+		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options] [input-file]\n", os.Args[0])
+		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Options:\n")
 		pflag.PrintDefaults()
 	}
 	pflag.Parse()
@@ -118,7 +118,7 @@ func main() {
 		if err != nil {
 			fail("failed to open %s: %v\n", input, err)
 		}
-		defer infile.Close()
+		defer func() { _ = infile.Close() }()
 		filename = input
 	}
 
@@ -147,7 +147,7 @@ func main() {
 			if err != nil {
 				fail("failed to open %s: %v\n", output, err)
 			}
-			defer outfile.Close()
+			defer func() { _ = outfile.Close() }()
 		}
 
 		if _, err := outfile.Write(append(dataOut, '\n')); err != nil {
