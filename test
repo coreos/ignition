@@ -2,6 +2,8 @@
 
 set -eu
 
+eval $(go env)
+
 echo "Checking for license headers..."
 EXPECTED_HEADER='//
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,8 +32,6 @@ done
 if [ "${HEADER_CHECK_FAILED}" -ne 0 ]; then
     exit 1
 fi
-
-source ./build
 
 SRC=$(find . -name '*.go' -not -path "./vendor/*")
 

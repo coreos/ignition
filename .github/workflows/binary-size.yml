@@ -31,7 +31,7 @@ jobs:
     - name: Check out PR branch
       uses: actions/checkout@v6
     - name: Build PR binary
-      run: ./build
+      run: make ignition BIN_PATH=bin/amd64
     - name: Measure PR binary size
       id: pr
       run: |
