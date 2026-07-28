@@ -1,0 +1,27 @@
+version: "2"
+linters:
+  exclusions:
+    # Allow unkeyed fields in composite literals in tests
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - path: _test\.go$
+        text: composite literal uses unkeyed fields
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+  enable:
+    - gofmt
+   
