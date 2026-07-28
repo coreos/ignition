@@ -10,7 +10,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.)
+// limitations under the License.
 
 package util
 
@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/coreos/butane/config/common"
+	"github.com/coreos/ignition/v2/butane/config/common"
 )
 
 func EnsurePathWithinFilesDir(path, filesDir string) error {

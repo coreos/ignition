@@ -10,12 +10,12 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.)
+// limitations under the License.
 
 package v4_16
 
 import (
-	fcos "github.com/coreos/butane/config/fcos/v1_5"
+	fcos "github.com/coreos/ignition/v2/butane/config/fcos/v1_5"
 )
 
 const ROLE_LABEL_KEY = "machineconfiguration.openshift.io/role"

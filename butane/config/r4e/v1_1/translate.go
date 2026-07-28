@@ -10,13 +10,13 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.)
+// limitations under the License.
 
 package v1_1
 
 import (
-	"github.com/coreos/butane/config/common"
-	cutil "github.com/coreos/butane/config/util"
+	"github.com/coreos/ignition/v2/butane/config/common"
+	cutil "github.com/coreos/ignition/v2/butane/config/util"
 
 	"github.com/coreos/ignition/v2/config/v3_4/types"
 	"github.com/coreos/vcontext/report"

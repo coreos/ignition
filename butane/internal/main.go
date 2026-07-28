@@ -10,7 +10,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.)
+// limitations under the License.
 
 package main
 
@@ -21,10 +21,10 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"github.com/coreos/butane/config"
-	"github.com/coreos/butane/config/common"
-	breport "github.com/coreos/butane/internal/report"
-	"github.com/coreos/butane/internal/version"
+	"github.com/coreos/ignition/v2/butane/config"
+	"github.com/coreos/ignition/v2/butane/config/common"
+	breport "github.com/coreos/ignition/v2/butane/internal/report"
+	"github.com/coreos/ignition/v2/butane/internal/version"
 )
 
 func fail(format string, args ...interface{}) {
