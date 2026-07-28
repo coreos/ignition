@@ -19,7 +19,7 @@ BIN_PATH ?= bin
 export BIN_PATH
 
 .PHONY: all
-all: ignition ignition-validate ignition-validate-cross
+all: ignition ignition-validate ignition-validate-cross butane butane-cross
 
 .PHONY: ignition
 ignition:
@@ -32,6 +32,14 @@ ignition-validate:
 .PHONY: ignition-validate-cross
 ignition-validate-cross:
 	./build ignition-validate-cross
+
+.PHONY: butane
+butane:
+	./build butane
+
+.PHONY: butane-cross
+butane-cross:
+	./build butane-cross
 
 .PHONY: install
 install:
@@ -60,6 +68,22 @@ install-ignition-validate-cross:
 	install -p -m 0644 $(BIN_PATH)/ignition-validate-x86_64-apple-darwin $(DESTDIR)/usr/share/ignition
 	install -p -m 0644 $(BIN_PATH)/ignition-validate-x86_64-pc-windows-gnu.exe $(DESTDIR)/usr/share/ignition
 	install -p -m 0644 $(BIN_PATH)/ignition-validate-x86_64-unknown-linux-gnu-static $(DESTDIR)/usr/share/ignition
+
+.PHONY: install-butane
+install-butane:
+	install -m 0755 -D -t $(DESTDIR)/usr/bin $(BIN_PATH)/butane
+
+# For distros that need to build cross platform butane binaries
+.PHONY: install-butane-cross
+install-butane-cross:
+	install -d -p $(DESTDIR)/usr/share/butane
+	install -p -m 0644 $(BIN_PATH)/butane-aarch64-apple-darwin $(DESTDIR)/usr/share/butane
+	install -p -m 0644 $(BIN_PATH)/butane-aarch64-unknown-linux-gnu-static $(DESTDIR)/usr/share/butane
+	install -p -m 0644 $(BIN_PATH)/butane-ppc64le-unknown-linux-gnu-static $(DESTDIR)/usr/share/butane
+	install -p -m 0644 $(BIN_PATH)/butane-s390x-unknown-linux-gnu-static $(DESTDIR)/usr/share/butane
+	install -p -m 0644 $(BIN_PATH)/butane-x86_64-apple-darwin $(DESTDIR)/usr/share/butane
+	install -p -m 0644 $(BIN_PATH)/butane-x86_64-pc-windows-gnu.exe $(DESTDIR)/usr/share/butane
+	install -p -m 0644 $(BIN_PATH)/butane-x86_64-unknown-linux-gnu-static $(DESTDIR)/usr/share/butane
 
 .PHONY: install-grub-for-bootupd
 install-grub-for-bootupd:

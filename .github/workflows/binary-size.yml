@@ -44,7 +44,7 @@ jobs:
         ref: ${{ github.event.pull_request.base.sha }}
         clean: false
     - name: Build base binary
-      run: ./build
+      run: make ignition BIN_PATH=bin/amd64
     - name: Measure base binary size
       id: base
       run: |
