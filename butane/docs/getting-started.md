@@ -64,7 +64,7 @@ $ sudo dnf install -y butane
 
 #### Standalone binary
 
-Download the latest version of `butane` and the detached signature from the [releases page](https://github.com/coreos/butane/releases). Verify it with gpg:
+Download the latest version of `butane` and the detached signature from the [releases page](https://github.com/coreos/ignition/releases). Verify it with gpg:
 
 ```
 gpg --verify <detached sig> <butane binary>
