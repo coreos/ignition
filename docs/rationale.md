@@ -34,7 +34,7 @@ Ignition does not guess how the system should be configured.  For example, it do
 
 Ignition configs were designed to be human readable, but difficult to write, to discourage users from attempting to write configs by hand.  Ignition configs support basic primitives such as files, directories, filesystems, and partitions, but do not provide higher-level functionality for configuring specific system services.
 
-Use [Butane](https://coreos.github.io/butane/), or a similar tool, to generate Ignition configs. Butane reads [Butane configs](https://coreos.github.io/butane/specs/), which are YAML files containing distribution-independent Ignition directives and optional distribution-specific directives that provide an easier way to perform certain configuration tasks. Butane validates a Butane config for common errors and produces an Ignition config ready to be passed to a machine.
+Use [Butane](https://coreos.github.io/butane/), or a similar tool, to generate Ignition configs. Butane reads [Butane configs](https://coreos.github.io/butane/specs/), which are YAML files containing distribution-independent Ignition directives and optional distribution-specific directives that provide an easier way to perform certain configuration tasks. Butane validates a Butane config for common errors and produces an Ignition config ready to be passed to a machine. Ignition also natively accepts Butane YAML configs at boot, transpiling them automatically.
 
 ## Ignition is distro-independent
 
