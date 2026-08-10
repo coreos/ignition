@@ -3,7 +3,7 @@
 set -eu
 
 print_usage() {
-	echo "Usage: $0 [ignition|ignition-validate|ignition-validate-cross]" >&2
+	echo "Usage: $0 [ignition|ignition-validate|ignition-validate-cross|butane|butane-cross]" >&2
 }
 
 if [ $# -eq 0 ]; then
@@ -65,6 +65,31 @@ ignition_validate_cross() {
 	build_cross_validate windows amd64 ignition-validate-x86_64-pc-windows-gnu.exe
 }
 
+butane() {
+	local name="butane"
+	local butane_ldflags="-w -X github.com/coreos/ignition/v2/butane/internal/version.Raw=${VERSION}"
+
+	echo "Building ${name}..."
+	CGO_ENABLED=0 go build -ldflags "${butane_ldflags}" -o "${BIN_PATH}/${name}" ${REPO_PATH}/butane/internal
+}
+
+build_cross_butane() {
+	local goos=$1 goarch=$2 output=$3
+	local butane_ldflags="-w -X github.com/coreos/ignition/v2/butane/internal/version.Raw=${VERSION}"
+	echo "Building ${output}..."
+	CGO_ENABLED=0 GOARCH=${goarch} GOOS=${goos} go build -ldflags "${butane_ldflags}" -a -v -x -o "${BIN_PATH}/${output}" ${REPO_PATH}/butane/internal
+}
+
+butane_cross() {
+	build_cross_butane linux arm64 butane-aarch64-unknown-linux-gnu-static
+	build_cross_butane darwin arm64 butane-aarch64-apple-darwin
+	build_cross_butane linux ppc64le butane-ppc64le-unknown-linux-gnu-static
+	build_cross_butane linux s390x butane-s390x-unknown-linux-gnu-static
+	build_cross_butane linux amd64 butane-x86_64-unknown-linux-gnu-static
+	build_cross_butane darwin amd64 butane-x86_64-apple-darwin
+	build_cross_butane windows amd64 butane-x86_64-pc-windows-gnu.exe
+}
+
 case "$1" in
 ignition)
 	ignition
@@ -74,6 +99,12 @@ ignition-validate)
 	;;
 ignition-validate-cross)
 	ignition_validate_cross
+	;;
+butane)
+	butane
+	;;
+butane-cross)
+	butane_cross
 	;;
 *)
 	echo "Unknown command: $1" >&2

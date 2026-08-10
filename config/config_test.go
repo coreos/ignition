@@ -289,3 +289,73 @@ func TestConfigStructure(t *testing.T) {
 		}
 	}
 }
+
+func TestParseIgnitionJSON(t *testing.T) {
+	input := []byte(`{"ignition":{"version":"3.6.0"}}`)
+	_, rpt, err := Parse(input)
+	if err != nil {
+		t.Fatalf("Failed to parse valid Ignition JSON: %v", err)
+	}
+	if rpt.IsFatal() {
+		t.Fatalf("Got fatal report for valid Ignition JSON: %v", rpt)
+	}
+}
+
+func TestParseButaneYAML(t *testing.T) {
+	input := []byte("variant: fcos\nversion: 1.6.0\n")
+	_, rpt, err := Parse(input)
+	if err != nil {
+		t.Fatalf("Failed to parse valid Butane YAML: %v", err)
+	}
+	if rpt.IsFatal() {
+		t.Fatalf("Got fatal report for valid Butane YAML: %v", rpt)
+	}
+}
+
+func TestParseButaneYAMLWithContent(t *testing.T) {
+	input := []byte(`variant: fcos
+version: 1.6.0
+storage:
+  files:
+    - path: /etc/hostname
+      mode: 0644
+      contents:
+        inline: testhost
+`)
+	cfg, rpt, err := Parse(input)
+	if err != nil {
+		t.Fatalf("Failed to parse Butane YAML with content: %v", err)
+	}
+	if rpt.IsFatal() {
+		t.Fatalf("Got fatal report for Butane YAML with content: %v", rpt)
+	}
+	if len(cfg.Storage.Files) != 1 {
+		t.Fatalf("Expected 1 file, got %d", len(cfg.Storage.Files))
+	}
+	if cfg.Storage.Files[0].Path != "/etc/hostname" {
+		t.Fatalf("Expected path /etc/hostname, got %s", cfg.Storage.Files[0].Path)
+	}
+}
+
+func TestParseInvalidInputReturnsIgnitionError(t *testing.T) {
+	input := []byte("this is not valid json or yaml config")
+	_, _, err := Parse(input)
+	if err == nil {
+		t.Fatal("Expected error for invalid input, got nil")
+	}
+}
+
+func TestParseButaneLocalSourceFails(t *testing.T) {
+	input := []byte(`variant: fcos
+version: 1.6.0
+storage:
+  files:
+    - path: /etc/test
+      contents:
+        local: some-file
+`)
+	_, _, err := Parse(input)
+	if err == nil {
+		t.Fatal("Expected error for Butane config with local source, got nil")
+	}
+}

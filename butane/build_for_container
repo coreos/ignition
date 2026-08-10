@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export GO111MODULE=on
+export GOFLAGS=-mod=vendor
+export CGO_ENABLED=0
+version=$(git describe --dirty --always)
+LDFLAGS="-w -X github.com/coreos/butane/internal/version.Raw=$version"
+
+eval $(go env)
+if [ -z ${BIN_PATH+a} ]; then
+	export BIN_PATH=${PWD}/bin/container/
+fi
+
+export GOOS=linux
+go build -o ${BIN_PATH}/butane -ldflags "$LDFLAGS" internal/main.go
