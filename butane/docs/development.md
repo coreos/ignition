@@ -65,12 +65,12 @@ This approach may not always be suitable, since Ignition's config merging isn't 
 
 ## Creating a release
 
-Create a [release checklist](https://github.com/coreos/butane/issues/new?template=release-checklist.md) and follow those steps.
+Create a [release checklist](https://github.com/coreos/ignition/issues/new?template=release-checklist.md) and follow those steps.
 
 ## The build process
 
 Note that the binaries released in this repository are not built using the `build` script from this repository
-but using a `butane.spec` maintained in [Fedora rpms/butane](https://src.fedoraproject.org/rpms/butane).
+but using the `ignition.spec` maintained in [Fedora rpms/ignition](https://src.fedoraproject.org/rpms/ignition), where butane is built as a subpackage.
 This build process uses the [go-rpm-macros](https://pagure.io/go-rpm-macros) to set up the Go build environment and is
 subject to the [Golang Packaging Guidelines](https://docs.fedoraproject.org/en-US/packaging-guidelines/Golang/).
 
@@ -82,4 +82,4 @@ In case you have trouble with the aforementioned standard Pull Request Guide, co
 
 ## Bumping spec versions
 
-Create a new [stabilization checklist](https://github.com/coreos/butane/issues/new?template=stabilize-checklist.md) and follow the steps there.
+Create a new [stabilization checklist](https://github.com/coreos/ignition/issues/new?template=stabilize-checklist.md) and follow the steps there.
