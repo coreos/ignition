@@ -1,6 +1,7 @@
 ---
-name: Feature request
-about: Suggest an enhancement to Ignition
+name: "Ignition: Feature request"
+about: Suggest an enhancement to Ignition provisioning
+labels: kind/feature, area/ignition
 ---
 
 # Feature Request #
