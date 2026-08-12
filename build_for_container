@@ -29,3 +29,6 @@ export GOFLAGS='-mod=vendor'
 export GOOS=linux
 
 go build -ldflags "${GLDFLAGS}" -o ${BIN_PATH}/ignition-validate ${REPO_PATH}/validate
+
+BUTANE_LDFLAGS="-w -X github.com/coreos/ignition/v2/butane/internal/version.Raw=${VERSION}"
+go build -ldflags "${BUTANE_LDFLAGS}" -o ${BIN_PATH}/butane ${REPO_PATH}/butane/internal
