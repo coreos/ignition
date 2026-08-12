@@ -2,6 +2,12 @@
 
 Ignition is a utility created to manipulate disks during the initramfs. This includes partitioning disks, formatting partitions, writing files (regular files, systemd units, etc.), and configuring users. On first boot, Ignition reads its configuration from a source of truth (remote URL, network metadata service, hypervisor bridge, etc.) and applies the configuration.
 
+Ignition accepts both [Ignition JSON configs](docs/specs.md) and [Butane YAML configs](butane/docs/specs.md). When a Butane YAML config is provided, Ignition automatically transpiles it at boot.
+
+## Butane
+
+This repository also contains [Butane](butane/docs/), a config transpiler that translates human-readable Butane YAML configs into Ignition JSON configs. The `butane` CLI can be used for local config validation and features like `--files-dir` that require client-side processing. See the [Butane getting started guide](butane/docs/getting-started.md) for details.
+
 ## Usage
 
 Odds are good that you don't want to invoke Ignition directly. In fact, it isn't even present in the root filesystem. Take a look at the [Getting Started Guide][getting started] for details on providing Ignition with a runtime configuration.

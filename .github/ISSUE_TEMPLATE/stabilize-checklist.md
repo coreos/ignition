@@ -76,7 +76,7 @@ If there are any external kola tests that are not part of the Ignition repo (e.g
 - [ ] Bump ignition-config-rs in coreos-installer to support the new spec in `iso customize` and `pxe customize`. Update release notes.
   - [ ] Put out a new coreos-installer release.
 - [ ] Add a new downgrade translation to [ign-converter](https://github.com/coreos/ign-converter/).
-- [ ] [Stabilize Butane specs](https://coreos.github.io/butane/development/#bumping-spec-versions).
+- [ ] [Stabilize Butane specs](../../butane/docs/development.md#bumping-spec-versions).
   - [ ] Put out a new release.
 - [ ] Drop `-experimental` from configs in [FCOS docs](https://github.com/coreos/fedora-coreos-docs/) and remove colocated experimental-config warnings
 - [ ] Revendor Ignition and Butane into coreos-assembler and update `mantle/platform/conf/conf.go` and `conf_test.go`.

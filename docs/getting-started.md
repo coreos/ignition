@@ -10,7 +10,7 @@ nav_order: 3
 
 Ignition is a low-level system configuration utility. The Ignition executable is part of the temporary initial root filesystem, the *initramfs*. When Ignition runs [on the first boot][firstboot], it finds configuration data in a named location for a given environment, such as a file or URL, and applies it to the machine before `switch_root` is called to pivot to the machine's root filesystem.
 
-Ignition uses a JSON configuration file to represent the set of changes to be made. The format of this config is detailed [in the specification][configspec] and the [MIME type][mime] is registered with IANA. One of the most important parts of this config is the version number. This **must** match the version number accepted by Ignition. If the config version isn't accepted by Ignition, Ignition will fail to run and the machine will not boot. This can be seen by inspecting the console output of the failed machine. For more information, check out the [troubleshooting section][troubleshooting].
+Ignition uses a JSON configuration file to represent the set of changes to be made. The format of this config is detailed [in the specification][configspec] and the [MIME type][mime] is registered with IANA. Ignition also natively accepts [Butane YAML configs][butanespecs], transpiling them automatically at boot. One of the most important parts of this config is the version number. This **must** match the version number accepted by Ignition. If the config version isn't accepted by Ignition, Ignition will fail to run and the machine will not boot. This can be seen by inspecting the console output of the failed machine. For more information, check out the [troubleshooting section][troubleshooting].
 
 ## Providing a Config
 
@@ -24,7 +24,7 @@ The Linux distro may provide a base config which specifies default configuration
 
 ## Config Validation
 
-To validate a config for Ignition there are binaries for a cli tool called `ignition-validate` available [on the releases page][releases]. There is also an ignition-validate container: `quay.io/coreos/ignition-validate`.
+To validate a config for Ignition there are binaries for a cli tool called `ignition-validate` available [on the releases page][releases]. `ignition-validate` accepts both Ignition JSON and Butane YAML configs. There is also an ignition-validate container: `quay.io/coreos/ignition-validate`.
 
 Example:
 ```
@@ -63,6 +63,7 @@ When Ignition enables systemd services, it doesn't directly create the symlinks 
 Ignition is not typically run more than once during a machine's lifetime in a given role, so this situation requiring manual systemd intervention does not commonly arise.
 
 [conditions]: https://www.freedesktop.org/software/systemd/man/systemd.unit.html#ConditionFirstBoot=
+[butanespecs]: https://coreos.github.io/butane/specs/
 [configspec]: specs.md
 [examples]: examples.md
 [firstboot]: rationale.md#ignition-runs-only-on-the-first-boot

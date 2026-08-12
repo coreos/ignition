@@ -1,6 +1,7 @@
 ---
-name: Bug report
-about: Report an issue with Ignition
+name: "Ignition: Bug report"
+about: Report an issue with Ignition provisioning
+labels: kind/bug, area/ignition
 ---
 
 # Bug #
