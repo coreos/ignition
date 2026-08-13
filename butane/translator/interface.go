@@ -14,21 +14,19 @@
 
 package translator
 
-import (
-	"github.com/coreos/vcontext/report"
-)
+import "github.com/coreos/vcontext/report"
 
 // Translator translates Butane configuration to Ignition configuration.
 //
 // Each Butane variant (fcos, flatcar, r4e, openshift, etc.) should implement this
 // interface for each supported version.
 type Translator interface {
-	// Metadata the variant, version, and target Ignition version.
+	// Metadata returns the variant, version, and target Ignition version.
 	Metadata() Metadata
-	// Parse yml into schema struct, basically a yaml.Unmarshal wrapper?
-	Parse(input []byte /*opts?*/) (interface{}, error)
-	// From inner schema struct to Ignition struct
+	// Parse parses YAML into the translator's schema type.
+	Parse(input []byte) (interface{}, error)
+	// Translate translates a parsed config after successful validation.
 	Translate(input interface{}, options Options) (interface{}, report.Report, error)
-	// Validates yml inner struct
+	// Validate validates a parsed config.
 	Validate(in interface{}) (report.Report, error)
 }

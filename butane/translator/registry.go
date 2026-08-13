@@ -16,8 +16,9 @@ package translator
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+
+	cutil "github.com/coreos/ignition/v2/butane/config/util"
 )
 
 // Global registry for all translators.
@@ -37,7 +38,7 @@ func NewRegistry() *Registry {
 // Register adds a translator. Panics if already registered.
 func (r *Registry) Register(t Translator) {
 	meta := t.Metadata()
-	key := meta.commonFields.asKey()
+	key := fmt.Sprintf("%s+%s", meta.Variant, meta.Version.String())
 
 	if _, exists := r.translators[key]; exists {
 		panic(fmt.Sprintf("translator already registered: %s version %s",
@@ -112,18 +113,11 @@ func (r *Registry) Translate(ctx context.Context, input []byte, opts Options) (R
 		return res, err
 	}
 
-	out, err := marshal(translated, opts.Pretty)
+	out, err := cutil.Marshal(translated, opts.Pretty)
 	if err != nil {
 		return res, err
 	}
 	res.Output = out
 
 	return res, nil
-}
-
-func marshal(from interface{}, pretty bool) ([]byte, error) {
-	if pretty {
-		return json.MarshalIndent(from, "", "  ")
-	}
-	return json.Marshal(from)
 }

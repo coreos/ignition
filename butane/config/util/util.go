@@ -67,9 +67,39 @@ func Translate(cfg Config, translateMethod string, options common.TranslateOptio
 	final := translateRet[0].Interface()
 	translations := translateRet[1].Interface().(translate.TranslationSet)
 	translateReport := translateRet[2].Interface().(report.Report)
-	r.Merge(TranslateReportPaths(translateReport, translations))
+	postReport, err := ValidateTranslatedConfig(cfg, final, translations, translateReport, options)
+	r.Merge(postReport)
+	if err != nil {
+		return zeroValue, r, err
+	}
+	return final, r, nil
+}
+
+// ValidateSourceConfig checks unused keys and validates a parsed Butane config.
+func ValidateSourceConfig(cfg interface{}, contextTree tree.Node) (report.Report, error) {
+	unusedKeyCheck := func(v reflect.Value, c path.ContextPath) report.Report {
+		return ignvalidate.ValidateUnusedKeys(v, c, contextTree)
+	}
+	r := validate.ValidateCustom(cfg, "yaml", unusedKeyCheck)
+	r.Correlate(contextTree)
 	if r.IsFatal() {
-		return zeroValue, r, common.ErrInvalidSourceConfig
+		return r, common.ErrInvalidSourceConfig
+	}
+
+	validationReport := validate.Validate(cfg, "yaml")
+	validationReport.Correlate(contextTree)
+	r.Merge(validationReport)
+	if r.IsFatal() {
+		return r, common.ErrInvalidSourceConfig
+	}
+	return r, nil
+}
+
+// ValidateTranslatedConfig validates the result of an unvalidated translation.
+func ValidateTranslatedConfig(cfg Config, final interface{}, translations translate.TranslationSet, translateReport report.Report, options common.TranslateOptions) (report.Report, error) {
+	r := TranslateReportPaths(translateReport, translations)
+	if r.IsFatal() {
+		return r, common.ErrInvalidSourceConfig
 	}
 	if options.DebugPrintTranslations {
 		fmt.Fprint(os.Stderr, translations)
@@ -79,12 +109,10 @@ func Translate(cfg Config, translateMethod string, options common.TranslateOptio
 	}
 
 	// Check for fields forbidden by this spec.
-	filters := cfg.FieldFilters()
-	if filters != nil {
-		filterReport := filters.Verify(final)
-		r.Merge(TranslateReportPaths(filterReport, translations))
+	if filters := cfg.FieldFilters(); filters != nil {
+		r.Merge(TranslateReportPaths(filters.Verify(final), translations))
 		if r.IsFatal() {
-			return zeroValue, r, common.ErrInvalidSourceConfig
+			return r, common.ErrInvalidSourceConfig
 		}
 	}
 
@@ -97,9 +125,9 @@ func Translate(cfg Config, translateMethod string, options common.TranslateOptio
 	r.Merge(TranslateReportPaths(jsonReport, translations))
 
 	if r.IsFatal() {
-		return zeroValue, r, common.ErrInvalidGeneratedConfig
+		return r, common.ErrInvalidGeneratedConfig
 	}
-	return final, r, nil
+	return r, nil
 }
 
 // TranslateBytes unmarshals the Butane config specified in input into the
@@ -112,7 +140,7 @@ func TranslateBytes(input []byte, container interface{}, translateMethod string,
 	cfg := container
 
 	// Unmarshal the YAML.
-	contextTree, err := unmarshal(input, cfg)
+	contextTree, err := Unmarshal(input, cfg)
 	if err != nil {
 		return nil, report.Report{}, err
 	}
@@ -142,7 +170,7 @@ func TranslateBytes(input []byte, container interface{}, translateMethod string,
 	}
 
 	// Marshal the JSON.
-	outbytes, err := marshal(final, options.Pretty)
+	outbytes, err := Marshal(final, options.Pretty)
 	return outbytes, r, err
 }
 
@@ -196,8 +224,8 @@ func CheckForElidedFields(struct_ interface{}) report.Report {
 	return r
 }
 
-// unmarshal unmarshals the data to "to" and also returns a context tree for the source.
-func unmarshal(data []byte, to interface{}) (tree.Node, error) {
+// Unmarshal unmarshals data to "to" and returns a context tree for the source.
+func Unmarshal(data []byte, to interface{}) (tree.Node, error) {
 	dec := yaml.NewDecoder(bytes.NewReader(data))
 	if err := dec.Decode(to); err != nil {
 		return nil, err
@@ -205,8 +233,8 @@ func unmarshal(data []byte, to interface{}) (tree.Node, error) {
 	return vyaml.UnmarshalToContext(data)
 }
 
-// marshal is a wrapper for marshaling to json with or without pretty-printing the output
-func marshal(from interface{}, pretty bool) ([]byte, error) {
+// Marshal is a wrapper for marshaling to json with or without pretty-printing the output.
+func Marshal(from interface{}, pretty bool) ([]byte, error) {
 	if pretty {
 		return json.MarshalIndent(from, "", "  ")
 	}
