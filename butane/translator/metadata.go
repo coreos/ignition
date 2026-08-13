@@ -25,15 +25,18 @@ type commonFields struct {
 }
 
 type Metadata struct {
-	commonFields
+	Variant         string
+	Version         semver.Version
 	Description     string
 	Experimental    bool
 	IgnitionVersion semver.Version
 }
 
 func (c *commonFields) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type plain commonFields
-	var raw plain
+	var raw struct {
+		Variant string  `yaml:"variant"`
+		Version *string `yaml:"version"`
+	}
 
 	if err := unmarshal(&raw); err != nil {
 		return err
@@ -42,8 +45,18 @@ func (c *commonFields) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if raw.Variant == "" {
 		return fmt.Errorf("variant cannot be empty")
 	}
+	if raw.Version == nil {
+		return fmt.Errorf("version cannot be empty")
+	}
+	version, err := semver.NewVersion(*raw.Version)
+	if err != nil {
+		return fmt.Errorf("invalid version: %w", err)
+	}
 
-	*c = commonFields(raw)
+	*c = commonFields{
+		Variant: raw.Variant,
+		Version: *version,
+	}
 	return nil
 }
 

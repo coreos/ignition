@@ -1,4 +1,4 @@
-// Copyright 2022 Red Hat, Inc.
+// Copyright 2026 Red Hat, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
 
 package translator
 
-import "github.com/coreos/vcontext/report"
+import (
+	"testing"
 
-// Result contains the output of a translation operation.
-//
-// This matches the existing return pattern from ToIgnXXBytes functions
-// but wraps them in a struct for better extensibility.
-type Result struct {
-	// Output is the translated Ignition configuration as JSON bytes.
-	Output []byte
+	"github.com/stretchr/testify/assert"
+)
 
-	// Report contains warnings and errors from the translation process.
-	// Use Report.IsFatal() to check if translation failed.
-	Report report.Report
+func TestParseVariantVersion(t *testing.T) {
+	variant, version, err := ParseVariantVersion([]byte("variant: fcos\nversion: 1.8.0-experimental\n"))
+	assert.NoError(t, err)
+	assert.Equal(t, "fcos", variant)
+	assert.Equal(t, "1.8.0-experimental", version)
+
+	_, _, err = ParseVariantVersion([]byte("variant: fcos\n"))
+	assert.Error(t, err)
 }
