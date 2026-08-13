@@ -525,6 +525,7 @@ func (c Config) processTrees(ret *types.Config, options common.TranslateOptions)
 			group:            tree.Group,
 			fileMode:         tree.FileMode,
 			dirMode:          tree.DirMode,
+			overwrite:        tree.Overwrite,
 		})
 	}
 	return ts, r
@@ -534,10 +535,11 @@ type treeWalkOptions struct {
 	srcBaseDir  string
 	destBaseDir string
 	common.TranslateOptions
-	user     NodeUser
-	group    NodeGroup
-	fileMode *int
-	dirMode  *int
+	user      NodeUser
+	group     NodeGroup
+	fileMode  *int
+	dirMode   *int
+	overwrite *bool
 }
 
 func walkTree(yamlPath path.ContextPath, ts *translate.TranslationSet, r *report.Report, t *nodeTracker, options treeWalkOptions) {
@@ -576,6 +578,7 @@ func walkTree(yamlPath path.ContextPath, ts *translate.TranslationSet, r *report
 					Mode: mode,
 				},
 			})
+			dir.Overwrite = options.overwrite
 			ts.AddFromCommonSource(yamlPath, path.New("json", "storage", "directories", i), dir)
 			if i == 0 {
 				ts.AddTranslation(yamlPath, path.New("json", "storage", "directories"))
@@ -595,6 +598,7 @@ func walkTree(yamlPath path.ContextPath, ts *translate.TranslationSet, r *report
 				i, file = t.AddFile(types.File{
 					Node: createNode(destPath, options.user, options.group),
 				})
+				file.Overwrite = options.overwrite
 				ts.AddFromCommonSource(yamlPath, path.New("json", "storage", "files", i), file)
 				if i == 0 {
 					ts.AddTranslation(yamlPath, path.New("json", "storage", "files"))
@@ -643,6 +647,7 @@ func walkTree(yamlPath path.ContextPath, ts *translate.TranslationSet, r *report
 				i, link = t.AddLink(types.Link{
 					Node: createNode(destPath, options.user, options.group),
 				})
+				link.Overwrite = options.overwrite
 				ts.AddFromCommonSource(yamlPath, path.New("json", "storage", "links", i), link)
 				if i == 0 {
 					ts.AddTranslation(yamlPath, path.New("json", "storage", "links"))
