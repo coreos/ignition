@@ -14,10 +14,7 @@
 
 package translator
 
-import (
-	"github.com/coreos/butane/translate"
-	"github.com/coreos/vcontext/report"
-)
+import "github.com/coreos/vcontext/report"
 
 // Result contains the output of a translation operation.
 //
@@ -30,8 +27,4 @@ type Result struct {
 	// Report contains warnings and errors from the translation process.
 	// Use Report.IsFatal() to check if translation failed.
 	Report report.Report
-
-	// TranslationSet tracks how source paths in the Butane config map to
-	// output paths in the Ignition config. Used for debugging and tooling.
-	TranslationSet translate.TranslationSet
 }
