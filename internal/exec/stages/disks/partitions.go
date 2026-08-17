@@ -364,6 +364,7 @@ func blockDevMounted(blockDevResolved string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to open /proc/mounts: %v", err)
 	}
+	defer mounts.Close()
 	scanner := bufio.NewScanner(mounts)
 	for scanner.Scan() {
 		mountSource := strings.Split(scanner.Text(), " ")[0]
