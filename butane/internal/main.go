@@ -40,6 +40,26 @@ func isCharDevice(f *os.File) bool {
 	return stat.Mode()&os.ModeCharDevice != 0
 }
 
+func readInput(input string) ([]byte, string, error) {
+	infile := os.Stdin
+	filename := "<stdin>"
+	if input != "" {
+		f, err := os.Open(input)
+		if err != nil {
+			return nil, input, fmt.Errorf("failed to open %s: %w", input, err)
+		}
+		defer func() { _ = f.Close() }()
+		infile = f
+		filename = input
+	}
+
+	data, err := io.ReadAll(infile)
+	if err != nil {
+		return nil, filename, fmt.Errorf("failed to read %s: %w", filename, err)
+	}
+	return data, filename, nil
+}
+
 func main() {
 	var (
 		input       string
@@ -110,21 +130,9 @@ func main() {
 		os.Exit(0)
 	}
 
-	infile := os.Stdin
-	filename := "<stdin>"
-	if input != "" {
-		var err error
-		infile, err = os.Open(input)
-		if err != nil {
-			fail("failed to open %s: %v\n", input, err)
-		}
-		defer func() { _ = infile.Close() }()
-		filename = input
-	}
-
-	dataIn, err := io.ReadAll(infile)
+	dataIn, filename, err := readInput(input)
 	if err != nil {
-		fail("failed to read %s: %v\n", infile.Name(), err)
+		fail("%v\n", err)
 	}
 
 	dataOut, r, err := config.TranslateBytes(dataIn, options)

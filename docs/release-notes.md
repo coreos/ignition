@@ -19,6 +19,8 @@ nav_order: 9
 
 ### Bug fixes
 
+- butane: report the friendly input name (`<stdin>` instead of `/dev/stdin`) in stdin read errors
+
 
 ## Upcoming Ignition 2.27.0 (unreleased)
 
