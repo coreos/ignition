@@ -19,6 +19,8 @@ nav_order: 9
 
 ### Bug fixes
 
+- butane: report the CEX kernel-argument validation error only once when both `boot_device.luks.cex` and a root `storage.luks` CEX entry are enabled ([#2285](https://github.com/coreos/ignition/pull/2285))
+
 
 ## Upcoming Ignition 2.27.0 (unreleased)
 
