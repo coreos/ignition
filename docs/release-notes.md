@@ -17,6 +17,10 @@ nav_order: 9
 - `build_blackbox_tests` builds a blackbox-specific `ignition` binary with `make`
 - CI and GitHub Actions updated to build via `make ignition` and `make ignition-validate`
 
+### Features
+
+- butane: add `overwrite` support for trees, threading the flag through to every generated file, directory, and link ([#2284](https://github.com/coreos/ignition/pull/2284))
+
 ### Bug fixes
 
 
