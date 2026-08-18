@@ -51,10 +51,10 @@ func (os OpenShift) Validate(c path.ContextPath) (r report.Report) {
 // See: https://github.com/coreos/butane/issues/611
 // See: https://github.com/coreos/butane/issues/613
 func (conf Config) Validate(c path.ContextPath) (r report.Report) {
-	if util.IsTrue(conf.BootDevice.Luks.Cex.Enabled) && !slices.Contains(conf.OpenShift.KernelArguments, "rd.luks.key=/etc/luks/cex.key") {
-		r.AddOnError(c.Append("openshift", "kernel_arguments"), common.ErrMissingKernelArgumentCex)
-	}
 	cex := false
+	if util.IsTrue(conf.BootDevice.Luks.Cex.Enabled) {
+		cex = true
+	}
 	for _, l := range conf.Storage.Luks {
 		if util.IsTrue(l.Cex.Enabled) && l.Name == "root" {
 			cex = true
