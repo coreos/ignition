@@ -46,7 +46,7 @@ func (p Partition) Key() string {
 
 func (p Partition) Validate(c path.ContextPath) (r report.Report) {
 	if util.IsFalse(p.ShouldExist) &&
-		(util.NotEmpty(p.TypeGUID) || util.NotEmpty(p.GUID) || p.StartMiB != nil || p.SizeMiB != nil) {
+		(p.Label != nil || util.NotEmpty(p.TypeGUID) || util.NotEmpty(p.GUID) || p.StartMiB != nil || p.SizeMiB != nil) {
 		r.AddOnError(c, errors.ErrShouldNotExistWithOthers)
 	}
 	if p.Number == 0 && p.Label == nil {
