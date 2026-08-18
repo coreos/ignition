@@ -15,6 +15,7 @@ nav_order: 9
 ### Bug fixes
 
 - Resolve intermediate symlinks in relabel paths, fixing SELinux relabeling failures for users with `home_dir` on OSTree platforms after policycoreutils 3.11 ([#2316](https://github.com/coreos/ignition/pull/2316))
+- butane: report the CEX kernel-argument validation error only once when both `boot_device.luks.cex` and a root `storage.luks` CEX entry are enabled ([#2285](https://github.com/coreos/ignition/pull/2285))
 
 ## Ignition 2.27.0 (2026-08-26)
 
