@@ -45,3 +45,24 @@ jobs:
           push: quay.io/coreos/ignition-validate
           arches: amd64 arm64
           tags: ${{ github.event.inputs.docker-tag }} release
+
+  build-container-butane:
+    name: Build butane container image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.git-tag }}
+          # fetch tags so the compiled-in version number is useful
+          fetch-depth: 0
+      - name: Fix actions/checkout synthetic tag
+        run: git fetch --tags --force
+      - name: Build and push container
+        uses: coreos/actions-lib/build-container@main
+        with:
+          credentials: ${{ secrets.QUAY_AUTH }}
+          file: butane/Dockerfile
+          push: quay.io/coreos/butane
+          arches: amd64 arm64
+          tags: ${{ github.event.inputs.docker-tag }} release
