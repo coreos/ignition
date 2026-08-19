@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package register imports all platform providers so their init functions
+// register themselves with the platform registry.
 package register
 
 import (
@@ -35,6 +37,7 @@ import (
 	_ "github.com/coreos/ignition/v2/internal/providers/nvidiabluefield"
 	_ "github.com/coreos/ignition/v2/internal/providers/openstack"
 	_ "github.com/coreos/ignition/v2/internal/providers/oraclecloud"
+	_ "github.com/coreos/ignition/v2/internal/providers/outscale"
 	_ "github.com/coreos/ignition/v2/internal/providers/packet"
 	_ "github.com/coreos/ignition/v2/internal/providers/powervs"
 	_ "github.com/coreos/ignition/v2/internal/providers/proxmoxve"

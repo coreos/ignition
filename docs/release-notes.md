@@ -11,6 +11,10 @@ nav_order: 9
 - The `build` script now requires a subcommand (`ignition`, `ignition-validate`, or `ignition-validate-cross`). Sourcing the build script is no longer supported.
 - Build and install are separate steps with explicit targets (`ignition`, `ignition-validate`, `ignition-validate-cross`, `install`, `install-ignition-validate-cross`, `install-grub-for-bootupd`).
 
+### Features
+
+- Support Outscale
+
 ### Changes
 
 - Refactored the Makefile and build script to match the Fedora RPM spec: separate build targets per binary, with `VERSION` and linker flags passed in at build time
