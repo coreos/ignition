@@ -36,10 +36,8 @@ jobs:
         sudo apt-get install libblkid-dev
     - name: Check modules
       run: go mod verify
-    - name: Build Ignition
-      run: make ignition
-    - name: Build Ignition Validate
-      run: make ignition-validate
+    - name: Build
+      run: make
     - name: Test
       run: ./test
     - name: Check Go formatting (gofmt)

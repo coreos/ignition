@@ -30,13 +30,13 @@ do_sign() {
     fi
 }
 
-# Grab the binaries out of the redistributable rpm
+# Grab the ignition-validate binaries out of the redistributable rpm
 rpm="ignition-validate-redistributable-${VR}.noarch.rpm"
 koji download-build --key $RPMKEY --rpm $rpm
 rpm -Kv "$rpm" 2>&1 | grep -qi "${RPMKEY}" # Verify the output has the key in it
 rpm2cpio $rpm | cpio -idv './usr/share/ignition/ignition-validate-*'
 
-# Rename the binaries
+# Rename the ignition-validate binaries
 mv usr/share/ignition/ignition-validate-aarch64-apple-darwin \
     ignition-validate-aarch64-apple-darwin
 mv usr/share/ignition/ignition-validate-aarch64-unknown-linux-gnu-static \
@@ -52,7 +52,7 @@ mv usr/share/ignition/ignition-validate-x86_64-pc-windows-gnu.exe \
 mv usr/share/ignition/ignition-validate-x86_64-unknown-linux-gnu-static \
     ignition-validate-x86_64-linux
 
-# Sign them
+# Sign the ignition-validate binaries
 do_sign ignition-validate-aarch64-apple-darwin
 do_sign ignition-validate-aarch64-linux
 do_sign ignition-validate-ppc64le-linux
@@ -61,9 +61,44 @@ do_sign ignition-validate-x86_64-apple-darwin
 do_sign ignition-validate-x86_64-pc-windows-gnu.exe
 do_sign ignition-validate-x86_64-linux
 
+# Grab the butane binaries out of the redistributable rpm
+rpm="butane-redistributable-${VR}.noarch.rpm"
+koji download-build --key $RPMKEY --rpm $rpm
+rpm -Kv "$rpm" 2>&1 | grep -qi "${RPMKEY}" # Verify the output has the key in it
+rpm2cpio $rpm | cpio -idv './usr/share/butane/butane-*'
+
+# Rename the butane binaries
+mv usr/share/butane/butane-aarch64-apple-darwin \
+    butane-aarch64-apple-darwin
+mv usr/share/butane/butane-aarch64-unknown-linux-gnu-static \
+    butane-aarch64-unknown-linux-gnu
+mv usr/share/butane/butane-ppc64le-unknown-linux-gnu-static \
+    butane-ppc64le-unknown-linux-gnu
+mv usr/share/butane/butane-s390x-unknown-linux-gnu-static \
+    butane-s390x-unknown-linux-gnu
+mv usr/share/butane/butane-x86_64-apple-darwin \
+    butane-x86_64-apple-darwin
+mv usr/share/butane/butane-x86_64-pc-windows-gnu.exe \
+    butane-x86_64-pc-windows-gnu.exe
+mv usr/share/butane/butane-x86_64-unknown-linux-gnu-static \
+    butane-x86_64-unknown-linux-gnu
+
+# Sign the butane binaries
+do_sign butane-aarch64-apple-darwin
+do_sign butane-aarch64-unknown-linux-gnu
+do_sign butane-ppc64le-unknown-linux-gnu
+do_sign butane-s390x-unknown-linux-gnu
+do_sign butane-x86_64-apple-darwin
+do_sign butane-x86_64-pc-windows-gnu.exe
+do_sign butane-x86_64-unknown-linux-gnu
+
 # Fix permissions and clean up
 chmod go+r *.asc
-rm $rpm; rmdir ./usr/share/ignition; rmdir ./usr/share; rmdir ./usr
+rm ignition-validate-redistributable-*.rpm
+rm butane-redistributable-*.rpm
+rmdir ./usr/share/ignition
+rmdir ./usr/share/butane
+rmdir ./usr/share ./usr
 EOF
 }
 
@@ -85,6 +120,20 @@ After running this you should end up with a directory with files in it like:
 
 ```
 $ ls -1
+butane-aarch64-apple-darwin
+butane-aarch64-apple-darwin.asc
+butane-aarch64-unknown-linux-gnu
+butane-aarch64-unknown-linux-gnu.asc
+butane-ppc64le-unknown-linux-gnu
+butane-ppc64le-unknown-linux-gnu.asc
+butane-s390x-unknown-linux-gnu
+butane-s390x-unknown-linux-gnu.asc
+butane-x86_64-apple-darwin
+butane-x86_64-apple-darwin.asc
+butane-x86_64-pc-windows-gnu.exe
+butane-x86_64-pc-windows-gnu.exe.asc
+butane-x86_64-unknown-linux-gnu
+butane-x86_64-unknown-linux-gnu.asc
 ignition-validate-aarch64-apple-darwin
 ignition-validate-aarch64-apple-darwin.asc
 ignition-validate-aarch64-linux

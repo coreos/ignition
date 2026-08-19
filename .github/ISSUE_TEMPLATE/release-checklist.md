@@ -58,11 +58,13 @@ GitHub release:
  - [ ] Verify the signatures
  - [ ] Find the new tag in the [GitHub tag list](https://github.com/coreos/ignition/tags) and click the triple dots menu, and create a draft release for it.
  - [ ] Copy and paste the release notes from `docs/release-notes.md`
- - [ ] Upload all the release artifacts and their signatures
+ - [ ] Upload all the release artifacts and their signatures (including butane binaries)
  - [ ] Publish the release
 
 Quay release:
  - [ ] Visit the [Quay tags page](https://quay.io/repository/coreos/ignition-validate?tab=tags) and wait for a versioned tag to appear
+ - [ ] Click the gear next to the tag, select "Add New Tag", enter `release`, and confirm
+ - [ ] Visit the butane [Quay tags page](https://quay.io/repository/coreos/butane?tab=tags) and wait for a versioned tag to appear
  - [ ] Click the gear next to the tag, select "Add New Tag", enter `release`, and confirm
 
 CentOS Stream 9 packaging:
