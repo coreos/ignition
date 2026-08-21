@@ -12,6 +12,8 @@ nav_order: 9
 
 ### Changes
 
+- Document file `append` and `overwrite` behavior with examples ([#2270](https://github.com/coreos/ignition/issues/2270))
+
 ### Bug fixes
 
 
