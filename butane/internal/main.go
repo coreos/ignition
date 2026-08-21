@@ -19,13 +19,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spf13/pflag"
-
 	baseutil "github.com/coreos/ignition/v2/butane/base/util"
 	"github.com/coreos/ignition/v2/butane/config"
 	"github.com/coreos/ignition/v2/butane/config/common"
 	breport "github.com/coreos/ignition/v2/butane/internal/report"
 	"github.com/coreos/ignition/v2/butane/internal/version"
+
+	"github.com/spf13/pflag"
 )
 
 func fail(format string, args ...interface{}) {
