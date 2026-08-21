@@ -17,7 +17,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	baseutil "github.com/coreos/ignition/v2/butane/base/util"
 	"github.com/coreos/ignition/v2/butane/config"
@@ -63,6 +62,7 @@ func main() {
 	pflag.BoolVarP(&options.Pretty, "pretty", "p", false, "output formatted json")
 	pflag.BoolVarP(&options.Raw, "raw", "r", false, "never wrap in a MachineConfig; force Ignition output")
 	pflag.BoolVarP(&baseutil.EnableGomplate, "enable-gomplate", "", false, "Enable gomplate evaluation")
+	pflag.StringVar(&baseutil.GomplateConfigPath, "gomplate-config", baseutil.GomplateConfigPath, "path to the gomplate configuration file")
 	pflag.BoolVar(&rawErrors, "raw-errors", false, "show raw errors, rather than pretty printing them")
 	pflag.StringVar(&colorFlag, "color", "auto", `control color output: "auto", "always", or "never"`)
 	pflag.Lookup("color").NoOptDefVal = "always"
@@ -112,9 +112,10 @@ func main() {
 		os.Exit(0)
 	}
 
+	if pflag.CommandLine.Changed("gomplate-config") {
+		baseutil.EnableGomplate = true
+	}
 	if baseutil.EnableGomplate {
-		baseutil.GomplateConfigPath = filepath.Join(options.FilesDir, baseutil.GomplateConfigPath)
-
 		err := baseutil.InitGomplateRenderer()
 		if err != nil {
 			fail("failed to initialize gomplate: %v\n", err)
