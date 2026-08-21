@@ -15,6 +15,7 @@
 #define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
+#include <grp.h>
 #include <sched.h>
 #include <signal.h>
 #include <stdio.h>
@@ -54,7 +55,9 @@ typedef struct au_thread_ctxt {
 	int		err;
 } au_thread_ctxt_t;
 
-/* set_eids() sets the effective gid and uid of the calling thread to ids */
+/* set_eids() drops the supplementary groups and sets the effective gid and
+ * uid of the calling thread to ids
+ */
 static int set_eids(au_ids_t *ids) {
 	uid_t	cu;
 	gid_t	cg;
@@ -63,6 +66,14 @@ static int set_eids(au_ids_t *ids) {
 
 	cu = geteuid();
 	cg = getegid();
+
+	/* Drop the supplementary groups inherited from the caller before
+	 * relinquishing the gid and uid, while we still have the privilege
+	 * required to do so.  Otherwise the thread would keep root's group
+	 * memberships while acting as the target user.
+	 */
+	if(setgroups(0, NULL) == -1)
+		return -1;
 
 	if(cg != ids->gid && setregid(-1, ids->gid) == -1)
 		return -1;
