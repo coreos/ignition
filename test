@@ -75,6 +75,18 @@ fi
 
 echo "Checking docs..."
 go run internal/util/tools/docs/docs.go
+
+echo "Checking Butane docs..."
+# Butane configs in the docs embed local files; supply the ones they reference
+# so translation fails on a broken config rather than on a missing file.
+butane_files_dir=$(mktemp -d)
+trap 'rm -rf "${butane_files_dir}"' EXIT
+mkdir -p "${butane_files_dir}/tree"
+touch "${butane_files_dir}"/{config.ign,ca.pem,example.conf,example.service,file,file-epilogue,local-file3}
+echo "ssh-rsa AAAA" > "${butane_files_dir}/id_rsa.pub"
+echo "ssh-ed25519 AAAA" > "${butane_files_dir}/id_ed25519.pub"
+echo '{"ignition": {"version": "3.5.0"}}' > "${butane_files_dir}/ignition.ign"
+go run internal/util/tools/docs/docs.go -root butane/docs -files-dir "${butane_files_dir}"
 # Ensure every platform is listed in supported-platforms.md
 platforms=$(grep -A 1 -h platform.Register internal/providers/*/* | grep Name: | cut -f2 -d\")
 if [ -z "${platforms}" ]; then
