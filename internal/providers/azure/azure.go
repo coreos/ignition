@@ -18,11 +18,13 @@ package azure
 
 import (
 	"encoding/base64"
+	"encoding/xml"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -235,7 +237,53 @@ func getRawConfig(f *resource.Fetcher, devicePath string, fstype string) ([]byte
 	if err != nil && !os.IsNotExist(err) {
 		return nil, fmt.Errorf("failed to read config from device %q: %v", devicePath, err)
 	}
+
+	// Confidential VMs don't populate CustomData.bin; fall back to the base64
+	// CustomData embedded in ovf-env.xml.
+	if len(rawConfig) == 0 {
+		ovfEnvContents, err := os.ReadFile(filepath.Join(mnt, "ovf-env.xml"))
+		if err != nil {
+			return nil, fmt.Errorf("failed to read ovf-env.xml from device %q: %v", devicePath, err)
+		}
+		rawConfig, err = customDataFromOvfEnv(ovfEnvContents)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read custom data from ovf-env.xml on device %q: %v", devicePath, err)
+		}
+	}
 	return rawConfig, nil
+}
+
+// ovfEnv is the subset of Azure's ovf-env.xml that carries the custom data.
+// Elements are matched by local name to ignore the OVF/windowsazure namespaces.
+type ovfEnv struct {
+	XMLName             xml.Name `xml:"Environment"`
+	ProvisioningSection struct {
+		LinuxProvisioningConfigurationSet struct {
+			// CustomData is base64-encoded, unlike the raw CustomData.bin file.
+			CustomData string `xml:"CustomData"`
+		} `xml:"LinuxProvisioningConfigurationSet"`
+	} `xml:"ProvisioningSection"`
+}
+
+// customDataFromOvfEnv extracts and base64-decodes the CustomData element from
+// Azure's ovf-env.xml, returning nil when no custom data is present.
+func customDataFromOvfEnv(ovfEnvContents []byte) ([]byte, error) {
+	var env ovfEnv
+	if err := xml.Unmarshal(ovfEnvContents, &env); err != nil {
+		return nil, fmt.Errorf("parsing ovf-env.xml: %w", err)
+	}
+
+	// Azure may split the base64 payload across lines.
+	encoded := strings.Join(strings.Fields(env.ProvisioningSection.LinuxProvisioningConfigurationSet.CustomData), "")
+	if encoded == "" {
+		return nil, nil
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return nil, fmt.Errorf("decoding CustomData: %w", err)
+	}
+	return decoded, nil
 }
 
 // isCdromPresent verifies if the given config drive is CD-ROM
