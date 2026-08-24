@@ -19,6 +19,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- fix butane root partition constraint check to only examine subsequent partitions
 
 ## Upcoming Ignition 2.27.0 (unreleased)
 

@@ -1735,6 +1735,37 @@ func TestRootPartitionConstraints(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "root last with sized partitions before",
+			in: Config{
+				Config: base.Config{
+					Storage: base.Storage{
+						Disks: []base.Disk{
+							{
+								Device: "/dev/vda",
+								Partitions: []base.Partition{
+									{
+										Label:   util.StrToPtr("bios"),
+										Number:  1,
+										SizeMiB: util.IntToPtr(1),
+									},
+									{
+										Label:   util.StrToPtr("boot"),
+										Number:  3,
+										SizeMiB: util.IntToPtr(2048),
+									},
+									{
+										Label:  util.StrToPtr("root"),
+										Number: 4,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			report: report.Report{}, // no warning expected
+		},
 	}
 
 	for _, test := range tests {
