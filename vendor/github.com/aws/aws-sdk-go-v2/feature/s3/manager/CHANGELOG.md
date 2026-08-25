@@ -1,3 +1,18 @@
+# v1.22.44 (2026-08-20)
+
+* **Bug Fix**: Fix flaky test from feature/s3/manager upload retry
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.43 (2026-08-14)
+
+* **Dependency Update**: Update to smithy-go v1.27.8.
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.22.42 (2026-08-10)
+
+* **Dependency Update**: Update to smithy-go v1.27.7.
+* **Dependency Update**: Updated to the latest SDK module versions
+
 # v1.22.41 (2026-08-06)
 
 * **Dependency Update**: Updated to the latest SDK module versions
