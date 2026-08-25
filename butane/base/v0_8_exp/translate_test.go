@@ -1892,6 +1892,88 @@ func TestTranslateTree(t *testing.T) {
 	}
 }
 
+// TestTranslateResourceLocalIgnitionValidation ensures that local files used as
+// ignition configs (via ignition.config.merge/replace) are validated as Ignition
+// configs. Previously the validation branch was guarded by
+// strings.HasPrefix(c.String(), "$.ignition.config") where c was a synthetic
+// path.New("yaml", "local") whose String() is "$.local", so the guard was always
+// false and validation never ran. See coreos/ignition#2280.
+func TestTranslateResourceLocalIgnitionValidation(t *testing.T) {
+	filesDir := t.TempDir()
+	invalidConfig := `{ "this is not": "a valid ignition config" }`
+	if err := os.WriteFile(filepath.Join(filesDir, "bad-config"), []byte(invalidConfig), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	config := Config{
+		Ignition: Ignition{
+			Config: IgnitionConfig{
+				Merge: []Resource{
+					{
+						Local: util.StrToPtr("bad-config"),
+					},
+				},
+			},
+		},
+	}
+
+	_, _, r := config.ToIgn3_7Unvalidated(common.TranslateOptions{
+		FilesDir: filesDir,
+	})
+
+	assert.NotEqual(t, report.Report{}, r, "local ignition config should be validated and produce an error")
+	assert.Contains(t, r.String(), "invalid config version", "error should describe the invalid ignition config")
+}
+
+// TestTranslateTreeOverwrite ensures that setting overwrite on a tree flows down
+// to the files, directories, and links generated from it. See coreos/ignition#2257.
+func TestTranslateTreeOverwrite(t *testing.T) {
+	filesDir := t.TempDir()
+	treeDir := filepath.Join(filesDir, "tree")
+	if err := os.MkdirAll(filepath.Join(treeDir, "subdir"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(treeDir, "file"), []byte("contents"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(treeDir, "exec"), []byte("contents"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("file", filepath.Join(treeDir, "subdir", "link")); err != nil {
+		t.Fatal(err)
+	}
+
+	config := Config{
+		Storage: Storage{
+			Trees: []Tree{
+				{
+					Local:     "tree",
+					Overwrite: util.BoolToPtr(true),
+					DirMode:   util.IntToPtr(0755),
+				},
+			},
+		},
+	}
+
+	actual, _, r := config.ToIgn3_7Unvalidated(common.TranslateOptions{
+		FilesDir: filesDir,
+	})
+	assert.Equal(t, report.Report{}, r, "unexpected report errors")
+
+	for _, f := range actual.Storage.Files {
+		assert.Equal(t, util.BoolToPtr(true), f.Overwrite, "file %s should be marked overwrite", f.Path)
+	}
+	for _, d := range actual.Storage.Directories {
+		assert.Equal(t, util.BoolToPtr(true), d.Overwrite, "directory %s should be marked overwrite", d.Path)
+	}
+	for _, l := range actual.Storage.Links {
+		assert.Equal(t, util.BoolToPtr(true), l.Overwrite, "link %s should be marked overwrite", l.Path)
+	}
+	assert.NotEmpty(t, actual.Storage.Files, "expected generated files")
+	assert.NotEmpty(t, actual.Storage.Directories, "expected generated directories")
+	assert.NotEmpty(t, actual.Storage.Links, "expected generated links")
+}
+
 // TestTranslateIgnition tests translating the ct config.ignition to the ignition config.ignition section.
 // It ensures that the version is set as well.
 func TestTranslateIgnition(t *testing.T) {
