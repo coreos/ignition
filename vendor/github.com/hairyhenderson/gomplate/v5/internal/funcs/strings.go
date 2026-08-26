@@ -1,0 +1,333 @@
+package funcs
+
+// Namespace strings contains mostly wrappers of equivalently-named
+// functions in the standard library `strings` package, with
+// differences in argument order where it makes pipelining
+// in templates easier.
+
+import (
+	"context"
+	"fmt"
+	"math"
+	"reflect"
+	"strings"
+	"unicode/utf8"
+
+	"github.com/Masterminds/goutils"
+	"github.com/hairyhenderson/gomplate/v5/conv"
+	gompstrings "github.com/hairyhenderson/gomplate/v5/strings"
+
+	"github.com/gosimple/slug"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+)
+
+// CreateStringFuncs -
+func CreateStringFuncs(ctx context.Context) map[string]any {
+	f := map[string]any{}
+
+	ns := &StringFuncs{ctx, language.Und}
+	f["strings"] = func() any { return ns }
+
+	f["replaceAll"] = ns.ReplaceAll
+	f["title"] = ns.Title
+	f["toUpper"] = ns.ToUpper
+	f["toLower"] = ns.ToLower
+	f["trimSpace"] = ns.TrimSpace
+	f["indent"] = ns.Indent
+	f["quote"] = ns.Quote
+	f["shellQuote"] = ns.ShellQuote
+	f["squote"] = ns.Squote
+
+	return f
+}
+
+// StringFuncs -
+type StringFuncs struct {
+	ctx context.Context
+
+	// tag - the selected BCP 47 language tag. Currently gomplate only supports
+	// Und (undetermined)
+	tag language.Tag
+}
+
+// Abbrev -
+func (StringFuncs) Abbrev(args ...any) (string, error) {
+	str := ""
+	offset := 0
+	width := 0
+
+	var err error
+
+	switch len(args) {
+	case 2:
+		width, err = conv.ToInt(args[0])
+		if err != nil {
+			return "", fmt.Errorf("width must be an integer: %w", err)
+		}
+
+		//nolint:gosec // G602 — false positive: len(args)==2 from switch
+		str = conv.ToString(args[1])
+	case 3:
+		offset, err = conv.ToInt(args[0])
+		if err != nil {
+			return "", fmt.Errorf("offset must be an integer: %w", err)
+		}
+
+		//nolint:gosec // G602 — false positive: len(args)==3 from switch
+		width, err = conv.ToInt(args[1])
+		if err != nil {
+			return "", fmt.Errorf("width must be an integer: %w", err)
+		}
+
+		str = conv.ToString(args[2])
+	default:
+		return "", fmt.Errorf("abbrev requires a 'width' and 'input' argument")
+	}
+
+	if len(str) <= width {
+		return str, nil
+	}
+
+	return goutils.AbbreviateFull(str, offset, width)
+}
+
+// ReplaceAll -
+//
+//nolint:revive
+func (StringFuncs) ReplaceAll(old, new string, s any) string {
+	return strings.ReplaceAll(conv.ToString(s), old, new)
+}
+
+// Contains -
+func (StringFuncs) Contains(substr string, s any) bool {
+	return strings.Contains(conv.ToString(s), substr)
+}
+
+// HasPrefix -
+func (StringFuncs) HasPrefix(prefix string, s any) bool {
+	return strings.HasPrefix(conv.ToString(s), prefix)
+}
+
+// HasSuffix -
+func (StringFuncs) HasSuffix(suffix string, s any) bool {
+	return strings.HasSuffix(conv.ToString(s), suffix)
+}
+
+// Repeat -
+func (StringFuncs) Repeat(count int, s any) (string, error) {
+	if count < 0 {
+		return "", fmt.Errorf("negative count %d", count)
+	}
+	str := conv.ToString(s)
+	if count > 0 && len(str)*count/count != len(str) {
+		return "", fmt.Errorf("count %d too long: causes overflow", count)
+	}
+	return strings.Repeat(str, count), nil
+}
+
+// SkipLines -
+func (StringFuncs) SkipLines(skip int, in string) (string, error) {
+	return gompstrings.SkipLines(skip, in)
+}
+
+// Split -
+func (StringFuncs) Split(sep string, s any) []string {
+	return strings.Split(conv.ToString(s), sep)
+}
+
+// SplitN -
+func (StringFuncs) SplitN(sep string, n int, s any) []string {
+	return strings.SplitN(conv.ToString(s), sep, n)
+}
+
+// Trim -
+func (StringFuncs) Trim(cutset string, s any) string {
+	return strings.Trim(conv.ToString(s), cutset)
+}
+
+// TrimLeft -
+func (StringFuncs) TrimLeft(cutset string, s any) string {
+	return strings.TrimLeft(conv.ToString(s), cutset)
+}
+
+// TrimPrefix -
+func (StringFuncs) TrimPrefix(cutset string, s any) string {
+	return strings.TrimPrefix(conv.ToString(s), cutset)
+}
+
+// TrimRight -
+func (StringFuncs) TrimRight(cutset string, s any) string {
+	return strings.TrimRight(conv.ToString(s), cutset)
+}
+
+// TrimSuffix -
+func (StringFuncs) TrimSuffix(cutset string, s any) string {
+	return strings.TrimSuffix(conv.ToString(s), cutset)
+}
+
+// Title -
+func (f *StringFuncs) Title(s any) string {
+	return cases.Title(f.tag, cases.NoLower).String(conv.ToString(s))
+}
+
+// ToUpper -
+func (f *StringFuncs) ToUpper(s any) string {
+	return cases.Upper(f.tag).String(conv.ToString(s))
+}
+
+// ToLower -
+func (f *StringFuncs) ToLower(s any) string {
+	return cases.Lower(f.tag).String(conv.ToString(s))
+}
+
+// TrimSpace -
+func (StringFuncs) TrimSpace(s any) string {
+	return strings.TrimSpace(conv.ToString(s))
+}
+
+// Trunc -
+func (StringFuncs) Trunc(length int, s any) string {
+	return gompstrings.Trunc(length, conv.ToString(s))
+}
+
+// Indent -
+func (StringFuncs) Indent(args ...any) (string, error) {
+	indent := " "
+	width := 1
+
+	var ok bool
+
+	switch len(args) {
+	case 0:
+		return "", fmt.Errorf("expected at least 1 argument")
+	case 2:
+		indent, ok = args[0].(string)
+		if !ok {
+			width, ok = args[0].(int)
+			if !ok {
+				return "", fmt.Errorf("invalid arguments")
+			}
+
+			indent = " "
+		}
+	case 3:
+		width, ok = args[0].(int)
+		if !ok {
+			return "", fmt.Errorf("invalid arguments")
+		}
+
+		indent, ok = args[1].(string)
+		if !ok {
+			return "", fmt.Errorf("invalid arguments")
+		}
+	}
+
+	input := conv.ToString(args[len(args)-1])
+
+	return gompstrings.Indent(width, indent, input)
+}
+
+// Slug -
+func (StringFuncs) Slug(in any) string {
+	return slug.Make(conv.ToString(in))
+}
+
+// Quote -
+func (StringFuncs) Quote(in any) string {
+	return fmt.Sprintf("%q", conv.ToString(in))
+}
+
+// ShellQuote -
+func (StringFuncs) ShellQuote(in any) string {
+	val := reflect.ValueOf(in)
+	switch val.Kind() {
+	case reflect.Array, reflect.Slice:
+		var sb strings.Builder
+		vLen := val.Len()
+		for n := range vLen {
+			sb.WriteString(gompstrings.ShellQuote(conv.ToString(val.Index(n))))
+			if n+1 != vLen {
+				sb.WriteRune(' ')
+			}
+		}
+		return sb.String()
+	}
+	return gompstrings.ShellQuote(conv.ToString(in))
+}
+
+// Squote -
+func (StringFuncs) Squote(in any) string {
+	s := conv.ToString(in)
+	s = strings.ReplaceAll(s, `'`, `''`)
+	return fmt.Sprintf("'%s'", s)
+}
+
+// SnakeCase -
+func (StringFuncs) SnakeCase(in any) (string, error) {
+	return gompstrings.SnakeCase(conv.ToString(in)), nil
+}
+
+// CamelCase -
+func (StringFuncs) CamelCase(in any) (string, error) {
+	return gompstrings.CamelCase(conv.ToString(in)), nil
+}
+
+// KebabCase -
+func (StringFuncs) KebabCase(in any) (string, error) {
+	return gompstrings.KebabCase(conv.ToString(in)), nil
+}
+
+// WordWrap -
+func (StringFuncs) WordWrap(args ...any) (string, error) {
+	if len(args) == 0 || len(args) > 3 {
+		return "", fmt.Errorf("expected 1, 2, or 3 args, got %d", len(args))
+	}
+	in := conv.ToString(args[len(args)-1])
+
+	opts := gompstrings.WordWrapOpts{}
+	if len(args) == 2 {
+		switch a := (args[0]).(type) {
+		case string:
+			opts.LBSeq = a
+		default:
+			n, err := conv.ToInt64(args[0])
+			if err != nil {
+				return "", fmt.Errorf("expected width to be a number: %w", err)
+			}
+
+			if n > math.MaxInt {
+				return "", fmt.Errorf("width too large: %d", n)
+			}
+
+			//nolint:gosec // G115 isn't applicable, we just checked
+			opts.Width = uint32(n)
+		}
+	}
+
+	if len(args) == 3 {
+		n, err := conv.ToInt64(args[0])
+		if err != nil {
+			return "", fmt.Errorf("expected width to be a number: %w", err)
+		}
+
+		if n > math.MaxInt {
+			return "", fmt.Errorf("width too large: %d", n)
+		}
+
+		//nolint:gosec // G115 isn't applicable, we just checked
+		opts.Width = uint32(n)
+		opts.LBSeq = conv.ToString(args[1])
+	}
+
+	return gompstrings.WordWrap(in, opts), nil
+}
+
+// RuneCount - like len(s), but for runes
+func (StringFuncs) RuneCount(args ...any) (int, error) {
+	s := ""
+	for _, arg := range args {
+		s += conv.ToString(arg)
+	}
+	return utf8.RuneCountInString(s), nil
+}

@@ -1,0 +1,8 @@
+.vscode
+*.md
+*.cid
+*.iid
+bin/
+coverage/
+docs/
+testbin/

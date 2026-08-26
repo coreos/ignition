@@ -13,6 +13,7 @@ nav_order: 9
 
 ### Changes
 
+- Add support for [`gomplate`](https://github.com/hairyhenderson/gomplate) integration, opt-in via `--enable-gomplate`
 - Refactored the Makefile and build script to match the Fedora RPM spec: separate build targets per binary, with `VERSION` and linker flags passed in at build time
 - `build_blackbox_tests` builds a blackbox-specific `ignition` binary with `make`
 - CI and GitHub Actions updated to build via `make ignition` and `make ignition-validate`

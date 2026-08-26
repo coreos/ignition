@@ -1,0 +1,244 @@
+package funcs
+
+import (
+	"context"
+	"fmt"
+	"math/big"
+	stdnet "net"
+	"net/netip"
+
+	"github.com/hairyhenderson/gomplate/v5/conv"
+	"github.com/hairyhenderson/gomplate/v5/internal/cidr"
+	"github.com/hairyhenderson/gomplate/v5/net"
+	"go4.org/netipx"
+)
+
+// CreateNetFuncs -
+func CreateNetFuncs(ctx context.Context) map[string]any {
+	ns := &NetFuncs{ctx}
+	return map[string]any{
+		"net": func() any { return ns },
+	}
+}
+
+// NetFuncs -
+type NetFuncs struct {
+	ctx context.Context
+}
+
+// LookupIP -
+func (f NetFuncs) LookupIP(name any) (string, error) {
+	return net.LookupIP(f.ctx, conv.ToString(name))
+}
+
+// LookupIPs -
+func (f NetFuncs) LookupIPs(name any) ([]string, error) {
+	return net.LookupIPs(f.ctx, conv.ToString(name))
+}
+
+// LookupCNAME -
+func (f NetFuncs) LookupCNAME(name any) (string, error) {
+	return stdnet.DefaultResolver.LookupCNAME(f.ctx, conv.ToString(name))
+}
+
+// LookupSRV -
+func (f NetFuncs) LookupSRV(name any) (*stdnet.SRV, error) {
+	_, addrs, err := stdnet.DefaultResolver.LookupSRV(f.ctx, "", "", conv.ToString(name))
+	if err != nil {
+		return nil, err
+	}
+	return addrs[0], nil
+}
+
+// LookupSRVs -
+func (f NetFuncs) LookupSRVs(name any) ([]*stdnet.SRV, error) {
+	_, addrs, err := stdnet.DefaultResolver.LookupSRV(f.ctx, "", "", conv.ToString(name))
+	return addrs, err
+}
+
+// LookupTXT -
+func (f NetFuncs) LookupTXT(name any) ([]string, error) {
+	return stdnet.DefaultResolver.LookupTXT(f.ctx, conv.ToString(name))
+}
+
+// ParseAddr -
+func (f NetFuncs) ParseAddr(ip any) (netip.Addr, error) {
+	return netip.ParseAddr(conv.ToString(ip))
+}
+
+// ParsePrefix -
+func (f NetFuncs) ParsePrefix(ipprefix any) (netip.Prefix, error) {
+	return netip.ParsePrefix(conv.ToString(ipprefix))
+}
+
+// ParseRange -
+func (f NetFuncs) ParseRange(iprange any) (netipx.IPRange, error) {
+	return netipx.ParseIPRange(conv.ToString(iprange))
+}
+
+func (f *NetFuncs) parseNetipPrefix(prefix any) (netip.Prefix, error) {
+	switch p := prefix.(type) {
+	case *stdnet.IPNet:
+		return f.ipPrefixFromIPNet(p), nil
+	case netip.Prefix:
+		return p, nil
+	default:
+		return netip.ParsePrefix(conv.ToString(prefix))
+	}
+}
+
+func (f NetFuncs) ipPrefixFromIPNet(n *stdnet.IPNet) netip.Prefix {
+	ip, _ := netip.AddrFromSlice(n.IP)
+	ones, _ := n.Mask.Size()
+	return netip.PrefixFrom(ip, ones)
+}
+
+// CIDRHost -
+// Experimental!
+func (f *NetFuncs) CIDRHost(hostnum any, prefix any) (netip.Addr, error) {
+	if err := checkExperimental(f.ctx); err != nil {
+		return netip.Addr{}, err
+	}
+
+	network, err := f.parseNetipPrefix(prefix)
+	if err != nil {
+		return netip.Addr{}, err
+	}
+
+	n, err := conv.ToInt64(hostnum)
+	if err != nil {
+		return netip.Addr{}, fmt.Errorf("expected a number: %w", err)
+	}
+
+	ip, err := cidr.HostBig(network, big.NewInt(n))
+
+	return ip, err
+}
+
+// CIDRNetmask -
+// Experimental!
+func (f *NetFuncs) CIDRNetmask(prefix any) (netip.Addr, error) {
+	if err := checkExperimental(f.ctx); err != nil {
+		return netip.Addr{}, err
+	}
+
+	p, err := f.parseNetipPrefix(prefix)
+	if err != nil {
+		return netip.Addr{}, err
+	}
+
+	// fill an appropriately sized byte slice with as many 1s as prefix bits
+	b := make([]byte, p.Addr().BitLen()/8)
+	for i := range p.Bits() {
+		b[i/8] |= 1 << uint(7-i%8)
+	}
+
+	m, ok := netip.AddrFromSlice(b)
+	if !ok {
+		return netip.Addr{}, fmt.Errorf("invalid netmask")
+	}
+
+	return m, nil
+}
+
+// CIDRSubnets -
+// Experimental!
+func (f *NetFuncs) CIDRSubnets(newbits any, prefix any) ([]netip.Prefix, error) {
+	if err := checkExperimental(f.ctx); err != nil {
+		return nil, err
+	}
+
+	network, err := f.parseNetipPrefix(prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	nBits, err := conv.ToInt(newbits)
+	if err != nil {
+		return nil, fmt.Errorf("newbits must be a number: %w", err)
+	}
+
+	if nBits < 1 {
+		return nil, fmt.Errorf("must extend prefix by at least one bit")
+	}
+
+	maxNetNum := int64(1 << uint64(nBits))
+	retValues := make([]netip.Prefix, maxNetNum)
+	for i := int64(0); i < maxNetNum; i++ {
+		subnet, err := cidr.SubnetBig(network, nBits, big.NewInt(i))
+		if err != nil {
+			return nil, err
+		}
+		retValues[i] = subnet
+	}
+
+	return retValues, nil
+}
+
+// CIDRSubnetSizes -
+// Experimental!
+func (f *NetFuncs) CIDRSubnetSizes(args ...any) ([]netip.Prefix, error) {
+	if err := checkExperimental(f.ctx); err != nil {
+		return nil, err
+	}
+
+	if len(args) < 2 {
+		return nil, fmt.Errorf("wrong number of args: want 2 or more, got %d", len(args))
+	}
+
+	network, err := f.parseNetipPrefix(args[len(args)-1])
+	if err != nil {
+		return nil, err
+	}
+
+	newbits, err := conv.ToInts(args[:len(args)-1]...)
+	if err != nil {
+		return nil, fmt.Errorf("newbits must be numbers: %w", err)
+	}
+
+	startPrefixLen := network.Bits()
+	firstLength := newbits[0]
+
+	firstLength += startPrefixLen
+	retValues := make([]netip.Prefix, len(newbits))
+
+	current, _ := cidr.PreviousSubnet(network, firstLength)
+
+	for i, length := range newbits {
+		if length < 1 {
+			return nil, fmt.Errorf("must extend prefix by at least one bit")
+		}
+		// For portability with 32-bit systems where the subnet number
+		// will be a 32-bit int, we only allow extension of 32 bits in
+		// one call even if we're running on a 64-bit machine.
+		// (Of course, this is significant only for IPv6.)
+		if length > 32 {
+			return nil, fmt.Errorf("may not extend prefix by more than 32 bits")
+		}
+
+		length += startPrefixLen
+		if length > network.Addr().BitLen() {
+			protocol := "IP"
+			switch {
+			case network.Addr().Is4():
+				protocol = "IPv4"
+			case network.Addr().Is6():
+				protocol = "IPv6"
+			}
+			return nil, fmt.Errorf("would extend prefix to %d bits, which is too long for an %s address", length, protocol)
+		}
+
+		next, rollover := cidr.NextSubnet(current, length)
+		if rollover || !network.Contains(next.Addr()) {
+			// If we run out of suffix bits in the base CIDR prefix then
+			// NextSubnet will start incrementing the prefix bits, which
+			// we don't allow because it would then allocate addresses
+			// outside of the caller's given prefix.
+			return nil, fmt.Errorf("not enough remaining address space for a subnet with a prefix of %d bits after %s", length, current.String())
+		}
+		current = next
+		retValues[i] = current
+	}
+
+	return retValues, nil
+}

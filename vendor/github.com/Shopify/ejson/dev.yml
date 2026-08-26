@@ -1,0 +1,14 @@
+name: ejson
+
+up:
+  - homebrew:
+    - gnu-tar
+    - goreleaser
+  - ruby
+  - go:
+      version: '1.22.3'
+  - bundler
+
+commands:
+  build: make
+  test: go test ./...

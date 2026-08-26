@@ -1,0 +1,15 @@
+build: off
+
+environment:
+  GOPATH: c:\gopath
+
+stack:
+  - go 1.11
+  - go 1.12
+
+before_test:
+  - set PATH=C:\msys64\usr\bin;%PATH%
+  - make ensure
+
+test_script:
+  - make test
