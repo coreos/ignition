@@ -21,6 +21,7 @@ Butane 0.29.0 is the last release from this standalone repository. Butane has be
 
 ### Bug fixes
 
+
 ### Misc. changes
 
 - Add support for pretty error reporting, can be controlled through
