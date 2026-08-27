@@ -118,7 +118,30 @@ func translateIgnition(from Ignition, options common.TranslateOptions) (to types
 	translate.MergeP(tr, tm, &r, "proxy", &from.Proxy, &to.Proxy)
 	translate.MergeP(tr, tm, &r, "security", &from.Security, &to.Security)
 	translate.MergeP(tr, tm, &r, "timeouts", &from.Timeouts, &to.Timeouts)
+
+	c := path.New("yaml", "ignition", "config")
+	for i, res := range from.Config.Merge {
+		if res.Local != nil {
+			validateLocalIgnitionConfig(c.Append("merge", i, "local"), *res.Local, options, &r)
+		}
+	}
+	if from.Config.Replace.Local != nil {
+		validateLocalIgnitionConfig(c.Append("replace", "local"), *from.Config.Replace.Local, options, &r)
+	}
 	return
+}
+
+func validateLocalIgnitionConfig(c path.ContextPath, local string, options common.TranslateOptions, r *report.Report) {
+	contents, err := baseutil.ReadLocalFile(local, options.FilesDir)
+	if err != nil {
+		r.AddOnError(c, err)
+		return
+	}
+	rp, err := ValidateIgnitionConfig(c, contents)
+	r.Merge(rp)
+	if err != nil {
+		r.AddOnError(c, err)
+	}
 }
 
 func translateFile(from File, options common.TranslateOptions) (to types.File, tm translate.TranslationSet, r report.Report) {
@@ -147,15 +170,6 @@ func translateResource(from Resource, options common.TranslateOptions) (to types
 		if err != nil {
 			r.AddOnError(c, err)
 			return
-		}
-		// Validating the contents of the local file from here since there is no way to
-		// get both the filename and filedirectory in the Validate context
-		if strings.HasPrefix(c.String(), "$.ignition.config") {
-			rp, err := ValidateIgnitionConfig(c, contents)
-			r.Merge(rp)
-			if err != nil {
-				return
-			}
 		}
 
 		src, compression, err := baseutil.MakeDataURL(contents, to.Compression, !options.NoResourceAutoCompression)

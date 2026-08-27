@@ -1892,6 +1892,39 @@ func TestTranslateTree(t *testing.T) {
 	}
 }
 
+// TestTranslateResourceLocalIgnitionValidation ensures that local files used as
+// ignition configs (via ignition.config.merge/replace) are validated as Ignition
+// configs. Previously the validation branch was guarded by
+// strings.HasPrefix(c.String(), "$.ignition.config") where c was a synthetic
+// path.New("yaml", "local") whose String() is "$.local", so the guard was always
+// false and validation never ran. See coreos/ignition#2280.
+func TestTranslateResourceLocalIgnitionValidation(t *testing.T) {
+	filesDir := t.TempDir()
+	invalidConfig := `{ "this is not": "a valid ignition config" }`
+	if err := os.WriteFile(filepath.Join(filesDir, "bad-config"), []byte(invalidConfig), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	config := Config{
+		Ignition: Ignition{
+			Config: IgnitionConfig{
+				Merge: []Resource{
+					{
+						Local: util.StrToPtr("bad-config"),
+					},
+				},
+			},
+		},
+	}
+
+	_, _, r := config.ToIgn3_7Unvalidated(common.TranslateOptions{
+		FilesDir: filesDir,
+	})
+
+	assert.NotEqual(t, report.Report{}, r, "local ignition config should be validated and produce an error")
+	assert.Contains(t, r.String(), "invalid config version", "error should describe the invalid ignition config")
+}
+
 // TestTranslateIgnition tests translating the ct config.ignition to the ignition config.ignition section.
 // It ensures that the version is set as well.
 func TestTranslateIgnition(t *testing.T) {
