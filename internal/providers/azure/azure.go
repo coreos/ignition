@@ -19,6 +19,7 @@ package azure
 import (
 	"encoding/base64"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -28,7 +29,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/coreos/ignition/v2/config/shared/errors"
+	ignerrors "github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -41,7 +42,12 @@ import (
 )
 
 const (
-	configPath = "/CustomData.bin"
+	ovfEnvPath = "ovf-env.xml"
+)
+
+var (
+	errParseOvfEnv      = errors.New("parsing ovf-env.xml")
+	errDecodeCustomData = errors.New("decoding CustomData")
 )
 
 // These constants come from <cdrom.h>.
@@ -119,7 +125,7 @@ func fetchFromAzureMetadata(f *resource.Fetcher) (types.Config, report.Report, e
 		return util.ParseConfig(logger, userData)
 	}
 
-	if err != errors.ErrEmpty {
+	if err != ignerrors.ErrEmpty {
 		return types.Config{}, report.Report{}, err
 	}
 
@@ -149,7 +155,7 @@ func fetchFromIMDS(f *resource.Fetcher) ([]byte, error) {
 	n := len(data)
 
 	if n == 0 {
-		return nil, errors.ErrEmpty
+		return nil, ignerrors.ErrEmpty
 	}
 
 	// data is base64 encoded by the IMDS
@@ -226,29 +232,16 @@ func getRawConfig(f *resource.Fetcher, devicePath string, fstype string) ([]byte
 		)
 	}()
 
-	// detect the config drive by looking for a file which is always present
-	logger.Debug("checking for config drive")
-	if _, err := os.Stat(filepath.Join(mnt, "ovf-env.xml")); err != nil {
+	// The presence of ovf-env.xml identifies this as the Azure config drive.
+	logger.Debug("reading ovf-env.xml")
+	ovfEnvContents, err := os.ReadFile(filepath.Join(mnt, ovfEnvPath))
+	if err != nil {
 		return nil, fmt.Errorf("device %q does not appear to be a config drive: %v", devicePath, err)
 	}
 
-	logger.Debug("reading config")
-	rawConfig, err := os.ReadFile(filepath.Join(mnt, configPath))
-	if err != nil && !os.IsNotExist(err) {
-		return nil, fmt.Errorf("failed to read config from device %q: %v", devicePath, err)
-	}
-
-	// Confidential VMs don't populate CustomData.bin; fall back to the base64
-	// CustomData embedded in ovf-env.xml.
-	if len(rawConfig) == 0 {
-		ovfEnvContents, err := os.ReadFile(filepath.Join(mnt, "ovf-env.xml"))
-		if err != nil {
-			return nil, fmt.Errorf("failed to read ovf-env.xml from device %q: %v", devicePath, err)
-		}
-		rawConfig, err = customDataFromOvfEnv(ovfEnvContents)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read custom data from ovf-env.xml on device %q: %v", devicePath, err)
-		}
+	rawConfig, err := customDataFromOvfEnv(ovfEnvContents)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read custom data from ovf-env.xml on device %q: %v", devicePath, err)
 	}
 	return rawConfig, nil
 }
@@ -259,7 +252,7 @@ type ovfEnv struct {
 	XMLName             xml.Name `xml:"Environment"`
 	ProvisioningSection struct {
 		LinuxProvisioningConfigurationSet struct {
-			// CustomData is base64-encoded, unlike the raw CustomData.bin file.
+			// CustomData is base64-encoded.
 			CustomData string `xml:"CustomData"`
 		} `xml:"LinuxProvisioningConfigurationSet"`
 	} `xml:"ProvisioningSection"`
@@ -270,7 +263,7 @@ type ovfEnv struct {
 func customDataFromOvfEnv(ovfEnvContents []byte) ([]byte, error) {
 	var env ovfEnv
 	if err := xml.Unmarshal(ovfEnvContents, &env); err != nil {
-		return nil, fmt.Errorf("parsing ovf-env.xml: %w", err)
+		return nil, fmt.Errorf("%w: %w", errParseOvfEnv, err)
 	}
 
 	// Azure may split the base64 payload across lines.
@@ -281,7 +274,7 @@ func customDataFromOvfEnv(ovfEnvContents []byte) ([]byte, error) {
 
 	decoded, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return nil, fmt.Errorf("decoding CustomData: %w", err)
+		return nil, fmt.Errorf("%w: %w", errDecodeCustomData, err)
 	}
 	return decoded, nil
 }

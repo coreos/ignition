@@ -19,7 +19,7 @@ nav_order: 9
 
 ### Bug fixes
 
-- Read Azure custom data from `CustomData.bin`, falling back to the base64 `CustomData` in `ovf-env.xml`, so Confidential VMs pick up their Ignition config
+- Read Azure custom data from the base64 `CustomData` in `ovf-env.xml`, so Confidential VMs pick up their Ignition config
 
 
 ## Upcoming Ignition 2.27.0 (unreleased)

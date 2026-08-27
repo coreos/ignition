@@ -157,8 +157,7 @@ flowchart TB
     fallback_ovf["Fallback: read OVF custom data from CD-ROM device"]
     fallback_ovf --> scan["Scan for UDF CD-ROM (often /dev/sr0)"]
     scan --> mount["Mount device"]
-    mount --> read["Read CustomData.bin;
-    if empty, decode CustomData from ovf-env.xml"]
+    mount --> read["Decode CustomData from ovf-env.xml"]
     read --> available{"Config available?"}
     available -->|Yes| write_device["Write config to /run/ignition.json"]
     write_device --> done

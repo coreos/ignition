@@ -16,6 +16,7 @@ package azure
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"testing"
 )
@@ -55,7 +56,7 @@ func TestCustomDataFromOvfEnv(t *testing.T) {
 		xml     string
 		out     string
 		nilOut  bool
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "custom data present",
@@ -80,21 +81,21 @@ func TestCustomDataFromOvfEnv(t *testing.T) {
 		{
 			name:    "malformed xml",
 			xml:     "<ns0:Environment>not closed",
-			wantErr: true,
+			wantErr: errParseOvfEnv,
 		},
 		{
 			name:    "invalid base64",
 			xml:     ovfEnvWithCustomData("<ns1:CustomData>!!! not base64 !!!</ns1:CustomData>"),
-			wantErr: true,
+			wantErr: errDecodeCustomData,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := customDataFromOvfEnv([]byte(tt.xml))
-			if tt.wantErr {
-				if err == nil {
-					t.Fatal("expected error, got nil")
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("expected error %v, got %v", tt.wantErr, err)
 				}
 				return
 			}
