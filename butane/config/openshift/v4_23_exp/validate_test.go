@@ -230,6 +230,43 @@ func TestValidateConfig(t *testing.T) {
 			common.ErrMissingKernelArgumentCex,
 			path.New("yaml", "openshift", "kernel_arguments"),
 		},
+		{
+			// both boot_device CEX and a root storage.luks CEX entry set;
+			// the missing kernel argument must be reported exactly once
+			Config{
+				Config: fcos.Config{
+					BootDevice: fcos.BootDevice{
+						Layout: util.StrToPtr("s390x-eckd"),
+						Luks: fcos.BootDeviceLuks{
+							Device: util.StrToPtr("/dev/dasda"),
+							Cex: base.Cex{
+								Enabled: util.BoolToPtr(true),
+							},
+						},
+					},
+					Config: base.Config{
+						Storage: base.Storage{
+							Luks: []base.Luks{
+								{
+									Name:   "root",
+									Label:  util.StrToPtr("luks-root"),
+									Device: util.StrToPtr("/dev/disk/by-label/root"),
+									Cex: base.Cex{
+										Enabled: util.BoolToPtr(true),
+									},
+								},
+							},
+						},
+					},
+				},
+				OpenShift: OpenShift{
+					// explicitly empty kernel argument list
+					KernelArguments: []string{},
+				},
+			},
+			common.ErrMissingKernelArgumentCex,
+			path.New("yaml", "openshift", "kernel_arguments"),
+		},
 	}
 
 	for i, test := range tests {
