@@ -14,6 +14,10 @@ nav_order: 9
 
 ### Bug fixes
 
+- Encode large integer fields such as `sizeMiB` as decimal numbers in
+  MachineConfig YAML, instead of scientific notation
+  ([#2309](https://github.com/coreos/ignition/issues/2309))
+  ([OCPBUGS-114878](https://redhat.atlassian.net/browse/OCPBUGS-114878))
 
 ## Ignition 2.27.0 (2026-08-26)
 

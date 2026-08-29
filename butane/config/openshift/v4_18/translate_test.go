@@ -513,3 +513,39 @@ func TestValidateSupport(t *testing.T) {
 		})
 	}
 }
+
+// TestMachineConfigYAMLLargeSizeMiB is the OCPBUGS-114878 / #2309 regression:
+// MachineConfig YAML must encode sizeMiB >= 1e6 as a plain integer.
+func TestMachineConfigYAMLLargeSizeMiB(t *testing.T) {
+	in := `variant: openshift
+version: 4.18.0
+metadata:
+  name: 98-master-partition
+  labels:
+    machineconfiguration.openshift.io/role: master
+storage:
+  disks:
+    - device: /dev/disk/by-id/virtio-targetdisk
+      partitions:
+        - number: 4
+          label: root
+          size_mib: 8389000
+          resize: true
+        - number: 5
+          label: var
+          size_mib: 0
+        - number: 6
+          label: odf-1
+          size_mib: 1231872
+`
+	out, r, err := ToConfigBytes([]byte(in), common.TranslateBytesOptions{})
+	assert.NoError(t, err)
+	assert.False(t, r.IsFatal())
+	got := string(out)
+	assert.Contains(t, got, "sizeMiB: 8389000")
+	assert.Contains(t, got, "sizeMiB: 1231872")
+	assert.Contains(t, got, "sizeMiB: 0")
+	assert.NotContains(t, got, "8.389e+06")
+	assert.NotContains(t, got, "1.231872e+06")
+	assert.NotContains(t, got, "e+")
+}

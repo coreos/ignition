@@ -155,8 +155,8 @@ func TranslateBytesYAML(input []byte, container interface{}, translateMethod str
 		return jsonCfg, r, err
 	}
 
-	var ifaceCfg interface{}
-	if err := json.Unmarshal(jsonCfg, &ifaceCfg); err != nil {
+	ifaceCfg, err := unmarshalJSONForYAML(jsonCfg)
+	if err != nil {
 		return []byte{}, r, err
 	}
 
@@ -172,6 +172,49 @@ func TranslateBytesYAML(input []byte, container interface{}, translateMethod str
 	}
 	yamlCfg := bytes.Trim(yamlCfgBuf.Bytes(), "\n")
 	return yamlCfg, r, err
+}
+
+// unmarshalJSONForYAML decodes JSON into a generic structure suitable for
+// YAML encoding. Integers are preserved as int64 so yaml.v3 does not emit
+// scientific notation for values >= 1e6 (e.g. sizeMiB: 8.389e+06).
+func unmarshalJSONForYAML(jsonCfg []byte) (interface{}, error) {
+	dec := json.NewDecoder(bytes.NewReader(jsonCfg))
+	dec.UseNumber()
+	var ifaceCfg interface{}
+	if err := dec.Decode(&ifaceCfg); err != nil {
+		return nil, err
+	}
+	return convertJSONNumbers(ifaceCfg), nil
+}
+
+// convertJSONNumbers walks a decoded JSON tree and replaces json.Number
+// values with int64 when possible, otherwise float64. json.Unmarshal into
+// interface{} otherwise uses float64, and yaml.v3 then formats values >= 1e6
+// with strconv.FormatFloat 'g' as scientific notation.
+func convertJSONNumbers(v interface{}) interface{} {
+	switch x := v.(type) {
+	case map[string]interface{}:
+		for k, val := range x {
+			x[k] = convertJSONNumbers(val)
+		}
+		return x
+	case []interface{}:
+		for i, val := range x {
+			x[i] = convertJSONNumbers(val)
+		}
+		return x
+	case json.Number:
+		if i, err := x.Int64(); err == nil {
+			return i
+		}
+		f, err := x.Float64()
+		if err != nil {
+			return x.String()
+		}
+		return f
+	default:
+		return v
+	}
 }
 
 // Report an ErrFieldElided warning for any non-zero top-level fields in the

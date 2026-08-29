@@ -15,7 +15,9 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/coreos/ignition/v2/butane/config/common"
@@ -24,6 +26,7 @@ import (
 	"github.com/coreos/vcontext/path"
 	"github.com/coreos/vcontext/report"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
 )
 
 func TestSnake(t *testing.T) {
@@ -118,4 +121,23 @@ func TestTranslateReportPaths(t *testing.T) {
 	r2 := TranslateReportPaths(r, ts)
 	assert.Equal(t, makeReport(false), r, "TranslateReportPaths changed original report")
 	assert.Equal(t, makeReport(true), r2, "TranslateReportPaths returned incorrect report")
+}
+
+func TestUnmarshalJSONForYAMLIntegers(t *testing.T) {
+	jsonCfg := []byte(`{"sizeMiB":8389000,"startMiB":2048,"values":[1000000],"ratio":1.5}`)
+	v, err := unmarshalJSONForYAML(jsonCfg)
+	assert.NoError(t, err)
+
+	var buf bytes.Buffer
+	enc := yaml.NewEncoder(&buf)
+	enc.SetIndent(2)
+	assert.NoError(t, enc.Encode(v))
+	assert.NoError(t, enc.Close())
+	out := buf.String()
+
+	assert.Contains(t, out, "sizeMiB: 8389000")
+	assert.Contains(t, out, "startMiB: 2048")
+	assert.Contains(t, out, "- 1000000")
+	assert.Contains(t, out, "ratio: 1.5")
+	assert.False(t, strings.Contains(out, "e+"), "YAML must not use scientific notation: %s", out)
 }
