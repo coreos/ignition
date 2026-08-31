@@ -57,7 +57,7 @@ jobs:
       - name: Build and push container
         uses: coreos/actions-lib/build-container@main
         with:
-          credentials: ${{ secrets.QUAY_AUTH }}
+          credentials: ${{ secrets.QUAY_AUTH_BUTANE }}
           file: butane/Dockerfile
           push: quay.io/coreos/butane
           arches: amd64 arm64

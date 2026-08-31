@@ -15,12 +15,13 @@ buildPod {
         stage("Build") {
             shwrap("make ignition BIN_PATH=bin/amd64")
             shwrap("make ignition-validate BIN_PATH=bin/amd64")
+            shwrap("make butane BIN_PATH=bin/amd64")
             shwrap("make install BIN_PATH=bin/amd64 DESTDIR=install")
             stash name: 'build', includes: 'install/**'
         }
         // first, run gofmt/govet/unit tests
         stage("Unit Tests") {
-            shwrap("./test")
+            shwrap("BIN_PATH=bin/amd64 ./test")
         }
         stage("Build Blackbox Tests") {
             shwrap("""

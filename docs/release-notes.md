@@ -8,26 +8,24 @@ nav_order: 9
 
 ### Breaking changes
 
-- The `build` script now requires a subcommand (`ignition`, `ignition-validate`, or `ignition-validate-cross`). Sourcing the build script is no longer supported.
-- Build and install are separate steps with explicit targets (`ignition`, `ignition-validate`, `ignition-validate-cross`, `install`, `install-ignition-validate-cross`, `install-grub-for-bootupd`).
+### Features
 
 ### Changes
-
-- Refactored the Makefile and build script to match the Fedora RPM spec: separate build targets per binary, with `VERSION` and linker flags passed in at build time
-- `build_blackbox_tests` builds a blackbox-specific `ignition` binary with `make`
-- CI and GitHub Actions updated to build via `make ignition` and `make ignition-validate`
 
 ### Bug fixes
 
 - Drop supplementary groups when dropping privileges to write files as a user ([#2242](https://github.com/coreos/ignition/issues/2242))
 
 
-## Upcoming Ignition 2.27.0 (unreleased)
+## Ignition 2.27.0 (2026-08-26)
 
 Starting with this release, ignition-validate binaries are signed with the
 [Fedora 44 key](https://getfedora.org/security/).
 
 ### Breaking changes
+
+- The `build` script now requires a subcommand (`ignition`, `ignition-validate`, or `ignition-validate-cross`). Sourcing the build script is no longer supported.
+- Build and install are separate steps with explicit targets (`ignition`, `ignition-validate`, `ignition-validate-cross`, `install`, `install-ignition-validate-cross`, `install-grub-for-bootupd`).
 
 ### Features
 
@@ -41,6 +39,9 @@ Starting with this release, ignition-validate binaries are signed with the
 
 - Merge Butane config transpiler into the Ignition repository; the `butane` CLI is now built from the Ignition source tree ([#2235](https://github.com/coreos/ignition/pull/2235))
 - Replace GCS client library with direct HTTP calls to the GCS JSON API, significantly reducing binary size ([#2045](https://github.com/coreos/ignition/issues/2045))
+- Refactored the Makefile and build script to match the Fedora RPM spec: separate build targets per binary, with `VERSION` and linker flags passed in at build time
+- `build_blackbox_tests` builds a blackbox-specific `ignition` binary with `make`
+- CI and GitHub Actions updated to build via `make ignition` and `make ignition-validate`
 - Fix test script compatibility with Go 1.26 which removed the `-go` flag from `go tool fix`
 - Improved documentation for the flow of Ignition across clouds.
 

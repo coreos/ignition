@@ -93,4 +93,34 @@ for id in ${platforms}; do
     esac
 done
 
+echo "Checking butane docs..."
+BUTANE_BIN="${BIN_PATH:-bin}/butane"
+if [ ! -x "${BUTANE_BIN}" ]; then
+    echo "butane binary not found at ${BUTANE_BIN}; run 'make butane' first" >&2
+    exit 1
+fi
+shopt -s nullglob
+tmpdir=$(mktemp -d)
+trap 'rm -rf "${tmpdir}"' EXIT
+# Create files-dir contents expected by example configs
+mkdir -p "${tmpdir}/files-dir/tree"
+touch "${tmpdir}/files-dir/"{config.ign,ca.pem,example.conf,example.service,file,file-epilogue,local-file3}
+echo "ssh-rsa AAAA" > "${tmpdir}/files-dir/id_rsa.pub"
+echo "ssh-ed25519 AAAA" > "${tmpdir}/files-dir/id_ed25519.pub"
+echo '{"ignition": {"version": "3.5.0"}}' > "${tmpdir}/files-dir/ignition.ign"
+
+for doc in butane/docs/*md; do
+    # Split each doc on the butane-config marker
+    sed -n '/^<!-- butane-config -->/,/^```$/ p' <"${doc}" \
+        | csplit - '/<!-- butane-config -->/' '{*}' -z --prefix "${tmpdir}/config_$(basename "${doc%.*}")_" -q
+    for cfg in "${tmpdir}"/config_*; do
+        echo "Checking ${doc}: $(basename "${cfg}")"
+        # Strip the marker + ```yaml header and the trailing ```
+        tail -n +3 "${cfg}" | head -n -1 \
+            | "${BUTANE_BIN}" --check --strict --files-dir "${tmpdir}/files-dir" \
+            || (cat -n "${cfg}" && exit 1)
+    done
+    rm -f "${tmpdir}"/config_*
+done
+
 echo "Success"
