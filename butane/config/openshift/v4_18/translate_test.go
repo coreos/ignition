@@ -514,7 +514,7 @@ func TestValidateSupport(t *testing.T) {
 	}
 }
 
-// TestMachineConfigYAMLLargeSizeMiB is the OCPBUGS-114878 / #2309 regression:
+// TestMachineConfigYAMLLargeSizeMiB is the OCPBUGS-114735 / #2309 regression:
 // MachineConfig YAML must encode sizeMiB >= 1e6 as a plain integer.
 func TestMachineConfigYAMLLargeSizeMiB(t *testing.T) {
 	in := `variant: openshift
