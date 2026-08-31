@@ -113,7 +113,7 @@ if [ ! -x "${BUTANE_BIN}" ]; then
 fi
 shopt -s nullglob
 tmpdir=$(mktemp -d)
-trap 'rm -rf "${tmpdir}"' EXIT
+trap 'rm -rf "${butane_files_dir}" "${tmpdir}"' EXIT
 # Create files-dir contents expected by example configs
 mkdir -p "${tmpdir}/files-dir/tree"
 touch "${tmpdir}/files-dir/"{config.ign,ca.pem,example.conf,example.service,file,file-epilogue,local-file3}
