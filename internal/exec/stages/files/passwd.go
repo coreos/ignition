@@ -80,17 +80,26 @@ func (s *stage) createPasswd(config types.Config) error {
 				return err
 			}
 
+			// Resolve intermediate symlinks in the homedir path.
+			// This is relevant on OSTree-based platforms, where
+			// /home is a symlink to var/home.
+			resolvedPath, err := s.JoinPath(homedir)
+			if err != nil {
+				return err
+			}
+			unprefixed := resolvedPath[len(s.DestDir):]
+
 			// Check if the homedir is actually a symlink, and make sure we
 			// relabel the target instead in that case. This is relevant on
 			// OSTree-based platforms, where /root is a link to /var/roothome.
-			if resolved, err := s.ResolveSymlink(homedir); err != nil {
+			if target, err := s.ResolveSymlink(unprefixed); err != nil {
 				return err
-			} else if resolved != "" {
+			} else if target != "" {
 				// note we don't relabel the symlink itself; we assume it's
 				// already properly labeled
-				s.relabel(resolved)
+				s.relabel(target)
 			} else {
-				s.relabel(homedir)
+				s.relabel(unprefixed)
 			}
 		}
 	}
