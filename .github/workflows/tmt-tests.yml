@@ -76,5 +76,5 @@ jobs:
           fi
           # eval is used to allow the use of variables in the command
           # and to avoid issues withe the tmt --filter option
-          eval "tmt $CONTEXT_PARAM run --all --debug -vvvv provision $TMT_PROVISION_OPTS $PLAN_FILTER_PARAM"
+          eval "tmt $CONTEXT_PARAM run --all --debug -vvv provision $TMT_PROVISION_OPTS $PLAN_FILTER_PARAM"
 
