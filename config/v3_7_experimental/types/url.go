@@ -16,6 +16,7 @@ package types
 
 import (
 	"net/url"
+	"path"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
@@ -68,6 +69,14 @@ func validateURL(s string) error {
 	case "data":
 		if _, err := dataurl.DecodeString(s); err != nil {
 			return err
+		}
+		return nil
+	case "file":
+		if u.Host != "" || u.Path == "" {
+			return errors.ErrPathNotAbsolute
+		}
+		if path.Clean(u.Path) != u.Path {
+			return errors.ErrDirtyPath
 		}
 		return nil
 	default:

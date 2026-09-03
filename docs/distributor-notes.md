@@ -35,3 +35,7 @@ When Ignition is updating kernel arguments it will call out to a binary (defined
 As an example of the binary implementation look at [`examples/ignition-kargs-helper`](https://github.com/coreos/ignition/blob/main/examples/ignition-kargs-helper).
 
 If your implementation of Ignition doesn't intend to ship kargs functionality the [`ignition-kargs.service` unit](https://github.com/coreos/ignition/blob/main/dracut/30ignition/ignition-kargs.service) should be disabled.
+
+## Local File Access
+
+Users are able to request local configuration and local resources via the `file://` scheme. Ignition runs in stages, so distributions should ensure that any local paths that users are likely to request are mounted and available before they are required and at least until they are no longer required.

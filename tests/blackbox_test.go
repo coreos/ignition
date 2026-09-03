@@ -377,8 +377,8 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		}
 
 		filesOut, filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck)
-		if _, err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
-			return nil
+		if out, err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
+			return checkNegativeLog(test, out)
 		}
 		if err := umountPartition(rootPartition); err != nil {
 			return err

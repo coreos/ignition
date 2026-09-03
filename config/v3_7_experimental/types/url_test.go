@@ -126,6 +126,18 @@ func TestURLValidate(t *testing.T) {
 			util.StrToPtr("gs://bucket/object"),
 			nil,
 		},
+		{
+			util.StrToPtr("file:///config.ign"),
+			nil,
+		},
+		{
+			util.StrToPtr("file:///../etc/passwd"),
+			errors.ErrDirtyPath,
+		},
+		{
+			util.StrToPtr("file:///foo/./bar"),
+			errors.ErrDirtyPath,
+		},
 	}
 
 	for i, test := range tests {

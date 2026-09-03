@@ -28,6 +28,7 @@ import (
 	"net/netip"
 	"net/url"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"syscall"
@@ -60,11 +61,11 @@ const (
 
 var (
 	ErrSchemeUnsupported      = errors.New("unsupported source scheme")
-	ErrPathNotAbsolute        = errors.New("path is not absolute")
 	ErrNotFound               = errors.New("resource not found")
 	ErrFailed                 = errors.New("failed to fetch resource")
 	ErrCompressionUnsupported = errors.New("compression is not supported with that scheme")
 	ErrNeedNet                = errors.New("resource requires networking")
+	ErrNotRegularFile         = errors.New("not a regular file")
 
 	// ConfigHeaders are the HTTP headers that should be used when the Ignition
 	// config is being fetched
@@ -159,6 +160,15 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 	var err error
 	dest := new(bytes.Buffer)
 	switch u.Scheme {
+	case "file":
+		if u.Host != "" || u.Path == "" || !path.IsAbs(u.Path) {
+			return nil, configErrors.ErrPathNotAbsolute
+		}
+		if path.Clean(u.Path) != u.Path {
+			return nil, configErrors.ErrDirtyPath
+		}
+	}
+	switch u.Scheme {
 	case "http", "https":
 		isAzureBlob := strings.HasSuffix(u.Host, ".blob.core.windows.net")
 		if f.AzSession != nil && isAzureBlob {
@@ -183,6 +193,8 @@ func (f *Fetcher) FetchToBuffer(u url.URL, opts FetchOptions) ([]byte, error) {
 		return buf.Bytes(), err
 	case "gs":
 		err = f.fetchFromGCS(u, dest, opts)
+	case "file":
+		err = f.fetchFromFile(u.Path, dest, opts)
 	case "":
 		return nil, nil
 	default:
@@ -230,6 +242,15 @@ func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
 	}
 	var err error
 	switch u.Scheme {
+	case "file":
+		if u.Host != "" || u.Path == "" || !path.IsAbs(u.Path) {
+			return configErrors.ErrPathNotAbsolute
+		}
+		if path.Clean(u.Path) != u.Path {
+			return configErrors.ErrDirtyPath
+		}
+	}
+	switch u.Scheme {
 	case "http", "https":
 		isAzureBlob := strings.HasSuffix(u.Host, ".blob.core.windows.net")
 		if f.AzSession != nil && isAzureBlob {
@@ -251,6 +272,8 @@ func (f *Fetcher) Fetch(u url.URL, dest *os.File, opts FetchOptions) error {
 		return f.fetchFromS3(u, dest, opts)
 	case "gs":
 		return f.fetchFromGCS(u, dest, opts)
+	case "file":
+		return f.fetchFromFile(u.Path, dest, opts)
 	case "":
 		return nil
 	default:
@@ -457,6 +480,25 @@ func (f *Fetcher) fetchFromGCS(u url.URL, dest io.Writer, opts FetchOptions) err
 	}
 
 	return f.fetchFromHTTP(gcsURL, dest, opts)
+}
+
+func (f *Fetcher) fetchFromFile(path string, dest io.Writer, opts FetchOptions) error {
+	// Check the file type for security. Symlinks are permitted.
+	if info, err := os.Stat(path); err != nil {
+		f.Logger.Err("failed to stat file: %v", err)
+		return err
+	} else if !info.Mode().IsRegular() {
+		f.Logger.Err("refusing to read non-regular file: %s", path)
+		return ErrNotRegularFile
+	}
+
+	fi, err := os.Open(path)
+	if err != nil {
+		f.Logger.Err("failed to read file: %v", err)
+		return err
+	}
+	defer func() { _ = fi.Close() }()
+	return f.decompressCopyHashAndVerify(dest, fi, opts)
 }
 
 type s3target interface {

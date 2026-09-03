@@ -1,7 +1,7 @@
 resource:
   children:
     - name: source
-      desc: "the URL of the %TYPE%. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+      desc: "the URL of the %TYPE%. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, `file`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
       # source is typically required by validation, but some inclusion sites
       # will override this
       required: true
@@ -16,6 +16,11 @@ resource:
           if:
             - variant: ignition
               max: 3.3.0
+        - regex: "`file`, "
+          replacement: ""
+          if:
+            - variant: ignition
+              max: 3.6.0
     - name: compression
       desc: "the type of compression used on the %TYPE% (null or gzip). Compression cannot be used with S3."
     - name: httpHeaders

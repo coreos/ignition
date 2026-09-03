@@ -1,4 +1,4 @@
-// Copyright 2020 Red Hat, Inc.
+// Copyright 2026 CoreOS, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package fixtures
 
-import (
-	"net/url"
-)
+import "embed"
 
-func UrlNeedsNet(u url.URL) bool {
-	return u.Scheme != "data" && u.Scheme != "file" && u.Scheme != ""
-}
+// FS holds fixture files baked into the test binary at build time, so they
+// are available even when the binary runs without the source repository
+// present (e.g. under kola/tmt).
+//
+//go:embed *.ign
+var FS embed.FS
