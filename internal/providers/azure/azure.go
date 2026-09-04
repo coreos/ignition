@@ -28,7 +28,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	ignerrors "github.com/coreos/ignition/v2/config/shared/errors"
 	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	execUtil "github.com/coreos/ignition/v2/internal/exec/util"
@@ -37,6 +36,7 @@ import (
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/coreos/vcontext/report"
 	"golang.org/x/sys/unix"
 )
