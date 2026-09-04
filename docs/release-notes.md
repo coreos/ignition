@@ -12,6 +12,8 @@ nav_order: 9
 
 ### Changes
 
+- Document file `append` and `overwrite` behavior with examples ([#2270](https://github.com/coreos/ignition/issues/2270))
+
 ### Bug fixes
 
 - Resolve intermediate symlinks in relabel paths, fixing SELinux relabeling failures for users with `home_dir` on OSTree platforms after policycoreutils 3.11 ([#2316](https://github.com/coreos/ignition/pull/2316))
