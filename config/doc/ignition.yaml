@@ -1,7 +1,7 @@
 resource:
   children:
     - name: source
-      desc: "the URL of the %TYPE%. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, `file`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
+      desc: "the URL of the %TYPE%. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, `file`, `oem` (in some builds), and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified."
       # source is typically required by validation, but some inclusion sites
       # will override this
       required: true
@@ -21,6 +21,19 @@ resource:
           if:
             - variant: ignition
               max: 3.6.0
+        - regex: "`oem`[^,]*, "
+          replacement: ""
+          if:
+            - variant: ignition
+              max: 3.6.0
+            - variant: fcos
+              min: 1.8.0-experimental
+            - variant: fiot
+              min: 1.1.0-experimental
+            - variant: openshift
+              min: 4.23.0-experimental
+            - variant: r4e
+              min: 1.2.0-experimental
     - name: compression
       desc: "the type of compression used on the %TYPE% (null or gzip). Compression cannot be used with S3."
     - name: httpHeaders
@@ -399,8 +412,8 @@ root:
             - name: cex
               desc: describes the IBM Crypto Express (CEX) card configuration for the luks device.
               children:
-                - name: enabled 
-                  desc: whether or not to enable cex compatibility for luks. If omitted, defaults to false. 
+                - name: enabled
+                  desc: whether or not to enable cex compatibility for luks. If omitted, defaults to false.
     - name: systemd
       desc: describes the desired state of the systemd units.
       children:

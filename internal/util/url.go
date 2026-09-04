@@ -19,5 +19,5 @@ import (
 )
 
 func UrlNeedsNet(u url.URL) bool {
-	return u.Scheme != "data" && u.Scheme != "file" && u.Scheme != ""
+	return u.Scheme != "data" && u.Scheme != "file" && u.Scheme != "oem" && u.Scheme != ""
 }

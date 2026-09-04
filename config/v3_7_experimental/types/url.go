@@ -71,7 +71,7 @@ func validateURL(s string) error {
 			return err
 		}
 		return nil
-	case "file":
+	case "file", "oem":
 		if u.Host != "" || u.Path == "" {
 			return errors.ErrPathNotAbsolute
 		}

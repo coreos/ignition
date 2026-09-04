@@ -138,6 +138,22 @@ func TestURLValidate(t *testing.T) {
 			util.StrToPtr("file:///foo/./bar"),
 			errors.ErrDirtyPath,
 		},
+		{
+			util.StrToPtr("oem:///config.ign"),
+			nil,
+		},
+		{
+			util.StrToPtr("oem://config.ign"),
+			errors.ErrPathNotAbsolute,
+		},
+		{
+			util.StrToPtr("oem:///../etc/passwd"),
+			errors.ErrDirtyPath,
+		},
+		{
+			util.StrToPtr("oem:///foo/../../etc/passwd"),
+			errors.ErrDirtyPath,
+		},
 	}
 
 	for i, test := range tests {
