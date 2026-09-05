@@ -10,6 +10,10 @@ nav_order: 9
 
 ### Features
 
+### Features
+
+- Support Outscale
+
 ### Changes
 
 ### Bug fixes
