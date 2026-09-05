@@ -361,8 +361,7 @@ func translateBootDeviceLuksCex(from BootDeviceLuks, options common.TranslateOpt
 	tr := translate.NewTranslator("yaml", "json", options)
 	// Discard field is handled by the caller because it doesn't go
 	// into types.Cex
-	tm, r = translate.Prefixed(tr, "enabled", &from.Cex.Enabled, &to.Enabled)
-	translate.MergeP(tr, tm, &r, "enabled", &from.Cex.Enabled, &to.Enabled)
+	tm, r = translate.Prefixed(tr, "cex", &from.Cex, &to)
 	// we're being called manually, not via the translate package's
 	// custom translator mechanism, so we have to add the base
 	// translation ourselves
