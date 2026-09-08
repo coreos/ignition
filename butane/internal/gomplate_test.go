@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package main
 
 import (
 	"encoding/json"
@@ -21,18 +21,20 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	baseutil "github.com/coreos/ignition/v2/butane/base/util"
 )
 
 func preserveGlobals(t *testing.T) func() {
 	t.Helper()
-	oldEnableGomplate := EnableGomplate
-	oldConfigPath := GomplateConfigPath
+	oldEnableGomplate := enableGomplate
+	oldConfigPath := gomplateConfigPath
 	oldRenderer := renderer
 	oldContext := renderContext
 
 	return func() {
-		EnableGomplate = oldEnableGomplate
-		GomplateConfigPath = oldConfigPath
+		enableGomplate = oldEnableGomplate
+		gomplateConfigPath = oldConfigPath
 		renderer = oldRenderer
 		renderContext = oldContext
 	}
@@ -40,7 +42,7 @@ func preserveGlobals(t *testing.T) func() {
 
 func initGomplate(t *testing.T, gomplateConfig string) error {
 	t.Helper()
-	EnableGomplate = true
+	enableGomplate = true
 
 	if gomplateConfig != "" {
 		tmpDir := t.TempDir()
@@ -51,12 +53,12 @@ func initGomplate(t *testing.T, gomplateConfig string) error {
 			return err
 		}
 
-		GomplateConfigPath = configPath
+		gomplateConfigPath = configPath
 	} else {
-		GomplateConfigPath = ""
+		gomplateConfigPath = ""
 	}
 
-	return InitGomplateRenderer()
+	return initGomplateRenderer()
 }
 
 func evalTemplate(t *testing.T, template string) (string, error) {
@@ -77,7 +79,7 @@ func evalTemplate(t *testing.T, template string) (string, error) {
 		t.Fatalf("failed to return to begining of temp file: %v", err)
 	}
 
-	output, err := GomplateReadLocalFile(tmpFile)
+	output, err := gomplateReadFile(tmpFile)
 	return string(output), err
 }
 
@@ -116,6 +118,27 @@ func TestNoCustomConfig(t *testing.T) {
 	}
 }
 
+func TestGomplateLocalFile(t *testing.T) {
+	defer preserveGlobals(t)()
+	baseutil.SetLocalFileReader(gomplateReadLocalFile)
+	defer baseutil.SetLocalFileReader(nil)
+
+	if err := initGomplate(t, "#empty config"); err != nil {
+		t.Fatalf("failed to write config: %v", err)
+	}
+	tmpDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(tmpDir, "template"), []byte(`{{ "foo" | strings.ToUpper }}`), 0644); err != nil {
+		t.Fatalf("failed to write template: %v", err)
+	}
+	rendered, err := baseutil.ReadLocalFile("template", tmpDir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if string(rendered) != "FOO" {
+		t.Fatalf("Invalid rendered template, got: '%s'\n", rendered)
+	}
+}
+
 func TestGomplateConfigApplication(t *testing.T) {
 	defer preserveGlobals(t)()
 	// Create a mock HTTP server that returns a fixed JSON response
@@ -150,7 +173,7 @@ func TestGomplateConfigApplication(t *testing.T) {
 
 func TestGomplateDisabled(t *testing.T) {
 	defer preserveGlobals(t)()
-	EnableGomplate = false
+	enableGomplate = false
 
 	expected := "some raw content"
 	rendered, err := evalTemplate(t, expected)
@@ -165,10 +188,10 @@ func TestGomplateDisabled(t *testing.T) {
 
 func TestMissingGomplateConfigFile(t *testing.T) {
 	defer preserveGlobals(t)()
-	EnableGomplate = true
-	GomplateConfigPath = "/nonexistent/path/.gomplate.yaml"
+	enableGomplate = true
+	gomplateConfigPath = "/nonexistent/path/.gomplate.yaml"
 
-	err := InitGomplateRenderer()
+	err := initGomplateRenderer()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

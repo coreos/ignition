@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package main
 
 import (
 	"bytes"
@@ -25,15 +25,15 @@ import (
 )
 
 var (
-	EnableGomplate = false
+	enableGomplate = false
 
-	GomplateConfigPath = ".gomplate.yaml"
+	gomplateConfigPath = ".gomplate.yaml"
 	renderer           = gomplate.NewRenderer(gomplate.RenderOptions{})
 	renderContext      = context.Background()
 )
 
 func parseGomplateConfig() (*gomplate.Config, error) {
-	f, err := os.Open(GomplateConfigPath)
+	f, err := os.Open(gomplateConfigPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, nil
@@ -45,7 +45,7 @@ func parseGomplateConfig() (*gomplate.Config, error) {
 	return gomplate.Parse(f)
 }
 
-func InitGomplateRenderer() error {
+func initGomplateRenderer() error {
 	config, err := parseGomplateConfig()
 	if err != nil {
 		renderer = nil
@@ -87,16 +87,25 @@ func InitGomplateRenderer() error {
 	return nil
 }
 
-func GomplateReadLocalFile(file *os.File) ([]byte, error) {
+func gomplateReadFile(file *os.File) ([]byte, error) {
 	fileContent, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
-	if !EnableGomplate {
+	if !enableGomplate {
 		return fileContent, nil
 	}
 
 	var buf bytes.Buffer
 	err = renderer.Render(renderContext, file.Name(), string(fileContent), &buf)
 	return buf.Bytes(), err
+}
+
+func gomplateReadLocalFile(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	return gomplateReadFile(file)
 }
