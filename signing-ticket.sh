@@ -33,7 +33,14 @@ do_sign() {
 # Grab the ignition-validate binaries out of the redistributable rpm
 rpm="ignition-validate-redistributable-${VR}.noarch.rpm"
 koji download-build --key $RPMKEY --rpm $rpm
-rpm -Kv "$rpm" 2>&1 | grep -qi "${RPMKEY}" # Verify the output has the key in it
+# rpm -Kv may exit non-zero (e.g. NOKEY) if the public key is not
+# installed locally, so inspect its output instead of its exit code.
+verify_output=$(rpm -Kv "$rpm" 2>&1 || true)
+if ! grep -qi "key ID .*${RPMKEY}" <<< "$verify_output"; then
+    echo "ERROR: $rpm is not signed with expected key ${RPMKEY}"
+    echo "$verify_output"
+    exit 1
+fi
 rpm2cpio $rpm | cpio -idv './usr/share/ignition/ignition-validate-*'
 
 # Rename the ignition-validate binaries
@@ -64,7 +71,14 @@ do_sign ignition-validate-x86_64-linux
 # Grab the butane binaries out of the redistributable rpm
 rpm="butane-redistributable-${VR}.noarch.rpm"
 koji download-build --key $RPMKEY --rpm $rpm
-rpm -Kv "$rpm" 2>&1 | grep -qi "${RPMKEY}" # Verify the output has the key in it
+# rpm -Kv may exit non-zero (e.g. NOKEY) if the public key is not
+# installed locally, so inspect its output instead of its exit code.
+verify_output=$(rpm -Kv "$rpm" 2>&1 || true)
+if ! grep -qi "key ID .*${RPMKEY}" <<< "$verify_output"; then
+    echo "ERROR: $rpm is not signed with expected key ${RPMKEY}"
+    echo "$verify_output"
+    exit 1
+fi
 rpm2cpio $rpm | cpio -idv './usr/share/butane/butane-*'
 
 # Rename the butane binaries
