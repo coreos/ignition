@@ -1,0 +1,7 @@
+.git
+report.xml
+*.out
+_*.go
+
+dist/
+bin/

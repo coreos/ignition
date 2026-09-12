@@ -1,0 +1,38 @@
+linters:
+  enable:
+    # Default linters, plus these:
+    - exportloopref
+    - gocognit
+    - goconst
+    - gocritic
+    - gofmt
+    - gosec
+    - misspell
+    - paralleltest
+    - revive
+
+linters-settings:
+  govet:
+    enable:
+      - fieldalignment
+
+issues:
+  exclude:
+    # Disable scopelint errors on table driven tests
+    - Using the variable on range scope `tc` in function literal
+    # Disable documenting fstest Test functions
+    - exported function Test\S* should have comment or be unexported
+    - comment on exported function Test\S* should be of the form
+  exclude-rules:
+    - path: '(.+)_test\.go|^fstest/'  # Disable some lint failures on test files and packages.
+      linters:
+        - govet
+      text: 'fieldalignment: struct with .* bytes could be .*'  # Govet's fieldalignment memory size check on table-driven test case types requires field reordering to improve performance, which can lower readability without a meaningful impact to non-test code.
+  include:
+    # Re-enable default excluded rules
+    - EXC0001
+    - EXC0002
+    - EXC0012
+    - EXC0013
+    - EXC0014
+    - EXC0015

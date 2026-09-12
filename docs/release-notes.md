@@ -12,6 +12,8 @@ nav_order: 9
 
 ### Changes
 
+- Add support for [`gomplate`](https://github.com/hairyhenderson/gomplate) integration, opt-in via `--enable-gomplate`
+
 ### Bug fixes
 
 - Resolve intermediate symlinks in relabel paths, fixing SELinux relabeling failures for users with `home_dir` on OSTree platforms after policycoreutils 3.11 ([#2316](https://github.com/coreos/ignition/pull/2316))
