@@ -45,8 +45,12 @@ func TestReadInput(t *testing.T) {
 				os.Stdin = tmp
 				return "", func() {
 					os.Stdin = orig
-					tmp.Close()
-					os.Remove(tmp.Name())
+					if err := tmp.Close(); err != nil {
+						t.Errorf("failed to close temp file: %v", err)
+					}
+					if err := os.Remove(tmp.Name()); err != nil {
+						t.Errorf("failed to remove temp file: %v", err)
+					}
 				}
 			},
 			wantData: []byte("hello from stdin"),
@@ -66,8 +70,12 @@ func TestReadInput(t *testing.T) {
 				os.Stdin = tmp
 				return "", func() {
 					os.Stdin = orig
-					tmp.Close()
-					os.Remove(tmp.Name())
+					if err := tmp.Close(); err != nil {
+						t.Errorf("failed to close temp file: %v", err)
+					}
+					if err := os.Remove(tmp.Name()); err != nil {
+						t.Errorf("failed to remove temp file: %v", err)
+					}
 				}
 			},
 			wantData: []byte{},
