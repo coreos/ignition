@@ -17,15 +17,17 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
 func TestReadInput(t *testing.T) {
 	tests := []struct {
-		name     string
-		setup    func(t *testing.T) (input string, cleanup func())
-		wantData []byte
-		wantErr  bool
+		name       string
+		setup      func(t *testing.T) (input string, cleanup func())
+		wantData   []byte
+		wantErr    bool
+		wantErrMsg string
 	}{
 		{
 			name: "stdin",
@@ -104,6 +106,30 @@ func TestReadInput(t *testing.T) {
 			wantData: nil,
 			wantErr:  true,
 		},
+		{
+			name: "stdin read error",
+			setup: func(t *testing.T) (string, func()) {
+				orig := os.Stdin
+				closed, err := os.CreateTemp("", "butane-closed-stdin")
+				if err != nil {
+					t.Fatalf("failed to create temp file: %v", err)
+				}
+				name := closed.Name()
+				if err := closed.Close(); err != nil {
+					t.Fatalf("failed to close temp file: %v", err)
+				}
+				os.Stdin = closed
+				return "", func() {
+					os.Stdin = orig
+					if err := os.Remove(name); err != nil {
+						t.Errorf("failed to remove temp file: %v", err)
+					}
+				}
+			},
+			wantData:   nil,
+			wantErr:    true,
+			wantErrMsg: "failed to read <stdin>:",
+		},
 	}
 
 	for _, tt := range tests {
@@ -115,6 +141,11 @@ func TestReadInput(t *testing.T) {
 			if tt.wantErr {
 				if err == nil {
 					t.Fatalf("expected error, got nil")
+				}
+				if tt.wantErrMsg != "" {
+					if !strings.Contains(err.Error(), tt.wantErrMsg) {
+						t.Errorf("expected error containing %q, got %q", tt.wantErrMsg, err.Error())
+					}
 				}
 			} else if err != nil {
 				t.Fatalf("unexpected error: %v", err)
