@@ -12,7 +12,7 @@ nav_order: 9
 
 ### Changes
 
-- `./test` validates the Butane configs in `butane/docs`, restoring coverage that was lost when Butane merged into this repository
+- `./test` validates the Butane configs in `butane/docs` without needing a `butane` binary, restoring coverage that was lost when Butane merged into this repository
 
 ### Bug fixes
 
