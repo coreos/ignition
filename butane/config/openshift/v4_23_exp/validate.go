@@ -51,10 +51,7 @@ func (os OpenShift) Validate(c path.ContextPath) (r report.Report) {
 // See: https://github.com/coreos/butane/issues/611
 // See: https://github.com/coreos/butane/issues/613
 func (conf Config) Validate(c path.ContextPath) (r report.Report) {
-	cex := false
-	if util.IsTrue(conf.BootDevice.Luks.Cex.Enabled) {
-		cex = true
-	}
+	cex := util.IsTrue(conf.BootDevice.Luks.Cex.Enabled)
 	for _, l := range conf.Storage.Luks {
 		if util.IsTrue(l.Cex.Enabled) && l.Name == "root" {
 			cex = true
