@@ -22,7 +22,7 @@ The OpenShift configuration is a YAML document conforming to the following speci
 * **_ignition_** (object): metadata about the configuration itself.
   * **_config_** (object): options related to the configuration.
     * **_merge_** (list of objects): a list of the configs to be merged to the current config.
-      * **_source_** (string): the URL of the config. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. Mutually exclusive with `inline` and `local`.
+      * **_source_** (string): the URL of the config. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, `file`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. Mutually exclusive with `inline` and `local`.
       * **_inline_** (string): the contents of the config. Mutually exclusive with `source` and `local`.
       * **_local_** (string): a local path to the contents of the config, relative to the directory specified by the `--files-dir` command-line argument. Mutually exclusive with `source` and `inline`.
       * **_compression_** (string): the type of compression used on the config (null or gzip). Compression cannot be used with S3.
@@ -32,7 +32,7 @@ The OpenShift configuration is a YAML document conforming to the following speci
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed config.
     * **_replace_** (object): the config that will replace the current.
-      * **_source_** (string): the URL of the config. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. Mutually exclusive with `inline` and `local`.
+      * **_source_** (string): the URL of the config. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, `file`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. Mutually exclusive with `inline` and `local`.
       * **_inline_** (string): the contents of the config. Mutually exclusive with `source` and `local`.
       * **_local_** (string): a local path to the contents of the config, relative to the directory specified by the `--files-dir` command-line argument. Mutually exclusive with `source` and `inline`.
       * **_compression_** (string): the type of compression used on the config (null or gzip). Compression cannot be used with S3.
@@ -47,7 +47,7 @@ The OpenShift configuration is a YAML document conforming to the following speci
   * **_security_** (object): options relating to network security.
     * **_tls_** (object): options relating to TLS when fetching resources over `https`.
       * **_certificate_authorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`. All certificate authorities must have a unique `source`, `inline`, or `local`.
-        * **_source_** (string): the URL of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. Mutually exclusive with `inline` and `local`.
+        * **_source_** (string): the URL of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, `file`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. Mutually exclusive with `inline` and `local`.
         * **_inline_** (string): the contents of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Mutually exclusive with `source` and `local`.
         * **_local_** (string): a local path to the contents of the certificate bundle (in PEM format), relative to the directory specified by the `--files-dir` command-line argument. The bundle can contain multiple concatenated certificates. Mutually exclusive with `source` and `inline`.
         * **_compression_** (string): the type of compression used on the certificate bundle (null or gzip). Compression cannot be used with S3.
@@ -81,8 +81,8 @@ The OpenShift configuration is a YAML document conforming to the following speci
     * **_spares_** (integer): the number of spares (if applicable) in the array.
     * **_options_** (list of strings): any additional options to be passed to mdadm.
   * **_filesystems_** (list of objects): the list of filesystems to be configured. `device` and `format` need to be specified. Every filesystem must have a unique `device`.
-    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-    * **format** (string): the filesystem format (ext4, xfs, vfat, or swap).
+    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks. For virtiofs, this is the tag name.
+    * **format** (string): the filesystem format (ext4, xfs, vfat, virtiofs, or swap).
     * **_path_** (string): the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
     * **_wipe_filesystem_** (boolean): whether or not to wipe the device before filesystem creation, see [Ignition's documentation on filesystems](https://coreos.github.io/ignition/operator-notes/#filesystem-reuse-semantics) for more information. Defaults to false.
     * **_label_** (string): the label of the filesystem.
@@ -111,7 +111,7 @@ The OpenShift configuration is a YAML document conforming to the following speci
     * **name** (string): the name of the luks device.
     * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
     * **_key_file_** (object): options related to the contents of the key file.
-      * **_source_** (string): the URL of the key file. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. Mutually exclusive with `inline` and `local`.
+      * **_source_** (string): the URL of the key file. Supported schemes are `http`, `https`, `tftp`, `s3`, `arn`, `gs`, `file`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. Mutually exclusive with `inline` and `local`.
       * **_inline_** (string): the contents of the key file. Mutually exclusive with `source` and `local`.
       * **_local_** (string): a local path to the contents of the key file, relative to the directory specified by the `--files-dir` command-line argument. Mutually exclusive with `source` and `inline`.
       * **_compression_** (string): the type of compression used on the key file (null or gzip). Compression cannot be used with S3.

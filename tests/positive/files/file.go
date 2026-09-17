@@ -15,6 +15,9 @@
 package files
 
 import (
+	"net/url"
+	"os"
+
 	"github.com/coreos/ignition/v2/tests/register"
 	"github.com/coreos/ignition/v2/tests/types"
 )
@@ -31,6 +34,7 @@ func init() {
 	register.Register(register.PositiveTest, ApplyCustomFilePermissions())
 	register.Register(register.PositiveTest, ApplyCustomFilePermissionsBeforeBugfix())
 	register.Register(register.PositiveTest, CreateFileFromCompressedDataURL())
+	register.Register(register.PositiveTest, CreateFileFromFileURL())
 	// TODO: Investigate why ignition's C code hates our environment
 	// register.Register(register.PositiveTest, UserGroupByName())
 }
@@ -766,6 +770,58 @@ func CreateFileFromCompressedDataURL() types.Test {
 		},
 	})
 	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+func CreateFileFromFileURL() types.Test {
+	name := "files.create.file"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	// Write a file to the host filesystem so we can verify that Ignition
+	// fetches its real contents via a file:// URL. Using a temporary file
+	// keeps the test self-contained and independent of the source repository,
+	// which may not be present when the test binary runs.
+	fileContents := "example file\n"
+	f, err := os.CreateTemp("", "ignition-file-url")
+	if err != nil {
+		panic(err)
+	}
+	if _, err := f.WriteString(fileContents); err != nil {
+		_ = f.Close()
+		panic(err)
+	}
+	if err := f.Close(); err != nil {
+		panic(err)
+	}
+	fileURL := url.URL{Scheme: "file", Path: f.Name()}
+	config := `{
+	  "ignition": { "version": "$version" },
+	  "storage": {
+	    "files": [{
+	      "path": "/foo/bar",
+	      "contents": {
+	        "source": "` + fileURL.String() + `"
+	      }
+	    }]
+	  }
+	}`
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: fileContents,
+		},
+	})
+	configMinVersion := "3.7.0-experimental"
 
 	return types.Test{
 		Name:             name,
