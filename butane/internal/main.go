@@ -61,6 +61,7 @@ func main() {
 	pflag.BoolVarP(&strict, "strict", "s", false, "fail on any warning")
 	pflag.BoolVarP(&options.Pretty, "pretty", "p", false, "output formatted json")
 	pflag.BoolVarP(&options.Raw, "raw", "r", false, "never wrap in a MachineConfig; force Ignition output")
+	pflag.BoolVar(&options.YAMLDocumentSeparator, "yaml-doc-separator", false, "prepend YAML document separator (---) to YAML output")
 	pflag.BoolVar(&rawErrors, "raw-errors", false, "show raw errors, rather than pretty printing them")
 	pflag.StringVar(&colorFlag, "color", "auto", `control color output: "auto", "always", or "never"`)
 	pflag.Lookup("color").NoOptDefVal = "always"

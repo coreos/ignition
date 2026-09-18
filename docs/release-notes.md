@@ -10,6 +10,9 @@ nav_order: 9
 
 ### Features
 
+- Butane: add `--yaml-doc-separator` to prepend the YAML document separator
+  (`---`) to MachineConfig output
+
 ### Changes
 
 - `./test` validates the Butane configs in `butane/docs`, restoring coverage that was lost when Butane merged into this repository

@@ -22,6 +22,7 @@ type TranslateOptions struct {
 
 type TranslateBytesOptions struct {
 	TranslateOptions
-	Pretty bool
-	Raw    bool // encode only the Ignition config, not any wrapper
+	Pretty                bool
+	Raw                   bool // encode only the Ignition config, not any wrapper
+	YAMLDocumentSeparator bool // prepend YAML document separator (---) to YAML output
 }
