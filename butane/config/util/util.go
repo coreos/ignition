@@ -156,7 +156,7 @@ func TranslateBytesYAML(input []byte, container interface{}, translateMethod str
 	}
 
 	var ifaceCfg interface{}
-	if err := json.Unmarshal(jsonCfg, &ifaceCfg); err != nil {
+	if err := yaml.Unmarshal(jsonCfg, &ifaceCfg); err != nil {
 		return []byte{}, r, err
 	}
 
