@@ -17,6 +17,10 @@ nav_order: 9
 
 - `./test` validates the Butane configs in `butane/docs`, restoring coverage that was lost when Butane merged into this repository
 
+### Features
+
+- butane: add `overwrite` support for trees, threading the flag through to every generated file, directory, and link ([#2284](https://github.com/coreos/ignition/pull/2284))
+
 ### Bug fixes
 
 - Resolve intermediate symlinks in relabel paths, fixing SELinux relabeling failures for users with `home_dir` on OSTree platforms after policycoreutils 3.11 ([#2316](https://github.com/coreos/ignition/pull/2316))

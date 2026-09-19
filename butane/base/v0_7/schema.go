@@ -249,12 +249,13 @@ type Timeouts struct {
 }
 
 type Tree struct {
-	Group    NodeGroup `yaml:"group"`
-	Local    string    `yaml:"local"`
-	Path     *string   `yaml:"path"`
-	User     NodeUser  `yaml:"user"`
-	FileMode *int      `yaml:"file_mode"`
-	DirMode  *int      `yaml:"dir_mode"`
+	Group     NodeGroup `yaml:"group"`
+	Local     string    `yaml:"local"`
+	Path      *string   `yaml:"path"`
+	User      NodeUser  `yaml:"user"`
+	FileMode  *int      `yaml:"file_mode"`
+	DirMode   *int      `yaml:"dir_mode"`
+	Overwrite *bool     `yaml:"overwrite"`
 }
 
 type Unit struct {
