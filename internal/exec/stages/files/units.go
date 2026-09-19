@@ -79,7 +79,7 @@ func (s *stage) createUnits(config types.Config) error {
 				}
 			} else {
 				key := fmt.Sprintf("%s-%s", unit.Name, identifier)
-				if _, ok := presets[unit.Name]; !ok {
+				if _, ok := presets[key]; !ok {
 					presets[key] = &Preset{unit.Name, *unit.Enabled, false, []string{}}
 				} else {
 					return fmt.Errorf("%q key is already present in the presets map", key)
