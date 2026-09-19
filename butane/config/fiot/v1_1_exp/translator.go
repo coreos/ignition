@@ -10,9 +10,9 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.)
+// limitations under the License.
 
-package v1_8_exp
+package v1_1_exp
 
 import (
 	"fmt"
@@ -42,13 +42,13 @@ func init() {
 
 func (specTranslator) Metadata() translator.Metadata {
 	return translator.Metadata{
-		Variant: "fcos",
+		Variant: "fiot",
 		Version: semver.Version{
 			Major:      1,
-			Minor:      8,
+			Minor:      1,
 			PreRelease: "experimental",
 		},
-		Description:     "Fedora CoreOS",
+		Description:     "Fedora IoT",
 		Experimental:    true,
 		IgnitionVersion: types.MaxVersion,
 	}
@@ -99,7 +99,7 @@ func (specTranslator) Marshal(input interface{}, options translator.Options) ([]
 func getParsedConfig(input interface{}) (*parsedConfig, error) {
 	parsed, ok := input.(*parsedConfig)
 	if !ok || parsed == nil {
-		return nil, fmt.Errorf("fcos v1.8 experimental translator: unexpected parsed config type %T", input)
+		return nil, fmt.Errorf("fiot v1.1 experimental translator: unexpected parsed config type %T", input)
 	}
 	return parsed, nil
 }

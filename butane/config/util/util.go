@@ -182,10 +182,23 @@ func TranslateBytesYAML(input []byte, container interface{}, translateMethod str
 	if err != nil {
 		return jsonCfg, r, err
 	}
+	yamlCfg, err := jsonToYAML(jsonCfg)
+	return yamlCfg, r, err
+}
 
+// MarshalYAML marshals from to YAML using its JSON struct tags.
+func MarshalYAML(from interface{}) ([]byte, error) {
+	jsonCfg, err := Marshal(from, false)
+	if err != nil {
+		return nil, err
+	}
+	return jsonToYAML(jsonCfg)
+}
+
+func jsonToYAML(jsonCfg []byte) ([]byte, error) {
 	var ifaceCfg interface{}
 	if err := json.Unmarshal(jsonCfg, &ifaceCfg); err != nil {
-		return []byte{}, r, err
+		return []byte{}, err
 	}
 
 	var yamlCfgBuf bytes.Buffer
@@ -196,13 +209,13 @@ func TranslateBytesYAML(input []byte, container interface{}, translateMethod str
 	encoder := yaml.NewEncoder(&yamlCfgBuf)
 	encoder.SetIndent(2)
 	if err := encoder.Encode(ifaceCfg); err != nil {
-		return []byte{}, r, err
+		return []byte{}, err
 	}
 	if err := encoder.Close(); err != nil {
-		return []byte{}, r, err
+		return []byte{}, err
 	}
 	yamlCfg := bytes.Trim(yamlCfgBuf.Bytes(), "\n")
-	return yamlCfg, r, err
+	return yamlCfg, nil
 }
 
 // Report an ErrFieldElided warning for any non-zero top-level fields in the

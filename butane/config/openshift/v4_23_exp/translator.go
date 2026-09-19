@@ -10,14 +10,15 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.)
+// limitations under the License.
 
-package v1_8_exp
+package v4_23_exp
 
 import (
 	"fmt"
 
 	"github.com/coreos/ignition/v2/butane/config/common"
+	"github.com/coreos/ignition/v2/butane/config/openshift/v4_23_exp/result"
 	cutil "github.com/coreos/ignition/v2/butane/config/util"
 	"github.com/coreos/ignition/v2/butane/translator"
 
@@ -42,13 +43,13 @@ func init() {
 
 func (specTranslator) Metadata() translator.Metadata {
 	return translator.Metadata{
-		Variant: "fcos",
+		Variant: "openshift",
 		Version: semver.Version{
-			Major:      1,
-			Minor:      8,
+			Major:      4,
+			Minor:      23,
 			PreRelease: "experimental",
 		},
-		Description:     "Fedora CoreOS",
+		Description:     "OpenShift",
 		Experimental:    true,
 		IgnitionVersion: types.MaxVersion,
 	}
@@ -75,7 +76,7 @@ func (specTranslator) Validate(input interface{}) (report.Report, error) {
 func (specTranslator) Translate(input interface{}, options translator.Options) (interface{}, report.Report, error) {
 	parsed, err := getParsedConfig(input)
 	if err != nil {
-		return types.Config{}, report.Report{}, err
+		return nil, report.Report{}, err
 	}
 
 	translateOptions := common.TranslateOptions{
@@ -83,23 +84,36 @@ func (specTranslator) Translate(input interface{}, options translator.Options) (
 		NoResourceAutoCompression: options.NoResourceAutoCompression,
 		DebugPrintTranslations:    options.DebugPrintTranslations,
 	}
-	final, translations, translationReport := parsed.config.ToIgn3_7Unvalidated(translateOptions)
+	if options.Raw {
+		final, translations, translationReport := parsed.config.ToIgn3_7Unvalidated(translateOptions)
+		r, err := cutil.ValidateTranslatedConfig(parsed.config, final, translations, translationReport, translateOptions)
+		r.Correlate(parsed.contextTree)
+		if err != nil {
+			return types.Config{}, r, err
+		}
+		return final, r, nil
+	}
+
+	final, translations, translationReport := parsed.config.ToMachineConfig4_23Unvalidated(translateOptions)
 	r, err := cutil.ValidateTranslatedConfig(parsed.config, final, translations, translationReport, translateOptions)
 	r.Correlate(parsed.contextTree)
 	if err != nil {
-		return types.Config{}, r, err
+		return result.MachineConfig{}, r, err
 	}
 	return final, r, nil
 }
 
 func (specTranslator) Marshal(input interface{}, options translator.Options) ([]byte, error) {
-	return cutil.Marshal(input, options.Pretty)
+	if options.Raw {
+		return cutil.Marshal(input, options.Pretty)
+	}
+	return cutil.MarshalYAML(input)
 }
 
 func getParsedConfig(input interface{}) (*parsedConfig, error) {
 	parsed, ok := input.(*parsedConfig)
 	if !ok || parsed == nil {
-		return nil, fmt.Errorf("fcos v1.8 experimental translator: unexpected parsed config type %T", input)
+		return nil, fmt.Errorf("openshift v4.23 experimental translator: unexpected parsed config type %T", input)
 	}
 	return parsed, nil
 }
