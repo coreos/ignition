@@ -92,6 +92,10 @@ func (specTranslator) Translate(input interface{}, options translator.Options) (
 	return final, r, nil
 }
 
+func (specTranslator) Marshal(input interface{}, options translator.Options) ([]byte, error) {
+	return cutil.Marshal(input, options.Pretty)
+}
+
 func getParsedConfig(input interface{}) (*parsedConfig, error) {
 	parsed, ok := input.(*parsedConfig)
 	if !ok || parsed == nil {

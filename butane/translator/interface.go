@@ -27,6 +27,8 @@ type Translator interface {
 	Parse(input []byte) (interface{}, error)
 	// Translate translates a parsed config after successful validation.
 	Translate(input interface{}, options Options) (interface{}, report.Report, error)
+	// Marshal serializes a translated config.
+	Marshal(input interface{}, options Options) ([]byte, error)
 	// Validate validates a parsed config.
 	Validate(in interface{}) (report.Report, error)
 }

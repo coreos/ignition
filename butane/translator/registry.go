@@ -17,8 +17,6 @@ package translator
 import (
 	"context"
 	"fmt"
-
-	cutil "github.com/coreos/ignition/v2/butane/config/util"
 )
 
 // Global registry for all translators.
@@ -113,7 +111,7 @@ func (r *Registry) Translate(ctx context.Context, input []byte, opts Options) (R
 		return res, err
 	}
 
-	out, err := cutil.Marshal(translated, opts.Pretty)
+	out, err := t.Marshal(translated, opts)
 	if err != nil {
 		return res, err
 	}
