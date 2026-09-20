@@ -29,6 +29,9 @@ import (
 	"github.com/coreos/ignition/v2/internal/as_user"
 )
 
+// TestOpenFileDropsSupplementaryGroups verifies that OpenFile drops inherited
+// supplementary groups, preserves target-user access, and leaves the caller's
+// groups unchanged. It requires root and isolates credentials in a subprocess.
 func TestOpenFileDropsSupplementaryGroups(t *testing.T) {
 	if os.Geteuid() != 0 {
 		t.Skip("test requires root")
