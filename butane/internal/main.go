@@ -16,11 +16,11 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/spf13/pflag"
 
+	baseutil "github.com/coreos/ignition/v2/butane/base/util"
 	"github.com/coreos/ignition/v2/butane/config"
 	"github.com/coreos/ignition/v2/butane/config/common"
 	breport "github.com/coreos/ignition/v2/butane/internal/report"
@@ -41,6 +41,10 @@ func isCharDevice(f *os.File) bool {
 }
 
 func readInput(input string) ([]byte, string, error) {
+	return readProcessedInput(input, "")
+}
+
+func readProcessedInput(input, processor string) ([]byte, string, error) {
 	infile := os.Stdin
 	filename := "<stdin>"
 	if input != "" {
@@ -53,7 +57,7 @@ func readInput(input string) ([]byte, string, error) {
 		filename = input
 	}
 
-	data, err := io.ReadAll(infile)
+	data, err := processFile(infile, processor)
 	if err != nil {
 		return nil, filename, fmt.Errorf("failed to read %s: %w", filename, err)
 	}
@@ -71,6 +75,7 @@ func main() {
 		versionFlag bool
 		rawErrors   bool
 		colorize    bool
+		processor   string
 	)
 	options := common.TranslateBytesOptions{}
 	pflag.BoolVarP(&helpFlag, "help", "h", false, "show usage and exit")
@@ -93,6 +98,7 @@ func main() {
 	pflag.Lookup("input").Hidden = true
 	pflag.StringVarP(&output, "output", "o", "", "write to output file instead of stdout")
 	pflag.StringVarP(&options.FilesDir, "files-dir", "d", "", "allow embedding local files from this directory")
+	pflag.StringVar(&processor, "file-processor", "", "process every input file through this external command")
 
 	pflag.Usage = func() {
 		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options] [input-file]\n", os.Args[0])
@@ -130,8 +136,13 @@ func main() {
 		fmt.Println(version.String)
 		os.Exit(0)
 	}
+	if processor != "" {
+		baseutil.SetLocalFileReader(func(path string) ([]byte, error) {
+			return processLocalFile(path, processor)
+		})
+	}
 
-	dataIn, filename, err := readInput(input)
+	dataIn, filename, err := readProcessedInput(input, processor)
 	if err != nil {
 		fail("%v\n", err)
 	}
