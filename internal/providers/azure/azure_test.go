@@ -18,7 +18,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/coreos/ignition/v2/internal/log"
+
+	"golang.org/x/sys/unix"
 )
 
 // ovfEnvWithCustomData returns an Azure ovf-env.xml with the given CustomData
@@ -110,6 +116,112 @@ func TestCustomDataFromOvfEnv(t *testing.T) {
 			}
 			if string(got) != tt.out {
 				t.Fatalf("expected %q, got %q", tt.out, got)
+			}
+		})
+	}
+}
+
+func TestReadCustomData(test *testing.T) {
+	config := `{"ignition":{"version":"3.4.0"}}`
+	encoded := base64.StdEncoding.EncodeToString([]byte(config))
+	ovf := ovfEnvWithCustomData(fmt.Sprintf("<ns1:CustomData>%s</ns1:CustomData>", encoded))
+	binConfig := []byte(`{"ignition":{"version":"3.5.0"}}`)
+	malformedOvf := "<ns0:Environment>not closed"
+
+	tests := []struct {
+		name    string
+		xml     string
+		bin     []byte
+		binDir  bool
+		out     string
+		wantErr error
+	}{
+		{
+			name: "ovf without bin",
+			xml:  ovf,
+			out:  config,
+		},
+		{
+			name: "ovf preferred over bin",
+			xml:  ovf,
+			bin:  binConfig,
+			out:  config,
+		},
+		{
+			name: "missing custom data falls back to bin",
+			xml:  ovfEnvWithCustomData(""),
+			bin:  binConfig,
+			out:  string(binConfig),
+		},
+		{
+			name: "empty custom data falls back to bin",
+			xml:  ovfEnvWithCustomData("<ns1:CustomData> \n\t </ns1:CustomData>"),
+			bin:  binConfig,
+			out:  string(binConfig),
+		},
+		{
+			name: "malformed xml falls back to bin",
+			xml:  malformedOvf,
+			bin:  binConfig,
+			out:  string(binConfig),
+		},
+		{
+			name: "invalid base64 falls back to bin",
+			xml:  ovfEnvWithCustomData("<ns1:CustomData>!!! not base64 !!!</ns1:CustomData>"),
+			bin:  binConfig,
+			out:  string(binConfig),
+		},
+		{
+			name: "no custom data in either source",
+			xml:  ovfEnvWithCustomData(""),
+		},
+		{
+			name: "malformed ovf with missing bin is empty",
+			xml:  malformedOvf,
+		},
+		{
+			name: "malformed ovf with empty bin is empty",
+			xml:  malformedOvf,
+			bin:  []byte{},
+		},
+		{
+			name:    "bin read error",
+			xml:     ovfEnvWithCustomData(""),
+			binDir:  true,
+			wantErr: unix.EISDIR,
+		},
+		{
+			name:    "bin alone is not a config drive",
+			bin:     binConfig,
+			wantErr: os.ErrNotExist,
+		},
+	}
+
+	for _, testCase := range tests {
+		test.Run(testCase.name, func(test *testing.T) {
+			directory := test.TempDir()
+			if testCase.xml != "" {
+				if err := os.WriteFile(filepath.Join(directory, ovfEnvPath), []byte(testCase.xml), 0600); err != nil {
+					test.Fatal(err)
+				}
+			}
+			if testCase.binDir {
+				if err := os.Mkdir(filepath.Join(directory, configPath), 0700); err != nil {
+					test.Fatal(err)
+				}
+			} else if testCase.bin != nil {
+				if err := os.WriteFile(filepath.Join(directory, configPath), testCase.bin, 0600); err != nil {
+					test.Fatal(err)
+				}
+			}
+
+			logger := log.New(true)
+			got, err := readCustomData(&logger, directory)
+			if !errors.Is(err, testCase.wantErr) {
+				test.Fatalf("expected error %v, got %v", testCase.wantErr, err)
+			}
+			if string(got) != testCase.out {
+				test.Fatalf("expected %q, got %q", testCase.out, got)
 			}
 		})
 	}

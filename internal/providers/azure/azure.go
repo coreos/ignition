@@ -43,6 +43,7 @@ import (
 
 const (
 	ovfEnvPath = "ovf-env.xml"
+	configPath = "CustomData.bin"
 )
 
 var (
@@ -232,16 +233,34 @@ func getRawConfig(f *resource.Fetcher, devicePath string, fstype string) ([]byte
 		)
 	}()
 
+	rawConfig, err := readCustomData(logger, mnt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read custom data from device %q: %w", devicePath, err)
+	}
+	return rawConfig, nil
+}
+
+func readCustomData(logger *log.Logger, directory string) ([]byte, error) {
 	// The presence of ovf-env.xml identifies this as the Azure config drive.
 	logger.Debug("reading ovf-env.xml")
-	ovfEnvContents, err := os.ReadFile(filepath.Join(mnt, ovfEnvPath))
+	ovfEnvContents, err := os.ReadFile(filepath.Join(directory, ovfEnvPath))
 	if err != nil {
-		return nil, fmt.Errorf("device %q does not appear to be a config drive: %v", devicePath, err)
+		return nil, fmt.Errorf("reading ovf-env.xml: %w", err)
 	}
 
 	rawConfig, err := customDataFromOvfEnv(ovfEnvContents)
+	if err == nil && len(rawConfig) > 0 {
+		return rawConfig, nil
+	}
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to read custom data from ovf-env.xml on device %q: %v", devicePath, err)
+		logger.Debug("ovf-env.xml custom data unusable, falling back to CustomData.bin: %v", err)
+	} else {
+		logger.Debug("no custom data in ovf-env.xml, falling back to CustomData.bin")
+	}
+	rawConfig, err = os.ReadFile(filepath.Join(directory, configPath))
+	if err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("reading CustomData.bin: %w", err)
 	}
 	return rawConfig, nil
 }
