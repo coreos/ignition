@@ -26,6 +26,7 @@ nav_order: 9
 - Fix Butane rendering large `sizeMiB`/`startMiB` values in scientific
   notation when generating OpenShift MachineConfig YAML ([#2310](https://github.com/coreos/ignition/pull/2310))
 - Fix the Butane root partition constraint check to only examine subsequent partitions ([#2304](https://github.com/coreos/ignition/pull/2304))
+- Close `/proc/mounts` after checking whether block devices are mounted, preventing file descriptor leaks during disk setup ([#2289](https://github.com/coreos/ignition/pull/2289))
 
 ## Ignition 2.27.0 (2026-08-26)
 
