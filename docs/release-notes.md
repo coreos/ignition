@@ -19,6 +19,7 @@ nav_order: 9
 
 ### Bug fixes
 
+- Read Azure custom data from the base64 `CustomData` in `ovf-env.xml` so Confidential VMs pick up their Ignition config, falling back to `CustomData.bin` when custom data is missing or undecodable
 - Resolve intermediate symlinks in relabel paths, fixing SELinux relabeling failures for users with `home_dir` on OSTree platforms after policycoreutils 3.11 ([#2316](https://github.com/coreos/ignition/pull/2316))
 - Fix Butane rendering large `sizeMiB`/`startMiB` values in scientific
   notation when generating OpenShift MachineConfig YAML ([#2310](https://github.com/coreos/ignition/pull/2310))

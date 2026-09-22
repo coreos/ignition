@@ -154,12 +154,17 @@ flowchart TB
     imds_retry -->|Other error| error["Error"]
     write_config --> done["Done"]
 
-    fallback_ovf["Fallback: read OVF custom data from CD-ROM device"]
-    fallback_ovf --> scan["Scan for UDF CD-ROM (often /dev/sr0)"]
-    scan --> mount["Mount device"]
-    mount --> read["Read for ovf-env.xml and CustomData.bin"]
-    read --> available{"Config available?"}
-    available -->|Yes| write_device["Write config to /run/ignition.json"]
+    fallback_ovf["Fallback: read custom data from CD-ROM device"]
+    fallback_ovf --> scan["Scan for next UDF CD-ROM (often /dev/sr0)"]
+    scan -->|Found| read["Mount device and read ovf-env.xml"]
+    scan -->|None found| wait["Wait 1s"] --> scan
+    read -->|Mount or read error| scan
+    read --> available{"Usable OVF CustomData?"}
+    available -->|Decoded and nonempty| write_device["Write config to /run/ignition.json"]
+    available -->|Missing, empty, or undecodable| read_bin["Read CustomData.bin"]
+    read_bin -->|Nonempty data| write_device
+    read_bin -->|Absent or empty| empty["Use empty provider config"]
+    read_bin -->|Other read error| scan
+    empty --> write_device
     write_device --> done
-    available -->|No| wait["Wait 1s"] --> scan
 ```
