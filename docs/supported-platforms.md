@@ -26,6 +26,7 @@ Ignition is currently supported for the following platforms:
 * [NVIDIA BlueField] (`nvidiabluefield`) - Ignition will read its configuration from the bootfifo sysfs interface from the mlxbf_bootctl platform driver.
 * [OpenStack] (`openstack`) - Ignition will read its configuration from the instance userdata via either metadata service or config drive. Cloud SSH keys are handled separately.
 * [Oracle Cloud Infrastucture] (`oraclecloud`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
+* [Outscale] (`outscale`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [Proxmox VE] (`proxmoxve`) - Ignition will read its configuration from the instance userdata via config drive. If there isn't any valid Ignition configuration in userdata it will check the vendordata next. Cloud SSH keys are handled separately.
 * [Equinix Metal] (`packet`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [IBM Power Systems Virtual Server] (`powervs`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
@@ -59,6 +60,7 @@ For most cloud providers, cloud SSH keys and custom network configuration are ha
 [Nutanix]: https://www.nutanix.com/products/ahv
 [OpenStack]: https://www.openstack.org/
 [Oracle Cloud Infrastucture]: https://www.oracle.com/cloud
+[Outscale]: https://docs.outscale.com
 [Proxmox VE]: https://www.proxmox.com/en/proxmox-virtual-environment/overview
 [Equinix Metal]: https://metal.equinix.com/product/
 [IBM Power Systems Virtual Server]: https://www.ibm.com/products/power-virtual-server

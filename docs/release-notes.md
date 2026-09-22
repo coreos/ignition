@@ -10,6 +10,7 @@ nav_order: 9
 
 ### Features
 
+- Support Outscale ([#2296](https://github.com/coreos/ignition/pull/2296))
 - Butane: add `--yaml-doc-separator` to prepend the YAML document separator
   (`---`) to MachineConfig output
 
