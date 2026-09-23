@@ -1,0 +1,8 @@
+variant: fcos
+version: 1.7.0
+storage:
+  files:
+    - path: /etc/{{ env.Getenv "POC_NAME" }}
+      mode: 0644
+      contents:
+        local: message.txt

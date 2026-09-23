@@ -22,6 +22,17 @@ import (
 	"github.com/coreos/ignition/v2/butane/config/common"
 )
 
+var localFileReader = os.ReadFile
+
+// SetLocalFileReader sets the reader used for local file contents. Passing nil
+// restores the default reader.
+func SetLocalFileReader(reader func(string) ([]byte, error)) {
+	if reader == nil {
+		reader = os.ReadFile
+	}
+	localFileReader = reader
+}
+
 func EnsurePathWithinFilesDir(path, filesDir string) error {
 	absBase, err := filepath.Abs(filesDir)
 	if err != nil {
@@ -47,7 +58,7 @@ func ReadLocalFile(configPath, filesDir string) ([]byte, error) {
 	if err := EnsurePathWithinFilesDir(filePath, filesDir); err != nil {
 		return nil, err
 	}
-	return os.ReadFile(filePath)
+	return localFileReader(filePath)
 }
 
 // CheckForDecimalMode fails if the specified mode appears to have been
