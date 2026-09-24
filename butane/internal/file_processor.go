@@ -15,6 +15,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -41,6 +42,6 @@ func processLocalFile(path, processor string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-	return processFile(file, processor)
+	output, err := processFile(file, processor)
+	return output, errors.Join(err, file.Close())
 }
