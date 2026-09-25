@@ -17,11 +17,11 @@ The Fedora CoreOS configuration is a YAML document conforming to the following s
 * **_ignition_** (object): metadata about the configuration itself.
   * **_config_** (object): options related to the configuration.
     * **_merge_** (list of objects): a list of the configs to be merged to the current config.
-      * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. See [AWS S3 access](https://coreos.github.io/ignition/operator-notes/#aws-s3-access) for the supported S3 URL formats and how credentials are resolved.
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
     * **_replace_** (object): the config that will replace the current.
-      * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+      * **source** (string): the URL of the config. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. See [AWS S3 access](https://coreos.github.io/ignition/operator-notes/#aws-s3-access) for the supported S3 URL formats and how credentials are resolved.
       * **_verification_** (object): options related to the verification of the config.
         * **_hash_** (string): the hash of the config, in the form `<type>-<value>` where type is `sha512`.
   * **_timeouts_** (object): options relating to `http` timeouts when fetching files over `http` or `https`.
@@ -30,7 +30,7 @@ The Fedora CoreOS configuration is a YAML document conforming to the following s
   * **_security_** (object): options relating to network security.
     * **_tls_** (object): options relating to TLS when fetching resources over `https`.
       * **_certificate_authorities_** (list of objects): the list of additional certificate authorities (in addition to the system authorities) to be used for TLS verification when fetching over `https`. All certificate authorities must have a unique `source`.
-        * **source** (string): the URL of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified.
+        * **source** (string): the URL of the certificate bundle (in PEM format). The bundle can contain multiple concatenated certificates. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. See [AWS S3 access](https://coreos.github.io/ignition/operator-notes/#aws-s3-access) for the supported S3 URL formats and how credentials are resolved.
         * **_verification_** (object): options related to the verification of the certificate bundle.
           * **_hash_** (string): the hash of the certificate bundle, in the form `<type>-<value>` where type is `sha512`.
 * **_storage_** (object): describes the desired state of the system's storage devices.
@@ -64,13 +64,13 @@ The Fedora CoreOS configuration is a YAML document conforming to the following s
     * **path** (string): the absolute path to the file.
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. `contents` must be specified if `overwrite` is true. Defaults to false.
     * **_contents_** (object): options related to the contents of the file.
-      * **_source_** (string): the URL of the file. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created. Mutually exclusive with `inline`.
+      * **_source_** (string): the URL of the file. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. If source is omitted and a regular file already exists at the path, Ignition will do nothing. If source is omitted and no file exists, an empty file will be created. See [AWS S3 access](https://coreos.github.io/ignition/operator-notes/#aws-s3-access) for the supported S3 URL formats and how credentials are resolved. Mutually exclusive with `inline`.
       * **_inline_** (string): the contents of the file. Mutually exclusive with `source`.
       * **_compression_** (string): the type of compression used on the file (null or gzip). Compression cannot be used with S3.
       * **_verification_** (object): options related to the verification of the file.
         * **_hash_** (string): the hash of the file, in the form `<type>-<value>` where type is `sha512`. If `compression` is specified, the hash describes the decompressed file.
     * **_append_** (list of objects): list of fragments to be appended to the file. Follows the same structure as `contents`.
-      * **_source_** (string): the URL of the fragment. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. Mutually exclusive with `inline`.
+      * **_source_** (string): the URL of the fragment. Supported schemes are `http`, `https`, `tftp`, `s3`, and [`data`](https://tools.ietf.org/html/rfc2397). When using `http`, it is advisable to use the verification option to ensure the contents haven't been modified. See [AWS S3 access](https://coreos.github.io/ignition/operator-notes/#aws-s3-access) for the supported S3 URL formats and how credentials are resolved. Mutually exclusive with `inline`.
       * **_inline_** (string): the contents of the fragment. Mutually exclusive with `source`.
       * **_compression_** (string): the type of compression used on the fragment (null or gzip). Compression cannot be used with S3.
       * **_verification_** (object): options related to the verification of the fragment.
