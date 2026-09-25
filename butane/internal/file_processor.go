@@ -20,7 +20,18 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 )
+
+func matchesExtension(path string, extensions []string) bool {
+	for _, ext := range extensions {
+		if ext == "*" || strings.HasSuffix(filepath.Base(path), "."+ext) {
+			return true
+		}
+	}
+	return false
+}
 
 func processFile(reader io.Reader, processor string) ([]byte, error) {
 	if processor == "" {

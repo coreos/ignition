@@ -48,14 +48,19 @@ func ReadLocalFile(configPath string, options common.TranslateOptions) ([]byte, 
 	if err := EnsurePathWithinFilesDir(filePath, options.FilesDir); err != nil {
 		return nil, err
 	}
-	if options.LocalFileReader != nil {
-		contents, err := options.LocalFileReader(filePath)
-		if err != nil {
-			return nil, fmt.Errorf("reading %s: %w", filePath, err)
-		}
-		return contents, nil
+	return ReadFile(filePath, options.LocalFileReader)
+}
+
+// ReadFile reads an already-validated path with the optional reader.
+func ReadFile(path string, reader func(string) ([]byte, error)) ([]byte, error) {
+	if reader == nil {
+		return os.ReadFile(path)
 	}
-	return os.ReadFile(filePath)
+	contents, err := reader(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s: %w", path, err)
+	}
+	return contents, nil
 }
 
 // CheckForDecimalMode fails if the specified mode appears to have been

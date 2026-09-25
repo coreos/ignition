@@ -39,6 +39,27 @@ func TestProcessFile(t *testing.T) {
 	}
 }
 
+func TestMatchesExtension(t *testing.T) {
+	for _, test := range []struct {
+		path       string
+		extensions []string
+		want       bool
+	}{
+		{path: "config.bu"},
+		{path: "config.bu", extensions: []string{"bu"}, want: true},
+		{path: "config.templated.yml", extensions: []string{"templated.yml"}, want: true},
+		{path: "config.yml", extensions: []string{"templated.yml"}},
+		{path: "config.raw", extensions: []string{"bu", "txt"}},
+		{path: "nested/config.txt", extensions: []string{"bu", "txt"}, want: true},
+		{path: "binary", extensions: []string{"*"}, want: true},
+		{path: "nested/config.raw", extensions: []string{"bu", "*"}, want: true},
+	} {
+		if got := matchesExtension(test.path, test.extensions); got != test.want {
+			t.Errorf("matchesExtension(%q, %v) = %v, want %v", test.path, test.extensions, got, test.want)
+		}
+	}
+}
+
 func TestLocalFileReaderIsPerTranslation(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "message.txt"), []byte("from disk"), 0644); err != nil {

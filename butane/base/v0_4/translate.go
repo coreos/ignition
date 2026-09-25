@@ -287,7 +287,7 @@ func walkTree(yamlPath path.ContextPath, ts *translate.TranslationSet, r *report
 					ts.AddTranslation(yamlPath, path.New("json", "storage", "files"))
 				}
 			}
-			contents, err := os.ReadFile(srcPath)
+			contents, err := baseutil.ReadFile(srcPath, options.LocalFileReader)
 			if err != nil {
 				r.AddOnError(yamlPath, err)
 				return nil
