@@ -248,6 +248,12 @@ root:
                       replacement: 'Only the [`data`](https://tools.ietf.org/html/rfc2397) scheme is supported.'
                       if:
                         - variant: openshift
+                    # S3 is not supported for this field, so drop the S3
+                    # operator-notes pointer that the base description adds.
+                    - regex: ' See \[AWS S3 access\]\([^)]*\) for the supported S3 URL formats and how credentials are resolved\.'
+                      replacement: ""
+                      if:
+                        - variant: openshift
             - name: mode
               use: mode
         - name: directories
