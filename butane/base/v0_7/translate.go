@@ -143,7 +143,7 @@ func translateResource(from Resource, options common.TranslateOptions) (to types
 
 	if from.Local != nil {
 		c := path.New("yaml", "local")
-		contents, err := baseutil.ReadLocalFile(*from.Local, options.FilesDir)
+		contents, err := baseutil.ReadLocalFile(*from.Local, options)
 		if err != nil {
 			r.AddOnError(c, err)
 			return
@@ -237,7 +237,7 @@ func translatePasswdUser(from PasswdUser, options common.TranslateOptions) (to t
 		}
 
 		for keyFileIndex, sshKeyFile := range from.SSHAuthorizedKeysLocal {
-			sshKeys, err := baseutil.ReadLocalFile(sshKeyFile, options.FilesDir)
+			sshKeys, err := baseutil.ReadLocalFile(sshKeyFile, options)
 			if err != nil {
 				r.AddOnError(c.Append(keyFileIndex), err)
 				continue
@@ -266,7 +266,7 @@ func translateUnit(from Unit, options common.TranslateOptions) (to types.Unit, t
 
 	if util.NotEmpty(from.ContentsLocal) {
 		c := path.New("yaml", "contents_local")
-		contents, err := baseutil.ReadLocalFile(*from.ContentsLocal, options.FilesDir)
+		contents, err := baseutil.ReadLocalFile(*from.ContentsLocal, options)
 		if err != nil {
 			r.AddOnError(c, err)
 			return
@@ -285,7 +285,7 @@ func translateDropin(from Dropin, options common.TranslateOptions) (to types.Dro
 
 	if util.NotEmpty(from.ContentsLocal) {
 		c := path.New("yaml", "contents_local")
-		contents, err := baseutil.ReadLocalFile(*from.ContentsLocal, options.FilesDir)
+		contents, err := baseutil.ReadLocalFile(*from.ContentsLocal, options)
 		if err != nil {
 			r.AddOnError(c, err)
 			return
