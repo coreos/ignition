@@ -29,6 +29,7 @@ nav_order: 9
 - Close `/proc/mounts` after checking whether block devices are mounted, preventing file descriptor leaks during disk setup ([#2289](https://github.com/coreos/ignition/pull/2289))
 - Drop supplementary groups when dropping privileges to write files as a user ([#2242](https://github.com/coreos/ignition/issues/2242))
 - butane: report the friendly input name (`<stdin>` instead of `/dev/stdin`) in stdin read errors
+- butane: don't make `with_mount_unit` units for `virtiofs` filesystems require `systemd-fsck@<tag>.service`, which waits for a device that never appears and fails the mount
 
 ## Ignition 2.27.0 (2026-08-26)
 
