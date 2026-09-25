@@ -15,6 +15,7 @@
 package util
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,7 +49,11 @@ func ReadLocalFile(configPath string, options common.TranslateOptions) ([]byte, 
 		return nil, err
 	}
 	if options.LocalFileReader != nil {
-		return options.LocalFileReader(filePath)
+		contents, err := options.LocalFileReader(filePath)
+		if err != nil {
+			return nil, fmt.Errorf("reading %s: %w", filePath, err)
+		}
+		return contents, nil
 	}
 	return os.ReadFile(filePath)
 }
