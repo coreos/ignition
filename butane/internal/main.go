@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -100,7 +101,7 @@ func main() {
 	pflag.StringVarP(&output, "output", "o", "", "write to output file instead of stdout")
 	pflag.StringVarP(&options.FilesDir, "files-dir", "d", "", "allow embedding local files from this directory")
 	pflag.StringVar(&processor, "file-processor", "", "process the root input, local references, and regular tree files through this external command")
-	pflag.StringVar(&extensions, "file-processor-allowed-ext", "", "comma-separated filename suffixes to process (e.g. bu,txt,templated.yml); * processes all named files, stdin is always processed")
+	pflag.StringVar(&extensions, "file-processor-allowed-ext", "", "comma-separated filename suffixes to process (e.g. bu,txt,stdin); stdin permits stdin, * permits all named files")
 
 	pflag.Usage = func() {
 		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options] [input-file]\n", os.Args[0])
@@ -161,7 +162,8 @@ func main() {
 	}
 
 	inputProcessor := processor
-	if input != "" && !matchesExtension(input, allowedExtensions) {
+	if (input == "" && !slices.Contains(allowedExtensions, "stdin")) ||
+		(input != "" && !matchesExtension(input, allowedExtensions)) {
 		inputProcessor = ""
 	}
 	dataIn, filename, err := readProcessedInput(input, inputProcessor)
