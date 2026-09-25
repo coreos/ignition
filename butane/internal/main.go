@@ -20,7 +20,6 @@ import (
 
 	"github.com/spf13/pflag"
 
-	baseutil "github.com/coreos/ignition/v2/butane/base/util"
 	"github.com/coreos/ignition/v2/butane/config"
 	"github.com/coreos/ignition/v2/butane/config/common"
 	breport "github.com/coreos/ignition/v2/butane/internal/report"
@@ -113,9 +112,9 @@ func main() {
 		os.Exit(0)
 	}
 	if processor != "" {
-		baseutil.SetLocalFileReader(func(path string) ([]byte, error) {
+		options.LocalFileReader = func(path string) ([]byte, error) {
 			return processLocalFile(path, processor)
-		})
+		}
 	}
 
 	infile := os.Stdin

@@ -15,9 +15,10 @@
 package common
 
 type TranslateOptions struct {
-	FilesDir                  string // allow embedding local files relative to this directory
-	NoResourceAutoCompression bool   // skip automatic compression of inline/local resources
-	DebugPrintTranslations    bool   // report translations to stderr
+	FilesDir                  string                       // allow embedding local files relative to this directory
+	LocalFileReader           func(string) ([]byte, error) // read local files; nil uses os.ReadFile
+	NoResourceAutoCompression bool                         // skip automatic compression of inline/local resources
+	DebugPrintTranslations    bool                         // report translations to stderr
 }
 
 type TranslateBytesOptions struct {

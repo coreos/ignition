@@ -22,17 +22,6 @@ import (
 	"github.com/coreos/ignition/v2/butane/config/common"
 )
 
-var localFileReader = os.ReadFile
-
-// SetLocalFileReader sets the reader used for local file contents. Passing nil
-// restores the default reader.
-func SetLocalFileReader(reader func(string) ([]byte, error)) {
-	if reader == nil {
-		reader = os.ReadFile
-	}
-	localFileReader = reader
-}
-
 func EnsurePathWithinFilesDir(path, filesDir string) error {
 	absBase, err := filepath.Abs(filesDir)
 	if err != nil {
@@ -48,17 +37,20 @@ func EnsurePathWithinFilesDir(path, filesDir string) error {
 	return nil
 }
 
-func ReadLocalFile(configPath, filesDir string) ([]byte, error) {
-	if filesDir == "" {
+func ReadLocalFile(configPath string, options common.TranslateOptions) ([]byte, error) {
+	if options.FilesDir == "" {
 		// a files dir isn't configured; refuse to read anything
 		return nil, common.ErrNoFilesDir
 	}
 	// calculate file path within FilesDir and check for path traversal
-	filePath := filepath.Join(filesDir, filepath.FromSlash(configPath))
-	if err := EnsurePathWithinFilesDir(filePath, filesDir); err != nil {
+	filePath := filepath.Join(options.FilesDir, filepath.FromSlash(configPath))
+	if err := EnsurePathWithinFilesDir(filePath, options.FilesDir); err != nil {
 		return nil, err
 	}
-	return localFileReader(filePath)
+	if options.LocalFileReader != nil {
+		return options.LocalFileReader(filePath)
+	}
+	return os.ReadFile(filePath)
 }
 
 // CheckForDecimalMode fails if the specified mode appears to have been
