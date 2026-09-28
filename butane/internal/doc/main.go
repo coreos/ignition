@@ -65,6 +65,8 @@ import (
 	openshift4_23_exp "github.com/coreos/ignition/v2/butane/config/openshift/v4_23_exp"
 	openshift4_8 "github.com/coreos/ignition/v2/butane/config/openshift/v4_8"
 	openshift4_9 "github.com/coreos/ignition/v2/butane/config/openshift/v4_9"
+	openshift5_0 "github.com/coreos/ignition/v2/butane/config/openshift/v5_0"
+	openshift5_1_exp "github.com/coreos/ignition/v2/butane/config/openshift/v5_1_exp"
 	r4e1_0 "github.com/coreos/ignition/v2/butane/config/r4e/v1_0"
 	r4e1_1 "github.com/coreos/ignition/v2/butane/config/r4e/v1_1"
 	r4e1_2_exp "github.com/coreos/ignition/v2/butane/config/r4e/v1_2_exp"
@@ -136,6 +138,7 @@ func generate(dir string) error {
 			[]version{
 				// inverse order of website navbar
 				{"4.23.0-experimental", openshift4_23_exp.Config{}},
+				{"5.1.0-experimental", openshift5_1_exp.Config{}},
 				{"4.8.0", openshift4_8.Config{}},
 				{"4.9.0", openshift4_9.Config{}},
 				{"4.10.0", openshift4_10.Config{}},
@@ -151,6 +154,7 @@ func generate(dir string) error {
 				{"4.20.0", openshift4_20.Config{}},
 				{"4.21.0", openshift4_21.Config{}},
 				{"4.22.0", openshift4_22.Config{}},
+				{"5.0.0", openshift5_0.Config{}},
 			},
 		},
 		{

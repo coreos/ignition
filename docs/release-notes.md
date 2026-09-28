@@ -10,6 +10,10 @@ nav_order: 9
 
 ### Features
 
+- Butane: stabilize OpenShift spec 5.0.0, targeting Ignition spec 3.5.0
+  ([#2333](https://github.com/coreos/ignition/issues/2333))
+- Butane: add OpenShift spec 5.1.0-experimental, targeting Ignition spec
+  3.7.0-experimental ([#2334](https://github.com/coreos/ignition/pull/2334))
 - Support Outscale ([#2296](https://github.com/coreos/ignition/pull/2296))
 - Butane: add `--yaml-doc-separator` to prepend the YAML document separator
   (`---`) to MachineConfig output
