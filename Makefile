@@ -72,6 +72,7 @@ install-ignition-validate-cross:
 .PHONY: install-butane
 install-butane:
 	install -m 0755 $(BIN_PATH)/butane-bin $(DESTDIR)/usr/bin/butane
+	ln -s butane $(DESTDIR)/usr/bin/fcct
 
 # For distros that need to build cross platform butane binaries
 .PHONY: install-butane-cross
