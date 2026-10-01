@@ -30,6 +30,7 @@ nav_order: 9
 - Drop supplementary groups when dropping privileges to write files as a user ([#2242](https://github.com/coreos/ignition/issues/2242))
 - butane: report the friendly input name (`<stdin>` instead of `/dev/stdin`) in stdin read errors
 - Disable instances of template units (e.g. `foo@bar.service`) marked `enabled: false`; previously they were silently left enabled
+- butane: don't make `with_mount_unit` units for `virtiofs` filesystems require `systemd-fsck@<tag>.service`, which waits for a device that never appears and fails the mount
 
 ## Ignition 2.27.0 (2026-08-26)
 

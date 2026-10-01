@@ -56,10 +56,11 @@ What={{.Device}}
 [Install]
 RequiredBy=swap.target
 {{- else }}
+{{- if .Fsck }}
 [Unit]
 Requires=systemd-fsck@{{.EscapedDevice}}.service
 After=systemd-fsck@{{.EscapedDevice}}.service
-
+{{ end }}
 [Mount]
 Where={{.Path}}
 What={{.Device}}
@@ -707,12 +708,16 @@ func mountUnitFromFS(fs Filesystem, remote bool) types.Unit {
 		EscapedDevice string
 		Remote        bool
 		Swap          bool
+		Fsck          bool
 	}{
 		Filesystem:    &fs,
 		EscapedDevice: unit.UnitNamePathEscape(fs.Device),
 		Remote:        remote,
 		// unchecked deref of format ok, fs would fail validation otherwise
 		Swap: *fs.Format == "swap",
+		// virtiofs devices are tags, not block devices, so there is
+		// nothing to fsck and no device unit to wait for
+		Fsck: *fs.Format != "virtiofs",
 	}
 	contents := strings.Builder{}
 	err := mountUnitTemplate.Execute(&contents, context)
