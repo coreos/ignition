@@ -1,0 +1,16 @@
+# This service writes issue files describing status
+# information about the Ignition run, which includes
+# Ignition warnings and information if no Ignition
+# config is provided.
+[Unit]
+Description=Create Ignition Status Issue Files
+Before=systemd-user-sessions.service
+ConditionPathExists=/etc/.ignition-result.json
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/ignition-write-issues
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
