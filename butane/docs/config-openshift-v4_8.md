@@ -3,7 +3,7 @@
 # config/doc.  Do not edit.
 title: OpenShift v4.8.0
 parent: Configuration specifications
-nav_order: 149
+nav_order: 148
 ---
 
 # OpenShift Specification v4.8.0

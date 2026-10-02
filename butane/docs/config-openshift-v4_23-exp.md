@@ -81,8 +81,8 @@ The OpenShift configuration is a YAML document conforming to the following speci
     * **_spares_** (integer): the number of spares (if applicable) in the array.
     * **_options_** (list of strings): any additional options to be passed to mdadm.
   * **_filesystems_** (list of objects): the list of filesystems to be configured. `device` and `format` need to be specified. Every filesystem must have a unique `device`.
-    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-    * **format** (string): the filesystem format (ext4, xfs, vfat, or swap).
+    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks. For virtiofs, this is the tag name.
+    * **format** (string): the filesystem format (ext4, xfs, vfat, virtiofs, or swap).
     * **_path_** (string): the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
     * **_wipe_filesystem_** (boolean): whether or not to wipe the device before filesystem creation, see [Ignition's documentation on filesystems](https://coreos.github.io/ignition/operator-notes/#filesystem-reuse-semantics) for more information. Defaults to false.
     * **_label_** (string): the label of the filesystem.
@@ -100,7 +100,7 @@ The OpenShift configuration is a YAML document conforming to the following speci
       * **_compression_** (string): the type of compression used on the file (null or gzip). Compression cannot be used with S3.
       * **_verification_** (object): options related to the verification of the file.
         * **_hash_** (string): the hash of the file, in the form `<type>-<value>` where type is either `sha512` or `sha256`. If `compression` is specified, the hash describes the decompressed file.
-    * **_mode_** (integer): the file's permission mode. Setuid/setgid/sticky bits are supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents` is unspecified, and a file already exists at the path.
+    * **_mode_** (integer): the file's permission mode. Setuid/setgid/sticky bits are not supported. If not specified, the permission mode for files defaults to 0644 or the existing file's permissions if `overwrite` is false, `contents` is unspecified, and a file already exists at the path.
     * **_user_** (object): specifies the file's owner.
       * **_id_** (integer): the user ID of the owner.
       * **_name_** (string): the user name of the owner.

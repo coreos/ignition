@@ -39,7 +39,11 @@ mode:
       replacement: are not supported
       if:
         - variant: openshift
-          min: 4.23.0
+          min: 4.23.0-experimental
+          max: 4.23.0-experimental
+        - variant: openshift
+          min: 5.1.0-experimental
+          max: 5.1.0-experimental
 
 append-contents-local:
   # Mention contents_local on specs that support it.
@@ -286,6 +290,9 @@ root:
                 # Depends on support in base 0.7 / fcos 1.7.0 and not supported by the MCO
                 - variant: openshift
                   max: 4.22.0
+                - variant: openshift
+                  min: 5.0.0
+                  max: 5.0.0
                 - variant: r4e
                   max: 1.1.0
           children:
@@ -310,6 +317,9 @@ root:
                     # Depends on support in base 0.7 / fcos 1.7.0 and not supported by the MCO
                     - variant: openshift
                       max: 4.22.0
+                    - variant: openshift
+                      min: 5.0.0
+                      max: 5.0.0
                     - variant: r4e
                       max: 1.1.0
             - name: user
@@ -432,6 +442,9 @@ root:
           if:
             - variant: openshift
               max: 4.22.0
+            - variant: openshift
+              min: 5.0.0
+              max: 5.0.0
       children:
         - name: users
           desc: the list of GRUB superusers.
@@ -441,6 +454,9 @@ root:
               if:
                 - variant: openshift
                   max: 4.22.0
+                - variant: openshift
+                  min: 5.0.0
+                  max: 5.0.0
           children:
             - name: name
               desc: the user name.
@@ -450,6 +466,9 @@ root:
                   if:
                     - variant: openshift
                       max: 4.22.0
+                    - variant: openshift
+                      min: 5.0.0
+                      max: 5.0.0
             - name: password_hash
               desc: the PBKDF2 password hash, generated with `grub2-mkpasswd-pbkdf2`.
               # required by validation
@@ -460,6 +479,9 @@ root:
                   if:
                     - variant: openshift
                       max: 4.22.0
+                    - variant: openshift
+                      min: 5.0.0
+                      max: 5.0.0
     - name: openshift
       after: $
       desc: describes miscellaneous OpenShift configuration. Respected when rendering to a MachineConfig, ignored when rendering directly to an Ignition config.
