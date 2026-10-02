@@ -31,6 +31,7 @@ nav_order: 9
 - butane: report the friendly input name (`<stdin>` instead of `/dev/stdin`) in stdin read errors
 - Disable instances of template units (e.g. `foo@bar.service`) marked `enabled: false`; previously they were silently left enabled
 - butane: don't make `with_mount_unit` units for `virtiofs` filesystems require `systemd-fsck@<tag>.service`, which waits for a device that never appears and fails the mount
+- butane: report the CEX kernel-argument validation error only once when both `boot_device.luks.cex` and a root `storage.luks` CEX entry are enabled ([#2285](https://github.com/coreos/ignition/pull/2285))
 
 ## Ignition 2.27.0 (2026-08-26)
 
