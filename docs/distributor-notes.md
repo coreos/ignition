@@ -35,3 +35,11 @@ When Ignition is updating kernel arguments it will call out to a binary (defined
 As an example of the binary implementation look at [`examples/ignition-kargs-helper`](https://github.com/coreos/ignition/blob/main/examples/ignition-kargs-helper).
 
 If your implementation of Ignition doesn't intend to ship kargs functionality the [`ignition-kargs.service` unit](https://github.com/coreos/ignition/blob/main/dracut/30ignition/ignition-kargs.service) should be disabled.
+
+## Local File Access
+
+Users are able to request local configuration and local resources via the `file://` and `oem://` schemes. Ignition runs in stages, so distributions should ensure that any local paths that users are likely to request are mounted and available before they are required and at least until they are no longer required.
+
+## OEM Partition URL Scheme
+
+The `oem` URL scheme reads files from the OEM partition mounted at `/oem` (e.g. `oem:///config.ign`). It is only meaningful on distros that provide such a partition, so it is disabled by default and fetching an `oem` URL fails with an unsupported-scheme error. Distributors that ship an OEM partition can enable it at build time with the linker flag `-X github.com/coreos/ignition/v2/internal/distro.oemFetch=true`.

@@ -15,12 +15,15 @@
 package cmdline
 
 import (
+	"net/url"
+
 	"github.com/coreos/ignition/v2/tests/register"
 	"github.com/coreos/ignition/v2/tests/types"
 )
 
 func init() {
 	register.Register(register.PositiveTest, FetchConfigFromDevice())
+	register.Register(register.PositiveTest, FetchConfigFromFileURL())
 }
 
 func FetchConfigFromDevice() types.Test {
@@ -30,28 +33,13 @@ func FetchConfigFromDevice() types.Test {
 
 	// Config that will be placed on the labeled device partition.
 	// This is what Ignition will actually read via the cmdline provider.
-	deviceConfig := `{
-		"ignition": { "version": "3.4.0" },
-		"storage": {
-			"files": [{
-				"path": "/foo/bar",
-				"contents": { "source": "data:,example%20file%0A" }
-			}]
-		}
-	}`
+	// It is placed on disk verbatim, so it needs a concrete spec version.
+	deviceConfig := types.ReadFixture("config.ign", "3.4.0")
 
 	// Config for the test framework's validation. Uses $version so the
 	// test is registered across spec versions. The file platform won't
 	// be consulted because the cmdline provider takes priority.
-	config := `{
-		"ignition": { "version": "$version" },
-		"storage": {
-			"files": [{
-				"path": "/foo/bar",
-				"contents": { "source": "data:,example%20file%0A" }
-			}]
-		}
-	}`
+	config := types.ReadFixture("config.ign", "$version")
 	configMinVersion := "3.0.0"
 
 	// Add a second disk with a labeled partition containing the config file.
@@ -125,6 +113,54 @@ func FetchConfigFromDevice() types.Test {
 					Directory: "/",
 				},
 				Contents: "ignition.config.device=IGNCONFIG ignition.config.path=/config.ign",
+			},
+		},
+	}
+}
+
+func FetchConfigFromFileURL() types.Test {
+	name := "cmdline.file.fetch"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+
+	// Config that Ignition will fetch from a file:// URL. It is read
+	// verbatim from the host filesystem, so it needs a concrete spec
+	// version and a stable absolute path.
+	configPath := types.WriteVersionedFixture("config.ign", "3.4.0")
+	configURL := url.URL{Scheme: "file", Path: configPath}
+
+	// Config for the test framework's validation. Uses $version so the
+	// test is registered across spec versions. The file platform won't
+	// be consulted because the cmdline provider takes priority.
+	config := types.ReadFixture("config.ign", "$version")
+	configMinVersion := "3.0.0"
+
+	out[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "bar",
+				Directory: "foo",
+			},
+			Contents: "example file\n",
+		},
+	})
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+		Env: []string{
+			"IGNITION_KERNEL_CMDLINE_PATH=$SYSTEM_CONFIG_DIR/cmdline",
+		},
+		SystemDirFiles: []types.File{
+			{
+				Node: types.Node{
+					Name:      "cmdline",
+					Directory: "/",
+				},
+				Contents: "ignition.config.url=" + configURL.String(),
 			},
 		},
 	}

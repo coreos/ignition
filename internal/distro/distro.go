@@ -81,6 +81,10 @@ var (
 	// ".ssh/authorized_keys.d/ignition" ("true"), or to
 	// ".ssh/authorized_keys" ("false").
 	writeAuthorizedKeysFragment = "true"
+	// oemFetch indicates whether the "oem" URL scheme is supported,
+	// reading files from the local "/oem" directory. It is only
+	// meaningful on distros that provide this directory (e.g. Flatcar).
+	oemFetch = "false"
 
 	// Special file paths in the real root
 	luksRealRootKeyFilePath = "/etc/luks/"
@@ -150,6 +154,7 @@ func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
 func WriteAuthorizedKeysFragment() bool {
 	return bakedStringToBool(fromEnv("WRITE_AUTHORIZED_KEYS_FRAGMENT", writeAuthorizedKeysFragment))
 }
+func OEMFetch() bool { return bakedStringToBool(oemFetch) }
 
 func fromEnv(nameSuffix, defaultValue string) string {
 	value := os.Getenv("IGNITION_" + nameSuffix)
