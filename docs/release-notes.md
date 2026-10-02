@@ -19,6 +19,10 @@ nav_order: 9
 - `./test` validates the Butane configs in `butane/docs` without needing a `butane` binary, restoring coverage that was lost when Butane merged into this repository
 - Document file `append` and `overwrite` behavior with examples ([#2270](https://github.com/coreos/ignition/issues/2270))
 
+### Features
+
+- butane: add `overwrite` support for trees, threading the flag through to every generated file, directory, and link ([#2284](https://github.com/coreos/ignition/pull/2284))
+
 ### Bug fixes
 
 - Read Azure custom data from the base64 `CustomData` in `ovf-env.xml` so Confidential VMs pick up their Ignition config, falling back to `CustomData.bin` when custom data is missing or undecodable
