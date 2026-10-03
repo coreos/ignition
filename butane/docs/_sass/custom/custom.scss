@@ -1,0 +1,9 @@
+#spec-docs ~ ul {
+  ul {
+    border-left: 1px solid $grey-lt-300;
+  }
+
+  li::before {
+    margin-left: -0.8em;
+  }
+}

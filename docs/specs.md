@@ -36,6 +36,12 @@ Ignition:
 
 - [v3.7.0-experimental](configuration-v3_7_experimental.md)
 
+## Butane configuration specifications
+
+Ignition also natively accepts Butane YAML configs, transpiling them
+automatically at boot. For Butane config specifications, see the
+[Butane specs](https://coreos.github.io/butane/specs/) page.
+
 ## Legacy spec 2.x configuration specifications
 
 Documentation for the spec 1 and 2.x configuration specifications is available

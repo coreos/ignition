@@ -8,7 +8,7 @@ First-boot provisioning utility for immutable Linux (Fedora CoreOS, RHEL CoreOS,
 - **Module**: `github.com/coreos/ignition/v2`
 - **Dependencies**: Vendored (`vendor/`). After `go.mod` changes run `make vendor`.
 - **Testing**: Go `testing` + `testify` assertions
-- **Binaries**: `ignition` (provisioning engine), `ignition-validate` (config validator)
+- **Binaries**: `ignition` (provisioning engine), `ignition-validate` (config validator), `butane` (config transpiler)
 
 ## Architecture
 
@@ -19,6 +19,12 @@ config/                  # Frontend: stable library API (used by external progra
     schema/              # JSON schema → run ./generate after changes
     types/               # Go types (schema.go is generated)
     translate/           # Version translation
+butane/                  # Butane config transpiler (merged from coreos/butane)
+  config/                # Butane config variants (fcos, flatcar, openshift, r4e, fiot)
+  base/                  # Distro-agnostic base components
+  internal/              # CLI entry point and version
+  docs/                  # Butane documentation (specs, getting started, development)
+  translate/             # Butane-to-Ignition translation
 internal/                # Backend: system configuration engine
   exec/stages/           # Execution stages (fetch-offline, fetch, disks, mount, files, umount)
   providers/             # 30+ cloud/platform providers (aws, azure, gcp, ...)
@@ -32,12 +38,15 @@ dracut/                  # Dracut module for initramfs integration
 
 ## Build Commands
 
-- `./build` - Build binaries to `bin/<arch>/`
+- `./build ignition` - Build ignition binary to `bin/`
+- `./build ignition-validate` - Build ignition-validate binary to `bin/`
+- `./build butane` - Build butane binary to `bin/`
 - `./test` - Run all checks (license, gofmt, govet, unit tests, doc validation)
 - `./generate` - Regenerate schema types and docs after JSON schema changes
 - `./build_blackbox_tests` - Compile integration tests
 - `make vendor` - Vendor dependencies (`go mod vendor && go mod tidy`)
-- `make install` - Install binaries, dracut modules, systemd units
+- `make install` - Install ignition and ignition-validate binaries, dracut modules, systemd units
+- `make install-butane` - Install butane binary
 
 ## Code Style
 

@@ -85,7 +85,6 @@ var (
 	ErrUnrecognizedRaidLevel            = errors.New("unrecognized raid level")
 	ErrRaidDevicesRequired              = errors.New("raid devices required")
 	ErrShouldNotExistWithOthers         = errors.New("shouldExist specified false with other options also specified")
-	ErrZeroesWithShouldNotExist         = errors.New("shouldExist is false for a partition and other partition(s) has start or size 0")
 	ErrNeedLabelOrNumber                = errors.New("a partition number >= 1 or a label must be specified")
 	ErrDuplicateLabels                  = errors.New("cannot use the same partition label twice")
 	ErrInvalidProxy                     = errors.New("proxies must be http(s)")

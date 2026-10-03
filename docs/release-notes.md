@@ -4,21 +4,72 @@ nav_order: 9
 
 # Release Notes
 
-## Upcoming Ignition 2.27.0 (unreleased)
+## Upcoming Ignition 2.28.0 (unreleased)
 
 ### Breaking changes
 
 ### Features
 
-- Support reading configs from `/run/ignition` and `/etc/ignition/` in addition to `/usr/lib/ignition/`, searched in descending priority order ([#2221](https://github.com/coreos/ignition/pull/2221))
-- Add support for `virtiofs`
+- Butane: stabilize OpenShift spec 5.0.0, targeting Ignition spec 3.5.0
+  ([#2333](https://github.com/coreos/ignition/issues/2333))
+- Butane: add OpenShift spec 5.1.0-experimental, targeting Ignition spec
+  3.7.0-experimental ([#2334](https://github.com/coreos/ignition/pull/2334))
+- Support Outscale ([#2296](https://github.com/coreos/ignition/pull/2296))
+- Butane: add `--yaml-doc-separator` to prepend the YAML document separator
+  (`---`) to MachineConfig output
 
 ### Changes
 
+- `./test` validates the Butane configs in `butane/docs` without needing a `butane` binary, restoring coverage that was lost when Butane merged into this repository
+- Document file `append` and `overwrite` behavior with examples ([#2270](https://github.com/coreos/ignition/issues/2270))
+
+### Bug fixes
+
+- Read Azure custom data from the base64 `CustomData` in `ovf-env.xml` so Confidential VMs pick up their Ignition config, falling back to `CustomData.bin` when custom data is missing or undecodable
+- Resolve intermediate symlinks in relabel paths, fixing SELinux relabeling failures for users with `home_dir` on OSTree platforms after policycoreutils 3.11 ([#2316](https://github.com/coreos/ignition/pull/2316))
+- Fix Butane rendering large `sizeMiB`/`startMiB` values in scientific
+  notation when generating OpenShift MachineConfig YAML ([#2310](https://github.com/coreos/ignition/pull/2310))
+- Fix the Butane root partition constraint check to only examine subsequent partitions ([#2304](https://github.com/coreos/ignition/pull/2304))
+- Close `/proc/mounts` after checking whether block devices are mounted, preventing file descriptor leaks during disk setup ([#2289](https://github.com/coreos/ignition/pull/2289))
+- Drop supplementary groups when dropping privileges to write files as a user ([#2242](https://github.com/coreos/ignition/issues/2242))
+- butane: report the friendly input name (`<stdin>` instead of `/dev/stdin`) in stdin read errors
+- Disable instances of template units (e.g. `foo@bar.service`) marked `enabled: false`; previously they were silently left enabled
+- butane: don't make `with_mount_unit` units for `virtiofs` filesystems require `systemd-fsck@<tag>.service`, which waits for a device that never appears and fails the mount
+- butane: report the CEX kernel-argument validation error only once when both `boot_device.luks.cex` and a root `storage.luks` CEX entry are enabled ([#2285](https://github.com/coreos/ignition/pull/2285))
+
+## Ignition 2.27.0 (2026-08-26)
+
+Starting with this release, ignition-validate binaries are signed with the
+[Fedora 44 key](https://getfedora.org/security/).
+
+### Breaking changes
+
+- The `build` script now requires a subcommand (`ignition`, `ignition-validate`, or `ignition-validate-cross`). Sourcing the build script is no longer supported.
+- Build and install are separate steps with explicit targets (`ignition`, `ignition-validate`, `ignition-validate-cross`, `install`, `install-ignition-validate-cross`, `install-grub-for-bootupd`).
+
+### Features
+
+- Accept Butane YAML configs in addition to Ignition JSON, with automatic transpilation at boot ([#2235](https://github.com/coreos/ignition/pull/2235))
+- Support reading configs from `/run/ignition` and `/etc/ignition/` in addition to `/usr/lib/ignition/`, searched in descending priority order ([#2221](https://github.com/coreos/ignition/pull/2221))
+- Add support for `virtiofs`
+- Support loading Ignition config from a labeled device via `ignition.config.device` and `ignition.config.path` kernel command-line arguments
+- Allow deleting a disk partition while creating another partition with number 0. ([#2234](https://github.com/coreos/ignition/pull/2234))
+
+### Changes
+
+- Merge Butane config transpiler into the Ignition repository; the `butane` CLI is now built from the Ignition source tree ([#2235](https://github.com/coreos/ignition/pull/2235))
+- Replace GCS client library with direct HTTP calls to the GCS JSON API, significantly reducing binary size ([#2045](https://github.com/coreos/ignition/issues/2045))
+- Refactored the Makefile and build script to match the Fedora RPM spec: separate build targets per binary, with `VERSION` and linker flags passed in at build time
+- `build_blackbox_tests` builds a blackbox-specific `ignition` binary with `make`
+- CI and GitHub Actions updated to build via `make ignition` and `make ignition-validate`
 - Fix test script compatibility with Go 1.26 which removed the `-go` flag from `go tool fix`
 - Improved documentation for the flow of Ignition across clouds.
 
 ### Bug fixes
+
+- Fix giving disk partition number 0 to get the next available slot. This caused the disks stage to fail since version 2.20.0. ([#2234](https://github.com/coreos/ignition/pull/2234))
+- Fix disk partitioning race condition where the kernel is already aware of the changes before running `partx`, causing a fatal error. ([#2234](https://github.com/coreos/ignition/pull/2234))
+- Add `x-initrd.attach` to crypttab entries to fix soft-reboot with LUKS ([#2219](https://github.com/coreos/ignition/pull/2219))
 
 
 ## Ignition 2.26.0 (2026-02-17)

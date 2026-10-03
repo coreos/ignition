@@ -37,7 +37,7 @@ jobs:
     - name: Check modules
       run: go mod verify
     - name: Build
-      run: ./build
+      run: make
     - name: Test
       run: ./test
     - name: Check Go formatting (gofmt)

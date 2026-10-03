@@ -66,7 +66,12 @@ func (s *stage) createUnits(config types.Config) error {
 			if *unit.Enabled {
 				identifier = "enabled"
 			}
-			if strings.Contains(unit.Name, "@") {
+			// Only enabled instances are grouped under their template
+			// ("enable foo@.service a b"). Disabling goes through
+			// `systemctl is-enabled`/`disable`, which need the full
+			// instance name, so disabled instances are handled like
+			// regular units.
+			if *unit.Enabled && strings.Contains(unit.Name, "@") {
 				unitName, instance, err := parseInstanceUnit(unit)
 				if err != nil {
 					return err

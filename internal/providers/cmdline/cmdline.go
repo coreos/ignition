@@ -13,14 +13,21 @@
 // limitations under the License.
 
 // The cmdline provider fetches a remote configuration from the URL specified
-// in the kernel boot option "ignition.config.url".
+// in the kernel boot option "ignition.config.url", or from a local device
+// specified by "ignition.config.device" and "ignition.config.path".
 
 package cmdline
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	"github.com/coreos/ignition/v2/internal/distro"
@@ -28,13 +35,24 @@ import (
 	"github.com/coreos/ignition/v2/internal/platform"
 	"github.com/coreos/ignition/v2/internal/providers/util"
 	"github.com/coreos/ignition/v2/internal/resource"
+	ut "github.com/coreos/ignition/v2/internal/util"
 
 	"github.com/coreos/vcontext/report"
 )
 
+type cmdlineFlag string
+
 const (
-	cmdlineUrlFlag = "ignition.config.url"
+	flagUrl          cmdlineFlag = "ignition.config.url"
+	flagDeviceLabel  cmdlineFlag = "ignition.config.device"
+	flagUserDataPath cmdlineFlag = "ignition.config.path"
 )
+
+type cmdlineOpts struct {
+	Url          *url.URL
+	UserDataPath string
+	DeviceLabel  string
+}
 
 var (
 	// we are a special-cased system provider; don't register ourselves
@@ -46,59 +64,167 @@ var (
 )
 
 func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
-	url, err := readCmdline(f.Logger)
+	opts, err := parseCmdline(f.Logger, distro.KernelCmdlinePath())
 	if err != nil {
 		return types.Config{}, report.Report{}, err
 	}
 
-	if url == nil {
-		return types.Config{}, report.Report{}, platform.ErrNoProvider
+	var data []byte
+
+	if opts.Url != nil {
+		if opts.DeviceLabel != "" || opts.UserDataPath != "" {
+			f.Logger.Warning("%q takes precedence; ignoring %q and %q",
+				string(flagUrl), string(flagDeviceLabel), string(flagUserDataPath))
+		}
+		data, err = f.FetchToBuffer(*opts.Url, resource.FetchOptions{})
+		if err != nil {
+			return types.Config{}, report.Report{}, err
+		}
+
+		return util.ParseConfig(f.Logger, data)
 	}
 
-	data, err := f.FetchToBuffer(*url, resource.FetchOptions{})
-	if err != nil {
-		return types.Config{}, report.Report{}, err
+	if opts.UserDataPath != "" && opts.DeviceLabel != "" {
+		return fetchConfigFromDevice(f.Logger, opts)
 	}
 
-	return util.ParseConfig(f.Logger, data)
+	if opts.UserDataPath != "" || opts.DeviceLabel != "" {
+		return types.Config{}, report.Report{}, fmt.Errorf("both %q and %q must be provided together",
+			string(flagDeviceLabel), string(flagUserDataPath))
+	}
+
+	return types.Config{}, report.Report{}, platform.ErrNoProvider
 }
 
-func readCmdline(logger *log.Logger) (*url.URL, error) {
-	args, err := os.ReadFile(distro.KernelCmdlinePath())
+func parseCmdline(logger *log.Logger, path string) (*cmdlineOpts, error) {
+	cmdline, err := os.ReadFile(path)
 	if err != nil {
 		logger.Err("couldn't read cmdline: %v", err)
 		return nil, err
 	}
 
-	rawUrl := parseCmdline(args)
-	logger.Debug("parsed url from cmdline: %q", rawUrl)
-	if rawUrl == "" {
-		logger.Info("no config URL provided")
-		return nil, nil
-	}
+	opts := &cmdlineOpts{}
 
-	url, err := url.Parse(rawUrl)
-	if err != nil {
-		logger.Err("failed to parse url: %v", err)
-		return nil, err
-	}
-
-	return url, err
-}
-
-func parseCmdline(cmdline []byte) (url string) {
-	for _, arg := range strings.Split(string(cmdline), " ") {
+	for _, arg := range strings.Fields(string(cmdline)) {
 		parts := strings.SplitN(strings.TrimSpace(arg), "=", 2)
-		key := parts[0]
-
-		if key != cmdlineUrlFlag {
+		if len(parts) != 2 {
 			continue
 		}
 
-		if len(parts) == 2 {
-			url = parts[1]
+		key := cmdlineFlag(parts[0])
+		value := parts[1]
+
+		switch key {
+		case flagUrl:
+			if value == "" {
+				logger.Info("url flag found but no value provided")
+				continue
+			}
+
+			parsedURL, err := url.Parse(value)
+			if err != nil {
+				logger.Err("failed to parse url: %v", err)
+				continue
+			}
+			opts.Url = parsedURL
+		case flagDeviceLabel:
+			if value == "" {
+				logger.Info("device label flag found but no value provided")
+				continue
+			}
+			opts.DeviceLabel = value
+		case flagUserDataPath:
+			if value == "" {
+				logger.Info("user data path flag found but no value provided")
+				continue
+			}
+			opts.UserDataPath = value
 		}
 	}
 
-	return
+	return opts, nil
+}
+
+func fetchConfigFromDevice(logger *log.Logger, opts *cmdlineOpts) (types.Config, report.Report, error) {
+	if err := validateDeviceLabel(opts.DeviceLabel); err != nil {
+		return types.Config{}, report.Report{}, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	data, err := tryMounting(logger, ctx, opts)
+	if errors.Is(err, context.DeadlineExceeded) {
+		return types.Config{}, report.Report{}, fmt.Errorf("device %q did not appear within timeout", opts.DeviceLabel)
+	}
+	if err != nil {
+		return types.Config{}, report.Report{}, err
+	}
+	if data == nil {
+		return types.Config{}, report.Report{}, fmt.Errorf("config file %q not found on device %q", opts.UserDataPath, opts.DeviceLabel)
+	}
+
+	return util.ParseConfig(logger, data)
+}
+
+func validateDeviceLabel(label string) error {
+	// Reject labels that are not a single path component to prevent path traversal.
+	if label != filepath.Base(label) || label == ".." || label == "." {
+		return fmt.Errorf("invalid device label %q", label)
+	}
+	return nil
+}
+
+func tryMounting(logger *log.Logger, ctx context.Context, opts *cmdlineOpts) ([]byte, error) {
+	device := filepath.Join(distro.DiskByLabelDir(), opts.DeviceLabel)
+	for !fileExists(device) {
+		logger.Debug("disk (%q) not found. Waiting...", device)
+		select {
+		case <-time.After(time.Second):
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+
+	logger.Debug("creating temporary mount point")
+	mnt, err := os.MkdirTemp("", "ignition-config")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temp directory: %v", err)
+	}
+	defer func() {
+		if err := os.Remove(mnt); err != nil {
+			logger.Err("failed to remove temporary mount point %q: %v", mnt, err)
+		}
+	}()
+
+	cmd := exec.CommandContext(ctx, distro.MountCmd(), "-o", "ro", "-t", "auto", device, mnt)
+	if _, err := logger.LogCmd(cmd, "mounting disk"); err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = logger.LogOp(
+			func() error {
+				return ut.UmountPath(mnt)
+			},
+			"unmounting %q at %q", device, mnt,
+		)
+	}()
+
+	configPath := filepath.Join(mnt, filepath.Clean(filepath.Join("/", opts.UserDataPath)))
+	if !fileExists(configPath) {
+		logger.Debug("config file %q not found on device %q", opts.UserDataPath, opts.DeviceLabel)
+		return nil, nil
+	}
+
+	contents, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return contents, nil
+}
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return (err == nil)
 }

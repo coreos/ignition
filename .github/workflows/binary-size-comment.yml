@@ -1,0 +1,54 @@
+name: Binary Size Comment
+on:
+  workflow_run:
+    workflows: ["Binary Size"]
+    types: [completed]
+permissions:
+  pull-requests: write
+
+jobs:
+  comment:
+    name: Post size report
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download results
+      uses: actions/download-artifact@v4
+      with:
+        name: binary-size-result
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Parse results
+      id: parse
+      run: |
+        # result.txt has one value per line (with leading whitespace)
+        mapfile -t lines < <(sed 's/^[[:space:]]*//' result.txt)
+        {
+          echo "pr_number=${lines[0]}"
+          echo "base_ref=${lines[1]}"
+          echo "base_human=${lines[2]}"
+          echo "pr_human=${lines[3]}"
+          echo "delta_human=${lines[4]}"
+          echo "pct=${lines[5]}"
+        } >> "$GITHUB_OUTPUT"
+    - name: Find existing comment
+      uses: peter-evans/find-comment@v3
+      id: find-comment
+      with:
+        issue-number: ${{ steps.parse.outputs.pr_number }}
+        comment-author: github-actions[bot]
+        body-includes: Binary size report
+    - name: Post PR comment
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        comment-id: ${{ steps.find-comment.outputs.comment-id }}
+        issue-number: ${{ steps.parse.outputs.pr_number }}
+        edit-mode: replace
+        body: |
+          ## Binary size report (`bin/amd64/ignition`)
+
+          | | Size |
+          |---|---|
+          | **Base** (`${{ steps.parse.outputs.base_ref }}`) | ${{ steps.parse.outputs.base_human }} |
+          | **PR** (#${{ steps.parse.outputs.pr_number }}) | ${{ steps.parse.outputs.pr_human }} |
+          | **Delta** | ${{ steps.parse.outputs.delta_human }} (${{ steps.parse.outputs.pct }}) |

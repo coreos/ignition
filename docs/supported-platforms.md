@@ -21,11 +21,12 @@ Ignition is currently supported for the following platforms:
 * [Microsoft Hyper-V] (`hyperv`) - Ignition will read its configuration from the `ignition.config` key in pool 0 of the Hyper-V Data Exchange Service (KVP). Values are limited to approximately 1 KiB of text, so Ignition can also read and concatenate multiple keys named `ignition.config.0`, `ignition.config.1`, and so on.
 * [IBM Cloud] (`ibmcloud`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [KubeVirt] (`kubevirt`) - Ignition will read its configuration from the instance userdata via `cloudInitConfigDrive` or `cloudInitNoCloud`. Cloud SSH keys are handled separately.
-* Bare Metal (`metal`) - Use the `ignition.config.url` kernel parameter to provide a URL to the configuration. The URL can use the `http://`, `https://`, `tftp://`, `s3://`, `arn:`, or `gs://` schemes to specify a remote config.
+* Bare Metal (`metal`) - Use the `ignition.config.url` kernel parameter to provide a URL to the configuration. The URL can use the `http://`, `https://`, `tftp://`, `s3://`, `arn:`, or `gs://` schemes to specify a remote config. Alternatively, use `ignition.config.device` (a disk-by-label name, e.g. `CONFIG`) and `ignition.config.path` (the path to the config file on that device, e.g. `/ignition/config.ign`) to load the configuration from a locally attached device. Both parameters must be provided together.
 * [Nutanix] (`nutanix`) - Ignition will read its configuration from the instance userdata via config drive. Cloud SSH keys are handled separately.
 * [NVIDIA BlueField] (`nvidiabluefield`) - Ignition will read its configuration from the bootfifo sysfs interface from the mlxbf_bootctl platform driver.
 * [OpenStack] (`openstack`) - Ignition will read its configuration from the instance userdata via either metadata service or config drive. Cloud SSH keys are handled separately.
 * [Oracle Cloud Infrastucture] (`oraclecloud`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
+* [Outscale] (`outscale`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [Proxmox VE] (`proxmoxve`) - Ignition will read its configuration from the instance userdata via config drive. If there isn't any valid Ignition configuration in userdata it will check the vendordata next. Cloud SSH keys are handled separately.
 * [Equinix Metal] (`packet`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [IBM Power Systems Virtual Server] (`powervs`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
@@ -59,6 +60,7 @@ For most cloud providers, cloud SSH keys and custom network configuration are ha
 [Nutanix]: https://www.nutanix.com/products/ahv
 [OpenStack]: https://www.openstack.org/
 [Oracle Cloud Infrastucture]: https://www.oracle.com/cloud
+[Outscale]: https://docs.outscale.com
 [Proxmox VE]: https://www.proxmox.com/en/proxmox-virtual-environment/overview
 [Equinix Metal]: https://metal.equinix.com/product/
 [IBM Power Systems Virtual Server]: https://www.ibm.com/products/power-virtual-server

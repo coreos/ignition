@@ -15,14 +15,36 @@
 package config
 
 import (
+	butaneconfig "github.com/coreos/ignition/v2/butane/config"
+	"github.com/coreos/ignition/v2/butane/config/common"
 	exp "github.com/coreos/ignition/v2/config/v3_7_experimental"
 	types_exp "github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 
 	"github.com/coreos/vcontext/report"
 )
 
-// Parse parses a config of any supported version and returns the equivalent config at the latest
-// supported version.
+// Parse parses a config of any supported version and returns the
+// equivalent config at the latest supported version. It first attempts
+// to parse the input as Ignition JSON. If that fails, it attempts to
+// transpile the input as a Butane YAML config, allowing users to
+// provide Butane configs directly without a separate transpilation
+// step.
 func Parse(raw []byte) (types_exp.Config, report.Report, error) {
-	return exp.ParseCompatibleVersion(raw)
+	// Try standard Ignition JSON first
+	cfg, rpt, err := exp.ParseCompatibleVersion(raw)
+	if err == nil {
+		return cfg, rpt, nil
+	}
+
+	// JSON failed -- try Butane YAML transpilation
+	ignJSON, butaneRpt, butaneErr := butaneconfig.TranslateBytes(raw, common.TranslateBytesOptions{})
+	if butaneErr != nil {
+		// Both failed -- return original Ignition error for backward compat
+		return types_exp.Config{}, rpt, err
+	}
+
+	// Butane succeeded -- parse the resulting Ignition JSON
+	cfg, parseRpt, parseErr := exp.ParseCompatibleVersion(ignJSON)
+	butaneRpt.Merge(parseRpt)
+	return cfg, butaneRpt, parseErr
 }

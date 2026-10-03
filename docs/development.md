@@ -28,7 +28,7 @@ The [frontend](https://github.com/coreos/ignition/tree/main/config) handles conf
 
 ### Adding functionality
 
-New config directives should only be added if the desired behavior cannot reasonably be achieved with existing directives.  User-friendly wrappers for existing syntax ("sugar") should be handled by [Butane](https://github.com/coreos/butane).
+New config directives should only be added if the desired behavior cannot reasonably be achieved with existing directives.  User-friendly wrappers for existing syntax ("sugar") should be handled by [Butane](https://coreos.github.io/butane/).
 
 New behavior should only be added in the current experimental spec.  If new functionality is backported to older specs, and a config using an older spec comes to depend on that functionality, then it won't be obvious that the config will not work on all Ignition versions supporting that spec.  It's not always possible to follow this restriction, since the backend doesn't know what config version the user specified.  Where possible, use config validation to prevent the backend from seeing config directives that a spec version doesn't support (for example, values of the filesystem `format` field).
 

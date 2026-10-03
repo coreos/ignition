@@ -39,6 +39,7 @@ var (
 	groupaddCmd  = "groupadd"
 	groupmodCmd  = "groupmod"
 	groupdelCmd  = "groupdel"
+	dmsetupCmd   = "dmsetup"
 	mdadmCmd     = "mdadm"
 	mountCmd     = "mount"
 	partxCmd     = "partx"
@@ -91,7 +92,7 @@ var (
 
 func DiskByLabelDir() string { return diskByLabelDir }
 
-func KernelCmdlinePath() string { return kernelCmdlinePath }
+func KernelCmdlinePath() string { return fromEnv("KERNEL_CMDLINE_PATH", kernelCmdlinePath) }
 func BootIDPath() string        { return bootIDPath }
 func SystemRuntimeConfigDir() string {
 	return fromEnv("SYSTEM_RUNTIME_CONFIG_DIR", systemRuntimeConfigDir)
@@ -111,6 +112,7 @@ func SystemConfigDirs() []string {
 func GroupaddCmd() string  { return groupaddCmd }
 func GroupmodCmd() string  { return groupmodCmd }
 func GroupdelCmd() string  { return groupdelCmd }
+func DmsetupCmd() string   { return dmsetupCmd }
 func MdadmCmd() string     { return mdadmCmd }
 func MountCmd() string     { return mountCmd }
 func PartxCmd() string     { return partxCmd }

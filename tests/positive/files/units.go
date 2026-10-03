@@ -25,6 +25,7 @@ func init() {
 	register.Register(register.PositiveTest, TestUnmaskUnit())
 	register.Register(register.PositiveTest, TestMaskUnit())
 	register.Register(register.PositiveTest, RemoveEnablementSymLinksforUnit())
+	register.Register(register.PositiveTest, RemoveEnablementSymLinksforInstantiatedUnit())
 	register.Register(register.PositiveTest, TestPresetsFileInAlphabeticalOrder())
 }
 
@@ -309,6 +310,60 @@ func RemoveEnablementSymLinksforUnit() types.Test {
 		{
 			Directory: "/etc/systemd/system/multi-user.target.wants",
 			Name:      "foo.service",
+		},
+	})
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:             name,
+		In:               in,
+		Out:              out,
+		Config:           config,
+		ConfigMinVersion: configMinVersion,
+	}
+}
+
+// RemoveEnablementSymLinksforInstantiatedUnit checks if Ignition
+// removes the enablement symlink for an instance of a template
+// unit marked as disabled.
+func RemoveEnablementSymLinksforInstantiatedUnit() types.Test {
+	name := "instantiated.unit.remove.symlinks"
+	in := types.GetBaseDisk()
+	out := types.GetBaseDisk()
+	config := `{
+		"ignition": { "version": "$version" },
+		"systemd": {
+			"units": [
+				{
+					"enabled": false,
+					"name": "echo@bar.service"
+				}
+			]
+		}
+	}`
+	in[0].Partitions.AddLinks("ROOT", []types.Link{
+		{
+			Node: types.Node{
+				Directory: "/etc/systemd/system/multi-user.target.wants",
+				Name:      "echo@bar.service",
+			},
+			Target: "/usr/lib/systemd/system/echo@.service",
+			Hard:   false,
+		},
+	})
+	in[0].Partitions.AddFiles("ROOT", []types.File{
+		{
+			Node: types.Node{
+				Name:      "echo@.service",
+				Directory: "usr/lib/systemd/system",
+			},
+			Contents: "[Unit]\nDescription=f\n[Service]\nType=oneshot\nExecStart=/bin/echo %i\n[Install]\nWantedBy=multi-user.target\n",
+		},
+	})
+	out[0].Partitions.AddRemovedNodes("ROOT", []types.Node{
+		{
+			Directory: "/etc/systemd/system/multi-user.target.wants",
+			Name:      "echo@bar.service",
 		},
 	})
 	configMinVersion := "3.0.0"

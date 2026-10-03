@@ -10,6 +10,7 @@ By contributing to this project you agree to the Developer Certificate of Origin
 
 - Fork the repository on GitHub
 - Read the [README](README.md) and [development guide][dev-guide] for build and test instructions
+- This repository also contains the [Butane config transpiler](butane/docs/) in the `butane/` directory. See the [Butane development docs](butane/docs/development.md) for Butane-specific development information.
 - Play with the project, submit bugs, submit patches!
 
 ## Contribution Flow
