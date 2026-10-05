@@ -50,7 +50,9 @@ func makeImage(t *testing.T, path string, mib int) {
 	if err := f.Truncate(int64(mib) * 1024 * 1024); err != nil {
 		t.Fatal(err)
 	}
-	f.Close()
+	if err := f.Close(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func runCmd(t *testing.T, input string, args ...string) string {
@@ -169,7 +171,9 @@ func TestIntegrationLosslessWholeTableRewrite(t *testing.T) {
 	if _, err := fh.WriteAt(fat, 2048*512); err != nil {
 		t.Fatal(err)
 	}
-	fh.Close()
+	if err := fh.Close(); err != nil {
+		t.Fatal(err)
+	}
 
 	// Give p1 an exotic name (embedded colon; forces quoting in dump
 	// scripts) through a first whole-table rewrite. This rewrite
@@ -258,7 +262,11 @@ func TestIntegrationLosslessWholeTableRewrite(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer fh.Close()
+	defer func() {
+		if err := fh.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	buf := make([]byte, 512)
 	if _, err := fh.ReadAt(buf, 2048*512); err != nil {
 		t.Fatal(err)

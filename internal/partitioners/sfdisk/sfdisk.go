@@ -39,7 +39,6 @@ type Operation struct {
 	deletions []int
 	infos     []int
 	lastLBA   int64
-	labelID   string
 }
 
 func Begin(logger *log.Logger, dev string) *Operation {
