@@ -211,6 +211,46 @@ func TestBuildScriptFixedSizeBeforeFillRemaining(t *testing.T) {
 	}
 }
 
+func TestBuildScriptPinnedBeforeAutoPositioned(t *testing.T) {
+	// Regression: kola coreos.ignition.mount.partitions class. An
+	// auto-positioned (no start) fixed-size create must be emitted
+	// AFTER position-pinned entries (preserved partitions re-listed
+	// by the whole-table backend), or sfdisk parks the auto entry in
+	// a block a later pinned line claims and the rewrite fails with
+	// ERANGE. Fills stay last.
+	pinned1 := partitioners.Partition{StartSector: int64Ptr(2048), SizeInSectors: int64Ptr(2048)}
+	pinned1.Number = 1
+	pinned2 := partitioners.Partition{StartSector: int64Ptr(4096), SizeInSectors: int64Ptr(260096)}
+	pinned2.Number = 2
+	autoFixed := partitioners.Partition{SizeInSectors: int64Ptr(2097152)}
+	autoFixed.Number = 0
+	fill := partitioners.Partition{SizeInSectors: int64Ptr(0)}
+	fill.Number = 0
+
+	script := buildScript([]partitioners.Partition{autoFixed, pinned2, fill, pinned1}, diskHeader{firstLBA: 2048, lastLBA: 20969472})
+	lines := strings.Split(script, "\n")
+	pos := map[string]int{}
+	for i, line := range lines {
+		t2 := strings.TrimSpace(line)
+		switch {
+		case strings.HasPrefix(t2, "1 :"):
+			pos["pinned1"] = i
+		case strings.HasPrefix(t2, "2 :"):
+			pos["pinned2"] = i
+		case strings.HasPrefix(t2, ": size=2097152"):
+			pos["autoFixed"] = i
+		case strings.HasPrefix(t2, ": size=+"):
+			pos["fill"] = i
+		}
+	}
+	if len(pos) != 4 {
+		t.Fatalf("missing lines in script:\n%s", script)
+	}
+	if pos["pinned1"] >= pos["autoFixed"] || pos["pinned2"] >= pos["autoFixed"] || pos["autoFixed"] >= pos["fill"] {
+		t.Errorf("want pinned1,pinned2 < autoFixed < fill, got %v in:\n%s", pos, script)
+	}
+}
+
 func TestBuildScriptMultipleAutoNumbered(t *testing.T) {
 	p1 := partitioners.Partition{SizeInSectors: int64Ptr(65536)}
 	p1.Number = 0

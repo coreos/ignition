@@ -321,6 +321,31 @@ func writePartitionLine(script *bytes.Buffer, p partitioners.Partition) {
 // last-lba and label-id are pinned to the on-disk header values so a
 // rewrite neither truncates the usable area (first-lba/last-lba are
 // the #1745 regression class) nor randomizes the disk GUID.
+// scriptTier orders script entries the way sfdisk consumes them:
+// position-pinned entries (explicit start, e.g. preserved partitions
+// re-listed for a whole-table rewrite) first, so auto-positioned
+// entries resolve against the space they do NOT consume; then
+// auto-positioned fixed-size entries; fills last (they claim the
+// remaining tail). Emitting an auto-positioned entry before a pinned
+// one can park it in a block a later pinned entry claims, and the
+// pinned line then fails with ERANGE.
+func scriptTier(p partitioners.Partition) int {
+	if p.StartSector != nil && *p.StartSector > 0 {
+		return 0
+	}
+	if p.SizeInSectors != nil && *p.SizeInSectors != 0 {
+		return 1
+	}
+	return 2
+}
+
+func scriptStart(p partitioners.Partition) int64 {
+	if p.StartSector != nil {
+		return *p.StartSector
+	}
+	return 0
+}
+
 func buildScript(partitions []partitioners.Partition, header diskHeader) string {
 	script := &bytes.Buffer{}
 	script.WriteString("label: gpt\n")
@@ -343,21 +368,12 @@ func buildScript(partitions []partitioners.Partition, header diskHeader) string 
 	sorted := make([]partitioners.Partition, len(partitions))
 	copy(sorted, partitions)
 	sort.SliceStable(sorted, func(i, j int) bool {
-		iFixed := sorted[i].SizeInSectors != nil && *sorted[i].SizeInSectors != 0
-		jFixed := sorted[j].SizeInSectors != nil && *sorted[j].SizeInSectors != 0
-		if iFixed != jFixed {
-			return iFixed
+		ti, tj := scriptTier(sorted[i]), scriptTier(sorted[j])
+		if ti != tj {
+			return ti < tj
 		}
-		if iFixed && jFixed {
-			iStart := int64(0)
-			jStart := int64(0)
-			if sorted[i].StartSector != nil {
-				iStart = *sorted[i].StartSector
-			}
-			if sorted[j].StartSector != nil {
-				jStart = *sorted[j].StartSector
-			}
-			return iStart < jStart
+		if ti == 0 {
+			return scriptStart(sorted[i]) < scriptStart(sorted[j])
 		}
 		return false
 	})

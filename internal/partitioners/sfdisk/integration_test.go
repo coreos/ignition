@@ -323,3 +323,55 @@ func TestIntegrationIdempotentRewrite(t *testing.T) {
 		t.Errorf("first-lba churned on no-op commit: want 34, got %q", fl)
 	}
 }
+
+// TestIntegrationAutoPositionedWithPreserved reproduces the kola
+// coreos.ignition.mount.partitions failure class: a config partition
+// with no start (auto-positioned) and no number, mixed with preserved
+// (pinned) partitions re-listed by the whole-table backend. The
+// auto-positioned entry must not be parked inside a pinned block
+// (that produced "Failed to add #2 partition: Numerical result out of
+// range" and an emergency shell).
+func TestIntegrationAutoPositionedWithPreserved(t *testing.T) {
+	requireTools(t)
+	dir := t.TempDir()
+	img := dir + "/disk.img"
+	makeImage(t, img, 256)
+	// FCOS-like layout: BIOS boot + ESP at the front, boot and root
+	// further in, free space in between and after.
+	seed := "label: gpt\ngrain: 512\n\n\n1 : start=2048, size=2048, type=21686148-6449-6E6F-744E-656564454649, name=\"BIOS-BOOT\"\n2 : start=4096, size=16256, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name=\"EFI-SYSTEM\"\n3 : start=204192, size=49152, type=BC13C2FF-59E6-4262-A352-B275FD6F7172, name=\"boot\"\n4 : start=264192, size=131072, type=4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709, name=\"root\"\n"
+	runCmd(t, seed, "sfdisk", "--force", "-X", "gpt", img)
+
+	// The stage queued an auto-positioned fixed-size partition (no
+	// number, no start) on top of preserved p1-p4 which the whole-
+	// table backend re-lists with pinned geometry.
+	op := Begin(nil, img)
+	contr := partitioners.Partition{}
+	contr.SizeInSectors = int64Ptr(131072)
+	contr.TypeGUID = strPtr("63194b49-e4b7-43f9-9a8b-df0fd8279bb7")
+	op.CreatePartition(contr)
+
+	if _, err := op.Pretend(); err != nil {
+		t.Fatalf("pretend failed (ERANGE class): %v", err)
+	}
+	if err := op.Commit(); err != nil {
+		t.Fatalf("commit failed: %v", err)
+	}
+
+	after := dumpFields(t, img)
+	for num, start := range map[int]string{1: "2048", 2: "4096", 3: "204192", 4: "264192"} {
+		if after[num]["start"] != start {
+			t.Errorf("p%d pinned geometry moved: want start %s, got %v", num, start, after[num])
+		}
+	}
+	if _, ok := after[5]; !ok {
+		t.Fatalf("auto-positioned partition not created: %v", after)
+	}
+	if !strings.EqualFold(after[5]["type"], "63194b49-e4b7-43f9-9a8b-df0fd8279bb7") {
+		t.Errorf("p5 type wrong: %v", after[5])
+	}
+	for num := 1; num <= 4; num++ {
+		if after[5]["start"] == after[num]["start"] {
+			t.Errorf("p5 overlaps p%d", num)
+		}
+	}
+}
