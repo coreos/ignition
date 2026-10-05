@@ -39,6 +39,11 @@ type Partition struct {
 	SizeInSectors *int64
 	StartMiB      string
 	SizeMiB       string
+	// Attrs carries GPT attribute bit names (e.g. "LegacyBIOSBootable").
+	// Backends that rewrite the whole partition table must re-emit the
+	// attributes of preserved partitions; backends that only patch
+	// individual entries may ignore this field.
+	Attrs []string
 }
 
 type Output struct {

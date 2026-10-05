@@ -186,7 +186,7 @@ func TestBuildScriptFixedSizeBeforeFillRemaining(t *testing.T) {
 	p3 := partitioners.Partition{SizeInSectors: int64Ptr(0)}
 	p3.Number = 3
 
-	script := buildScript([]partitioners.Partition{p3, p1, p5}, 657407)
+	script := buildScript([]partitioners.Partition{p3, p1, p5}, diskHeader{lastLBA: 657407})
 
 	lines := strings.Split(script, "\n")
 	var idx1, idx5, idx3 = -1, -1, -1
@@ -222,7 +222,7 @@ func TestBuildScriptMultipleAutoNumbered(t *testing.T) {
 	p3.Number = 0
 	p3.Label = strPtr("tres")
 
-	script := buildScript([]partitioners.Partition{p1, p2, p3}, -1)
+	script := buildScript([]partitioners.Partition{p1, p2, p3}, diskHeader{lastLBA: -1})
 
 	for _, name := range []string{"uno", "dos", "tres"} {
 		if !strings.Contains(script, fmt.Sprintf(`name="%s"`, name)) {
@@ -235,14 +235,20 @@ func TestBuildScriptLastLBAHeader(t *testing.T) {
 	p := partitioners.Partition{SizeInSectors: int64Ptr(0)}
 	p.Number = 1
 
-	script := buildScript([]partitioners.Partition{p}, 67583)
+	script := buildScript([]partitioners.Partition{p}, diskHeader{lastLBA: 67583, labelID: "12345678-1234-1234-1234-123456789abc"})
 	if !strings.Contains(script, "last-lba: 67583") {
 		t.Errorf("expected last-lba header, got:\n%s", script)
 	}
+	if !strings.Contains(script, "label-id: 12345678-1234-1234-1234-123456789abc") {
+		t.Errorf("expected label-id header, got:\n%s", script)
+	}
 
-	script = buildScript([]partitioners.Partition{p}, -1)
+	script = buildScript([]partitioners.Partition{p}, diskHeader{lastLBA: -1})
 	if strings.Contains(script, "last-lba:") {
 		t.Errorf("should not contain last-lba when unknown, got:\n%s", script)
+	}
+	if strings.Contains(script, "label-id:") {
+		t.Errorf("should not contain label-id when unknown, got:\n%s", script)
 	}
 }
 
@@ -260,6 +266,82 @@ func TestWritePartitionLineMinimal(t *testing.T) {
 	if !strings.Contains(line, "size=+") {
 		t.Errorf("expected size=+, got %q", line)
 	}
+}
+
+func TestWritePartitionLineAttrs(t *testing.T) {
+	p := partitioners.Partition{Attrs: []string{"LegacyBIOSBootable", "NoAutomount"}}
+	p.Number = 1
+
+	var buf bytes.Buffer
+	writePartitionLine(&buf, p)
+
+	if !strings.Contains(buf.String(), `attrs="LegacyBIOSBootable,NoAutomount"`) {
+		t.Errorf("expected attrs re-emitted, got %q", buf.String())
+	}
+}
+
+func TestWritePartitionLineLabelQuoting(t *testing.T) {
+	// Labels are carried raw and encoded to sfdisk's quoted/\xHH form,
+	// mirroring `sfdisk --dump` output and the loader's
+	// unhexmangle_string(), so exotic names round-trip byte-exactly.
+	cases := []struct {
+		label string
+		want  string
+	}{
+		{`simple`, "\"simple\""},
+		{`a:b`, "\"a:b\"" /* verbatim check below */},
+		{`with space`, "\"with space\"" /* verbatim check below */},
+		{`q"b`, "\"q\\x22b\"" /* verbatim check below */},
+		{`back\slash`, "\"back\\x5cslash\"" /* verbatim check below */},
+		{"ctl\x01byte", "\"ctl\\x01byte\"" /* verbatim check below */},
+	}
+	for _, c := range cases {
+		p := partitioners.Partition{}
+		p.Label = strPtr(c.label)
+		p.Number = 1
+		var buf bytes.Buffer
+		writePartitionLine(&buf, p)
+		if !strings.Contains(buf.String(), "name="+c.want) {
+			t.Errorf("label %q: want name=%s in %q", c.label, c.want, buf.String())
+		}
+	}
+}
+
+func TestSfdiskNameCodec(t *testing.T) {
+	// encode -> decode is the identity for every single byte value
+	for i := 0; i < 256; i++ {
+		raw := string([]byte{byte(i)}) + "x"
+		enc := encodeSfdiskName(raw)
+		dec, err := decodeSfdiskName(enc)
+		if err != nil {
+			t.Fatalf("byte %d: decode error %v", i, err)
+		}
+		if dec != raw {
+			t.Errorf("byte %d: round-trip failed: enc=%q dec=%q", i, enc, dec)
+		}
+	}
+}
+
+func TestParseOutputLastLBACorrectionScopedToInspected(t *testing.T) {
+	// A partition NOT queued for inspection (explicit geometry) that
+	// happens to end at lastLBA-1 must keep its exact size; only fill
+	// (inspected) partitions get the +1 correction.
+	op := &Operation{lastLBA: 67583}
+
+	sfdiskOutput := `New situation:
+Disklabel type: gpt
+
+Device     Start   End Sectors Size Type
+/dev/vda1   2048 67582   65535  32M Linux filesystem
+
+The partition table is unchanged (--no-act).`
+
+	// partition 1 present on disk but not inspected (no zero geometry)
+	result, err := op.ParseOutput(sfdiskOutput, []int{2})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	assertOutput(t, result, 1, partitioners.Output{Start: 2048, Size: 65535})
 }
 
 func int64Ptr(v int64) *int64 { return &v }

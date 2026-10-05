@@ -39,6 +39,7 @@ type Operation struct {
 	deletions []int
 	infos     []int
 	lastLBA   int64
+	labelID   string
 }
 
 func Begin(logger *log.Logger, dev string) *Operation {
@@ -61,74 +62,109 @@ func (op *Operation) WipeTable(wipe bool) {
 	op.wipe = wipe
 }
 
+// NeedsPartx returns true: the sfdisk CLI only issues a best-effort
+// whole-disk BLKRRPART after writing (whose failure is ignored and which
+// the kernel refuses while any partition of the disk is mounted). It
+// does not use the per-partition BLKPG ioctls, so ignition must
+// continue to sync the kernel view with partx for changed partitions.
 func (op *Operation) NeedsPartx() bool {
-	return false
+	return true
 }
 
 func (op *Operation) WritesCompleteTable() bool {
 	return true
 }
 
-// ensureGPTLabel creates an empty GPT label on the device if one does
-// not already exist. This is needed so that getLastLBA can read
-// last-lba from the GPT header and so that sfdisk --no-act works.
-func (op *Operation) ensureGPTLabel() {
-	cmd := exec.Command(distro.SfdiskCmd(), "--dump", op.dev)
-	if out, err := cmd.Output(); err == nil && strings.Contains(string(out), "label:") {
-		return
-	}
-	if op.logger != nil {
-		op.logger.Info("creating empty GPT label on %q", op.dev)
-	}
-	labelCmd := exec.Command(distro.SfdiskCmd(), "-X", "gpt", op.dev)
-	labelCmd.Stdin = strings.NewReader("label: gpt\n")
-	if output, err := labelCmd.CombinedOutput(); err != nil {
-		if op.logger != nil {
-			op.logger.Warning("failed to create GPT label on %q: %v: %s", op.dev, err, string(output))
-		}
-	}
+// diskHeader holds the on-disk GPT header values we must preserve across
+// a whole-table rewrite: the backup LBA bound and the disk identifier.
+// Omitting label-id from a script makes sfdisk randomize the disk GUID
+// on every load, which is an observable (and boot-breaking for
+// anything keying on /dev/disk/by-partuuid... no: the disk UUID) change.
+type diskHeader struct {
+	firstLBA int64
+	lastLBA  int64
+	labelID  string
 }
 
-// getLastLBA reads the last usable LBA from the device's GPT header.
-func (op *Operation) getLastLBA() int64 {
-	op.ensureGPTLabel()
+// readDiskHeader runs sfdisk --dump and extracts the table-level headers.
+// Returns an empty header (lastLBA -1, no labelID) if the device has no
+// readable partition table; callers must handle that (blank disk).
+func (op *Operation) readDiskHeader() diskHeader {
+	h := diskHeader{firstLBA: -1, lastLBA: -1}
 	cmd := exec.Command(distro.SfdiskCmd(), "--dump", op.dev)
 	stdout, err := cmd.Output()
 	if err != nil {
-		return -1
+		return h
 	}
-	re := regexp.MustCompile(`(?m)^last-lba:\s*(\d+)`)
-	match := re.FindSubmatch(stdout)
-	if len(match) >= 2 {
-		v, err := strconv.ParseInt(string(match[1]), 10, 64)
-		if err == nil {
-			return v
+	lbaRe := regexp.MustCompile(`(?m)^(first|last)-lba:\s*(\d+)`)
+	idRe := regexp.MustCompile(`(?m)^label-id:\s*(\S+)`)
+	for _, m := range lbaRe.FindAllSubmatch(stdout, -1) {
+		v, err := strconv.ParseInt(string(m[2]), 10, 64)
+		if err != nil {
+			continue
+		}
+		if string(m[1]) == "first" {
+			h.firstLBA = v
+		} else {
+			h.lastLBA = v
 		}
 	}
-	return -1
+	if m := idRe.FindSubmatch(stdout); len(m) >= 2 {
+		h.labelID = string(m[1])
+	}
+	return h
+}
+
+var dumpLineRegex = regexp.MustCompile(`^(/\S+)\s*:\s*(.*)$`)
+var dumpNumRegex = regexp.MustCompile(`(\d+)$`)
+
+// splitFields splits an sfdisk script line on commas, but not inside
+// double-quoted values (names can contain commas, colons and
+// backslash-escapes; sfdisk --dump quotes them).
+func splitFields(s string) []string {
+	var fields []string
+	inQuote := false
+	current := &bytes.Buffer{}
+	for _, r := range s {
+		switch {
+		case r == '"':
+			inQuote = !inQuote
+			current.WriteRune(r)
+		case r == ',' && !inQuote:
+			fields = append(fields, current.String())
+			current.Reset()
+		default:
+			current.WriteRune(r)
+		}
+	}
+	fields = append(fields, current.String())
+	return fields
 }
 
 // readExistingPartitions reads the current partition table using
-// sfdisk --dump.
+// sfdisk --dump, preserving all identity fields (including GPT
+// attribute bits) so a whole-table rewrite is lossless. Names are
+// decoded from sfdisk's quoted/\xHH script form to raw bytes here and
+// re-encoded on write (encodeSfdiskName), so exotic labels round-trip
+// byte-exactly regardless of where the entry came from.
 func (op *Operation) readExistingPartitions() ([]partitioners.Partition, error) {
 	cmd := exec.Command(distro.SfdiskCmd(), "--dump", op.dev)
 	stdout, err := cmd.Output()
 	if err != nil {
+		// No partition table (or unreadable): treat as empty. The
+		// stage guarantees a GPT exists before calling us on the
+		// main path, so this only happens on blank disks.
 		return nil, nil
 	}
 
 	var partitions []partitioners.Partition
-	lineRegex := regexp.MustCompile(`^(/\S+)\s*:\s*(.*)$`)
-	numRegex := regexp.MustCompile(`(\d+)$`)
-
 	for _, line := range strings.Split(string(stdout), "\n") {
 		line = strings.TrimSpace(line)
-		matches := lineRegex.FindStringSubmatch(line)
+		matches := dumpLineRegex.FindStringSubmatch(line)
 		if matches == nil {
 			continue
 		}
-
-		numMatch := numRegex.FindStringSubmatch(matches[1])
+		numMatch := dumpNumRegex.FindStringSubmatch(matches[1])
 		if numMatch == nil {
 			continue
 		}
@@ -140,7 +176,7 @@ func (op *Operation) readExistingPartitions() ([]partitioners.Partition, error) 
 		p := partitioners.Partition{}
 		p.Number = partNum
 
-		for _, field := range strings.Split(matches[2], ",") {
+		for _, field := range splitFields(matches[2]) {
 			field = strings.TrimSpace(field)
 			kv := strings.SplitN(field, "=", 2)
 			if len(kv) != 2 {
@@ -165,7 +201,12 @@ func (op *Operation) readExistingPartitions() ([]partitioners.Partition, error) 
 			case "uuid":
 				p.GUID = util.StrToPtr(value)
 			case "name":
-				p.Label = util.StrToPtr(strings.Trim(value, "\""))
+				raw, err := decodeSfdiskName(value)
+				if err == nil {
+					p.Label = util.StrToPtr(raw)
+				}
+			case "attrs":
+				p.Attrs = splitAttrs(value)
 			}
 		}
 
@@ -173,6 +214,60 @@ func (op *Operation) readExistingPartitions() ([]partitioners.Partition, error) 
 	}
 
 	return partitions, nil
+}
+
+// splitAttrs parses an sfdisk attrs value: "A,B" or A,B (quoted list of
+// bit names as emitted by --dump).
+func splitAttrs(value string) []string {
+	value = strings.TrimSpace(value)
+	value = strings.Trim(value, "\"")
+	if value == "" {
+		return nil
+	}
+	return strings.Split(value, ",")
+}
+
+// sfdisk script name encoding mirrors what `sfdisk --dump` emits and
+// what the loader's next_string()+unhexmangle_string() accepts: the
+// value is wrapped in double quotes, and every byte that would break
+// the quoted token (double quote, backslash) or cannot appear in it
+// unescaped (control bytes, DEL) is hex-escaped as \xHH. Names from
+// the config and from blkid are raw; names preserved from --dump are
+// decoded to raw by readExistingPartitions; encodeSfdiskName is the
+// inverse and is applied unconditionally, so the script round-trips
+// byte-exactly for exotic labels (quotes, backslashes, control bytes).
+var hexEscapeRegex = regexp.MustCompile(`\\x([0-9a-fA-F]{2})`)
+
+func encodeSfdiskName(raw string) string {
+	out := &bytes.Buffer{}
+	out.WriteByte('"')
+	for i := 0; i < len(raw); i++ {
+		c := raw[i]
+		if c == '"' || c == '\\' || c < 0x20 || c == 0x7f {
+			fmt.Fprintf(out, "\\x%02x", c)
+		} else {
+			out.WriteByte(c)
+		}
+	}
+	out.WriteByte('"')
+	return out.String()
+}
+
+func decodeSfdiskName(encoded string) (string, error) {
+	if len(encoded) < 2 || !strings.HasPrefix(encoded, "\"") || !strings.HasSuffix(encoded, "\"") {
+		// dump always quotes names; anything else is malformed input
+		return encoded, nil
+	}
+	inner := encoded[1 : len(encoded)-1]
+	// unhexmangle leaves backslash sequences that are not \xHH verbatim
+	decoded := hexEscapeRegex.ReplaceAllStringFunc(inner, func(m string) string {
+		b, err := strconv.ParseUint(m[2:], 16, 8)
+		if err != nil {
+			return m
+		}
+		return string([]byte{byte(b)})
+	})
+	return decoded, nil
 }
 
 func writePartitionLine(script *bytes.Buffer, p partitioners.Partition) {
@@ -203,7 +298,13 @@ func writePartitionLine(script *bytes.Buffer, p partitioners.Partition) {
 	}
 
 	if p.Label != nil {
-		fmt.Fprintf(&line, " name=\"%s\",", *p.Label)
+		// Labels are carried in raw form (config, blkid, and decoded
+		// --dump input); encode to sfdisk's quoted/\xHH form.
+		fmt.Fprintf(&line, " name=%s,", encodeSfdiskName(*p.Label))
+	}
+
+	if len(p.Attrs) > 0 {
+		fmt.Fprintf(&line, " attrs=\"%s\",", strings.Join(p.Attrs, ","))
 	}
 
 	script.WriteString(strings.TrimSuffix(line.String(), ","))
@@ -213,12 +314,30 @@ func writePartitionLine(script *bytes.Buffer, p partitioners.Partition) {
 // buildScript constructs an sfdisk script. Fixed-size partitions are
 // written first (sorted by start sector) so that fill-remaining
 // partitions (size=+) see the correct free blocks.
-func buildScript(partitions []partitioners.Partition, lastLBA int64) string {
+//
+// grain: 512 disables sfdisk's default end-alignment of fill
+// partitions so the tail of the table reaches last-lba - 1, matching
+// what sgdisk produces (see the lastLBA correction in ParseOutput); it
+// also lets fill start at the raw head of the largest free block.
+// last-lba and label-id are pinned to the on-disk header values so a
+// rewrite neither truncates the usable area (first-lba/last-lba are
+// the #1745 regression class) nor randomizes the disk GUID.
+func buildScript(partitions []partitioners.Partition, header diskHeader) string {
 	script := &bytes.Buffer{}
 	script.WriteString("label: gpt\n")
 	script.WriteString("grain: 512\n")
-	if lastLBA >= 0 {
-		fmt.Fprintf(script, "last-lba: %d\n", lastLBA)
+	if header.labelID != "" {
+		fmt.Fprintf(script, "label-id: %s\n", header.labelID)
+	}
+	// Pin both usable-area bounds: defaulting first-lba (sfdisk uses
+	// its alignment default, 2048) would rewrite the header of tables
+	// created with a tighter first-lba (e.g. sgdisk's 34) and could
+	// contradict preserved partitions that start below the default.
+	if header.firstLBA >= 0 {
+		fmt.Fprintf(script, "first-lba: %d\n", header.firstLBA)
+	}
+	if header.lastLBA >= 0 {
+		fmt.Fprintf(script, "last-lba: %d\n", header.lastLBA)
 	}
 	script.WriteString("\n")
 
@@ -281,6 +400,14 @@ func (op *Operation) mergePartitions() ([]partitioners.Partition, error) {
 			replaced := false
 			for i := range merged {
 				if merged[i].Number == p.Number {
+					// GPT attribute bits are invisible to the
+					// config (and to blkid-based matching), so a
+					// queued partition never carries them; inherit
+					// from the preserved entry so whole-table
+					// rewrites don't silently clear them.
+					if p.Attrs == nil {
+						p.Attrs = merged[i].Attrs
+					}
 					merged[i] = p
 					replaced = true
 					break
@@ -301,14 +428,19 @@ func (op *Operation) Pretend() (string, error) {
 		return "", err
 	}
 
-	op.lastLBA = op.getLastLBA()
-	scriptContent := buildScript(merged, op.lastLBA)
+	header := op.readDiskHeader()
+	op.lastLBA = header.lastLBA
+	scriptContent := buildScript(merged, header)
 
 	if op.logger != nil {
 		op.logger.Info("running sfdisk --no-act with script:\n%s", scriptContent)
 	}
 
-	cmd := exec.Command(distro.SfdiskCmd(), "--no-act", "--wipe-partitions", "always", "-X", "gpt", op.dev)
+	// --force: tolerate a bogus last-lba header on a blank disk (no
+	// side effects here: --no-act never writes, and no label
+	// creation is attempted — the stage only reaches Pretend on a
+	// device with a readable GPT).
+	cmd := exec.Command(distro.SfdiskCmd(), "--no-act", "--force", "-X", "gpt", op.dev)
 	cmd.Stdin = strings.NewReader(scriptContent)
 
 	stdout, err := cmd.StdoutPipe()
@@ -341,15 +473,25 @@ func (op *Operation) Pretend() (string, error) {
 	return string(output), nil
 }
 
+// Commit writes the merged table. wipeTable is handled by the stage as a
+// separate op carrying only WipeTable(true).
 func (op *Operation) Commit() error {
 	if op.wipe {
 		if op.logger != nil {
 			op.logger.Info("wiping partition table on %q", op.dev)
 		}
-		cmd := exec.Command(distro.SfdiskCmd(), "--wipe", "always", "--label", "gpt", op.dev)
+		// --wipe never: writing a fresh label over an existing one
+		// must NOT erase filesystem signatures inside former
+		// partitions; sgdisk --zap-all only destroys the table
+		// structures, and signature wiping is the responsibility of
+		// the filesystems stage (wipefs per wipeFilesystem).
+		cmd := exec.Command(distro.SfdiskCmd(), "--no-reread", "--wipe", "never", "-X", "gpt", op.dev)
 		cmd.Stdin = strings.NewReader("label: gpt\n")
 		if output, err := cmd.CombinedOutput(); err != nil {
 			return fmt.Errorf("failed to wipe partition table on %q: %v: %s", op.dev, err, string(output))
+		}
+		if len(op.parts) == 0 && len(op.deletions) == 0 {
+			return nil
 		}
 	}
 
@@ -358,7 +500,7 @@ func (op *Operation) Commit() error {
 		return err
 	}
 
-	if len(merged) == 0 {
+	if len(merged) == 0 && !op.wipe {
 		return nil
 	}
 
@@ -366,14 +508,22 @@ func (op *Operation) Commit() error {
 		return err
 	}
 
-	lastLBA := op.getLastLBA()
-	scriptContent := buildScript(merged, lastLBA)
+	header := op.readDiskHeader()
+	scriptContent := buildScript(merged, header)
 
 	if op.logger != nil {
 		op.logger.Info("running sfdisk with script:\n%s", scriptContent)
 	}
 
-	cmd := exec.Command(distro.SfdiskCmd(), "--wipe", "auto", "--wipe-partitions", "always", "-X", "gpt", op.dev)
+	// --no-reread: skip sfdisk's whole-disk O_EXCL in-use check;
+	// ignition performs its own per-partition usage checks and must
+	// be allowed to modify a table while another partition of the
+	// same disk is mounted (the case partx exists for).
+	// --wipe auto / --wipe-partitions auto: never silently remove
+	// filesystem signatures from preserved (re-listed) partitions;
+	// non-interactive "auto" already declines wipes (same posture as
+	// sgdisk), "always" would destroy the data of untouched ones.
+	cmd := exec.Command(distro.SfdiskCmd(), "--no-reread", "--wipe", "auto", "--wipe-partitions", "auto", "-X", "gpt", op.dev)
 	cmd.Stdin = strings.NewReader(scriptContent)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -383,6 +533,11 @@ func (op *Operation) Commit() error {
 	return nil
 }
 
+// ParseOutput reads the "New situation" table printed by --no-act.
+// partitionNumbers lists the partitions the stage queued for inspection
+// (those with unspecified or zero geometry); only for those can
+// end==last-lba-1 mean "fill" rather than an explicit size, so the
+// last-lba correction is restricted to them.
 func (op *Operation) ParseOutput(sfdiskOutput string, partitionNumbers []int) (map[int]partitioners.Output, error) {
 	preamble := sfdiskOutput
 	if idx := strings.Index(sfdiskOutput, "Device"); idx >= 0 {
@@ -391,6 +546,11 @@ func (op *Operation) ParseOutput(sfdiskOutput string, partitionNumbers []int) (m
 	lower := strings.ToLower(preamble)
 	if strings.Contains(lower, "failed") || strings.Contains(lower, "error") {
 		return nil, fmt.Errorf("%w: %s", sharedErrors.ErrBadSfdiskPretend, sfdiskOutput)
+	}
+
+	inspect := map[int]bool{}
+	for _, n := range partitionNumbers {
+		inspect[n] = true
 	}
 
 	result := make(map[int]partitioners.Output)
@@ -431,9 +591,12 @@ func (op *Operation) ParseOutput(sfdiskOutput string, partitionNumbers []int) (m
 
 		size := end - start + 1
 
-		// sfdisk's fill-remaining (size=+) ends 1 sector before lastLBA.
-		// Correct this to match sgdisk which fills to the exact lastLBA.
-		if op.lastLBA > 0 && end == op.lastLBA-1 {
+		// With grain: 512, a fill (size=+) partition ends at
+		// lastLBA-1. sgdisk fills to lastLBA exactly, so report one
+		// more sector to match. Restricted to inspected partitions:
+		// an explicit size that happens to end at lastLBA-1 must NOT
+		// be enlarged (that would flip-flop sizes across boots).
+		if op.lastLBA > 0 && end == op.lastLBA-1 && inspect[partNum] {
 			size++
 		}
 
