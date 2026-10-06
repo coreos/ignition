@@ -375,3 +375,268 @@ func TestIntegrationAutoPositionedWithPreserved(t *testing.T) {
 		}
 	}
 }
+
+// stageFlow mimics what the disks stage does between Pretend and
+// Commit: run Pretend, parse resolved geometry for inspected
+// partitions, write those values back into the queued partitions,
+// then commit a fresh op with the resolved (explicit) geometry.
+func stageFlow(t *testing.T, img string, queued []partitioners.Partition, inspected []int) map[int]partitioners.Output {
+	t.Helper()
+	op := Begin(nil, img)
+	for _, p := range queued {
+		op.CreatePartition(p)
+	}
+	out, err := op.Pretend()
+	if err != nil {
+		t.Fatalf("pretend: %v", err)
+	}
+	dims, err := op.ParseOutput(out, inspected)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	op2 := Begin(nil, img)
+	for _, p := range queued {
+		if d, ok := dims[p.Number]; ok {
+			s, z := d.Start, d.Size
+			p.StartSector = &s
+			p.SizeInSectors = &z
+		}
+		op2.CreatePartition(p)
+	}
+	if err := op2.Commit(); err != nil {
+		t.Fatalf("commit with resolved geometry: %v", err)
+	}
+	return dims
+}
+
+// TestIntegrationStageFlowBlankFill verifies the blackbox
+// partition.create.startsize0 class end-to-end on a blank device: a
+// size=0/number=1/start=0 (fill) partition must be committed and
+// reported with identical geometry, with the fill reaching the last
+// usable sector (sfdisk default usable end = totalSectors-34) exactly
+// as sgdisk's would.
+func TestIntegrationStageFlowBlankFill(t *testing.T) {
+	requireTools(t)
+	dir := t.TempDir()
+	img := dir + "/disk.img"
+	makeImage(t, img, 64) // 131072 sectors -> default usable end 131038
+
+	p := partitioners.Partition{}
+	p.Number = 1
+	zero := int64(0)
+	p.StartSector = &zero
+	p.SizeInSectors = &zero
+	p.Label = strPtr("fills-disk")
+
+	dims := stageFlow(t, img, []partitioners.Partition{p}, []int{1})
+	after := dumpFields(t, img)
+	got := after[1]
+	start, _ := strconv.ParseInt(got["start"], 10, 64)
+	size, _ := strconv.ParseInt(got["size"], 10, 64)
+	// reported == committed on disk (no boot-to-boot churn)
+	if dims[1].Start != start || dims[1].Size != size {
+		t.Errorf("reported %v != on-disk start=%d size=%d", dims[1], start, size)
+	}
+	// fill reaches last usable exactly: end 131038 == 131072-34
+	if end := start + size - 1; end != 131072-34 {
+		t.Errorf("fill end=%d, want %d (sgdisk parity)", end, 131072-34)
+	}
+}
+
+// TestIntegrationStageFlowExistingFillOnPinnedTable covers the kola
+// class: a fill queued against an EXISTING table whose last-lba is
+// pinned from the header. Whatever Pretend resolves must be exactly
+// what Commit puts on disk.
+func TestIntegrationStageFlowExistingFillOnPinnedTable(t *testing.T) {
+	requireTools(t)
+	sgdisk := requireTools(t)
+	dir := t.TempDir()
+	img := dir + "/disk.img"
+	makeImage(t, img, 128)
+	runCmd(t, "", sgdisk, "--zap-all", img)
+	runCmd(t, "", sgdisk, "--new=1:2048:+20480", "--new=2:45056:+20480", img)
+
+	p := partitioners.Partition{}
+	p.Number = 3
+	p.SizeInSectors = int64Ptr(0) // fill
+	p.Label = strPtr("log")
+	dims := stageFlow(t, img, []partitioners.Partition{p}, []int{3})
+
+	after := dumpFields(t, img)
+	got := after[3]
+	start, _ := strconv.ParseInt(got["start"], 10, 64)
+	size, _ := strconv.ParseInt(got["size"], 10, 64)
+	if dims[3].Start != start || dims[3].Size != size {
+		t.Errorf("reported %v != on-disk start=%d size=%d", dims[3], start, size)
+	}
+	// preserved p1/p2 untouched
+	p1 := dumpFields(t, img)[1]
+	if p1["start"] != "2048" || p1["size"] != "20480" {
+		t.Errorf("p1 churned: %v", p1)
+	}
+	// the fill must not overflow the header's last usable sector
+	hdr := headerValue(t, img, "last-lba")
+	lastUsable, _ := strconv.ParseInt(hdr, 10, 64)
+	if end := start + size - 1; end > lastUsable {
+		t.Errorf("committed fill end %d exceeds last-lba %d", end, lastUsable)
+	}
+}
+
+// TestIntegrationDeleteAllWritesEmptyTable covers the blackbox
+// partition.delete / partition.delete.all class: deleting every
+// partition must actually rewrite an empty table (the sgdisk backend
+// committed each delete), preserving the disk GUID and not touching
+// data areas.
+func TestIntegrationDeleteAllWritesEmptyTable(t *testing.T) {
+	requireTools(t)
+	sgdisk := requireTools(t)
+	dir := t.TempDir()
+	img := dir + "/disk.img"
+	makeImage(t, img, 64)
+	runCmd(t, "", sgdisk, "--zap-all", img)
+	runCmd(t, "", sgdisk, "--new=1:2048:+20480", "--new=2:45056:+20480", img)
+	guidBefore := diskGUIDFromSgdisk(t, sgdisk, img)
+
+	op := Begin(nil, img)
+	op.DeletePartition(1)
+	op.DeletePartition(2)
+	if err := op.Commit(); err != nil {
+		t.Fatalf("delete-all commit: %v", err)
+	}
+	after := dumpFields(t, img)
+	if len(after) != 0 {
+		t.Errorf("delete-all left partitions on disk: %v", after)
+	}
+	if guidAfter := diskGUIDFromSgdisk(t, sgdisk, img); guidAfter != guidBefore {
+		t.Errorf("disk GUID churned on delete-all: %s -> %s", guidBefore, guidAfter)
+	}
+}
+
+// TestIntegrationPretendHonorsPinnedLastLBA locks in the --force
+// removal: Pretend must resolve fills against the pinned table
+// header, never sfdisk's default usable end (that divergence is what
+// made commits fail with "out of range").
+func TestIntegrationPretendHonorsPinnedLastLBA(t *testing.T) {
+	requireTools(t)
+	dir := t.TempDir()
+	img := dir + "/disk.img"
+	makeImage(t, img, 128) // 262144 sectors, default usable end 262110
+	// build a table whose last-lba is deliberately small
+	seed := "label: gpt\ngrain: 512\nfirst-lba: 34\nlast-lba: 130000\n\n1 : start=34, size=2048\n"
+	runCmd(t, seed, "sfdisk", "-X", "gpt", img)
+
+	op := Begin(nil, img)
+	fill := partitioners.Partition{}
+	fill.Number = 2
+	fill.SizeInSectors = int64Ptr(0)
+	op.CreatePartition(fill)
+	out, err := op.Pretend()
+	if err != nil {
+		t.Fatalf("pretend: %v", err)
+	}
+	dims, err := op.ParseOutput(out, []int{2})
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if op.lastLBA != 130000 {
+		t.Fatalf("op.lastLBA=%d, want pinned 130000", op.lastLBA)
+	}
+	// fill end must respect the pinned usable end (correction makes
+	// reported end == 130000), and stay far below the disk default
+	env := dims[2]
+	if end := env.Start + env.Size - 1; end > 130000 {
+		t.Errorf("fill resolved to end %d > pinned last-lba 130000 (--force regression)", end)
+	}
+}
+
+// TestIntegrationStageFlowWipeReprovision mirrors the kola
+// root-reprovision.swap-before-root sequence: wipeTable on a fresh
+// disk, then queue a fixed-size partition with auto start plus a fill
+// root through Pretend -> ParseOutput -> Commit, asserting the
+// geometry ignition reports is exactly what lands on disk and the
+// fill ends on the header's last usable sector (sgdisk parity).
+func TestIntegrationStageFlowWipeReprovision(t *testing.T) {
+	requireTools(t)
+	dir := t.TempDir()
+	img := dir + "/disk.img"
+	makeImage(t, img, 256)
+	// pre-existing junk table to wipe
+	runCmd(t, "label: gpt\ngrain: 512\n\n\n1 : start=2048, size=2048\n", "sfdisk", "--force", "-X", "gpt", img)
+
+	// stage: wipeTable op
+	wipeOp := Begin(nil, img)
+	wipeOp.WipeTable(true)
+	if err := wipeOp.Commit(); err != nil {
+		t.Fatalf("wipe commit: %v", err)
+	}
+
+	// stage: swap (fixed size, auto start, number 1) + root fill (number 2)
+	swap := partitioners.Partition{}
+	swap.Number = 1
+	swap.SizeInSectors = int64Ptr(20480)
+	swap.Label = strPtr("swap")
+	root := partitioners.Partition{}
+	root.Number = 2
+	root.SizeInSectors = int64Ptr(0) // fill
+	root.Label = strPtr("root")
+
+	dims := stageFlow(t, img, []partitioners.Partition{swap, root}, []int{1, 2})
+	after := dumpFields(t, img)
+
+	for num := 1; num <= 2; num++ {
+		start, _ := strconv.ParseInt(after[num]["start"], 10, 64)
+		size, _ := strconv.ParseInt(after[num]["size"], 10, 64)
+		if dims[num].Start != start || dims[num].Size != size {
+			t.Errorf("p%d reported %v != on-disk start=%d size=%d", num, dims[num], start, size)
+		}
+	}
+	lastUsable, _ := strconv.ParseInt(headerValue(t, img, "last-lba"), 10, 64)
+	if end := dims[2].Start + dims[2].Size - 1; end != lastUsable {
+		t.Errorf("root fill end %d != last usable %d", end, lastUsable)
+	}
+	// re-running the same stage flow must be a no-op (stable-boot class
+	// regression: match detection needs byte-stable geometry across boots).
+	// On the second boot p1 MATCHES, so the stage re-lists it with the
+	// on-disk identity (see the "exists && shouldExist && matches"
+	// branch: StartSector/SizeInSectors/TypeGUID/GUID/Label from info);
+	// p2 stays queued as a fill because size 0 means "don't care".
+	op2 := Begin(nil, img)
+	p1 := partitioners.Partition{}
+	p1.Number = 1
+	p1.Label = strPtr("swap")
+	swapSize := int64(20480)
+	p1.SizeInSectors = &swapSize
+	p1.StartSector = int64Ptr(dims2start(after[1]))
+	if g := after[1]["uuid"]; g != "" {
+		p1.GUID = strPtr(strings.ToUpper(g))
+	}
+	op2.CreatePartition(p1)
+	out, err := op2.Pretend()
+	if err != nil {
+		t.Fatalf("second pretend: %v", err)
+	}
+	dims2, err := op2.ParseOutput(out, []int{1})
+	if err != nil {
+		t.Fatalf("second parse: %v", err)
+	}
+	if err := op2.Commit(); err != nil {
+		t.Fatalf("second commit: %v", err)
+	}
+	after2 := dumpFields(t, img)
+	for num := 1; num <= 2; num++ {
+		for _, k := range []string{"start", "size", "uuid", "name"} {
+			if !strings.EqualFold(after[num][k], after2[num][k]) {
+				t.Errorf("p%d %s churned on re-run: %q -> %q", num, k, after[num][k], after2[num][k])
+			}
+		}
+	}
+	if !strings.EqualFold(after[1]["start"], strconv.FormatInt(dims2[1].Start, 10)) {
+		t.Errorf("swap geometry drifted across boots: on-disk %v vs reported %v", after[1], dims2[1])
+	}
+}
+
+// dims2start parses the start sector out of a dumpFields entry.
+func dims2start(fields map[string]string) int64 {
+	v, _ := strconv.ParseInt(fields["start"], 10, 64)
+	return v
+}

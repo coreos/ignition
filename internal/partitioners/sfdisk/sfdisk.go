@@ -117,6 +117,11 @@ func (op *Operation) readDiskHeader() diskHeader {
 var dumpLineRegex = regexp.MustCompile(`^(/\S+)\s*:\s*(.*)$`)
 var dumpNumRegex = regexp.MustCompile(`(\d+)$`)
 
+// diskSectorsRegex matches sfdisk's geometry banner ("Disk <dev>: 32
+// MiB, 33554432 bytes, 65536 sectors") so the usable-end can be
+// derived on devices that had no readable table.
+var diskSectorsRegex = regexp.MustCompile(`Disk \S+: .*, (\d+) sectors`)
+
 // splitFields splits an sfdisk script line on commas, but not inside
 // double-quoted values (names can contain commas, colons and
 // backslash-escapes; sfdisk --dump quotes them).
@@ -451,11 +456,17 @@ func (op *Operation) Pretend() (string, error) {
 		op.logger.Info("running sfdisk --no-act with script:\n%s", scriptContent)
 	}
 
-	// --force: tolerate a bogus last-lba header on a blank disk (no
-	// side effects here: --no-act never writes, and no label
-	// creation is attempted — the stage only reaches Pretend on a
-	// device with a readable GPT).
-	cmd := exec.Command(distro.SfdiskCmd(), "--no-act", "--force", "-X", "gpt", op.dev)
+	// Do NOT pass --force here: --force makes sfdisk discard our
+	// pinned last-lba header (see sfdisk.c "Ignoring last-lba script
+	// header") and resolve fill/auto-positioned partitions against
+	// the disk's default usable end instead. Commit runs without
+	// --force and honors the pinned last-lba, so a geometry that
+	// only Pretend agreed on overflows the real table at commit with
+	// "Failed to add #N partition: Numerical result out of range".
+	// --no-act already prevents any write, and -X gpt forces the
+	// label type, so no-force is sufficient and side-effect free on
+	// blank devices.
+	cmd := exec.Command(distro.SfdiskCmd(), "--no-act", "-X", "gpt", op.dev)
 	cmd.Stdin = strings.NewReader(scriptContent)
 
 	stdout, err := cmd.StdoutPipe()
@@ -483,6 +494,21 @@ func (op *Operation) Pretend() (string, error) {
 
 	if err := cmd.Wait(); err != nil {
 		return "", fmt.Errorf("failed to pretend to create partitions. Err: %v. Stderr: %v", err, string(errors))
+	}
+
+	// On a device that had no readable table, readDiskHeader could
+	// not learn last-lba; the fill-partition size correction still
+	// needs it. sfdisk prints the disk geometry ("..., N sectors")
+	// and its GPT default reserves the last 33 sectors for the
+	// backup table, making the usable end N-34. Derive it so a
+	// size=+ fill resolves to the same final sector sgdisk would
+	// have used (verified against real sfdisk output).
+	if op.lastLBA < 0 {
+		if m := diskSectorsRegex.FindStringSubmatch(string(output)); len(m) >= 2 {
+			if n, err := strconv.ParseInt(m[1], 10, 64); err == nil && n > 34 {
+				op.lastLBA = n - 34
+			}
+		}
 	}
 
 	return string(output), nil
@@ -515,7 +541,28 @@ func (op *Operation) Commit() error {
 		return err
 	}
 
-	if len(merged) == 0 && !op.wipe {
+	if len(merged) == 0 {
+		// Nothing queued at all: no write. (Deletions alone still
+		// have to hit the disk: the sgdisk backend committed each
+		// --delete=N, leaving an empty table; skipping here would
+		// leave the old table on disk after a delete-all config,
+		// which blackbox's "extra partitions" validator catches.)
+		if len(op.deletions) == 0 {
+			return nil
+		}
+		header := op.readDiskHeader()
+		scriptContent := buildScript(nil, header)
+		if op.logger != nil {
+			op.logger.Info("writing empty partition table to %q:\n%s", op.dev, scriptContent)
+		}
+		// --wipe never: deleting entries must not touch filesystem
+		// data (or signatures) in the former partition areas; that
+		// is the filesystems stage's job, as with sgdisk.
+		cmd := exec.Command(distro.SfdiskCmd(), "--no-reread", "--wipe", "never", "--wipe-partitions", "never", "-X", "gpt", op.dev)
+		cmd.Stdin = strings.NewReader(scriptContent)
+		if output, err := cmd.CombinedOutput(); err != nil {
+			return fmt.Errorf("failed to remove all partitions on %q: %v: %s", op.dev, err, string(output))
+		}
 		return nil
 	}
 
