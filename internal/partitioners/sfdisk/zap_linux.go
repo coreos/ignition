@@ -24,17 +24,29 @@ import (
 )
 
 // diskGeometry returns the device size in bytes and its logical sector
-// size via block ioctls.
+// size via block ioctls. On a non-block-device file (integration tests
+// run against image files on Linux runners, where the sfdisk/sgdisk
+// tools are present and these tests are live), the ioctls return
+// ENOTTY and we fall back to the file size with a 512-byte sector.
 func diskGeometry(f *os.File) (int64, int64, error) {
 	var size uint64
-	if _, _, errno := unix.Syscall(unix.SYS_IOCTL, f.Fd(), unix.BLKGETSIZE64, uintptr(unsafe.Pointer(&size))); errno != 0 {
+	_, _, errno := unix.Syscall(unix.SYS_IOCTL, f.Fd(), unix.BLKGETSIZE64, uintptr(unsafe.Pointer(&size)))
+	switch errno {
+	case 0:
+		ssize, err := unix.IoctlGetInt(int(f.Fd()), unix.BLKSSZGET)
+		if err != nil {
+			return 0, 0, err
+		}
+		return int64(size), int64(ssize), nil
+	case unix.ENOTTY:
+		fi, err := f.Stat()
+		if err != nil {
+			return 0, 0, err
+		}
+		return fi.Size(), 512, nil
+	default:
 		return 0, 0, errno
 	}
-	ssize, err := unix.IoctlGetInt(int(f.Fd()), unix.BLKSSZGET)
-	if err != nil {
-		return 0, 0, err
-	}
-	return int64(size), int64(ssize), nil
 }
 
 // rereadPartitionTable asks the kernel to reread the partition table
