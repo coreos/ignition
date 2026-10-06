@@ -640,3 +640,100 @@ func dims2start(fields map[string]string) int64 {
 	v, _ := strconv.ParseInt(fields["start"], 10, 64)
 	return v
 }
+
+// TestIntegrationWipeLeavesNoTable reproduces the kola
+// coreos.misc.disk.varlibcontainers class: wipeTable on a disk with a
+// GPT must leave NO partition table signature (systemd-mkfs and
+// friends refuse to whole-disk-format a disk blkid still calls
+// "gpt"), while leaving filesystem data inside former partitions
+// intact (sgdisk --zap-all semantics).
+func TestIntegrationWipeLeavesNoTable(t *testing.T) {
+	requireTools(t)
+	sgdisk := requireTools(t)
+	dir := t.TempDir()
+	img := dir + "/disk.img"
+	makeImage(t, img, 64)
+	runCmd(t, "", sgdisk, "--zap-all", img)
+	runCmd(t, "", sgdisk, "--new=1:2048:+20480", img)
+	// FAT-looking boot block inside p1: data that must survive
+	fat := make([]byte, 512)
+	fat[0], fat[1], fat[2] = 0xEB, 0x58, 0x90
+	copy(fat[3:11], []byte("MSWIN4.1"))
+	fat[510], fat[511] = 0x55, 0xAA
+	fh, err := os.OpenFile(img, os.O_WRONLY, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := fh.WriteAt(fat, 2048*512); err != nil {
+		t.Fatal(err)
+	}
+	if err := fh.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	op := Begin(nil, img)
+	op.WipeTable(true)
+	if err := op.Commit(); err != nil {
+		t.Fatalf("wipe commit: %v", err)
+	}
+
+	// sfdisk must no longer see any table
+	cmdOut, cmdErr := runCmdAllowFail(t, "sfdisk", "--dump", img)
+	if cmdErr == nil || !strings.Contains(cmdOut, "does not contain a recognized partition table") {
+		t.Errorf("wipe left a detectable table (out %q err %v)", cmdOut, cmdErr)
+	}
+	// data inside the former partition intact
+	fh, err = os.Open(img)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = fh.Close() }()
+	buf := make([]byte, 512)
+	if _, err := fh.ReadAt(buf, 2048*512); err != nil {
+		t.Fatal(err)
+	}
+	if buf[0] != 0xEB || buf[510] != 0x55 || buf[511] != 0xAA {
+		t.Errorf("wipe destroyed filesystem data in former p1 area")
+	}
+}
+
+// runCmdAllowFail runs a command without failing the test on error.
+func runCmdAllowFail(t *testing.T, args ...string) (string, error) {
+	t.Helper()
+	cmd := exec.Command(args[0], args[1:]...)
+	out, err := cmd.CombinedOutput()
+	return string(out), err
+}
+
+// TestIntegrationWipeThenCreate mirrors the reprovision boot-1 flow:
+// wipeTable on a disk with an existing layout, then queue explicit
+// partitions; the create must succeed on the freshly-zapped disk.
+func TestIntegrationWipeThenCreate(t *testing.T) {
+	requireTools(t)
+	sgdisk := requireTools(t)
+	dir := t.TempDir()
+	img := dir + "/disk.img"
+	makeImage(t, img, 128)
+	runCmd(t, "", sgdisk, "--zap-all", img)
+	runCmd(t, "", sgdisk, "--new=1:2048:+20480", img)
+
+	op := Begin(nil, img)
+	op.WipeTable(true)
+	if err := op.Commit(); err != nil {
+		t.Fatalf("wipe commit: %v", err)
+	}
+
+	p := partitioners.Partition{}
+	p.Number = 1
+	p.StartSector = int64Ptr(2048)
+	p.SizeInSectors = int64Ptr(65536)
+	p.Label = strPtr("fresh")
+	dims := stageFlow(t, img, []partitioners.Partition{p}, nil)
+	after := dumpFields(t, img)
+	if after[1]["size"] != "65536" || after[1]["name"] != `"fresh"` {
+		t.Errorf("post-wipe create wrong: %v", after[1])
+	}
+	if dims[1].Size != 65536 {
+		t.Errorf("post-wipe reported size %v", dims[1])
+	}
+}

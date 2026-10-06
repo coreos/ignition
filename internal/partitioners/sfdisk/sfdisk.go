@@ -521,15 +521,8 @@ func (op *Operation) Commit() error {
 		if op.logger != nil {
 			op.logger.Info("wiping partition table on %q", op.dev)
 		}
-		// --wipe never: writing a fresh label over an existing one
-		// must NOT erase filesystem signatures inside former
-		// partitions; sgdisk --zap-all only destroys the table
-		// structures, and signature wiping is the responsibility of
-		// the filesystems stage (wipefs per wipeFilesystem).
-		cmd := exec.Command(distro.SfdiskCmd(), "--no-reread", "--wipe", "never", "-X", "gpt", op.dev)
-		cmd.Stdin = strings.NewReader("label: gpt\n")
-		if output, err := cmd.CombinedOutput(); err != nil {
-			return fmt.Errorf("failed to wipe partition table on %q: %v: %s", op.dev, err, string(output))
+		if err := op.zapTable(); err != nil {
+			return fmt.Errorf("failed to wipe partition table on %q: %v", op.dev, err)
 		}
 		if len(op.parts) == 0 && len(op.deletions) == 0 {
 			return nil
