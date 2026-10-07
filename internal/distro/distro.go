@@ -17,6 +17,7 @@ package distro
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // Distro-specific settings that can be overridden at link time with e.g.
@@ -151,6 +152,39 @@ func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !Black
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
 func WriteAuthorizedKeysFragment() bool {
 	return bakedStringToBool(fromEnv("WRITE_AUTHORIZED_KEYS_FRAGMENT", writeAuthorizedKeysFragment))
+}
+
+var partitionerBackend string
+
+// PartitionerBackend reports which partitioner the disks stage should use,
+// as selected by the "ignition.partitioner" kernel argument. It defaults
+// to sgdisk; sfdisk is opt-in via "ignition.partitioner=sfdisk".
+func PartitionerBackend() string {
+	if partitionerBackend == "" {
+		partitionerBackend = readPartitionerFromCmdline()
+	}
+	return partitionerBackend
+}
+
+func readPartitionerFromCmdline() string {
+	// Allow override via environment variable for testing.
+	if env := os.Getenv("IGNITION_PARTITIONER"); env == "sfdisk" || env == "sgdisk" {
+		return env
+	}
+	cmdline, err := os.ReadFile(KernelCmdlinePath())
+	if err != nil {
+		return "sgdisk"
+	}
+	for _, arg := range strings.Split(strings.TrimSpace(string(cmdline)), " ") {
+		parts := strings.SplitN(arg, "=", 2)
+		if parts[0] == "ignition.partitioner" && len(parts) == 2 {
+			switch parts[1] {
+			case "sfdisk", "sgdisk":
+				return parts[1]
+			}
+		}
+	}
+	return "sgdisk"
 }
 
 func fromEnv(nameSuffix, defaultValue string) string {
