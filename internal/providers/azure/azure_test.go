@@ -26,6 +26,7 @@ import (
 	"reflect"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	"github.com/coreos/ignition/v2/internal/log"
@@ -120,6 +121,58 @@ func TestFetchFromAzureMetadataEmptyUserData(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestFetchFromOvfDeviceWaitsForMissingDevice(t *testing.T) {
+	const emptyScans = 10000
+	stopError := errors.New("stop device polling test")
+	scans, waits := 0, 0
+
+	// These hooks are package-global, so this test must not run in parallel.
+	originalGetBlockDevices := getBlockDevices
+	originalWait := waitForOvfDevice
+	t.Cleanup(func() {
+		getBlockDevices = originalGetBlockDevices
+		waitForOvfDevice = originalWait
+	})
+	getBlockDevices = func(fsType string) ([]string, error) {
+		if fsType != CDS_FSTYPE_UDF {
+			t.Errorf("expected UDF filesystem type, got %q", fsType)
+		}
+		if scans != waits {
+			t.Fatalf("expected a wait after every empty scan, got %d scans and %d waits", scans, waits)
+		}
+		scans++
+		if scans > emptyScans {
+			// Terminate through the existing discovery-error path, not a timeout.
+			return nil, stopError
+		}
+		return nil, nil
+	}
+	waitForOvfDevice = func(duration time.Duration) {
+		if duration != time.Second {
+			t.Errorf("expected a one-second wait, got %v", duration)
+		}
+		if waits >= emptyScans || scans != waits+1 {
+			t.Fatalf("unexpected wait: %d scans and %d waits", scans, waits)
+		}
+		waits++
+	}
+
+	logger := log.New(true)
+	fetcher := resource.Fetcher{Logger: &logger}
+	gotConfig, gotReport, err := FetchFromOvfDevice(&fetcher, []string{CDS_FSTYPE_UDF})
+	wantError := fmt.Sprintf("failed to retrieve block devices with FSTYPE=%q: %v", CDS_FSTYPE_UDF, stopError)
+	if err == nil || err.Error() != wantError {
+		t.Fatalf("expected test discovery error %q, got %v", wantError, err)
+	}
+	if scans != emptyScans+1 || waits != emptyScans {
+		t.Fatalf("expected %d scans and %d waits, got %d scans and %d waits", emptyScans+1, emptyScans, scans, waits)
+	}
+	if !reflect.DeepEqual(gotConfig, types.Config{}) || !reflect.DeepEqual(gotReport, report.Report{}) {
+		t.Fatalf("expected empty config and report on discovery error, got %+v and %+v", gotConfig, gotReport)
+	}
+	t.Logf("continued polling through %d empty scans and %d simulated one-second waits", emptyScans, waits)
 }
 
 // ovfEnvWithCustomData returns an Azure ovf-env.xml with the given CustomData

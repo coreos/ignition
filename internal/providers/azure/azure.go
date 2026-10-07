@@ -52,6 +52,10 @@ var (
 
 	// Allow metadata fallback tests to avoid scanning and mounting real devices.
 	fetchFromOvfDevice = FetchFromOvfDevice
+
+	// Allow device polling tests to control discovery and avoid real delays.
+	getBlockDevices  = execUtil.GetBlockDevices
+	waitForOvfDevice = time.Sleep
 )
 
 // These constants come from <cdrom.h>.
@@ -182,7 +186,7 @@ func FetchFromOvfDevice(f *resource.Fetcher, ovfFsTypes []string) (types.Config,
 	checkedDevices := make(map[string]struct{})
 	for {
 		for _, ovfFsType := range ovfFsTypes {
-			devices, err := execUtil.GetBlockDevices(ovfFsType)
+			devices, err := getBlockDevices(ovfFsType)
 			if err != nil {
 				return types.Config{}, report.Report{}, fmt.Errorf("failed to retrieve block devices with FSTYPE=%q: %v", ovfFsType, err)
 			}
@@ -205,7 +209,7 @@ func FetchFromOvfDevice(f *resource.Fetcher, ovfFsTypes []string) (types.Config,
 		}
 		// wait for the actual config drive to appear
 		// if it's not shown up yet
-		time.Sleep(time.Second)
+		waitForOvfDevice(time.Second)
 	}
 }
 
