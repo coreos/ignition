@@ -49,6 +49,9 @@ const (
 var (
 	errParseOvfEnv      = errors.New("parsing ovf-env.xml")
 	errDecodeCustomData = errors.New("decoding CustomData")
+
+	// Allow metadata fallback tests to avoid scanning and mounting real devices.
+	fetchFromOvfDevice = FetchFromOvfDevice
 )
 
 // These constants come from <cdrom.h>.
@@ -131,7 +134,7 @@ func fetchFromAzureMetadata(f *resource.Fetcher) (types.Config, report.Report, e
 	}
 
 	logger.Debug("failed to retrieve userdata from IMDS, falling back to custom data: %v", err)
-	return FetchFromOvfDevice(f, []string{CDS_FSTYPE_UDF})
+	return fetchFromOvfDevice(f, []string{CDS_FSTYPE_UDF})
 }
 
 // fetchFromIMDS requests the Azure IMDS to fetch userdata and decode it.
