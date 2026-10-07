@@ -42,25 +42,42 @@ func regexpSearch(itemName, pattern string, data []byte) (string, error) {
 
 func getPartitionSet(device string) (map[int]struct{}, error) {
 	sgdiskOverview, err := exec.Command("sgdisk", "-p", device).CombinedOutput()
-	if err != nil {
-		return nil, fmt.Errorf("sgdisk -p %s failed: %v", device, err)
+	if err == nil {
+		//What this regex means:       num      start    end    size,code,name
+		re := regexp.MustCompile("\n\\W+(\\d+)\\W+\\d+\\W+\\d+\\W+\\d+.*")
+		ret := map[int]struct{}{}
+		for _, match := range re.FindAllStringSubmatch(string(sgdiskOverview), -1) {
+			if len(match) == 0 {
+				continue
+			}
+			if len(match) != 2 {
+				return nil, fmt.Errorf("invalid regex result from parsing sgdisk")
+			}
+			num, err := strconv.Atoi(match[1])
+			if err != nil {
+				return nil, err
+			}
+			ret[num] = struct{}{}
+		}
+		return ret, nil
 	}
 
-	//What this regex means:       num      start    end    size,code,name
-	re := regexp.MustCompile("\n\\W+(\\d+)\\W+\\d+\\W+\\d+\\W+\\d+.*")
+	// Fall back to sfdisk --list
+	sfdiskOverview, err := exec.Command("sfdisk", "--list", device).CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("neither sgdisk -p nor sfdisk --list %s succeeded", device)
+	}
+	re := regexp.MustCompile(`^` + regexp.QuoteMeta(device) + `\S*?(\d+)\s+`)
 	ret := map[int]struct{}{}
-	for _, match := range re.FindAllStringSubmatch(string(sgdiskOverview), -1) {
-		if len(match) == 0 {
-			continue
+	for _, line := range strings.Split(string(sfdiskOverview), "\n") {
+		match := re.FindStringSubmatch(line)
+		if match != nil {
+			num, err := strconv.Atoi(match[1])
+			if err != nil {
+				continue
+			}
+			ret[num] = struct{}{}
 		}
-		if len(match) != 2 {
-			return nil, fmt.Errorf("invalid regex result from parsing sgdisk")
-		}
-		num, err := strconv.Atoi(match[1])
-		if err != nil {
-			return nil, err
-		}
-		ret[num] = struct{}{}
 	}
 	return ret, nil
 }
@@ -81,27 +98,7 @@ func validateDisk(t *testing.T, d types.Disk) error {
 		}
 		delete(partitionSet, e.Number)
 
-		sgdiskInfo, err := exec.Command(
-			"sgdisk", "-i", strconv.Itoa(e.Number),
-			d.Device).CombinedOutput()
-		if err != nil {
-			t.Error("sgdisk -i", strconv.Itoa(e.Number), err)
-			return nil
-		}
-
-		actualGUID, err := regexpSearch("GUID", "Partition unique GUID: (?P<partition_guid>[\\d\\w-]+)", sgdiskInfo)
-		if err != nil {
-			return err
-		}
-		actualTypeGUID, err := regexpSearch("type GUID", "Partition GUID code: (?P<partition_code>[\\d\\w-]+)", sgdiskInfo)
-		if err != nil {
-			return err
-		}
-		actualSectors, err := regexpSearch("partition size", "Partition size: (?P<sectors>\\d+) sectors", sgdiskInfo)
-		if err != nil {
-			return err
-		}
-		actualLabel, err := regexpSearch("partition name", "Partition name: '(?P<name>[\\d\\w-_]+)'", sgdiskInfo)
+		actualGUID, actualTypeGUID, actualSectors, actualLabel, err := getPartitionInfo(d.Device, e.Number)
 		if err != nil {
 			return err
 		}
@@ -133,6 +130,54 @@ func validateDisk(t *testing.T, d types.Disk) error {
 		t.Log(err)
 	}
 	return nil
+}
+
+func getPartitionInfo(device string, partNum int) (guid, typeGUID, sectors, label string, err error) {
+	numStr := strconv.Itoa(partNum)
+
+	// Try sgdisk first
+	sgdiskInfo, sgErr := exec.Command("sgdisk", "-i", numStr, device).CombinedOutput()
+	if sgErr == nil {
+		guid, err = regexpSearch("GUID", "Partition unique GUID: (?P<partition_guid>[\\d\\w-]+)", sgdiskInfo)
+		if err != nil {
+			return
+		}
+		typeGUID, err = regexpSearch("type GUID", "Partition GUID code: (?P<partition_code>[\\d\\w-]+)", sgdiskInfo)
+		if err != nil {
+			return
+		}
+		sectors, err = regexpSearch("partition size", "Partition size: (?P<sectors>\\d+) sectors", sgdiskInfo)
+		if err != nil {
+			return
+		}
+		label, err = regexpSearch("partition name", "Partition name: '(?P<name>[\\d\\w-_]+)'", sgdiskInfo)
+		return
+	}
+
+	// Fall back to sfdisk
+	if out, e := exec.Command("sfdisk", "--part-uuid", device, numStr).CombinedOutput(); e == nil {
+		guid = strings.TrimSpace(string(out))
+	}
+	if out, e := exec.Command("sfdisk", "--part-type", device, numStr).CombinedOutput(); e == nil {
+		typeGUID = strings.TrimSpace(string(out))
+	}
+	if out, e := exec.Command("sfdisk", "--part-label", device, numStr).CombinedOutput(); e == nil {
+		label = strings.TrimSpace(string(out))
+	}
+
+	// Get sectors from sfdisk --list output
+	listOut, listErr := exec.Command("sfdisk", "--list", device).CombinedOutput()
+	if listErr != nil {
+		err = fmt.Errorf("neither sgdisk -i nor sfdisk commands succeeded for partition %d on %s", partNum, device)
+		return
+	}
+	re := regexp.MustCompile(regexp.QuoteMeta(device) + `\S*?` + numStr + `\s+\*?\s*\d+\s+\d+\s+(\d+)\s+`)
+	match := re.FindSubmatch(listOut)
+	if len(match) >= 2 {
+		sectors = string(match[1])
+	}
+
+	return
 }
 
 func formatUUID(s string) string {
