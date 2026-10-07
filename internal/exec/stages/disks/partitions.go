@@ -36,12 +36,19 @@ import (
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/partitioners"
+	"github.com/coreos/ignition/v2/internal/partitioners/sfdisk"
 	"github.com/coreos/ignition/v2/internal/partitioners/sgdisk"
 	iutil "github.com/coreos/ignition/v2/internal/util"
 )
 
 func getDeviceManager(logger *log.Logger, dev string) partitioners.DeviceManager {
-	return sgdisk.Begin(logger, dev)
+	backend, _ := distro.PartitionerBackend()
+	switch backend {
+	case "sfdisk":
+		return sfdisk.Begin(logger, dev)
+	default:
+		return sgdisk.Begin(logger, dev)
+	}
 }
 
 // createPartitions creates the partitions described in config.Storage.Disks.
@@ -51,6 +58,13 @@ func (s stage) createPartitions(config types.Config) error {
 	}
 	s.PushPrefix("createPartitions")
 	defer s.PopPrefix()
+
+	// Log the partitioner-selection warning once, before partitioning;
+	// the selected backend is unchanged (the sgdisk default), but a user
+	// who typo'd the kernel argument should learn why they got sgdisk.
+	if _, err := distro.PartitionerBackend(); err != nil {
+		s.Warning("%v", err)
+	}
 
 	devs := []string{}
 	for _, disk := range config.Storage.Disks {
