@@ -39,11 +39,16 @@ type Partition struct {
 	SizeInSectors *int64
 	StartMiB      string
 	SizeMiB       string
-	// Attrs carries GPT attribute bit names (e.g. "LegacyBIOSBootable").
-	// Backends that rewrite the whole partition table must re-emit the
-	// attributes of preserved partitions; backends that only patch
-	// individual entries may ignore this field.
-	Attrs []string
+	// Attrs carries the GPT partition attributes verbatim in sfdisk's
+	// script form: a space-separated list of bit names and GUID:N bits
+	// (e.g. "RequiredPartition LegacyBIOSBootable GUID:63"), exactly as
+	// `sfdisk --dump` emits it. The accepted input format matches the
+	// dump output and varies across util-linux versions (comma-joined
+	// lists are rejected), so the value must not be re-split or
+	// re-joined. Backends that rewrite the whole partition table must
+	// re-emit the attributes of preserved partitions; backends that only
+	// patch individual entries may ignore this field.
+	Attrs string
 }
 
 type Output struct {
