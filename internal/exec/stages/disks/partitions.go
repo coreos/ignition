@@ -36,12 +36,18 @@ import (
 	"github.com/coreos/ignition/v2/internal/exec/util"
 	"github.com/coreos/ignition/v2/internal/log"
 	"github.com/coreos/ignition/v2/internal/partitioners"
+	"github.com/coreos/ignition/v2/internal/partitioners/sfdisk"
 	"github.com/coreos/ignition/v2/internal/partitioners/sgdisk"
 	iutil "github.com/coreos/ignition/v2/internal/util"
 )
 
 func getDeviceManager(logger *log.Logger, dev string) partitioners.DeviceManager {
-	return sgdisk.Begin(logger, dev)
+	switch distro.PartitionerBackend() {
+	case "sfdisk":
+		return sfdisk.Begin(logger, dev)
+	default:
+		return sgdisk.Begin(logger, dev)
+	}
 }
 
 // createPartitions creates the partitions described in config.Storage.Disks.
