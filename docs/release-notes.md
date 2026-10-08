@@ -10,6 +10,9 @@ nav_order: 9
 
 ### Features
 
+- Support the sfdisk partitioning backend (`ignition.partitioner=sfdisk`
+  kernel argument) as an alternative to sgdisk, for platforms where
+  gptfdisk is unavailable ([#1929](https://github.com/coreos/ignition/pull/1929))
 - Butane: stabilize OpenShift spec 5.0.0, targeting Ignition spec 3.5.0
   ([#2333](https://github.com/coreos/ignition/issues/2333))
 - Butane: add OpenShift spec 5.1.0-experimental, targeting Ignition spec
