@@ -271,6 +271,44 @@ func TestBuildScriptMultipleAutoNumbered(t *testing.T) {
 	}
 }
 
+// TestMergePartitionsAssignsAutoNumbersInOrder locks the fix for the
+// number-0 ordering bug: auto-numbered (Number == 0) entries must be
+// assigned real numbers in op.parts (config) order using the first-free
+// rule, independently of the tier order buildScript later sorts them into.
+// Otherwise sfdisk numbers the bare script lines by script order and
+// ParseOutput maps each partition's geometry onto the wrong one.
+// wipe is set so mergePartitions skips the on-disk read and the test needs
+// no real device.
+func TestMergePartitionsAssignsAutoNumbersInOrder(t *testing.T) {
+	op := &Operation{wipe: true}
+	// Auto-numbered, no start (sorts last); explicit #2; auto-numbered
+	// with an explicit start (sorts first). Despite the sort, the auto
+	// entries must take the first free slots in op.parts order: 1 then 3.
+	op.CreatePartition(partitioners.Partition{SizeInSectors: int64Ptr(100)})
+	explicit := partitioners.Partition{StartSector: int64Ptr(5000), SizeInSectors: int64Ptr(100)}
+	explicit.Number = 2
+	op.CreatePartition(explicit)
+	op.CreatePartition(partitioners.Partition{StartSector: int64Ptr(200), SizeInSectors: int64Ptr(100)})
+
+	merged, err := op.mergePartitions()
+	if err != nil {
+		t.Fatalf("mergePartitions: %v", err)
+	}
+	got := []int{}
+	for _, p := range merged {
+		got = append(got, p.Number)
+	}
+	want := []int{1, 2, 3}
+	if len(got) != len(want) {
+		t.Fatalf("expected %d partitions, got %v", len(want), got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("partition %d: expected number %d, got %d (all: %v)", i, want[i], got[i], got)
+		}
+	}
+}
+
 func TestBuildScriptLastLBAHeader(t *testing.T) {
 	p := partitioners.Partition{SizeInSectors: int64Ptr(0)}
 	p.Number = 1
