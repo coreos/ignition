@@ -16,6 +16,7 @@ package sfdisk
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
@@ -155,15 +156,32 @@ func (op *Operation) readExistingPartitions() ([]partitioners.Partition, error) 
 	cmd := exec.Command(distro.SfdiskCmd(), "--dump", op.dev)
 	stdout, err := cmd.Output()
 	if err != nil {
-		// No partition table (or unreadable): treat as empty. The
-		// stage guarantees a GPT exists before calling us on the
-		// main path, so this only happens on blank disks.
-		return nil, nil
+		// A disk with no partition table is the one legitimate
+		// blank-disk case: sfdisk exits non-zero and says so on
+		// stderr. Every other failure (corrupt table, transient I/O,
+		// permission error) must NOT be treated as an empty table:
+		// this backend rewrites the whole table, so swallowing the
+		// error would silently drop every preserved partition.
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) &&
+			bytes.Contains(bytes.ToLower(exitErr.Stderr), []byte("does not contain a recognized partition table")) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("sfdisk --dump failed on %q: %w", op.dev, err)
 	}
 
 	var partitions []partitioners.Partition
 	for _, line := range strings.Split(string(stdout), "\n") {
 		line = strings.TrimSpace(line)
+		// The table is always rewritten as GPT. Refuse to silently
+		// convert an existing non-GPT label (which would destroy it)
+		// unless the caller explicitly wiped the table.
+		if rest, ok := strings.CutPrefix(line, "label:"); ok {
+			if label := strings.TrimSpace(rest); label != "" && label != "gpt" && !op.wipe {
+				return nil, fmt.Errorf("refusing to rewrite non-gpt partition table (%q) on %q", label, op.dev)
+			}
+			continue
+		}
 		matches := dumpLineRegex.FindStringSubmatch(line)
 		if matches == nil {
 			continue
@@ -436,6 +454,30 @@ func (op *Operation) mergePartitions() ([]partitioners.Partition, error) {
 			if !replaced {
 				merged = append(merged, p)
 			}
+		}
+	}
+
+	// Assign real numbers to auto-numbered (Number == 0) entries now, in
+	// op.parts order, using the same first-free rule the disks stage uses.
+	// buildScript sorts entries by tier and sfdisk numbers bare script
+	// lines in script order, so without pinning numbers here sfdisk's
+	// output rows would not line up with the numbers the stage assigns,
+	// and ParseOutput would map each partition's geometry onto the wrong
+	// one (swapping start/size between partitions).
+	used := map[int]bool{}
+	for _, p := range merged {
+		if p.Number > 0 {
+			used[p.Number] = true
+		}
+	}
+	free := 1
+	for i := range merged {
+		if merged[i].Number == 0 {
+			for used[free] {
+				free++
+			}
+			merged[i].Number = free
+			used[free] = true
 		}
 	}
 
