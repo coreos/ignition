@@ -89,6 +89,11 @@ func TestIgnitionBlackBox(t *testing.T) {
 				fmt.Println(t.Name())
 				return
 			}
+			if p := requiredPartitioner(test.Env); p != "" {
+				if _, err := exec.LookPath(p); err != nil {
+					t.Skipf("partitioner %q not available", p)
+				}
+			}
 			t.Parallel()
 			err := outer(t, test, false)
 			if err != nil {
@@ -109,6 +114,11 @@ func TestIgnitionBlackBoxNegative(t *testing.T) {
 				fmt.Println(t.Name())
 				return
 			}
+			if p := requiredPartitioner(test.Env); p != "" {
+				if _, err := exec.LookPath(p); err != nil {
+					t.Skipf("partitioner %q not available", p)
+				}
+			}
 			t.Parallel()
 			err := outer(t, test, true)
 			if err != nil {
@@ -116,6 +126,18 @@ func TestIgnitionBlackBoxNegative(t *testing.T) {
 			}
 		})
 	}
+}
+
+// requiredPartitioner returns the partitioner backend a test pins via
+// IGNITION_PARTITIONER, or "" if the test does not pin one. It lets the
+// harness skip a backend variant when that tool is not installed.
+func requiredPartitioner(env []string) string {
+	for _, e := range env {
+		if backend, ok := strings.CutPrefix(e, "IGNITION_PARTITIONER="); ok {
+			return backend
+		}
+	}
+	return ""
 }
 
 func outer(t *testing.T, test types.Test, negativeTests bool) error {

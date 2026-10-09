@@ -15,6 +15,8 @@
 package register
 
 import (
+	"strings"
+
 	"github.com/coreos/go-semver/semver"
 	types30 "github.com/coreos/ignition/v2/config/v3_0/types"
 	types31 "github.com/coreos/ignition/v2/config/v3_1/types"
@@ -40,8 +42,38 @@ func init() {
 	Tests = make(map[TestType][]types.Test)
 }
 
+// partitionerBackends enumerates the disk partitioner backends that
+// partition-exercising tests are run against. Mirroring the way Register
+// fans tests out across config versions, every test whose config drives
+// Ignition's disks stage is registered once per backend so both the sgdisk
+// and sfdisk code paths are covered by the existing fixtures.
+var partitionerBackends = []string{"sgdisk", "sfdisk"}
+
 func register(tType TestType, t types.Test) {
-	Tests[tType] = append(Tests[tType], t)
+	if !testExercisesPartitioner(t) {
+		Tests[tType] = append(Tests[tType], t)
+		return
+	}
+	// Fan the test out across the partitioner backends. The backend is
+	// selected in Ignition via the IGNITION_PARTITIONER environment variable
+	// (honored by distro.PartitionerBackend) and recorded in the test name so
+	// each variant is individually addressable with -test.run.
+	for _, backend := range partitionerBackends {
+		variant := types.DeepCopy(t)
+		// DeepCopy does not copy Env, so build a fresh slice to avoid the
+		// variants aliasing a shared backing array under t.Parallel.
+		variant.Env = append(append([]string(nil), t.Env...), "IGNITION_PARTITIONER="+backend)
+		variant.Name = t.Name + "/" + backend
+		Tests[tType] = append(Tests[tType], variant)
+	}
+}
+
+// testExercisesPartitioner reports whether running t causes Ignition to invoke
+// a partitioner. Ignition only runs a partitioner when the config's
+// storage.disks section is non-empty, so tests without disks (files, users,
+// systemd units, ...) are registered once and need no backend fan-out.
+func testExercisesPartitioner(t types.Test) bool {
+	return strings.Contains(t.Config, `"disks"`)
 }
 
 // Registers t for every version, inside the same major version,
