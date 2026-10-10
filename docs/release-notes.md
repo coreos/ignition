@@ -14,6 +14,8 @@ nav_order: 9
 
 ### Bug fixes
 
+- butane: validate local files referenced via `ignition.config.merge` or `ignition.config.replace` as Ignition configs, instead of silently embedding invalid ones ([#2283](https://github.com/coreos/ignition/pull/2283))
+
 
 ## Ignition 2.28.0 (2026-10-08)
 
