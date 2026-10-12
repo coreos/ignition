@@ -45,6 +45,7 @@ nav_order: 9
 - Disable instances of template units (e.g. `foo@bar.service`) marked `enabled: false`; previously they were silently left enabled
 - butane: don't make `with_mount_unit` units for `virtiofs` filesystems require `systemd-fsck@<tag>.service`, which waits for a device that never appears and fails the mount
 - butane: report the CEX kernel-argument validation error only once when both `boot_device.luks.cex` and a root `storage.luks` CEX entry are enabled ([#2285](https://github.com/coreos/ignition/pull/2285))
+- Build butane with DWARF debug info (drop linker `-w`) so downstream debuginfo packages contain valid debug symbols, matching the `ignition` and `ignition-validate` builds
 
 ## Ignition 2.27.0 (2026-08-26)
 
