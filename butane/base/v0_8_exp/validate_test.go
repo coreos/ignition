@@ -52,14 +52,22 @@ func TestValidateResource(t *testing.T) {
 		// inline specified
 		{
 			Resource{
-				Inline:      util.StrToPtr("hello"),
-				Compression: util.StrToPtr("gzip"),
+				Inline: util.StrToPtr("hello"),
 				Verification: Verification{
 					Hash: util.StrToPtr("this isn't validated"),
 				},
 			},
 			nil,
 			path.New("yaml"),
+		},
+		// inline with compression not matching the contents
+		{
+			Resource{
+				Inline:      util.StrToPtr("hello"),
+				Compression: util.StrToPtr("gzip"),
+			},
+			common.ErrCompressionInvalid,
+			path.New("yaml", "inline"),
 		},
 		// local specified
 		{
