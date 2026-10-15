@@ -110,6 +110,7 @@ var (
 	ErrHashWrongSize                   = errors.New("incorrect size for hash sum")
 	ErrHashUnrecognized                = errors.New("unrecognized hash function")
 	ErrEngineConfiguration             = errors.New("engine incorrectly configured")
+	ErrPathNotAbsolute                 = errors.New("path is not absolute")
 
 	// AWS S3 specific errors
 	ErrInvalidS3ARN             = errors.New("invalid S3 ARN format")
