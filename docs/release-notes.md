@@ -12,6 +12,8 @@ nav_order: 9
 
 ### Changes
 
+- Restore `go fix` behavior on go.yml pipeline
+
 ### Bug fixes
 
 
