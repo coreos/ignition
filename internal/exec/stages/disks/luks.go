@@ -329,9 +329,13 @@ func (s *stage) createLuks(config types.Config) error {
 								return fmt.Errorf("unmarshalling advertisement: %v", err)
 							}
 						}
+						thumbprint := ""
+						if tang.Thumbprint != nil {
+							thumbprint = *tang.Thumbprint
+						}
 						c.Pins.Tang = append(c.Pins.Tang, Tang{
 							URL:           tang.URL,
-							Thumbprint:    *tang.Thumbprint,
+							Thumbprint:    thumbprint,
 							Advertisement: adv,
 						})
 					}
