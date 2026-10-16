@@ -45,15 +45,18 @@ PKG_VET=$(go list ./... | \
 
 echo "Checking gofix..."
 go_version=$(go version | awk '{print $3}')
-# Go 1.26+ removed the -go flag from go tool fix
+# Go 1.26+ requires package-based invocation via go fix.
 go_major=$(echo "$go_version" | sed 's/go\([0-9]*\)\.\([0-9]*\).*/\1/')
 go_minor=$(echo "$go_version" | sed 's/go\([0-9]*\)\.\([0-9]*\).*/\2/')
 if [ "$go_major" -lt 1 ] || { [ "$go_major" -eq 1 ] && [ "$go_minor" -lt 26 ]; }; then
-    go tool fix -go="$go_version" -diff $SRC
+    # The legacy fix tool copies cgo sources to a temporary directory, so it
+    # needs an explicit search path for the repository's local C headers.
+    cgo_include_dirs=$(find "$PWD/internal" -name '*.h' -printf '%h\n' | sort -u | paste -sd :)
+    CPATH="${cgo_include_dirs}${CPATH:+:${CPATH}}" go tool fix -go="$go_version" -diff $SRC
 else
     # Go 1.26+ uses unitchecker and exits non-zero when it finds fixable issues
     # Make this non-fatal since finding fixable code shouldn't fail the build
-    go tool fix -diff $SRC || true
+    go fix -diff ./... || true
 fi
 
 echo "Checking gofmt..."
