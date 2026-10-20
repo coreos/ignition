@@ -140,7 +140,7 @@ func translateResource(from Resource, options common.TranslateOptions) (to types
 
 	if from.Local != nil {
 		c := path.New("yaml", "local")
-		contents, err := baseutil.ReadLocalFile(*from.Local, options.FilesDir)
+		contents, err := baseutil.ReadLocalFile(*from.Local, options)
 		if err != nil {
 			r.AddOnError(c, err)
 			return
@@ -287,7 +287,7 @@ func walkTree(yamlPath path.ContextPath, ts *translate.TranslationSet, r *report
 					ts.AddTranslation(yamlPath, path.New("json", "storage", "files"))
 				}
 			}
-			contents, err := os.ReadFile(srcPath)
+			contents, err := baseutil.ReadFile(srcPath, options.LocalFileReader)
 			if err != nil {
 				r.AddOnError(yamlPath, err)
 				return nil

@@ -15,6 +15,7 @@
 package util
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,17 +38,29 @@ func EnsurePathWithinFilesDir(path, filesDir string) error {
 	return nil
 }
 
-func ReadLocalFile(configPath, filesDir string) ([]byte, error) {
-	if filesDir == "" {
+func ReadLocalFile(configPath string, options common.TranslateOptions) ([]byte, error) {
+	if options.FilesDir == "" {
 		// a files dir isn't configured; refuse to read anything
 		return nil, common.ErrNoFilesDir
 	}
 	// calculate file path within FilesDir and check for path traversal
-	filePath := filepath.Join(filesDir, filepath.FromSlash(configPath))
-	if err := EnsurePathWithinFilesDir(filePath, filesDir); err != nil {
+	filePath := filepath.Join(options.FilesDir, filepath.FromSlash(configPath))
+	if err := EnsurePathWithinFilesDir(filePath, options.FilesDir); err != nil {
 		return nil, err
 	}
-	return os.ReadFile(filePath)
+	return ReadFile(filePath, options.LocalFileReader)
+}
+
+// ReadFile reads an already-validated path with the optional reader.
+func ReadFile(path string, reader func(string) ([]byte, error)) ([]byte, error) {
+	if reader == nil {
+		return os.ReadFile(path)
+	}
+	contents, err := reader(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s: %w", path, err)
+	}
+	return contents, nil
 }
 
 // CheckForDecimalMode fails if the specified mode appears to have been
