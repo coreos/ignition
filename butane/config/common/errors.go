@@ -41,6 +41,7 @@ var (
 	ErrNoFilesDir             = errors.New("local file paths are relative to a files directory that must be specified with -d/--files-dir")
 	ErrTreeNotDirectory       = errors.New("root of tree must be a directory")
 	ErrTreeNoLocal            = errors.New("local is required")
+	ErrCompressionInvalid     = errors.New("contents are not gzip-compressed but compression is set to gzip")
 
 	// filesystem nodes
 	ErrDecimalMode = errors.New("unreasonable mode would be reasonable if specified in octal; remember to add a leading zero")

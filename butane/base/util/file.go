@@ -15,11 +15,13 @@
 package util
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/coreos/ignition/v2/butane/config/common"
+	"github.com/coreos/ignition/v2/config/util"
 )
 
 func EnsurePathWithinFilesDir(path, filesDir string) error {
@@ -59,6 +61,21 @@ func CheckForDecimalMode(mode int, directory bool) error {
 	}
 	if !isTypicalMode(mode, directory) && isTypicalMode(correctedMode, directory) {
 		return common.ErrDecimalMode
+	}
+	return nil
+}
+
+// ValidateCompressionFormat fails if the contents do not match the
+// specified compression format.
+func ValidateCompressionFormat(contents []byte, compression *string) error {
+	if util.NilOrEmpty(compression) {
+		return nil
+	}
+	switch *compression {
+	case "gzip":
+		if !bytes.HasPrefix(contents, []byte{0x1f, 0x8b}) {
+			return common.ErrCompressionInvalid
+		}
 	}
 	return nil
 }

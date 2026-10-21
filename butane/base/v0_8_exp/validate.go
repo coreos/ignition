@@ -45,6 +45,9 @@ func (rs Resource) Validate(c path.ContextPath) (r report.Report) {
 		r.AddOnError(c.Append(field), common.ErrTooManyResourceSources)
 		return
 	}
+	if rs.Inline != nil {
+		r.AddOnError(c.Append("inline"), baseutil.ValidateCompressionFormat([]byte(*rs.Inline), rs.Compression))
+	}
 	if strings.HasPrefix(c.String(), "$.ignition.config") {
 		if field == "inline" {
 			rp, err := ValidateIgnitionConfig(c, []byte(*rs.Inline))

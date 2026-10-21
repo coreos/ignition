@@ -15,9 +15,14 @@
 package util
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/coreos/ignition/v2/butane/config/common"
+	"github.com/coreos/ignition/v2/config/util"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -125,4 +130,66 @@ func TestCheckForDecimalMode(t *testing.T) {
 	}
 	assert.Equal(t, expectedBadDirModes, badDirModes, "bad set of decimal directory modes")
 	assert.Equal(t, expectedBadFileModes, badFileModes, "bad set of decimal file modes")
+}
+
+func TestValidateCompressionFormat(t *testing.T) {
+	// compress at runtime; gzip output is not stable across Go versions
+	var buf bytes.Buffer
+	writer := gzip.NewWriter(&buf)
+	if _, err := writer.Write([]byte("hello")); err != nil {
+		t.Fatal(err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	gzipped := buf.Bytes()
+
+	tests := []struct {
+		contents    []byte
+		compression *string
+		out         error
+	}{
+		// no compression
+		{
+			[]byte("hello"),
+			nil,
+			nil,
+		},
+		{
+			[]byte("hello"),
+			util.StrToPtr(""),
+			nil,
+		},
+		// gzip with gzipped contents
+		{
+			gzipped,
+			util.StrToPtr("gzip"),
+			nil,
+		},
+		// gzip with uncompressed contents
+		{
+			[]byte("hello"),
+			util.StrToPtr("gzip"),
+			common.ErrCompressionInvalid,
+		},
+		// gzip with empty contents
+		{
+			[]byte{},
+			util.StrToPtr("gzip"),
+			common.ErrCompressionInvalid,
+		},
+		// gzip with only the first byte of the magic
+		{
+			[]byte{0x1f},
+			util.StrToPtr("gzip"),
+			common.ErrCompressionInvalid,
+		},
+	}
+
+	for i, test := range tests {
+		t.Run(fmt.Sprintf("validate %d", i), func(t *testing.T) {
+			err := ValidateCompressionFormat(test.contents, test.compression)
+			assert.Equal(t, test.out, err, "bad result")
+		})
+	}
 }
