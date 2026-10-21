@@ -1,0 +1,6 @@
+# Delete Ignition config from provider on platforms where it's possible
+# https://github.com/coreos/ignition/pull/1350
+enable ignition-delete-config.service
+
+# Provide status information about the Ignition run
+enable ignition-write-issues.service

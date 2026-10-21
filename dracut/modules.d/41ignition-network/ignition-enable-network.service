@@ -1,0 +1,24 @@
+[Unit]
+Description=Ignition Enable Network
+ConditionPathExists=/etc/initrd-release
+DefaultDependencies=false
+
+# Triggering conditions for cases where we need network:
+#  * when Ignition signals that it is required for provisioning.
+ConditionPathExists=|/run/ignition/neednet
+
+# Creates /run/ignition/neednet
+After=ignition-fetch-offline.service
+# Needs networking
+Before=ignition-fetch.service
+
+# See hack in ignition-enable-network.
+After=dracut-cmdline.service
+Before=nm-initrd.service
+# compat: remove when everyone is on dracut 054+
+Before=dracut-initqueue.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/ignition-enable-network

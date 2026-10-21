@@ -10,7 +10,11 @@ nav_order: 9
 
 ### Features
 
+- Add ignition-integration dracut modules, dracut config to omit NFS from the initramfs, and related systemd units, installed when `WITH_INTEGRATION=1`
+
 ### Changes
+
+- Move dracut modules under `dracut/modules.d/`
 
 ### Bug fixes
 
