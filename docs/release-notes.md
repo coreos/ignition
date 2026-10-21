@@ -12,6 +12,8 @@ nav_order: 9
 
 ### Changes
 
+- Add Azure provider unit tests covering the fallback to custom data when IMDS userdata is empty and the indefinite wait for a missing OVF config drive
+
 ### Bug fixes
 
 - Butane: report an error when `compression: gzip` is set on inline contents

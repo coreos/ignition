@@ -18,14 +18,162 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
+	"sync/atomic"
 	"testing"
+	"time"
 
+	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
 	"github.com/coreos/ignition/v2/internal/log"
+	"github.com/coreos/ignition/v2/internal/resource"
 
+	"github.com/coreos/vcontext/report"
 	"golang.org/x/sys/unix"
 )
+
+func newIMDSTestFetcher(t *testing.T, handler http.Handler) *resource.Fetcher {
+	t.Helper()
+
+	server := httptest.NewServer(handler)
+	t.Cleanup(server.Close)
+	serverURL, err := url.Parse(server.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Tests using this helper must stay serial since the endpoint is package-global.
+	originalURL := imdsUserdataURL
+	imdsUserdataURL.Scheme = serverURL.Scheme
+	imdsUserdataURL.Host = serverURL.Host
+	t.Cleanup(func() { imdsUserdataURL = originalURL })
+
+	logger := log.New(true)
+	fetcher := &resource.Fetcher{Logger: &logger}
+	totalTimeout := 5
+	if err := fetcher.UpdateHttpTimeoutsAndCAs(types.Timeouts{
+		HTTPTotal: &totalTimeout,
+	}, nil, types.Proxy{}); err != nil {
+		t.Fatal(err)
+	}
+	return fetcher
+}
+
+func TestFetchFromAzureMetadataEmptyUserData(t *testing.T) {
+	ovfError := errors.New("OVF fetch failed")
+	tests := []struct {
+		name    string
+		wantErr error
+	}{
+		{name: "returns OVF config"},
+		{name: "returns OVF error", wantErr: ovfError},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var requests atomic.Int32
+			fetcher := newIMDSTestFetcher(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				requests.Add(1)
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			wantConfig := types.Config{
+				Ignition: types.Ignition{Version: "3.7.0-experimental"},
+			}
+			wantReport := report.Report{
+				Entries: []report.Entry{{Kind: report.Warn, Message: "OVF report"}},
+			}
+			originalFetch := fetchFromOvfDevice
+			t.Cleanup(func() { fetchFromOvfDevice = originalFetch })
+			ovfCalls := 0
+			fetchFromOvfDevice = func(f *resource.Fetcher, fsTypes []string) (types.Config, report.Report, error) {
+				ovfCalls++
+				if requests.Load() != 1 {
+					t.Errorf("expected one IMDS request before OVF fallback, got %d", requests.Load())
+				}
+				if f != fetcher {
+					t.Error("OVF fallback received a different fetcher")
+				}
+				if !reflect.DeepEqual(fsTypes, []string{CDS_FSTYPE_UDF}) {
+					t.Errorf("expected UDF filesystem type, got %v", fsTypes)
+				}
+				return wantConfig, wantReport, tt.wantErr
+			}
+
+			gotConfig, gotReport, err := fetchFromAzureMetadata(fetcher)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+			}
+			if ovfCalls != 1 {
+				t.Fatalf("expected one OVF fallback call, got %d", ovfCalls)
+			}
+			if requests.Load() != 1 {
+				t.Fatalf("expected one IMDS request, got %d", requests.Load())
+			}
+			if !reflect.DeepEqual(gotConfig, wantConfig) {
+				t.Fatalf("expected OVF config %+v, got %+v", wantConfig, gotConfig)
+			}
+			if !reflect.DeepEqual(gotReport, wantReport) {
+				t.Fatalf("expected OVF report %+v, got %+v", wantReport, gotReport)
+			}
+		})
+	}
+}
+
+func TestFetchFromOvfDeviceWaitsForMissingDevice(t *testing.T) {
+	const emptyScans = 10000
+	stopError := errors.New("stop device polling test")
+	scans, waits := 0, 0
+
+	// These hooks are package-global, so this test must not run in parallel.
+	originalGetBlockDevices := getBlockDevices
+	originalWait := waitForOvfDevice
+	t.Cleanup(func() {
+		getBlockDevices = originalGetBlockDevices
+		waitForOvfDevice = originalWait
+	})
+	getBlockDevices = func(fsType string) ([]string, error) {
+		if fsType != CDS_FSTYPE_UDF {
+			t.Errorf("expected UDF filesystem type, got %q", fsType)
+		}
+		if scans != waits {
+			t.Fatalf("expected a wait after every empty scan, got %d scans and %d waits", scans, waits)
+		}
+		scans++
+		if scans > emptyScans {
+			// Terminate through the existing discovery-error path, not a timeout.
+			return nil, stopError
+		}
+		return nil, nil
+	}
+	waitForOvfDevice = func(duration time.Duration) {
+		if duration != time.Second {
+			t.Errorf("expected a one-second wait, got %v", duration)
+		}
+		if waits >= emptyScans || scans != waits+1 {
+			t.Fatalf("unexpected wait: %d scans and %d waits", scans, waits)
+		}
+		waits++
+	}
+
+	logger := log.New(true)
+	fetcher := resource.Fetcher{Logger: &logger}
+	gotConfig, gotReport, err := FetchFromOvfDevice(&fetcher, []string{CDS_FSTYPE_UDF})
+	wantError := fmt.Sprintf("failed to retrieve block devices with FSTYPE=%q: %v", CDS_FSTYPE_UDF, stopError)
+	if err == nil || err.Error() != wantError {
+		t.Fatalf("expected test discovery error %q, got %v", wantError, err)
+	}
+	if scans != emptyScans+1 || waits != emptyScans {
+		t.Fatalf("expected %d scans and %d waits, got %d scans and %d waits", emptyScans+1, emptyScans, scans, waits)
+	}
+	if !reflect.DeepEqual(gotConfig, types.Config{}) || !reflect.DeepEqual(gotReport, report.Report{}) {
+		t.Fatalf("expected empty config and report on discovery error, got %+v and %+v", gotConfig, gotReport)
+	}
+	t.Logf("continued polling through %d empty scans and %d simulated one-second waits", emptyScans, waits)
+}
 
 // ovfEnvWithCustomData returns an Azure ovf-env.xml with the given CustomData
 // element (which may be empty) spliced into the provisioning section.
