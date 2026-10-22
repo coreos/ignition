@@ -14,6 +14,10 @@ nav_order: 9
 
 - Add Azure provider unit tests covering the fallback to custom data when IMDS userdata is empty and the indefinite wait for a missing OVF config drive
 
+### Features
+
+- butane: add `overwrite` support for trees, threading the flag through to every generated file, directory, and link ([#2284](https://github.com/coreos/ignition/pull/2284))
+
 ### Bug fixes
 
 - Butane: report an error when `compression: gzip` is set on inline contents
