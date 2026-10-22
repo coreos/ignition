@@ -12,13 +12,7 @@ nav_order: 9
 
 ### Changes
 
-- Add Azure provider unit tests covering the fallback to custom data when IMDS userdata is empty and the indefinite wait for a missing OVF config drive
-
 ### Bug fixes
-
-- Butane: report an error when `compression: gzip` is set on inline contents
-  that are not gzip-compressed, instead of generating a config that fails at
-  first boot ([#2343](https://github.com/coreos/ignition/pull/2343))
 
 
 ## Ignition 2.28.0 (2026-10-08)

@@ -20,6 +20,9 @@ This is a rough outline of what a contributor's workflow looks like:
 - Create a topic branch from where you want to base your work (usually main).
 - Make commits of logical units.
 - Make sure your commit messages are in the proper format (see below).
+- Add a descriptively named release-note fragment for user-visible changes. See
+  [`docs/release-notes.d/README.md`](docs/release-notes.d/README.md) for the
+  filename format, categories, and validation commands.
 - Push your changes to a topic branch in your fork of the repository.
 - Make sure the tests pass, and add any new tests as appropriate.
 - Submit a pull request to the original repository.
