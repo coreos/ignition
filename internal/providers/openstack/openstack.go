@@ -182,11 +182,14 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 }
 
 func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
+	retryCodes := []int{
+		404, // not found
+	}
 	ipv6Interfaces, err := findInterfacesWithIPv6()
 	if err != nil {
 		f.Logger.Info("No active IPv6 network interface found: %v", err)
 		// Fall back to IPv4 only
-		return fetchConfigFromMetadataServiceIPv4Only(f)
+		return fetchConfigFromMetadataServiceIPv4Only(f, retryCodes)
 	}
 
 	urls := []url.URL{userdataURLs[resource.IPv4]}
@@ -198,7 +201,7 @@ func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 	}
 
 	// Use parallel fetching for all interfaces
-	data, err := fetchConfigParallel(f, urls)
+	data, err := fetchConfigParallel(f, urls, retryCodes)
 	if err != nil {
 		// the metadata server exists but doesn't contain any actual metadata,
 		// assume that there is no config specified
@@ -211,10 +214,10 @@ func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 	return data, nil
 }
 
-func fetchConfigFromMetadataServiceIPv4Only(f *resource.Fetcher) ([]byte, error) {
+func fetchConfigFromMetadataServiceIPv4Only(f *resource.Fetcher, retryCodes []int) ([]byte, error) {
 	ipv4Url := userdataURLs[resource.IPv4]
 
-	data, err := f.FetchToBuffer(ipv4Url, resource.FetchOptions{})
+	data, err := f.FetchToBuffer(ipv4Url, resource.FetchOptions{RetryCodes: retryCodes})
 	if err != nil {
 		if err == resource.ErrNotFound {
 			return nil, nil
@@ -225,7 +228,7 @@ func fetchConfigFromMetadataServiceIPv4Only(f *resource.Fetcher) ([]byte, error)
 	return data, nil
 }
 
-func fetchConfigParallel(f *resource.Fetcher, urls []url.URL) ([]byte, error) {
+func fetchConfigParallel(f *resource.Fetcher, urls []url.URL, retryCodes []int) ([]byte, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -244,7 +247,7 @@ func fetchConfigParallel(f *resource.Fetcher, urls []url.URL) ([]byte, error) {
 
 	fetch := func(_ context.Context, u url.URL) {
 		defer wg.Done()
-		d, e := f.FetchToBuffer(u, resource.FetchOptions{})
+		d, e := f.FetchToBuffer(u, resource.FetchOptions{RetryCodes: retryCodes})
 		if e != nil {
 			f.Logger.Err("fetching configuration for %s: %v", u.String(), e)
 			err = e
