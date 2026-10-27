@@ -13,14 +13,14 @@
 // limitations under the License.
 
 // The OpenStack provider fetches configurations from the userdata available in
-// both the config-drive as well as the network metadata service. Whichever
+// both the config-drive and the network metadata service. Whichever
 // responds first is the config that is used.
-// NOTE: This provider is still EXPERIMENTAL.
 
 package openstack
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -92,8 +92,8 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		go func() {
 			raw, err := fn()
 			if err != nil {
-				switch err {
-				case context.Canceled:
+				switch {
+				case errors.Is(err, context.Canceled):
 				default:
 					f.Logger.Err("failed to fetch config from %s: %v", name, err)
 				}
@@ -137,7 +137,7 @@ Loop:
 
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
-	return (err == nil)
+	return err == nil
 }
 
 func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string) ([]byte, error) {
@@ -205,7 +205,7 @@ func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 	if err != nil {
 		// the metadata server exists but doesn't contain any actual metadata,
 		// assume that there is no config specified
-		if err == resource.ErrNotFound {
+		if errors.Is(err, resource.ErrNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -219,7 +219,7 @@ func fetchConfigFromMetadataServiceIPv4Only(f *resource.Fetcher, retryCodes []in
 
 	data, err := f.FetchToBuffer(ipv4Url, resource.FetchOptions{RetryCodes: retryCodes})
 	if err != nil {
-		if err == resource.ErrNotFound {
+		if errors.Is(err, resource.ErrNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -240,7 +240,7 @@ func fetchConfigParallel(f *resource.Fetcher, urls []url.URL, retryCodes []int) 
 	cfg := make(map[url.URL][]byte)
 
 	success := make(chan url.URL, 1)
-	errors := make(chan error, len(urls))
+	errs := make(chan error, len(urls))
 
 	// Use waitgroup to wait for all goroutines to complete
 	var wg sync.WaitGroup
@@ -251,7 +251,7 @@ func fetchConfigParallel(f *resource.Fetcher, urls []url.URL, retryCodes []int) 
 		if e != nil {
 			f.Logger.Err("fetching configuration for %s: %v", u.String(), e)
 			err = e
-			errors <- e
+			errs <- e
 		} else {
 			cfg[u] = d
 			select {
@@ -278,7 +278,7 @@ func fetchConfigParallel(f *resource.Fetcher, urls []url.URL, retryCodes []int) 
 	case u := <-success:
 		f.Logger.Debug("got configuration from: %s", u.String())
 		return cfg[u], nil
-	case <-errors:
+	case <-errs:
 		nbErrors++
 		if nbErrors == len(urls) {
 			f.Logger.Debug("all routines have failed to fetch configuration, returning last known error: %v", err)
