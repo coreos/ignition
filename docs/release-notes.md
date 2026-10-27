@@ -13,6 +13,7 @@ nav_order: 9
 ### Changes
 
 - Add Azure provider unit tests covering the fallback to custom data when IMDS userdata is empty and the indefinite wait for a missing OVF config drive
+- Restore `go fix` behavior on go.yml pipeline
 
 ### Bug fixes
 
