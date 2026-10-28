@@ -20,8 +20,13 @@ jobs:
     name: Require release note
     runs-on: ubuntu-latest
     steps:
-      - name: Require release-notes.md update
+      - name: Require release note
         uses: coreos/actions-lib/require-file-change@main
         with:
-          path: docs/release-notes.md
+          path-regex: '^docs/release-notes\.d/[a-z0-9]+(-[a-z0-9]+)*\.(breaking|feature|change|bugfix)\.md$'
+          status: added
           override-label: skip-notes
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Validate release-note fragments
+        run: go run ./internal/util/tools/release-notes validate
