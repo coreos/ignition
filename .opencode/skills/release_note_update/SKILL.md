@@ -1,11 +1,15 @@
 ---
 name: release_note_update
-description: Automate release notes update and offer tagging.
+description: Finalize a release from release-note fragments without committing.
 ---
+
+<!-- Maintained in https://github.com/coreos/repo-templates -->
+<!-- Do not edit downstream. -->
 
 # Release Note Update
 
-This skill prepares release notes by running the codified script.
+This skill finalizes release notes from validated fragments by running the
+repository's release-note tool.
 
 ## Usage
 
@@ -20,6 +24,7 @@ Then execute:
 .opencode/skills/release_note_update/run.sh <version> [<date>]
 ```
 
-The script handles everything: parsing the unreleased section, converting items to imperative mood, creating the versioned section, updating the unreleased header for the next version, and creating the commit.
-
-See `README.md` in this directory for detailed documentation.
+The script validates and renders `docs/release-notes.d` fragments, creates the
+versioned section, updates the Upcoming heading to the next minor version, and
+deletes consumed fragments. It does not create a commit. Review and commit the
+result separately.
