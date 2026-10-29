@@ -57,7 +57,7 @@ func makePreemptTest(components string) types.Test {
 	}
 
 	var longnameList []string
-	for _, component := range strings.Split(strings.ToLower(components), "") {
+	for component := range strings.SplitSeq(strings.ToLower(components), "") {
 		longnameList = append(longnameList, longnames[component])
 	}
 	if len(longnameList) == 0 {

@@ -252,8 +252,8 @@ func parseSgdiskPretend(sgdiskOut string, partitionNumbers []int) (map[int]sgdis
 	current := sgdiskOutput{}
 	i := 0
 
-	lines := strings.Split(sgdiskOut, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(sgdiskOut, "\n")
+	for line := range lines {
 		switch state {
 		case START:
 			start, err := parseLine(startRegex, line)

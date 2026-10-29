@@ -157,7 +157,7 @@ func TestDeleteProps(t *testing.T) {
 	for _, sample := range [][]byte{data_delete_prop_simple, data_delete_prop_complex, data_vapprun} {
 		var expectedLines []string
 		expectedDelete := false
-		for _, line := range strings.Split(string(sample), "\n") {
+		for line := range strings.SplitSeq(string(sample), "\n") {
 			if strings.Contains(line, "remove") {
 				// drop XML element, leave indentation
 				startSkip := strings.IndexAny(line, "<>")

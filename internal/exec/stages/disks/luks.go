@@ -622,7 +622,7 @@ func getCryptoController(filePath string) (map[string]string, error) {
 		return nil, fmt.Errorf("reading uevent file %q: %w", filePath, err)
 	}
 	content := string(data)
-	for _, line := range strings.Split(content, "\n") {
+	for line := range strings.SplitSeq(content, "\n") {
 		apParts := strings.SplitN(line, "=", 2)
 		if len(apParts) == 2 {
 			key := strings.TrimSpace(apParts[0])
