@@ -90,7 +90,7 @@ func (gen generator) descend(node DocNode, typ reflect.Type, path []string) erro
 		return nil
 	case kind == reflect.Struct:
 		return gen.descendNode(node, typ, path)
-	case kind == reflect.Slice, kind == reflect.Ptr:
+	case kind == reflect.Slice, kind == reflect.Pointer:
 		return gen.descend(node, typ.Elem(), path)
 	case kind == reflect.Map:
 		if !util.IsPrimitive(typ.Key().Kind()) {

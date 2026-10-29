@@ -58,7 +58,7 @@ func (t translator) translatable(t1, t2 reflect.Type) bool {
 		return true
 	case util.IsInvalidInConfig(k1):
 		panic(fmt.Sprintf("Encountered invalid kind %s in config. This is a bug, please file a report", k1))
-	case k1 == reflect.Ptr || k1 == reflect.Slice:
+	case k1 == reflect.Pointer || k1 == reflect.Slice:
 		return t.translatable(t1.Elem(), t2.Elem()) || t.hasTranslator(t1.Elem(), t2.Elem())
 	case k1 == reflect.Struct:
 		return t.translatableStruct(t1, t2)
@@ -121,7 +121,7 @@ func (t translator) translateSameType(vFrom, vTo reflect.Value, fromPath, toPath
 		// directly assignable and calling Convert on primitives does no harm
 		vTo.Set(vFrom.Convert(vTo.Type()))
 		t.translations.AddTranslation(fromPath, toPath)
-	case k == reflect.Ptr:
+	case k == reflect.Pointer:
 		if vFrom.IsNil() {
 			return
 		}
@@ -259,7 +259,7 @@ func (t translator) getTranslator(from, to reflect.Type) reflect.Value {
 func (t translator) Translate(from, to interface{}) (TranslationSet, report.Report) {
 	fv := reflect.ValueOf(from)
 	tv := reflect.ValueOf(to)
-	if fv.Kind() != reflect.Ptr || tv.Kind() != reflect.Ptr {
+	if fv.Kind() != reflect.Pointer || tv.Kind() != reflect.Pointer {
 		panic("Translate needs to be called on pointers")
 	}
 	fv = fv.Elem()

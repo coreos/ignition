@@ -48,7 +48,7 @@ func IsInvalidInConfig(k reflect.Kind) bool {
 	switch {
 	case IsPrimitive(k):
 		return false
-	case k == reflect.Ptr || k == reflect.Slice || k == reflect.Struct:
+	case k == reflect.Pointer || k == reflect.Slice || k == reflect.Struct:
 		return false
 	default:
 		return true
@@ -75,7 +75,7 @@ func setNonZero(v reflect.Value) {
 		v.SetFloat(1)
 	case reflect.String:
 		v.SetString("aardvark")
-	case reflect.Ptr:
+	case reflect.Pointer:
 		v.Set(reflect.New(v.Type().Elem()))
 		setNonZero(v.Elem())
 	case reflect.Slice:

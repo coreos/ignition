@@ -51,7 +51,7 @@ func getAllPaths(v reflect.Value, tag string, includeZeroFields bool) []path.Con
 	switch {
 	case util.IsPrimitive(k):
 		return nil
-	case k == reflect.Ptr:
+	case k == reflect.Pointer:
 		if v.IsNil() {
 			return nil
 		}
