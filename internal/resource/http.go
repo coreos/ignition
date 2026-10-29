@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -306,13 +307,7 @@ func shouldRetryHttp(statusCode int, opts FetchOptions) bool {
 		return true
 	}
 
-	for _, retryCode := range opts.RetryCodes {
-		if statusCode == retryCode {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(opts.RetryCodes, statusCode)
 }
 
 // httpReaderWithHeader performs an HTTP request on the provided URL with the

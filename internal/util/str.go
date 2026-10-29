@@ -14,11 +14,8 @@
 
 package util
 
+import "slices"
+
 func StrSliceContains(slice []string, s string) bool {
-	for _, e := range slice {
-		if e == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(slice, s)
 }
