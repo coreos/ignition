@@ -26,6 +26,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -572,12 +573,7 @@ func newLuksDump(devAlias string) (LuksDump, error) {
 }
 
 func (d LuksDump) hasFlag(flag string) bool {
-	for _, v := range d.Config.Flags {
-		if v == flag {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(d.Config.Flags, flag)
 }
 
 // collect the cex card domains xx.xxxx
