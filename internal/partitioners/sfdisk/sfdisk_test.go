@@ -347,14 +347,34 @@ func TestWritePartitionLineMinimal(t *testing.T) {
 }
 
 func TestWritePartitionLineAttrs(t *testing.T) {
-	p := partitioners.Partition{Attrs: []string{"LegacyBIOSBootable", "NoAutomount"}}
+	// Attrs are carried verbatim in sfdisk's space-separated script form
+	// (as emitted by --dump); they must not be re-joined with commas,
+	// which sfdisk rejects as an unsupported attribute bit.
+	p := partitioners.Partition{Attrs: "RequiredPartition LegacyBIOSBootable GUID:63"}
 	p.Number = 1
 
 	var buf bytes.Buffer
 	writePartitionLine(&buf, p)
 
-	if !strings.Contains(buf.String(), `attrs="LegacyBIOSBootable,NoAutomount"`) {
-		t.Errorf("expected attrs re-emitted, got %q", buf.String())
+	if !strings.Contains(buf.String(), `attrs="RequiredPartition LegacyBIOSBootable GUID:63"`) {
+		t.Errorf("expected attrs re-emitted verbatim, got %q", buf.String())
+	}
+}
+
+func TestUnquoteAttrs(t *testing.T) {
+	cases := []struct {
+		in   string
+		want string
+	}{
+		{`"RequiredPartition LegacyBIOSBootable GUID:63"`, "RequiredPartition LegacyBIOSBootable GUID:63"},
+		{`"GUID:63"`, "GUID:63"},
+		{`GUID:63`, "GUID:63"},
+		{` "" `, ""},
+	}
+	for _, c := range cases {
+		if got := unquoteAttrs(c.in); got != c.want {
+			t.Errorf("unquoteAttrs(%q): want %q, got %q", c.in, c.want, got)
+		}
 	}
 }
 

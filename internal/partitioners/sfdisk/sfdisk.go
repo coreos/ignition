@@ -228,7 +228,7 @@ func (op *Operation) readExistingPartitions() ([]partitioners.Partition, error) 
 					p.Label = util.StrToPtr(raw)
 				}
 			case "attrs":
-				p.Attrs = splitAttrs(value)
+				p.Attrs = unquoteAttrs(value)
 			}
 		}
 
@@ -238,15 +238,14 @@ func (op *Operation) readExistingPartitions() ([]partitioners.Partition, error) 
 	return partitions, nil
 }
 
-// splitAttrs parses an sfdisk attrs value: "A,B" or A,B (quoted list of
-// bit names as emitted by --dump).
-func splitAttrs(value string) []string {
-	value = strings.TrimSpace(value)
-	value = strings.Trim(value, "\"")
-	if value == "" {
-		return nil
-	}
-	return strings.Split(value, ",")
+// unquoteAttrs strips the surrounding double quotes sfdisk puts around
+// the attrs value in --dump output. The value is a space-separated list
+// of attribute bit names and GUID:N bits; it is carried verbatim (see
+// partitioners.Partition.Attrs) because sfdisk only accepts back exactly
+// what it emits (a comma-joined list is rejected as an unsupported
+// attribute bit).
+func unquoteAttrs(value string) string {
+	return strings.Trim(strings.TrimSpace(value), "\"")
 }
 
 // sfdisk script name encoding mirrors what `sfdisk --dump` emits and
@@ -325,8 +324,8 @@ func writePartitionLine(script *bytes.Buffer, p partitioners.Partition) {
 		fmt.Fprintf(&line, " name=%s,", encodeSfdiskName(*p.Label))
 	}
 
-	if len(p.Attrs) > 0 {
-		fmt.Fprintf(&line, " attrs=\"%s\",", strings.Join(p.Attrs, ","))
+	if p.Attrs != "" {
+		fmt.Fprintf(&line, " attrs=\"%s\",", p.Attrs)
 	}
 
 	script.WriteString(strings.TrimSuffix(line.String(), ","))
@@ -443,7 +442,7 @@ func (op *Operation) mergePartitions() ([]partitioners.Partition, error) {
 					// queued partition never carries them; inherit
 					// from the preserved entry so whole-table
 					// rewrites don't silently clear them.
-					if p.Attrs == nil {
+					if p.Attrs == "" {
 						p.Attrs = merged[i].Attrs
 					}
 					merged[i] = p
