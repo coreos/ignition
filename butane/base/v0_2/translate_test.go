@@ -15,6 +15,9 @@
 package v0_2
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"fmt"
 	"net"
 	"os"
@@ -67,6 +70,15 @@ func TestTranslateFile(t *testing.T) {
 		"file-3":        random,
 		"subdir/file-4": "subdir file contents\n",
 	}
+	var gzipped bytes.Buffer
+	gzipWriter := gzip.NewWriter(&gzipped)
+	if _, err := gzipWriter.Write([]byte("gzipped file contents\n")); err != nil {
+		t.Fatal(err)
+	}
+	if err := gzipWriter.Close(); err != nil {
+		t.Fatal(err)
+	}
+	fileContents["file-gzip"] = gzipped.String()
 	for name, contents := range fileContents {
 		if err := os.MkdirAll(filepath.Join(filesDir, filepath.Dir(name)), 0755); err != nil {
 			t.Error(err)
@@ -547,6 +559,68 @@ func TestTranslateFile(t *testing.T) {
 				},
 			},
 			"",
+			common.TranslateOptions{
+				FilesDir: filesDir,
+			},
+		},
+		// local file compressed as specified
+		{
+			File{
+				Path: "/foo",
+				Contents: Resource{
+					Local:       util.StrToPtr("file-gzip"),
+					Compression: util.StrToPtr("gzip"),
+				},
+			},
+			types.File{
+				Node: types.Node{
+					Path: "/foo",
+				},
+				FileEmbedded1: types.FileEmbedded1{
+					Contents: types.Resource{
+						Source:      util.StrToPtr("data:;base64," + base64.StdEncoding.EncodeToString(gzipped.Bytes())),
+						Compression: util.StrToPtr("gzip"),
+					},
+				},
+			},
+			[]translate.Translation{
+				{
+					From: path.New("yaml", "contents", "local"),
+					To:   path.New("json", "contents", "source"),
+				},
+			},
+			"",
+			common.TranslateOptions{
+				FilesDir: filesDir,
+			},
+		},
+		// local file not compressed as specified
+		{
+			File{
+				Path: "/foo",
+				Contents: Resource{
+					Local:       util.StrToPtr("file-1"),
+					Compression: util.StrToPtr("gzip"),
+				},
+			},
+			types.File{
+				Node: types.Node{
+					Path: "/foo",
+				},
+				FileEmbedded1: types.FileEmbedded1{
+					Contents: types.Resource{
+						Source:      util.StrToPtr("data:,file%20contents%0A"),
+						Compression: util.StrToPtr("gzip"),
+					},
+				},
+			},
+			[]translate.Translation{
+				{
+					From: path.New("yaml", "contents", "local"),
+					To:   path.New("json", "contents", "source"),
+				},
+			},
+			"error at $.contents.local: " + common.ErrCompressionInvalid.Error() + "\n",
 			common.TranslateOptions{
 				FilesDir: filesDir,
 			},
@@ -1324,6 +1398,26 @@ func TestTranslateTree(t *testing.T) {
 				"error at $.storage.trees.12: " + common.ErrNodeExists.Error() + "\n" +
 				"error at $.storage.trees.14: " + common.ErrNodeExists.Error() + "\n" +
 				"error at $.storage.trees.15: " + common.ErrNodeExists.Error() + "\n",
+		},
+		// tree file not compressed as specified by a storage.files entry
+		{
+			dirFiles: map[string]os.FileMode{
+				"tree/file": 0644,
+			},
+			inTrees: []Tree{
+				{
+					Local: "tree",
+				},
+			},
+			inFiles: []File{
+				{
+					Path: "/file",
+					Contents: Resource{
+						Compression: util.StrToPtr("gzip"),
+					},
+				},
+			},
+			report: "error at $.storage.files.0.contents.compression: " + common.ErrCompressionInvalid.Error() + "\n",
 		},
 		// files-dir escape
 		{
