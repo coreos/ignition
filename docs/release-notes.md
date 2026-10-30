@@ -10,6 +10,10 @@ nav_order: 9
 
 ### Features
 
+- Support the sfdisk partitioning backend (`ignition.partitioner=sfdisk`
+  kernel argument) as an alternative to sgdisk, for platforms where
+  gptfdisk is unavailable ([#2337](https://github.com/coreos/ignition/pull/2337))
+
 ### Changes
 
 - Add Azure provider unit tests covering the fallback to custom data when IMDS userdata is empty and the indefinite wait for a missing OVF config drive

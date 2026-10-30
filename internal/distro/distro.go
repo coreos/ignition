@@ -17,6 +17,7 @@ package distro
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // Distro-specific settings that can be overridden at link time with e.g.
@@ -43,6 +44,7 @@ var (
 	mountCmd     = "mount"
 	partxCmd     = "partx"
 	sgdiskCmd    = "sgdisk"
+	sfdiskCmd    = "sfdisk"
 	modprobeCmd  = "modprobe"
 	udevadmCmd   = "udevadm"
 	usermodCmd   = "usermod"
@@ -115,6 +117,7 @@ func MdadmCmd() string     { return mdadmCmd }
 func MountCmd() string     { return mountCmd }
 func PartxCmd() string     { return partxCmd }
 func SgdiskCmd() string    { return sgdiskCmd }
+func SfdiskCmd() string    { return sfdiskCmd }
 func ModprobeCmd() string  { return modprobeCmd }
 func UdevadmCmd() string   { return udevadmCmd }
 func UsermodCmd() string   { return usermodCmd }
@@ -149,6 +152,51 @@ func SelinuxRelabel() bool  { return bakedStringToBool(selinuxRelabel) && !Black
 func BlackboxTesting() bool { return bakedStringToBool(blackboxTesting) }
 func WriteAuthorizedKeysFragment() bool {
 	return bakedStringToBool(fromEnv("WRITE_AUTHORIZED_KEYS_FRAGMENT", writeAuthorizedKeysFragment))
+}
+
+var (
+	partitionerBackend string
+	partitionerWarning error
+)
+
+// PartitionerBackend reports which partitioner the disks stage should use,
+// as selected by the "ignition.partitioner" kernel argument. It defaults
+// to sgdisk; sfdisk is opt-in via "ignition.partitioner=sfdisk". The
+// returned error is a warning explaining why the default was selected
+// (unreadable kernel cmdline or an unrecognized argument value); the
+// returned backend is always usable.
+func PartitionerBackend() (string, error) {
+	if partitionerBackend == "" {
+		partitionerBackend, partitionerWarning = readPartitionerFromCmdline()
+	}
+	return partitionerBackend, partitionerWarning
+}
+
+func readPartitionerFromCmdline() (string, error) {
+	// Allow override via environment variable for testing.
+	if env := os.Getenv("IGNITION_PARTITIONER"); env == "sfdisk" || env == "sgdisk" {
+		return env, nil
+	}
+	cmdline, err := os.ReadFile(KernelCmdlinePath())
+	if err != nil {
+		return "sgdisk", fmt.Errorf("couldn't read kernel cmdline, defaulting to sgdisk partitioner: %w", err)
+	}
+	var warning error
+	for _, arg := range strings.Split(strings.TrimSpace(string(cmdline)), " ") {
+		parts := strings.SplitN(arg, "=", 2)
+		if parts[0] != "ignition.partitioner" || len(parts) != 2 {
+			continue
+		}
+		switch parts[1] {
+		case "sfdisk", "sgdisk":
+			return parts[1], nil
+		default:
+			if warning == nil {
+				warning = fmt.Errorf("ignoring unrecognized ignition.partitioner value %q (valid values: sfdisk, sgdisk); defaulting to sgdisk", parts[1])
+			}
+		}
+	}
+	return "sgdisk", warning
 }
 
 func fromEnv(nameSuffix, defaultValue string) string {
