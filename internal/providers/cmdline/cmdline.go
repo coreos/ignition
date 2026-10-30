@@ -105,7 +105,7 @@ func parseCmdline(logger *log.Logger, path string) (*cmdlineOpts, error) {
 
 	opts := &cmdlineOpts{}
 
-	for _, arg := range strings.Fields(string(cmdline)) {
+	for arg := range strings.FieldsSeq(string(cmdline)) {
 		parts := strings.SplitN(strings.TrimSpace(arg), "=", 2)
 		if len(parts) != 2 {
 			continue

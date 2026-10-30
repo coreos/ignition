@@ -64,7 +64,7 @@ func fetchConfig(f *resource.Fetcher) (types.Config, report.Report, error) {
 		errors := fmt.Errorf("can not get reader device: %v", err)
 		return types.Config{}, report.Report{}, errors
 	}
-	for _, records := range strings.Split(string(readerInfo), "\n") {
+	for records := range strings.SplitSeq(string(readerInfo), "\n") {
 		record := strings.Fields(records)
 		// The records format: ORIGINID FILE CLASSA CLASSB RECORDS CPY HOLD DATE TIME NAME TYPE DIST
 		if len(record) <= 1 {
