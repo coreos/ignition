@@ -42,7 +42,8 @@ import (
 )
 
 func getDeviceManager(logger *log.Logger, dev string) partitioners.DeviceManager {
-	switch distro.PartitionerBackend() {
+	backend, _ := distro.PartitionerBackend()
+	switch backend {
 	case "sfdisk":
 		return sfdisk.Begin(logger, dev)
 	default:
@@ -57,6 +58,13 @@ func (s stage) createPartitions(config types.Config) error {
 	}
 	s.PushPrefix("createPartitions")
 	defer s.PopPrefix()
+
+	// Log the partitioner-selection warning once, before partitioning;
+	// the selected backend is unchanged (the sgdisk default), but a user
+	// who typo'd the kernel argument should learn why they got sgdisk.
+	if _, err := distro.PartitionerBackend(); err != nil {
+		s.Logger.Warning("%v", err)
+	}
 
 	devs := []string{}
 	for _, disk := range config.Storage.Disks {

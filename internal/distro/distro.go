@@ -154,37 +154,49 @@ func WriteAuthorizedKeysFragment() bool {
 	return bakedStringToBool(fromEnv("WRITE_AUTHORIZED_KEYS_FRAGMENT", writeAuthorizedKeysFragment))
 }
 
-var partitionerBackend string
+var (
+	partitionerBackend string
+	partitionerWarning error
+)
 
 // PartitionerBackend reports which partitioner the disks stage should use,
 // as selected by the "ignition.partitioner" kernel argument. It defaults
-// to sgdisk; sfdisk is opt-in via "ignition.partitioner=sfdisk".
-func PartitionerBackend() string {
+// to sgdisk; sfdisk is opt-in via "ignition.partitioner=sfdisk". The
+// returned error is a warning explaining why the default was selected
+// (unreadable kernel cmdline or an unrecognized argument value); the
+// returned backend is always usable.
+func PartitionerBackend() (string, error) {
 	if partitionerBackend == "" {
-		partitionerBackend = readPartitionerFromCmdline()
+		partitionerBackend, partitionerWarning = readPartitionerFromCmdline()
 	}
-	return partitionerBackend
+	return partitionerBackend, partitionerWarning
 }
 
-func readPartitionerFromCmdline() string {
+func readPartitionerFromCmdline() (string, error) {
 	// Allow override via environment variable for testing.
 	if env := os.Getenv("IGNITION_PARTITIONER"); env == "sfdisk" || env == "sgdisk" {
-		return env
+		return env, nil
 	}
 	cmdline, err := os.ReadFile(KernelCmdlinePath())
 	if err != nil {
-		return "sgdisk"
+		return "sgdisk", fmt.Errorf("couldn't read kernel cmdline, defaulting to sgdisk partitioner: %w", err)
 	}
+	var warning error
 	for _, arg := range strings.Split(strings.TrimSpace(string(cmdline)), " ") {
 		parts := strings.SplitN(arg, "=", 2)
-		if parts[0] == "ignition.partitioner" && len(parts) == 2 {
-			switch parts[1] {
-			case "sfdisk", "sgdisk":
-				return parts[1]
+		if parts[0] != "ignition.partitioner" || len(parts) != 2 {
+			continue
+		}
+		switch parts[1] {
+		case "sfdisk", "sgdisk":
+			return parts[1], nil
+		default:
+			if warning == nil {
+				warning = fmt.Errorf("ignoring unrecognized ignition.partitioner value %q (valid values: sfdisk, sgdisk); defaulting to sgdisk", parts[1])
 			}
 		}
 	}
-	return "sgdisk"
+	return "sgdisk", warning
 }
 
 func fromEnv(nameSuffix, defaultValue string) string {
