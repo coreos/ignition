@@ -320,11 +320,11 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 	appendEnv = append(appendEnv, "IGNITION_SYSTEM_LOCAL_CONFIG_DIR="+systemLocalConfigDir)
 
 	if !negativeTests {
-		if err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
+		if _, err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return err
 		}
 
-		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
+		if _, err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return err
 		}
 
@@ -332,12 +332,12 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 			return err
 		}
 
-		if err := runIgnition(t, ctx, "mount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
+		if _, err := runIgnition(t, ctx, "mount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return err
 		}
 
-		filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck)
-		if err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
+		_, filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck)
+		if _, err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
 			return err
 		}
 		if err := umountPartition(rootPartition); err != nil {
@@ -360,34 +360,47 @@ func outer(t *testing.T, test types.Test, negativeTests bool) error {
 		}
 		return nil
 	} else {
-		if err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
-			return nil // error is expected
+		if out, err := runIgnition(t, ctx, "fetch", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
+			return checkNegativeLog(test, out)
 		}
 
-		if err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
-			return nil // error is expected
+		if out, err := runIgnition(t, ctx, "disks", "", tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
+			return checkNegativeLog(test, out)
 		}
 
 		if err := mountPartition(ctx, rootPartition); err != nil {
 			return err
 		}
 
-		if err := runIgnition(t, ctx, "mount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
-			return nil // error is expected
+		if out, err := runIgnition(t, ctx, "mount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
+			return checkNegativeLog(test, out)
 		}
 
-		filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck)
-		if err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
-			return nil
+		filesOut, filesErr := runIgnition(t, ctx, "files", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck)
+		if out, err := runIgnition(t, ctx, "umount", rootPartition.MountPath, tmpDirectory, appendEnv, test.SkipCriticalCheck); err != nil {
+			return checkNegativeLog(test, out)
 		}
 		if err := umountPartition(rootPartition); err != nil {
 			return err
 		}
 		if filesErr != nil {
-			return nil // error is expected
+			return checkNegativeLog(test, filesOut)
 		}
 		return fmt.Errorf("Expected failure and ignition succeeded")
 	}
+}
+
+// checkNegativeLog validates that a negative test failed for the intended
+// reason. If NegativeExpectedLog is set, the failing stage's output must
+// contain it; otherwise any failure is accepted.
+func checkNegativeLog(test types.Test, out string) error {
+	if test.NegativeExpectedLog == "" {
+		return nil
+	}
+	if !strings.Contains(out, test.NegativeExpectedLog) {
+		return fmt.Errorf("expected ignition to fail with log containing %q", test.NegativeExpectedLog)
+	}
+	return nil
 }
 
 // Remove a LUKS device
