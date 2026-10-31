@@ -10,8 +10,11 @@ nav_order: 9
 
 ### Features
 
+- Add ignition-integration dracut modules, dracut config to omit NFS from the initramfs, and related systemd units, installed when `WITH_INTEGRATION=1`
+
 ### Changes
 
+- Move dracut modules under `dracut/modules.d/`
 - Add Azure provider unit tests covering the fallback to custom data when IMDS userdata is empty and the indefinite wait for a missing OVF config drive
 - Restore `go fix` behavior on go.yml pipeline
 
