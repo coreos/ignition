@@ -233,17 +233,17 @@ func mergeStruct(parent reflect.Value, parentPath path.ContextPath, child reflec
 		case util.IsPrimitive(kind):
 			resultField.Set(childField)
 			transcribe(childFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
-		case kind == reflect.Ptr && !parentField.IsNil() && !childField.IsNil() && parentField.Elem().Kind() == reflect.Struct:
+		case kind == reflect.Pointer && !parentField.IsNil() && !childField.IsNil() && parentField.Elem().Kind() == reflect.Struct:
 			// we're not supposed to have struct pointers, but some
 			// ended up in the Clevis and Luks structs in spec 3.2.0
 			// https://github.com/coreos/ignition/issues/1132
 			resultField.Set(mergeStruct(parentField.Elem(), parentFieldPath, childField.Elem(), childFieldPath, resultFieldPath, transcript).Addr())
 			transcribeOne(parentFieldPath, resultFieldPath, transcript)
 			transcribeOne(childFieldPath, resultFieldPath, transcript)
-		case kind == reflect.Ptr && childField.IsNil():
+		case kind == reflect.Pointer && childField.IsNil():
 			resultField.Set(parentField)
 			transcribe(parentFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
-		case kind == reflect.Ptr && !childField.IsNil():
+		case kind == reflect.Pointer && !childField.IsNil():
 			resultField.Set(childField)
 			transcribe(childFieldPath, resultFieldPath, resultField, fieldMeta, transcript)
 		case kind == reflect.Struct && childField.IsZero():
@@ -371,7 +371,7 @@ func transcribe(fromPath path.ContextPath, toPath path.ContextPath, value reflec
 			return false
 		}
 		transcribeOne(fromPath, toPath, transcript)
-	case kind == reflect.Ptr:
+	case kind == reflect.Pointer:
 		if value.IsNil() {
 			return false
 		}

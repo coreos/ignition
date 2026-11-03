@@ -79,7 +79,7 @@ func isValidFilter(typ reflect.Type, filter string) bool {
 			}
 		}
 		return false
-	case kind == reflect.Slice, kind == reflect.Ptr:
+	case kind == reflect.Slice, kind == reflect.Pointer:
 		return isValidFilter(typ.Elem(), filter)
 	default:
 		panic(fmt.Errorf("%v has kind %v", typ.Name(), kind))
@@ -118,7 +118,7 @@ func (ff FieldFilters) verify(v reflect.Value, filter string, p path.ContextPath
 		for i := 0; i < v.Len(); i++ {
 			r.Merge(ff.verify(v.Index(i), filter, p.Append(i)))
 		}
-	case kind == reflect.Ptr:
+	case kind == reflect.Pointer:
 		if !v.IsNil() {
 			r.Merge(ff.verify(v.Elem(), filter, p))
 		}
@@ -151,7 +151,7 @@ func (ff FieldFilters) isEmpty(v reflect.Value, filter string) bool {
 		// different from v.IsZero(): we treat a non-nil zero-length
 		// slice as empty
 		return v.Len() == 0
-	case kind == reflect.Ptr:
+	case kind == reflect.Pointer:
 		if v.IsNil() {
 			return true
 		}

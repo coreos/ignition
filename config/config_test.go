@@ -63,7 +63,7 @@ func fieldAffectsKey(key func() string, v reflect.Value) bool {
 		new := key()
 		v.Set(reflect.Zero(v.Type()))
 		return old != new
-	case kind == reflect.Ptr:
+	case kind == reflect.Pointer:
 		null := key()
 		v.Set(reflect.New(v.Type().Elem()))
 		allocated := key()
@@ -120,7 +120,7 @@ func checkStructFieldKey(t reflect.Type, keyedStructs typeSet) error {
 					!ignore(t, field, "Level", v3_0.Raid{}, v3_1.Raid{}, v3_2.Raid{}) {
 					return fmt.Errorf("Non-pointer %s.%s does not affect key", t.Name(), field.Name)
 				}
-			case field.Type.Kind() == reflect.Ptr && util.IsPrimitive(field.Type.Elem().Kind()):
+			case field.Type.Kind() == reflect.Pointer && util.IsPrimitive(field.Type.Elem().Kind()):
 				// pointer primitive; may affect key if there's also
 				// a non-pointer key
 			case field.Type.Kind() == reflect.Struct && field.Anonymous:
@@ -164,7 +164,7 @@ func testConfigType(t reflect.Type, keyedStructs typeSet) error {
 		return fmt.Errorf("Type %s is of kind %s which is not valid in configs", t.Name(), k.String())
 	case util.IsPrimitive(k):
 		return nil
-	case k == reflect.Ptr:
+	case k == reflect.Pointer:
 		pK := t.Elem().Kind()
 		if util.IsPrimitive(pK) {
 			return nil
@@ -239,7 +239,7 @@ func checkNonKeyedStructFields(t reflect.Type, ignoreTypes typeSet) error {
 	switch {
 	case util.IsPrimitive(kind):
 		return nil
-	case kind == reflect.Ptr:
+	case kind == reflect.Pointer:
 		return checkNonKeyedStructFields(t.Elem(), ignoreTypes)
 	case kind == reflect.Slice:
 		return checkNonKeyedStructFields(t.Elem(), ignoreTypes)

@@ -117,7 +117,7 @@ func configNeedsNetRecurse(v reflect.Value) (bool, error) {
 				return true, nil
 			}
 		}
-	case k == reflect.Ptr:
+	case k == reflect.Pointer:
 		v = v.Elem()
 		if v.IsValid() {
 			return configNeedsNetRecurse(v)
