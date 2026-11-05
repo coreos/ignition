@@ -6,6 +6,12 @@ nav_order: 8
 
 Ignition is currently supported for the following platforms:
 
+On every platform below, the configuration may be supplied as Ignition JSON
+or, since Ignition 2.27.0, as Butane YAML; Ignition transpiles Butane configs
+automatically at boot. Configs with `local:` references must be transpiled
+ahead of time with `butane --files-dir`, since boot-time transpilation has no
+files directory.
+
 * [Akamai Connected Cloud] (`akamai`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys and network configuration are handled separately.
 * [Alibaba Cloud] (`aliyun`) - Ignition will read its configuration from the instance userdata. Cloud SSH keys are handled separately.
 * [Apple Hypervisor] (`applehv`) - Ignition will read its configuration using an HTTP GET over a vsock connection with its host on port 1024.

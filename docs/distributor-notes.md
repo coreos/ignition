@@ -12,6 +12,15 @@ nav_order: 10
 
 The distribution specific integration is responsible for ensuring that the ignition dracut module is included in the initramfs when necessary. This can be achieved by adding it as dependency of the dracut module containing the distribution integration, or by installing a dracut configuration file.
 
+## Config Formats
+
+Ignition parses every config it reads through the same entry point, which
+accepts Ignition JSON and Butane YAML. Distributors can therefore ship
+`user.ign`, `base.d/`, and `base.platform.d/` fragments in either format, and
+platform integrations that fetch userdata get Butane support without
+additional work. Boot-time transpilation cannot resolve Butane `local:` file
+references; configs using those must be transpiled ahead of time.
+
 ## System Configuration Directories
 
 Ignition searches for base configs and user configs (`user.ign`) in three directories, checked in the following priority order:

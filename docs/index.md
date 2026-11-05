@@ -4,7 +4,9 @@ nav_order: 1
 
 # Ignition
 
-Ignition is a utility created to manipulate disks during the initramfs. This includes partitioning disks, formatting partitions, writing files (regular files, systemd units, etc.), and configuring users. On first boot, Ignition reads its configuration from a source of truth (remote URL, network metadata service, hypervisor bridge, etc.) and applies the configuration. Ignition accepts both [Ignition JSON configs](specs.md) and [Butane YAML configs](https://coreos.github.io/butane/specs/), transpiling Butane configs automatically at boot.
+Ignition is a utility created to manipulate disks during the initramfs. This includes partitioning disks, formatting partitions, writing files (regular files, systemd units, etc.), and configuring users. On first boot, Ignition reads its configuration from a source of truth (remote URL, network metadata service, hypervisor bridge, etc.) and applies the configuration. Ignition accepts both [Ignition JSON configs](specs.md) and [Butane YAML configs](https://github.com/coreos/ignition/blob/main/butane/docs/specs.md). Since Ignition 2.27.0, Butane configs are transpiled automatically at boot, so a Butane config can be provided anywhere an Ignition config is expected, as long as it does not reference local files.
+
+See the [Butane documentation](https://github.com/coreos/ignition/blob/main/butane/docs/) for the human-readable config format, examples, and the `butane` CLI.
 
 ## Usage
 

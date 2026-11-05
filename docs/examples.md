@@ -7,6 +7,8 @@ nav_order: 4
 
 These examples are written in version 3.0.0 of the config. Ignition v2.0.0+ understands all configs with version 3.0.0+.
 
+Ignition also accepts Butane YAML configs and transpiles them automatically at boot (Ignition 2.27.0 and later). Butane is usually easier to write by hand, and the [Butane examples](https://github.com/coreos/ignition/blob/main/butane/docs/examples.md) cover the same kinds of configuration in YAML. The first example below is shown in both formats.
+
 1. TOC
 {:toc}
 
@@ -39,6 +41,25 @@ ExecStart=/usr/bin/echo Hello World
 
 [Install]
 WantedBy=multi-user.target
+```
+
+The same config in Butane YAML:
+
+<!-- butane-config -->
+```yaml
+variant: fcos
+version: 1.7.0
+systemd:
+  units:
+    - name: example.service
+      enabled: true
+      contents: |
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/echo Hello World
+
+        [Install]
+        WantedBy=multi-user.target
 ```
 
 ### Modify Services

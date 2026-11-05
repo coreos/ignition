@@ -43,6 +43,7 @@ dracut/                  # Dracut module for initramfs integration
 - `./build butane` - Build butane binary to `bin/`
 - `./test` - Run all checks (license, gofmt, govet, unit tests, doc validation)
 - `./generate` - Regenerate schema types and docs after JSON schema changes
+- `cd butane && ./generate` - Regenerate Butane spec docs (`butane/docs/config-*.md`); not covered by `./generate`
 - `./build_blackbox_tests` - Compile integration tests
 - `make vendor` - Vendor dependencies (`go mod vendor && go mod tidy`)
 - `make install` - Install ignition and ignition-validate binaries, dracut modules, systemd units
@@ -85,7 +86,7 @@ Body optional; use `Fixes #N` for issue references.
 1. **Frontend is stable API** -- `config/` is used by external programs. API changes require bumping Ignition major version.
 2. **New features only in experimental spec** (`v3_7_experimental`). Never modify frozen specs (`v3_0`-`v3_6`).
 3. **Declarative config only** -- describe desired state, not actions. No verbs in field names.
-4. **Generated files**: `config/v3_*/types/schema.go` -- regenerate with `./generate`, never edit manually.
+4. **Generated files**: `config/v3_*/types/schema.go` -- regenerate with `./generate`, never edit manually. `butane/docs/config-*.md` -- regenerate with `cd butane && ./generate`.
 5. **Platform providers must**: retry config fetch, allow empty config, never guess platform ID.
 6. **Network access fields** must be added to the `fetch-offline` needs-net detector.
 7. **Execution stages are fixed** (fetch-offline, fetch, disks, mount, files, umount). External projects hardcode this list.
