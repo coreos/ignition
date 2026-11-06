@@ -67,7 +67,7 @@ func ignitionMain() {
 	flag.Var(&flags.stage, "stage", fmt.Sprintf("execution stage. %v", stages.Names()))
 	flag.StringVar(&flags.stateFile, "state-file", "/run/ignition/state", "where to store internal state")
 	flag.BoolVar(&flags.version, "version", false, "print the version and exit")
-	flag.BoolVar(&flags.logToStdout, "log-to-stdout", false, "log to stdout instead of the system log when set")
+	flag.BoolVar(&flags.logToStdout, "log-to-stdout", false, "also log to stdout (syslog is still used when available)")
 
 	flag.Parse()
 
@@ -192,7 +192,7 @@ func ignitionRmCfgMain() {
 		version     bool
 	}{}
 	pflag.StringVar(&flags.platform, "platform", "", fmt.Sprintf("current platform. %v", platform.Names()))
-	pflag.BoolVar(&flags.logToStdout, "log-to-stdout", false, "log to stdout instead of the system log")
+	pflag.BoolVar(&flags.logToStdout, "log-to-stdout", false, "also log to stdout (syslog is still used when available)")
 	pflag.BoolVar(&flags.version, "version", false, "print the version and exit")
 	pflag.Usage = func() {
 		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options]\n", os.Args[0])
