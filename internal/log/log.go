@@ -44,20 +44,24 @@ type Logger struct {
 }
 
 // New creates a new logger.
-// If logToStdout is true, syslog is tried first. If syslog fails or logToStdout
-// is false Stdout is used.
+// Messages go to syslog when available. If logToStdout is true, the same
+// messages are also written to stdout. If syslog is unavailable, stdout is
+// used as a fallback.
 func New(logToStdout bool) Logger {
 	logger := Logger{}
-	if !logToStdout {
-		var err error
-		logger.ops, err = syslog.New(syslog.LOG_DEBUG, "ignition")
-		if err != nil {
-			logger.ops = Stdout{}
+	sw, err := syslog.New(syslog.LOG_DEBUG, "ignition")
+	if err != nil {
+		logger.ops = Stdout{}
+		if !logToStdout {
 			logger.Err("unable to open syslog: %v", err)
 		}
 		return logger
 	}
-	logger.ops = Stdout{}
+	if logToStdout {
+		logger.ops = multiOps{Stdout{}, sw}
+	} else {
+		logger.ops = sw
+	}
 	return logger
 }
 
