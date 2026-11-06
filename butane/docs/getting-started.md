@@ -4,11 +4,13 @@ nav_order: 2
 
 # Getting started
 
-Butane (formerly the Fedora CoreOS Config Transpiler) is a tool that consumes a Butane Config and produces an Ignition Config, which is a JSON document that can be given to a Fedora CoreOS machine when it first boots. Using this config, a machine can be told to create users, create filesystems, set up the network, install systemd units, and more.
+Butane (formerly the Fedora CoreOS Config Transpiler) is Ignition's human-readable configuration format. Butane configs are YAML files that describe how a machine should be provisioned: users, filesystems, networking, systemd units, and more. Ignition 2.27.0 and later reads Butane configs directly and transpiles them at boot; for older Ignition versions, the `butane` CLI converts a Butane config into an Ignition JSON config that can be given to the machine.
 
 Butane configs are YAML files conforming to Butane's schema. For more information on the schema, take a look at the [configuration specifications][spec].
 
-### Getting Butane
+With Ignition 2.27.0 and later, producing a separate Ignition JSON file is optional for configs that do not reference local files. The `butane` CLI is still useful for validating configs before provisioning and for `--files-dir`, which embeds local files into the generated Ignition config.
+
+### Getting the Butane CLI
 
 `butane` can be run from a container image with `podman` or `docker`, installed from Fedora package repositories or downloaded as a standalone binary.
 

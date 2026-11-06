@@ -59,6 +59,7 @@ The changes that are required to achieve these effects are typically the followi
 - [ ] Run `generate` to regenerate Go schemas and spec docs.
 - [ ] Add a section to `docs/migrating-configs.md`.
 - [ ] In `docs/specs.md`, update the list of stable and experimental spec versions (listing the latest stable release first) and update the table listing the Ignition release where a spec has been marked as stable.
+- [ ] Run `./generate` in `butane/` to regenerate `butane/docs/config-*.md`, and update the version lists in `butane/docs/specs.md` for the corresponding Butane spec stabilization.
 - [ ] Note the stabilization in `docs/release-notes.md`, following the format of previous stabilizations. Drop the `-exp` version suffix from any notes for the upcoming release.
 
 ## External tests

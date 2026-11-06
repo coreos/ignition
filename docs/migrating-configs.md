@@ -11,6 +11,18 @@ Occasionally, there are changes made to Ignition's configuration that break back
 {:toc}
 
 
+## Butane configs
+
+If you maintain Butane configs rather than Ignition JSON, see the Butane
+upgrading guides instead: [Fedora CoreOS](https://github.com/coreos/ignition/blob/main/butane/docs/upgrading-fcos.md),
+[Flatcar](https://github.com/coreos/ignition/blob/main/butane/docs/upgrading-flatcar.md),
+[OpenShift](https://github.com/coreos/ignition/blob/main/butane/docs/upgrading-openshift.md),
+and [RHEL for Edge](https://github.com/coreos/ignition/blob/main/butane/docs/upgrading-r4e.md).
+Each Butane spec version targets a specific Ignition spec version. Since
+Ignition 2.27.0, Butane configs are accepted directly at boot, so you can
+update the Butane config in place without maintaining a separate transpiled
+JSON file, unless it references local files.
+
 ## From Version 3.6.0 to 3.7.0-experimental
 
 There are not any breaking changes between versions 3.6.0 and 3.7.0-experimental of the configuration specification. Any valid 3.6.0 configuration can be updated to a 3.7.0-experimental configuration by simply changing the version string in the config.

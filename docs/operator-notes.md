@@ -124,6 +124,19 @@ Specifying `size` as 0 means the partition should span to the end of the largest
 If `size` is not specified and a partition with the same number exists, it will use the value of the existing partition, unless wipePartitionEntry is set.
 If `size` is not specified and there is no existing partition, or wipePartitionEntry is set, `size` act as if it were set to 0 and use the size of the largest block.
 
+## Config Formats
+
+Ignition accepts Ignition JSON and Butane YAML configs from every
+configuration source: platform userdata, `ignition.config.url`,
+`ignition.config.device`, `user.ign`, `base.d`/`base.platform.d` fragments,
+and referenced `merge`/`replace` configs. Butane configs are transpiled
+automatically at boot (Ignition 2.27.0 and later).
+
+Boot-time transpilation does not have access to a files directory, so Butane
+`local:` file references cannot be resolved at boot. Configs that use
+`local:` must be transpiled ahead of time with `butane --files-dir`; the
+resulting Ignition JSON can then be supplied normally.
+
 ## Config Merging
 
 Ignition supports fetching and merging multiple configs. This replaces the `append` functionality of the Ignition 2.x.0 specification. There are several rules that determine how configs get merged. When a child config is merged with a parent, generally the child config's values override the parent config's values.

@@ -75,7 +75,8 @@ flowchart TB
         online_check_user_ign{"/usr/lib/ignition/user.ign
         exists?"}
         online_fetch_provider["Fetch from platform provider
-        (see Provider Specific Behavior - Config Fetch below)"]
+        (Ignition JSON or Butane YAML;
+        see Provider Specific Behavior - Config Fetch below)"]
         online_write_config["Write config to /run/ignition.json"]
         online_done["Done"]
         online_check_cmdline -->|Yes| online_write_config

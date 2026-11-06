@@ -10,6 +10,8 @@ nav_order: 3
 
 Here you can find a bunch of simple examples for using Butane, with some explanations about what they do. The examples here are in no way comprehensive, for a full list of all the options present in Butane check out the [configuration specification][spec].
 
+Examples without local-file references can be supplied directly to Ignition 2.27.0 and later. Examples with local-file references must be transpiled ahead of time with the `butane` CLI and `--files-dir`.
+
 ## Users and groups
 
 This example modifies the existing `core` user and sets its SSH key by providing it inline.

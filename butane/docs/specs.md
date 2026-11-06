@@ -8,6 +8,8 @@ has_toc: false
 
 Butane Configs must conform to a specific variant and version of the Butane schema, specified with the `variant` and `version` fields in the configuration.
 
+Each variant/version corresponds to a specific Ignition spec version. Ignition 2.27.0 and later reads Butane configs directly, transpiling them at boot; the `butane` CLI is only needed for older Ignition versions, validation ahead of time, and configs that reference local files.
+
 See the [Upgrading Configs](upgrading.md) page for instructions to update a configuration to the latest specification.
 
 ## Stable specification versions

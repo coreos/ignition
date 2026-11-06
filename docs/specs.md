@@ -38,9 +38,12 @@ Ignition:
 
 ## Butane configuration specifications
 
-Ignition also natively accepts Butane YAML configs, transpiling them
-automatically at boot. For Butane config specifications, see the
-[Butane specs](https://coreos.github.io/butane/specs/) page.
+Ignition also accepts Butane YAML configs, transpiling them automatically at
+boot (Ignition 2.27.0 and later). Each Butane variant/version targets a
+specific Ignition spec version. For Butane config specifications and the
+Ignition spec versions they target, see the
+[Butane specs](https://github.com/coreos/ignition/blob/main/butane/docs/specs.md)
+page.
 
 ## Legacy spec 2.x configuration specifications
 
