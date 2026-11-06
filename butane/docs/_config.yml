@@ -5,7 +5,7 @@
 
 title: Butane
 description: Butane documentation
-baseurl: "/butane"
+baseurl: "/ignition/butane"
 url: "https://coreos.github.io"
 permalink: /:title/
 markdown: kramdown
