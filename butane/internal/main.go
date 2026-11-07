@@ -16,8 +16,8 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
+	"slices"
 
 	"github.com/spf13/pflag"
 
@@ -41,6 +41,10 @@ func isCharDevice(f *os.File) bool {
 }
 
 func readInput(input string) ([]byte, string, error) {
+	return readProcessedInput(input, "")
+}
+
+func readProcessedInput(input, processor string) ([]byte, string, error) {
 	infile := os.Stdin
 	filename := "<stdin>"
 	if input != "" {
@@ -53,7 +57,7 @@ func readInput(input string) ([]byte, string, error) {
 		filename = input
 	}
 
-	data, err := io.ReadAll(infile)
+	data, err := processFile(infile, processor)
 	if err != nil {
 		return nil, filename, fmt.Errorf("failed to read %s: %w", filename, err)
 	}
@@ -134,13 +138,27 @@ func main() {
 		fmt.Println(version.String)
 		os.Exit(0)
 	}
-	if _, err := parseFileProcessorOptions(processor, extensions,
+	allowedExtensions, err := parseFileProcessorOptions(processor, extensions,
 		pflag.CommandLine.Changed("file-processor"),
-		pflag.CommandLine.Changed("file-processor-allowed-ext")); err != nil {
+		pflag.CommandLine.Changed("file-processor-allowed-ext"))
+	if err != nil {
 		fail("%v\n", err)
 	}
+	if processor != "" {
+		options.LocalFileReader = func(path string) ([]byte, error) {
+			if !matchesExtension(path, allowedExtensions) {
+				return os.ReadFile(path)
+			}
+			return processLocalFile(path, processor)
+		}
+	}
 
-	dataIn, filename, err := readInput(input)
+	inputProcessor := processor
+	if (input == "" && !slices.Contains(allowedExtensions, "stdin")) ||
+		(input != "" && !matchesExtension(input, allowedExtensions)) {
+		inputProcessor = ""
+	}
+	dataIn, filename, err := readProcessedInput(input, inputProcessor)
 	if err != nil {
 		fail("%v\n", err)
 	}
