@@ -268,6 +268,9 @@ func gzipReaderTestContents(t *testing.T, input []byte) []byte {
 
 func writeReaderTestFile(t *testing.T, path string, contents []byte) {
 	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(path, contents, 0644); err != nil {
 		t.Fatal(err)
 	}
