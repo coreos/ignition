@@ -16,8 +16,8 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
+	"slices"
 
 	"github.com/spf13/pflag"
 
@@ -41,6 +41,10 @@ func isCharDevice(f *os.File) bool {
 }
 
 func readInput(input string) ([]byte, string, error) {
+	return readProcessedInput(input, "")
+}
+
+func readProcessedInput(input, processor string) ([]byte, string, error) {
 	infile := os.Stdin
 	filename := "<stdin>"
 	if input != "" {
@@ -53,7 +57,7 @@ func readInput(input string) ([]byte, string, error) {
 		filename = input
 	}
 
-	data, err := io.ReadAll(infile)
+	data, err := processFile(infile, processor)
 	if err != nil {
 		return nil, filename, fmt.Errorf("failed to read %s: %w", filename, err)
 	}
@@ -71,6 +75,8 @@ func main() {
 		versionFlag bool
 		rawErrors   bool
 		colorize    bool
+		processor   string
+		extensions  string
 	)
 	options := common.TranslateBytesOptions{}
 	pflag.BoolVarP(&helpFlag, "help", "h", false, "show usage and exit")
@@ -93,6 +99,8 @@ func main() {
 	pflag.Lookup("input").Hidden = true
 	pflag.StringVarP(&output, "output", "o", "", "write to output file instead of stdout")
 	pflag.StringVarP(&options.FilesDir, "files-dir", "d", "", "allow embedding local files from this directory")
+	pflag.StringVar(&processor, "file-processor", "", "external stdin/stdout processor (requires --file-processor-allowed-ext)")
+	pflag.StringVar(&extensions, "file-processor-allowed-ext", "", "required, non-empty comma-separated suffixes; 'stdin' enables stdin, '*' matches named files only (excludes stdin)")
 
 	pflag.Usage = func() {
 		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options] [input-file]\n", os.Args[0])
@@ -130,8 +138,27 @@ func main() {
 		fmt.Println(version.String)
 		os.Exit(0)
 	}
+	allowedExtensions, err := parseFileProcessorOptions(processor, extensions,
+		pflag.CommandLine.Changed("file-processor"),
+		pflag.CommandLine.Changed("file-processor-allowed-ext"))
+	if err != nil {
+		fail("%v\n", err)
+	}
+	if processor != "" {
+		options.LocalFileReader = func(path string) ([]byte, error) {
+			if !matchesExtension(path, allowedExtensions) {
+				return os.ReadFile(path)
+			}
+			return processLocalFile(path, processor)
+		}
+	}
 
-	dataIn, filename, err := readInput(input)
+	inputProcessor := processor
+	if (input == "" && !slices.Contains(allowedExtensions, "stdin")) ||
+		(input != "" && !matchesExtension(input, allowedExtensions)) {
+		inputProcessor = ""
+	}
+	dataIn, filename, err := readProcessedInput(input, inputProcessor)
 	if err != nil {
 		fail("%v\n", err)
 	}
