@@ -1,0 +1,1 @@
+Butane can process the root config and selected local files through an external executable before translation. This enables template rendering tools such as gomplate; the processor is invoked separately for each matching file and is configured with `--file-processor` and `--file-processor-allowed-ext`.
