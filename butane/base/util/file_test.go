@@ -57,6 +57,28 @@ func TestReadFile(t *testing.T) {
 	assert.Contains(t, err.Error(), missing)
 }
 
+func TestReadLocalFileChecksDirectoryBeforeReader(t *testing.T) {
+	dir := t.TempDir()
+	for _, test := range []struct {
+		name, path, filesDir string
+		want                 error
+	}{
+		{name: "no files directory", path: "file", want: common.ErrNoFilesDir},
+		{name: "outside files directory", path: "../file", filesDir: dir, want: common.ErrFilesDirEscape},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := ReadLocalFile(test.path, common.TranslateOptions{
+				FilesDir: test.filesDir,
+				LocalFileReader: func(string) ([]byte, error) {
+					t.Fatal("reader called before validating the files directory")
+					return nil, nil
+				},
+			})
+			assert.True(t, errors.Is(err, test.want))
+		})
+	}
+}
+
 var (
 	expectedBadDirModes = []int{
 		500,  // 0764

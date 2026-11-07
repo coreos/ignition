@@ -40,17 +40,17 @@ func EnsurePathWithinFilesDir(path, filesDir string) error {
 	return nil
 }
 
-func ReadLocalFile(configPath, filesDir string) ([]byte, error) {
-	if filesDir == "" {
+func ReadLocalFile(configPath string, options common.TranslateOptions) ([]byte, error) {
+	if options.FilesDir == "" {
 		// a files dir isn't configured; refuse to read anything
 		return nil, common.ErrNoFilesDir
 	}
 	// calculate file path within FilesDir and check for path traversal
-	filePath := filepath.Join(filesDir, filepath.FromSlash(configPath))
-	if err := EnsurePathWithinFilesDir(filePath, filesDir); err != nil {
+	filePath := filepath.Join(options.FilesDir, filepath.FromSlash(configPath))
+	if err := EnsurePathWithinFilesDir(filePath, options.FilesDir); err != nil {
 		return nil, err
 	}
-	return os.ReadFile(filePath)
+	return ReadFile(filePath, options.LocalFileReader)
 }
 
 // ReadFile reads a filesystem path with the optional reader.
