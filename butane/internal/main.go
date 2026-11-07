@@ -71,6 +71,8 @@ func main() {
 		versionFlag bool
 		rawErrors   bool
 		colorize    bool
+		processor   string
+		extensions  string
 	)
 	options := common.TranslateBytesOptions{}
 	pflag.BoolVarP(&helpFlag, "help", "h", false, "show usage and exit")
@@ -93,6 +95,8 @@ func main() {
 	pflag.Lookup("input").Hidden = true
 	pflag.StringVarP(&output, "output", "o", "", "write to output file instead of stdout")
 	pflag.StringVarP(&options.FilesDir, "files-dir", "d", "", "allow embedding local files from this directory")
+	pflag.StringVar(&processor, "file-processor", "", "external stdin/stdout processor (requires --file-processor-allowed-ext)")
+	pflag.StringVar(&extensions, "file-processor-allowed-ext", "", "required, non-empty comma-separated suffixes; 'stdin' enables stdin, '*' matches named files only (excludes stdin)")
 
 	pflag.Usage = func() {
 		_, _ = fmt.Fprintf(pflag.CommandLine.Output(), "Usage: %s [options] [input-file]\n", os.Args[0])
@@ -129,6 +133,11 @@ func main() {
 	if versionFlag {
 		fmt.Println(version.String)
 		os.Exit(0)
+	}
+	if _, err := parseFileProcessorOptions(processor, extensions,
+		pflag.CommandLine.Changed("file-processor"),
+		pflag.CommandLine.Changed("file-processor-allowed-ext")); err != nil {
+		fail("%v\n", err)
 	}
 
 	dataIn, filename, err := readInput(input)
