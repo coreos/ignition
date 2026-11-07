@@ -16,6 +16,7 @@ package util
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,6 +51,18 @@ func ReadLocalFile(configPath, filesDir string) ([]byte, error) {
 		return nil, err
 	}
 	return os.ReadFile(filePath)
+}
+
+// ReadFile reads a filesystem path with the optional reader.
+func ReadFile(path string, reader func(string) ([]byte, error)) ([]byte, error) {
+	if reader == nil {
+		return os.ReadFile(path)
+	}
+	contents, err := reader(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s: %w", path, err)
+	}
+	return contents, nil
 }
 
 // CheckForDecimalMode fails if the specified mode appears to have been

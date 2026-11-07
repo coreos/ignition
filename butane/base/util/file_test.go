@@ -17,7 +17,10 @@ package util
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -26,6 +29,33 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestReadFile(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "input.txt")
+	if err := os.WriteFile(file, []byte("from disk"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	data, err := ReadFile(file, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "from disk", string(data))
+
+	data, err = ReadFile(file, func(path string) ([]byte, error) {
+		assert.Equal(t, file, path)
+		return []byte("from reader"), nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "from reader", string(data))
+
+	failure := errors.New("reader failed")
+	_, err = ReadFile(file, func(string) ([]byte, error) { return nil, failure })
+	assert.True(t, errors.Is(err, failure))
+	assert.Contains(t, err.Error(), file)
+
+	missing := filepath.Join(t.TempDir(), "missing.txt")
+	_, err = ReadFile(missing, nil)
+	assert.True(t, errors.Is(err, os.ErrNotExist))
+	assert.Contains(t, err.Error(), missing)
+}
 
 var (
 	expectedBadDirModes = []int{
