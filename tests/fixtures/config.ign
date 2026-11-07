@@ -1,0 +1,9 @@
+{
+	"ignition": { "version": "@VERSION@" },
+	"storage": {
+		"files": [{
+			"path": "/foo/bar",
+			"contents": { "source": "data:,example%20file%0A" }
+		}]
+	}
+}

@@ -117,7 +117,7 @@ func umountPartition(p *types.Partition) error {
 }
 
 // returns true if no error, false if error
-func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, appendEnv []string, skipCriticalCheck bool) error {
+func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, appendEnv []string, skipCriticalCheck bool) (string, error) {
 	args := []string{"-platform", "file", "-stage", stage,
 		"-root", root, "-log-to-stdout",
 		"-config-cache", filepath.Join(cwd, "ignition.json"),
@@ -125,7 +125,7 @@ func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, app
 		"-state-file", filepath.Join(cwd, "state")}
 	cmd := exec.CommandContext(ctx, "ignition", args...)
 	if cmd == nil {
-		return fmt.Errorf("exec.CommandContext() returned nil")
+		return "", fmt.Errorf("exec.CommandContext() returned nil")
 	}
 	t.Log("ignition", args)
 	// `staticcheck` linter warns even after resolving
@@ -140,12 +140,12 @@ func runIgnition(t *testing.T, ctx context.Context, stage, root, cwd string, app
 	}
 	t.Logf("Ignition output:\n%s", string(out))
 	if strings.Contains(string(out), "panic") {
-		return fmt.Errorf("ignition panicked")
+		return string(out), fmt.Errorf("ignition panicked")
 	}
 	if !skipCriticalCheck && strings.Contains(string(out), "CRITICAL") {
-		return fmt.Errorf("found critical ignition log")
+		return string(out), fmt.Errorf("found critical ignition log")
 	}
-	return err
+	return string(out), err
 }
 
 // pickPartition will return the partition device corresponding to a

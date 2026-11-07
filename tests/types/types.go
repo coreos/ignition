@@ -108,6 +108,9 @@ type Test struct {
 	ConfigVersion         string
 	ConfigShouldBeBad     bool // Set to true to skip config validation step
 	SkipCriticalCheck     bool // Set to true to skip critical logging check
+	// For negative tests, require the failing stage's output to contain this
+	// substring. Ensures Ignition failed for the intended reason.
+	NegativeExpectedLog string
 }
 
 func (ps Partitions) GetPartition(label string) *Partition {

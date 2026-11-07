@@ -24,6 +24,10 @@ func init() {
 	register.Register(register.NegativeTest, DeviceNotFound())
 	register.Register(register.NegativeTest, DeviceWithoutPath())
 	register.Register(register.NegativeTest, PathWithoutDevice())
+	register.Register(register.NegativeTest, FileURLWithDir())
+	register.Register(register.NegativeTest, FileURLWithDev())
+	register.Register(register.NegativeTest, FileURLWithUncleanPath())
+	register.Register(register.NegativeTest, FileURLWithHost())
 }
 
 // ConfigFileNotFound verifies that Ignition fails when the device exists
@@ -183,6 +187,138 @@ func PathWithoutDevice() types.Test {
 					Directory: "/",
 				},
 				Contents: "ignition.config.path=/config.ign",
+			},
+		},
+	}
+}
+
+func FileURLWithDir() types.Test {
+	name := "cmdline.file.dir"
+	in := types.GetBaseDisk()
+	out := in
+
+	config := `{
+		"ignition": { "version": "$version" }
+	}`
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:                name,
+		In:                  in,
+		Out:                 out,
+		Config:              config,
+		ConfigMinVersion:    configMinVersion,
+		SkipCriticalCheck:   true,
+		NegativeExpectedLog: "not a regular file",
+		Env: []string{
+			"IGNITION_KERNEL_CMDLINE_PATH=$SYSTEM_CONFIG_DIR/cmdline",
+		},
+		SystemDirFiles: []types.File{
+			{
+				Node: types.Node{
+					Name:      "cmdline",
+					Directory: "/",
+				},
+				Contents: "ignition.config.url=file:///dev",
+			},
+		},
+	}
+}
+
+func FileURLWithDev() types.Test {
+	name := "cmdline.file.dev"
+	in := types.GetBaseDisk()
+	out := in
+
+	config := `{
+		"ignition": { "version": "$version" }
+	}`
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:                name,
+		In:                  in,
+		Out:                 out,
+		Config:              config,
+		ConfigMinVersion:    configMinVersion,
+		SkipCriticalCheck:   true,
+		NegativeExpectedLog: "not a regular file",
+		Env: []string{
+			"IGNITION_KERNEL_CMDLINE_PATH=$SYSTEM_CONFIG_DIR/cmdline",
+		},
+		SystemDirFiles: []types.File{
+			{
+				Node: types.Node{
+					Name:      "cmdline",
+					Directory: "/",
+				},
+				Contents: "ignition.config.url=file:///dev/null",
+			},
+		},
+	}
+}
+
+func FileURLWithUncleanPath() types.Test {
+	name := "cmdline.file.unclean"
+	in := types.GetBaseDisk()
+	out := in
+
+	config := `{
+		"ignition": { "version": "$version" }
+	}`
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:                name,
+		In:                  in,
+		Out:                 out,
+		Config:              config,
+		ConfigMinVersion:    configMinVersion,
+		SkipCriticalCheck:   true,
+		NegativeExpectedLog: "path is not fully simplified",
+		Env: []string{
+			"IGNITION_KERNEL_CMDLINE_PATH=$SYSTEM_CONFIG_DIR/cmdline",
+		},
+		SystemDirFiles: []types.File{
+			{
+				Node: types.Node{
+					Name:      "cmdline",
+					Directory: "/",
+				},
+				Contents: "ignition.config.url=file:///dev/../etc/hosts",
+			},
+		},
+	}
+}
+
+func FileURLWithHost() types.Test {
+	name := "cmdline.file.host"
+	in := types.GetBaseDisk()
+	out := in
+
+	config := `{
+		"ignition": { "version": "$version" }
+	}`
+	configMinVersion := "3.0.0"
+
+	return types.Test{
+		Name:                name,
+		In:                  in,
+		Out:                 out,
+		Config:              config,
+		ConfigMinVersion:    configMinVersion,
+		SkipCriticalCheck:   true,
+		NegativeExpectedLog: "path is not absolute",
+		Env: []string{
+			"IGNITION_KERNEL_CMDLINE_PATH=$SYSTEM_CONFIG_DIR/cmdline",
+		},
+		SystemDirFiles: []types.File{
+			{
+				Node: types.Node{
+					Name:      "cmdline",
+					Directory: "/",
+				},
+				Contents: "ignition.config.url=file://remote.invalid/etc/hosts",
 			},
 		},
 	}
