@@ -26,7 +26,7 @@ import (
 // hierarchy; Translate will panic if not.  We need to use a deeply non-zero
 // struct to ensure translation descends into every type.
 func TestTranslate(t *testing.T) {
-	typ := reflect.TypeOf(old.Config{})
+	typ := reflect.TypeFor[old.Config]()
 	config := util.NonZeroValue(typ).Interface().(old.Config)
 	Translate(config)
 }
