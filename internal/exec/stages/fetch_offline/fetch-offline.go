@@ -88,15 +88,15 @@ func configNeedsNetRecurse(v reflect.Value) (bool, error) {
 	switch {
 	case cfgutil.IsPrimitive(k):
 		return false, nil
-	case t == reflect.TypeOf(types.Resource{}):
+	case t == reflect.TypeFor[types.Resource]():
 		return sourceNeedsNet(v.Interface().(types.Resource))
-	case t == reflect.TypeOf(types.Tang{}):
+	case t == reflect.TypeFor[types.Tang]():
 		tang := v.Interface().(types.Tang)
 		if !cfgutil.NilOrEmpty(tang.Advertisement) {
 			return false, nil
 		}
 		return true, nil
-	case t == reflect.TypeOf(types.ClevisCustom{}):
+	case t == reflect.TypeFor[types.ClevisCustom]():
 		cc := v.Interface().(types.ClevisCustom)
 		if cc.NeedsNetwork != nil {
 			return *cc.NeedsNetwork, nil
