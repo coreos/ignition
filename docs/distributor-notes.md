@@ -43,4 +43,4 @@ When Ignition is updating kernel arguments it will call out to a binary (defined
 
 As an example of the binary implementation look at [`examples/ignition-kargs-helper`](https://github.com/coreos/ignition/blob/main/examples/ignition-kargs-helper).
 
-If your implementation of Ignition doesn't intend to ship kargs functionality the [`ignition-kargs.service` unit](https://github.com/coreos/ignition/blob/main/dracut/30ignition/ignition-kargs.service) should be disabled.
+If your implementation of Ignition doesn't intend to ship kargs functionality the [`ignition-kargs.service` unit](https://github.com/coreos/ignition/blob/main/dracut/modules.d/30ignition/ignition-kargs.service) should be disabled.
