@@ -1,0 +1,1 @@
+Fix OpenStack provider ignoring the metadata service userdata when the service did not know about the instance yet, by waiting for the instance metadata to become available before fetching the userdata
