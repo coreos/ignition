@@ -27,6 +27,8 @@ jobs:
           status: added
           override-label: skip-notes
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Validate release-note fragments
         run: go run ./internal/util/tools/release-notes validate
