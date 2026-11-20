@@ -208,6 +208,11 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 		return err
 	}
 
+	// Wait for udev to create the partition device nodes
+	if _, err = run(ctx, "udevadm", "settle"); err != nil {
+		return fmt.Errorf("settling partitions: %v", err)
+	}
+
 	for _, partition := range disk.Partitions {
 		if partition.TypeCode == "blank" || partition.FilesystemType == "" || partition.FilesystemType == "swap" {
 			continue
@@ -229,6 +234,13 @@ func setupDisk(ctx context.Context, disk *types.Disk, diskIndex int, imageSize i
 		if err = formatPartition(ctx, partition); err != nil {
 			return err
 		}
+	}
+
+	// mkfs writes the filesystem label without emitting a uevent; re-trigger
+	// so the by-label and by-uuid links exist before ignition resolves them
+	if _, err = run(ctx, "udevadm", "trigger", "--action=change",
+		"--subsystem-match=block", "--settle"); err != nil {
+		return fmt.Errorf("triggering udev: %v", err)
 	}
 
 	if disk.CorruptTable {
