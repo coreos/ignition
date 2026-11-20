@@ -291,6 +291,13 @@ func (f *Fetcher) newHttpClient() error {
 		return err
 	}
 
+	// We do not want to redirect HTTP headers. This is set up once here
+	// rather than on each fetch since fetches may run concurrently.
+	defaultClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		req.Header = make(http.Header)
+		return nil
+	}
+
 	f.client = &HttpClient{
 		client:    defaultClient,
 		logger:    f.Logger,
