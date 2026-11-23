@@ -69,6 +69,10 @@ PREFIX_BUCKETS = [
     ("internal/partitioners/", STORAGE),
 ]
 
+# Whole trees whose changes always select the full suite. These exist so that
+# `--check` can tell a deliberately unclassified package from a new one.
+PREFIX_ALL = ("config/", "butane/")
+
 # A change here can move every test's behavior.
 SHARED = {
     "config", "butane/config", "butane/base", "butane/translate",
@@ -81,7 +85,8 @@ SHARED = {
 # Not consumed by the suite.
 SKIP_PATH_PREFIXES = ("docs/", ".github/", "ci/", "tests/tmt/", "butane/docs/",
                       "dracut/", "systemd/", "grub2/", "examples/")
-SKIP_PACKAGES = {"internal/doc", "internal/util/tools/docs"}
+SKIP_PACKAGES = {"internal/doc", "internal/util/tools/docs",
+                 "internal/util/tools/release-notes", "internal/version"}
 SKIP_SUFFIXES = (".md", ".yml", ".yaml", ".txt", ".fmf")
 
 # Changes that alter how every config version is parsed or upgraded:
@@ -154,18 +159,68 @@ def classify(path):
     for prefix, dirs in PREFIX_BUCKETS:
         if path.startswith(prefix):
             return "bucket", dirs
+    for prefix in PREFIX_ALL:
+        if path.startswith(prefix):
+            return "all", None
     return "all", None
+
+
+def check(man, repo):
+    """Report test directories no mapping selects, and unclassified packages."""
+    problems = []
+    selected = set()
+    for dirs in BUCKETS.values():
+        if dirs:
+            selected.update(dirs)
+    for _, dirs in PREFIX_BUCKETS:
+        selected.update(dirs)
+    for d in sorted(man):
+        if d not in selected:
+            problems.append(
+                "test directory %s is not selected by any package mapping" % d)
+
+    explicit = set(BUCKETS) | SHARED | SKIP_PACKAGES
+    for base in ("config", "butane", "internal", "validate"):
+        for dirpath, _, files in os.walk(os.path.join(repo, base)):
+            if not any(f.endswith(".go") for f in files):
+                continue
+            rel = os.path.relpath(dirpath, repo)
+            if rel in explicit:
+                continue
+            if any(rel.startswith(p) for p in PREFIX_ALL):
+                continue
+            if any(rel.startswith(p) for p, _ in PREFIX_BUCKETS):
+                continue
+            problems.append("package %s is not classified" % rel)
+    return problems
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", required=True)
-    ap.add_argument("--base", required=True)
-    ap.add_argument("--out", required=True)
+    ap.add_argument("--base")
+    ap.add_argument("--out")
     ap.add_argument("--repo", default=".")
+    ap.add_argument("--check", action="store_true",
+                    help="verify the mapping covers every test dir and package")
     args = ap.parse_args()
 
     man = load_manifest(args.manifest)
+    if args.check:
+        if not man:
+            print("manifest is empty")
+            return 1
+        problems = check(man, args.repo)
+        for p in problems:
+            print(p)
+        if problems:
+            print("%d problem(s) in the selection map" % len(problems))
+            return 1
+        print("selection map covers %d test directories" % len(man))
+        return 0
+    if not args.base or not args.out:
+        ap.error("--base and --out are required unless --check is given")
+
     if not man:
         # An empty manifest means generation failed; run everything rather
         # than silently selecting nothing.

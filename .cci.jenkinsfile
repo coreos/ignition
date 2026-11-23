@@ -34,6 +34,7 @@ buildPod {
                 mkdir -p tests/kola/blackbox/data/bin
                 mv tests.test bin/amd64/* tests/kola/blackbox/data/bin
                 ./ci/blackbox_manifest.sh tests/kola/blackbox/data/bin/manifest.tsv
+                ./ci/blackbox_select.py --check --manifest tests/kola/blackbox/data/bin/manifest.tsv
             """)
             // Narrow the suite to the tests this PR can affect. Branch builds
             // have no CHANGE_TARGET, so no args file is written and the full
