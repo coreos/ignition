@@ -2,8 +2,13 @@
 
 properties([
     // abort previous runs when a PR is updated to save resources
-    disableConcurrentBuilds(abortPrevious: true)
-])
+    disableConcurrentBuilds(abortPrevious: true),
+] + (env.BRANCH_NAME == 'main' ? [
+    // Nightly full run on the default branch. PR builds select only the tests
+    // their diff can affect, so this is the only thing that exercises the rest
+    // of the suite; ignition has no post-merge kola job.
+    pipelineTriggers([cron('H 3 * * *')]),
+] : []))
 
 buildPod {
     checkout scm
@@ -28,7 +33,20 @@ buildPod {
                 ./build_blackbox_tests
                 mkdir -p tests/kola/blackbox/data/bin
                 mv tests.test bin/amd64/* tests/kola/blackbox/data/bin
+                ./ci/blackbox_manifest.sh tests/kola/blackbox/data/bin/manifest.tsv
+                ./ci/blackbox_select.py --check --manifest tests/kola/blackbox/data/bin/manifest.tsv
             """)
+            // Narrow the suite to the tests this PR can affect. Branch builds
+            // have no CHANGE_TARGET, so no args file is written and the full
+            // suite runs.
+            shwrap('''
+                if [ -n "${CHANGE_TARGET:-}" ]; then
+                    ./ci/blackbox_select.py \
+                        --manifest tests/kola/blackbox/data/bin/manifest.tsv \
+                        --base "${CHANGE_TARGET}" \
+                        --out tests/kola/blackbox/data/bin/selection.args
+                fi
+            ''')
             stash name: 'blackbox', includes: 'tests/kola/blackbox/data/bin/**'
         }
     }

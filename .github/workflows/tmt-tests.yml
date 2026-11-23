@@ -55,7 +55,10 @@ jobs:
         if: github.event.inputs.use_built_from_src == '' || github.event.inputs.use_built_from_src == 'true'
         run: |
           set -x -e -o pipefail
-          make all
+          # The plan only runs `ignition --version`; the cross-compiled
+          # validate/butane variants are release artifacts and are built by
+          # the packaging pipeline, not on every PR.
+          make ignition ignition-validate butane
 
       - name: Run TMT tests
         run: |

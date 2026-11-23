@@ -65,6 +65,11 @@ dracut/                  # Dracut module for initramfs integration
 - **Subset**: `./tests.test -test.run TestIgnitionBlackBox/Preemption.*`
 - **Pattern**: Table-driven tests with `struct{ in, out }` slices
 - **Registration**: New test modules must be imported in `tests/registry/registry.go`
+- **Blackbox selection**: `ci/blackbox_select.py` maps changed Go packages to
+  blackbox test dirs. A new test dir under `tests/{positive,negative}/` or a new
+  package needs an entry there. `./ci/blackbox_manifest.sh <out>` generates the
+  manifest, and `./ci/blackbox_select.py --check --manifest <out>` fails when a
+  test dir or package is missing from the mapping
 
 ## Commit Conventions
 
