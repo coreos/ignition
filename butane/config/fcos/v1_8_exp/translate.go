@@ -221,7 +221,7 @@ func (c Config) processBootDevice(config *types.Config, ts *translate.Translatio
 		raidDevices := func(labelPrefix string) []types.Device {
 			count := len(rendered.Storage.Disks)
 			ret := make([]types.Device, count)
-			for i := 0; i < count; i++ {
+			for i := range count {
 				ret[i] = types.Device(fmt.Sprintf("/dev/disk/by-partlabel/%s-%d", labelPrefix, i+1))
 			}
 			return ret

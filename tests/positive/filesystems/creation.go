@@ -169,7 +169,7 @@ func FilesystemCreationOnMultipleDisks() types.Test {
 
 	mntDevices := []types.MntDevice{}
 
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		label := fmt.Sprintf("data-%d", i)
 		in = append(in, types.Disk{
 			Alignment: types.IgnitionAlignment,
