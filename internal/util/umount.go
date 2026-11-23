@@ -45,7 +45,7 @@ func UmountPath(path string) error {
 	// https://github.com/coreos/bootengine/commit/8bf46fe78ec5 for more
 	// context.
 	var unmountErr error
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		if unmountErr = unix.Unmount(path, 0); unmountErr == nil {
 			return nil
 		}

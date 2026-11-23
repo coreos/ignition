@@ -36,7 +36,7 @@ func DeviceAlias(path string) string {
 
 // evalSymlinks wraps filepath.EvalSymlinks, retrying if it fails
 func evalSymlinks(path string) (res string, err error) {
-	for i := 0; i < retrySymlinkCount; i++ {
+	for range retrySymlinkCount {
 		res, err = filepath.EvalSymlinks(path)
 		if err == nil {
 			return res, nil

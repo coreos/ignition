@@ -407,7 +407,7 @@ func TestWritePartitionLineLabelQuoting(t *testing.T) {
 
 func TestSfdiskNameCodec(t *testing.T) {
 	// encode -> decode is the identity for every single byte value
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		raw := string([]byte{byte(i)}) + "x"
 		enc := encodeSfdiskName(raw)
 		dec, err := decodeSfdiskName(enc)

@@ -62,7 +62,7 @@ func (s stage) createFilesystems(config types.Config) error {
 	work := make(chan types.Filesystem, len(fss))
 	results := make(chan error)
 
-	for i := 0; i < concurrency; i++ {
+	for range concurrency {
 		go func() {
 			for fs := range work {
 				results <- s.createFilesystem(fs)

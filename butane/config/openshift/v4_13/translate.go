@@ -226,7 +226,7 @@ OUTER:
 				continue OUTER
 			}
 		}
-		for j := 0; j < 2; j++ {
+		for j := range 2 {
 			ts.AddTranslation(path.New("yaml", "openshift", "fips"), path.New("json", "spec", "config", "storage", "luks", i, "options", len(luks.Options)+j))
 		}
 		if len(luks.Options) == 0 {
