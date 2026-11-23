@@ -41,8 +41,8 @@ const (
 )
 
 var (
-	translationsType = reflect.TypeOf(TranslationSet{})
-	reportType       = reflect.TypeOf(report.Report{})
+	translationsType = reflect.TypeFor[TranslationSet]()
+	reportType       = reflect.TypeFor[report.Report]()
 )
 
 // Returns if this type can be translated without a custom translator. Children or other

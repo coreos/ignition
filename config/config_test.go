@@ -149,7 +149,7 @@ func checkStructFieldKey(t reflect.Type, keyedStructs typeSet) error {
 	// technical reason we can't have pointer keys.
 	if !haveNonPointerKey &&
 		t.Name() != "Resource" &&
-		t != reflect.TypeOf(v3_0.ConfigReference{}) {
+		t != reflect.TypeFor[v3_0.ConfigReference]() {
 		return fmt.Errorf("No non-pointer key for %s", t.Name())
 	}
 	return nil
@@ -170,7 +170,7 @@ func testConfigType(t reflect.Type, keyedStructs typeSet) error {
 			return nil
 		}
 		switch t.Elem() {
-		case reflect.TypeOf(v3_2.Clevis{}), reflect.TypeOf(v3_2.Custom{}):
+		case reflect.TypeFor[v3_2.Clevis](), reflect.TypeFor[v3_2.Custom]():
 			// these structs ended up with pointers; can't be helped now
 			if err := testConfigType(t.Elem(), keyedStructs); err != nil {
 				return fmt.Errorf("Type %s has invalid children: %v", t.Elem().Name(), err)
@@ -270,14 +270,14 @@ func checkNonKeyedStructFields(t reflect.Type, ignoreTypes typeSet) error {
 // anything the merge, translation, or validation logic doesn't know how to handle
 func TestConfigStructure(t *testing.T) {
 	configs := []reflect.Type{
-		reflect.TypeOf(v3_0.Config{}),
-		reflect.TypeOf(v3_1.Config{}),
-		reflect.TypeOf(v3_2.Config{}),
-		reflect.TypeOf(v3_3.Config{}),
-		reflect.TypeOf(v3_4.Config{}),
-		reflect.TypeOf(v3_5.Config{}),
-		reflect.TypeOf(v3_6.Config{}),
-		reflect.TypeOf(v3_7.Config{}),
+		reflect.TypeFor[v3_0.Config](),
+		reflect.TypeFor[v3_1.Config](),
+		reflect.TypeFor[v3_2.Config](),
+		reflect.TypeFor[v3_3.Config](),
+		reflect.TypeFor[v3_4.Config](),
+		reflect.TypeFor[v3_5.Config](),
+		reflect.TypeFor[v3_6.Config](),
+		reflect.TypeFor[v3_7.Config](),
 	}
 
 	for _, configType := range configs {
