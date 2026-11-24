@@ -54,9 +54,10 @@ if [ "$go_major" -lt 1 ] || { [ "$go_major" -eq 1 ] && [ "$go_minor" -lt 26 ]; }
     cgo_include_dirs=$(find "$PWD/internal" -name '*.h' -printf '%h\n' | sort -u | paste -sd :)
     CPATH="${cgo_include_dirs}${CPATH:+:${CPATH}}" go tool fix -go="$go_version" -diff $SRC
 else
+    # Butane's JSON encoder intentionally honors omitempty on structs.
     # Go 1.26+ uses unitchecker and exits non-zero when it finds fixable issues
     # Make this non-fatal since finding fixable code shouldn't fail the build
-    go fix -diff ./... || true
+    go fix -diff -omitzero=false ./... || true
 fi
 
 echo "Checking gofmt..."
