@@ -168,7 +168,7 @@ func (s *stage) createResultFile() error {
 	s.PushPrefix("createResultFile")
 	defer s.PopPrefix()
 
-	var prevReport interface{}
+	var prevReport any
 	prevPath, err := s.JoinPath(distro.ResultFilePath())
 	if err != nil {
 		return fmt.Errorf("building previous result file path: %w", err)
@@ -197,10 +197,10 @@ func (s *stage) createResultFile() error {
 	}
 
 	result := struct {
-		ProvisioningBootID string      `json:"provisioningBootID"`
-		ProvisioningDate   string      `json:"provisioningDate"`
-		UserConfigProvided bool        `json:"userConfigProvided"`
-		PreviousReport     interface{} `json:"previousReport,omitempty"`
+		ProvisioningBootID string `json:"provisioningBootID"`
+		ProvisioningDate   string `json:"provisioningDate"`
+		UserConfigProvided bool   `json:"userConfigProvided"`
+		PreviousReport     any    `json:"previousReport,omitempty"`
 	}{
 		ProvisioningBootID: strings.TrimSpace(string(bootIDBytes)),
 		ProvisioningDate:   time.Now().Format(time.RFC3339),

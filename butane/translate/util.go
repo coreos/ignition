@@ -33,11 +33,11 @@ func fieldName(t reflect.Value, index int, tag string) string {
 	return strings.Split(f.Tag.Get(tag), ",")[0]
 }
 
-func prefixPath(p path.ContextPath, prefix ...interface{}) path.ContextPath {
+func prefixPath(p path.ContextPath, prefix ...any) path.ContextPath {
 	return path.New(p.Tag, prefix...).Append(p.Path...)
 }
 
-func prefixPaths(ps []path.ContextPath, prefix ...interface{}) []path.ContextPath {
+func prefixPaths(ps []path.ContextPath, prefix ...any) []path.ContextPath {
 	ret := []path.ContextPath{}
 	for _, p := range ps {
 		ret = append(ret, prefixPath(p, prefix...))
@@ -100,7 +100,7 @@ func getAllPaths(v reflect.Value, tag string, includeZeroFields bool) []path.Con
 }
 
 // Return a copy of the report, with the context paths prefixed by prefix.
-func PrefixReport(r report.Report, prefix interface{}) report.Report {
+func PrefixReport(r report.Report, prefix any) report.Report {
 	var ret report.Report
 	ret.Merge(r)
 	for i := range ret.Entries {
@@ -112,20 +112,20 @@ func PrefixReport(r report.Report, prefix interface{}) report.Report {
 
 // Utility function to run a translation and prefix the resulting
 // TranslationSet and Report.
-func Prefixed(tr Translator, prefix interface{}, from interface{}, to interface{}) (TranslationSet, report.Report) {
+func Prefixed(tr Translator, prefix any, from any, to any) (TranslationSet, report.Report) {
 	tm, r := tr.Translate(from, to)
 	return tm.Prefix(prefix), PrefixReport(r, prefix)
 }
 
 // Utility function to run a translation and merge the result, with the
 // specified prefix, into the specified TranslationSet and Report.
-func MergeP(tr Translator, tm TranslationSet, r *report.Report, prefix interface{}, from interface{}, to interface{}) {
+func MergeP(tr Translator, tm TranslationSet, r *report.Report, prefix any, from any, to any) {
 	MergeP2(tr, tm, r, prefix, from, prefix, to)
 }
 
 // Utility function to run a translation and merge the result, with the
 // specified prefixes, into the specified TranslationSet and Report.
-func MergeP2(tr Translator, tm TranslationSet, r *report.Report, fromPrefix interface{}, from interface{}, toPrefix interface{}, to interface{}) {
+func MergeP2(tr Translator, tm TranslationSet, r *report.Report, fromPrefix any, from any, toPrefix any, to any) {
 	translations, translationReport := tr.Translate(from, to)
 	tm.MergeP2(fromPrefix, toPrefix, translations)
 	// translation report paths are on the from side

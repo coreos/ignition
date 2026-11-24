@@ -34,7 +34,7 @@ type typeSet map[reflect.Type]struct{}
 
 // helper to check whether a type and field matches a denylist of known problems
 // examples are either structs or names of structs
-func ignore(t reflect.Type, field reflect.StructField, fieldName string, examples ...interface{}) bool {
+func ignore(t reflect.Type, field reflect.StructField, fieldName string, examples ...any) bool {
 	if field.Name != fieldName {
 		return false
 	}

@@ -63,7 +63,7 @@ func VerifyTranslations(t *testing.T, set translate.TranslationSet, exceptions [
 
 // VerifyReport verifies that every path in a report corresponds to a valid
 // field in the object.
-func VerifyReport(t *testing.T, obj interface{}, r report.Report) {
+func VerifyReport(t *testing.T, obj any, r report.Report) {
 	v := reflect.ValueOf(obj)
 	for _, entry := range r.Entries {
 		verifyPath(t, v, entry.Context)

@@ -36,7 +36,7 @@ func mkTrans(paths ...path.ContextPath) TranslationSet {
 }
 
 // fp means "fastpath"; super shorthand, we'll use it a lot
-func fp(parts ...interface{}) path.ContextPath {
+func fp(parts ...any) path.ContextPath {
 	return path.New("", parts...)
 }
 

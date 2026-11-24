@@ -143,8 +143,8 @@ func (t translator) translate(vFrom, vTo reflect.Value) {
 }
 
 type Translator interface {
-	AddCustomTranslator(t interface{})
-	Translate(from, to interface{})
+	AddCustomTranslator(t any)
+	Translate(from, to any)
 }
 
 func NewTranslator() Translator {
@@ -158,7 +158,7 @@ type translator struct {
 	translators []reflect.Value
 }
 
-func (t *translator) AddCustomTranslator(fn interface{}) {
+func (t *translator) AddCustomTranslator(fn any) {
 	fnv := reflect.ValueOf(fn)
 	if !couldBeValidTranslator(fnv.Type()) {
 		panic("Tried to register invalid translator function")
@@ -175,7 +175,7 @@ func (t translator) getTranslator(from, to reflect.Type) reflect.Value {
 	return reflect.Value{}
 }
 
-func (t translator) Translate(from, to interface{}) {
+func (t translator) Translate(from, to any) {
 	fv := reflect.ValueOf(from)
 	tv := reflect.ValueOf(to)
 	if fv.Kind() != reflect.Pointer || tv.Kind() != reflect.Pointer {

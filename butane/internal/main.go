@@ -27,7 +27,7 @@ import (
 	"github.com/coreos/ignition/v2/butane/internal/version"
 )
 
-func fail(format string, args ...interface{}) {
+func fail(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, format, args...)
 	os.Exit(1)
 }

@@ -394,7 +394,7 @@ storage:
 			} else {
 				assert.Empty(t, r.Entries)
 				// MachineConfig uses JSON tags, so decode YAML through a map.
-				var document map[string]interface{}
+				var document map[string]any
 				if !assert.NoError(t, yaml.Unmarshal(out, &document)) {
 					return
 				}

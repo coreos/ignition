@@ -62,7 +62,7 @@ storage:
 						APIVersion string `yaml:"apiVersion"`
 						Kind       string `yaml:"kind"`
 						Spec       struct {
-							Config map[string]interface{} `yaml:"config"`
+							Config map[string]any `yaml:"config"`
 						} `yaml:"spec"`
 					}
 					if !assert.NoError(t, yaml.Unmarshal(out, &mc)) {

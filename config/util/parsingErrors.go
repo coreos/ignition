@@ -26,7 +26,7 @@ import (
 
 // HandleParseErrors will attempt to unmarshal an invalid rawConfig into "to".
 // If it fails to unmarsh it will generate a report.Report from the errors.
-func HandleParseErrors(rawConfig []byte, to interface{}) (report.Report, error) {
+func HandleParseErrors(rawConfig []byte, to any) (report.Report, error) {
 	r := report.Report{}
 	err := json.Unmarshal(rawConfig, to)
 	if err == nil {

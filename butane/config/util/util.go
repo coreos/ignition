@@ -51,7 +51,7 @@ type Config interface {
 // Ignition config.  It returns a report of any errors or warnings in the
 // source and resultant config.  If the report has fatal errors or it
 // encounters other problems translating, an error is returned.
-func Translate(cfg Config, translateMethod string, options common.TranslateOptions) (interface{}, report.Report, error) {
+func Translate(cfg Config, translateMethod string, options common.TranslateOptions) (any, report.Report, error) {
 	// Get method, and zero return value for error returns.
 	method := reflect.ValueOf(cfg).MethodByName(translateMethod)
 	zeroValue := reflect.Zero(method.Type().Out(0)).Interface()
@@ -108,7 +108,7 @@ func Translate(cfg Config, translateMethod string, options common.TranslateOptio
 // marshaled Ignition config.  It returns a report of any errors or warnings
 // in the source and resultant config.  If the report has fatal errors or it
 // encounters other problems translating, an error is returned.
-func TranslateBytes(input []byte, container interface{}, translateMethod string, options common.TranslateBytesOptions) ([]byte, report.Report, error) {
+func TranslateBytes(input []byte, container any, translateMethod string, options common.TranslateBytesOptions) ([]byte, report.Report, error) {
 	cfg := container
 
 	// Unmarshal the YAML.
@@ -146,7 +146,7 @@ func TranslateBytes(input []byte, container interface{}, translateMethod string,
 	return outbytes, r, err
 }
 
-func TranslateBytesYAML(input []byte, container interface{}, translateMethod string, options common.TranslateBytesOptions) ([]byte, report.Report, error) {
+func TranslateBytesYAML(input []byte, container any, translateMethod string, options common.TranslateBytesOptions) ([]byte, report.Report, error) {
 	// marshal to JSON, unmarshal, remarshal to YAML.  there's no other
 	// good way to respect the `json` struct tags.
 	// https://github.com/go-yaml/yaml/issues/424
@@ -155,7 +155,7 @@ func TranslateBytesYAML(input []byte, container interface{}, translateMethod str
 		return jsonCfg, r, err
 	}
 
-	var ifaceCfg interface{}
+	var ifaceCfg any
 	if err := yaml.Unmarshal(jsonCfg, &ifaceCfg); err != nil {
 		return []byte{}, r, err
 	}
@@ -182,7 +182,7 @@ func TranslateBytesYAML(input []byte, container interface{}, translateMethod str
 // translate.PrefixReport() to reparent the report into the right place in
 // the `json` hierarchy, and then TranslateReportPaths() to map back into
 // `yaml` space.
-func CheckForElidedFields(struct_ interface{}) report.Report {
+func CheckForElidedFields(struct_ any) report.Report {
 	v := reflect.ValueOf(struct_)
 	t := v.Type()
 	if t.Kind() != reflect.Struct {
@@ -200,7 +200,7 @@ func CheckForElidedFields(struct_ interface{}) report.Report {
 }
 
 // unmarshal unmarshals the data to "to" and also returns a context tree for the source.
-func unmarshal(data []byte, to interface{}) (tree.Node, error) {
+func unmarshal(data []byte, to any) (tree.Node, error) {
 	dec := yaml.NewDecoder(bytes.NewReader(data))
 	if err := dec.Decode(to); err != nil {
 		return nil, err
@@ -209,7 +209,7 @@ func unmarshal(data []byte, to interface{}) (tree.Node, error) {
 }
 
 // marshal is a wrapper for marshaling to json with or without pretty-printing the output
-func marshal(from interface{}, pretty bool) ([]byte, error) {
+func marshal(from any, pretty bool) ([]byte, error) {
 	if pretty {
 		return json.MarshalIndent(from, "", "  ")
 	}
