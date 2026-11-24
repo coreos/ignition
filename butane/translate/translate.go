@@ -207,15 +207,15 @@ type Translator interface {
 	// Adds a custom translator for cases where the structs are not identical. Must be of type
 	// func(fromType, optionsType) -> (toType, TranslationSet, report.Report).
 	// The translator should return the set of all translations it did.
-	AddCustomTranslator(t interface{})
+	AddCustomTranslator(t any)
 	// Also returns a list of source and dest paths, autocompleted by fromTag and toTag
-	Translate(from, to interface{}) (TranslationSet, report.Report)
+	Translate(from, to any) (TranslationSet, report.Report)
 }
 
 // NewTranslator creates a new Translator for translating from types with fromTag struct tags (e.g. "yaml")
 // to types with toTag struct tages (e.g. "json"). These tags are used when determining paths when generating
 // the TranslationSet returned by Translator.Translate()
-func NewTranslator(fromTag, toTag string, options interface{}) Translator {
+func NewTranslator(fromTag, toTag string, options any) Translator {
 	return &translator{
 		options: options,
 		translations: TranslationSet{
@@ -227,7 +227,7 @@ func NewTranslator(fromTag, toTag string, options interface{}) Translator {
 }
 
 type translator struct {
-	options interface{}
+	options any
 	// List of custom translation funcs, must pass couldBeValidTranslator
 	// This is only for fields that cannot or should not be trivially translated,
 	// All trivially translated fields use the default behavior.
@@ -238,7 +238,7 @@ type translator struct {
 
 // fn should be of the form
 // func(fromType, optionsType) -> (toType, TranslationSet, report.Report)
-func (t *translator) AddCustomTranslator(fn interface{}) {
+func (t *translator) AddCustomTranslator(fn any) {
 	fnv := reflect.ValueOf(fn)
 	if !t.couldBeValidTranslator(fnv.Type()) {
 		panic("Tried to register invalid translator function")
@@ -256,7 +256,7 @@ func (t translator) getTranslator(from, to reflect.Type) reflect.Value {
 }
 
 // Translate translates from into to and returns a set of all the path changes it performed.
-func (t translator) Translate(from, to interface{}) (TranslationSet, report.Report) {
+func (t translator) Translate(from, to any) (TranslationSet, report.Report) {
 	fv := reflect.ValueOf(from)
 	tv := reflect.ValueOf(to)
 	if fv.Kind() != reflect.Pointer || tv.Kind() != reflect.Pointer {

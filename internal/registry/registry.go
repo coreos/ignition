@@ -43,7 +43,7 @@ func (r *Registry) Register(registrant Registrant) {
 }
 
 // Get gets a named registrant from a registry
-func (r *Registry) Get(name string) interface{} {
+func (r *Registry) Get(name string) any {
 	return r.registrants[name]
 }
 

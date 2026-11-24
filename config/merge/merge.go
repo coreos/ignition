@@ -204,7 +204,7 @@ func MergeStruct(parent, child reflect.Value) reflect.Value {
 //
 // MergeStructTranscribe merges the specified configs and returns a
 // transcript of the actions taken.  parent and child MUST be the same type.
-func MergeStructTranscribe(parent, child interface{}) (interface{}, Transcript) {
+func MergeStructTranscribe(parent, child any) (any, Transcript) {
 	var transcript Transcript
 	result := mergeStruct(reflect.ValueOf(parent), path.New(TAG_PARENT), reflect.ValueOf(child), path.New(TAG_CHILD), path.New(TAG_RESULT), &transcript)
 	return result.Interface(), transcript

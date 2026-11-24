@@ -43,15 +43,15 @@ func main() {
 	runIgnValidate(flag.Args())
 }
 
-func stdout(format string, a ...interface{}) {
+func stdout(format string, a ...any) {
 	_, _ = fmt.Fprintf(os.Stdout, strings.TrimSpace(format)+"\n", a...)
 }
 
-func stderr(format string, a ...interface{}) {
+func stderr(format string, a ...any) {
 	fmt.Fprintf(os.Stderr, strings.TrimSpace(format)+"\n", a...)
 }
 
-func die(format string, a ...interface{}) {
+func die(format string, a ...any) {
 	stderr(format, a...)
 	os.Exit(1)
 }

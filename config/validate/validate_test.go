@@ -97,7 +97,7 @@ func (t test5) MergedKeys() map[string]string {
 
 func TestValidateWithContext(t *testing.T) {
 	tests := []struct {
-		in    interface{}
+		in    any
 		inRaw string
 		out   report.Report
 	}{

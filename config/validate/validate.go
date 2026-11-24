@@ -100,7 +100,7 @@ func ValidateUnusedKeys(v reflect.Value, c path.ContextPath, root tree.Node) (r 
 	return
 }
 
-func ValidateWithContext(cfg interface{}, raw []byte) report.Report {
+func ValidateWithContext(cfg any, raw []byte) report.Report {
 	r := validate.Validate(cfg, "json")
 	r.Merge(validate.ValidateCustom(cfg, "json", ValidateDups))
 	if raw == nil {

@@ -25,7 +25,7 @@ import (
 // MergeTranslatedConfigs merges a parent and child config and returns the
 // result.  It also generates and returns the merged TranslationSet by
 // mapping the parent/child TranslationSets through the merge transcript.
-func MergeTranslatedConfigs(parent interface{}, parentTranslations translate.TranslationSet, child interface{}, childTranslations translate.TranslationSet) (interface{}, translate.TranslationSet) {
+func MergeTranslatedConfigs(parent any, parentTranslations translate.TranslationSet, child any, childTranslations translate.TranslationSet) (any, translate.TranslationSet) {
 	// mappings:
 	//   left:  parent or child translate.TranslationSet
 	//   right: merge.Transcript

@@ -96,7 +96,7 @@ func (ts TranslationSet) AddTranslation(from, to path.ContextPath) {
 // AddFromCommonSource adds translations for all of the paths in to from a single common path. This is useful
 // if one part of a config generates a large struct and all of the large struct should map to one path in the
 // config being translated.
-func (ts TranslationSet) AddFromCommonSource(common path.ContextPath, toPrefix path.ContextPath, to interface{}) {
+func (ts TranslationSet) AddFromCommonSource(common path.ContextPath, toPrefix path.ContextPath, to any) {
 	v := reflect.ValueOf(to)
 	vPaths := prefixPaths(getAllPaths(v, ts.ToTag, true), toPrefix.Path...)
 	for _, toPath := range vPaths {
@@ -108,7 +108,7 @@ func (ts TranslationSet) AddFromCommonSource(common path.ContextPath, toPrefix p
 // AddFromCommonObject adds translations for all of the paths in to. The paths being translated
 // are prefixed by fromPrefix and the translated paths are prefixed by toPrefix.
 // This is useful when we want to copy all the fields of an object to another with the same field names.
-func (ts TranslationSet) AddFromCommonObject(fromPrefix path.ContextPath, toPrefix path.ContextPath, to interface{}) {
+func (ts TranslationSet) AddFromCommonObject(fromPrefix path.ContextPath, toPrefix path.ContextPath, to any) {
 	vTo := reflect.ValueOf(to)
 	vPaths := getAllPaths(vTo, ts.ToTag, true)
 
@@ -126,19 +126,19 @@ func (ts TranslationSet) Merge(from TranslationSet) {
 }
 
 // MergeP is like Merge, but it adds a prefix to the set being merged in.
-func (ts TranslationSet) MergeP(prefix interface{}, from TranslationSet) {
+func (ts TranslationSet) MergeP(prefix any, from TranslationSet) {
 	ts.MergeP2(prefix, prefix, from)
 }
 
 // MergeP2 is like Merge, but it adds distinct prefixes to each side of the
 // set being merged in.
-func (ts TranslationSet) MergeP2(fromPrefix interface{}, toPrefix interface{}, from TranslationSet) {
+func (ts TranslationSet) MergeP2(fromPrefix any, toPrefix any, from TranslationSet) {
 	from = from.PrefixPaths(path.New(from.FromTag, fromPrefix), path.New(from.ToTag, toPrefix))
 	ts.Merge(from)
 }
 
 // Prefix returns a TranslationSet with all translation paths prefixed by prefix.
-func (ts TranslationSet) Prefix(prefix interface{}) TranslationSet {
+func (ts TranslationSet) Prefix(prefix any) TranslationSet {
 	return ts.PrefixPaths(path.New(ts.FromTag, prefix), path.New(ts.ToTag, prefix))
 }
 
@@ -194,7 +194,7 @@ func (ts TranslationSet) Map(mappings TranslationSet) TranslationSet {
 // DebugVerifyCoverage recursively checks whether every non-zero field in v
 // has a translation.  If translations are missing, it returns a multi-line
 // error listing them.
-func (ts TranslationSet) DebugVerifyCoverage(v interface{}) error {
+func (ts TranslationSet) DebugVerifyCoverage(v any) error {
 	var missingPaths []string
 	for _, pathToCheck := range getAllPaths(reflect.ValueOf(v), ts.ToTag, false) {
 		if _, ok := ts.Set[pathToCheck.String()]; !ok {
