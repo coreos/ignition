@@ -219,10 +219,10 @@ root:
                       min: 4.14.0
             - name: with_mount_unit
               after: $
-              desc: whether to additionally generate a generic mount unit for this filesystem or a swap unit for this swap area. If a more specific unit is needed, a custom one can be specified in the `systemd.units` section. The unit will be named with the [escaped](https://www.freedesktop.org/software/systemd/man/systemd-escape.html) version of the `path` or `device`, depending on the unit type. If your filesystem is located on a Tang-backed LUKS device, the unit will automatically require network access if you specify the device as `/dev/mapper/<device-name>` or `/dev/disk/by-id/dm-name-<device-name>`.
+              desc: whether to additionally generate a generic mount unit for this filesystem or a swap unit for this swap area. If a more specific unit is needed, a custom one can be specified in the `systemd.units` section. The unit will be named with the [escaped](https://www.freedesktop.org/software/systemd/man/systemd-escape.html) version of the `path` or `device`, depending on the unit type. If your filesystem is located on a LUKS device unlocked with Tang or with a custom Clevis pin that sets `needs_network`, the unit will automatically require network access if you specify the device as `/dev/mapper/<device-name>` or `/dev/disk/by-id/dm-name-<device-name>`.
               transforms:
                 # no LUKS support
-                - regex: ' If your filesystem is located on a Tang-backed [^.]+\.'
+                - regex: ' If your filesystem is located on a LUKS device [^.]+\.'
                   replacement: ""
                   if:
                     - variant: fcos
