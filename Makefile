@@ -1,5 +1,12 @@
 export GO111MODULE=on
 
+WITH_INTEGRATION ?= 0
+ifeq ($(WITH_INTEGRATION),0)
+else ifeq ($(WITH_INTEGRATION),1)
+else
+$(error WITH_INTEGRATION must be 0 or 1 (got '$(WITH_INTEGRATION)'))
+endif
+
 # Canonical version of this in https://github.com/coreos/coreos-assembler/blob/6eb97016f4dab7d13aa00ae10846f26c1cd1cb02/Makefile#L19
 GOARCH:=$(shell uname -m)
 ifeq ($(GOARCH),x86_64)
@@ -43,11 +50,20 @@ butane-cross:
 
 .PHONY: install
 install:
-	for x in dracut/*; do \
-	  bn=$$(basename $$x); \
-	  install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/$${bn} $$x/*; \
+ifeq ($(WITH_INTEGRATION),1)
+	for x in dracut/modules.d/*; do \
+		bn=$$(basename $$x); \
+		install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/$${bn} $$x/*; \
 	done
-
+	install -m 755  -D -t $(DESTDIR)/usr/libexec scripts/libexec/ignition-write-issues
+	install -m 0644 -D -t $(DESTDIR)/usr/lib/systemd/system systemd/ignition-write-issues.service
+	install -m 0644 -D -t $(DESTDIR)/usr/lib/tmpfiles.d systemd/tmpfiles.d/run-issued.conf
+	install -m 0644 -D -t $(DESTDIR)/usr/lib/systemd/system-preset systemd/system-preset/40-ignition.preset
+	install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/dracut.conf.d dracut/dracut.conf.d/*
+	chmod a+x $(DESTDIR)/usr/lib/dracut/modules.d/40ignition-ostree/ignition-relabel
+else
+	install -m 0644 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/30ignition dracut/modules.d/30ignition/*
+endif
 	chmod a+x $(DESTDIR)/usr/lib/dracut/modules.d/*/*.sh $(DESTDIR)/usr/lib/dracut/modules.d/*/*-generator
 	install -m 0644 -D -t $(DESTDIR)/usr/lib/systemd/system systemd/ignition-delete-config.service
 	install -m 0755 -D -t $(DESTDIR)/usr/lib/dracut/modules.d/30ignition $(BIN_PATH)/ignition
