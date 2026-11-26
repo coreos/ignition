@@ -106,6 +106,40 @@ The method by which this file is provided to a Fedora CoreOS machine depends on 
 
 To see some examples for what else Butane can do, head over to the [examples][examples].
 
+### Processing files with an external tool
+
+Butane can send selected input and local files through an external program before it translates them. This is useful for tools such as [gomplate](https://gomplate.ca/) that render templates. Install the processor separately and make its executable available in the same environment as Butane.
+
+Both `--file-processor` and `--file-processor-allowed-ext` are required when using this feature, and both values must be non-empty. The processor is run directly, without a shell or extra command-line arguments. Butane writes the selected file to the processor's standard input and uses its standard output as the file contents. The processor inherits Butane's working directory, environment, and standard error. Each file is processed in a separate invocation. Generate values that must be shared across files beforehand and supply them through the environment or shared processor configuration.
+
+For example, to render the root Butane config and local `.tmpl` files with gomplate:
+
+```sh
+butane --files-dir . \
+  --file-processor gomplate \
+  --file-processor-allowed-ext bu,tmpl \
+  config.bu > config.ign
+```
+
+The allowed values are comma-separated filename suffixes. Matching is case-sensitive, and a leading dot is optional; multi-part suffixes such as `tar.gz` are supported. The special value `*` matches all named files. The special value `stdin` enables processing the root config when it is read from standard input. The `*` value alone does not enable stdin processing; use `--file-processor-allowed-ext='*,stdin'` to select both. For example:
+
+```sh
+cat config.bu | butane --files-dir . \
+  --file-processor gomplate \
+  --file-processor-allowed-ext bu,stdin > config.ign
+```
+
+With stdin input, Butane passes the complete input document through the processor before parsing it. Named root input files are processed when their suffix matches. This includes inline text in the root config, since the complete document is processed as a whole. Selected local files are processed when Butane reads them, including local file contents, SSH keys, systemd units, drop-ins, Quadlet files, and regular file payloads found under tree sources. Files whose suffix does not match are read unchanged. The existing `--files-dir` rules for local resources remain in effect.
+
+Butane does not split processor settings into an executable and arguments. If a processor needs fixed flags or a config path, create a small executable wrapper and name that wrapper with `--file-processor`, for example:
+
+```sh
+#!/bin/sh
+exec gomplate --config /etc/my-gomplate.yaml
+```
+
+The processor must produce valid Butane YAML when invoked for a root `.bu` file. A processor failure stops translation and is reported as an error; its standard error is passed through. Processing applies when Butane reads files on the host. It is not enabled automatically when Ignition reads a Butane config natively at boot.
+
 [spec]: specs.md
 [ignition]: https://coreos.github.io/ignition/
 [supported-platforms]: https://coreos.github.io/ignition/supported-platforms/
