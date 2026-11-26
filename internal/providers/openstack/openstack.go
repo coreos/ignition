@@ -21,14 +21,15 @@ package openstack
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/coreos/ignition/v2/config/v3_7_experimental/types"
@@ -43,7 +44,8 @@ import (
 )
 
 const (
-	configDriveUserdataPath = "/openstack/latest/user_data"
+	configDriveUserdataPath     = "/openstack/latest/user_data"
+	metadataServiceMetadataPath = "openstack/latest/meta_data.json"
 )
 
 var (
@@ -182,14 +184,13 @@ func fetchConfigFromDevice(logger *log.Logger, ctx context.Context, path string)
 }
 
 func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
+	urls := []url.URL{userdataURLs[resource.IPv4]}
+
 	ipv6Interfaces, err := findInterfacesWithIPv6()
 	if err != nil {
-		f.Logger.Info("No active IPv6 network interface found: %v", err)
 		// Fall back to IPv4 only
-		return fetchConfigFromMetadataServiceIPv4Only(f)
+		f.Logger.Info("No active IPv6 network interface found: %v", err)
 	}
-
-	urls := []url.URL{userdataURLs[resource.IPv4]}
 
 	for _, ifaceName := range ipv6Interfaces {
 		ipv6Url := userdataURLs[resource.IPv6]
@@ -197,12 +198,34 @@ func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 		urls = append(urls, ipv6Url)
 	}
 
-	// Use parallel fetching for all interfaces
-	data, err := fetchConfigParallel(f, urls)
+	return fetchConfigParallel(f, urls)
+}
+
+// fetchUserdata fetches the userdata at the given URL. It returns no data
+// if the metadata service doesn't have any userdata for the instance.
+func fetchUserdata(f *resource.Fetcher, userdataURL url.URL) ([]byte, error) {
+	data, err := f.FetchToBuffer(userdataURL, resource.FetchOptions{})
+	if !errors.Is(err, resource.ErrNotFound) {
+		return data, err
+	}
+
+	// The metadata service returns 404 for every path until it knows about
+	// the instance, and 404 for the userdata if none was provided. Wait for
+	// the instance metadata, which always exists, to tell the two apart.
+	metadataURL := userdataURL
+	metadataURL.Path = metadataServiceMetadataPath
+	_, err = f.FetchToBuffer(metadataURL, resource.FetchOptions{
+		RetryCodes: []int{http.StatusNotFound},
+	})
 	if err != nil {
-		// the metadata server exists but doesn't contain any actual metadata,
-		// assume that there is no config specified
-		if err == resource.ErrNotFound {
+		return nil, err
+	}
+
+	data, err = f.FetchToBuffer(userdataURL, resource.FetchOptions{})
+	if err != nil {
+		// the metadata service knows about the instance but doesn't have
+		// any userdata, assume that there is no config specified
+		if errors.Is(err, resource.ErrNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -211,87 +234,36 @@ func fetchConfigFromMetadataService(f *resource.Fetcher) ([]byte, error) {
 	return data, nil
 }
 
-func fetchConfigFromMetadataServiceIPv4Only(f *resource.Fetcher) ([]byte, error) {
-	ipv4Url := userdataURLs[resource.IPv4]
-
-	data, err := f.FetchToBuffer(ipv4Url, resource.FetchOptions{})
-	if err != nil {
-		if err == resource.ErrNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return data, nil
-}
-
+// fetchConfigParallel fetches the userdata from all the URLs in parallel and
+// returns the first successful result. It only fails once every URL has
+// failed.
 func fetchConfigParallel(f *resource.Fetcher, urls []url.URL) ([]byte, error) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	var (
-		err      error
-		nbErrors int
-	)
-
-	cfg := make(map[url.URL][]byte)
-
-	success := make(chan url.URL, 1)
-	errors := make(chan error, len(urls))
-
-	// Use waitgroup to wait for all goroutines to complete
-	var wg sync.WaitGroup
-
-	fetch := func(_ context.Context, u url.URL) {
-		defer wg.Done()
-		d, e := f.FetchToBuffer(u, resource.FetchOptions{})
-		if e != nil {
-			f.Logger.Err("fetching configuration for %s: %v", u.String(), e)
-			err = e
-			errors <- e
-		} else {
-			cfg[u] = d
-			select {
-			case success <- u:
-			default:
-			}
-		}
+	type result struct {
+		url  url.URL
+		data []byte
+		err  error
 	}
 
-	// Start goroutines for all URLs
+	results := make(chan result, len(urls))
 	for _, u := range urls {
-		wg.Add(1)
-		go fetch(ctx, u)
+		go func() {
+			data, err := fetchUserdata(f, u)
+			results <- result{url: u, data: data, err: err}
+		}()
 	}
 
-	// Wait for the first success or all failures
-	done := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(done)
-	}()
-
-	select {
-	case u := <-success:
-		f.Logger.Debug("got configuration from: %s", u.String())
-		return cfg[u], nil
-	case <-errors:
-		nbErrors++
-		if nbErrors == len(urls) {
-			f.Logger.Debug("all routines have failed to fetch configuration, returning last known error: %v", err)
-			return nil, err
+	var err error
+	for range urls {
+		res := <-results
+		if res.err == nil {
+			f.Logger.Debug("got configuration from: %s", res.url.String())
+			return res.data, nil
 		}
-	case <-done:
-		// All goroutines completed, check if we have any success
-		if len(cfg) > 0 {
-			// Return the first successful configuration
-			for u, data := range cfg {
-				f.Logger.Debug("got configuration from: %s", u.String())
-				return data, nil
-			}
-		}
+		f.Logger.Err("fetching configuration for %s: %v", res.url.String(), res.err)
+		err = res.err
 	}
 
+	f.Logger.Debug("all routines have failed to fetch configuration, returning last known error: %v", err)
 	return nil, err
 }
 
