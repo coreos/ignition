@@ -78,15 +78,15 @@ The Fedora CoreOS configuration is a YAML document conforming to the following s
     * **_spares_** (integer): the number of spares (if applicable) in the array.
     * **_options_** (list of strings): any additional options to be passed to mdadm.
   * **_filesystems_** (list of objects): the list of filesystems to be configured. `device` and `format` need to be specified. Every filesystem must have a unique `device`.
-    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks.
-    * **format** (string): the filesystem format (ext4, btrfs, xfs, vfat, swap, or none).
+    * **device** (string): the absolute path to the device. Devices are typically referenced by the `/dev/disk/by-*` symlinks. For virtiofs, this is the tag name.
+    * **format** (string): the filesystem format (ext4, btrfs, xfs, vfat, virtiofs, swap, or none).
     * **_path_** (string): the mount-point of the filesystem while Ignition is running relative to where the root filesystem will be mounted. This is not necessarily the same as where it should be mounted in the real root, but it is encouraged to make it the same.
     * **_wipe_filesystem_** (boolean): whether or not to wipe the device before filesystem creation, see [Ignition's documentation on filesystems](https://coreos.github.io/ignition/operator-notes/#filesystem-reuse-semantics) for more information. Defaults to false.
     * **_label_** (string): the label of the filesystem.
     * **_uuid_** (string): the uuid of the filesystem.
     * **_options_** (list of strings): any additional options to be passed to the format-specific mkfs utility.
     * **_mount_options_** (list of strings): any special options to be passed to the mount command.
-    * **_with_mount_unit_** (boolean): whether to additionally generate a generic mount unit for this filesystem or a swap unit for this swap area. If a more specific unit is needed, a custom one can be specified in the `systemd.units` section. The unit will be named with the [escaped](https://www.freedesktop.org/software/systemd/man/systemd-escape.html) version of the `path` or `device`, depending on the unit type. If your filesystem is located on a Tang-backed LUKS device, the unit will automatically require network access if you specify the device as `/dev/mapper/<device-name>` or `/dev/disk/by-id/dm-name-<device-name>`.
+    * **_with_mount_unit_** (boolean): whether to additionally generate a generic mount unit for this filesystem or a swap unit for this swap area. If a more specific unit is needed, a custom one can be specified in the `systemd.units` section. The unit will be named with the [escaped](https://www.freedesktop.org/software/systemd/man/systemd-escape.html) version of the `path` or `device`, depending on the unit type. If your filesystem is located on a LUKS device unlocked with Tang or with a custom Clevis pin that sets `needs_network`, the unit will automatically require network access if you specify the device as `/dev/mapper/<device-name>` or `/dev/disk/by-id/dm-name-<device-name>`.
   * **_files_** (list of objects): the list of files to be written. Every file, directory and link must have a unique `path`.
     * **path** (string): the absolute path to the file.
     * **_overwrite_** (boolean): whether to delete preexisting nodes at the path. `contents` must be specified if `overwrite` is true. Defaults to false.
